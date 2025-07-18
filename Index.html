@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolTime Pro - The Complete Platform for Service Businesses</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5c8a 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #4fd1c7;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #f56565, #ed8936);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 101, 101, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5c8a 50%, #4a5568 100%);
+            color: white;
+            padding: 120px 0 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,255,255,.1)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><rect width="100" height="20" fill="url(%23a)"/></svg>') repeat;
+            opacity: 0.1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9, #90cdf4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .hero-feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hero-feature h3 {
+            color: #4fd1c7;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+
+        .pricing h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2d3748;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-card.featured {
+            border: 3px solid #4fd1c7;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4fd1c7;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #2d5c8a;
+            margin: 1rem 0;
+        }
+
+        .price-subtext {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .features-list {
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .features-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            color: #48bb78;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        /* Unique Features Section */
+        .comparison {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .comparison h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2d3748;
+        }
+
+        .unique-features {
+            margin: 3rem 0;
+        }
+
+        .unique-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .unique-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid #f7fafc;
+        }
+
+        .unique-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #4fd1c7;
+        }
+
+        .unique-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .unique-card h3 {
+            color: #2d5c8a;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .unique-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .unique-badge {
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #2d5c8a 0%, #1a365d 100%);
+            color: white;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: #4fd1c7;
+            margin-bottom: 1rem;
+        }
+
+        /* Worker App Section */
+        .worker-app {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+
+        .worker-app h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2d3748;
+        }
+
+        .app-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .app-mockup {
+            background: #2d5c8a;
+            height: 500px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-mockup::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        /* CTA Section */
+        .final-cta {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .final-cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .final-cta p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-secondary {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        .cta-secondary:hover {
+            background: white;
+            color: #f56565;
+        }
+
+        /* Footer */
+        footer {
+            background: #1a202c;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-features {
+                grid-template-columns: 1fr;
+            }
+
+            .app-features {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">ToolTime Pro</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#comparison">Why ToolTime Pro</a></li>
+                <li><a href="#worker-app">Worker App</a></li>
+            </ul>
+            <a href="#get-started" class="cta-button">Get Started</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content fade-in-up">
+                <h1>The Complete Platform for Service Businesses</h1>
+                <p class="hero-subtitle">Everything you need to run, grow, and protect your business - all in one place</p>
+                
+                <div class="hero-features">
+                    <div class="hero-feature">
+                        <h3>🛡️ ToolTime Shield</h3>
+                        <p>Legal protection & compliance tools to avoid costly penalties</p>
+                    </div>
+                    <div class="hero-feature">
+                        <h3>👥 HR Pro</h3>
+                        <p>On-demand HR support for terminations, disputes & documentation</p>
+                    </div>
+                    <div class="hero-feature">
+                        <h3>📱 Worker App</h3>
+                        <p>Complete field management with GPS tracking & compliance monitoring</p>
+                    </div>
+                    <div class="hero-feature">
+                        <h3>🤖 AI Automation</h3>
+                        <p>Smart quoting, scheduling, and lead follow-up that works 24/7</p>
+                    </div>
+                </div>
+
+                <div class="cta-buttons">
+                    <a href="#get-started" class="cta-button">Start Free Trial</a>
+                    <a href="#comparison" class="cta-button cta-secondary">See What Makes Us Different</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <h2>Simple, Transparent Pricing</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="price">$49<span style="font-size: 1rem;">/mo</span></div>
+                    <p class="price-subtext">Perfect for solo operators</p>
+                    <ul class="features-list">
+                        <li>Website builder & hosting</li>
+                        <li>Online scheduling</li>
+                        <li>Basic quoting & invoicing</li>
+                        <li>ToolTime Shield essentials</li>
+                        <li>Worker time tracking</li>
+                        <li>Email automation</li>
+                    </ul>
+                    <a href="#get-started" class="cta-button">Start Free Trial</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h3>Professional</h3>
+                    <div class="price">$99<span style="font-size: 1rem;">/mo</span></div>
+                    <p class="price-subtext">Most popular for growing teams</p>
+                    <ul class="features-list">
+                        <li>Everything in Starter</li>
+                        <li>AI chatbot & lead qualification</li>
+                        <li>Advanced worker app features</li>
+                        <li>ToolTime Pro HR access</li>
+                        <li>Review automation</li>
+                        <li>Route optimization</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="#get-started" class="cta-button">Start Free Trial</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">$199<span style="font-size: 1rem;">/mo</span></div>
+                    <p class="price-subtext">For established businesses</p>
+                    <ul class="features-list">
+                        <li>Everything in Professional</li>
+                        <li>Custom integrations</li>
+                        <li>Advanced reporting & analytics</li>
+                        <li>Dedicated HR support</li>
+                        <li>White-label options</li>
+                        <li>Custom training & onboarding</li>
+                    </ul>
+                    <a href="#get-started" class="cta-button">Contact Sales</a>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <p><strong>Add-On Services Available:</strong> Google Business Setup ($99), Custom Domain Email ($49), Local SEO Boost ($299)</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="comparison" class="comparison">
+        <div class="container">
+            <h2>The Only Platform Built for Service Business Protection</h2>
+            
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <p style="font-size: 1.2rem; color: #666; max-width: 800px; margin: 0 auto;">
+                    While other platforms focus only on operations, ToolTime Pro is the first to combine business growth with legal protection.
+                </p>
+            </div>
+
+            <div class="unique-features">
+                <div class="unique-grid">
+                    <div class="unique-card">
+                        <div class="unique-icon">🛡️</div>
+                        <h3>Legal Compliance Tools</h3>
+                        <p>ToolTime Shield protects against wage penalties, final pay violations, and worker misclassification issues</p>
+                        <div class="unique-badge">Only on ToolTime Pro</div>
+                    </div>
+                    
+                    <div class="unique-card">
+                        <div class="unique-icon">👥</div>
+                        <h3>On-Demand HR Support</h3>
+                        <p>Get expert HR guidance for terminations, disputes, and documentation when you need it most</p>
+                        <div class="unique-badge">Only on ToolTime Pro</div>
+                    </div>
+                    
+                    <div class="unique-card">
+                        <div class="unique-icon">⏱️</div>
+                        <h3>California Break Compliance</h3>
+                        <p>Automated break tracking and reminders to keep you compliant with state labor laws</p>
+                        <div class="unique-badge">Only on ToolTime Pro</div>
+                    </div>
+                    
+                    <div class="unique-card">
+                        <div class="unique-icon">🤖</div>
+                        <h3>Built-In AI Automation</h3>
+                        <p>Smart lead qualification, automated follow-ups, and intelligent scheduling - not an expensive add-on</p>
+                        <div class="unique-badge">Included from $49/mo</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: linear-gradient(135deg, #f7fafc, #edf2f7); border-radius: 12px;">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    <strong>Compare that to enterprise platforms starting at $245+/month with no legal protection.</strong>
+                </p>
+                <p style="color: #666;">
+                    ToolTime Pro gives you everything you need to grow <em>and</em> protect your business, starting at just $49/month.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Everything Your Business Needs</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Professional Website</h3>
+                    <p>Custom website with online booking, lead capture forms, and SEO optimization. No coding required.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Chatbot & Automation</h3>
+                    <p>24/7 customer support, lead qualification, and automated follow-ups that convert prospects into customers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3>Smart Scheduling</h3>
+                    <p>Online booking system with calendar integration, automatic reminders, and route optimization.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Quoting & Invoicing</h3>
+                    <p>Professional estimates, automated invoicing, and integrated payment processing with Stripe.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⭐</div>
+                    <h3>Review Management</h3>
+                    <p>Automated review requests, reputation monitoring, and tools to showcase your best feedback.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📧</div>
+                    <h3>Email Marketing</h3>
+                    <p>Automated email sequences, customer newsletters, and targeted campaigns to drive repeat business.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="worker-app" class="worker-app">
+        <div class="container">
+            <h2>Complete Worker Management App</h2>
+            <div class="app-features">
+                <div class="app-mockup">
+                    <div style="text-align: center;">
+                        <h3>📱 ToolTime Worker App</h3>
+                        <p>GPS Clock In/Out</p>
+                        <p>Job Assignments</p>
+                        <p>Route Navigation</p>
+                        <p>Photo Documentation</p>
+                        <p>Break Tracking</p>
+                        <p>Incident Reporting</p>
+                    </div>
+                </div>
+                <div>
+                    <h3>The Only Worker App Built for Compliance</h3>
+                    <ul class="features-list">
+                        <li><strong>GPS Clock In/Out:</strong> Accurate time tracking with location verification</li>
+                        <li><strong>Break Compliance:</strong> California-ready break tracking and reminders</li>
+                        <li><strong>Job Management:</strong> View assignments, customer details, and work orders</li>
+                        <li><strong>Route Optimization:</strong> Efficient navigation between job sites</li>
+                        <li><strong>Photo Documentation:</strong> Before/after photos for quality assurance</li>
+                        <li><strong>Incident Reporting:</strong> Safety incident tracking and documentation</li>
+                        <li><strong>End-of-Day Reports:</strong> Automatic summaries and time logs</li>
+                        <li><strong>AI Assistant:</strong> Smart help for common questions and tasks</li>
+                    </ul>
+                    <p style="margin-top: 1rem; font-style: italic;">Unlike other platforms, our worker app is designed specifically for service businesses with compliance requirements in mind.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta" id="get-started">
+        <div class="container">
+            <h2>Ready to Transform Your Business?</h2>
+            <p>Join thousands of service businesses already using ToolTime Pro to grow revenue and stay compliant.</p>
+            <div class="cta-buttons">
+                <a href="#" class="cta-button">Start Your Free Trial</a>
+                <a href="#" class="cta-button cta-secondary">Schedule a Demo</a>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+                No credit card required • 14-day free trial • Cancel anytime
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="logo" style="margin-bottom: 1rem;">ToolTime Pro</div>
+            <p>&copy; 2025 ToolTime Pro. All rights reserved.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">
+                The complete business platform for service professionals
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple scroll animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards and sections
+        document.querySelectorAll('.pricing-card, .feature-card, .hero-feature').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
