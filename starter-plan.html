@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolTime Pro Starter - Everything You Need to Run Your Business</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5c8a 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #4fd1c7;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #f56565, #ed8936);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 101, 101, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5c8a 50%, #4a5568 100%);
+            color: white;
+            padding: 120px 0 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,255,255,.1)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><rect width="100" height="20" fill="url(%23a)"/></svg>') repeat;
+            opacity: 0.1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9, #90cdf4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .price-banner {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2rem;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(79, 209, 199, 0.5);
+            margin: 2rem auto;
+            max-width: 500px;
+        }
+
+        .price-banner .price {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #4fd1c7;
+            display: block;
+        }
+
+        .price-banner .period {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .value-prop {
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            color: #81e6d9;
+        }
+
+        /* Features Overview */
+        .features-overview {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-module {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 4px solid #4fd1c7;
+        }
+
+        .feature-module:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .module-title {
+            font-size: 1.5rem;
+            color: #2d5c8a;
+            font-weight: bold;
+        }
+
+        .module-features {
+            list-style: none;
+        }
+
+        .module-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .module-features li::before {
+            content: '✓';
+            color: #48bb78;
+            font-weight: bold;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        /* Detailed Breakdown */
+        .detailed-breakdown {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .breakdown-section {
+            margin-bottom: 4rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .breakdown-section:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-header {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 3rem;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .breakdown-visual {
+            background: linear-gradient(135deg, #2d5c8a, #1a365d);
+            height: 300px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .breakdown-visual::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .breakdown-content h3 {
+            font-size: 2rem;
+            color: #2d5c8a;
+            margin-bottom: 1rem;
+        }
+
+        .breakdown-content p {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .feature-item {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #4fd1c7;
+        }
+
+        .feature-item strong {
+            color: #2d5c8a;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* What You Get Summary */
+        .value-summary {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #2d5c8a 0%, #1a365d 100%);
+            color: white;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4fd1c7;
+            display: block;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        /* Getting Started */
+        .getting-started {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1rem auto;
+        }
+
+        /* CTA Section */
+        .final-cta {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .cta-secondary {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        .cta-secondary:hover {
+            background: white;
+            color: #f56565;
+        }
+
+        .guarantee {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .breakdown-header {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">ToolTime Pro</div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#demo">Demo</a></li>
+            </ul>
+            <a href="#get-started" class="cta-button">Start Free Trial</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content fade-in-up">
+                <h1>ToolTime Pro Starter</h1>
+                <p class="hero-subtitle">Everything you need to run your service business professionally. Complete business management platform starting at just $49/month.</p>
+                
+                <div class="price-banner">
+                    <span class="price">$49</span>
+                    <span class="period">per month</span>
+                    <div class="value-prop">Complete business platform • No setup fees • Cancel anytime</div>
+                </div>
+
+                <div class="cta-buttons">
+                    <a href="#get-started" class="cta-button">Start Your Free Trial</a>
+                    <a href="#features" class="cta-button cta-secondary">See What's Included</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features-overview">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 2rem; color: #2d3748;">Complete Business Platform - All Included</h2>
+            <p style="text-align: center; font-size: 1.2rem; color: #666; max-width: 600px; margin: 0 auto;">Six core modules that handle every aspect of your service business, from first contact to final payment</p>
+            
+            <div class="features-grid">
+                <div class="feature-module">
+                    <div class="module-header">
+                        <div class="module-icon">🌐</div>
+                        <div class="module-title">Professional Website</div>
+                    </div>
+                    <ul class="module-features">
+                        <li>Custom branded website with your logo & colors</li>
+                        <li>Mobile-responsive design</li>
+                        <li>Online booking calendar</li>
+                        <li>Service pages & pricing display</li>
+                        <li>Contact forms & lead capture</li>
+                        <li>SEO optimization included</li>
+                        <li>Free hosting & SSL certificate</li>
+                    </ul>
+                </div>
+
+                <div class="feature-module">
+                    <div class="module-header">
+                        <div class="module-icon">📅</div>
+                        <div class="module-title">Smart Scheduling</div>
+                    </div>
+                    <ul class="module-features">
+                        <li>Online customer booking system</li>
+                        <li>Calendar integration (Google, Outlook)</li>
+                        <li>Automated appointment reminders</li>
+                        <li>Route optimization for multiple jobs</li>
+                        <li>Time slot management & availability</li>
+                        <li>Recurring service scheduling</li>
+                        <li>No-show prevention tools</li>
+                    </ul>
+                </div>
+
+                <div class="feature-module">
+                    <div class="module-header">
+                        <div class="module-icon">💰</div>
+                        <div class="module-title">Professional Quoting</div>
+                    </div>
+                    <ul class="module-features">
+                        <li>Branded quote templates</li>
+                        <li>Smart pricing suggestions</li>
+                        <li>Digital signatures</li>
+                        <li>Photo attachments</li>
+                        <li>Email delivery & tracking</li>
+                        <li>Quote approval notifications</li>
+                        <li>Convert quotes to jobs instantly</li>
+                    </ul>
+                </div>
+
+                <div class="feature-module">
+                    <div class="module-header">
+                        <div class="module-icon">📋</div>
+                        <div class="module-title">Invoicing & Payments</div>
+                    </div>
+                    <ul class="module-features">
+                        <li>Professional branded invoices</li>
+                        <li>Automatic invoice generation</li>
+                        <li>Online payment processing</li>
+                        <li>Payment tracking & reminders</li>
+                        <li>Recurring billing automation</li>
+                        <li>Tax calculation & reporting</li>
+                        <li>Customer payment portal</li>
+                    </ul>
+                </div>
+
+                <div class="feature-module">
+                    <div class="module-header">
+                        <div class="module-icon">👥</div>
+                        <div class="module-title">Customer Management</div>
+                    </div>
+                    <ul class="module-features">
+                        <li>Complete customer database</li>
+                        <li>Service history tracking</li>
+                        <li>Communication log</li>
+                        <li>Customer notes & preferences</li>
+                        <li>Automated follow-up emails</li>
+                        <li>Review request automation</li>
+                        <li>Customer loyalty tracking</li>
+                    </ul>
+                </div>
+
+                <div class="feature-module">
+                    <div class="module-header">
+                        <div class="module-icon">📱</div>
+                        <div class="module-title">Mobile Worker App</div>
+                    </div>
+                    <ul class="module-features">
+                        <li>GPS clock in/out tracking</li>
+                        <li>Job assignment viewing</li>
+                        <li>Customer contact information</li>
+                        <li>Before/after photo capture</li>
+                        <li>Basic time tracking</li>
+                        <li>Job completion reporting</li>
+                        <li>Navigation to job sites</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="detailed-breakdown">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: #2d3748;">Detailed Feature Breakdown</h2>
+            
+            <div class="breakdown-section">
+                <div class="breakdown-header">
+                    <div class="breakdown-visual">
+                        <div>
+                            <h3>🌐 Your Professional Website</h3>
+                            <p>Custom Domain: yourcompany.com</p>
+                            <p>Mobile Responsive</p>
+                            <p>Online Booking</p>
+                        </div>
+                    </div>
+                    <div class="breakdown-content">
+                        <h3>Professional Website & Online Presence</h3>
+                        <p>Get a complete, professional website that showcases your services and captures leads 24/7. No technical skills required.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <strong>Custom Design</strong>
+                                Your logo, colors, and branding throughout
+                            </div>
+                            <div class="feature-item">
+                                <strong>Service Pages</strong>
+                                Detailed descriptions of all your services
+                            </div>
+                            <div class="feature-item">
+                                <strong>Online Booking</strong>
+                                Customers can schedule appointments instantly
+                            </div>
+                            <div class="feature-item">
+                                <strong>Lead Forms</strong>
+                                Capture contact info and service requests
+                            </div>
+                            <div class="feature-item">
+                                <strong>SEO Ready</strong>
+                                Optimized to show up in Google searches
+                            </div>
+                            <div class="feature-item">
+                                <strong>Mobile Friendly</strong>
+                                Looks perfect on phones and tablets
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="breakdown-section">
+                <div class="breakdown-header">
+                    <div class="breakdown-content">
+                        <h3>Smart Scheduling & Calendar Management</h3>
+                        <p>Never miss an appointment or double-book again. Intelligent scheduling that works with your existing calendar.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <strong>Online Booking</strong>
+                                Customers book appointments directly
+                            </div>
+                            <div class="feature-item">
+                                <strong>Calendar Sync</strong>
+                                Works with Google Calendar & Outlook
+                            </div>
+                            <div class="feature-item">
+                                <strong>Auto Reminders</strong>
+                                SMS & email reminders reduce no-shows
+                            </div>
+                            <div class="feature-item">
+                                <strong>Route Planning</strong>
+                                Optimize travel between job sites
+                            </div>
+                            <div class="feature-item">
+                                <strong>Availability Control</strong>
+                                Set your working hours and break times
+                            </div>
+                            <div class="feature-item">
+                                <strong>Recurring Jobs</strong>
+                                Schedule weekly, monthly, seasonal work
+                            </div>
+                        </div>
+                    </div>
+                    <div class="breakdown-visual">
+                        <div>
+                            <h3>📅 Smart Scheduling</h3>
+                            <p>Calendar Integration</p>
+                            <p>Auto Reminders</p>
+                            <p>Route Optimization</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="breakdown-section">
+                <div class="breakdown-header">
+                    <div class="breakdown-visual">
+                        <div>
+                            <h3>💰 Professional Quoting</h3>
+                            <p>Digital Signatures</p>
+                            <p>Smart Pricing</p>
+                            <p>Instant Delivery</p>
+                        </div>
+                    </div>
+                    <div class="breakdown-content">
+                        <h3>Professional Quoting System</h3>
+                        <p>Create winning quotes that get approved faster. Professional presentation with smart pricing suggestions.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <strong>Branded Templates</strong>
+                                Professional quotes with your branding
+                            </div>
+                            <div class="feature-item">
+                                <strong>Smart Pricing</strong>
+                                AI suggestions based on your costs
+                            </div>
+                            <div class="feature-item">
+                                <strong>Digital Signatures</strong>
+                                Customers sign electronically
+                            </div>
+                            <div class="feature-item">
+                                <strong>Photo Attachments</strong>
+                                Include before photos and diagrams
+                            </div>
+                            <div class="feature-item">
+                                <strong>Instant Delivery</strong>
+                                Email quotes immediately
+                            </div>
+                            <div class="feature-item">
+                                <strong>Approval Tracking</strong>
+                                Know when quotes are viewed and signed
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="breakdown-section">
+                <div class="breakdown-header">
+                    <div class="breakdown-content">
+                        <h3>Complete Customer Management</h3>
+                        <p>Keep track of every customer interaction, service history, and communication in one organized system.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <strong>Customer Database</strong>
+                                All contact info in one place
+                            </div>
+                            <div class="feature-item">
+                                <strong>Service History</strong>
+                                Complete record of all past work
+                            </div>
+                            <div class="feature-item">
+                                <strong>Communication Log</strong>
+                                Track all calls, emails, and texts
+                            </div>
+                            <div class="feature-item">
+                                <strong>Notes & Preferences</strong>
+                                Remember important customer details
+                            </div>
+                            <div class="feature-item">
+                                <strong>Automated Follow-ups</strong>
+                                Stay in touch without manual work
+                            </div>
+                            <div class="feature-item">
+                                <strong>Review Requests</strong>
+                                Automatically ask for reviews
+                            </div>
+                        </div>
+                    </div>
+                    <div class="breakdown-visual">
+                        <div>
+                            <h3>👥 Customer Management</h3>
+                            <p>Complete Database</p>
+                            <p>Service History</p>
+                            <p>Auto Follow-ups</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="value-summary">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 2rem;">What You Get with ToolTime Pro Starter</h2>
+            <p style="text-align: center; font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto;">A complete business management platform that typically costs $200+ elsewhere</p>
+            
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-number">6</span>
+                    <span class="summary-label">Core Business Modules</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">∞</span>
+                    <span class="summary-label">Unlimited Customers</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">∞</span>
+                    <span class="summary-label">Unlimited Quotes</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">∞</span>
+                    <span class="summary-label">Unlimited Invoices</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">24/7</span>
+                    <span class="summary-label">Online Booking</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">✓</span>
+                    <span class="summary-label">Mobile Worker App</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="getting-started">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 2rem; color: #2d3748;">Get Started in Minutes</h2>
+            <p style="text-align: center; font-size: 1.2rem; color: #666; max-width: 600px; margin: 0 auto;">Setup is simple and fast. Most customers are up and running within 30 minutes.</p>
+            
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Sign Up</h3>
+                    <p>Create your account and choose ToolTime Pro Starter. No credit card required for your free trial.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Add Your Info</h3>
+                    <p>Enter your business details, services, and pricing. We'll set up your website and booking system automatically.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Start Taking Bookings</h3>
+                    <p>Share your booking link with customers and start managing your business professionally right away.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Download Worker App</h3>
+                    <p>Install the mobile app for field workers to track time, view jobs, and update customers on progress.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta" id="get-started">
+        <div class="container">
+            <h2>Ready to Run Your Business Like a Pro?</h2>
+            <p>Everything you need to manage customers, schedule jobs, send quotes, and get paid - all for just $49/month.</p>
+            
+            <div class="guarantee">
+                <h3>🛡️ Risk-Free Guarantee</h3>
+                <p>14-day free trial • No setup fees • Cancel anytime • 30-day money-back guarantee</p>
+            </div>
+            
+            <div class="cta-buttons">
+                <a href="#" class="cta-button">Start Your Free Trial</a>
+                <a href="#" class="cta-button cta-secondary">Schedule a Demo</a>
+            </div>
+            
+            <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+                Join 2,000+ service professionals already using ToolTime Pro
+            </p>
+        </div>
+    </section>
+
+    <script>
+        // Simple scroll animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards and sections
+        document.querySelectorAll('.feature-module, .step-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
