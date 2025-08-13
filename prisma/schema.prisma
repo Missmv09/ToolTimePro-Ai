@@ -1,0 +1,84 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String  @id @default(cuid())
+  email     String  @unique
+  name      String?
+  role      Role    @default(OWNER)
+  orgId     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Org {
+  id        String  @id @default(cuid())
+  name      String
+  stripeId  String?
+  users     User[]
+  clients   Client[]
+  quotes    Quote[]
+  invoices  Invoice[]
+  createdAt DateTime @default(now())
+}
+
+model Client {
+  id        String  @id @default(cuid())
+  orgId     String
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Org      @relation(fields: [orgId], references: [id])
+}
+
+model Quote {
+  id        String  @id @default(cuid())
+  orgId     String
+  clientId  String
+  number    Int      @default(autoincrement())
+  status    QuoteStatus @default(DRAFT)
+  items     Json
+  subtotal  Decimal  @default(0)
+  tax       Decimal  @default(0)
+  total     Decimal  @default(0)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Org     @relation(fields: [orgId], references: [id])
+  client    Client  @relation(fields: [clientId], references: [id])
+}
+
+model Invoice {
+  id        String  @id @default(cuid())
+  orgId     String
+  clientId  String
+  quoteId   String?
+  number    Int      @default(autoincrement())
+  status    InvoiceStatus @default(UNPAID)
+  items     Json
+  subtotal  Decimal  @default(0)
+  tax       Decimal  @default(0)
+  total     Decimal  @default(0)
+  stripePaymentIntent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Org     @relation(fields: [orgId], references: [id])
+  client    Client  @relation(fields: [clientId], references: [id])
+  quote     Quote?  @relation(fields: [quoteId], references: [id])
+}
+
+enum Role { OWNER MANAGER WORKER }
+
+enum QuoteStatus { DRAFT SENT APPROVED REJECTED }
+
+enum InvoiceStatus { UNPAID PAID VOID }
