@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final Pay Calculator - ToolTime Pro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #1a1a2e;
+      padding: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+      background: #f5f5f5;
+    }
+    .header {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a1a2e;
+    }
+    .logo span { color: #f5a623; }
+    h1 { font-size: 28px; margin-top: 10px; }
+    h2 {
+      color: #1a1a2e;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1a1a2e;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #f5a623;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .btn {
+      background: #1a1a2e;
+      color: white;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #333357;
+    }
+    .btn-secondary {
+      background: #f5a623;
+      color: #1a1a2e;
+    }
+    .btn-secondary:hover {
+      background: #dd951f;
+    }
+    .result-box {
+      background: #fef5e6;
+      border: 2px solid #f5a623;
+      border-radius: 8px;
+      padding: 25px;
+      margin-top: 20px;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5d78e;
+    }
+    .result-row:last-child {
+      border-bottom: none;
+      font-weight: bold;
+      font-size: 18px;
+      padding-top: 15px;
+    }
+    .result-label { color: #666; }
+    .result-value { font-weight: 600; color: #1a1a2e; }
+    .deadline-box {
+      background: #1a1a2e;
+      color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .deadline-box h3 {
+      color: #f5a623;
+      margin-bottom: 10px;
+    }
+    .deadline-date {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .penalty-warning {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .penalty-warning h4 { color: #dc2626; margin-bottom: 10px; }
+    .info-box {
+      background: #e0f2fe;
+      border-left: 4px solid #0284c7;
+      padding: 15px;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    .rules-table th {
+      background: #1a1a2e;
+      color: white;
+      padding: 12px;
+      text-align: left;
+    }
+    .rules-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+    .rules-table tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #666;
+    }
+    @media print {
+      body { background: white; padding: 20px; }
+      .card { box-shadow: none; border: 1px solid #ddd; }
+      .btn { display: none; }
+    }
+    @media (max-width: 600px) {
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">ToolTime <span>Pro</span></div>
+    <h1>California Final Pay Calculator</h1>
+    <p>Determine payment deadlines and calculate final wages</p>
+  </div>
+
+  <div class="card">
+    <h2>California Final Pay Rules</h2>
+    <table class="rules-table">
+      <thead>
+        <tr>
+          <th>Termination Type</th>
+          <th>When Final Pay is Due</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Fired/Laid Off</strong> (Involuntary)</td>
+          <td>Immediately at time of termination (same day)</td>
+        </tr>
+        <tr>
+          <td><strong>Quit with 72+ Hours Notice</strong></td>
+          <td>On the employee's last day of work</td>
+        </tr>
+        <tr>
+          <td><strong>Quit with Less Than 72 Hours Notice</strong></td>
+          <td>Within 72 hours of resignation</td>
+        </tr>
+        <tr>
+          <td><strong>Quit - No Notice</strong></td>
+          <td>Within 72 hours of last day worked</td>
+        </tr>
+        <tr>
+          <td><strong>Seasonal Employment End</strong></td>
+          <td>Within 72 hours</td>
+        </tr>
+        <tr>
+          <td><strong>Motion Picture Industry</strong></td>
+          <td>Next regular payday</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="info-box">
+      <strong>Important:</strong> Final pay must include ALL wages owed: regular pay, overtime, commissions,
+      bonuses, and accrued/unused vacation or PTO. California law prohibits "use it or lose it" vacation policies.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Calculate Final Pay</h2>
+    <form id="finalPayForm">
+      <div class="row">
+        <div class="form-group">
+          <label>Termination Type</label>
+          <select id="termType" onchange="updateDeadline()">
+            <option value="fired">Fired / Laid Off (Involuntary)</option>
+            <option value="quit72">Quit with 72+ Hours Notice</option>
+            <option value="quitless72">Quit with Less Than 72 Hours Notice</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Last Day Worked</label>
+          <input type="date" id="lastDay" onchange="updateDeadline()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Hourly Rate ($)</label>
+          <input type="number" id="hourlyRate" step="0.01" placeholder="25.00">
+        </div>
+        <div class="form-group">
+          <label>Hours in Final Pay Period</label>
+          <input type="number" id="regularHours" step="0.5" placeholder="40">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Overtime Hours (1.5x)</label>
+          <input type="number" id="otHours" step="0.5" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>Double Time Hours (2x)</label>
+          <input type="number" id="dtHours" step="0.5" placeholder="0">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Accrued PTO/Vacation Hours</label>
+          <input type="number" id="ptoHours" step="0.5" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>Other Owed (commissions, bonuses, expenses)</label>
+          <input type="number" id="otherOwed" step="0.01" placeholder="0">
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-secondary" onclick="calculate()" style="width: 100%;">
+        Calculate Final Pay
+      </button>
+    </form>
+
+    <div id="results" style="display: none;">
+      <div class="result-box">
+        <h3 style="margin-bottom: 15px;">Final Pay Breakdown</h3>
+        <div class="result-row">
+          <span class="result-label">Regular Wages</span>
+          <span class="result-value" id="regWages">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Overtime (1.5x)</span>
+          <span class="result-value" id="otWages">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Double Time (2x)</span>
+          <span class="result-value" id="dtWages">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">PTO/Vacation Payout</span>
+          <span class="result-value" id="ptoWages">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Other Owed</span>
+          <span class="result-value" id="otherWages">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">TOTAL FINAL PAY (Gross)</span>
+          <span class="result-value" id="totalWages">$0.00</span>
+        </div>
+      </div>
+
+      <div class="deadline-box">
+        <h3>Payment Deadline</h3>
+        <div class="deadline-date" id="deadlineDate">--</div>
+        <p id="deadlineNote">Based on termination type</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Waiting Time Penalties</h2>
+    <p>If final wages are not paid on time, the employee is entitled to "waiting time penalties":</p>
+
+    <div class="penalty-warning">
+      <h4>Penalty Calculation</h4>
+      <p><strong>Daily Penalty:</strong> One day's wages for each day payment is late</p>
+      <p><strong>Maximum:</strong> Up to 30 days of wages</p>
+      <p style="margin-top: 10px;"><strong>Formula:</strong> Daily Wage Rate × Number of Days Late (max 30)</p>
+    </div>
+
+    <div class="info-box" style="margin-top: 20px;">
+      <strong>Example:</strong> Employee earning $200/day. Final pay is 10 days late.<br>
+      Penalty = $200 × 10 days = <strong>$2,000</strong> in waiting time penalties (in addition to wages owed)
+    </div>
+
+    <div class="form-group" style="margin-top: 20px;">
+      <label>Calculate Potential Penalty</label>
+      <div class="row">
+        <input type="number" id="dailyRate" placeholder="Daily wage rate" step="0.01">
+        <input type="number" id="daysLate" placeholder="Days late (max 30)" max="30">
+      </div>
+      <button type="button" class="btn" onclick="calculatePenalty()" style="margin-top: 10px;">
+        Calculate Penalty
+      </button>
+      <div id="penaltyResult" style="margin-top: 15px; font-size: 18px; font-weight: bold;"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>This calculator is for informational purposes only and does not constitute legal advice.</p>
+    <p>Consult with an employment attorney for specific situations.</p>
+    <p>ToolTime Pro HR Toolkit | www.tooltimepro.com</p>
+  </div>
+
+  <script>
+    // Set default date to today
+    document.getElementById('lastDay').valueAsDate = new Date();
+
+    function updateDeadline() {
+      const termType = document.getElementById('termType').value;
+      const lastDay = document.getElementById('lastDay').value;
+
+      if (!lastDay) return;
+
+      const lastDate = new Date(lastDay);
+      let deadlineDate = new Date(lastDate);
+      let note = '';
+
+      switch(termType) {
+        case 'fired':
+          note = 'Payment due IMMEDIATELY on last day of work';
+          break;
+        case 'quit72':
+          note = 'Payment due on employee\'s last day of work';
+          break;
+        case 'quitless72':
+          deadlineDate.setDate(deadlineDate.getDate() + 3);
+          note = 'Payment due within 72 hours of resignation';
+          break;
+      }
+
+      document.getElementById('deadlineDate').textContent = deadlineDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      document.getElementById('deadlineNote').textContent = note;
+    }
+
+    function calculate() {
+      const hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+      const regularHours = parseFloat(document.getElementById('regularHours').value) || 0;
+      const otHours = parseFloat(document.getElementById('otHours').value) || 0;
+      const dtHours = parseFloat(document.getElementById('dtHours').value) || 0;
+      const ptoHours = parseFloat(document.getElementById('ptoHours').value) || 0;
+      const otherOwed = parseFloat(document.getElementById('otherOwed').value) || 0;
+
+      const regWages = hourlyRate * regularHours;
+      const otWages = hourlyRate * 1.5 * otHours;
+      const dtWages = hourlyRate * 2 * dtHours;
+      const ptoWages = hourlyRate * ptoHours;
+      const total = regWages + otWages + dtWages + ptoWages + otherOwed;
+
+      document.getElementById('regWages').textContent = '$' + regWages.toFixed(2);
+      document.getElementById('otWages').textContent = '$' + otWages.toFixed(2);
+      document.getElementById('dtWages').textContent = '$' + dtWages.toFixed(2);
+      document.getElementById('ptoWages').textContent = '$' + ptoWages.toFixed(2);
+      document.getElementById('otherWages').textContent = '$' + otherOwed.toFixed(2);
+      document.getElementById('totalWages').textContent = '$' + total.toFixed(2);
+
+      document.getElementById('results').style.display = 'block';
+      updateDeadline();
+    }
+
+    function calculatePenalty() {
+      const dailyRate = parseFloat(document.getElementById('dailyRate').value) || 0;
+      let daysLate = parseInt(document.getElementById('daysLate').value) || 0;
+
+      daysLate = Math.min(daysLate, 30); // Cap at 30 days
+
+      const penalty = dailyRate * daysLate;
+
+      document.getElementById('penaltyResult').innerHTML =
+        `Potential Waiting Time Penalty: <span style="color: #dc2626;">$${penalty.toFixed(2)}</span>`;
+    }
+  </script>
+</body>
+</html>
