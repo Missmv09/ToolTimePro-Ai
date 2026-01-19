@@ -3,1004 +3,730 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToolTime Shield - CA Compliance Calculator</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>ToolTime Shield | ToolTime Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
     <style>
         :root {
-            --primary: #1a1a2e;
-            --primary-light: #2d2d44;
-            --accent: #f5a623;
-            --accent-hover: #e69516;
+            --navy: #1a1a2e;
+            --navy-light: #252542;
+            --gold: #f5a623;
+            --gold-light: #ffc857;
             --success: #00c853;
+            --warning: #ffab00;
             --danger: #ff5252;
-            --warning: #ffab40;
-            --info: #40c4ff;
-            --white: #ffffff;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
+            --info: #2196f3;
+            --text: #e8e8e8;
+            --text-muted: #a0a0b0;
+            --border: #3a3a5a;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--gray-100);
-            color: var(--gray-800);
+            background: var(--navy);
+            color: var(--text);
             min-height: 100vh;
-        }
-
-        .stats-number {
-            font-family: 'JetBrains Mono', monospace;
         }
 
         /* Header */
         .header {
-            background: var(--primary);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--navy-light);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .header-logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--white);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .header-logo span {
-            color: var(--accent);
-        }
-
-        .header-badge {
-            background: var(--accent);
-            color: var(--primary);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .back-btn {
-            color: var(--gray-400);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            transition: color 0.2s;
-        }
-
-        .back-btn:hover {
-            color: var(--accent);
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .hero-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: 1rem;
-        }
-
-        .hero h1 span {
-            color: var(--accent);
-        }
-
-        .hero p {
-            color: var(--gray-400);
-            font-size: 1.1rem;
-            max-width: 600px;
+        .header-content {
+            max-width: 1400px;
             margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .back-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 0.8; }
+
+        .header-title h1 { font-size: 1.5rem; font-weight: 700; color: white; }
+        .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
+
+        .demo-badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Main Content */
-        .main {
-            max-width: 1200px;
+        .main-container {
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 24px;
         }
 
-        /* Tabs */
-        .tabs {
+        /* Tool Tabs */
+        .tool-tabs {
             display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: 12px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
         }
 
-        .tab {
-            padding: 1rem 2rem;
-            background: var(--white);
-            border: 2px solid var(--gray-200);
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .tab:hover {
-            border-color: var(--accent);
-        }
-
-        .tab.active {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: var(--primary);
-        }
-
-        .tab-icon {
-            font-size: 1.25rem;
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Card */
-        .card {
-            background: var(--white);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 2rem;
-        }
-
-        .card-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .card-body {
-            padding: 2rem;
-        }
-
-        /* Classification Flowchart */
-        .flowchart {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .flowchart-node {
-            background: var(--gray-50);
-            border: 2px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 1.5rem 2rem;
-            max-width: 500px;
-            text-align: center;
-            position: relative;
-        }
-
-        .flowchart-node.question {
-            background: var(--primary);
-            color: var(--white);
-            border-color: var(--primary);
-        }
-
-        .flowchart-node.question h3 {
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-        }
-
-        .flowchart-node.result-employee {
-            background: rgba(0, 200, 83, 0.1);
-            border-color: var(--success);
-        }
-
-        .flowchart-node.result-contractor {
-            background: rgba(64, 196, 255, 0.1);
-            border-color: var(--info);
-        }
-
-        .flowchart-node.result-risk {
-            background: rgba(255, 82, 82, 0.1);
-            border-color: var(--danger);
-        }
-
-        .flowchart-arrow {
-            width: 2px;
-            height: 30px;
-            background: var(--gray-300);
-            position: relative;
-        }
-
-        .flowchart-arrow::after {
-            content: "▼";
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--gray-300);
-            font-size: 0.75rem;
-        }
-
-        .flowchart-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .flowchart-btn {
-            padding: 0.75rem 2rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .flowchart-btn.yes {
-            background: var(--success);
-            color: white;
-        }
-
-        .flowchart-btn.no {
-            background: var(--danger);
-            color: white;
-        }
-
-        .flowchart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .flowchart-result {
-            display: none;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .flowchart-result.active {
-            display: block;
-        }
-
-        .result-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .result-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .result-title.employee {
-            color: var(--success);
-        }
-
-        .result-title.contractor {
-            color: var(--info);
-        }
-
-        .result-title.risk {
-            color: var(--danger);
-        }
-
-        /* ABC Test */
-        .abc-test {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        .abc-factor {
-            background: var(--gray-50);
-            border-radius: 12px;
-            padding: 1.5rem;
-            border: 2px solid var(--gray-200);
-            transition: all 0.2s;
-        }
-
-        .abc-factor:hover {
-            border-color: var(--accent);
-        }
-
-        .abc-letter {
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            color: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-
-        .abc-factor h4 {
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .abc-factor p {
-            color: var(--gray-600);
-            font-size: 0.875rem;
-            line-height: 1.6;
-        }
-
-        /* Final Wage Calculator */
-        .calculator {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        .calc-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: var(--gray-700);
-            font-size: 0.875rem;
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 1rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .form-hint {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-        }
-
-        .calc-btn {
-            background: var(--accent);
-            color: var(--primary);
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .calc-btn:hover {
-            background: var(--accent-hover);
-            transform: translateY(-2px);
-        }
-
-        .calc-results {
-            background: var(--gray-50);
-            border-radius: 12px;
-            padding: 2rem;
-        }
-
-        .calc-results h3 {
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .result-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .result-label {
-            color: var(--gray-600);
-        }
-
-        .result-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .result-total {
-            background: var(--primary);
-            color: var(--white);
-            margin: 1.5rem -2rem -2rem;
-            padding: 1.5rem 2rem;
-            border-radius: 0 0 12px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .result-total .result-label {
-            color: var(--gray-300);
-            font-weight: 600;
-        }
-
-        .result-total .result-value {
-            color: var(--accent);
-            font-size: 1.5rem;
-        }
-
-        /* Penalty Estimator */
-        .penalty-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        .penalty-card {
-            background: var(--gray-50);
-            border-radius: 12px;
-            padding: 1.5rem;
-            border-left: 4px solid var(--danger);
-        }
-
-        .penalty-card.warning {
-            border-left-color: var(--warning);
-        }
-
-        .penalty-card.moderate {
-            border-left-color: var(--accent);
-        }
-
-        .penalty-card.severe {
-            border-left-color: var(--danger);
-        }
-
-        .penalty-type {
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .penalty-desc {
-            color: var(--gray-600);
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-
-        .penalty-amount {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .penalty-amount.warning {
-            color: var(--warning);
-        }
-
-        .penalty-amount.moderate {
-            color: var(--accent);
-        }
-
-        .penalty-amount.severe {
-            color: var(--danger);
-        }
-
-        /* Penalty Calculator */
-        .penalty-calculator {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-top: 2rem;
-            border: 2px solid var(--gray-200);
-        }
-
-        .penalty-calculator h3 {
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-        }
-
-        .penalty-inputs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .penalty-result-box {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .penalty-result-label {
-            color: var(--gray-400);
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .penalty-result-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--danger);
-        }
-
-        .penalty-result-note {
-            color: var(--gray-500);
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Risk Meter */
-        .risk-meter {
-            margin-top: 2rem;
-        }
-
-        .risk-bar {
-            height: 20px;
-            background: linear-gradient(90deg, var(--success) 0%, var(--warning) 50%, var(--danger) 100%);
+        .tool-tab {
+            padding: 12px 24px;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            position: relative;
-            margin-bottom: 0.5rem;
-        }
-
-        .risk-indicator {
-            position: absolute;
-            top: -8px;
-            width: 36px;
-            height: 36px;
-            background: var(--white);
-            border: 3px solid var(--primary);
-            border-radius: 50%;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 8px;
+        }
+
+        .tool-tab:hover { border-color: var(--gold); color: var(--gold); }
+        .tool-tab.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+        /* Tool Panels */
+        .tool-panel {
+            display: none;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .tool-panel.active { display: block; }
+
+        .tool-header {
+            background: rgba(245, 166, 35, 0.1);
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tool-header h2 {
+            font-size: 1.25rem;
             font-weight: 700;
-            font-size: 0.75rem;
-            transform: translateX(-50%);
-            transition: left 0.5s ease;
-        }
-
-        .risk-labels {
+            margin-bottom: 8px;
             display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--gray-500);
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Compliance Checklist */
-        .checklist {
-            margin-top: 2rem;
+        .tool-header p { color: var(--text-muted); font-size: 0.9375rem; }
+
+        .tool-body { padding: 24px; }
+
+        /* Quiz Styles */
+        .quiz-question {
+            background: var(--navy);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
         }
 
-        .checklist-item {
+        .quiz-question h4 {
+            font-size: 1rem;
+            margin-bottom: 16px;
             display: flex;
             align-items: flex-start;
-            gap: 1rem;
-            padding: 1rem;
-            background: var(--gray-50);
+            gap: 10px;
+        }
+
+        .quiz-question h4 .q-num {
+            background: var(--gold);
+            color: var(--navy);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            margin-bottom: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .checklist-item:hover {
-            background: var(--gray-100);
-        }
+        .quiz-option:hover { border-color: var(--gold); }
+        .quiz-option.selected { border-color: var(--gold); background: rgba(245, 166, 35, 0.1); }
 
-        .checklist-item.checked {
-            background: rgba(0, 200, 83, 0.1);
-        }
+        .quiz-option input { display: none; }
 
-        .checklist-checkbox {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--gray-300);
-            border-radius: 6px;
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio {
+            border-color: var(--gold);
+        }
+
+        .quiz-option.selected .quiz-radio::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--gold);
+            border-radius: 50%;
+        }
+
+        .quiz-label { font-size: 0.9375rem; }
+
+        .quiz-result {
+            background: var(--navy);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 24px;
+            display: none;
+        }
+
+        .quiz-result.show { display: block; }
+
+        .result-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .result-title.contractor { color: var(--success); }
+        .result-title.employee { color: var(--info); }
+        .result-title.gray { color: var(--warning); }
+
+        .result-description {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .result-disclaimer {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(255, 171, 0, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--warning);
+        }
+
+        .quiz-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--gold);
+            color: var(--navy);
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 24px;
             transition: all 0.2s;
         }
 
-        .checklist-item.checked .checklist-checkbox {
-            background: var(--success);
-            border-color: var(--success);
-            color: white;
+        .quiz-btn:hover { opacity: 0.9; }
+
+        /* Calculator Styles */
+        .calc-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
-        .checklist-text h4 {
-            color: var(--primary);
+        .calc-inputs {
+            background: var(--navy);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .calc-inputs h3 {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8125rem;
             font-weight: 600;
-            margin-bottom: 0.25rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
         }
 
-        .checklist-text p {
-            color: var(--gray-600);
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .calc-result {
+            background: var(--navy);
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid var(--border);
+        }
+
+        .calc-result h3 {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-box {
+            background: rgba(245, 166, 35, 0.1);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .result-label {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .result-date {
+            font-size: 1rem;
+            color: var(--text);
+            margin-top: 8px;
+        }
+
+        .result-warning {
+            background: rgba(255, 82, 82, 0.1);
+            border-left: 3px solid var(--danger);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .result-warning h4 {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+        }
+
+        .result-warning p {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .result-rules {
+            margin-top: 16px;
+        }
+
+        .result-rules h4 {
+            font-size: 0.875rem;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+        }
+
+        .rule-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
             font-size: 0.875rem;
         }
 
+        .rule-item:last-child { border-bottom: none; }
+
+        .rule-type {
+            min-width: 140px;
+            color: var(--text-muted);
+        }
+
+        .rule-deadline { font-weight: 600; color: var(--gold); }
+
+        /* Document Library */
+        .doc-section {
+            margin-bottom: 24px;
+        }
+
+        .doc-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .doc-list {
+            background: var(--navy);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .doc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .doc-item:last-child { border-bottom: none; }
+        .doc-item:hover { background: rgba(245, 166, 35, 0.1); }
+
+        .doc-icon { font-size: 1.25rem; }
+
+        .doc-name {
+            flex: 1;
+            font-size: 0.9375rem;
+        }
+
+        .doc-download {
+            color: var(--gold);
+            font-size: 0.8125rem;
+            font-weight: 500;
+        }
+
+        .download-all-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--navy);
+            border: 2px solid var(--gold);
+            border-radius: 10px;
+            color: var(--gold);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: all 0.2s;
+        }
+
+        .download-all-btn:hover {
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 48px;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(245, 166, 35, 0.05));
+            border: 2px solid var(--gold);
+            border-radius: 16px;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .cta-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .cta-content p { color: var(--text-muted); }
+
+        .cta-btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 16px 32px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+        }
+
         /* Responsive */
-        @media (max-width: 1024px) {
-            .abc-test {
-                grid-template-columns: 1fr;
-            }
-
-            .calculator {
-                grid-template-columns: 1fr;
-            }
-
-            .penalty-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .penalty-inputs {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 900px) {
+            .calc-section { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .tabs {
-                flex-direction: column;
-            }
-
-            .tab {
-                justify-content: center;
-            }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .tool-tabs { flex-direction: column; }
+            .tool-tab { justify-content: center; }
+            .cta-box { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
-        <a href="index.html" class="header-logo">ToolTime <span>Pro</span></a>
-        <div class="header-badge">🛡️ Shield</div>
-        <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
+        <div class="header-content">
+            <a href="index.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to ToolTime Pro
+            </a>
+            <div class="header-title">
+                <h1>ToolTime Shield</h1>
+                <p>Protect yourself from costly legal mistakes. CA compliance made simple.</p>
+            </div>
+            <span class="demo-badge">Interactive Tools</span>
+        </div>
     </header>
 
-    <!-- Hero -->
-    <section class="hero">
-        <div class="hero-icon">🛡️</div>
-        <h1>ToolTime <span>Shield</span></h1>
-        <p>California labor law compliance made simple. Protect your business from costly penalties with our automated tools.</p>
-    </section>
-
-    <!-- Main Content -->
-    <main class="main">
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('classification')">
-                <span class="tab-icon">👷</span>
-                Worker Classification
+    <main class="main-container">
+        <!-- Tool Tabs -->
+        <div class="tool-tabs">
+            <button class="tool-tab active" onclick="showTool('quiz')">
+                <span>🧪</span> Worker Classification Quiz
             </button>
-            <button class="tab" onclick="showTab('wages')">
-                <span class="tab-icon">💰</span>
-                Final Wage Calculator
+            <button class="tool-tab" onclick="showTool('final-pay')">
+                <span>📅</span> Final Pay Calculator
             </button>
-            <button class="tab" onclick="showTab('penalties')">
-                <span class="tab-icon">⚠️</span>
-                Penalty Estimator
+            <button class="tool-tab" onclick="showTool('penalty')">
+                <span>💰</span> Penalty Calculator
+            </button>
+            <button class="tool-tab" onclick="showTool('documents')">
+                <span>📋</span> Document Library
             </button>
         </div>
 
-        <!-- Worker Classification Tab -->
-        <div class="tab-content active" id="tab-classification">
-            <!-- ABC Test Explanation -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">📋 California's ABC Test</h2>
-                </div>
-                <div class="card-body">
-                    <p style="color: var(--gray-600); margin-bottom: 1.5rem;">
-                        Under AB5, workers are presumed to be employees unless ALL three factors are met. Failing any single factor means the worker must be classified as an employee.
-                    </p>
-                    <div class="abc-test">
-                        <div class="abc-factor">
-                            <div class="abc-letter">A</div>
-                            <h4>Free from Control</h4>
-                            <p>The worker is free from the control and direction of the hiring entity in connection with the performance of the work, both under the contract and in fact.</p>
-                        </div>
-                        <div class="abc-factor">
-                            <div class="abc-letter">B</div>
-                            <h4>Outside Usual Course</h4>
-                            <p>The worker performs work that is outside the usual course of the hiring entity's business.</p>
-                        </div>
-                        <div class="abc-factor">
-                            <div class="abc-letter">C</div>
-                            <h4>Independent Business</h4>
-                            <p>The worker is customarily engaged in an independently established trade, occupation, or business of the same nature as the work performed.</p>
-                        </div>
-                    </div>
-                </div>
+        <!-- Tool 1: Worker Classification Quiz -->
+        <div class="tool-panel active" id="tool-quiz">
+            <div class="tool-header">
+                <h2>🧪 Worker Classification Quiz</h2>
+                <p>Answer these questions to help determine if a worker should be classified as an employee or independent contractor.</p>
             </div>
-
-            <!-- Interactive Flowchart -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🔍 Classification Checker</h2>
+            <div class="tool-body">
+                <div class="quiz-question">
+                    <h4><span class="q-num">1</span> Does the worker set their own schedule?</h4>
+                    <div class="quiz-options">
+                        <label class="quiz-option" onclick="selectQuiz(1, 'contractor', this)">
+                            <input type="radio" name="q1" value="contractor">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">Yes - They choose when to work</span>
+                        </label>
+                        <label class="quiz-option" onclick="selectQuiz(1, 'employee', this)">
+                            <input type="radio" name="q1" value="employee">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">No - I set their hours</span>
+                        </label>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="flowchart" id="flowchart">
-                        <!-- Question 1 -->
-                        <div class="flowchart-node question" id="q1">
-                            <h3>Factor A</h3>
-                            <p>Is the worker free from your control and direction when performing the work?</p>
-                            <div class="flowchart-buttons">
-                                <button class="flowchart-btn yes" onclick="answerQuestion('q1', true)">Yes</button>
-                                <button class="flowchart-btn no" onclick="answerQuestion('q1', false)">No</button>
-                            </div>
-                        </div>
 
-                        <!-- Question 2 (hidden initially) -->
-                        <div class="flowchart-arrow" id="arrow1" style="display: none;"></div>
-                        <div class="flowchart-node question" id="q2" style="display: none;">
-                            <h3>Factor B</h3>
-                            <p>Does the worker perform work OUTSIDE your usual course of business?</p>
-                            <div class="flowchart-buttons">
-                                <button class="flowchart-btn yes" onclick="answerQuestion('q2', true)">Yes</button>
-                                <button class="flowchart-btn no" onclick="answerQuestion('q2', false)">No</button>
-                            </div>
-                        </div>
-
-                        <!-- Question 3 (hidden initially) -->
-                        <div class="flowchart-arrow" id="arrow2" style="display: none;"></div>
-                        <div class="flowchart-node question" id="q3" style="display: none;">
-                            <h3>Factor C</h3>
-                            <p>Does the worker have their own established, independent business doing this type of work?</p>
-                            <div class="flowchart-buttons">
-                                <button class="flowchart-btn yes" onclick="answerQuestion('q3', true)">Yes</button>
-                                <button class="flowchart-btn no" onclick="answerQuestion('q3', false)">No</button>
-                            </div>
-                        </div>
+                <div class="quiz-question">
+                    <h4><span class="q-num">2</span> Do they use their own tools/equipment?</h4>
+                    <div class="quiz-options">
+                        <label class="quiz-option" onclick="selectQuiz(2, 'contractor', this)">
+                            <input type="radio" name="q2" value="contractor">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">Yes - They provide their own tools</span>
+                        </label>
+                        <label class="quiz-option" onclick="selectQuiz(2, 'employee', this)">
+                            <input type="radio" name="q2" value="employee">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">No - I provide the tools</span>
+                        </label>
                     </div>
+                </div>
 
-                    <!-- Results -->
-                    <div class="flowchart-result" id="result-employee">
-                        <div class="result-icon">👨‍💼</div>
-                        <h3 class="result-title employee">This Worker is an EMPLOYEE</h3>
-                        <p style="color: var(--gray-600); margin-bottom: 1rem;">Based on your answers, this worker does not meet all three factors of the ABC test and must be classified as an employee under California law.</p>
-                        <div style="background: rgba(0, 200, 83, 0.1); padding: 1rem; border-radius: 8px; text-align: left;">
-                            <strong style="color: var(--success);">Required Actions:</strong>
-                            <ul style="color: var(--gray-700); margin-top: 0.5rem; padding-left: 1.25rem;">
-                                <li>Add to payroll with proper tax withholding</li>
-                                <li>Provide workers' compensation insurance</li>
-                                <li>Track time for meal & rest break compliance</li>
-                                <li>Pay minimum wage and overtime</li>
-                            </ul>
-                        </div>
-                        <button class="calc-btn" style="margin-top: 1rem;" onclick="resetFlowchart()">Check Another Worker</button>
+                <div class="quiz-question">
+                    <h4><span class="q-num">3</span> Do they work for other companies?</h4>
+                    <div class="quiz-options">
+                        <label class="quiz-option" onclick="selectQuiz(3, 'contractor', this)">
+                            <input type="radio" name="q3" value="contractor">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">Yes - They have multiple clients</span>
+                        </label>
+                        <label class="quiz-option" onclick="selectQuiz(3, 'employee', this)">
+                            <input type="radio" name="q3" value="employee">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">No - They work exclusively for me</span>
+                        </label>
                     </div>
+                </div>
 
-                    <div class="flowchart-result" id="result-contractor">
-                        <div class="result-icon">📋</div>
-                        <h3 class="result-title contractor">May Qualify as Independent Contractor</h3>
-                        <p style="color: var(--gray-600); margin-bottom: 1rem;">Based on your answers, this worker may qualify as an independent contractor. However, ensure you have proper documentation.</p>
-                        <div style="background: rgba(64, 196, 255, 0.1); padding: 1rem; border-radius: 8px; text-align: left;">
-                            <strong style="color: var(--info);">Recommended Documentation:</strong>
-                            <ul style="color: var(--gray-700); margin-top: 0.5rem; padding-left: 1.25rem;">
-                                <li>Written independent contractor agreement</li>
-                                <li>Proof of their business license</li>
-                                <li>Evidence they work for other clients</li>
-                                <li>Their own liability insurance</li>
-                            </ul>
-                        </div>
-                        <button class="calc-btn" style="margin-top: 1rem;" onclick="resetFlowchart()">Check Another Worker</button>
+                <div class="quiz-question">
+                    <h4><span class="q-num">4</span> Do you control HOW the work is done?</h4>
+                    <div class="quiz-options">
+                        <label class="quiz-option" onclick="selectQuiz(4, 'employee', this)">
+                            <input type="radio" name="q4" value="employee">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">Yes - I direct the methods and process</span>
+                        </label>
+                        <label class="quiz-option" onclick="selectQuiz(4, 'contractor', this)">
+                            <input type="radio" name="q4" value="contractor">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">No - They use their own methods</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4><span class="q-num">5</span> Is this an ongoing relationship?</h4>
+                    <div class="quiz-options">
+                        <label class="quiz-option" onclick="selectQuiz(5, 'employee', this)">
+                            <input type="radio" name="q5" value="employee">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">Yes - They work for me regularly</span>
+                        </label>
+                        <label class="quiz-option" onclick="selectQuiz(5, 'contractor', this)">
+                            <input type="radio" name="q5" value="contractor">
+                            <div class="quiz-radio"></div>
+                            <span class="quiz-label">No - Project-based work only</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="quiz-btn" onclick="calculateQuiz()">Get Classification Result</button>
+
+                <div class="quiz-result" id="quizResult">
+                    <div class="result-icon" id="resultIcon">🧑‍💼</div>
+                    <div class="result-title" id="resultTitle">Likely Employee (W-2)</div>
+                    <div class="result-description" id="resultDesc">Based on your answers, this worker should likely be classified as an employee.</div>
+                    <div class="result-disclaimer">
+                        ⚠️ <strong>Disclaimer:</strong> This is guidance only, not legal advice. Worker classification is complex and depends on many factors. Consult with an HR professional or attorney for definitive guidance.
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Final Wage Calculator Tab -->
-        <div class="tab-content" id="tab-wages">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">💰 Final Wage Calculator</h2>
-                </div>
-                <div class="card-body">
-                    <p style="color: var(--gray-600); margin-bottom: 2rem;">
-                        California law requires final wages to be paid within strict deadlines. Use this calculator to determine the correct final payment amount.
-                    </p>
-
-                    <div class="calculator">
-                        <div class="calc-inputs">
-                            <div class="form-group">
-                                <label for="termType">Termination Type</label>
-                                <select id="termType">
-                                    <option value="fired">Fired / Terminated by Employer</option>
-                                    <option value="quit-notice">Quit with 72+ Hours Notice</option>
-                                    <option value="quit-no-notice">Quit without Notice</option>
-                                    <option value="layoff">Layoff / End of Project</option>
-                                </select>
-                                <span class="form-hint" id="deadlineHint">Final wages due: Immediately</span>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="hourlyRate">Hourly Rate ($)</label>
-                                <input type="number" id="hourlyRate" placeholder="25.00" min="0" step="0.01">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="hoursWorked">Hours Worked (Final Period)</label>
-                                <input type="number" id="hoursWorked" placeholder="40" min="0" step="0.5">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="overtimeHours">Overtime Hours (if any)</label>
-                                <input type="number" id="overtimeHours" placeholder="0" min="0" step="0.5">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="ptoBalance">Unused PTO Balance (hours)</label>
-                                <input type="number" id="ptoBalance" placeholder="0" min="0" step="0.5">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="daysLate">Days Late (if payment delayed)</label>
-                                <input type="number" id="daysLate" placeholder="0" min="0" max="30">
-                                <span class="form-hint">Waiting time penalties apply for up to 30 days</span>
-                            </div>
-
-                            <button class="calc-btn" onclick="calculateFinalWages()">Calculate Final Wages</button>
+        <!-- Tool 2: Final Pay Calculator -->
+        <div class="tool-panel" id="tool-final-pay">
+            <div class="tool-header">
+                <h2>📅 Final Pay Calculator</h2>
+                <p>Calculate when final pay is due based on California law.</p>
+            </div>
+            <div class="tool-body">
+                <div class="calc-section">
+                    <div class="calc-inputs">
+                        <h3>📝 Enter Details</h3>
+                        <div class="form-group">
+                            <label>Termination Type</label>
+                            <select id="terminationType" onchange="calculateFinalPay()">
+                                <option value="fired">Fired / Laid Off</option>
+                                <option value="quit-notice">Quit with 72+ hours notice</option>
+                                <option value="quit-no-notice">Quit without notice</option>
+                            </select>
                         </div>
-
-                        <div class="calc-results" id="wageResults">
-                            <h3>📊 Calculation Breakdown</h3>
-
-                            <div class="result-item">
-                                <span class="result-label">Regular Wages</span>
-                                <span class="result-value" id="regularWages">$0.00</span>
-                            </div>
-
-                            <div class="result-item">
-                                <span class="result-label">Overtime Pay (1.5x)</span>
-                                <span class="result-value" id="overtimePay">$0.00</span>
-                            </div>
-
-                            <div class="result-item">
-                                <span class="result-label">PTO Payout</span>
-                                <span class="result-value" id="ptoPayout">$0.00</span>
-                            </div>
-
-                            <div class="result-item" id="penaltyRow" style="display: none;">
-                                <span class="result-label" style="color: var(--danger);">Waiting Time Penalty</span>
-                                <span class="result-value" style="color: var(--danger);" id="waitingPenalty">$0.00</span>
-                            </div>
-
-                            <div class="result-total">
-                                <span class="result-label">TOTAL DUE</span>
-                                <span class="result-value" id="totalDue">$0.00</span>
-                            </div>
+                        <div class="form-group">
+                            <label>Last Day Worked</label>
+                            <input type="date" id="lastDay" onchange="calculateFinalPay()">
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Compliance Checklist -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">✅ Final Wage Compliance Checklist</h2>
-                </div>
-                <div class="card-body">
-                    <div class="checklist">
-                        <div class="checklist-item" onclick="toggleCheck(this)">
-                            <div class="checklist-checkbox"></div>
-                            <div class="checklist-text">
-                                <h4>Calculate all earned wages</h4>
-                                <p>Include all hours worked through the last day, including partial days.</p>
-                            </div>
+                    <div class="calc-result">
+                        <h3>📋 Final Pay Deadline</h3>
+                        <div class="result-box">
+                            <div class="result-label">Termination Type</div>
+                            <div class="result-value" id="fpType">Fired / Laid Off</div>
                         </div>
-
-                        <div class="checklist-item" onclick="toggleCheck(this)">
-                            <div class="checklist-checkbox"></div>
-                            <div class="checklist-text">
-                                <h4>Include all overtime pay</h4>
-                                <p>Daily overtime (over 8 hours) and weekly overtime (over 40 hours).</p>
-                            </div>
+                        <div class="result-box" style="border-color: var(--danger); background: rgba(255, 82, 82, 0.1);">
+                            <div class="result-label">⚠️ DEADLINE</div>
+                            <div class="result-value" style="color: var(--danger);" id="fpDeadline">SAME DAY</div>
+                            <div class="result-date" id="fpDate">Pay must be given immediately</div>
                         </div>
-
-                        <div class="checklist-item" onclick="toggleCheck(this)">
-                            <div class="checklist-checkbox"></div>
-                            <div class="checklist-text">
-                                <h4>Add accrued PTO/vacation</h4>
-                                <p>California requires payout of all unused, accrued vacation time.</p>
-                            </div>
+                        <div class="result-warning">
+                            <h4>If you miss this deadline:</h4>
+                            <p>Waiting time penalties apply - up to 30 days of wages!</p>
                         </div>
-
-                        <div class="checklist-item" onclick="toggleCheck(this)">
-                            <div class="checklist-checkbox"></div>
-                            <div class="checklist-text">
-                                <h4>Include any unpaid bonuses or commissions</h4>
-                                <p>Earned bonuses and commissions must be paid even after termination.</p>
+                        <div class="result-rules">
+                            <h4>California Final Pay Rules:</h4>
+                            <div class="rule-item">
+                                <span class="rule-type">Fired / Laid Off</span>
+                                <span class="rule-deadline">Immediate (same day)</span>
                             </div>
-                        </div>
-
-                        <div class="checklist-item" onclick="toggleCheck(this)">
-                            <div class="checklist-checkbox"></div>
-                            <div class="checklist-text">
-                                <h4>Provide final pay stub</h4>
-                                <p>Must show all required information including hours, rates, and deductions.</p>
+                            <div class="rule-item">
+                                <span class="rule-type">Quit with 72+ hrs notice</span>
+                                <span class="rule-deadline">Last day of work</span>
                             </div>
-                        </div>
-
-                        <div class="checklist-item" onclick="toggleCheck(this)">
-                            <div class="checklist-checkbox"></div>
-                            <div class="checklist-text">
-                                <h4>Document delivery method and date</h4>
-                                <p>Keep records of when and how final wages were delivered.</p>
+                            <div class="rule-item">
+                                <span class="rule-type">Quit without notice</span>
+                                <span class="rule-deadline">Within 72 hours</span>
                             </div>
                         </div>
                     </div>
@@ -1008,272 +734,299 @@
             </div>
         </div>
 
-        <!-- Penalty Estimator Tab -->
-        <div class="tab-content" id="tab-penalties">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">⚠️ California Labor Law Penalties</h2>
-                </div>
-                <div class="card-body">
-                    <p style="color: var(--gray-600); margin-bottom: 2rem;">
-                        Non-compliance with California labor laws can result in significant penalties. Understanding these risks helps you stay compliant.
-                    </p>
-
-                    <div class="penalty-grid">
-                        <div class="penalty-card warning">
-                            <div class="penalty-type">Waiting Time Penalty</div>
-                            <div class="penalty-desc">Late payment of final wages. Penalty is one day's wages for each day late, up to 30 days.</div>
-                            <div class="penalty-amount warning">Up to 30 days wages</div>
+        <!-- Tool 3: Penalty Calculator -->
+        <div class="tool-panel" id="tool-penalty">
+            <div class="tool-header">
+                <h2>💰 Waiting Time Penalty Calculator</h2>
+                <p>Estimate potential penalties for late final pay in California.</p>
+            </div>
+            <div class="tool-body">
+                <div class="calc-section">
+                    <div class="calc-inputs">
+                        <h3>📝 Enter Details</h3>
+                        <div class="form-group">
+                            <label>Daily Wage Rate ($)</label>
+                            <input type="number" id="dailyWage" placeholder="200" value="200" oninput="calculatePenalty()">
                         </div>
-
-                        <div class="penalty-card moderate">
-                            <div class="penalty-type">Meal Break Violation</div>
-                            <div class="penalty-desc">Failing to provide a 30-minute meal break for shifts over 5 hours. One hour of pay per violation.</div>
-                            <div class="penalty-amount moderate">$15-$25+/day per worker</div>
-                        </div>
-
-                        <div class="penalty-card moderate">
-                            <div class="penalty-type">Rest Break Violation</div>
-                            <div class="penalty-desc">Failing to provide 10-minute rest breaks for every 4 hours worked. One hour of pay per violation.</div>
-                            <div class="penalty-amount moderate">$15-$25+/day per worker</div>
-                        </div>
-
-                        <div class="penalty-card severe">
-                            <div class="penalty-type">Misclassification Penalty</div>
-                            <div class="penalty-desc">Willful misclassification of employees as independent contractors.</div>
-                            <div class="penalty-amount severe">$5,000 - $25,000 per violation</div>
-                        </div>
-
-                        <div class="penalty-card severe">
-                            <div class="penalty-type">Unpaid Overtime</div>
-                            <div class="penalty-desc">Failing to pay overtime at 1.5x (or 2x for 12+ hours). Includes back pay plus penalties.</div>
-                            <div class="penalty-amount severe">Back pay + liquidated damages</div>
-                        </div>
-
-                        <div class="penalty-card warning">
-                            <div class="penalty-type">Pay Stub Violations</div>
-                            <div class="penalty-desc">Missing or incorrect information on pay stubs.</div>
-                            <div class="penalty-amount warning">$50-$100 per pay period</div>
+                        <div class="form-group">
+                            <label>Days Late</label>
+                            <input type="number" id="daysLate" placeholder="15" value="15" max="30" oninput="calculatePenalty()">
                         </div>
                     </div>
 
-                    <!-- Penalty Calculator -->
-                    <div class="penalty-calculator">
-                        <h3>📊 Penalty Estimator</h3>
-                        <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Enter your scenario to estimate potential exposure.</p>
-
-                        <div class="penalty-inputs">
-                            <div class="form-group">
-                                <label for="numWorkers">Number of Workers</label>
-                                <input type="number" id="numWorkers" placeholder="5" min="1" value="1">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="avgDailyRate">Average Daily Rate ($)</label>
-                                <input type="number" id="avgDailyRate" placeholder="200" min="0" value="200">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="violationDays">Days of Violations</label>
-                                <input type="number" id="violationDays" placeholder="30" min="1" value="30">
-                            </div>
+                    <div class="calc-result">
+                        <h3>💸 Penalty Estimate</h3>
+                        <div class="result-box">
+                            <div class="result-label">Daily Rate</div>
+                            <div class="result-value" id="penDailyRate">$200</div>
                         </div>
-
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="chkWaiting" onchange="calculatePenalties()">
-                                <span style="font-size: 0.875rem;">Late Final Wages</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="chkMeal" onchange="calculatePenalties()">
-                                <span style="font-size: 0.875rem;">Meal Break</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="chkRest" onchange="calculatePenalties()">
-                                <span style="font-size: 0.875rem;">Rest Break</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="chkMisclass" onchange="calculatePenalties()">
-                                <span style="font-size: 0.875rem;">Misclassification</span>
-                            </label>
+                        <div class="result-box">
+                            <div class="result-label">Days Late</div>
+                            <div class="result-value" id="penDaysLate">15</div>
                         </div>
-
-                        <button class="calc-btn" onclick="calculatePenalties()" style="margin-bottom: 1.5rem;">Calculate Potential Exposure</button>
-
-                        <div class="penalty-result-box">
-                            <div class="penalty-result-label">Estimated Total Exposure</div>
-                            <div class="penalty-result-value" id="totalPenalty">$0</div>
-                            <div class="penalty-result-note">This is an estimate only. Actual penalties may vary.</div>
+                        <div class="result-box" style="border-color: var(--danger); background: rgba(255, 82, 82, 0.1);">
+                            <div class="result-label">💰 POTENTIAL PENALTY</div>
+                            <div class="result-value" style="color: var(--danger);" id="penTotal">$3,000</div>
+                            <div class="result-date">(Capped at 30 days = $6,000 max)</div>
                         </div>
-
-                        <!-- Risk Meter -->
-                        <div class="risk-meter">
-                            <h4 style="margin-bottom: 1rem; color: var(--gray-700);">Risk Level</h4>
-                            <div class="risk-bar">
-                                <div class="risk-indicator" id="riskIndicator" style="left: 0%;">!</div>
-                            </div>
-                            <div class="risk-labels">
-                                <span>Low Risk</span>
-                                <span>Moderate</span>
-                                <span>High Risk</span>
-                            </div>
+                        <div class="result-warning">
+                            <h4>⚠️ Important:</h4>
+                            <p>This is in ADDITION to the wages you already owe. Penalties can add up fast!</p>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Tool 4: Document Library -->
+        <div class="tool-panel" id="tool-documents">
+            <div class="tool-header">
+                <h2>📋 HR Document Library</h2>
+                <p>Essential HR documents and templates for California employers.</p>
+            </div>
+            <div class="tool-body">
+                <div class="doc-section">
+                    <h3>📥 Hiring</h3>
+                    <div class="doc-list">
+                        <div class="doc-item" onclick="downloadDoc('New Hire Checklist (W-2)')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">New Hire Checklist (W-2)</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('1099 Contractor Checklist')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">1099 Contractor Checklist</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Offer Letter Template')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Offer Letter Template</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Wage Theft Prevention Notice (CA)')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Wage Theft Prevention Notice (CA)</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Employee vs Contractor Cheat Sheet')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Employee vs Contractor Cheat Sheet</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3>📋 During Employment</h3>
+                    <div class="doc-list">
+                        <div class="doc-item" onclick="downloadDoc('Time-Off Request Form')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Time-Off Request Form</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Emergency Contact Form')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Emergency Contact Form</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Incident Report Form')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Incident Report Form</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Break Compliance Log')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Break Compliance Log</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3>🚪 Termination</h3>
+                    <div class="doc-list">
+                        <div class="doc-item" onclick="downloadDoc('Termination Checklist')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Termination Checklist</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Resignation Acceptance Letter')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Resignation Acceptance Letter</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('Final Pay Acknowledgment')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">Final Pay Acknowledgment</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                        <div class="doc-item" onclick="downloadDoc('COBRA Notice Guide')">
+                            <span class="doc-icon">📄</span>
+                            <span class="doc-name">COBRA Notice Guide</span>
+                            <span class="doc-download">Download</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="download-all-btn" onclick="downloadAll()">📦 Download All as ZIP</button>
             </div>
         </div>
     </main>
 
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-box">
+            <div class="cta-content">
+                <h3>Need expert help?</h3>
+                <p>HR On-Demand is included with Elite plan - get unlimited access to HR professionals.</p>
+            </div>
+            <a href="index.html#pricing" class="cta-btn">
+                Upgrade to Elite
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
     <script>
-        // Tab functionality
-        function showTab(tabId) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-
-            // Show selected tab
-            document.getElementById('tab-' + tabId).classList.add('active');
-            event.target.closest('.tab').classList.add('active');
-        }
-
-        // Flowchart functionality
-        let answers = {};
-
-        function answerQuestion(questionId, answer) {
-            answers[questionId] = answer;
-
-            if (questionId === 'q1') {
-                if (answer === false) {
-                    showResult('employee');
-                } else {
-                    document.getElementById('arrow1').style.display = 'block';
-                    document.getElementById('q2').style.display = 'block';
-                    document.getElementById('q1').style.opacity = '0.5';
-                }
-            } else if (questionId === 'q2') {
-                if (answer === false) {
-                    showResult('employee');
-                } else {
-                    document.getElementById('arrow2').style.display = 'block';
-                    document.getElementById('q3').style.display = 'block';
-                    document.getElementById('q2').style.opacity = '0.5';
-                }
-            } else if (questionId === 'q3') {
-                if (answer === false) {
-                    showResult('employee');
-                } else {
-                    showResult('contractor');
-                }
-            }
-        }
-
-        function showResult(result) {
-            document.getElementById('flowchart').style.display = 'none';
-            document.getElementById('result-' + result).classList.add('active');
-        }
-
-        function resetFlowchart() {
-            answers = {};
-            document.getElementById('flowchart').style.display = 'flex';
-            document.querySelectorAll('.flowchart-result').forEach(r => r.classList.remove('active'));
-            document.querySelectorAll('.flowchart-node').forEach(n => {
-                n.style.opacity = '1';
-                if (n.id !== 'q1') n.style.display = 'none';
+        // Tool Tab Navigation
+        function showTool(toolId) {
+            document.querySelectorAll('.tool-panel').forEach(panel => {
+                panel.classList.remove('active');
             });
-            document.querySelectorAll('.flowchart-arrow').forEach(a => a.style.display = 'none');
+            document.querySelectorAll('.tool-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById('tool-' + toolId).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
-        // Final Wage Calculator
-        document.getElementById('termType').addEventListener('change', function() {
-            const hints = {
-                'fired': 'Final wages due: Immediately (same day)',
-                'quit-notice': 'Final wages due: On last day of work',
-                'quit-no-notice': 'Final wages due: Within 72 hours',
-                'layoff': 'Final wages due: Immediately'
+        // Quiz Logic
+        let quizAnswers = {};
+
+        function selectQuiz(question, value, element) {
+            quizAnswers[question] = value;
+
+            // Update UI
+            element.closest('.quiz-question').querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        function calculateQuiz() {
+            if (Object.keys(quizAnswers).length < 5) {
+                alert('Please answer all questions before getting your result.');
+                return;
+            }
+
+            let contractorPoints = 0;
+            let employeePoints = 0;
+
+            Object.values(quizAnswers).forEach(answer => {
+                if (answer === 'contractor') contractorPoints++;
+                else employeePoints++;
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+
+            if (contractorPoints >= 4) {
+                icon.textContent = '📋';
+                title.textContent = 'Likely Independent Contractor (1099)';
+                title.className = 'result-title contractor';
+                desc.textContent = 'Based on your answers, this worker may be appropriately classified as an independent contractor. They appear to have significant control over their work.';
+            } else if (employeePoints >= 4) {
+                icon.textContent = '🧑‍💼';
+                title.textContent = 'Likely Employee (W-2)';
+                title.className = 'result-title employee';
+                desc.textContent = 'Based on your answers, this worker should likely be classified as an employee. They appear to be under your direction and control.';
+            } else {
+                icon.textContent = '⚠️';
+                title.textContent = 'Gray Area - Consult HR Expert';
+                title.className = 'result-title gray';
+                desc.textContent = 'The classification is unclear based on your answers. This is a gray area that could go either way. We strongly recommend consulting with an HR professional.';
+            }
+
+            resultDiv.classList.add('show');
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Final Pay Calculator
+        function calculateFinalPay() {
+            const type = document.getElementById('terminationType').value;
+            const lastDay = document.getElementById('lastDay').value;
+
+            const typeNames = {
+                'fired': 'Fired / Laid Off',
+                'quit-notice': 'Quit with Notice',
+                'quit-no-notice': 'Quit without Notice'
             };
-            document.getElementById('deadlineHint').textContent = hints[this.value];
-        });
 
-        function calculateFinalWages() {
-            const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
-            const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
-            const overtime = parseFloat(document.getElementById('overtimeHours').value) || 0;
-            const pto = parseFloat(document.getElementById('ptoBalance').value) || 0;
-            const daysLate = parseInt(document.getElementById('daysLate').value) || 0;
+            document.getElementById('fpType').textContent = typeNames[type];
 
-            const regularWages = hours * rate;
-            const overtimePay = overtime * rate * 1.5;
-            const ptoPayout = pto * rate;
+            let deadline, dateText;
 
-            // Waiting time penalty: daily wage * days late (up to 30)
-            const dailyWage = rate * 8; // Assuming 8-hour day
-            const waitingPenalty = daysLate > 0 ? Math.min(daysLate, 30) * dailyWage : 0;
-
-            const total = regularWages + overtimePay + ptoPayout + waitingPenalty;
-
-            document.getElementById('regularWages').textContent = '$' + regularWages.toFixed(2);
-            document.getElementById('overtimePay').textContent = '$' + overtimePay.toFixed(2);
-            document.getElementById('ptoPayout').textContent = '$' + ptoPayout.toFixed(2);
-            document.getElementById('waitingPenalty').textContent = '$' + waitingPenalty.toFixed(2);
-            document.getElementById('totalDue').textContent = '$' + total.toFixed(2);
-
-            if (daysLate > 0) {
-                document.getElementById('penaltyRow').style.display = 'flex';
+            if (type === 'fired') {
+                deadline = 'SAME DAY';
+                dateText = lastDay ? `Pay must be given on ${formatDate(lastDay)}` : 'Pay must be given immediately';
+            } else if (type === 'quit-notice') {
+                deadline = 'LAST DAY';
+                dateText = lastDay ? `Pay due on ${formatDate(lastDay)}` : 'Pay due on last working day';
             } else {
-                document.getElementById('penaltyRow').style.display = 'none';
+                deadline = 'WITHIN 72 HRS';
+                if (lastDay) {
+                    const dueDate = new Date(lastDay);
+                    dueDate.setDate(dueDate.getDate() + 3);
+                    dateText = `Pay due by ${formatDate(dueDate)}`;
+                } else {
+                    dateText = 'Pay due within 72 hours of last day';
+                }
             }
+
+            document.getElementById('fpDeadline').textContent = deadline;
+            document.getElementById('fpDate').textContent = dateText;
         }
 
-        // Checklist toggle
-        function toggleCheck(item) {
-            item.classList.toggle('checked');
-            const checkbox = item.querySelector('.checklist-checkbox');
-            if (item.classList.contains('checked')) {
-                checkbox.innerHTML = '✓';
-            } else {
-                checkbox.innerHTML = '';
-            }
+        function formatDate(date) {
+            const d = new Date(date);
+            return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         }
 
         // Penalty Calculator
-        function calculatePenalties() {
-            const workers = parseInt(document.getElementById('numWorkers').value) || 1;
-            const dailyRate = parseFloat(document.getElementById('avgDailyRate').value) || 200;
-            const days = parseInt(document.getElementById('violationDays').value) || 30;
+        function calculatePenalty() {
+            const dailyWage = parseFloat(document.getElementById('dailyWage').value) || 0;
+            let daysLate = parseInt(document.getElementById('daysLate').value) || 0;
 
-            let total = 0;
+            if (daysLate > 30) daysLate = 30; // Cap at 30 days
 
-            if (document.getElementById('chkWaiting').checked) {
-                total += Math.min(days, 30) * dailyRate * workers;
-            }
+            const penalty = dailyWage * daysLate;
+            const maxPenalty = dailyWage * 30;
 
-            if (document.getElementById('chkMeal').checked) {
-                // One hour of pay per day per worker
-                const hourlyRate = dailyRate / 8;
-                total += days * hourlyRate * workers;
-            }
+            document.getElementById('penDailyRate').textContent = '$' + dailyWage.toLocaleString();
+            document.getElementById('penDaysLate').textContent = daysLate;
+            document.getElementById('penTotal').textContent = '$' + penalty.toLocaleString();
+            document.querySelector('#tool-penalty .result-date').textContent =
+                `(Capped at 30 days = $${maxPenalty.toLocaleString()} max)`;
+        }
 
-            if (document.getElementById('chkRest').checked) {
-                // One hour of pay per day per worker
-                const hourlyRate = dailyRate / 8;
-                total += days * hourlyRate * workers;
-            }
+        // Document Download
+        function downloadDoc(docName) {
+            alert(`Downloading: ${docName}\n\nIn the full version, this would download the actual document template.`);
+        }
 
-            if (document.getElementById('chkMisclass').checked) {
-                // $5,000 - $25,000 per worker (using $15,000 average)
-                total += 15000 * workers;
-            }
-
-            document.getElementById('totalPenalty').textContent = '$' + total.toLocaleString();
-
-            // Update risk meter
-            const maxRisk = 100000;
-            const riskPercent = Math.min((total / maxRisk) * 100, 100);
-            document.getElementById('riskIndicator').style.left = riskPercent + '%';
+        function downloadAll() {
+            alert('Downloading all HR documents as ZIP...\n\nIn the full version, this would download a ZIP file with all templates.');
         }
 
         // Initialize
-        calculatePenalties();
+        document.getElementById('lastDay').valueAsDate = new Date();
+        calculateFinalPay();
+        calculatePenalty();
     </script>
 </body>
 </html>

@@ -2,1001 +2,1025 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ToolTime Pro - Worker App</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker App | ToolTime Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
     <style>
         :root {
-            --primary: #1a1a2e;
-            --primary-light: #2d2d44;
-            --accent: #f5a623;
-            --accent-hover: #e69516;
+            --navy: #1a1a2e;
+            --navy-light: #252542;
+            --gold: #f5a623;
+            --gold-light: #ffc857;
             --success: #00c853;
+            --warning: #ffab00;
             --danger: #ff5252;
-            --warning: #ffab40;
-            --info: #40c4ff;
-            --white: #ffffff;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
+            --info: #2196f3;
+            --text: #e8e8e8;
+            --text-muted: #a0a0b0;
+            --border: #3a3a5a;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--gray-100);
-            color: var(--gray-800);
+            background: var(--navy);
+            color: var(--text);
             min-height: 100vh;
         }
 
-        .stats-number {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Phone Frame */
-        .phone-frame {
-            max-width: 400px;
-            margin: 2rem auto;
-            background: var(--gray-900);
-            border-radius: 40px;
-            padding: 12px;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-        }
-
-        .phone-screen {
-            background: var(--gray-100);
-            border-radius: 30px;
-            overflow: hidden;
-            min-height: 700px;
-            position: relative;
-        }
-
-        .phone-notch {
-            position: absolute;
+        /* Header */
+        .header {
+            background: var(--navy-light);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
             top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 30px;
-            background: var(--gray-900);
-            border-radius: 0 0 20px 20px;
             z-index: 100;
         }
 
-        /* App Screens */
-        .app-screen {
-            display: none;
-            min-height: 700px;
-        }
-
-        .app-screen.active {
-            display: block;
-        }
-
-        /* Login Screen */
-        .login-screen {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            padding: 3rem 2rem 2rem;
-            min-height: 700px;
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
-        .login-logo {
-            text-align: center;
-            margin-top: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .login-logo-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .login-logo h1 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--white);
-        }
-
-        .login-logo h1 span {
-            color: var(--accent);
-        }
-
-        .login-logo p {
-            color: var(--gray-400);
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-
-        .login-form {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .login-input-group {
-            margin-bottom: 1rem;
-        }
-
-        .login-input-group label {
-            display: block;
-            color: var(--gray-400);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 1rem;
-            background: var(--primary-light);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            color: var(--white);
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.2s;
-        }
-
-        .login-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .login-input::placeholder {
-            color: var(--gray-500);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--accent);
-            border: none;
-            border-radius: 12px;
-            color: var(--primary);
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: auto;
-        }
-
-        .login-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .login-forgot {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .login-forgot a {
-            color: var(--gray-400);
-            font-size: 0.875rem;
+        .back-link {
+            color: var(--gold);
             text-decoration: none;
-        }
-
-        /* Main App Header */
-        .app-header {
-            background: var(--primary);
-            padding: 2.5rem 1.5rem 1.5rem;
-            color: var(--white);
-        }
-
-        .app-header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .app-header-greeting {
-            font-size: 0.875rem;
-            color: var(--gray-400);
-        }
-
-        .app-header-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .app-header-avatar {
-            width: 48px;
-            height: 48px;
-            background: var(--accent);
-            border-radius: 50%;
+            font-weight: 500;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 1.25rem;
+            gap: 8px;
+            transition: opacity 0.2s;
         }
 
-        /* Clock Status */
-        .clock-status {
-            background: var(--primary-light);
-            border-radius: 16px;
-            padding: 1.25rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .back-link:hover { opacity: 0.8; }
 
-        .clock-info h3 {
+        .header-title h1 { font-size: 1.5rem; font-weight: 700; color: white; }
+        .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
+
+        .demo-badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
             font-size: 0.75rem;
-            color: var(--gray-400);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
+            letter-spacing: 0.5px;
         }
 
-        .clock-time {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent);
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            display: flex;
+            gap: 48px;
+            align-items: flex-start;
+            justify-content: center;
         }
 
-        .clock-btn {
-            padding: 0.75rem 1.5rem;
+        /* Phone Mockup */
+        .phone-container { flex-shrink: 0; }
+
+        .phone-frame {
+            width: 320px;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 48px;
+            padding: 14px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .phone-notch {
+            width: 120px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 14px;
+            margin: 0 auto 8px;
+        }
+
+        .phone-screen {
+            background: #f5f5f5;
+            border-radius: 36px;
+            overflow: hidden;
+            height: 580px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 8px;
+            background: none;
             border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.875rem;
+            font-family: inherit;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #888;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
             transition: all 0.2s;
+            border-bottom: 2px solid transparent;
         }
 
-        .clock-btn.clock-in {
-            background: var(--success);
+        .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .tab-btn span { font-size: 1.25rem; }
+
+        /* Tab Content */
+        .tab-content { flex: 1; overflow-y: auto; display: none; }
+        .tab-content.active { display: block; }
+
+        /* App Screen Styles */
+        .app-header {
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            padding: 16px;
             color: white;
         }
 
-        .clock-btn.clock-out {
-            background: var(--danger);
-            color: white;
-        }
+        .app-greeting { font-size: 1.125rem; font-weight: 600; margin-bottom: 4px; }
+        .app-date { font-size: 0.75rem; color: var(--text-muted); }
 
-        /* App Content */
-        .app-content {
-            padding: 1.5rem;
+        .app-body { padding: 16px; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
         .section-title {
-            font-size: 0.75rem;
+            font-size: 0.8125rem;
             font-weight: 600;
-            color: var(--gray-500);
+            color: #333;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .section-badge {
+            background: var(--gold);
+            color: var(--navy);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
 
         /* Job Cards */
         .job-card {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .job-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        }
-
-        .job-card.active {
-            border: 2px solid var(--accent);
+            border-left: 4px solid var(--gold);
         }
 
         .job-card-header {
             display: flex;
-            justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 0.75rem;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
-        .job-type {
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .job-status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.625rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .job-status.now {
-            background: var(--success);
-            color: white;
-        }
-
-        .job-status.upcoming {
-            background: rgba(64, 196, 255, 0.1);
-            color: var(--info);
-        }
-
-        .job-status.completed {
-            background: var(--gray-200);
-            color: var(--gray-600);
-        }
-
-        .job-customer {
-            color: var(--gray-600);
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .job-address {
-            color: var(--gray-500);
-            font-size: 0.75rem;
+        .job-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(245, 166, 35, 0.15);
+            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 0.25rem;
+            justify-content: center;
+            font-size: 1rem;
         }
 
-        .job-time {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid var(--gray-200);
+        .job-info h4 { font-size: 0.9375rem; font-weight: 600; color: #333; margin-bottom: 2px; }
+        .job-info p { font-size: 0.75rem; color: #666; }
+        .job-time { font-size: 0.75rem; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+        .job-tasks { font-size: 0.75rem; color: #888; margin-bottom: 12px; }
+
+        .job-actions { display: flex; gap: 8px; }
+
+        .job-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-family: inherit;
             font-size: 0.75rem;
-            color: var(--gray-500);
-        }
-
-        .job-time strong {
-            color: var(--primary);
             font-weight: 600;
-        }
-
-        /* Job Detail Screen */
-        .job-detail-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            padding: 2.5rem 1.5rem 1.5rem;
-            color: var(--white);
-        }
-
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--gray-400);
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .back-btn:hover {
-            color: var(--accent);
-        }
+        .job-btn.primary { background: var(--gold); color: var(--navy); }
+        .job-btn.secondary { background: #f0f0f0; color: #333; }
+        .job-btn:hover { opacity: 0.9; }
 
-        .job-detail-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .job-detail-customer {
-            color: var(--gray-400);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .job-detail-content {
-            padding: 1.5rem;
-        }
-
-        .job-detail-card {
-            background: var(--white);
+        /* Clock Section */
+        .clock-display {
+            text-align: center;
+            padding: 24px;
+            background: white;
             border-radius: 16px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
+            margin-bottom: 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .job-detail-card h4 {
+        .clock-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(0, 200, 83, 0.15);
+            border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
-            color: var(--gray-500);
-            text-transform: uppercase;
-            margin-bottom: 0.75rem;
+            color: var(--success);
+            margin-bottom: 12px;
         }
 
-        .job-detail-card p {
-            color: var(--gray-700);
-            line-height: 1.6;
+        .clock-status.out { background: rgba(255, 82, 82, 0.15); color: var(--danger); }
+
+        .clock-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: currentColor;
+            border-radius: 50%;
         }
 
-        .job-detail-row {
+        .clock-since { font-size: 0.875rem; color: #666; margin-bottom: 4px; }
+
+        .clock-total {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .clock-location {
+            font-size: 0.75rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .clock-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .clock-btn.clock-in { background: var(--success); color: white; }
+        .clock-btn.clock-out { background: var(--danger); color: white; }
+
+        .break-section {
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .break-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .break-item {
             display: flex;
             justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .job-detail-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .job-detail-label {
-            color: var(--gray-500);
-            font-size: 0.875rem;
-        }
-
-        .job-detail-value {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        /* Photo Upload */
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-        }
-
-        .photo-item {
-            aspect-ratio: 1;
-            background: var(--gray-200);
-            border-radius: 12px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--gray-400);
-            cursor: pointer;
-            transition: all 0.2s;
-            overflow: hidden;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
         }
 
-        .photo-item:hover {
-            background: var(--gray-300);
-        }
+        .break-item:last-child { border-bottom: none; }
+        .break-info { font-size: 0.8125rem; }
+        .break-info span { display: block; font-size: 0.7rem; color: #888; }
 
-        .photo-item.add {
-            border: 2px dashed var(--gray-300);
-            background: transparent;
-        }
-
-        .photo-item.add:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .action-btn {
-            padding: 1rem;
+        .break-btn {
+            padding: 8px 12px;
+            background: var(--navy);
+            color: white;
             border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .action-btn.primary {
-            background: var(--accent);
-            color: var(--primary);
-        }
-
-        .action-btn.secondary {
-            background: var(--gray-200);
-            color: var(--gray-700);
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Bottom Nav */
-        .bottom-nav {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--white);
-            display: flex;
-            justify-content: space-around;
-            padding: 1rem 0.5rem;
-            padding-bottom: 1.5rem;
-            border-top: 1px solid var(--gray-200);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.25rem;
-            color: var(--gray-400);
-            font-size: 0.625rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
             font-weight: 500;
             cursor: pointer;
-            transition: color 0.2s;
         }
 
-        .nav-item:hover,
-        .nav-item.active {
-            color: var(--accent);
+        .break-warning {
+            background: rgba(255, 171, 0, 0.15);
+            border-left: 3px solid var(--warning);
+            padding: 10px 12px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: #333;
         }
 
-        .nav-item-icon {
+        /* Checklist */
+        .checklist-header {
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            padding: 16px;
+            color: white;
+        }
+
+        .checklist-title { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .checklist-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+        .checklist-items { padding: 16px; }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checklist-item:hover { transform: translateX(4px); }
+
+        .checklist-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checklist-item.checked .checklist-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .checklist-text { font-size: 0.875rem; color: #333; }
+        .checklist-item.checked .checklist-text { text-decoration: line-through; color: #888; }
+
+        .checklist-section { margin-top: 16px; }
+
+        .checklist-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .photo-thumb {
+            aspect-ratio: 1;
+            background: #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.5rem;
         }
 
-        /* Photo Upload Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
+        .add-photo-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.8125rem;
+            color: #666;
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            gap: 6px;
         }
 
-        .modal-overlay.active {
+        .complete-job-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+
+        /* Incident Report */
+        .incident-header {
+            background: linear-gradient(135deg, var(--danger), #ff7b7b);
+            padding: 16px;
+            color: white;
+        }
+
+        .incident-title {
+            font-size: 1rem;
+            font-weight: 600;
             display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .modal {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 2rem;
-            max-width: 350px;
-            width: 90%;
+        .incident-form { padding: 16px; }
+
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .radio-group { margin-bottom: 16px; }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .radio-item input { display: none; }
+
+        .radio-circle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .radio-item input:checked + .radio-circle { border-color: var(--gold); }
+
+        .radio-item input:checked + .radio-circle::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--gold);
+            border-radius: 50%;
+        }
+
+        .radio-text { font-size: 0.875rem; color: #333; }
+
+        .incident-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.875rem;
+            resize: none;
+            height: 100px;
+            margin-bottom: 12px;
+        }
+
+        .incident-textarea:focus { outline: none; border-color: var(--gold); }
+
+        .attach-photos-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.8125rem;
+            color: #666;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .submit-incident-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .success-message {
+            display: none;
+            background: rgba(0, 200, 83, 0.15);
+            border-left: 3px solid var(--success);
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 12px;
+            font-size: 0.8125rem;
+            color: var(--success);
+        }
+
+        /* Features List */
+        .features-section { max-width: 500px; }
+
+        .features-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list { list-style: none; }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feature-list li:last-child { border-bottom: none; }
+
+        .feature-check {
+            width: 28px;
+            height: 28px;
+            background: rgba(0, 200, 83, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success);
+            flex-shrink: 0;
+            font-size: 0.875rem;
+        }
+
+        .feature-text { font-size: 0.9375rem; line-height: 1.5; }
+        .feature-text strong { color: white; }
+
+        /* CTA */
+        .cta-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px 48px;
             text-align: center;
         }
 
-        .modal-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+        .cta-box {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.1), rgba(245, 166, 35, 0.05));
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 40px;
         }
 
-        .modal h3 {
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
+        .cta-box h3 { font-size: 1.5rem; margin-bottom: 12px; }
+        .cta-box p { color: var(--text-muted); margin-bottom: 24px; }
 
-        .modal p {
-            color: var(--gray-600);
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 1rem;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
             transition: all 0.2s;
         }
 
-        .modal-btn.camera {
-            background: var(--accent);
-            color: var(--primary);
-            border: none;
-        }
-
-        .modal-btn.gallery {
-            background: transparent;
-            color: var(--primary);
-            border: 2px solid var(--gray-300);
-        }
-
-        /* Demo Mode Indicator */
-        .demo-indicator {
-            position: fixed;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
-            color: var(--accent);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 1001;
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
         }
 
         /* Responsive */
-        @media (max-width: 450px) {
-            .phone-frame {
-                margin: 0;
-                border-radius: 0;
-                padding: 0;
-            }
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; align-items: center; }
+            .features-section { max-width: 100%; }
+        }
 
-            .phone-screen {
-                border-radius: 0;
-                min-height: 100vh;
-            }
-
-            .phone-notch {
-                display: none;
-            }
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
-    <div class="demo-indicator">Demo Mode - Worker App</div>
-
-    <div class="phone-frame">
-        <div class="phone-screen">
-            <div class="phone-notch"></div>
-
-            <!-- Login Screen -->
-            <div class="app-screen active" id="login-screen">
-                <div class="login-screen">
-                    <div class="login-logo">
-                        <div class="login-logo-icon">🔧</div>
-                        <h1>ToolTime <span>Pro</span></h1>
-                        <p>Worker App</p>
-                    </div>
-
-                    <form class="login-form" onsubmit="login(event)">
-                        <div class="login-input-group">
-                            <label>Phone Number</label>
-                            <input type="tel" class="login-input" placeholder="(916) 555-0123" value="(916) 555-0123">
-                        </div>
-
-                        <div class="login-input-group">
-                            <label>PIN Code</label>
-                            <input type="password" class="login-input" placeholder="••••" value="1234" maxlength="4">
-                        </div>
-
-                        <button type="submit" class="login-btn">Sign In</button>
-
-                        <div class="login-forgot">
-                            <a href="#">Forgot PIN?</a>
-                        </div>
-                    </form>
-                </div>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to ToolTime Pro
+            </a>
+            <div class="header-title">
+                <h1>Worker App</h1>
+                <p>Your crew's command center. Jobs, clock-in, photos, compliance - all in one app.</p>
             </div>
+            <span class="demo-badge">Interactive Demo</span>
+        </div>
+    </header>
 
-            <!-- Jobs List Screen -->
-            <div class="app-screen" id="jobs-screen">
-                <div class="app-header">
-                    <div class="app-header-top">
-                        <div>
-                            <div class="app-header-greeting">Good morning,</div>
-                            <div class="app-header-name">Mike Torres</div>
-                        </div>
-                        <div class="app-header-avatar">MT</div>
-                    </div>
-
-                    <div class="clock-status">
-                        <div class="clock-info">
-                            <h3>Today's Hours</h3>
-                            <div class="clock-time" id="todayHours">0:00:00</div>
-                        </div>
-                        <button class="clock-btn clock-in" id="clockBtn" onclick="toggleClock()">Clock In</button>
-                    </div>
-                </div>
-
-                <div class="app-content" style="padding-bottom: 100px;">
-                    <div class="section-title">Today's Jobs</div>
-
-                    <div class="job-card active" onclick="showJobDetail()">
-                        <div class="job-card-header">
-                            <span class="job-type">Kitchen Remodel</span>
-                            <span class="job-status now">Now</span>
-                        </div>
-                        <div class="job-customer">John Johnson</div>
-                        <div class="job-address">📍 123 Oak Street, Sacramento</div>
-                        <div class="job-time">
-                            <span>🕐 <strong>9:00 AM - 5:00 PM</strong></span>
-                            <span>Est: 8 hours</span>
-                        </div>
-                    </div>
-
-                    <div class="job-card" onclick="showJobDetail()">
-                        <div class="job-card-header">
-                            <span class="job-type">Bathroom Install</span>
-                            <span class="job-status upcoming">Upcoming</span>
-                        </div>
-                        <div class="job-customer">Sarah Smith</div>
-                        <div class="job-address">📍 456 Pine Avenue, Folsom</div>
-                        <div class="job-time">
-                            <span>🕐 <strong>Tomorrow 8:00 AM</strong></span>
-                            <span>Est: 6 hours</span>
-                        </div>
-                    </div>
-
-                    <div class="section-title" style="margin-top: 1.5rem;">Recent</div>
-
-                    <div class="job-card">
-                        <div class="job-card-header">
-                            <span class="job-type">HVAC Repair</span>
-                            <span class="job-status completed">Done</span>
-                        </div>
-                        <div class="job-customer">Mike Davis</div>
-                        <div class="job-address">📍 789 Elm Road, Roseville</div>
-                        <div class="job-time">
-                            <span>🕐 <strong>Yesterday</strong></span>
-                            <span>5h 30m logged</span>
-                        </div>
-                    </div>
-                </div>
-
-                <nav class="bottom-nav">
-                    <div class="nav-item active">
-                        <span class="nav-item-icon">📋</span>
-                        Jobs
-                    </div>
-                    <div class="nav-item">
-                        <span class="nav-item-icon">⏱️</span>
-                        Time
-                    </div>
-                    <div class="nav-item">
-                        <span class="nav-item-icon">💬</span>
-                        Messages
-                    </div>
-                    <div class="nav-item" onclick="logout()">
-                        <span class="nav-item-icon">👤</span>
-                        Profile
-                    </div>
-                </nav>
-            </div>
-
-            <!-- Job Detail Screen -->
-            <div class="app-screen" id="detail-screen">
-                <div class="job-detail-header">
-                    <div class="back-btn" onclick="showJobsList()">
-                        ← Back to Jobs
-                    </div>
-                    <div class="job-detail-title">Kitchen Remodel</div>
-                    <div class="job-detail-customer">👤 John Johnson</div>
-                </div>
-
-                <div class="job-detail-content" style="padding-bottom: 100px;">
-                    <div class="job-detail-card">
-                        <h4>Job Details</h4>
-                        <div class="job-detail-row">
-                            <span class="job-detail-label">Address</span>
-                            <span class="job-detail-value">123 Oak Street</span>
-                        </div>
-                        <div class="job-detail-row">
-                            <span class="job-detail-label">City</span>
-                            <span class="job-detail-value">Sacramento, CA</span>
-                        </div>
-                        <div class="job-detail-row">
-                            <span class="job-detail-label">Time</span>
-                            <span class="job-detail-value">9:00 AM - 5:00 PM</span>
-                        </div>
-                        <div class="job-detail-row">
-                            <span class="job-detail-label">Customer Phone</span>
-                            <span class="job-detail-value">(916) 555-1234</span>
-                        </div>
-                    </div>
-
-                    <div class="job-detail-card">
-                        <h4>Work Description</h4>
-                        <p>Complete kitchen cabinet installation. Customer has purchased all materials. Need to install upper and lower cabinets, countertop, and backsplash.</p>
-                    </div>
-
-                    <div class="job-detail-card">
-                        <h4>Job Photos</h4>
-                        <div class="photo-grid">
-                            <div class="photo-item">
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23e5e7eb' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%239ca3af' font-size='12'%3EBefore%3C/text%3E%3C/svg%3E" alt="Before">
-                            </div>
-                            <div class="photo-item">
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23e5e7eb' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%239ca3af' font-size='12'%3EProgress%3C/text%3E%3C/svg%3E" alt="Progress">
-                            </div>
-                            <div class="photo-item add" onclick="showPhotoModal()">
-                                +
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="job-detail-card">
-                        <h4>Time Logged Today</h4>
-                        <div class="job-detail-row">
-                            <span class="job-detail-label">Clock In</span>
-                            <span class="job-detail-value">9:03 AM</span>
-                        </div>
-                        <div class="job-detail-row">
-                            <span class="job-detail-label">Current Duration</span>
-                            <span class="job-detail-value stats-number" id="jobDuration">2h 45m</span>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button class="action-btn secondary" onclick="showPhotoModal()">
-                            📸 Add Photo
+    <main class="main-container">
+        <!-- Phone Mockup -->
+        <div class="phone-container">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <!-- Tab Navigation -->
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="showTab('jobs')">
+                            <span>📋</span>
+                            Jobs
                         </button>
-                        <button class="action-btn primary">
-                            ✓ Complete Job
+                        <button class="tab-btn" onclick="showTab('clock')">
+                            <span>⏰</span>
+                            Clock
+                        </button>
+                        <button class="tab-btn" onclick="showTab('checklist')">
+                            <span>✅</span>
+                            Tasks
+                        </button>
+                        <button class="tab-btn" onclick="showTab('incident')">
+                            <span>⚠️</span>
+                            Report
                         </button>
                     </div>
+
+                    <!-- Tab 1: Today's Jobs -->
+                    <div class="tab-content active" id="tab-jobs">
+                        <div class="app-header">
+                            <div class="app-greeting">👷 Hey, Miguel!</div>
+                            <div class="app-date">Tuesday, Jan 19</div>
+                        </div>
+                        <div class="app-body">
+                            <div class="section-header">
+                                <span class="section-title">Today's Jobs</span>
+                                <span class="section-badge">3</span>
+                            </div>
+
+                            <div class="job-card">
+                                <div class="job-card-header">
+                                    <div class="job-icon">🏠</div>
+                                    <div class="job-info">
+                                        <h4>Martinez Residence</h4>
+                                        <p>123 Oak Street</p>
+                                    </div>
+                                </div>
+                                <div class="job-time">9:00 AM - 11:00 AM</div>
+                                <div class="job-tasks">Lawn mowing, edging</div>
+                                <div class="job-actions">
+                                    <button class="job-btn secondary">Navigate</button>
+                                    <button class="job-btn primary">Start Job</button>
+                                </div>
+                            </div>
+
+                            <div class="job-card">
+                                <div class="job-card-header">
+                                    <div class="job-icon">🏢</div>
+                                    <div class="job-info">
+                                        <h4>Oak Valley HOA</h4>
+                                        <p>456 Pine Avenue</p>
+                                    </div>
+                                </div>
+                                <div class="job-time">11:30 AM - 2:00 PM</div>
+                                <div class="job-tasks">Weekly maintenance</div>
+                                <div class="job-actions">
+                                    <button class="job-btn secondary">Navigate</button>
+                                    <button class="job-btn secondary">Details</button>
+                                </div>
+                            </div>
+
+                            <button class="clock-btn clock-in" style="margin-top: 16px;" onclick="showTab('clock')">Clock In ⏰</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Time Clock -->
+                    <div class="tab-content" id="tab-clock">
+                        <div class="app-header">
+                            <div class="app-greeting">⏰ Time Clock</div>
+                        </div>
+                        <div class="app-body">
+                            <div class="clock-display">
+                                <div class="clock-status" id="clockStatus">CLOCKED IN</div>
+                                <div class="clock-since">Since: 8:47 AM</div>
+                                <div class="clock-total" id="clockTotal">3h 24m</div>
+                                <div class="clock-location">📍 Location verified - 123 Oak Street</div>
+                            </div>
+
+                            <button class="clock-btn clock-out" id="clockBtn" onclick="toggleClock()">CLOCK OUT</button>
+
+                            <div class="break-section">
+                                <div class="break-title">☕ Breaks</div>
+                                <div class="break-item">
+                                    <div class="break-info">
+                                        Meal Break
+                                        <span>Not taken</span>
+                                    </div>
+                                    <button class="break-btn" onclick="startBreak('meal')">Start (30 min)</button>
+                                </div>
+                                <div class="break-item">
+                                    <div class="break-info">
+                                        Rest Break
+                                        <span>0 of 2 taken</span>
+                                    </div>
+                                    <button class="break-btn" onclick="startBreak('rest')">Start (10 min)</button>
+                                </div>
+                                <div class="break-warning">
+                                    ⚠️ Reminder: Take meal break before 1:47 PM
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Job Checklist -->
+                    <div class="tab-content" id="tab-checklist">
+                        <div class="checklist-header">
+                            <div class="checklist-title">✅ Martinez Residence</div>
+                            <div class="checklist-subtitle">Job Checklist</div>
+                        </div>
+                        <div class="checklist-items">
+                            <div class="checklist-item checked" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox">✓</div>
+                                <span class="checklist-text">Arrived on site</span>
+                            </div>
+                            <div class="checklist-item checked" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox">✓</div>
+                                <span class="checklist-text">Before photos taken</span>
+                            </div>
+                            <div class="checklist-item checked" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox">✓</div>
+                                <span class="checklist-text">Mow front lawn</span>
+                            </div>
+                            <div class="checklist-item checked" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox">✓</div>
+                                <span class="checklist-text">Mow back lawn</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox"></div>
+                                <span class="checklist-text">Edge walkways</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox"></div>
+                                <span class="checklist-text">Blow debris</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox"></div>
+                                <span class="checklist-text">After photos taken</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <div class="checklist-checkbox"></div>
+                                <span class="checklist-text">Customer walkthrough</span>
+                            </div>
+
+                            <div class="checklist-section">
+                                <div class="checklist-section-title">📷 Photos (2/4)</div>
+                                <div class="photo-grid">
+                                    <div class="photo-thumb">🌿</div>
+                                    <div class="photo-thumb">🏠</div>
+                                </div>
+                                <button class="add-photo-btn">+ Add Photo</button>
+                            </div>
+
+                            <button class="complete-job-btn" onclick="completeJob()">Complete Job ✓</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Incident Report -->
+                    <div class="tab-content" id="tab-incident">
+                        <div class="incident-header">
+                            <div class="incident-title">⚠️ Report an Issue</div>
+                        </div>
+                        <div class="incident-form">
+                            <label class="form-label">Type:</label>
+                            <div class="radio-group">
+                                <label class="radio-item">
+                                    <input type="radio" name="incident" value="equipment">
+                                    <div class="radio-circle"></div>
+                                    <span class="radio-text">Equipment problem</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="incident" value="customer">
+                                    <div class="radio-circle"></div>
+                                    <span class="radio-text">Customer concern</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="incident" value="safety" checked>
+                                    <div class="radio-circle"></div>
+                                    <span class="radio-text">Safety hazard</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="incident" value="damage">
+                                    <div class="radio-circle"></div>
+                                    <span class="radio-text">Property damage</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="incident" value="other">
+                                    <div class="radio-circle"></div>
+                                    <span class="radio-text">Other</span>
+                                </label>
+                            </div>
+
+                            <label class="form-label">Description:</label>
+                            <textarea class="incident-textarea" placeholder="Broken sprinkler head found in backyard, flooding area near..."></textarea>
+
+                            <button class="attach-photos-btn">📷 Attach Photos</button>
+
+                            <button class="submit-incident-btn" onclick="submitIncident()">Submit Report</button>
+
+                            <div class="success-message" id="incidentSuccess">
+                                ✓ Report sent to office
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <nav class="bottom-nav">
-                    <div class="nav-item" onclick="showJobsList()">
-                        <span class="nav-item-icon">📋</span>
-                        Jobs
-                    </div>
-                    <div class="nav-item">
-                        <span class="nav-item-icon">⏱️</span>
-                        Time
-                    </div>
-                    <div class="nav-item">
-                        <span class="nav-item-icon">💬</span>
-                        Messages
-                    </div>
-                    <div class="nav-item" onclick="logout()">
-                        <span class="nav-item-icon">👤</span>
-                        Profile
-                    </div>
-                </nav>
             </div>
         </div>
-    </div>
 
-    <!-- Photo Upload Modal -->
-    <div class="modal-overlay" id="photoModal">
-        <div class="modal">
-            <div class="modal-icon">📸</div>
-            <h3>Add Job Photo</h3>
-            <p>Take a new photo or choose from your gallery to document the work.</p>
-            <div class="modal-buttons">
-                <button class="modal-btn camera" onclick="takePhoto()">📷 Camera</button>
-                <button class="modal-btn gallery" onclick="hidePhotoModal()">🖼️ Gallery</button>
-            </div>
+        <!-- Features List -->
+        <div class="features-section">
+            <h3 class="features-title">📱 Worker App Features</h3>
+            <ul class="feature-list">
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>Secure login</strong> with role-based access</div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>GPS-verified</strong> clock in/out</div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>CA break compliance</strong> tracking</div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>Job checklists</strong> & assignments</div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>Before/after photos</strong> uploads</div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>Route navigation</strong> (1-tap to Maps)</div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>Incident reporting</strong></div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>End-of-day summary</strong></div>
+                </li>
+                <li>
+                    <div class="feature-check">✓</div>
+                    <div class="feature-text"><strong>Works offline</strong>, syncs when connected</div>
+                </li>
+            </ul>
         </div>
-    </div>
+    </main>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-box">
+            <h3>Empower your crew with the Worker App</h3>
+            <p>Included free with all ToolTime Pro plans. Available on iOS and Android.</p>
+            <a href="index.html#contact" class="cta-btn">
+                Get ToolTime Pro
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </section>
 
     <script>
-        // Timer state
-        let isClockedIn = false;
-        let clockStartTime = null;
-        let timerInterval = null;
-
-        // Screen navigation
-        function showScreen(screenId) {
-            document.querySelectorAll('.app-screen').forEach(screen => {
-                screen.classList.remove('active');
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
             });
-            document.getElementById(screenId).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
-        function login(e) {
-            e.preventDefault();
-            showScreen('jobs-screen');
-        }
+        let clockedIn = true;
+        let clockTime = 204; // 3h 24m in minutes
 
-        function logout() {
-            showScreen('login-screen');
-            if (isClockedIn) {
-                toggleClock();
-            }
-        }
-
-        function showJobsList() {
-            showScreen('jobs-screen');
-        }
-
-        function showJobDetail() {
-            showScreen('detail-screen');
-        }
-
-        // Clock functionality
         function toggleClock() {
+            clockedIn = !clockedIn;
+            const status = document.getElementById('clockStatus');
             const btn = document.getElementById('clockBtn');
 
-            if (isClockedIn) {
-                // Clock out
-                isClockedIn = false;
-                btn.textContent = 'Clock In';
-                btn.className = 'clock-btn clock-in';
-                clearInterval(timerInterval);
-                alert('Clocked out! Total time: ' + document.getElementById('todayHours').textContent);
+            if (clockedIn) {
+                status.textContent = 'CLOCKED IN';
+                status.classList.remove('out');
+                btn.textContent = 'CLOCK OUT';
+                btn.classList.remove('clock-in');
+                btn.classList.add('clock-out');
             } else {
-                // Clock in
-                isClockedIn = true;
-                clockStartTime = new Date();
-                btn.textContent = 'Clock Out';
-                btn.className = 'clock-btn clock-out';
-                timerInterval = setInterval(updateTimer, 1000);
-                alert('Clocked in at ' + clockStartTime.toLocaleTimeString());
+                status.textContent = 'CLOCKED OUT';
+                status.classList.add('out');
+                btn.textContent = 'CLOCK IN';
+                btn.classList.remove('clock-out');
+                btn.classList.add('clock-in');
             }
         }
 
-        function updateTimer() {
-            if (!clockStartTime) return;
-
-            const now = new Date();
-            const diff = now - clockStartTime;
-
-            const hours = Math.floor(diff / 3600000);
-            const minutes = Math.floor((diff % 3600000) / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-
-            document.getElementById('todayHours').textContent =
-                `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        function startBreak(type) {
+            const duration = type === 'meal' ? 30 : 10;
+            alert(`Starting ${type} break (${duration} minutes). Timer will track your break time.`);
         }
 
-        // Photo modal
-        function showPhotoModal() {
-            document.getElementById('photoModal').classList.add('active');
+        function toggleCheck(element) {
+            element.classList.toggle('checked');
+            const checkbox = element.querySelector('.checklist-checkbox');
+            checkbox.innerHTML = element.classList.contains('checked') ? '✓' : '';
         }
 
-        function hidePhotoModal() {
-            document.getElementById('photoModal').classList.remove('active');
-        }
-
-        function takePhoto() {
-            hidePhotoModal();
-            alert('Camera would open here in the real app!');
-        }
-
-        // Close modal on background click
-        document.getElementById('photoModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hidePhotoModal();
+        function completeJob() {
+            const unchecked = document.querySelectorAll('#tab-checklist .checklist-item:not(.checked)').length;
+            if (unchecked > 0) {
+                alert(`Please complete all ${unchecked} remaining tasks before marking the job complete.`);
+            } else {
+                alert('Job completed! Great work. Moving to next job...');
+                showTab('jobs');
             }
-        });
+        }
 
-        // Simulate job duration update
+        function submitIncident() {
+            document.getElementById('incidentSuccess').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('incidentSuccess').style.display = 'none';
+            }, 3000);
+        }
+
+        // Update clock display
         setInterval(() => {
-            const duration = document.getElementById('jobDuration');
-            if (duration) {
-                // Random small increment for demo effect
-                const current = duration.textContent;
-                // Keep it static for demo
+            if (clockedIn) {
+                clockTime++;
+                const hours = Math.floor(clockTime / 60);
+                const mins = clockTime % 60;
+                document.getElementById('clockTotal').textContent = `${hours}h ${mins}m`;
             }
         }, 60000);
     </script>
