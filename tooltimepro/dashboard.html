@@ -456,6 +456,42 @@
             opacity: 0.9;
         }
 
+        /* Payroll Banner */
+        .payroll-banner {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .payroll-banner-text {
+            color: var(--navy);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payroll-banner-link {
+            background: var(--navy);
+            color: var(--gold);
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .payroll-banner-link:hover {
+            background: var(--navy-light);
+            transform: translateY(-1px);
+        }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .dashboard-grid {
@@ -497,6 +533,12 @@
             <span class="demo-badge">Interactive Demo</span>
         </div>
     </header>
+
+    <!-- Payroll Coming Soon Banner -->
+    <div class="payroll-banner">
+        <span class="payroll-banner-text">💰 Payroll is coming! Direct deposit, tax forms, time sync — all built-in.</span>
+        <a href="payroll.html#waitlist" class="payroll-banner-link">Join Waitlist →</a>
+    </div>
 
     <!-- Stats Row -->
     <section class="stats-section">
