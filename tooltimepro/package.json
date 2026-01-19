@@ -1,0 +1,8 @@
+{
+  "name": "tooltimepro",
+  "version": "1.0.0",
+  "description": "ToolTime Pro - All-in-one platform for service businesses",
+  "scripts": {
+    "dev": "npx serve ."
+  }
+}
