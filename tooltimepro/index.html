@@ -189,6 +189,20 @@
         .hr-cta{text-align:center;margin-top:48px;position:relative;z-index:1}
         @media(max-width:968px){.hr-content{grid-template-columns:1fr}.hr-visual{order:-1}}
 
+        /* Product Demos Section */
+        .demos-section{background:var(--bg);padding:80px 0}
+        .demos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+        @media(max-width:1200px){.demos-grid{grid-template-columns:repeat(3,1fr)}}
+        @media(max-width:768px){.demos-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:480px){.demos-grid{grid-template-columns:1fr}}
+        .demo-card{background:var(--white);border-radius:var(--radius-lg);padding:24px;text-align:center;border:2px solid var(--border);transition:all 0.3s ease;text-decoration:none;display:block}
+        .demo-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+        .demo-icon{font-size:2.5rem;margin-bottom:12px}
+        .demo-card h3{font-size:1.125rem;color:var(--text);margin-bottom:8px}
+        .demo-card p{font-size:0.875rem;color:var(--text-muted);line-height:1.5;margin-bottom:12px}
+        .demo-link{color:var(--accent);font-weight:600;font-size:0.875rem}
+        .demo-card:hover .demo-link{text-decoration:underline}
+
         /* Why People Switch Section */
         .switch-section{background:var(--white)}
         .switch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
@@ -297,6 +311,7 @@
             <a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a>
             <div class="nav-links" id="navLinks">
                 <a href="#features">Features</a>
+                <a href="#demos">Demos</a>
                 <a href="#hr">HR Tools</a>
                 <a href="#pricing">Pricing</a>
                 <a href="#contact" class="nav-cta">Get Started</a>
@@ -401,6 +416,61 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Demos Section -->
+    <section class="demos-section" id="demos">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">See It In Action</span>
+                <h2>Try Our Interactive Demos</h2>
+                <p>Click any feature below to see exactly how ToolTime Pro works. No signup required.</p>
+            </div>
+            <div class="demos-grid">
+                <a href="quote.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">📝</div>
+                    <h3>Smart Quoting</h3>
+                    <p>Create professional quotes in seconds with live preview</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="scheduler.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">📅</div>
+                    <h3>Online Booking</h3>
+                    <p>Let customers book online + manage your calendar</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="chatbot.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">🤖</div>
+                    <h3>AI Chatbot</h3>
+                    <p>24/7 lead capture that never misses a customer</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="reviews.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">⭐</div>
+                    <h3>Review Machine</h3>
+                    <p>Automate 5-star reviews with SMS follow-ups</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="worker.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">👷</div>
+                    <h3>Worker App</h3>
+                    <p>GPS clock-in, job details, and compliance tracking</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="dashboard.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">📊</div>
+                    <h3>Admin Dashboard</h3>
+                    <p>See jobs, revenue, crew status at a glance</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="shield.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">🛡️</div>
+                    <h3>ToolTime Shield</h3>
+                    <p>Worker classification, final pay calculator, HR docs</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
             </div>
         </div>
     </section>
@@ -730,8 +800,9 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand"><a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a><p>The all-in-one platform for service pros. Website, scheduling, worker management, HR & compliance — we handle it all so you can focus on your craft.</p></div>
-                <div class="footer-links"><h4>Platform</h4><a href="#features">Features</a><a href="#hr">HR Tools</a><a href="#pricing">Pricing</a><a href="worker.html">Worker App</a><a href="payroll.html">Payroll (Coming Soon)</a></div>
-                <div class="footer-links"><h4>Resources</h4><a href="shield.html">ToolTime Shield</a><a href="#">HR Toolkit</a><a href="#">CA Compliance Guide</a><a href="#">Blog</a></div>
+                <div class="footer-links"><h4>Platform</h4><a href="#features">Features</a><a href="#demos">Demos</a><a href="#hr">HR Tools</a><a href="#pricing">Pricing</a><a href="payroll.html">Payroll (Coming Soon)</a></div>
+                <div class="footer-links"><h4>Try Demos</h4><a href="dashboard.html">Dashboard</a><a href="quote.html">Smart Quoting</a><a href="scheduler.html">Booking</a><a href="worker.html">Worker App</a></div>
+                <div class="footer-links"><h4>Resources</h4><a href="shield.html">ToolTime Shield</a><a href="chatbot.html">AI Chatbot</a><a href="reviews.html">Reviews</a><a href="#">Blog</a></div>
                 <div class="footer-links"><h4>Company</h4><a href="#">About Us</a><a href="#contact">Contact</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
             </div>
             <div class="footer-bottom"><p>© 2026 ToolTime Pro. All rights reserved. Built with 💛 for service pros who hate software.</p></div>
