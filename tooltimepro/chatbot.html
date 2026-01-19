@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24/7 AI Chatbot | ToolTime Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a1a2e;
+            --navy-light: #252542;
+            --gold: #f5a623;
+            --gold-light: #ffc857;
+            --success: #00c853;
+            --danger: #ff5252;
+            --text: #e8e8e8;
+            --text-muted: #a0a0b0;
+            --border: #3a3a5a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--navy);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--navy-light);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .back-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 0.8; }
+
+        .header-title h1 { font-size: 1.5rem; font-weight: 700; color: white; }
+        .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
+
+        .demo-badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 1fr 400px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Feature Lists */
+        .features-panel {
+            background: var(--navy-light);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+        }
+
+        .features-panel h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .features-panel h3 span {
+            font-size: 1.25rem;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feature-list li:last-child { border-bottom: none; }
+
+        .feature-list .check {
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 200, 83, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--success);
+            font-size: 0.75rem;
+        }
+
+        .feature-list .text {
+            font-size: 0.9375rem;
+            line-height: 1.5;
+        }
+
+        .feature-list .text strong { color: white; }
+
+        /* Chat Widget */
+        .chat-widget {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 600px;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .chat-info h4 {
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chat-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8125rem;
+            color: var(--success);
+        }
+
+        .chat-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+            min-height: 350px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user { flex-direction: row-reverse; }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar { background: var(--gold); }
+        .message.user .message-avatar { background: var(--navy); color: white; }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+        }
+
+        .message.bot .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .message.user .message-bubble {
+            background: var(--navy);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-bubble .cta-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 16px;
+            background: var(--gold);
+            color: var(--navy);
+            border-radius: 20px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .message-bubble .cta-link:hover { opacity: 0.9; }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 16px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            gap: 12px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input input:focus { border-color: var(--gold); }
+
+        .chat-input button {
+            width: 44px;
+            height: 44px;
+            background: var(--gold);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .chat-input button:hover {
+            background: var(--gold-light);
+            transform: scale(1.05);
+        }
+
+        .chat-input button svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--navy);
+        }
+
+        /* Lead Alert */
+        .lead-alert {
+            background: var(--navy-light);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .lead-alert-header {
+            background: rgba(245, 166, 35, 0.15);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .lead-alert-header h4 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: alertPulse 1s infinite;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(255, 82, 82, 0); }
+        }
+
+        .lead-alert-body { padding: 20px; }
+
+        .lead-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .lead-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .lead-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+        }
+
+        .lead-detail span { font-size: 1rem; }
+
+        .lead-message {
+            background: var(--navy);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--text);
+            margin-bottom: 16px;
+            border-left: 3px solid var(--gold);
+        }
+
+        .lead-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .lead-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .lead-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .lead-btn.primary {
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        .lead-btn.secondary {
+            background: var(--navy);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .lead-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* CTA Section */
+        .cta-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.1), rgba(245, 166, 35, 0.05));
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 40px;
+        }
+
+        .cta-box h3 { font-size: 1.5rem; margin-bottom: 12px; }
+        .cta-box p { color: var(--text-muted); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+        }
+
+        /* Quick Reply Buttons */
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .quick-reply {
+            padding: 8px 14px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 18px;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-reply:hover {
+            background: var(--gold);
+            color: var(--navy);
+            border-color: var(--gold);
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+
+            .features-panel { order: 2; }
+            .lead-alert { order: 3; }
+        }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .chat-widget { max-height: 500px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to ToolTime Pro
+            </a>
+            <div class="header-title">
+                <h1>24/7 AI Chatbot</h1>
+                <p>Never miss a lead. Answer questions instantly. Book appointments while you sleep.</p>
+            </div>
+            <span class="demo-badge">Interactive Demo</span>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Left - What It Does -->
+        <div class="features-panel">
+            <h3><span>🤖</span> What It Does</h3>
+            <ul class="feature-list">
+                <li>
+                    <div class="check">✓</div>
+                    <div class="text"><strong>Answers FAQs instantly</strong> - pricing, services, hours, service areas</div>
+                </li>
+                <li>
+                    <div class="check">✓</div>
+                    <div class="text"><strong>Captures leads 24/7</strong> - even at 2am on a Sunday</div>
+                </li>
+                <li>
+                    <div class="check">✓</div>
+                    <div class="text"><strong>Books appointments</strong> - directly into your calendar</div>
+                </li>
+                <li>
+                    <div class="check">✓</div>
+                    <div class="text"><strong>Qualifies leads</strong> - budget, timeline, service needed</div>
+                </li>
+                <li>
+                    <div class="check">✓</div>
+                    <div class="text"><strong>Instant notifications</strong> - get alerts on your phone</div>
+                </li>
+                <li>
+                    <div class="check">✓</div>
+                    <div class="text"><strong>Human handoff</strong> - escalates complex questions to you</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Center - Chat Widget -->
+        <div class="chat-widget">
+            <div class="chat-header">
+                <div class="chat-avatar">🌿</div>
+                <div class="chat-info">
+                    <h4>Chat with Pro Landscaping</h4>
+                    <div class="chat-status">Online now</div>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-bubble">
+                        Hi there! 👋 Welcome to Pro Landscaping. I'm here to help with any questions. What can I assist you with today?
+                        <div class="quick-replies">
+                            <span class="quick-reply" onclick="sendQuickReply('Do you do lawn maintenance?')">Lawn maintenance</span>
+                            <span class="quick-reply" onclick="sendQuickReply('What are your prices?')">Pricing</span>
+                            <span class="quick-reply" onclick="sendQuickReply('Can I book an appointment?')">Book appointment</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right - Lead Alert -->
+        <div class="lead-alert" id="leadAlert" style="opacity: 0; transform: translateX(20px);">
+            <div class="lead-alert-header">
+                <div class="pulse-dot"></div>
+                <h4>New Lead Captured</h4>
+            </div>
+            <div class="lead-alert-body">
+                <div class="lead-name">John Smith</div>
+                <div class="lead-details">
+                    <div class="lead-detail"><span>📞</span> 555-123-4567</div>
+                    <div class="lead-detail"><span>📍</span> 123 Oak Street</div>
+                </div>
+                <div class="lead-message">"Lawn care, 1/4 acre, weekly service"</div>
+                <div class="lead-time">🕐 Just now via website chatbot</div>
+                <div class="lead-actions">
+                    <button class="lead-btn primary" onclick="alert('Calling John Smith...')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        Call Now
+                    </button>
+                    <button class="lead-btn secondary" onclick="window.location.href='quote.html'">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Send Quote
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-box">
+            <h3>Capture leads while you sleep</h3>
+            <p>The AI chatbot answers questions, qualifies leads, and books appointments 24/7 - even when you're on a job site.</p>
+            <a href="index.html#contact" class="cta-btn">
+                Get AI Chatbot
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        let conversationStep = 0;
+        let leadCaptured = false;
+
+        // Predefined responses based on keywords
+        const responses = {
+            lawn: {
+                text: "Yes! We offer weekly and bi-weekly lawn care starting at $45/visit. This includes mowing, edging, and blowing. Would you like a free quote?",
+                quickReplies: ["Yes please!", "What about larger yards?", "Other services?"]
+            },
+            price: {
+                text: "Here are our most popular services:\n\n🌿 Lawn Care: $45-85/visit\n🏊 Pool Service: $75-150/month\n🔧 Handyman: $65/hour\n🌳 Landscaping: Custom quotes\n\nWant a personalized quote for your property?",
+                quickReplies: ["Get a quote", "Tell me more", "Book appointment"]
+            },
+            quote: {
+                text: "I'd be happy to get you a quote! For the most accurate pricing, can you tell me:\n\n1. What service do you need?\n2. Approximate property size?\n\nOr I can have someone call you - what's your phone number?",
+                quickReplies: ["Lawn care, 1/4 acre", "Pool service", "Call me instead"]
+            },
+            book: {
+                text: "Great! I can help you book an appointment. We have availability:\n\n📅 Tomorrow: 9am, 2pm\n📅 Thursday: 10am, 1pm, 3pm\n📅 Friday: 9am, 11am\n\nWhich works best for you?",
+                quickReplies: ["Tomorrow 9am", "Thursday 1pm", "Check next week"]
+            },
+            phone: {
+                text: "Perfect! I've captured your info. Mike will call you within 2 hours to schedule a walkthrough and provide an exact quote. Is there anything else I can help with?",
+                quickReplies: ["That's all, thanks!", "What's included?", "Service area?"],
+                capturesLead: true
+            },
+            thanks: {
+                text: "You're welcome! 😊 We look forward to helping you. Have a great day!",
+                quickReplies: []
+            },
+            default: {
+                text: "I'd be happy to help with that! For specific questions, you can also reach us at (512) 555-0100 or I can have someone call you. Would you like to leave your number?",
+                quickReplies: ["Leave my number", "Call me", "Other question"]
+            }
+        };
+
+        function addMessage(text, isUser = false, quickReplies = []) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            let quickRepliesHtml = '';
+            if (quickReplies.length > 0) {
+                quickRepliesHtml = `<div class="quick-replies">${quickReplies.map(r => `<span class="quick-reply" onclick="sendQuickReply('${r}')">${r}</span>`).join('')}</div>`;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-bubble">${text.replace(/\n/g, '<br>')}${quickRepliesHtml}</div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-bubble">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        function getResponse(input) {
+            const lowerInput = input.toLowerCase();
+
+            // Check for phone number
+            if (/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(input) || /\d{10}/.test(input)) {
+                return responses.phone;
+            }
+
+            // Check keywords
+            if (lowerInput.includes('lawn') || lowerInput.includes('mow') || lowerInput.includes('grass') || lowerInput.includes('1/4 acre')) {
+                return responses.lawn;
+            }
+            if (lowerInput.includes('price') || lowerInput.includes('cost') || lowerInput.includes('how much') || lowerInput.includes('pricing')) {
+                return responses.price;
+            }
+            if (lowerInput.includes('quote') || lowerInput.includes('estimate') || lowerInput.includes('yes please')) {
+                return responses.quote;
+            }
+            if (lowerInput.includes('book') || lowerInput.includes('appointment') || lowerInput.includes('schedule') || lowerInput.includes('tomorrow') || lowerInput.includes('thursday')) {
+                return responses.book;
+            }
+            if (lowerInput.includes('thank') || lowerInput.includes("that's all") || lowerInput.includes('great')) {
+                return responses.thanks;
+            }
+            if (lowerInput.includes('call me') || lowerInput.includes('leave') || lowerInput.includes('number') || lowerInput.includes('555') || lowerInput.includes('phone')) {
+                return responses.phone;
+            }
+
+            return responses.default;
+        }
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, true);
+            userInput.value = '';
+
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+                const response = getResponse(text);
+                addMessage(response.text, false, response.quickReplies);
+
+                if (response.capturesLead && !leadCaptured) {
+                    leadCaptured = true;
+                    setTimeout(() => {
+                        showLeadAlert();
+                    }, 1000);
+                }
+            }, 1000 + Math.random() * 500);
+        }
+
+        function sendQuickReply(text) {
+            userInput.value = text;
+            sendMessage();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function showLeadAlert() {
+            const alert = document.getElementById('leadAlert');
+            alert.style.transition = 'all 0.5s ease';
+            alert.style.opacity = '1';
+            alert.style.transform = 'translateX(0)';
+        }
+    </script>
+</body>
+</html>

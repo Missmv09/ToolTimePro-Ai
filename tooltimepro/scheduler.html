@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Scheduler | ToolTime Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a1a2e;
+            --navy-light: #252542;
+            --gold: #f5a623;
+            --gold-light: #ffc857;
+            --success: #00c853;
+            --warning: #ffab00;
+            --info: #2196f3;
+            --danger: #ff5252;
+            --text: #e8e8e8;
+            --text-muted: #a0a0b0;
+            --border: #3a3a5a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--navy);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--navy-light);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .back-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 0.8; }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .header-title p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .demo-badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+        }
+
+        /* Panel Styles */
+        .panel {
+            background: var(--navy-light);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: rgba(245, 166, 35, 0.1);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .panel-header span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .panel-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .panel-body { padding: 24px; }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Calendar */
+        .calendar {
+            background: var(--navy);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .calendar-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-nav button {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .calendar-nav button:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .calendar-weekdays span {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .calendar-day.other-month { color: var(--text-muted); opacity: 0.5; }
+        .calendar-day.available { background: rgba(0, 200, 83, 0.2); color: var(--success); }
+        .calendar-day.booked { background: var(--navy-light); color: var(--text-muted); cursor: not-allowed; }
+        .calendar-day.selected { background: var(--gold); color: var(--navy); font-weight: 700; }
+        .calendar-day.available:hover:not(.selected) { border-color: var(--gold); }
+
+        /* Time Slots */
+        .time-slots { margin-bottom: 20px; }
+
+        .time-slots h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .time-slot {
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: var(--navy);
+        }
+
+        .time-slot.available:hover { border-color: var(--gold); color: var(--gold); }
+        .time-slot.unavailable { background: var(--navy-light); color: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
+        .time-slot.selected { background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+
+        /* Book Button */
+        .btn-book {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-book:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+        }
+
+        /* Admin Calendar */
+        .week-view {
+            background: var(--navy);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .week-header {
+            display: grid;
+            grid-template-columns: 60px repeat(5, 1fr);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .week-header-cell {
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            border-left: 1px solid var(--border);
+        }
+
+        .week-header-cell:first-child { border-left: none; }
+
+        .week-header-cell .date {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .week-header-cell.today .date { color: var(--gold); }
+
+        .week-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .time-row {
+            display: grid;
+            grid-template-columns: 60px repeat(5, 1fr);
+            border-bottom: 1px solid var(--border);
+            min-height: 60px;
+        }
+
+        .time-row:last-child { border-bottom: none; }
+
+        .time-label {
+            padding: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .day-cell {
+            border-left: 1px solid var(--border);
+            padding: 4px;
+            position: relative;
+        }
+
+        /* Appointment Cards */
+        .appointment {
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .appointment:hover { transform: scale(1.02); }
+
+        .appointment.confirmed { background: rgba(0, 200, 83, 0.2); border-left: 3px solid var(--success); }
+        .appointment.pending { background: rgba(255, 171, 0, 0.2); border-left: 3px solid var(--warning); }
+        .appointment.in-progress { background: rgba(33, 150, 243, 0.2); border-left: 3px solid var(--info); }
+        .appointment.completed { background: var(--navy-light); border-left: 3px solid var(--text-muted); opacity: 0.7; }
+
+        .appointment-title {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .appointment-detail {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        .appointment-status {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .appointment.confirmed .appointment-status { background: var(--success); color: white; }
+        .appointment.pending .appointment-status { background: var(--warning); color: var(--navy); }
+        .appointment.in-progress .appointment-status { background: var(--info); color: white; }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: var(--navy);
+            border-radius: 0 0 12px 12px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .legend-dot.confirmed { background: var(--success); }
+        .legend-dot.pending { background: var(--warning); }
+        .legend-dot.in-progress { background: var(--info); }
+        .legend-dot.completed { background: var(--text-muted); }
+
+        /* Features Section */
+        .features-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 48px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: var(--navy-light);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 200, 83, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .feature-text p {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 48px;
+            text-align: center;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.1), rgba(245, 166, 35, 0.05));
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 40px;
+        }
+
+        .cta-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .cta-box p {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: var(--navy-light);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal { transform: scale(1); }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 2.5rem;
+        }
+
+        .modal h3 { font-size: 1.5rem; margin-bottom: 12px; }
+        .modal p { color: var(--text-muted); margin-bottom: 24px; }
+
+        .modal .btn-book { max-width: 200px; margin: 0 auto; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .form-row { grid-template-columns: 1fr; }
+            .slots-grid { grid-template-columns: repeat(2, 1fr); }
+            .week-header, .time-row { grid-template-columns: 50px repeat(5, 1fr); }
+            .appointment { font-size: 0.65rem; padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to ToolTime Pro
+            </a>
+            <div class="header-title">
+                <h1>Smart Scheduler</h1>
+                <p>Let customers book online. Sync with your calendar. Send automatic reminders.</p>
+            </div>
+            <span class="demo-badge">Interactive Demo</span>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Customer Booking View -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-icon">📅</div>
+                <h2>Customer Booking View</h2>
+                <span>What your customers see</span>
+            </div>
+            <div class="panel-body">
+                <!-- Service Selection -->
+                <div class="form-group">
+                    <label>Select Service</label>
+                    <select id="serviceSelect">
+                        <option value="">Choose a service...</option>
+                        <option value="lawn-basic">Lawn Care - Basic ($45)</option>
+                        <option value="lawn-premium">Lawn Care - Premium ($85)</option>
+                        <option value="pool-weekly">Pool Service - Weekly ($75)</option>
+                        <option value="pool-monthly">Pool Service - Monthly ($150)</option>
+                        <option value="handyman">Handyman ($65/hr)</option>
+                        <option value="landscaping">Landscaping (Quote Required)</option>
+                    </select>
+                </div>
+
+                <!-- Calendar -->
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <h3 id="calendarMonth">January 2026</h3>
+                        <div class="calendar-nav">
+                            <button onclick="prevMonth()">‹</button>
+                            <button onclick="nextMonth()">›</button>
+                        </div>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+
+                <!-- Time Slots -->
+                <div class="time-slots">
+                    <h4>Morning</h4>
+                    <div class="slots-grid">
+                        <div class="time-slot available" onclick="selectTime(this)">8:00 AM</div>
+                        <div class="time-slot available" onclick="selectTime(this)">9:00 AM</div>
+                        <div class="time-slot unavailable">10:00 AM</div>
+                        <div class="time-slot available" onclick="selectTime(this)">11:00 AM</div>
+                    </div>
+                    <h4>Afternoon</h4>
+                    <div class="slots-grid">
+                        <div class="time-slot unavailable">12:00 PM</div>
+                        <div class="time-slot available" onclick="selectTime(this)">1:00 PM</div>
+                        <div class="time-slot available" onclick="selectTime(this)">2:00 PM</div>
+                        <div class="time-slot available" onclick="selectTime(this)">3:00 PM</div>
+                    </div>
+                </div>
+
+                <!-- Customer Info -->
+                <div class="form-group">
+                    <label>Your Information</label>
+                    <div class="form-row">
+                        <input type="text" placeholder="Full Name" id="custName">
+                        <input type="tel" placeholder="Phone" id="custPhone">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-row">
+                        <input type="email" placeholder="Email" id="custEmail">
+                        <input type="text" placeholder="Address" id="custAddress">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <textarea placeholder="Notes (optional)" rows="2" id="custNotes"></textarea>
+                </div>
+
+                <button class="btn-book" onclick="bookAppointment()">Book Appointment</button>
+            </div>
+        </div>
+
+        <!-- Admin Calendar View -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-icon">👔</div>
+                <h2>Your Admin View</h2>
+                <span>Business owner's calendar</span>
+            </div>
+            <div class="panel-body" style="padding: 0;">
+                <div class="week-view">
+                    <div class="week-header">
+                        <div class="week-header-cell"></div>
+                        <div class="week-header-cell">Mon<div class="date">19</div></div>
+                        <div class="week-header-cell today">Tue<div class="date">20</div></div>
+                        <div class="week-header-cell">Wed<div class="date">21</div></div>
+                        <div class="week-header-cell">Thu<div class="date">22</div></div>
+                        <div class="week-header-cell">Fri<div class="date">23</div></div>
+                    </div>
+                    <div class="week-body">
+                        <!-- 8 AM -->
+                        <div class="time-row">
+                            <div class="time-label">8 AM</div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell">
+                                <div class="appointment confirmed">
+                                    <div class="appointment-title">Roberts - Lawn</div>
+                                    <div class="appointment-detail">456 Elm St</div>
+                                    <span class="appointment-status">Confirmed</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                        </div>
+                        <!-- 9 AM -->
+                        <div class="time-row">
+                            <div class="time-label">9 AM</div>
+                            <div class="day-cell">
+                                <div class="appointment confirmed">
+                                    <div class="appointment-title">Martinez - Lawn</div>
+                                    <div class="appointment-detail">123 Oak St</div>
+                                    <span class="appointment-status">Confirmed</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell">
+                                <div class="appointment pending">
+                                    <div class="appointment-title">Wilson - Pool</div>
+                                    <div class="appointment-detail">789 Pine Ave</div>
+                                    <span class="appointment-status">Pending</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                        </div>
+                        <!-- 10 AM -->
+                        <div class="time-row">
+                            <div class="time-label">10 AM</div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell">
+                                <div class="appointment in-progress">
+                                    <div class="appointment-title">Oak Valley HOA</div>
+                                    <div class="appointment-detail">Community Center</div>
+                                    <span class="appointment-status">In Progress</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell">
+                                <div class="appointment confirmed">
+                                    <div class="appointment-title">Davis - Handyman</div>
+                                    <div class="appointment-detail">321 Maple Dr</div>
+                                    <span class="appointment-status">Confirmed</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 11 AM -->
+                        <div class="time-row">
+                            <div class="time-label">11 AM</div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                        </div>
+                        <!-- 12 PM -->
+                        <div class="time-row">
+                            <div class="time-label">12 PM</div>
+                            <div class="day-cell">
+                                <div class="appointment completed">
+                                    <div class="appointment-title">Lunch Break</div>
+                                </div>
+                            </div>
+                            <div class="day-cell">
+                                <div class="appointment completed">
+                                    <div class="appointment-title">Lunch Break</div>
+                                </div>
+                            </div>
+                            <div class="day-cell">
+                                <div class="appointment completed">
+                                    <div class="appointment-title">Lunch Break</div>
+                                </div>
+                            </div>
+                            <div class="day-cell">
+                                <div class="appointment completed">
+                                    <div class="appointment-title">Lunch Break</div>
+                                </div>
+                            </div>
+                            <div class="day-cell">
+                                <div class="appointment completed">
+                                    <div class="appointment-title">Lunch Break</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 1 PM -->
+                        <div class="time-row">
+                            <div class="time-label">1 PM</div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell">
+                                <div class="appointment pending">
+                                    <div class="appointment-title">Garcia - Lawn</div>
+                                    <div class="appointment-detail">555 Cedar Ln</div>
+                                    <span class="appointment-status">Pending</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                        </div>
+                        <!-- 2 PM -->
+                        <div class="time-row">
+                            <div class="time-label">2 PM</div>
+                            <div class="day-cell">
+                                <div class="appointment pending">
+                                    <div class="appointment-title">Thompson - Pool</div>
+                                    <div class="appointment-detail">456 Pine Ave</div>
+                                    <span class="appointment-status">Pending</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell">
+                                <div class="appointment confirmed">
+                                    <div class="appointment-title">Lee - Landscaping</div>
+                                    <div class="appointment-detail">888 Birch Rd</div>
+                                    <span class="appointment-status">Confirmed</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                        </div>
+                        <!-- 3 PM -->
+                        <div class="time-row">
+                            <div class="time-label">3 PM</div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell">
+                                <div class="appointment confirmed">
+                                    <div class="appointment-title">Brown - Lawn</div>
+                                    <div class="appointment-detail">222 Spruce St</div>
+                                    <span class="appointment-status">Confirmed</span>
+                                </div>
+                            </div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                            <div class="day-cell"></div>
+                        </div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-dot confirmed"></div> Confirmed</div>
+                        <div class="legend-item"><div class="legend-dot pending"></div> Pending</div>
+                        <div class="legend-item"><div class="legend-dot in-progress"></div> In Progress</div>
+                        <div class="legend-item"><div class="legend-dot completed"></div> Completed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🔄</div>
+                <div class="feature-text">
+                    <h4>Google Calendar Sync</h4>
+                    <p>Two-way sync keeps everything updated automatically</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📱</div>
+                <div class="feature-text">
+                    <h4>Auto Reminders</h4>
+                    <p>SMS & email reminders 24hr and 1hr before appointments</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💳</div>
+                <div class="feature-text">
+                    <h4>Online Deposits</h4>
+                    <p>Collect deposits or full payment at booking</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔁</div>
+                <div class="feature-text">
+                    <h4>Recurring Schedules</h4>
+                    <p>Set up weekly, bi-weekly, or monthly appointments</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⏱️</div>
+                <div class="feature-text">
+                    <h4>Buffer Time</h4>
+                    <p>Automatic travel time between jobs</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📍</div>
+                <div class="feature-text">
+                    <h4>Service Area Limits</h4>
+                    <p>Only accept bookings within your service radius</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">👥</div>
+                <div class="feature-text">
+                    <h4>Team Assignment</h4>
+                    <p>Assign jobs to specific workers or crews</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔔</div>
+                <div class="feature-text">
+                    <h4>Instant Notifications</h4>
+                    <p>Get alerts for new bookings, cancellations & changes</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-box">
+            <h3>Ready to automate your scheduling?</h3>
+            <p>Join thousands of contractors who save 10+ hours per week with Smart Scheduler.</p>
+            <a href="index.html#contact" class="cta-btn">
+                Get Smart Scheduler
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Booking Success Modal -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal">
+            <div class="modal-icon">✓</div>
+            <h3>Booking Confirmed!</h3>
+            <p id="bookingDetails">Your appointment has been scheduled. You'll receive a confirmation email and SMS shortly.</p>
+            <button class="btn-book" onclick="closeModal()">Done</button>
+        </div>
+    </div>
+
+    <script>
+        // Calendar State
+        let currentMonth = 0; // January 2026
+        let currentYear = 2026;
+        let selectedDate = null;
+        let selectedTime = null;
+
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        // Booked dates (for demo)
+        const bookedDates = [3, 7, 14, 17, 21, 25, 28];
+
+        function renderCalendar() {
+            const daysContainer = document.getElementById('calendarDays');
+            const monthLabel = document.getElementById('calendarMonth');
+
+            monthLabel.textContent = `${months[currentMonth]} ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
+
+            let html = '';
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="calendar-day other-month">${prevMonthDays - i}</div>`;
+            }
+
+            // Current month days
+            for (let i = 1; i <= daysInMonth; i++) {
+                const isBooked = bookedDates.includes(i);
+                const isSelected = selectedDate === i;
+                let className = 'calendar-day';
+
+                if (isBooked) {
+                    className += ' booked';
+                } else {
+                    className += ' available';
+                }
+
+                if (isSelected) {
+                    className += ' selected';
+                }
+
+                html += `<div class="${className}" onclick="selectDate(${i}, ${isBooked})">${i}</div>`;
+            }
+
+            // Next month days
+            const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+            const remaining = totalCells - (firstDay + daysInMonth);
+            for (let i = 1; i <= remaining; i++) {
+                html += `<div class="calendar-day other-month">${i}</div>`;
+            }
+
+            daysContainer.innerHTML = html;
+        }
+
+        function selectDate(day, isBooked) {
+            if (isBooked) return;
+            selectedDate = day;
+            renderCalendar();
+        }
+
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            selectedDate = null;
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            selectedDate = null;
+            renderCalendar();
+        }
+
+        function selectTime(element) {
+            if (element.classList.contains('unavailable')) return;
+
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+
+            element.classList.add('selected');
+            selectedTime = element.textContent;
+        }
+
+        function bookAppointment() {
+            const name = document.getElementById('custName').value;
+            const service = document.getElementById('serviceSelect').value;
+
+            if (!service) {
+                alert('Please select a service');
+                return;
+            }
+
+            if (!selectedDate) {
+                alert('Please select a date');
+                return;
+            }
+
+            if (!selectedTime) {
+                alert('Please select a time slot');
+                return;
+            }
+
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+
+            const dateStr = `${months[currentMonth]} ${selectedDate}, ${currentYear}`;
+            document.getElementById('bookingDetails').textContent =
+                `Your appointment for ${document.getElementById('serviceSelect').options[document.getElementById('serviceSelect').selectedIndex].text.split('(')[0].trim()} is confirmed for ${dateStr} at ${selectedTime}. You'll receive a confirmation email and SMS shortly.`;
+
+            document.getElementById('bookingModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('bookingModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Initialize
+        renderCalendar();
+    </script>
+</body>
+</html>

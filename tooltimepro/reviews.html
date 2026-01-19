@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5-Star Review Machine | ToolTime Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a1a2e;
+            --navy-light: #252542;
+            --gold: #f5a623;
+            --gold-light: #ffc857;
+            --success: #00c853;
+            --warning: #ffab00;
+            --danger: #ff5252;
+            --text: #e8e8e8;
+            --text-muted: #a0a0b0;
+            --border: #3a3a5a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--navy);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--navy-light);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .back-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 0.8; }
+
+        .header-title h1 { font-size: 1.5rem; font-weight: 700; color: white; }
+        .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
+
+        .demo-badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Stats Dashboard */
+        .stats-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .stat-value.gold { color: var(--gold); }
+
+        .stat-label {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 24px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .how-it-works h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--navy);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-content p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        /* SMS Preview in Steps */
+        .sms-preview-mini {
+            background: var(--navy);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .sms-preview-mini .from {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .sms-preview-mini .message {
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .sms-preview-mini .message a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        /* Branch Logic */
+        .branch-logic {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .branch {
+            flex: 1;
+            background: var(--navy);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            font-size: 0.8125rem;
+        }
+
+        .branch.happy {
+            border-color: var(--success);
+            background: rgba(0, 200, 83, 0.1);
+        }
+
+        .branch.unhappy {
+            border-color: var(--danger);
+            background: rgba(255, 82, 82, 0.1);
+        }
+
+        .branch-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .branch.happy .branch-label { color: var(--success); }
+        .branch.unhappy .branch-label { color: var(--danger); }
+
+        .branch-action {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        /* Phone Mockup */
+        .phone-mockup {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .phone-mockup-header {
+            background: rgba(245, 166, 35, 0.1);
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .phone-mockup-header h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .phone-frame {
+            background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
+            border-radius: 36px;
+            padding: 12px;
+            margin: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .phone-screen {
+            background: #f5f5f5;
+            border-radius: 28px;
+            overflow: hidden;
+        }
+
+        .phone-status-bar {
+            background: #333;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: white;
+        }
+
+        .sms-conversation {
+            padding: 16px;
+            min-height: 350px;
+        }
+
+        .sms-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .sms-contact {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9375rem;
+        }
+
+        .sms-thread {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sms-bubble {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .sms-bubble.incoming {
+            background: #e5e5ea;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .sms-bubble.outgoing {
+            background: #007aff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .sms-bubble .google-btn {
+            display: block;
+            background: white;
+            color: #333;
+            padding: 10px 16px;
+            border-radius: 12px;
+            margin-top: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-align: center;
+        }
+
+        .sms-bubble .google-btn:hover {
+            background: #f0f0f0;
+        }
+
+        /* Features Grid */
+        .features-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .features-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 200, 83, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .feature-text p {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        /* Pricing CTA */
+        .pricing-cta {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 48px;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(245, 166, 35, 0.05));
+            border: 2px solid var(--gold);
+            border-radius: 16px;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .cta-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .cta-content p {
+            color: var(--text-muted);
+        }
+
+        .cta-price {
+            text-align: center;
+        }
+
+        .cta-price .amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .cta-price .period {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 16px 32px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+        }
+
+        /* Review Cards Animation */
+        .recent-reviews {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .recent-reviews h4 {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .review-card {
+            background: var(--navy);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .review-author {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .review-stars {
+            color: var(--gold);
+            font-size: 0.75rem;
+        }
+
+        .review-text {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .review-platform {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .phone-mockup {
+                max-width: 400px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .branch-logic { flex-direction: column; }
+            .cta-box { flex-direction: column; text-align: center; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .step { flex-direction: column; text-align: center; }
+            .step-number { margin: 0 auto; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to ToolTime Pro
+            </a>
+            <div class="header-title">
+                <h1>5-Star Review Machine</h1>
+                <p>Automatically request reviews after every job. Watch your rating climb.</p>
+            </div>
+            <span class="demo-badge">Interactive Demo</span>
+        </div>
+    </header>
+
+    <!-- Stats Dashboard -->
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-value gold">4.8</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">127</div>
+                <div class="stat-label">Total Reviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value">23</div>
+                <div class="stat-label">This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-value">89%</div>
+                <div class="stat-label">Response Rate</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- How It Works -->
+        <div class="how-it-works">
+            <h3>🔄 How It Works</h3>
+            <div class="steps">
+                <!-- Step 1 -->
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Job Completed</h4>
+                        <p>Worker marks job done in the app. Customer automatically receives a text message asking for feedback.</p>
+                        <div class="sms-preview-mini">
+                            <div class="from">PRO LANDSCAPING</div>
+                            <div class="message">
+                                Hi Maria! Thanks for choosing Pro Landscaping. 🌿<br><br>
+                                How was your service today?<br>
+                                Reply with a number 1-5 ⭐
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Smart Routing</h4>
+                        <p>Based on their rating, customers are automatically routed to the right next step.</p>
+                        <div class="branch-logic">
+                            <div class="branch happy">
+                                <div class="branch-label">😊 4-5 Stars</div>
+                                <div class="branch-action">→ Send Google review link</div>
+                            </div>
+                            <div class="branch unhappy">
+                                <div class="branch-label">😟 1-3 Stars</div>
+                                <div class="branch-action">→ Alert you to call them</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Review Posted</h4>
+                        <p>Happy customers leave public reviews. You get notified instantly and can respond from your dashboard.</p>
+                        <div class="recent-reviews">
+                            <h4>Recent Reviews</h4>
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <span class="review-author">Maria S.</span>
+                                    <span class="review-stars">⭐⭐⭐⭐⭐</span>
+                                </div>
+                                <div class="review-text">"Amazing service! My lawn looks better than ever. Miguel was professional and thorough."</div>
+                                <div class="review-platform">📍 Google • 2 hours ago</div>
+                            </div>
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <span class="review-author">James T.</span>
+                                    <span class="review-stars">⭐⭐⭐⭐⭐</span>
+                                </div>
+                                <div class="review-text">"On time, great communication, fair pricing. Will definitely use again!"</div>
+                                <div class="review-platform">📍 Yelp • Yesterday</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Mockup -->
+        <div class="phone-mockup">
+            <div class="phone-mockup-header">
+                <h3>📱 Customer SMS Experience</h3>
+            </div>
+            <div class="phone-frame">
+                <div class="phone-screen">
+                    <div class="phone-status-bar">
+                        <span>9:41 AM</span>
+                        <span>📶 100%</span>
+                    </div>
+                    <div class="sms-conversation">
+                        <div class="sms-header">
+                            <div class="sms-contact">Pro Landscaping</div>
+                        </div>
+                        <div class="sms-thread" id="smsThread">
+                            <div class="sms-bubble incoming">
+                                Hi Maria! Your lawn looks great 🌿 Mind leaving us a quick review? It really helps!
+                                <a href="#" class="google-btn" onclick="simulateReview(); return false;">⭐ Leave a Google Review</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features -->
+    <section class="features-section">
+        <h3>Everything You Need to Build Your Reputation</h3>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">
+                    <h4>Automatic Triggers</h4>
+                    <p>Send review requests the moment a job is marked complete</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-text">
+                    <h4>Smart Routing</h4>
+                    <p>Happy customers → reviews, unhappy → direct to you</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <div class="feature-text">
+                    <h4>Multi-Platform</h4>
+                    <p>Google, Yelp, Facebook - all supported</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <div class="feature-text">
+                    <h4>Review Dashboard</h4>
+                    <p>Monitor all reviews in one place</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <div class="feature-text">
+                    <h4>Response Templates</h4>
+                    <p>One-click replies to reviews</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <div class="feature-text">
+                    <h4>Monthly Reports</h4>
+                    <p>Track your reputation growth over time</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing CTA -->
+    <section class="pricing-cta">
+        <div class="cta-box">
+            <div class="cta-content">
+                <h3>Add Review Automation to Your Plan</h3>
+                <p>Available as an add-on to any ToolTime Pro subscription</p>
+            </div>
+            <div class="cta-price">
+                <div class="amount">$19</div>
+                <div class="period">/month add-on</div>
+            </div>
+            <a href="index.html#pricing" class="cta-btn">
+                Add to My Plan
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <script>
+        function simulateReview() {
+            const thread = document.getElementById('smsThread');
+
+            // Add customer response
+            const response = document.createElement('div');
+            response.className = 'sms-bubble outgoing';
+            response.textContent = 'Done! You guys are awesome 👍';
+            response.style.animation = 'slideUp 0.3s ease';
+            thread.appendChild(response);
+
+            // Add thank you message after delay
+            setTimeout(() => {
+                const thanks = document.createElement('div');
+                thanks.className = 'sms-bubble incoming';
+                thanks.textContent = 'Thank you so much, Maria! 🙌 See you next week!';
+                thanks.style.animation = 'slideUp 0.3s ease';
+                thread.appendChild(thanks);
+            }, 1000);
+        }
+
+        // Auto-demo after 3 seconds
+        setTimeout(() => {
+            const btn = document.querySelector('.google-btn');
+            if (btn) {
+                btn.style.animation = 'pulse 1s infinite';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

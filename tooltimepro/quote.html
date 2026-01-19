@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Quoting System | ToolTime Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a1a2e;
+            --navy-light: #252542;
+            --gold: #f5a623;
+            --gold-light: #ffc857;
+            --success: #00c853;
+            --danger: #ff5252;
+            --text: #e8e8e8;
+            --text-muted: #a0a0b0;
+            --border: #3a3a5a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--navy);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--navy-light);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .back-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover {
+            opacity: 0.8;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .header-title p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .demo-badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--navy-light);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: rgba(245, 166, 35, 0.1);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .panel-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .panel-body {
+            padding: 24px;
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Form Inputs */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Service Selection */
+        .services-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .service-item:hover {
+            border-color: var(--gold);
+        }
+
+        .service-item.selected {
+            border-color: var(--gold);
+            background: rgba(245, 166, 35, 0.1);
+        }
+
+        .service-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .service-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .service-item.selected .service-checkbox {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .service-checkbox svg {
+            width: 14px;
+            height: 14px;
+            stroke: var(--navy);
+            stroke-width: 3;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .service-item.selected .service-checkbox svg {
+            opacity: 1;
+        }
+
+        .service-info {
+            flex: 1;
+        }
+
+        .service-name {
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .service-price {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 1rem;
+        }
+
+        /* Custom Service */
+        .custom-service {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .custom-service input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 0.9375rem;
+        }
+
+        .custom-service input[type="text"]:focus {
+            outline: none;
+        }
+
+        .custom-service .price-input {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--navy-light);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .custom-service .price-input span {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .custom-service .price-input input {
+            width: 60px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .custom-service .price-input input:focus {
+            outline: none;
+        }
+
+        .add-custom-btn {
+            background: var(--gold);
+            color: var(--navy);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .add-custom-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Quote Details */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail-input {
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            text-align: center;
+        }
+
+        .detail-input label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .detail-input input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.125rem;
+            text-align: center;
+        }
+
+        .detail-input input:focus {
+            outline: none;
+        }
+
+        .detail-input.readonly {
+            background: rgba(245, 166, 35, 0.1);
+            border-color: var(--gold);
+        }
+
+        .detail-input.readonly input {
+            color: var(--gold);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--navy);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            opacity: 0.9;
+        }
+
+        /* Quote Preview */
+        .quote-preview {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .quote-header {
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .quote-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quote-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gold);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .quote-logo-text {
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .quote-logo-text span {
+            color: var(--gold);
+        }
+
+        .quote-number {
+            text-align: right;
+            color: white;
+        }
+
+        .quote-number-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .quote-number-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--gold);
+        }
+
+        .quote-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .quote-body {
+            padding: 24px;
+            color: #333;
+        }
+
+        .quote-parties {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .quote-party h4 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .quote-party p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .quote-party .company-name {
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        /* Quote Items Table */
+        .quote-items {
+            margin-bottom: 24px;
+        }
+
+        .quote-items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .quote-items th {
+            background: #f5f5f5;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quote-items th:last-child {
+            text-align: right;
+        }
+
+        .quote-items td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9375rem;
+        }
+
+        .quote-items td:last-child {
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .quote-items tr:last-child td {
+            border-bottom: none;
+        }
+
+        .quote-items .empty-row {
+            color: #aaa;
+            font-style: italic;
+            text-align: center;
+        }
+
+        /* Quote Totals */
+        .quote-totals {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .quote-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.9375rem;
+        }
+
+        .quote-total-row.subtotal {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+        }
+
+        .quote-total-row.discount {
+            color: var(--success);
+        }
+
+        .quote-total-row.grand-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding-top: 12px;
+            border-top: 2px solid var(--navy);
+            margin-top: 8px;
+        }
+
+        .quote-total-row span:last-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* Quote Notes */
+        .quote-notes {
+            background: #fff9e6;
+            border-left: 4px solid var(--gold);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 24px;
+        }
+
+        .quote-notes h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .quote-notes p {
+            font-size: 0.875rem;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* Quote Footer */
+        .quote-footer {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 24px;
+        }
+
+        .signature-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .signature-box h4 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+
+        .signature-label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        /* Valid Until Badge */
+        .valid-badge {
+            text-align: center;
+            margin-top: 24px;
+            padding: 12px;
+            background: rgba(245, 166, 35, 0.1);
+            border-radius: 8px;
+        }
+
+        .valid-badge p {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .valid-badge strong {
+            color: var(--navy);
+        }
+
+        /* Success Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--navy-light);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 2.5rem;
+        }
+
+        .modal h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .modal p {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .modal .btn {
+            width: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .quote-preview {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .quote-parties {
+                grid-template-columns: 1fr;
+            }
+
+            .signature-section {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 16px;
+            }
+
+            .panel-body {
+                padding: 16px;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to ToolTime Pro
+            </a>
+            <div class="header-title">
+                <h1>Smart Quoting System</h1>
+                <p>Create professional quotes in 60 seconds. Send via SMS or email. Get e-signatures.</p>
+            </div>
+            <span class="demo-badge">Interactive Demo</span>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Left Panel - Quote Builder -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-icon">📝</div>
+                <h2>Quote Builder</h2>
+            </div>
+            <div class="panel-body">
+                <!-- Customer Info -->
+                <div class="form-section">
+                    <h3 class="section-title">Customer Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Customer Name</label>
+                            <input type="text" id="customerName" placeholder="John Smith" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" id="customerPhone" placeholder="(555) 123-4567" oninput="updatePreview()">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="customerEmail" placeholder="john@email.com" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Address</label>
+                            <input type="text" id="customerAddress" placeholder="123 Main St, Austin TX" oninput="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Selection -->
+                <div class="form-section">
+                    <h3 class="section-title">Select Services</h3>
+                    <div class="services-grid">
+                        <label class="service-item" onclick="toggleService(this)">
+                            <input type="checkbox" data-service="Lawn Mowing" data-price="45">
+                            <div class="service-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="service-info">
+                                <div class="service-name">Lawn Mowing</div>
+                            </div>
+                            <div class="service-price">$45</div>
+                        </label>
+                        <label class="service-item" onclick="toggleService(this)">
+                            <input type="checkbox" data-service="Hedge Trimming" data-price="65">
+                            <div class="service-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="service-info">
+                                <div class="service-name">Hedge Trimming</div>
+                            </div>
+                            <div class="service-price">$65</div>
+                        </label>
+                        <label class="service-item" onclick="toggleService(this)">
+                            <input type="checkbox" data-service="Leaf Cleanup" data-price="85">
+                            <div class="service-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="service-info">
+                                <div class="service-name">Leaf Cleanup</div>
+                            </div>
+                            <div class="service-price">$85</div>
+                        </label>
+                        <label class="service-item" onclick="toggleService(this)">
+                            <input type="checkbox" data-service="Mulch Installation" data-price="120">
+                            <div class="service-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="service-info">
+                                <div class="service-name">Mulch Installation</div>
+                            </div>
+                            <div class="service-price">$120</div>
+                        </label>
+                        <label class="service-item" onclick="toggleService(this)">
+                            <input type="checkbox" data-service="Sprinkler Check" data-price="55">
+                            <div class="service-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="service-info">
+                                <div class="service-name">Sprinkler Check</div>
+                            </div>
+                            <div class="service-price">$55</div>
+                        </label>
+                    </div>
+                    <div class="custom-service" style="margin-top: 12px;">
+                        <input type="text" id="customServiceName" placeholder="Custom Service...">
+                        <div class="price-input">
+                            <span>$</span>
+                            <input type="number" id="customServicePrice" placeholder="0">
+                        </div>
+                        <button class="add-custom-btn" onclick="addCustomService()">+</button>
+                    </div>
+                </div>
+
+                <!-- Quote Details -->
+                <div class="form-section">
+                    <h3 class="section-title">Quote Details</h3>
+                    <div class="form-row single">
+                        <div class="form-group">
+                            <label>Notes / Description</label>
+                            <textarea id="quoteNotes" placeholder="Add any special instructions or notes for the customer..." oninput="updatePreview()"></textarea>
+                        </div>
+                    </div>
+                    <div class="details-grid">
+                        <div class="detail-input">
+                            <label>Est. Hours</label>
+                            <input type="number" id="estHours" value="2" min="0" step="0.5" oninput="updatePreview()">
+                        </div>
+                        <div class="detail-input">
+                            <label>Discount %</label>
+                            <input type="number" id="discount" value="0" min="0" max="100" oninput="updatePreview()">
+                        </div>
+                        <div class="detail-input readonly">
+                            <label>Tax Rate</label>
+                            <input type="text" value="8.25%" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="previewQuote()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Preview
+                    </button>
+                    <button class="btn btn-primary" onclick="sendSMS()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Send SMS
+                    </button>
+                    <button class="btn btn-success" onclick="sendEmail()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        Send Email
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Live Quote Preview -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-icon">📄</div>
+                <h2>Live Quote Preview</h2>
+            </div>
+            <div class="panel-body">
+                <div class="quote-preview">
+                    <div class="quote-header">
+                        <div class="quote-logo">
+                            <div class="quote-logo-icon">🔧</div>
+                            <div class="quote-logo-text">Tool<span>Time</span> Pro</div>
+                        </div>
+                        <div class="quote-number">
+                            <div class="quote-number-label">Quote #</div>
+                            <div class="quote-number-value" id="quoteNumber">QT-2026-0042</div>
+                            <div class="quote-date" id="quoteDate"></div>
+                        </div>
+                    </div>
+                    <div class="quote-body">
+                        <div class="quote-parties">
+                            <div class="quote-party">
+                                <h4>From</h4>
+                                <p>
+                                    <span class="company-name">Pro Landscaping Services</span><br>
+                                    456 Business Ave<br>
+                                    Austin, TX 78701<br>
+                                    (512) 555-0100
+                                </p>
+                            </div>
+                            <div class="quote-party">
+                                <h4>Bill To</h4>
+                                <p id="customerPreview">
+                                    <span class="company-name">Customer Name</span><br>
+                                    Address<br>
+                                    Phone<br>
+                                    Email
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="quote-items">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Service Description</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="servicesPreview">
+                                    <tr>
+                                        <td colspan="2" class="empty-row">Select services to see them here</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="quote-totals">
+                            <div class="quote-total-row subtotal">
+                                <span>Subtotal</span>
+                                <span id="subtotalPreview">$0.00</span>
+                            </div>
+                            <div class="quote-total-row discount" id="discountRow" style="display: none;">
+                                <span>Discount (<span id="discountPercent">0</span>%)</span>
+                                <span id="discountAmount">-$0.00</span>
+                            </div>
+                            <div class="quote-total-row">
+                                <span>Tax (8.25%)</span>
+                                <span id="taxPreview">$0.00</span>
+                            </div>
+                            <div class="quote-total-row grand-total">
+                                <span>Total Due</span>
+                                <span id="totalPreview">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="quote-notes" id="notesPreview" style="display: none;">
+                            <h4>Notes</h4>
+                            <p id="notesText"></p>
+                        </div>
+
+                        <div class="quote-footer">
+                            <div class="signature-section">
+                                <div class="signature-box">
+                                    <h4>Customer Approval</h4>
+                                    <div class="signature-line"></div>
+                                    <div class="signature-label">Signature & Date</div>
+                                </div>
+                                <div class="signature-box">
+                                    <h4>Contractor</h4>
+                                    <div class="signature-line"></div>
+                                    <div class="signature-label">Authorized Representative</div>
+                                </div>
+                            </div>
+                            <div class="valid-badge">
+                                <p>This quote is valid for <strong>30 days</strong> from the date of issue.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal">
+            <div class="modal-icon">✓</div>
+            <h3 id="modalTitle">Quote Sent!</h3>
+            <p id="modalMessage">Your quote has been sent successfully via SMS.</p>
+            <button class="btn btn-primary" onclick="closeModal()">Done</button>
+        </div>
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('quoteDate').textContent = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Generate random quote number
+        const quoteNum = Math.floor(Math.random() * 9000) + 1000;
+        document.getElementById('quoteNumber').textContent = `QT-2026-${quoteNum}`;
+
+        // Selected services
+        let selectedServices = [];
+        let customServices = [];
+
+        function toggleService(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('selected', checkbox.checked);
+
+            const service = {
+                name: checkbox.dataset.service,
+                price: parseFloat(checkbox.dataset.price)
+            };
+
+            if (checkbox.checked) {
+                selectedServices.push(service);
+            } else {
+                selectedServices = selectedServices.filter(s => s.name !== service.name);
+            }
+
+            updatePreview();
+        }
+
+        function addCustomService() {
+            const nameInput = document.getElementById('customServiceName');
+            const priceInput = document.getElementById('customServicePrice');
+
+            const name = nameInput.value.trim();
+            const price = parseFloat(priceInput.value) || 0;
+
+            if (name && price > 0) {
+                customServices.push({ name, price });
+                nameInput.value = '';
+                priceInput.value = '';
+                updatePreview();
+            }
+        }
+
+        function updatePreview() {
+            // Update customer info
+            const name = document.getElementById('customerName').value || 'Customer Name';
+            const email = document.getElementById('customerEmail').value || 'Email';
+            const phone = document.getElementById('customerPhone').value || 'Phone';
+            const address = document.getElementById('customerAddress').value || 'Address';
+
+            document.getElementById('customerPreview').innerHTML = `
+                <span class="company-name">${escapeHtml(name)}</span><br>
+                ${escapeHtml(address)}<br>
+                ${escapeHtml(phone)}<br>
+                ${escapeHtml(email)}
+            `;
+
+            // Update services table
+            const allServices = [...selectedServices, ...customServices];
+            const tbody = document.getElementById('servicesPreview');
+
+            if (allServices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="empty-row">Select services to see them here</td></tr>';
+            } else {
+                tbody.innerHTML = allServices.map(service => `
+                    <tr>
+                        <td>${escapeHtml(service.name)}</td>
+                        <td>$${service.price.toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // Calculate totals
+            const subtotal = allServices.reduce((sum, s) => sum + s.price, 0);
+            const discountPercent = parseFloat(document.getElementById('discount').value) || 0;
+            const discountAmount = subtotal * (discountPercent / 100);
+            const afterDiscount = subtotal - discountAmount;
+            const tax = afterDiscount * 0.0825;
+            const total = afterDiscount + tax;
+
+            document.getElementById('subtotalPreview').textContent = `$${subtotal.toFixed(2)}`;
+
+            const discountRow = document.getElementById('discountRow');
+            if (discountPercent > 0) {
+                discountRow.style.display = 'flex';
+                document.getElementById('discountPercent').textContent = discountPercent;
+                document.getElementById('discountAmount').textContent = `-$${discountAmount.toFixed(2)}`;
+            } else {
+                discountRow.style.display = 'none';
+            }
+
+            document.getElementById('taxPreview').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('totalPreview').textContent = `$${total.toFixed(2)}`;
+
+            // Update notes
+            const notes = document.getElementById('quoteNotes').value.trim();
+            const notesPreview = document.getElementById('notesPreview');
+            if (notes) {
+                notesPreview.style.display = 'block';
+                document.getElementById('notesText').textContent = notes;
+            } else {
+                notesPreview.style.display = 'none';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function previewQuote() {
+            // Scroll to preview on mobile
+            const preview = document.querySelector('.quote-preview');
+            preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Add highlight effect
+            preview.style.boxShadow = '0 0 0 4px var(--gold), 0 10px 40px rgba(0, 0, 0, 0.3)';
+            setTimeout(() => {
+                preview.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.3)';
+            }, 1500);
+        }
+
+        function sendSMS() {
+            const phone = document.getElementById('customerPhone').value;
+            if (!phone) {
+                alert('Please enter a customer phone number');
+                return;
+            }
+            showModal('Quote Sent via SMS!', `Your quote has been sent to ${phone}. The customer will receive a link to view and sign.`);
+        }
+
+        function sendEmail() {
+            const email = document.getElementById('customerEmail').value;
+            if (!email) {
+                alert('Please enter a customer email address');
+                return;
+            }
+            showModal('Quote Sent via Email!', `Your quote has been sent to ${email}. The customer can view, approve, and e-sign online.`);
+        }
+
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('successModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Initialize
+        updatePreview();
+    </script>
+</body>
+</html>
