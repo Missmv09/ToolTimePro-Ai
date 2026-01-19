@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolTime Pro — Run Your Service Business Like a Pro</title>
+    <meta name="description" content="The all-in-one platform for landscapers, painters, cleaners, and contractors. Website, scheduling, worker app, HR tools — we set it up, you run your business.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠</text></svg>">
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --primary-light: #2d2d44;
+            --primary-dark: #12121f;
+            --accent: #f5a623;
+            --accent-hover: #e6991a;
+            --accent-light: #fef3d6;
+            --success: #00c853;
+            --success-light: #e8f5e9;
+            --danger: #ff5252;
+            --danger-light: #ffebee;
+            --text: #1a1a2e;
+            --text-light: #5c5c70;
+            --text-muted: #8e8e9f;
+            --bg: #fafafa;
+            --bg-alt: #f5f5f5;
+            --white: #ffffff;
+            --border: #e5e5e5;
+            --shadow: 0 4px 12px rgba(26,26,46,0.08);
+            --shadow-lg: 0 12px 40px rgba(26,26,46,0.12);
+            --shadow-xl: 0 24px 60px rgba(26,26,46,0.16);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);background:var(--bg);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+        h1,h2,h3,h4{font-weight:800;line-height:1.15;color:var(--primary);letter-spacing:-0.02em}
+        h1{font-size:clamp(2.5rem,5.5vw,4rem)}
+        h2{font-size:clamp(1.75rem,4vw,2.75rem)}
+        h3{font-size:clamp(1.125rem,2vw,1.375rem)}
+        p{color:var(--text-light)}
+        .mono{font-family:'JetBrains Mono',monospace}
+        .container{max-width:1200px;margin:0 auto;padding:0 24px}
+        section{padding:100px 0}
+
+        nav{position:fixed;top:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);z-index:1000;padding:16px 0;border-bottom:1px solid rgba(26,26,46,0.08)}
+        nav .container{display:flex;justify-content:space-between;align-items:center}
+        .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.375rem;color:var(--primary);text-decoration:none}
+        .logo-icon{width:42px;height:42px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;box-shadow:0 4px 12px rgba(245,166,35,0.3)}
+        .nav-links{display:flex;gap:36px;align-items:center}
+        .nav-links a{color:var(--text-light);text-decoration:none;font-weight:500;font-size:0.9375rem;transition:color 0.2s}
+        .nav-links a:hover{color:var(--primary)}
+        .nav-cta{background:var(--primary)!important;color:var(--white)!important;padding:12px 24px!important;border-radius:var(--radius);box-shadow:var(--shadow)}
+        .nav-cta:hover{background:var(--primary-light)!important;transform:translateY(-2px)}
+        .mobile-menu-btn{display:none;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--primary)}
+        @media(max-width:768px){.nav-links{display:none}.mobile-menu-btn{display:block}.nav-links.active{display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--white);padding:24px;gap:16px;box-shadow:var(--shadow-lg)}}
+
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 32px;border-radius:var(--radius);font-weight:700;font-size:1rem;text-decoration:none;cursor:pointer;border:none;transition:all 0.25s ease}
+        .btn-primary{background:var(--accent);color:var(--primary);box-shadow:0 4px 16px rgba(245,166,35,0.35)}
+        .btn-primary:hover{background:var(--accent-hover);transform:translateY(-3px);box-shadow:0 8px 24px rgba(245,166,35,0.4)}
+        .btn-secondary{background:var(--white);color:var(--primary);border:2px solid var(--primary)}
+        .btn-secondary:hover{background:var(--primary);color:var(--white)}
+        .btn-large{padding:20px 40px;font-size:1.0625rem}
+
+        .hero{padding-top:140px;padding-bottom:100px;background:var(--white);position:relative;overflow:hidden}
+        .hero::before{content:'';position:absolute;top:0;right:0;width:50%;height:100%;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);clip-path:polygon(20% 0,100% 0,100% 100%,0% 100%)}
+        .hero::after{content:'';position:absolute;top:-100px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(245,166,35,0.12) 0%,transparent 70%)}
+        .hero .container{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1}
+        .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent-light);padding:10px 18px;border-radius:100px;font-size:0.875rem;font-weight:700;color:var(--primary);margin-bottom:24px;border:1px solid rgba(245,166,35,0.3)}
+        .hero-badge .dot{width:8px;height:8px;background:var(--success);border-radius:50%;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.3)}}
+        .hero h1{margin-bottom:24px}
+        .hero h1 .highlight{color:var(--accent);position:relative}
+        .hero h1 .highlight::after{content:'';position:absolute;bottom:4px;left:0;right:0;height:8px;background:var(--accent);opacity:0.3;z-index:-1;border-radius:4px}
+        .hero-subtitle{font-size:1.1875rem;color:var(--text-light);margin-bottom:36px;max-width:480px;line-height:1.7}
+        .hero-ctas{display:flex;gap:16px;flex-wrap:wrap}
+        .hero-stats{display:flex;gap:48px;margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}
+        .stat-number{font-size:2.25rem;font-weight:800;color:var(--primary);line-height:1}
+        .stat-label{font-size:0.875rem;color:var(--text-muted);margin-top:6px}
+        .hero-visual{display:flex;justify-content:center}
+        .hero-image{background:var(--white);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-xl);transform:perspective(1000px) rotateY(-8deg) rotateX(3deg);transition:transform 0.6s ease;max-width:420px}
+        .hero-image:hover{transform:perspective(1000px) rotateY(-2deg) rotateX(1deg)}
+        .dashboard-preview{background:linear-gradient(145deg,var(--primary) 0%,var(--primary-light) 100%);border-radius:var(--radius);padding:24px;color:var(--white);min-height:380px}
+        .dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .dashboard-title{font-size:1.125rem;font-weight:700;color:var(--white)}
+        .dashboard-date{font-size:0.8125rem;opacity:0.7;font-family:'JetBrains Mono',monospace}
+        .dashboard-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+        .dash-card{background:rgba(255,255,255,0.12);border-radius:10px;padding:14px}
+        .dash-card-label{font-size:0.6875rem;opacity:0.7;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+        .dash-card-value{font-size:1.375rem;font-weight:800}
+        .dash-card-value.money::before{content:'$';opacity:0.6}
+        .dashboard-jobs{background:rgba(255,255,255,0.08);border-radius:10px;padding:14px}
+        .dashboard-jobs-title{font-size:0.75rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+        .job-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+        .job-item:last-child{border-bottom:none;padding-bottom:0}
+        .job-info h4{color:var(--white);font-size:0.8125rem;font-weight:600}
+        .job-info span{font-size:0.6875rem;opacity:0.6}
+        .job-status{padding:4px 10px;border-radius:100px;font-size:0.625rem;font-weight:700;text-transform:uppercase}
+        .status-active{background:var(--success);color:var(--primary)}
+        .status-pending{background:var(--accent);color:var(--primary)}
+        @media(max-width:968px){.hero::before{display:none}.hero .container{grid-template-columns:1fr;text-align:center}.hero-subtitle{margin:0 auto 36px}.hero-ctas{justify-content:center}.hero-stats{justify-content:center}.hero-visual{display:none}}
+
+        .section-header{text-align:center;max-width:640px;margin:0 auto 64px}
+        .section-label{display:inline-block;background:var(--accent-light);padding:8px 18px;border-radius:100px;font-size:0.8125rem;font-weight:700;color:var(--primary);margin-bottom:20px}
+        .section-header p{margin-top:16px;font-size:1.0625rem}
+
+        .pain-points{background:var(--bg)}
+        .pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+        @media(max-width:968px){.pain-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:600px){.pain-grid{grid-template-columns:1fr}}
+        .pain-card{background:var(--white);border-radius:var(--radius);padding:32px;border:1px solid var(--border);transition:all 0.3s ease;position:relative;overflow:hidden}
+        .pain-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--danger);transition:background 0.3s}
+        .pain-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
+        .pain-card:hover::before{background:var(--success)}
+        .pain-icon{width:52px;height:52px;background:var(--danger-light);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:20px;transition:background 0.3s}
+        .pain-card:hover .pain-icon{background:var(--success-light)}
+        .pain-card h3{margin-bottom:10px;font-size:1.125rem}
+        .pain-card>p{font-size:0.9375rem;margin-bottom:20px;line-height:1.6}
+        .pain-solution{display:flex;align-items:center;gap:8px;font-size:0.875rem;font-weight:600;color:var(--success)}
+        .pain-solution::before{content:'✓';display:flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--success);color:white;border-radius:50%;font-size:0.6875rem}
+
+        .features{background:var(--primary);color:var(--white);position:relative;overflow:hidden}
+        .features::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(245,166,35,0.1) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(245,166,35,0.08) 0%,transparent 50%)}
+        .features .section-header{position:relative;z-index:1}
+        .features .section-label{background:rgba(245,166,35,0.2);color:var(--accent)}
+        .features h2{color:var(--white)}
+        .features .section-header p{color:rgba(255,255,255,0.7)}
+        .feature-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:56px;position:relative;z-index:1}
+        .feature-tab{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);padding:14px 24px;border-radius:100px;color:rgba(255,255,255,0.8);font-weight:600;font-size:0.9375rem;cursor:pointer;transition:all 0.3s}
+        .feature-tab:hover{background:rgba(255,255,255,0.15);color:var(--white)}
+        .feature-tab.active{background:var(--accent);color:var(--primary);border-color:var(--accent)}
+        .feature-content{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative;z-index:1}
+        .feature-list{list-style:none}
+        .feature-list li{display:flex;gap:20px;margin-bottom:28px}
+        .feature-check{width:36px;height:36px;min-width:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:bold}
+        .feature-list h4{color:var(--white);margin-bottom:6px;font-size:1.0625rem}
+        .feature-list p{font-size:0.9375rem;color:rgba(255,255,255,0.65);line-height:1.5}
+        .phone-mockup{background:#0a0a12;border-radius:40px;padding:12px;box-shadow:var(--shadow-xl);max-width:300px;margin:0 auto}
+        .phone-screen{background:var(--white);border-radius:32px;overflow:hidden}
+        .phone-header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:var(--white);padding:20px}
+        .phone-header h4{color:var(--white);font-size:1.0625rem}
+        .phone-body{padding:16px}
+        .worker-job{background:var(--bg);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+        .worker-job h5{color:var(--primary);font-size:0.9375rem;font-weight:700;margin-bottom:4px}
+        .worker-job p{font-size:0.8125rem;color:var(--text-muted)}
+        .worker-job .time{color:var(--primary);font-weight:600;margin-top:6px}
+        .clock-btn{width:100%;padding:16px;background:var(--success);border:none;border-radius:var(--radius);color:var(--white);font-weight:700;font-size:1rem;cursor:pointer}
+        @media(max-width:768px){.feature-content{grid-template-columns:1fr;gap:48px}.feature-showcase{order:-1}}
+
+        .pricing{background:var(--bg)}
+        .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto}
+        @media(max-width:968px){.pricing-grid{grid-template-columns:1fr;max-width:400px}}
+        .pricing-card{background:var(--white);border-radius:var(--radius-lg);padding:40px 32px;border:2px solid var(--border);transition:all 0.3s ease;position:relative}
+        .pricing-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg)}
+        .pricing-card.featured{border-color:var(--accent);box-shadow:0 0 0 4px rgba(245,166,35,0.15),var(--shadow-lg);transform:scale(1.03)}
+        .pricing-card.featured:hover{transform:scale(1.03) translateY(-8px)}
+        .pricing-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--primary);padding:8px 20px;border-radius:100px;font-size:0.75rem;font-weight:800;white-space:nowrap}
+        .pricing-name{font-size:1.5rem;font-weight:800;color:var(--primary);margin-bottom:8px}
+        .pricing-desc{font-size:0.9375rem;margin-bottom:28px;color:var(--text-muted)}
+        .pricing-price{margin-bottom:28px}
+        .price-amount{font-size:3.25rem;font-weight:800;color:var(--primary);line-height:1}
+        .price-period{color:var(--text-muted);font-size:1rem}
+        .price-setup{display:block;font-size:0.8125rem;color:var(--text-muted);margin-top:8px}
+        .pricing-features{list-style:none;margin-bottom:32px}
+        .pricing-features li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;font-size:0.9375rem;color:var(--text);border-bottom:1px solid var(--bg)}
+        .pricing-features li:last-child{border-bottom:none}
+        .pricing-features li::before{content:'✓';color:var(--success);font-weight:700;min-width:20px}
+        .pricing-features li.highlight{font-weight:600;color:var(--primary)}
+        .pricing-card .btn{width:100%}
+
+        .comparison{background:var(--white)}
+        .comparison-table{overflow-x:auto;margin-top:48px;border-radius:var(--radius-lg);box-shadow:var(--shadow)}
+        .comparison-table table{width:100%;border-collapse:collapse;min-width:700px}
+        .comparison-table th,.comparison-table td{padding:18px 24px;text-align:left;border-bottom:1px solid var(--border)}
+        .comparison-table thead{background:var(--primary)}
+        .comparison-table th{font-weight:700;color:var(--white);font-size:0.9375rem}
+        .comparison-table th:first-child{border-radius:var(--radius) 0 0 0}
+        .comparison-table th:last-child{border-radius:0 var(--radius) 0 0}
+        .comparison-table td:first-child{font-weight:600;color:var(--text)}
+        .comparison-table tbody tr:hover{background:var(--bg)}
+        .highlight-col{background:rgba(245,166,35,0.08)}
+        .comparison-table th.highlight-col{background:var(--accent);color:var(--primary)}
+        .check{color:var(--success);font-weight:700}
+        .cross{color:var(--danger)}
+
+        .questionnaire{background:linear-gradient(145deg,var(--primary) 0%,var(--primary-light) 100%);color:var(--white);position:relative;overflow:hidden}
+        .questionnaire::before{content:'';position:absolute;top:-200px;right:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(245,166,35,0.15) 0%,transparent 70%)}
+        .questionnaire .section-label{background:rgba(245,166,35,0.2);color:var(--accent)}
+        .questionnaire h2{color:var(--white)}
+        .questionnaire .section-header p{color:rgba(255,255,255,0.7)}
+        .form-container{max-width:580px;margin:0 auto;background:var(--white);border-radius:var(--radius-lg);padding:48px 40px;box-shadow:var(--shadow-xl);position:relative;z-index:1}
+        .skip-link{text-align:center;margin-bottom:28px}
+        .skip-link a{color:var(--text-muted);text-decoration:none;font-size:0.9375rem}
+        .skip-link a:hover{color:var(--accent)}
+        .form-group{margin-bottom:28px}
+        .form-group label{display:block;font-weight:700;color:var(--primary);margin-bottom:14px}
+        .radio-group,.checkbox-group{display:flex;flex-wrap:wrap;gap:10px}
+        .radio-option,.checkbox-option{flex:1 1 calc(50% - 5px);min-width:130px}
+        .radio-option input,.checkbox-option input{display:none}
+        .radio-option span,.checkbox-option span{display:block;padding:14px 16px;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;font-size:0.9375rem;text-align:center;font-weight:500}
+        .radio-option input:checked+span,.checkbox-option input:checked+span{background:var(--accent-light);border-color:var(--accent);color:var(--primary)}
+        .radio-option:hover span,.checkbox-option:hover span{border-color:var(--accent)}
+        .form-input{width:100%;padding:16px 18px;border:2px solid var(--border);border-radius:var(--radius);font-size:1rem;font-family:inherit;transition:all 0.2s;background:var(--bg)}
+        .form-input:focus{outline:none;border-color:var(--accent);background:var(--white);box-shadow:0 0 0 4px rgba(245,166,35,0.15)}
+        .form-submit{width:100%;padding:18px;background:var(--accent);border:none;border-radius:var(--radius);color:var(--primary);font-weight:700;font-size:1.0625rem;cursor:pointer;transition:all 0.3s}
+        .form-submit:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 8px 20px rgba(245,166,35,0.3)}
+        .form-note{text-align:center;margin-top:16px;font-size:0.8125rem;color:var(--text-muted)}
+
+        .testimonials{background:var(--bg)}
+        .testimonial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+        @media(max-width:968px){.testimonial-grid{grid-template-columns:1fr}}
+        .testimonial-card{background:var(--white);border-radius:var(--radius);padding:32px;border:1px solid var(--border);transition:all 0.3s}
+        .testimonial-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+        .testimonial-stars{color:var(--accent);font-size:1.25rem;margin-bottom:20px;letter-spacing:2px}
+        .testimonial-text{font-size:1.0625rem;color:var(--text);margin-bottom:28px;line-height:1.7;font-style:italic}
+        .testimonial-author{display:flex;align-items:center;gap:14px}
+        .author-avatar{width:52px;height:52px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--white);font-weight:700;font-size:1.125rem}
+        .author-info h4{font-size:1rem;font-weight:700}
+        .author-info p{font-size:0.875rem;color:var(--text-muted)}
+
+        .footer-cta{background:var(--primary);text-align:center;padding:100px 24px;position:relative;overflow:hidden}
+        .footer-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(245,166,35,0.1) 0%,transparent 60%)}
+        .footer-cta .container{position:relative;z-index:1}
+        .footer-cta h2{color:var(--white);margin-bottom:16px}
+        .footer-cta p{color:rgba(255,255,255,0.7);margin-bottom:36px;font-size:1.125rem}
+
+        footer{background:var(--primary-dark);color:var(--white);padding:80px 24px 32px}
+        .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+        @media(max-width:768px){.footer-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:480px){.footer-grid{grid-template-columns:1fr}}
+        .footer-brand .logo{color:var(--white);margin-bottom:16px}
+        .footer-brand p{color:rgba(255,255,255,0.5);font-size:0.9375rem;line-height:1.7}
+        .footer-links h4{color:var(--white);margin-bottom:20px;font-size:1rem}
+        .footer-links a{display:block;color:rgba(255,255,255,0.5);text-decoration:none;margin-bottom:12px;font-size:0.9375rem;transition:color 0.2s}
+        .footer-links a:hover{color:var(--accent)}
+        .footer-bottom{border-top:1px solid rgba(255,255,255,0.1);padding-top:32px;text-align:center;color:rgba(255,255,255,0.4);font-size:0.875rem}
+
+        .animate-on-scroll{opacity:0;transform:translateY(30px);transition:all 0.6s ease}
+        .animate-on-scroll.visible{opacity:1;transform:translateY(0)}
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#comparison">Compare</a>
+                <a href="#contact" class="nav-cta">Get Started</a>
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge"><span class="dot"></span>Built for Service Pros</div>
+                <h1>Run Your Business<br><span class="highlight">Like a Pro</span></h1>
+                <p class="hero-subtitle">The only platform built for contractors who hate software. We set it up. You run your business. It's that simple.</p>
+                <div class="hero-ctas">
+                    <a href="#contact" class="btn btn-primary btn-large">Get Started Free →</a>
+                    <a href="#features" class="btn btn-secondary">See How It Works</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat"><div class="stat-number mono">$49</div><div class="stat-label">Starting at /month</div></div>
+                    <div class="stat"><div class="stat-number mono">10x</div><div class="stat-label">Cheaper than competitors</div></div>
+                    <div class="stat"><div class="stat-number mono">0</div><div class="stat-label">Tech skills required</div></div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-image">
+                    <div class="dashboard-preview">
+                        <div class="dashboard-header">
+                            <div class="dashboard-title">📊 Today's Overview</div>
+                            <div class="dashboard-date">Jan 18, 2026</div>
+                        </div>
+                        <div class="dashboard-cards">
+                            <div class="dash-card"><div class="dash-card-label">Jobs Today</div><div class="dash-card-value">8</div></div>
+                            <div class="dash-card"><div class="dash-card-label">Revenue</div><div class="dash-card-value money">2,450</div></div>
+                            <div class="dash-card"><div class="dash-card-label">Active Crew</div><div class="dash-card-value">5</div></div>
+                            <div class="dash-card"><div class="dash-card-label">New Leads</div><div class="dash-card-value">12</div></div>
+                        </div>
+                        <div class="dashboard-jobs">
+                            <div class="dashboard-jobs-title">Upcoming Jobs</div>
+                            <div class="job-item"><div class="job-info"><h4>🏠 Martinez Residence</h4><span>Lawn care • 9:00 AM</span></div><span class="job-status status-active">Active</span></div>
+                            <div class="job-item"><div class="job-info"><h4>🏢 Oak Valley HOA</h4><span>Landscaping • 11:30 AM</span></div><span class="job-status status-pending">Next</span></div>
+                            <div class="job-item"><div class="job-info"><h4>🏊 Thompson Pool</h4><span>Pool service • 2:00 PM</span></div><span class="job-status status-pending">Later</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pain-points">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Sound Familiar?</span>
+                <h2>These Problems Cost You Money</h2>
+                <p>You're great at your trade. But running the business side? That's where things fall apart.</p>
+            </div>
+            <div class="pain-grid">
+                <div class="pain-card animate-on-scroll"><div class="pain-icon">📵</div><h3>No Website = Invisible</h3><p>Customers can't find you online. You're losing jobs to competitors who show up on Google.</p><div class="pain-solution">Done-for-you branded website</div></div>
+                <div class="pain-card animate-on-scroll"><div class="pain-icon">📞</div><h3>Missed Calls = Lost Money</h3><p>You're on a job, phone rings, you miss it. That lead goes to someone who answered.</p><div class="pain-solution">AI auto-responder + missed call texts</div></div>
+                <div class="pain-card animate-on-scroll"><div class="pain-icon">📅</div><h3>Scheduling Chaos</h3><p>Double-bookings, forgotten appointments, confused crews. Your calendar is a disaster.</p><div class="pain-solution">Smart scheduler + customer booking</div></div>
+                <div class="pain-card animate-on-scroll"><div class="pain-icon">👷</div><h3>Worker Time Tracking</h3><p>No idea when crew clocked in, where they are, or if they took their breaks.</p><div class="pain-solution">Worker app with GPS clock-in</div></div>
+                <div class="pain-card animate-on-scroll"><div class="pain-icon">⚖️</div><h3>Legal Landmines</h3><p>Final pay rules, worker classification, compliance headaches. One mistake = lawsuit.</p><div class="pain-solution">ToolTime Shield compliance toolkit</div></div>
+                <div class="pain-card animate-on-scroll"><div class="pain-icon">⭐</div><h3>Zero Reviews</h3><p>Happy customers never leave reviews. Your competitor has 100+, you have 3.</p><div class="pain-solution">Automated review request system</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Everything You Need</span>
+                <h2>One Platform. Zero Headaches.</h2>
+                <p>Website, scheduling, worker management, compliance — all in one place. Finally.</p>
+            </div>
+            <div class="feature-tabs">
+                <button class="feature-tab active">🌐 Website</button>
+                <button class="feature-tab">📅 Scheduling</button>
+                <button class="feature-tab">👷 Worker App</button>
+                <button class="feature-tab">⚖️ Compliance</button>
+                <button class="feature-tab">💰 Payments</button>
+            </div>
+            <div class="feature-content">
+                <div class="feature-details">
+                    <ul class="feature-list">
+                        <li><div class="feature-check">✓</div><div><h4>Professional Website — Built For You</h4><p>We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>24/7 AI Chatbot</h4><p>Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Worker App with GPS Clock-In</h4><p>Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>ToolTime Shield — Legal Protection</h4><p>CA compliance docs, final wage rules, termination checklists. Protect yourself from expensive lawsuits.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Automated Review Requests</h4><p>After every completed job, we automatically ask happy customers for 5-star reviews.</p></div></li>
+                    </ul>
+                </div>
+                <div class="feature-showcase">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="phone-header"><h4>👷 Worker App</h4></div>
+                            <div class="phone-body">
+                                <div class="worker-job"><h5>🏠 Martinez Residence</h5><p>123 Oak Street</p><p class="time">9:00 AM - 11:00 AM</p></div>
+                                <div class="worker-job"><h5>🏢 Oak Valley HOA</h5><p>456 Pine Avenue</p><p class="time">11:30 AM - 2:00 PM</p></div>
+                                <button class="clock-btn">⏰ Clock In Now</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Simple Pricing</span>
+                <h2>Pick Your Plan. We Handle The Rest.</h2>
+                <p>No hidden fees. No long contracts. Cancel anytime.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card animate-on-scroll">
+                    <div class="pricing-name">Starter</div>
+                    <p class="pricing-desc">Perfect for solo operators getting started</p>
+                    <div class="pricing-price"><span class="price-amount">$30</span><span class="price-period">/mo</span><span class="price-setup">+ $499 one-time setup</span></div>
+                    <ul class="pricing-features">
+                        <li>Professional branded website</li>
+                        <li>24/7 AI chatbot</li>
+                        <li>Contact form + lead capture</li>
+                        <li>Basic email automations</li>
+                        <li>Google Business Profile setup</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-secondary">Get Started</a>
+                </div>
+                <div class="pricing-card featured animate-on-scroll">
+                    <span class="pricing-badge">⭐ MOST POPULAR</span>
+                    <div class="pricing-name">Pro</div>
+                    <p class="pricing-desc">For growing teams who need more tools</p>
+                    <div class="pricing-price"><span class="price-amount">$49</span><span class="price-period">/mo</span><span class="price-setup">+ $699 one-time setup</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight">Everything in Starter, plus:</li>
+                        <li>Online booking + scheduler</li>
+                        <li>Admin dashboard</li>
+                        <li>Worker app (clock in/out, jobs)</li>
+                        <li>Automated review requests</li>
+                        <li>ToolTime Shield compliance docs</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-primary">Get Started</a>
+                </div>
+                <div class="pricing-card animate-on-scroll">
+                    <div class="pricing-name">Elite</div>
+                    <p class="pricing-desc">Full operations suite for serious businesses</p>
+                    <div class="pricing-price"><span class="price-amount">$79</span><span class="price-period">/mo</span><span class="price-setup">+ $999 one-time setup</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight">Everything in Pro, plus:</li>
+                        <li>Smart quote forms + auto-estimates</li>
+                        <li>Route optimization</li>
+                        <li>Time logs + payroll export</li>
+                        <li>HR Pro on-demand support</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-secondary">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="comparison" id="comparison">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Why Choose Us?</span>
+                <h2>See How We Stack Up</h2>
+                <p>We're not just cheaper — we give you way more.</p>
+            </div>
+            <div class="comparison-table">
+                <table>
+                    <thead><tr><th>Feature</th><th class="highlight-col">ToolTime Pro</th><th>Jobber</th><th>Housecall Pro</th><th>ServiceTitan</th></tr></thead>
+                    <tbody>
+                        <tr><td>Starting Price</td><td class="highlight-col"><strong>$49/mo</strong></td><td>$49/mo</td><td>$65/mo</td><td>$245+/mo</td></tr>
+                        <tr><td>Website Included</td><td class="highlight-col"><span class="check">✓ Yes</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td></tr>
+                        <tr><td>Done-for-you Setup</td><td class="highlight-col"><span class="check">✓ Yes</span></td><td><span class="cross">✗ DIY</span></td><td><span class="cross">✗ DIY</span></td><td>Partial</td></tr>
+                        <tr><td>AI Chatbot</td><td class="highlight-col"><span class="check">✓ Yes</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td></tr>
+                        <tr><td>Worker App</td><td class="highlight-col"><span class="check">✓ Yes</span></td><td><span class="check">✓ Yes</span></td><td><span class="check">✓ Yes</span></td><td><span class="check">✓ Yes</span></td></tr>
+                        <tr><td>CA Compliance Docs</td><td class="highlight-col"><span class="check">✓ Yes</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td></tr>
+                        <tr><td>HR Support</td><td class="highlight-col"><span class="check">✓ Yes</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td></tr>
+                        <tr><td>Final Wage Tools</td><td class="highlight-col"><span class="check">✓ Yes</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td><td><span class="cross">✗ No</span></td></tr>
+                        <tr><td>Review Automation</td><td class="highlight-col"><span class="check">✓ $19/mo</span></td><td><span class="check">✓ Extra</span></td><td><span class="check">✓ Extra</span></td><td><span class="check">✓ Included</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="questionnaire" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Let's Talk</span>
+                <h2>Tell Us About Your Business</h2>
+                <p>Takes 30 seconds. We'll reach out with a plan that fits your needs.</p>
+            </div>
+            <div class="form-container">
+                <div class="skip-link"><a href="#pricing">Already know what you need? Skip to pricing →</a></div>
+                <form id="questionnaire-form">
+                    <div class="form-group">
+                        <label>What kind of business do you run?</label>
+                        <div class="radio-group">
+                            <label class="radio-option"><input type="radio" name="business_type" value="landscaping"><span>🌿 Landscaping</span></label>
+                            <label class="radio-option"><input type="radio" name="business_type" value="pool"><span>🏊 Pool Service</span></label>
+                            <label class="radio-option"><input type="radio" name="business_type" value="painting"><span>🎨 Painting</span></label>
+                            <label class="radio-option"><input type="radio" name="business_type" value="cleaning"><span>🧹 Cleaning</span></label>
+                            <label class="radio-option"><input type="radio" name="business_type" value="handyman"><span>🔧 Handyman</span></label>
+                            <label class="radio-option"><input type="radio" name="business_type" value="other"><span>📦 Other</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>What's your biggest headache?</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="no_website"><span>No website</span></label>
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="missed_leads"><span>Losing leads</span></label>
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="tracking"><span>Worker tracking</span></label>
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="reviews"><span>Need reviews</span></label>
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="scheduling"><span>Scheduling mess</span></label>
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="hr"><span>HR / Legal</span></label>
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="customers"><span>More customers</span></label>
+                            <label class="checkbox-option"><input type="checkbox" name="pain_points" value="payments"><span>Getting paid</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group"><label for="email">Your Email</label><input type="email" id="email" name="email" class="form-input" placeholder="you@yourbusiness.com" required></div>
+                    <div class="form-group"><label for="phone">Phone (optional)</label><input type="tel" id="phone" name="phone" class="form-input" placeholder="(555) 123-4567"></div>
+                    <button type="submit" class="form-submit">Get My Free Consultation →</button>
+                    <p class="form-note">No spam. We'll reach out within 24 hours.</p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Real Results</span>
+                <h2>What Service Pros Are Saying</h2>
+            </div>
+            <div class="testimonial-grid">
+                <div class="testimonial-card animate-on-scroll"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"I was losing jobs because I couldn't answer the phone. Now the AI chatbot catches every lead. Revenue is up 40%."</p><div class="testimonial-author"><div class="author-avatar">MR</div><div class="author-info"><h4>Miguel R.</h4><p>Landscaping • San Jose, CA</p></div></div></div>
+                <div class="testimonial-card animate-on-scroll"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"The compliance docs saved my ass. Had an employee try a final wage claim — I had everything documented. Case closed."</p><div class="testimonial-author"><div class="author-avatar">TK</div><div class="author-info"><h4>Tony K.</h4><p>Painting • Oakland, CA</p></div></div></div>
+                <div class="testimonial-card animate-on-scroll"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"Finally a platform that doesn't make me feel stupid. They set everything up. I just focus on the actual work."</p><div class="testimonial-author"><div class="author-avatar">SL</div><div class="author-info"><h4>Sandra L.</h4><p>House Cleaning • Fremont, CA</p></div></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="footer-cta">
+        <div class="container">
+            <h2>Ready to Run Your Business Like a Pro?</h2>
+            <p>Join hundreds of service businesses who stopped stressing and started growing.</p>
+            <a href="#contact" class="btn btn-primary btn-large">Get Started Today →</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand"><a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a><p>The all-in-one platform for service pros. Website, scheduling, worker management, compliance — we handle it all so you can focus on your craft.</p></div>
+                <div class="footer-links"><h4>Platform</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#comparison">Compare</a><a href="worker.html">Worker App</a></div>
+                <div class="footer-links"><h4>Resources</h4><a href="shield.html">ToolTime Shield</a><a href="#">HR Toolkit</a><a href="#">CA Compliance Guide</a><a href="#">Blog</a></div>
+                <div class="footer-links"><h4>Company</h4><a href="#">About Us</a><a href="#contact">Contact</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+            </div>
+            <div class="footer-bottom"><p>© 2026 ToolTime Pro. All rights reserved. Built with 💛 for service pros who hate software.</p></div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu(){document.getElementById('navLinks').classList.toggle('active')}
+        document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));t&&(t.scrollIntoView({behavior:'smooth',block:'start'}),document.getElementById('navLinks').classList.remove('active'))})});
+        document.getElementById('questionnaire-form').addEventListener('submit',function(e){e.preventDefault();alert("Thanks! We'll be in touch within 24 hours.");this.reset()});
+        document.querySelectorAll('.feature-tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('.feature-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')})});
+        const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add('visible')})},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+        document.querySelectorAll('.animate-on-scroll').forEach(e=>observer.observe(e));
+    </script>
+</body>
+</html>

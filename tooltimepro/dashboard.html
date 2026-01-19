@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ToolTime Pro</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --primary-light: #2d2d44;
+            --accent: #f5a623;
+            --accent-hover: #e69516;
+            --success: #00c853;
+            --danger: #ff5252;
+            --warning: #ffab40;
+            --info: #40c4ff;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+            min-height: 100vh;
+        }
+
+        .stats-number {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 260px;
+            background: var(--primary);
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        .sidebar-logo span {
+            color: var(--accent);
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            color: var(--gray-400);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: var(--primary-light);
+            color: var(--white);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .sidebar-nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-search {
+            display: flex;
+            align-items: center;
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+
+        .header-search input {
+            border: none;
+            background: none;
+            padding: 0.25rem;
+            font-size: 0.875rem;
+            width: 200px;
+            outline: none;
+        }
+
+        .header-notifications {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .profile-role {
+            color: var(--gray-500);
+            font-size: 0.75rem;
+        }
+
+        /* Dashboard Content */
+        .dashboard {
+            padding: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-card-icon.revenue {
+            background: rgba(0, 200, 83, 0.1);
+        }
+
+        .stat-card-icon.jobs {
+            background: rgba(245, 166, 35, 0.1);
+        }
+
+        .stat-card-icon.leads {
+            background: rgba(64, 196, 255, 0.1);
+        }
+
+        .stat-card-icon.workers {
+            background: rgba(156, 39, 176, 0.1);
+        }
+
+        .stat-card-change {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .stat-card-change.positive {
+            background: rgba(0, 200, 83, 0.1);
+            color: var(--success);
+        }
+
+        .stat-card-change.negative {
+            background: rgba(255, 82, 82, 0.1);
+            color: var(--danger);
+        }
+
+        .stat-card-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-label {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .card-action-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-200);
+            background: var(--white);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .card-action-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .card-action-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Revenue Chart */
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .chart-bars {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 250px;
+            padding: 0 1rem;
+        }
+
+        .chart-bar {
+            width: 40px;
+            background: linear-gradient(180deg, var(--accent) 0%, rgba(245, 166, 35, 0.3) 100%);
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .chart-bar:hover {
+            background: var(--accent);
+        }
+
+        .chart-bar::after {
+            content: attr(data-value);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.625rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .chart-bar:hover::after {
+            opacity: 1;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 1rem 0;
+        }
+
+        .chart-label {
+            width: 40px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        /* Jobs Table */
+        .jobs-list {
+            overflow-x: auto;
+        }
+
+        .jobs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .jobs-table th,
+        .jobs-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .jobs-table th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .jobs-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .jobs-table tr:hover td {
+            background: var(--gray-50);
+        }
+
+        .job-customer {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .job-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--gray-200);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .job-name {
+            font-weight: 500;
+        }
+
+        .job-address {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .job-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .job-status.scheduled {
+            background: rgba(64, 196, 255, 0.1);
+            color: var(--info);
+        }
+
+        .job-status.in-progress {
+            background: rgba(245, 166, 35, 0.1);
+            color: var(--accent);
+        }
+
+        .job-status.completed {
+            background: rgba(0, 200, 83, 0.1);
+            color: var(--success);
+        }
+
+        .job-status.cancelled {
+            background: rgba(255, 82, 82, 0.1);
+            color: var(--danger);
+        }
+
+        .job-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* Leads Table */
+        .leads-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leads-table th,
+        .leads-table td {
+            padding: 0.875rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .leads-table th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+        }
+
+        .leads-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .lead-source {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 600;
+        }
+
+        .lead-source.google {
+            background: rgba(66, 133, 244, 0.1);
+            color: #4285f4;
+        }
+
+        .lead-source.website {
+            background: rgba(245, 166, 35, 0.1);
+            color: var(--accent);
+        }
+
+        .lead-source.referral {
+            background: rgba(0, 200, 83, 0.1);
+            color: var(--success);
+        }
+
+        .lead-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lead-action-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .lead-action-btn.call {
+            background: rgba(0, 200, 83, 0.1);
+            color: var(--success);
+        }
+
+        .lead-action-btn.email {
+            background: rgba(64, 196, 255, 0.1);
+            color: var(--info);
+        }
+
+        .lead-action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Worker Time Logs */
+        .time-logs {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .time-log-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 8px;
+        }
+
+        .time-log-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .time-log-info {
+            flex: 1;
+        }
+
+        .time-log-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .time-log-job {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .time-log-hours {
+            text-align: right;
+        }
+
+        .time-log-total {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .time-log-status {
+            font-size: 0.75rem;
+        }
+
+        .time-log-status.clocked-in {
+            color: var(--success);
+        }
+
+        .time-log-status.clocked-out {
+            color: var(--gray-500);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .quick-action-btn {
+            padding: 1rem;
+            border: 2px dashed var(--gray-300);
+            background: var(--white);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--accent);
+            border-style: solid;
+            background: rgba(245, 166, 35, 0.05);
+        }
+
+        .quick-action-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-action-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-search {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">ToolTime <span>Pro</span></div>
+        <ul class="sidebar-nav">
+            <li>
+                <a href="#" class="active">
+                    <span class="sidebar-nav-icon">📊</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">📅</span>
+                    Schedule
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">💼</span>
+                    Jobs
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">👥</span>
+                    Customers
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">📥</span>
+                    Leads
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">👷</span>
+                    Workers
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">⏱️</span>
+                    Time Tracking
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">💰</span>
+                    Invoicing
+                </a>
+            </li>
+            <li>
+                <a href="shield.html">
+                    <span class="sidebar-nav-icon">🛡️</span>
+                    ToolTime Shield
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">📈</span>
+                    Reports
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <span class="sidebar-nav-icon">⚙️</span>
+                    Settings
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header-title">Dashboard</h1>
+            <div class="header-actions">
+                <div class="header-search">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Search jobs, customers...">
+                </div>
+                <div class="header-notifications">
+                    <span>🔔</span>
+                    <span class="notification-badge">5</span>
+                </div>
+                <div class="header-profile">
+                    <div class="profile-avatar">MT</div>
+                    <div>
+                        <div class="profile-name">Mike Thompson</div>
+                        <div class="profile-role">Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon revenue">💵</div>
+                        <span class="stat-card-change positive">+12.5%</span>
+                    </div>
+                    <div class="stat-card-value">$47,250</div>
+                    <div class="stat-card-label">Revenue This Month</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon jobs">📋</div>
+                        <span class="stat-card-change positive">+8.2%</span>
+                    </div>
+                    <div class="stat-card-value">156</div>
+                    <div class="stat-card-label">Jobs Completed</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon leads">📥</div>
+                        <span class="stat-card-change positive">+23.1%</span>
+                    </div>
+                    <div class="stat-card-value">42</div>
+                    <div class="stat-card-label">New Leads</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon workers">👷</div>
+                        <span class="stat-card-change positive">+2</span>
+                    </div>
+                    <div class="stat-card-value">12</div>
+                    <div class="stat-card-label">Active Workers</div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Revenue Overview</h2>
+                        <div class="card-actions">
+                            <button class="card-action-btn">Weekly</button>
+                            <button class="card-action-btn active">Monthly</button>
+                            <button class="card-action-btn">Yearly</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div class="chart-bars">
+                                <div class="chart-bar" style="height: 60%;" data-value="$32K"></div>
+                                <div class="chart-bar" style="height: 80%;" data-value="$42K"></div>
+                                <div class="chart-bar" style="height: 45%;" data-value="$24K"></div>
+                                <div class="chart-bar" style="height: 70%;" data-value="$37K"></div>
+                                <div class="chart-bar" style="height: 55%;" data-value="$29K"></div>
+                                <div class="chart-bar" style="height: 90%;" data-value="$47K"></div>
+                                <div class="chart-bar" style="height: 75%;" data-value="$39K"></div>
+                                <div class="chart-bar" style="height: 65%;" data-value="$34K"></div>
+                                <div class="chart-bar" style="height: 85%;" data-value="$45K"></div>
+                                <div class="chart-bar" style="height: 50%;" data-value="$26K"></div>
+                                <div class="chart-bar" style="height: 95%;" data-value="$50K"></div>
+                                <div class="chart-bar" style="height: 88%;" data-value="$47K"></div>
+                            </div>
+                            <div class="chart-labels">
+                                <span class="chart-label">Jan</span>
+                                <span class="chart-label">Feb</span>
+                                <span class="chart-label">Mar</span>
+                                <span class="chart-label">Apr</span>
+                                <span class="chart-label">May</span>
+                                <span class="chart-label">Jun</span>
+                                <span class="chart-label">Jul</span>
+                                <span class="chart-label">Aug</span>
+                                <span class="chart-label">Sep</span>
+                                <span class="chart-label">Oct</span>
+                                <span class="chart-label">Nov</span>
+                                <span class="chart-label">Dec</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Worker Time Logs</h2>
+                        <button class="card-action-btn">View All</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="time-logs">
+                            <div class="time-log-item">
+                                <div class="time-log-avatar">MT</div>
+                                <div class="time-log-info">
+                                    <div class="time-log-name">Mike Torres</div>
+                                    <div class="time-log-job">Johnson Kitchen Remodel</div>
+                                </div>
+                                <div class="time-log-hours">
+                                    <div class="time-log-total">6h 45m</div>
+                                    <div class="time-log-status clocked-in">● Clocked In</div>
+                                </div>
+                            </div>
+
+                            <div class="time-log-item">
+                                <div class="time-log-avatar">CR</div>
+                                <div class="time-log-info">
+                                    <div class="time-log-name">Carlos Rodriguez</div>
+                                    <div class="time-log-job">Smith Bathroom Install</div>
+                                </div>
+                                <div class="time-log-hours">
+                                    <div class="time-log-total">4h 20m</div>
+                                    <div class="time-log-status clocked-in">● Clocked In</div>
+                                </div>
+                            </div>
+
+                            <div class="time-log-item">
+                                <div class="time-log-avatar">JW</div>
+                                <div class="time-log-info">
+                                    <div class="time-log-name">James Wilson</div>
+                                    <div class="time-log-job">Davis HVAC Repair</div>
+                                </div>
+                                <div class="time-log-hours">
+                                    <div class="time-log-total">8h 15m</div>
+                                    <div class="time-log-status clocked-out">● Clocked Out</div>
+                                </div>
+                            </div>
+
+                            <div class="time-log-item">
+                                <div class="time-log-avatar">AP</div>
+                                <div class="time-log-info">
+                                    <div class="time-log-name">Angela Perez</div>
+                                    <div class="time-log-job">Williams Electric Work</div>
+                                </div>
+                                <div class="time-log-hours">
+                                    <div class="time-log-total">5h 30m</div>
+                                    <div class="time-log-status clocked-in">● Clocked In</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jobs Overview -->
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Jobs</h2>
+                    <div class="card-actions">
+                        <button class="card-action-btn active">All</button>
+                        <button class="card-action-btn">Scheduled</button>
+                        <button class="card-action-btn">In Progress</button>
+                        <button class="card-action-btn">Completed</button>
+                    </div>
+                </div>
+                <div class="card-body jobs-list">
+                    <table class="jobs-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Job Type</th>
+                                <th>Worker</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="job-customer">
+                                        <div class="job-avatar">JJ</div>
+                                        <div>
+                                            <div class="job-name">John Johnson</div>
+                                            <div class="job-address">123 Oak St, Sacramento</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Kitchen Remodel</td>
+                                <td>Mike Torres</td>
+                                <td>Jan 19, 2025</td>
+                                <td><span class="job-status in-progress">In Progress</span></td>
+                                <td class="job-amount">$8,500</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="job-customer">
+                                        <div class="job-avatar">SS</div>
+                                        <div>
+                                            <div class="job-name">Sarah Smith</div>
+                                            <div class="job-address">456 Pine Ave, Folsom</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Bathroom Install</td>
+                                <td>Carlos Rodriguez</td>
+                                <td>Jan 19, 2025</td>
+                                <td><span class="job-status in-progress">In Progress</span></td>
+                                <td class="job-amount">$4,200</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="job-customer">
+                                        <div class="job-avatar">MD</div>
+                                        <div>
+                                            <div class="job-name">Mike Davis</div>
+                                            <div class="job-address">789 Elm Rd, Roseville</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>HVAC Repair</td>
+                                <td>James Wilson</td>
+                                <td>Jan 18, 2025</td>
+                                <td><span class="job-status completed">Completed</span></td>
+                                <td class="job-amount">$1,850</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="job-customer">
+                                        <div class="job-avatar">LW</div>
+                                        <div>
+                                            <div class="job-name">Lisa Williams</div>
+                                            <div class="job-address">321 Maple Dr, Elk Grove</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Electrical Work</td>
+                                <td>Angela Perez</td>
+                                <td>Jan 20, 2025</td>
+                                <td><span class="job-status scheduled">Scheduled</span></td>
+                                <td class="job-amount">$2,300</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="job-customer">
+                                        <div class="job-avatar">RB</div>
+                                        <div>
+                                            <div class="job-name">Robert Brown</div>
+                                            <div class="job-address">654 Cedar Ln, Davis</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Plumbing Fix</td>
+                                <td>Mike Torres</td>
+                                <td>Jan 17, 2025</td>
+                                <td><span class="job-status completed">Completed</span></td>
+                                <td class="job-amount">$750</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Leads Table -->
+            <div class="dashboard-grid" style="margin-top: 1.5rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">New Leads</h2>
+                        <button class="card-action-btn">View All Leads</button>
+                    </div>
+                    <div class="card-body">
+                        <table class="leads-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Service</th>
+                                    <th>Source</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="job-name">David Chen</div>
+                                        <div class="job-address">(916) 555-0123</div>
+                                    </td>
+                                    <td>AC Installation</td>
+                                    <td><span class="lead-source google">Google</span></td>
+                                    <td>2 hours ago</td>
+                                    <td>
+                                        <div class="lead-actions">
+                                            <button class="lead-action-btn call">📞</button>
+                                            <button class="lead-action-btn email">✉️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="job-name">Maria Garcia</div>
+                                        <div class="job-address">(916) 555-0456</div>
+                                    </td>
+                                    <td>Bathroom Remodel</td>
+                                    <td><span class="lead-source website">Website</span></td>
+                                    <td>5 hours ago</td>
+                                    <td>
+                                        <div class="lead-actions">
+                                            <button class="lead-action-btn call">📞</button>
+                                            <button class="lead-action-btn email">✉️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="job-name">Tom Anderson</div>
+                                        <div class="job-address">(916) 555-0789</div>
+                                    </td>
+                                    <td>Roof Repair</td>
+                                    <td><span class="lead-source referral">Referral</span></td>
+                                    <td>Yesterday</td>
+                                    <td>
+                                        <div class="lead-actions">
+                                            <button class="lead-action-btn call">📞</button>
+                                            <button class="lead-action-btn email">✉️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="job-name">Jennifer Lee</div>
+                                        <div class="job-address">(916) 555-0321</div>
+                                    </td>
+                                    <td>Kitchen Plumbing</td>
+                                    <td><span class="lead-source google">Google</span></td>
+                                    <td>Yesterday</td>
+                                    <td>
+                                        <div class="lead-actions">
+                                            <button class="lead-action-btn call">📞</button>
+                                            <button class="lead-action-btn email">✉️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Quick Actions</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-actions">
+                            <button class="quick-action-btn">
+                                <div class="quick-action-icon">➕</div>
+                                <div class="quick-action-label">New Job</div>
+                            </button>
+                            <button class="quick-action-btn">
+                                <div class="quick-action-icon">👤</div>
+                                <div class="quick-action-label">Add Customer</div>
+                            </button>
+                            <button class="quick-action-btn">
+                                <div class="quick-action-icon">📄</div>
+                                <div class="quick-action-label">Create Invoice</div>
+                            </button>
+                            <button class="quick-action-btn">
+                                <div class="quick-action-icon">📊</div>
+                                <div class="quick-action-label">View Reports</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tab functionality for jobs table
+        document.querySelectorAll('.card-actions .card-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.querySelectorAll('.card-action-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
