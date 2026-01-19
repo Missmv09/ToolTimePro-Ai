@@ -117,7 +117,7 @@ export default function WorkerJobsPage() {
           <h3 className="font-bold text-navy-500">{inProgressJob.client}</h3>
           <p className="text-sm text-gray-600">{inProgressJob.service}</p>
           <Link
-            href={`/worker/job/${inProgressJob.id}`}
+            href={`/worker/job`}
             className="btn-secondary mt-3 w-full text-center"
           >
             View Job Details
@@ -130,7 +130,7 @@ export default function WorkerJobsPage() {
         {jobs.map((job) => (
           <Link
             key={job.id}
-            href={`/worker/job/${job.id}`}
+            href={`/worker/job`}
             className="card block hover:shadow-card-hover transition-shadow"
           >
             <div className="flex items-start justify-between mb-2">

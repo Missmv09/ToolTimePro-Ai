@@ -79,7 +79,7 @@ export default function ClassificationPage() {
 
     if (nextStep === 'employee' || nextStep === 'contractor') {
       setResult(nextStep);
-    } else {
+    } else if (nextStep) {
       setCurrentQuestion(nextStep);
     }
   };
