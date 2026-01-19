@@ -1,1 +1,205 @@
-/* global styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Construction Bold Theme - Base styles */
+@layer base {
+  :root {
+    --color-navy: #1a1a2e;
+    --color-gold: #f5a623;
+  }
+
+  html {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 text-navy-500 antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold text-navy-500;
+  }
+
+  a {
+    @apply text-gold-500 hover:text-gold-600 transition-colors;
+  }
+}
+
+@layer components {
+  /* Button styles */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 font-medium rounded-lg transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply btn bg-navy-500 text-white hover:bg-navy-600 active:bg-navy-700;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gold-500 text-navy-500 hover:bg-gold-600 active:bg-gold-700;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-navy-500 text-navy-500 hover:bg-navy-500 hover:text-white;
+  }
+
+  .btn-ghost {
+    @apply btn text-navy-500 hover:bg-navy-50;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-white rounded-xl shadow-card p-6;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-card-hover transition-shadow duration-200;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all;
+  }
+
+  .input-label {
+    @apply block text-sm font-medium text-navy-500 mb-1;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge bg-green-100 text-green-800;
+  }
+
+  .badge-warning {
+    @apply badge bg-yellow-100 text-yellow-800;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-100 text-red-800;
+  }
+
+  .badge-info {
+    @apply badge bg-blue-100 text-blue-800;
+  }
+
+  .badge-gold {
+    @apply badge bg-gold-100 text-gold-800;
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply px-3 py-2 text-navy-500 hover:text-gold-500 font-medium transition-colors;
+  }
+
+  .nav-link-active {
+    @apply nav-link text-gold-500;
+  }
+
+  /* Sidebar */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-navy-50 hover:text-navy-500 rounded-lg transition-colors;
+  }
+
+  .sidebar-link-active {
+    @apply sidebar-link bg-gold-50 text-gold-600 hover:bg-gold-100;
+  }
+
+  /* Table styles */
+  .table-header {
+    @apply bg-navy-50 text-navy-500 text-left text-sm font-semibold px-4 py-3;
+  }
+
+  .table-cell {
+    @apply px-4 py-3 text-sm text-gray-700 border-b border-gray-100;
+  }
+
+  /* Section layouts */
+  .section {
+    @apply py-16 px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-narrow {
+    @apply max-w-4xl mx-auto;
+  }
+
+  .container-wide {
+    @apply max-w-7xl mx-auto;
+  }
+
+  /* Dashboard layout */
+  .dashboard-header {
+    @apply bg-white border-b border-gray-200 px-6 py-4;
+  }
+
+  .dashboard-sidebar {
+    @apply w-64 bg-white border-r border-gray-200 min-h-screen;
+  }
+
+  .dashboard-main {
+    @apply flex-1 p-6 bg-gray-50;
+  }
+
+  /* Stat cards */
+  .stat-card {
+    @apply card flex flex-col;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold text-navy-500;
+  }
+
+  .stat-label {
+    @apply text-sm text-gray-500 mt-1;
+  }
+
+  /* Download cards for templates */
+  .download-card {
+    @apply card-hover flex items-center gap-4 cursor-pointer;
+  }
+
+  .download-card:hover {
+    @apply border-gold-500 border;
+  }
+}
+
+@layer utilities {
+  /* Gold gradient backgrounds */
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, #f5a623 0%, #dd951f 100%);
+  }
+
+  /* Navy gradient backgrounds */
+  .bg-navy-gradient {
+    background: linear-gradient(135deg, #1a1a2e 0%, #333357 100%);
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-gold-500 to-gold-600;
+  }
+
+  /* Hover lift effect */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+
+  /* Pulse animation for badges */
+  .pulse-gold {
+    animation: pulse-gold 2s infinite;
+  }
+
+  @keyframes pulse-gold {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(245, 166, 35, 0);
+    }
+  }
+}
