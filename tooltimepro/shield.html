@@ -817,6 +817,270 @@
             font-weight: 600;
         }
 
+        /* Checklist Generator Styles */
+        .checklist-generator {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+            box-shadow: 0 2px 8px rgba(26, 26, 46, 0.06);
+        }
+
+        .checklist-generator h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checklist-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: var(--background);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .checklist-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .checklist-meta-label {
+            color: var(--text-muted);
+        }
+
+        .checklist-meta-value {
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .checklist-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: rgba(0, 200, 83, 0.08);
+            border-radius: 8px;
+            border: 1px solid var(--success);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--success);
+            white-space: nowrap;
+        }
+
+        .checklist-sections {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .checklist-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .checklist-section {
+            background: var(--background);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .checklist-section h4 {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checklist-items {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-item:hover {
+            background: rgba(245, 166, 35, 0.05);
+            margin: 0 -8px;
+            padding-left: 8px;
+            padding-right: 8px;
+            border-radius: 6px;
+        }
+
+        .checklist-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+            transition: all 0.2s;
+        }
+
+        .checklist-item.checked .checklist-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .checklist-item.checked .checklist-checkbox::after {
+            content: '✓';
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checklist-label {
+            font-size: 0.875rem;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .checklist-item.checked .checklist-label {
+            color: var(--success);
+            text-decoration: line-through;
+        }
+
+        .checklist-conditional {
+            font-size: 0.75rem;
+            color: var(--gold);
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .checklist-item.inactive {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .checklist-item.inactive .checklist-label {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        /* Checklist Actions */
+        .checklist-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checklist-btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .checklist-btn.primary {
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        .checklist-btn.primary:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+        }
+
+        .checklist-btn.secondary {
+            background: var(--background);
+            color: var(--navy);
+            border: 2px solid var(--border);
+        }
+
+        .checklist-btn.secondary:hover {
+            border-color: var(--gold);
+            background: rgba(245, 166, 35, 0.05);
+        }
+
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .checklist-generator,
+            .checklist-generator * {
+                visibility: visible;
+            }
+            .checklist-generator {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none;
+                padding: 20px;
+            }
+            .checklist-actions {
+                display: none;
+            }
+            .checklist-progress {
+                border: 1px solid #ccc;
+            }
+            .checklist-item:hover {
+                background: none;
+                margin: 0;
+                padding-left: 0;
+                padding-right: 0;
+            }
+        }
+
         /* Size Requirements Table */
         .size-table-section {
             margin-top: 32px;
@@ -1539,18 +1803,96 @@
                 </div>
             </div>
 
-            <!-- Download Checklist -->
-            <div class="bottom-card" style="margin-top: 24px;">
-                <h3><span class="icon">📋</span> Compliance Checklist</h3>
-                <div class="download-card-content">
-                    <p>Get your personalized compliance checklist based on company size and location.</p>
-                    <button class="download-btn" onclick="downloadChecklist()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
+            <!-- Compliance Checklist Generator -->
+            <div class="checklist-generator" id="checklistGenerator">
+                <h3>📋 Your Custom Compliance Checklist</h3>
+
+                <!-- Meta Info -->
+                <div class="checklist-meta">
+                    <div class="checklist-meta-item">
+                        <span class="checklist-meta-label">Company Size:</span>
+                        <span class="checklist-meta-value" id="checklistSize">5-14 employees</span>
+                    </div>
+                    <div class="checklist-meta-item">
+                        <span class="checklist-meta-label">City:</span>
+                        <span class="checklist-meta-value" id="checklistCity">Not selected</span>
+                    </div>
+                    <div class="checklist-meta-item">
+                        <span class="checklist-meta-label">Min Wage:</span>
+                        <span class="checklist-meta-value" id="checklistWage">$16.00/hr</span>
+                    </div>
+                    <div class="checklist-meta-item">
+                        <span class="checklist-meta-label">Generated:</span>
+                        <span class="checklist-meta-value" id="checklistDate">-</span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="checklist-progress">
+                    <span>Progress:</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0 of 0 items</span>
+                </div>
+
+                <!-- Checklist Sections -->
+                <div class="checklist-sections" id="checklistSections">
+                    <!-- Section 1: Hiring -->
+                    <div class="checklist-section">
+                        <h4>📝 Hiring Checklist</h4>
+                        <ul class="checklist-items" id="hiringChecklist">
+                            <!-- Items generated by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Section 2: Ongoing -->
+                    <div class="checklist-section">
+                        <h4>🔄 Ongoing Compliance</h4>
+                        <ul class="checklist-items" id="ongoingChecklist">
+                            <!-- Items generated by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Section 3: Termination -->
+                    <div class="checklist-section">
+                        <h4>🚪 Termination Checklist</h4>
+                        <ul class="checklist-items" id="terminationChecklist">
+                            <!-- Items generated by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Section 4: Posting -->
+                    <div class="checklist-section">
+                        <h4>📌 Posting Requirements</h4>
+                        <ul class="checklist-items" id="postingChecklist">
+                            <!-- Items generated by JS -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="checklist-actions">
+                    <button class="checklist-btn primary" onclick="printChecklist()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect x="6" y="14" width="12" height="8"/>
                         </svg>
-                        Download Compliance Checklist
+                        Print Checklist
+                    </button>
+                    <button class="checklist-btn secondary" onclick="resetChecklist()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                        Reset All
+                    </button>
+                    <button class="checklist-btn secondary" onclick="generateChecklist()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/>
+                        </svg>
+                        Regenerate
                     </button>
                 </div>
             </div>
@@ -1996,6 +2338,200 @@
             `;
             resultDiv.classList.add('show');
         }
+
+        // ==========================================
+        // CHECKLIST GENERATOR
+        // ==========================================
+
+        // Checklist item definitions
+        const checklistData = {
+            hiring: [
+                { text: 'Collect W-4 (federal tax withholding)', minSize: 1 },
+                { text: 'Collect DE-4 (CA state tax withholding)', minSize: 1 },
+                { text: 'Complete I-9 within 3 business days', minSize: 1 },
+                { text: 'Provide Wage Theft Prevention Notice', minSize: 1 },
+                { text: 'Provide Workers\' Compensation info', minSize: 1 },
+                { text: 'Provide Paid Sick Leave notice', minSize: 1 },
+                { text: 'Provide sexual harassment prevention policy', minSize: 5, conditional: '5+ employees' },
+                { text: 'Provide FEHA rights notice', minSize: 15, conditional: '15+ employees' },
+                { text: 'Provide CFRA family leave info', minSize: 25, conditional: '25+ employees' }
+            ],
+            ongoing: [
+                { text: 'Pay at least minimum wage', minSize: 1, dynamic: 'wage' },
+                { text: 'Pay overtime after 8 hrs/day or 40 hrs/week', minSize: 1 },
+                { text: 'Pay double time after 12 hrs/day', minSize: 1 },
+                { text: 'Provide 30 min meal break at 5 hrs', minSize: 1 },
+                { text: 'Provide 10 min rest break every 4 hrs', minSize: 1 },
+                { text: 'Issue itemized pay stubs each pay period', minSize: 1 },
+                { text: 'Track sick leave accrual (1 hr per 30 hrs)', minSize: 1 },
+                { text: 'CalSavers enrollment OR provide other retirement plan', minSize: 5, conditional: '5+ employees' },
+                { text: 'Sexual harassment training every 2 years', minSize: 5, conditional: '5+ employees' },
+                { text: 'Provide reasonable disability accommodations', minSize: 15, conditional: '15+ employees' },
+                { text: 'Provide FMLA/CFRA leave when eligible', minSize: 25, conditional: '25+ employees' },
+                { text: 'Provide lactation room', minSize: 50, conditional: '50+ employees' }
+            ],
+            termination: [
+                { text: 'Calculate final pay (all wages + accrued vacation)', minSize: 1 },
+                { text: 'If fired/laid off: Pay IMMEDIATELY same day', minSize: 1 },
+                { text: 'If quit with notice: Pay on last day', minSize: 1 },
+                { text: 'If quit without notice: Pay within 72 hours', minSize: 1 },
+                { text: 'Provide COBRA continuation notice', minSize: 20, conditional: '20+ employees' },
+                { text: 'Return employee personal property', minSize: 1 },
+                { text: 'Document reason for termination', minSize: 1 },
+                { text: 'Provide Cal-WARN notice for mass layoffs', minSize: 75, conditional: '75+ employees' }
+            ],
+            posting: [
+                { text: 'Federal minimum wage poster', minSize: 1 },
+                { text: 'California minimum wage poster', minSize: 1 },
+                { text: 'CA Paid Sick Leave poster', minSize: 1 },
+                { text: 'OSHA Job Safety & Health poster', minSize: 1 },
+                { text: 'Workers\' Compensation poster', minSize: 1 },
+                { text: 'Payday notice (regular pay dates)', minSize: 1 },
+                { text: 'Emergency contact information', minSize: 1 },
+                { text: 'Discrimination/harassment poster (DFEH)', minSize: 5, conditional: '5+ employees' },
+                { text: 'Whistleblower protections poster', minSize: 1 },
+                { text: 'City-specific posting', minSize: 1, dynamic: 'city' }
+            ]
+        };
+
+        // Current state
+        let currentCheckedItems = new Set();
+        let selectedCity = null;
+        let selectedCityWage = 16.00;
+
+        // Generate checklist based on company size
+        function generateChecklist() {
+            const sizeBtn = document.querySelector('.size-btn.active');
+            const maxEmployees = sizeBtn ? getMaxFromSize(sizeBtn.dataset.size) : 14;
+            const sizeText = sizeBtn ? sizeBtn.dataset.size + ' employees' : '5-14 employees';
+
+            // Update meta info
+            document.getElementById('checklistSize').textContent = sizeText;
+            document.getElementById('checklistCity').textContent = selectedCity ? cityData[selectedCity].name : 'Not selected';
+            document.getElementById('checklistWage').textContent = `$${selectedCityWage.toFixed(2)}/hr`;
+            document.getElementById('checklistDate').textContent = new Date().toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            });
+
+            // Generate each section
+            generateSection('hiringChecklist', checklistData.hiring, maxEmployees);
+            generateSection('ongoingChecklist', checklistData.ongoing, maxEmployees);
+            generateSection('terminationChecklist', checklistData.termination, maxEmployees);
+            generateSection('postingChecklist', checklistData.posting, maxEmployees);
+
+            // Update progress
+            updateProgress();
+        }
+
+        // Generate a single section
+        function generateSection(containerId, items, maxEmployees) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            items.forEach((item, index) => {
+                const itemId = `${containerId}-${index}`;
+                const isActive = maxEmployees >= item.minSize;
+                const isChecked = currentCheckedItems.has(itemId);
+
+                // Handle dynamic text
+                let displayText = item.text;
+                if (item.dynamic === 'wage') {
+                    displayText = `Pay at least $${selectedCityWage.toFixed(2)}/hr (minimum wage)`;
+                } else if (item.dynamic === 'city' && selectedCity) {
+                    displayText = `${cityData[selectedCity].name} city-specific posting requirements`;
+                } else if (item.dynamic === 'city' && !selectedCity) {
+                    displayText = 'Local city posting (select city above)';
+                }
+
+                const li = document.createElement('li');
+                li.className = `checklist-item${isChecked ? ' checked' : ''}${!isActive ? ' inactive' : ''}`;
+                li.dataset.itemId = itemId;
+
+                if (isActive) {
+                    li.onclick = () => toggleChecklistItem(itemId, li);
+                }
+
+                li.innerHTML = `
+                    <div class="checklist-checkbox"></div>
+                    <span class="checklist-label">
+                        ${displayText}
+                        ${item.conditional && isActive ? `<span class="checklist-conditional">[${item.conditional}]</span>` : ''}
+                        ${!isActive && item.conditional ? `<span class="checklist-conditional">[Requires ${item.conditional}]</span>` : ''}
+                    </span>
+                `;
+
+                container.appendChild(li);
+            });
+        }
+
+        // Toggle checklist item
+        function toggleChecklistItem(itemId, element) {
+            if (element.classList.contains('inactive')) return;
+
+            element.classList.toggle('checked');
+
+            if (element.classList.contains('checked')) {
+                currentCheckedItems.add(itemId);
+            } else {
+                currentCheckedItems.delete(itemId);
+            }
+
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const allItems = document.querySelectorAll('.checklist-item:not(.inactive)');
+            const checkedItems = document.querySelectorAll('.checklist-item.checked:not(.inactive)');
+            const total = allItems.length;
+            const completed = checkedItems.length;
+            const percentage = total > 0 ? (completed / total) * 100 : 0;
+
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = `${completed} of ${total} items`;
+        }
+
+        // Reset checklist
+        function resetChecklist() {
+            currentCheckedItems.clear();
+            document.querySelectorAll('.checklist-item').forEach(item => {
+                item.classList.remove('checked');
+            });
+            updateProgress();
+        }
+
+        // Print checklist
+        function printChecklist() {
+            window.print();
+        }
+
+        // Download checklist (legacy function - now just prints)
+        function downloadChecklist() {
+            printChecklist();
+        }
+
+        // Update checklist when size changes - modify existing selectSize
+        const originalSelectSize = selectSize;
+        selectSize = function(btn) {
+            originalSelectSize(btn);
+            generateChecklist();
+        };
+
+        // Update checklist when city changes - modify existing selectCity
+        const originalSelectCity = selectCity;
+        selectCity = function(btn) {
+            originalSelectCity(btn);
+            selectedCity = btn.dataset.city;
+            selectedCityWage = cityData[selectedCity].wage;
+            generateChecklist();
+        };
+
+        // Initialize checklist on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial wage from state minimum
+            selectedCityWage = STATE_WAGE;
+            generateChecklist();
+        });
     </script>
 </body>
 </html>
