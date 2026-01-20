@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToolTime Shield | ToolTime Pro</title>
+    <title>ToolTime Shield — California Compliance | ToolTime Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,27 +11,30 @@
             --navy-light: #252542;
             --gold: #f5a623;
             --gold-light: #ffc857;
+            --background: #fafafa;
+            --white: #ffffff;
+            --text: #1a1a2e;
+            --text-light: #5c5c70;
+            --text-muted: #8e8e9f;
+            --border: #e5e5e5;
             --success: #00c853;
             --warning: #ffab00;
             --danger: #ff5252;
-            --info: #2196f3;
-            --text: #e8e8e8;
-            --text-muted: #a0a0b0;
-            --border: #3a3a5a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--navy);
+            background: var(--background);
             color: var(--text);
             min-height: 100vh;
+            line-height: 1.6;
         }
 
-        /* Header */
-        .header {
-            background: var(--navy-light);
+        /* Navigation */
+        .nav {
+            background: var(--white);
             border-bottom: 1px solid var(--border);
             padding: 16px 24px;
             position: sticky;
@@ -39,994 +42,522 @@
             z-index: 100;
         }
 
-        .header-content {
-            max-width: 1400px;
+        .nav-content {
+            max-width: 1200px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
         }
 
         .back-link {
-            color: var(--gold);
+            color: var(--navy);
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: opacity 0.2s;
+            transition: color 0.2s;
         }
 
-        .back-link:hover { opacity: 0.8; }
+        .back-link:hover { color: var(--gold); }
 
-        .header-title h1 { font-size: 1.5rem; font-weight: 700; color: white; }
-        .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
-
-        .demo-badge {
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.25rem;
             color: var(--navy);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            text-decoration: none;
         }
 
-        /* Main Content */
-        .main-container {
-            max-width: 1400px;
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gold);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: var(--white);
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        .header-content {
+            max-width: 800px;
             margin: 0 auto;
-            padding: 24px;
         }
 
-        /* Tool Tabs */
-        .tool-tabs {
+        .header h1 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--white);
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* Company Size Selector */
+        .size-selector {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(26, 26, 46, 0.06);
+        }
+
+        .size-selector h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .size-buttons {
             display: flex;
             gap: 12px;
-            margin-bottom: 24px;
+            justify-content: center;
             flex-wrap: wrap;
         }
 
-        .tool-tab {
-            padding: 12px 24px;
-            background: var(--navy-light);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
+        .size-btn {
+            padding: 16px 28px;
+            background: var(--background);
+            border: 2px solid var(--border);
+            border-radius: 12px;
             font-family: inherit;
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            min-width: 100px;
         }
 
-        .tool-tab:hover { border-color: var(--gold); color: var(--gold); }
-        .tool-tab.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+        .size-btn:hover {
+            border-color: var(--gold);
+            background: rgba(245, 166, 35, 0.05);
+        }
 
-        /* Tool Panels */
-        .tool-panel {
-            display: none;
-            background: var(--navy-light);
-            border: 1px solid var(--border);
+        .size-btn.active {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--navy);
+        }
+
+        .size-btn span {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .size-btn.active span {
+            color: var(--navy);
+            opacity: 0.7;
+        }
+
+        /* Tabs Section */
+        .tabs-container {
+            background: var(--white);
             border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 2px 8px rgba(26, 26, 46, 0.06);
+            margin-bottom: 24px;
         }
 
-        .tool-panel.active { display: block; }
-
-        .tool-header {
-            background: rgba(245, 166, 35, 0.1);
-            padding: 24px;
+        .tab-buttons {
+            display: flex;
+            background: var(--background);
             border-bottom: 1px solid var(--border);
         }
 
-        .tool-header h2 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .tool-header p { color: var(--text-muted); font-size: 0.9375rem; }
-
-        .tool-body { padding: 24px; }
-
-        /* Quiz Styles */
-        .quiz-question {
-            background: var(--navy);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-
-        .quiz-question h4 {
-            font-size: 1rem;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .quiz-question h4 .q-num {
-            background: var(--gold);
-            color: var(--navy);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.875rem;
-            flex-shrink: 0;
-        }
-
-        .quiz-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .quiz-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: var(--navy-light);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .quiz-option:hover { border-color: var(--gold); }
-        .quiz-option.selected { border-color: var(--gold); background: rgba(245, 166, 35, 0.1); }
-
-        .quiz-option input { display: none; }
-
-        .quiz-radio {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .quiz-option.selected .quiz-radio {
-            border-color: var(--gold);
-        }
-
-        .quiz-option.selected .quiz-radio::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background: var(--gold);
-            border-radius: 50%;
-        }
-
-        .quiz-label { font-size: 0.9375rem; }
-
-        .quiz-result {
-            background: var(--navy);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            margin-top: 24px;
-            display: none;
-        }
-
-        .quiz-result.show { display: block; }
-
-        .result-icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
-        }
-
-        .result-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .result-title.contractor { color: var(--success); }
-        .result-title.employee { color: var(--info); }
-        .result-title.gray { color: var(--warning); }
-
-        .result-description {
-            color: var(--text-muted);
-            margin-bottom: 16px;
-        }
-
-        .result-disclaimer {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            background: rgba(255, 171, 0, 0.1);
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid var(--warning);
-        }
-
-        .quiz-btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--gold);
-            color: var(--navy);
+        .tab-btn {
+            flex: 1;
+            padding: 18px 24px;
+            background: transparent;
             border: none;
-            border-radius: 10px;
             font-family: inherit;
-            font-size: 1rem;
-            font-weight: 700;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-muted);
             cursor: pointer;
-            margin-top: 24px;
             transition: all 0.2s;
+            position: relative;
         }
 
-        .quiz-btn:hover { opacity: 0.9; }
+        .tab-btn:hover {
+            color: var(--text);
+            background: rgba(245, 166, 35, 0.05);
+        }
 
-        /* Calculator Styles */
-        .calc-section {
+        .tab-btn.active {
+            color: var(--navy);
+            background: var(--white);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        .tab-btn .tab-icon {
+            margin-right: 8px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 32px;
+            min-height: 300px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content h4 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 16px;
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+            font-size: 1rem;
+            padding: 40px;
+            text-align: center;
+            background: var(--background);
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+        }
+
+        .placeholder-text .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
         }
 
-        .calc-inputs {
-            background: var(--navy);
-            border-radius: 12px;
-            padding: 24px;
+        @media (max-width: 768px) {
+            .bottom-section {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .calc-inputs h3 {
-            font-size: 1rem;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .bottom-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 2px 8px rgba(26, 26, 46, 0.06);
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .form-group select,
-        .form-group input {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--navy-light);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-family: inherit;
-            font-size: 1rem;
-        }
-
-        .form-group select:focus,
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--gold);
-        }
-
-        .calc-result {
-            background: var(--navy);
-            border-radius: 12px;
-            padding: 24px;
-            border: 2px solid var(--border);
-        }
-
-        .calc-result h3 {
-            font-size: 1rem;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .result-box {
-            background: rgba(245, 166, 35, 0.1);
-            border: 1px solid var(--gold);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .result-label {
-            font-size: 0.8125rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .result-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 2rem;
+        .bottom-card h3 {
+            font-size: 1.125rem;
             font-weight: 700;
-            color: var(--gold);
-        }
-
-        .result-date {
-            font-size: 1rem;
-            color: var(--text);
-            margin-top: 8px;
-        }
-
-        .result-warning {
-            background: rgba(255, 82, 82, 0.1);
-            border-left: 3px solid var(--danger);
-            padding: 16px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .result-warning h4 {
-            color: var(--danger);
-            font-size: 0.875rem;
-            margin-bottom: 8px;
-        }
-
-        .result-warning p {
-            font-size: 0.8125rem;
-            color: var(--text-muted);
-        }
-
-        .result-rules {
-            margin-top: 16px;
-        }
-
-        .result-rules h4 {
-            font-size: 0.875rem;
-            margin-bottom: 12px;
-            color: var(--text-muted);
-        }
-
-        .rule-item {
-            display: flex;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.875rem;
-        }
-
-        .rule-item:last-child { border-bottom: none; }
-
-        .rule-type {
-            min-width: 140px;
-            color: var(--text-muted);
-        }
-
-        .rule-deadline { font-weight: 600; color: var(--gold); }
-
-        /* Document Library */
-        .doc-section {
-            margin-bottom: 24px;
-        }
-
-        .doc-section h3 {
-            font-size: 1rem;
-            font-weight: 600;
+            color: var(--navy);
             margin-bottom: 16px;
-            color: var(--gold);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .doc-list {
-            background: var(--navy);
+        .bottom-card h3 .icon {
+            font-size: 1.25rem;
+        }
+
+        .calculator-placeholder {
+            background: var(--background);
             border-radius: 12px;
-            overflow: hidden;
+            padding: 32px;
+            text-align: center;
+            border: 2px dashed var(--border);
         }
 
-        .doc-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: all 0.2s;
+        .calculator-placeholder .calc-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
         }
 
-        .doc-item:last-child { border-bottom: none; }
-        .doc-item:hover { background: rgba(245, 166, 35, 0.1); }
-
-        .doc-icon { font-size: 1.25rem; }
-
-        .doc-name {
-            flex: 1;
+        .calculator-placeholder p {
+            color: var(--text-muted);
             font-size: 0.9375rem;
         }
 
-        .doc-download {
-            color: var(--gold);
-            font-size: 0.8125rem;
-            font-weight: 500;
-        }
-
-        .download-all-btn {
+        .download-btn {
             width: 100%;
-            padding: 16px;
-            background: var(--navy);
-            border: 2px solid var(--gold);
-            border-radius: 10px;
-            color: var(--gold);
-            font-family: inherit;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 24px;
-            transition: all 0.2s;
-        }
-
-        .download-all-btn:hover {
+            padding: 18px 24px;
             background: var(--gold);
             color: var(--navy);
-        }
-
-        /* CTA Section */
-        .cta-section {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 24px 48px;
-        }
-
-        .cta-box {
-            background: linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(245, 166, 35, 0.05));
-            border: 2px solid var(--gold);
-            border-radius: 16px;
-            padding: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .cta-content h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .cta-content p { color: var(--text-muted); }
-
-        .cta-btn {
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            color: var(--navy);
-            padding: 16px 32px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-family: inherit;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .cta-btn:hover {
+        .download-btn:hover {
+            background: var(--gold-light);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+            box-shadow: 0 6px 20px rgba(245, 166, 35, 0.3);
+        }
+
+        .download-card-content {
+            text-align: center;
+        }
+
+        .download-card-content p {
+            color: var(--text-muted);
+            font-size: 0.9375rem;
+            margin-bottom: 20px;
         }
 
         /* Responsive */
-        @media (max-width: 900px) {
-            .calc-section { grid-template-columns: 1fr; }
+        @media (max-width: 600px) {
+            .size-buttons {
+                flex-direction: column;
+            }
+
+            .size-btn {
+                width: 100%;
+            }
+
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                border-bottom: 1px solid var(--border);
+            }
+
+            .tab-btn:last-child {
+                border-bottom: none;
+            }
+
+            .tab-btn.active::after {
+                display: none;
+            }
+
+            .tab-btn.active {
+                background: rgba(245, 166, 35, 0.1);
+                color: var(--navy);
+            }
         }
 
-        @media (max-width: 768px) {
-            .header-content { flex-direction: column; align-items: flex-start; }
-            .tool-tabs { flex-direction: column; }
-            .tool-tab { justify-content: center; }
-            .cta-box { flex-direction: column; text-align: center; }
+        /* Footer */
+        .footer {
+            background: var(--navy);
+            color: var(--white);
+            padding: 32px 24px;
+            text-align: center;
+            margin-top: 48px;
+        }
+
+        .footer p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+
+        .footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-content">
             <a href="index.html" class="back-link">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Back to ToolTime Pro
+                Back to Main Site
             </a>
-            <div class="header-title">
-                <h1>ToolTime Shield</h1>
-                <p>Protect yourself from costly legal mistakes. CA compliance made simple.</p>
-            </div>
-            <span class="demo-badge">Interactive Tools</span>
+            <a href="index.html" class="nav-logo">
+                <div class="logo-icon">🛠</div>
+                ToolTime Pro
+            </a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>🛡️ ToolTime Shield — California Compliance</h1>
+            <p>Know the rules. Avoid the fines.</p>
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="main-container">
-        <!-- Tool Tabs -->
-        <div class="tool-tabs">
-            <button class="tool-tab active" onclick="showTool('quiz')">
-                <span>🧪</span> Worker Classification Quiz
-            </button>
-            <button class="tool-tab" onclick="showTool('final-pay')">
-                <span>📅</span> Final Pay Calculator
-            </button>
-            <button class="tool-tab" onclick="showTool('penalty')">
-                <span>💰</span> Penalty Calculator
-            </button>
-            <button class="tool-tab" onclick="showTool('documents')">
-                <span>📋</span> Document Library
-            </button>
-        </div>
-
-        <!-- Tool 1: Worker Classification Quiz -->
-        <div class="tool-panel active" id="tool-quiz">
-            <div class="tool-header">
-                <h2>🧪 Worker Classification Quiz</h2>
-                <p>Answer these questions to help determine if a worker should be classified as an employee or independent contractor.</p>
+        <!-- Company Size Selector -->
+        <section class="size-selector">
+            <h3>Select Your Company Size</h3>
+            <div class="size-buttons">
+                <button class="size-btn" data-size="1-4" onclick="selectSize(this)">
+                    1-4
+                    <span>employees</span>
+                </button>
+                <button class="size-btn active" data-size="5-14" onclick="selectSize(this)">
+                    5-14
+                    <span>employees</span>
+                </button>
+                <button class="size-btn" data-size="15-24" onclick="selectSize(this)">
+                    15-24
+                    <span>employees</span>
+                </button>
+                <button class="size-btn" data-size="25-49" onclick="selectSize(this)">
+                    25-49
+                    <span>employees</span>
+                </button>
+                <button class="size-btn" data-size="50-99" onclick="selectSize(this)">
+                    50-99
+                    <span>employees</span>
+                </button>
             </div>
-            <div class="tool-body">
-                <div class="quiz-question">
-                    <h4><span class="q-num">1</span> Does the worker set their own schedule?</h4>
-                    <div class="quiz-options">
-                        <label class="quiz-option" onclick="selectQuiz(1, 'contractor', this)">
-                            <input type="radio" name="q1" value="contractor">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">Yes - They choose when to work</span>
-                        </label>
-                        <label class="quiz-option" onclick="selectQuiz(1, 'employee', this)">
-                            <input type="radio" name="q1" value="employee">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">No - I set their hours</span>
-                        </label>
-                    </div>
-                </div>
+        </section>
 
-                <div class="quiz-question">
-                    <h4><span class="q-num">2</span> Do they use their own tools/equipment?</h4>
-                    <div class="quiz-options">
-                        <label class="quiz-option" onclick="selectQuiz(2, 'contractor', this)">
-                            <input type="radio" name="q2" value="contractor">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">Yes - They provide their own tools</span>
-                        </label>
-                        <label class="quiz-option" onclick="selectQuiz(2, 'employee', this)">
-                            <input type="radio" name="q2" value="employee">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">No - I provide the tools</span>
-                        </label>
-                    </div>
-                </div>
+        <!-- Tabs Section -->
+        <section class="tabs-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="showTab('federal')">
+                    <span class="tab-icon">🇺🇸</span>Federal Rules
+                </button>
+                <button class="tab-btn" onclick="showTab('state')">
+                    <span class="tab-icon">🐻</span>CA State Rules
+                </button>
+                <button class="tab-btn" onclick="showTab('local')">
+                    <span class="tab-icon">🏙️</span>Local Rules (City/County)
+                </button>
+            </div>
 
-                <div class="quiz-question">
-                    <h4><span class="q-num">3</span> Do they work for other companies?</h4>
-                    <div class="quiz-options">
-                        <label class="quiz-option" onclick="selectQuiz(3, 'contractor', this)">
-                            <input type="radio" name="q3" value="contractor">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">Yes - They have multiple clients</span>
-                        </label>
-                        <label class="quiz-option" onclick="selectQuiz(3, 'employee', this)">
-                            <input type="radio" name="q3" value="employee">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">No - They work exclusively for me</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="quiz-question">
-                    <h4><span class="q-num">4</span> Do you control HOW the work is done?</h4>
-                    <div class="quiz-options">
-                        <label class="quiz-option" onclick="selectQuiz(4, 'employee', this)">
-                            <input type="radio" name="q4" value="employee">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">Yes - I direct the methods and process</span>
-                        </label>
-                        <label class="quiz-option" onclick="selectQuiz(4, 'contractor', this)">
-                            <input type="radio" name="q4" value="contractor">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">No - They use their own methods</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="quiz-question">
-                    <h4><span class="q-num">5</span> Is this an ongoing relationship?</h4>
-                    <div class="quiz-options">
-                        <label class="quiz-option" onclick="selectQuiz(5, 'employee', this)">
-                            <input type="radio" name="q5" value="employee">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">Yes - They work for me regularly</span>
-                        </label>
-                        <label class="quiz-option" onclick="selectQuiz(5, 'contractor', this)">
-                            <input type="radio" name="q5" value="contractor">
-                            <div class="quiz-radio"></div>
-                            <span class="quiz-label">No - Project-based work only</span>
-                        </label>
-                    </div>
-                </div>
-
-                <button class="quiz-btn" onclick="calculateQuiz()">Get Classification Result</button>
-
-                <div class="quiz-result" id="quizResult">
-                    <div class="result-icon" id="resultIcon">🧑‍💼</div>
-                    <div class="result-title" id="resultTitle">Likely Employee (W-2)</div>
-                    <div class="result-description" id="resultDesc">Based on your answers, this worker should likely be classified as an employee.</div>
-                    <div class="result-disclaimer">
-                        ⚠️ <strong>Disclaimer:</strong> This is guidance only, not legal advice. Worker classification is complex and depends on many factors. Consult with an HR professional or attorney for definitive guidance.
-                    </div>
+            <div class="tab-content active" id="tab-federal">
+                <h4>Federal Compliance Requirements</h4>
+                <div class="placeholder-text">
+                    <span class="icon">🇺🇸</span>
+                    Federal compliance rules loading...
                 </div>
             </div>
-        </div>
 
-        <!-- Tool 2: Final Pay Calculator -->
-        <div class="tool-panel" id="tool-final-pay">
-            <div class="tool-header">
-                <h2>📅 Final Pay Calculator</h2>
-                <p>Calculate when final pay is due based on California law.</p>
-            </div>
-            <div class="tool-body">
-                <div class="calc-section">
-                    <div class="calc-inputs">
-                        <h3>📝 Enter Details</h3>
-                        <div class="form-group">
-                            <label>Termination Type</label>
-                            <select id="terminationType" onchange="calculateFinalPay()">
-                                <option value="fired">Fired / Laid Off</option>
-                                <option value="quit-notice">Quit with 72+ hours notice</option>
-                                <option value="quit-no-notice">Quit without notice</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Last Day Worked</label>
-                            <input type="date" id="lastDay" onchange="calculateFinalPay()">
-                        </div>
-                    </div>
-
-                    <div class="calc-result">
-                        <h3>📋 Final Pay Deadline</h3>
-                        <div class="result-box">
-                            <div class="result-label">Termination Type</div>
-                            <div class="result-value" id="fpType">Fired / Laid Off</div>
-                        </div>
-                        <div class="result-box" style="border-color: var(--danger); background: rgba(255, 82, 82, 0.1);">
-                            <div class="result-label">⚠️ DEADLINE</div>
-                            <div class="result-value" style="color: var(--danger);" id="fpDeadline">SAME DAY</div>
-                            <div class="result-date" id="fpDate">Pay must be given immediately</div>
-                        </div>
-                        <div class="result-warning">
-                            <h4>If you miss this deadline:</h4>
-                            <p>Waiting time penalties apply - up to 30 days of wages!</p>
-                        </div>
-                        <div class="result-rules">
-                            <h4>California Final Pay Rules:</h4>
-                            <div class="rule-item">
-                                <span class="rule-type">Fired / Laid Off</span>
-                                <span class="rule-deadline">Immediate (same day)</span>
-                            </div>
-                            <div class="rule-item">
-                                <span class="rule-type">Quit with 72+ hrs notice</span>
-                                <span class="rule-deadline">Last day of work</span>
-                            </div>
-                            <div class="rule-item">
-                                <span class="rule-type">Quit without notice</span>
-                                <span class="rule-deadline">Within 72 hours</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="tab-content" id="tab-state">
+                <h4>California State Requirements</h4>
+                <div class="placeholder-text">
+                    <span class="icon">🐻</span>
+                    California rules loading...
                 </div>
             </div>
-        </div>
 
-        <!-- Tool 3: Penalty Calculator -->
-        <div class="tool-panel" id="tool-penalty">
-            <div class="tool-header">
-                <h2>💰 Waiting Time Penalty Calculator</h2>
-                <p>Estimate potential penalties for late final pay in California.</p>
-            </div>
-            <div class="tool-body">
-                <div class="calc-section">
-                    <div class="calc-inputs">
-                        <h3>📝 Enter Details</h3>
-                        <div class="form-group">
-                            <label>Daily Wage Rate ($)</label>
-                            <input type="number" id="dailyWage" placeholder="200" value="200" oninput="calculatePenalty()">
-                        </div>
-                        <div class="form-group">
-                            <label>Days Late</label>
-                            <input type="number" id="daysLate" placeholder="15" value="15" max="30" oninput="calculatePenalty()">
-                        </div>
-                    </div>
-
-                    <div class="calc-result">
-                        <h3>💸 Penalty Estimate</h3>
-                        <div class="result-box">
-                            <div class="result-label">Daily Rate</div>
-                            <div class="result-value" id="penDailyRate">$200</div>
-                        </div>
-                        <div class="result-box">
-                            <div class="result-label">Days Late</div>
-                            <div class="result-value" id="penDaysLate">15</div>
-                        </div>
-                        <div class="result-box" style="border-color: var(--danger); background: rgba(255, 82, 82, 0.1);">
-                            <div class="result-label">💰 POTENTIAL PENALTY</div>
-                            <div class="result-value" style="color: var(--danger);" id="penTotal">$3,000</div>
-                            <div class="result-date">(Capped at 30 days = $6,000 max)</div>
-                        </div>
-                        <div class="result-warning">
-                            <h4>⚠️ Important:</h4>
-                            <p>This is in ADDITION to the wages you already owe. Penalties can add up fast!</p>
-                        </div>
-                    </div>
+            <div class="tab-content" id="tab-local">
+                <h4>Local City & County Requirements</h4>
+                <div class="placeholder-text">
+                    <span class="icon">🏙️</span>
+                    Select your city...
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Tool 4: Document Library -->
-        <div class="tool-panel" id="tool-documents">
-            <div class="tool-header">
-                <h2>📋 HR Document Library</h2>
-                <p>Essential HR documents and templates for California employers.</p>
+        <!-- Bottom Section -->
+        <section class="bottom-section">
+            <!-- Final Pay Calculator -->
+            <div class="bottom-card">
+                <h3><span class="icon">🧮</span> Final Pay Calculator</h3>
+                <div class="calculator-placeholder">
+                    <div class="calc-icon">📅</div>
+                    <p>Calculate final pay deadlines based on termination type and California law.</p>
+                </div>
             </div>
-            <div class="tool-body">
-                <div class="doc-section">
-                    <h3>📥 Hiring</h3>
-                    <div class="doc-list">
-                        <div class="doc-item" onclick="downloadDoc('New Hire Checklist (W-2)')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">New Hire Checklist (W-2)</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('1099 Contractor Checklist')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">1099 Contractor Checklist</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Offer Letter Template')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Offer Letter Template</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Wage Theft Prevention Notice (CA)')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Wage Theft Prevention Notice (CA)</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Employee vs Contractor Cheat Sheet')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Employee vs Contractor Cheat Sheet</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="doc-section">
-                    <h3>📋 During Employment</h3>
-                    <div class="doc-list">
-                        <div class="doc-item" onclick="downloadDoc('Time-Off Request Form')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Time-Off Request Form</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Emergency Contact Form')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Emergency Contact Form</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Incident Report Form')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Incident Report Form</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Break Compliance Log')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Break Compliance Log</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                    </div>
+            <!-- Download Checklist -->
+            <div class="bottom-card">
+                <h3><span class="icon">📋</span> Compliance Checklist</h3>
+                <div class="download-card-content">
+                    <p>Get your personalized compliance checklist based on company size and location.</p>
+                    <button class="download-btn" onclick="downloadChecklist()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download Compliance Checklist
+                    </button>
                 </div>
-
-                <div class="doc-section">
-                    <h3>🚪 Termination</h3>
-                    <div class="doc-list">
-                        <div class="doc-item" onclick="downloadDoc('Termination Checklist')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Termination Checklist</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Resignation Acceptance Letter')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Resignation Acceptance Letter</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('Final Pay Acknowledgment')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">Final Pay Acknowledgment</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                        <div class="doc-item" onclick="downloadDoc('COBRA Notice Guide')">
-                            <span class="doc-icon">📄</span>
-                            <span class="doc-name">COBRA Notice Guide</span>
-                            <span class="doc-download">Download</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button class="download-all-btn" onclick="downloadAll()">📦 Download All as ZIP</button>
             </div>
-        </div>
+        </section>
     </main>
 
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="cta-box">
-            <div class="cta-content">
-                <h3>Need expert help?</h3>
-                <p>HR On-Demand is included with Elite plan - get unlimited access to HR professionals.</p>
-            </div>
-            <a href="index.html#pricing" class="cta-btn">
-                Upgrade to Elite
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-            </a>
-        </div>
-    </section>
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2026 ToolTime Pro. <a href="index.html">Return to main site</a></p>
+    </footer>
 
     <script>
-        // Tool Tab Navigation
-        function showTool(toolId) {
-            document.querySelectorAll('.tool-panel').forEach(panel => {
-                panel.classList.remove('active');
-            });
-            document.querySelectorAll('.tool-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        // Company Size Selection
+        function selectSize(btn) {
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const size = btn.dataset.size;
+            console.log('Selected company size:', size);
+            // Future: Update rules based on company size
+        }
 
-            document.getElementById('tool-' + toolId).classList.add('active');
+        // Tab Navigation
+        function showTab(tabId) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.currentTarget.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
         }
 
-        // Quiz Logic
-        let quizAnswers = {};
-
-        function selectQuiz(question, value, element) {
-            quizAnswers[question] = value;
-
-            // Update UI
-            element.closest('.quiz-question').querySelectorAll('.quiz-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            element.classList.add('selected');
+        // Download Checklist
+        function downloadChecklist() {
+            const activeSize = document.querySelector('.size-btn.active').dataset.size;
+            alert(`Downloading compliance checklist for ${activeSize} employees...\n\nIn the full version, this would generate a PDF checklist customized for your company size.`);
         }
-
-        function calculateQuiz() {
-            if (Object.keys(quizAnswers).length < 5) {
-                alert('Please answer all questions before getting your result.');
-                return;
-            }
-
-            let contractorPoints = 0;
-            let employeePoints = 0;
-
-            Object.values(quizAnswers).forEach(answer => {
-                if (answer === 'contractor') contractorPoints++;
-                else employeePoints++;
-            });
-
-            const resultDiv = document.getElementById('quizResult');
-            const icon = document.getElementById('resultIcon');
-            const title = document.getElementById('resultTitle');
-            const desc = document.getElementById('resultDesc');
-
-            if (contractorPoints >= 4) {
-                icon.textContent = '📋';
-                title.textContent = 'Likely Independent Contractor (1099)';
-                title.className = 'result-title contractor';
-                desc.textContent = 'Based on your answers, this worker may be appropriately classified as an independent contractor. They appear to have significant control over their work.';
-            } else if (employeePoints >= 4) {
-                icon.textContent = '🧑‍💼';
-                title.textContent = 'Likely Employee (W-2)';
-                title.className = 'result-title employee';
-                desc.textContent = 'Based on your answers, this worker should likely be classified as an employee. They appear to be under your direction and control.';
-            } else {
-                icon.textContent = '⚠️';
-                title.textContent = 'Gray Area - Consult HR Expert';
-                title.className = 'result-title gray';
-                desc.textContent = 'The classification is unclear based on your answers. This is a gray area that could go either way. We strongly recommend consulting with an HR professional.';
-            }
-
-            resultDiv.classList.add('show');
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Final Pay Calculator
-        function calculateFinalPay() {
-            const type = document.getElementById('terminationType').value;
-            const lastDay = document.getElementById('lastDay').value;
-
-            const typeNames = {
-                'fired': 'Fired / Laid Off',
-                'quit-notice': 'Quit with Notice',
-                'quit-no-notice': 'Quit without Notice'
-            };
-
-            document.getElementById('fpType').textContent = typeNames[type];
-
-            let deadline, dateText;
-
-            if (type === 'fired') {
-                deadline = 'SAME DAY';
-                dateText = lastDay ? `Pay must be given on ${formatDate(lastDay)}` : 'Pay must be given immediately';
-            } else if (type === 'quit-notice') {
-                deadline = 'LAST DAY';
-                dateText = lastDay ? `Pay due on ${formatDate(lastDay)}` : 'Pay due on last working day';
-            } else {
-                deadline = 'WITHIN 72 HRS';
-                if (lastDay) {
-                    const dueDate = new Date(lastDay);
-                    dueDate.setDate(dueDate.getDate() + 3);
-                    dateText = `Pay due by ${formatDate(dueDate)}`;
-                } else {
-                    dateText = 'Pay due within 72 hours of last day';
-                }
-            }
-
-            document.getElementById('fpDeadline').textContent = deadline;
-            document.getElementById('fpDate').textContent = dateText;
-        }
-
-        function formatDate(date) {
-            const d = new Date(date);
-            return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        }
-
-        // Penalty Calculator
-        function calculatePenalty() {
-            const dailyWage = parseFloat(document.getElementById('dailyWage').value) || 0;
-            let daysLate = parseInt(document.getElementById('daysLate').value) || 0;
-
-            if (daysLate > 30) daysLate = 30; // Cap at 30 days
-
-            const penalty = dailyWage * daysLate;
-            const maxPenalty = dailyWage * 30;
-
-            document.getElementById('penDailyRate').textContent = '$' + dailyWage.toLocaleString();
-            document.getElementById('penDaysLate').textContent = daysLate;
-            document.getElementById('penTotal').textContent = '$' + penalty.toLocaleString();
-            document.querySelector('#tool-penalty .result-date').textContent =
-                `(Capped at 30 days = $${maxPenalty.toLocaleString()} max)`;
-        }
-
-        // Document Download
-        function downloadDoc(docName) {
-            alert(`Downloading: ${docName}\n\nIn the full version, this would download the actual document template.`);
-        }
-
-        function downloadAll() {
-            alert('Downloading all HR documents as ZIP...\n\nIn the full version, this would download a ZIP file with all templates.');
-        }
-
-        // Initialize
-        document.getElementById('lastDay').valueAsDate = new Date();
-        calculateFinalPay();
-        calculatePenalty();
     </script>
 </body>
 </html>
