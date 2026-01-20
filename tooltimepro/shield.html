@@ -341,6 +341,207 @@
             color: var(--danger);
         }
 
+        /* City Selector */
+        .city-selector {
+            margin-bottom: 24px;
+        }
+
+        .city-selector h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 12px;
+        }
+
+        .city-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .city-btn {
+            padding: 10px 16px;
+            background: var(--background);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .city-btn:hover {
+            border-color: var(--gold);
+            background: rgba(245, 166, 35, 0.05);
+        }
+
+        .city-btn.active {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--navy);
+        }
+
+        /* Local Wage Display */
+        .wage-display {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            border-radius: 12px;
+            padding: 24px;
+            color: var(--white);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .wage-display.hidden {
+            display: none;
+        }
+
+        .wage-city-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .wage-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .wage-comparison {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .wage-comparison .arrow {
+            color: var(--gold);
+        }
+
+        .wage-comparison .increase {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .wage-note {
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 8px;
+        }
+
+        /* City Rules Section */
+        .city-rules {
+            margin-top: 24px;
+        }
+
+        .city-rules.hidden {
+            display: none;
+        }
+
+        .city-rules h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Default Message */
+        .default-message {
+            text-align: center;
+            padding: 40px;
+            background: var(--background);
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+            color: var(--text-muted);
+        }
+
+        .default-message .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .default-message p {
+            font-size: 0.9375rem;
+        }
+
+        /* Wage Info Note */
+        .wage-info-note {
+            background: rgba(245, 166, 35, 0.1);
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 24px;
+            font-size: 0.875rem;
+            color: var(--text);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .wage-info-note .note-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Local Wage Table */
+        .local-wage-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-top: 24px;
+        }
+
+        .local-wage-table th {
+            background: var(--navy);
+            color: var(--white);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            text-align: left;
+            padding: 12px 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .local-wage-table td {
+            padding: 12px 16px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .local-wage-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .local-wage-table tr.selected-city {
+            background: rgba(245, 166, 35, 0.1);
+        }
+
+        .local-wage-table tr.selected-city td:first-child {
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .local-wage-table .wage-cell {
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .local-wage-table .notes-cell {
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+        }
+
         /* Size Requirements Table */
         .size-table-section {
             margin-top: 32px;
@@ -844,10 +1045,129 @@
             </div>
 
             <div class="tab-content" id="tab-local">
-                <h4>Local City & County Requirements</h4>
-                <div class="placeholder-text">
+                <h4>📍 Local Rules (City/County)</h4>
+
+                <!-- City Selector -->
+                <div class="city-selector">
+                    <h5>Select Your City</h5>
+                    <div class="city-buttons">
+                        <button class="city-btn" data-city="los-angeles" onclick="selectCity(this)">Los Angeles</button>
+                        <button class="city-btn" data-city="san-francisco" onclick="selectCity(this)">San Francisco</button>
+                        <button class="city-btn" data-city="san-jose" onclick="selectCity(this)">San Jose</button>
+                        <button class="city-btn" data-city="san-diego" onclick="selectCity(this)">San Diego</button>
+                        <button class="city-btn" data-city="oakland" onclick="selectCity(this)">Oakland</button>
+                        <button class="city-btn" data-city="long-beach" onclick="selectCity(this)">Long Beach</button>
+                        <button class="city-btn" data-city="sacramento" onclick="selectCity(this)">Sacramento</button>
+                        <button class="city-btn" data-city="fremont" onclick="selectCity(this)">Fremont</button>
+                        <button class="city-btn" data-city="santa-monica" onclick="selectCity(this)">Santa Monica</button>
+                        <button class="city-btn" data-city="berkeley" onclick="selectCity(this)">Berkeley</button>
+                        <button class="city-btn" data-city="other" onclick="selectCity(this)">Other CA City</button>
+                    </div>
+                </div>
+
+                <!-- Default Message (shown when no city selected) -->
+                <div class="default-message" id="localDefaultMessage">
                     <span class="icon">🏙️</span>
-                    Select your city...
+                    <p>Select your city above to see local requirements</p>
+                </div>
+
+                <!-- Wage Display (shown when city selected) -->
+                <div class="wage-display hidden" id="wageDisplay">
+                    <div class="wage-city-name" id="wageCityName">City Name</div>
+                    <div class="wage-amount" id="wageAmount">$16.00/hr</div>
+                    <div class="wage-comparison">
+                        <span>State: $16.00</span>
+                        <span class="arrow">→</span>
+                        <span>Your City: <span id="wageCompareAmount">$16.00</span></span>
+                        <span class="increase" id="wageIncrease">(+$0.00)</span>
+                    </div>
+                    <div class="wage-note" id="wageNote"></div>
+                </div>
+
+                <!-- City-Specific Rules -->
+                <div class="city-rules hidden" id="cityRules">
+                    <h5>📋 City-Specific Requirements</h5>
+                    <div class="rule-card" id="cityRulesCard">
+                        <ul id="cityRulesList">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Local Minimum Wages Table -->
+                <div class="size-table-section">
+                    <h5>💰 Local Minimum Wages (2024)</h5>
+                    <table class="local-wage-table" id="localWageTable">
+                        <thead>
+                            <tr>
+                                <th>City</th>
+                                <th>Min Wage</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-city="los-angeles">
+                                <td>Los Angeles</td>
+                                <td class="wage-cell">$16.78</td>
+                                <td class="notes-cell">All employers</td>
+                            </tr>
+                            <tr data-city="san-francisco">
+                                <td>San Francisco</td>
+                                <td class="wage-cell">$18.07</td>
+                                <td class="notes-cell">Highest in CA</td>
+                            </tr>
+                            <tr data-city="san-jose">
+                                <td>San Jose</td>
+                                <td class="wage-cell">$17.55</td>
+                                <td class="notes-cell"></td>
+                            </tr>
+                            <tr data-city="san-diego">
+                                <td>San Diego</td>
+                                <td class="wage-cell">$16.85</td>
+                                <td class="notes-cell"></td>
+                            </tr>
+                            <tr data-city="oakland">
+                                <td>Oakland</td>
+                                <td class="wage-cell">$16.50</td>
+                                <td class="notes-cell"></td>
+                            </tr>
+                            <tr data-city="long-beach">
+                                <td>Long Beach</td>
+                                <td class="wage-cell">$16.90</td>
+                                <td class="notes-cell">Hotels: $23.00</td>
+                            </tr>
+                            <tr data-city="santa-monica">
+                                <td>Santa Monica</td>
+                                <td class="wage-cell">$16.90</td>
+                                <td class="notes-cell">Hotels: $19.73</td>
+                            </tr>
+                            <tr data-city="berkeley">
+                                <td>Berkeley</td>
+                                <td class="wage-cell">$18.07</td>
+                                <td class="notes-cell"></td>
+                            </tr>
+                            <tr data-city="fremont">
+                                <td>Fremont</td>
+                                <td class="wage-cell">$17.30</td>
+                                <td class="notes-cell"></td>
+                            </tr>
+                            <tr data-city="sacramento">
+                                <td>Sacramento</td>
+                                <td class="wage-cell">$16.00</td>
+                                <td class="notes-cell">State rate</td>
+                            </tr>
+                            <tr data-city="other">
+                                <td>Other CA</td>
+                                <td class="wage-cell">$16.00</td>
+                                <td class="notes-cell">Use state minimum</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Wage Info Note -->
+                <div class="wage-info-note">
+                    <span class="note-icon">💡</span>
+                    <span>Always pay the <strong>HIGHEST</strong> applicable rate (Federal $7.25 &lt; State $16.00 &lt; Local). When in doubt, use your city's rate.</span>
                 </div>
             </div>
         </section>
@@ -960,6 +1280,158 @@
         function downloadChecklist() {
             const activeSize = document.querySelector('.size-btn.active').dataset.size;
             alert(`Downloading compliance checklist for ${activeSize} employees...\n\nIn the full version, this would generate a PDF checklist customized for your company size.`);
+        }
+
+        // City Data
+        const cityData = {
+            'los-angeles': {
+                name: 'Los Angeles',
+                wage: 16.78,
+                note: 'All employers',
+                rules: [
+                    'Fair Work Week (retail): Predictive scheduling for 300+ employee retailers',
+                    'Paid sick leave: Follows state (40 hrs)'
+                ]
+            },
+            'san-francisco': {
+                name: 'San Francisco',
+                wage: 18.07,
+                note: 'Highest in CA',
+                rules: [
+                    'Health Care Security Ordinance (HCSO): Healthcare spending for employees',
+                    'Paid Parental Leave: 8 weeks supplemental (20+ employees)',
+                    'Fair Chance Ordinance: Ban the box',
+                    'Formula Retail: Predictive scheduling'
+                ]
+            },
+            'san-jose': {
+                name: 'San Jose',
+                wage: 17.55,
+                note: '',
+                rules: [
+                    'Opportunity to Work: Offer hours to part-timers before hiring',
+                    'Minimum wage posted conspicuously'
+                ]
+            },
+            'san-diego': {
+                name: 'San Diego',
+                wage: 16.85,
+                note: '',
+                rules: [
+                    'Follows state requirements',
+                    'No additional city-specific rules'
+                ]
+            },
+            'oakland': {
+                name: 'Oakland',
+                wage: 16.50,
+                note: '',
+                rules: [
+                    'Hotel worker protections',
+                    'Ban the box (Fair Chance Ordinance)'
+                ]
+            },
+            'long-beach': {
+                name: 'Long Beach',
+                wage: 16.90,
+                note: 'Hotels: $23.00',
+                rules: [
+                    'Hotel Worker Minimum Wage: $23.00/hr',
+                    'Follows state requirements for other industries'
+                ]
+            },
+            'sacramento': {
+                name: 'Sacramento',
+                wage: 16.00,
+                note: 'State rate',
+                rules: [
+                    'Follows state minimum wage ($16.00)',
+                    'No additional city-specific requirements'
+                ]
+            },
+            'fremont': {
+                name: 'Fremont',
+                wage: 17.30,
+                note: '',
+                rules: [
+                    'Follows state requirements',
+                    'No additional city-specific rules'
+                ]
+            },
+            'santa-monica': {
+                name: 'Santa Monica',
+                wage: 16.90,
+                note: 'Hotels: $19.73',
+                rules: [
+                    'Hotel Worker Protection Ordinance',
+                    'Hotel minimum wage: $19.73/hr'
+                ]
+            },
+            'berkeley': {
+                name: 'Berkeley',
+                wage: 18.07,
+                note: '',
+                rules: [
+                    'Follows state requirements',
+                    'Matches San Francisco minimum wage'
+                ]
+            },
+            'other': {
+                name: 'Other CA City',
+                wage: 16.00,
+                note: 'Use state minimum',
+                rules: [
+                    'Use California state minimum wage: $16.00/hr',
+                    'Check your specific city for any local ordinances'
+                ]
+            }
+        };
+
+        const STATE_WAGE = 16.00;
+
+        // City Selection
+        function selectCity(btn) {
+            // Update button states
+            document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cityId = btn.dataset.city;
+            const city = cityData[cityId];
+
+            // Hide default message, show wage display
+            document.getElementById('localDefaultMessage').style.display = 'none';
+            document.getElementById('wageDisplay').classList.remove('hidden');
+            document.getElementById('cityRules').classList.remove('hidden');
+
+            // Update wage display
+            document.getElementById('wageCityName').textContent = city.name;
+            document.getElementById('wageAmount').textContent = `$${city.wage.toFixed(2)}/hr`;
+            document.getElementById('wageCompareAmount').textContent = `$${city.wage.toFixed(2)}`;
+
+            const increase = city.wage - STATE_WAGE;
+            const increaseEl = document.getElementById('wageIncrease');
+            if (increase > 0) {
+                increaseEl.textContent = `(+$${increase.toFixed(2)})`;
+                increaseEl.style.display = 'inline';
+            } else {
+                increaseEl.style.display = 'none';
+            }
+
+            // Update wage note
+            const wageNote = document.getElementById('wageNote');
+            wageNote.textContent = city.note || '';
+
+            // Update city rules
+            const rulesList = document.getElementById('cityRulesList');
+            rulesList.innerHTML = city.rules.map(rule => `<li>${rule}</li>`).join('');
+
+            // Highlight row in wage table
+            document.querySelectorAll('#localWageTable tbody tr').forEach(row => {
+                row.classList.remove('selected-city');
+                if (row.dataset.city === cityId) {
+                    row.classList.add('selected-city');
+                }
+            });
         }
 
         // Initialize table highlighting on page load
