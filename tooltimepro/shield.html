@@ -326,6 +326,21 @@
             font-style: italic;
         }
 
+        /* Warning Card Style */
+        .rule-card.warning {
+            background: rgba(255, 82, 82, 0.08);
+            border-color: var(--danger);
+            border-width: 2px;
+        }
+
+        .rule-card.warning h5 {
+            color: var(--danger);
+        }
+
+        .rule-card.warning li::before {
+            color: var(--danger);
+        }
+
         /* Size Requirements Table */
         .size-table-section {
             margin-top: 32px;
@@ -724,10 +739,107 @@
             </div>
 
             <div class="tab-content" id="tab-state">
-                <h4>California State Requirements</h4>
-                <div class="placeholder-text">
-                    <span class="icon">🐻</span>
-                    California rules loading...
+                <h4>🐻 California State Rules</h4>
+
+                <!-- CA Rules Grid -->
+                <div class="rules-grid">
+                    <!-- Wages -->
+                    <div class="rule-card">
+                        <h5>💰 Wages</h5>
+                        <ul>
+                            <li>Minimum Wage: $16.00/hr (2024)</li>
+                            <li>Overtime: 1.5x after 8 hrs/DAY or 40 hrs/week</li>
+                            <li>Double Time: 2x after 12 hrs/day</li>
+                            <li>Pay Stubs: Itemized statement required</li>
+                        </ul>
+                    </div>
+
+                    <!-- Final Pay - WARNING -->
+                    <div class="rule-card warning">
+                        <h5>⚠️ Final Pay</h5>
+                        <ul>
+                            <li>Fired/Laid Off: IMMEDIATELY (same day)</li>
+                            <li>Quit with 72+ hrs notice: Last day of work</li>
+                            <li>Quit without notice: Within 72 hours</li>
+                            <li>Must include ALL wages + ALL accrued vacation</li>
+                            <li>Penalty if late: Up to 30 days wages</li>
+                        </ul>
+                    </div>
+
+                    <!-- Meal & Rest Breaks - WARNING -->
+                    <div class="rule-card warning">
+                        <h5>⚠️ Meal & Rest Breaks</h5>
+                        <ul>
+                            <li>Meal: 30 min unpaid if working 5+ hrs</li>
+                            <li>Rest: 10 min paid per 4 hrs worked</li>
+                            <li>Penalty if missed: 1 hour pay per violation</li>
+                        </ul>
+                    </div>
+
+                    <!-- Paid Sick Leave -->
+                    <div class="rule-card">
+                        <h5>🏥 Paid Sick Leave</h5>
+                        <ul>
+                            <li>40 hrs (5 days) per year minimum</li>
+                            <li>Accrual: 1 hr per 30 hrs worked</li>
+                        </ul>
+                    </div>
+
+                    <!-- Workers' Comp -->
+                    <div class="rule-card">
+                        <h5>🦺 Workers' Comp</h5>
+                        <ul>
+                            <li>Required for ALL employers (even 1 employee)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Wage Theft Notice -->
+                    <div class="rule-card">
+                        <h5>📋 Wage Theft Notice</h5>
+                        <ul>
+                            <li>Written notice required at hire</li>
+                            <li>Must include: pay rate, pay day, employer info</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- CA Size Requirements Table -->
+                <div class="size-table-section">
+                    <h5>📊 CA Requirements by Company Size</h5>
+                    <table class="size-table" id="caSizeTable">
+                        <thead>
+                            <tr>
+                                <th>Employees</th>
+                                <th>What Kicks In</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-min="1" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>1+</td>
+                                <td class="requirements-cell">Workers' comp, wage theft notice, min wage, overtime, meal/rest breaks, sick leave, final pay rules, itemized pay stubs</td>
+                            </tr>
+                            <tr data-min="5" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>5+</td>
+                                <td class="requirements-cell">Sexual harassment training (2 hrs supervisors, 1 hr employees, every 2 yrs), CalSavers retirement</td>
+                            </tr>
+                            <tr data-min="15" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>15+</td>
+                                <td class="requirements-cell">FEHA discrimination protections, CRD jurisdiction, disability accommodation</td>
+                            </tr>
+                            <tr data-min="25" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>25+</td>
+                                <td class="requirements-cell">CFRA family leave (12 weeks unpaid)</td>
+                            </tr>
+                            <tr data-min="50" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>50+</td>
+                                <td class="requirements-cell">FMLA applies, lactation room required</td>
+                            </tr>
+                            <tr data-min="75" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>75+</td>
+                                <td class="requirements-cell">Cal-WARN Act (60-day layoff notice)</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -784,7 +896,17 @@
         // Update table highlighting based on company size
         function updateTableHighlighting(sizeRange) {
             const maxEmployees = getMaxFromSize(sizeRange);
-            const rows = document.querySelectorAll('#federalSizeTable tbody tr');
+
+            // Update Federal table
+            updateSingleTable('federalSizeTable', maxEmployees, [1, 11, 15, 20, 50, 100]);
+
+            // Update CA State table
+            updateSingleTable('caSizeTable', maxEmployees, [1, 5, 15, 25, 50, 75]);
+        }
+
+        // Helper function to update a single table
+        function updateSingleTable(tableId, maxEmployees, thresholds) {
+            const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
 
             rows.forEach(row => {
                 const minRequired = parseInt(row.dataset.min);
@@ -801,8 +923,7 @@
                     statusIcon.classList.add('status-applies');
 
                     // Highlight the row that matches current size bracket
-                    const sizeThresholds = [1, 11, 15, 20, 50, 100];
-                    const currentThreshold = sizeThresholds.filter(t => maxEmployees >= t).pop();
+                    const currentThreshold = thresholds.filter(t => maxEmployees >= t).pop();
                     if (minRequired === currentThreshold) {
                         row.classList.add('active-row');
                     }
