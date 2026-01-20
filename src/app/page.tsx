@@ -13,31 +13,57 @@ const heroFeatureTabs = [
   { name: 'Payroll', active: false, comingSoon: true },
 ];
 
-// Feature list with title, tagline, and descriptions
+// Industry cards for "Who It's For" section
+const industryCards = [
+  { icon: '🏠', name: 'Home Services', description: 'Cleaning, handyman, organizing, inspections' },
+  { icon: '🌿', name: 'Outdoor Services', description: 'Landscaping, pool, pressure washing' },
+  { icon: '🚗', name: 'Mobile Services', description: 'Auto detailing, notary, locksmith, towing' },
+  { icon: '💆', name: 'Wellness & Beauty', description: 'Massage, salon, personal training' },
+  { icon: '🐕', name: 'Pet Services', description: 'Grooming, walking, sitting, training' },
+  { icon: '📚', name: 'Lessons & Events', description: 'Tutoring, photography, DJ, catering' },
+  { icon: '🔧', name: 'Skilled Trades', description: 'Electrical, plumbing, HVAC, painting' },
+  { icon: '✨', name: 'And More', description: 'If you book appointments and send invoices, we\'re for you' },
+];
+
+// Pain points
+const painPoints = [
+  { icon: '🌐', problem: 'No Real Website', solution: 'We build you a real website that gets you found' },
+  { icon: '📞', problem: 'Missed Calls = Missed Money', solution: 'AI chatbot answers 24/7' },
+  { icon: '📅', problem: 'Scheduling Chaos', solution: 'One calendar. Online booking. No more chaos.' },
+  { icon: '👷', problem: 'Where\'s My Crew?', solution: 'GPS clock-in and job tracking' },
+  { icon: '⚖️', problem: 'California Legal Landmines', solution: 'ToolTime Shield keeps you compliant' },
+  { icon: '⭐', problem: 'Zero Online Reviews', solution: 'Automatic review requests after every job' },
+];
+
+// Features list
 const featureList = [
   { name: 'Professional Website', tagline: 'Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.', icon: '✓' },
-  { name: '24/7 AI Chatbot', tagline: 'Always On', description: 'Our AI answers questions and captures leads around the clock. Even at 2am on Sunday.', icon: '✓' },
+  { name: '24/7 AI Chatbot', tagline: 'Never Miss a Lead', description: 'Our AI answers questions and captures leads around the clock. Even at 2am on Sunday.', icon: '✓' },
   { name: 'Online Scheduling', tagline: 'Fill Your Calendar', description: 'Customers book online anytime. Automatic reminders reduce no-shows.', icon: '✓' },
   { name: 'Smart Quoting', tagline: 'Win More Jobs', description: 'Create professional quotes in seconds. Customers approve with one tap.', icon: '✓' },
-  { name: 'Worker App with GPS Clock-In', tagline: '', description: 'Your crew sees their jobs, clocks in with location proof, uploads photos, and reports issues.', icon: '✓' },
-  { name: 'Invoicing & Payments', tagline: 'Get Paid Fast', description: 'One-click invoices. Accept cards and ACH. Auto-reminders chase late payers for you.', icon: '✓' },
-  { name: 'Review Machine', tagline: '5-Star Automation', description: 'Auto-request reviews after every job. Watch your Google rating climb automatically.', icon: '✓' },
+  { name: 'Worker App', tagline: 'Your Crew\'s Command Center', description: 'Your crew sees their jobs, clocks in with location proof, uploads photos, and reports issues.', icon: '✓' },
+  { name: 'Invoicing & Payments', tagline: 'Get Paid Faster', description: 'One-click invoices. Accept cards and ACH. Auto-reminders chase late payers for you.', icon: '✓' },
+  { name: 'Review Machine', tagline: 'Automated 5-Star Growth', description: 'Auto-request reviews after every job. Watch your Google rating climb automatically.', icon: '✓' },
   { name: 'ToolTime Shield', tagline: 'Legal Protection + HR', description: 'Worker classification quiz, final pay calculator, compliance tools, AND 10+ HR templates. Stay lawsuit-free.', icon: '✓' },
   { name: 'Payroll', tagline: 'Coming Soon', description: 'Auto-calculate CA overtime & double-time. Join the waitlist.', icon: '⏳' },
 ];
 
-// Demo cards organized in rows
+// Demo cards
 const demoCards = {
   row1: [
-    { name: 'Smart Quoting', tagline: 'Create professional quotes in seconds with line items', icon: '📝', href: '/demo/quoting' },
-    { name: 'Online Scheduling', tagline: 'Let customers book online + manage your calendar', icon: '📅', href: '/demo/scheduling' },
-    { name: 'AI Chatbot', tagline: '24/7 lead capture that never misses a customer', icon: '🤖', href: '/demo/chatbot' },
-    { name: 'Review Machine', tagline: 'Automate 5-star reviews with SMS follow-ups', icon: '⭐', href: '/demo/reviews' },
+    { name: 'Website Builder', tagline: 'See a sample site we\'d build for you', icon: '🌐', href: '/demo/website' },
+    { name: 'Online Scheduling', tagline: 'Book a fake appointment', icon: '📅', href: '/demo/scheduling' },
+    { name: 'Smart Quoting', tagline: 'Build a quote in 60 seconds', icon: '📝', href: '/demo/quoting' },
+    { name: 'AI Chatbot', tagline: 'Chat with our AI right now', icon: '🤖', href: '/demo/chatbot' },
   ],
   row2: [
-    { name: 'Worker App', tagline: 'GPS clock-in, job details, and compliance tracking', icon: '👷', href: '/worker' },
-    { name: 'Admin Dashboard', tagline: 'See jobs, revenue, crew status at a glance', icon: '📊', href: '/dashboard' },
-    { name: 'ToolTime Shield', tagline: 'Worker classification, final pay calculator, HR docs', icon: '🛡️', href: '/dashboard/shield' },
+    { name: 'Worker App', tagline: 'See what your crew sees', icon: '👷', href: '/worker' },
+    { name: 'Admin Dashboard', tagline: 'Explore the command center', icon: '📊', href: '/dashboard' },
+    { name: 'Invoicing & Payments', tagline: 'See a sample invoice', icon: '💳', href: '/demo/invoicing' },
+    { name: 'Review Machine', tagline: 'See the review flow', icon: '⭐', href: '/demo/reviews' },
+  ],
+  row3: [
+    { name: 'ToolTime Shield', tagline: 'Check your CA compliance', icon: '🛡️', href: '/dashboard/shield' },
   ],
 };
 
@@ -53,6 +79,38 @@ const hrDocuments = [
   'Time-off request form',
   'Incident report form',
   'I-9 & W-4 form links',
+];
+
+// Testimonials
+const testimonials = [
+  {
+    quote: "Before ToolTime Pro, I was losing customers because I couldn't answer the phone while cleaning. Now the AI chatbot books appointments for me 24/7.",
+    name: 'Maria G.',
+    business: 'Sparkle Clean Services',
+    location: 'San Jose, CA',
+    industry: 'House Cleaning',
+  },
+  {
+    quote: "The worker app changed everything. I know exactly where my crews are, breaks are tracked automatically, and I haven't worried about compliance since.",
+    name: 'Carlos R.',
+    business: 'Green Valley Landscaping',
+    location: 'Sacramento, CA',
+    industry: 'Landscaping',
+  },
+  {
+    quote: "I went from 3 Google reviews to 47 in three months. The automatic review requests are pure gold for a small business like mine.",
+    name: 'Jessica T.',
+    business: 'Pawfect Grooming',
+    location: 'Los Angeles, CA',
+    industry: 'Pet Grooming',
+  },
+  {
+    quote: "Setup was done for me in a week. I\'m not tech-savvy at all, but now I have a professional website and online booking. Game changer.",
+    name: 'Marcus D.',
+    business: 'Elite Auto Detailing',
+    location: 'San Diego, CA',
+    industry: 'Mobile Detailing',
+  },
 ];
 
 // Pricing plans
@@ -161,7 +219,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
+      {/* ==================== HERO SECTION ==================== */}
       <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4a] text-white">
         <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20">
           {/* Tagline Badge */}
@@ -189,10 +247,10 @@ export default function Home() {
             </div>
             <div className="text-center sm:text-left">
               <div className="text-3xl sm:text-4xl font-bold text-gold-500">Up to 10x</div>
-              <div className="text-white/70 text-sm">Cheaper than competitors</div>
+              <div className="text-white/70 text-sm">cheaper than competitors</div>
             </div>
             <div className="text-center sm:text-left">
-              <div className="text-3xl sm:text-4xl font-bold text-gold-500">Done-For-You</div>
+              <div className="text-3xl sm:text-4xl font-bold text-gold-500">Done-for-you</div>
               <div className="text-white/70 text-sm">0 tech skills required</div>
             </div>
           </div>
@@ -255,7 +313,7 @@ export default function Home() {
             </Link>
             <Link
               href="#demos"
-              className="border-2 border-navy-300 text-white hover:bg-white/10 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
+              className="border-2 border-white/30 text-white hover:bg-white/10 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
             >
               See How It Works
             </Link>
@@ -263,10 +321,67 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Feature List Section */}
+      {/* ==================== WHO IT'S FOR SECTION ==================== */}
+      <div className="bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-navy-500 mb-3">
+              For Service Businesses That Go To Their Customers
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Whether you&apos;re a solo operator or managing a crew, we handle the back office.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {industryCards.map((card, index) => (
+              <div
+                key={index}
+                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="text-3xl mb-3">{card.icon}</div>
+                <h3 className="font-semibold text-navy-500 mb-1">{card.name}</h3>
+                <p className="text-sm text-gray-600">{card.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== PAIN POINTS SECTION ==================== */}
+      <div className="bg-[#f8f9fa]">
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-navy-500 mb-3">
+              Running a Service Business Is Hard Enough
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              You didn&apos;t start your business to fight with software, chase payments, or worry about lawsuits.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {painPoints.map((point, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-xl p-6 shadow-sm"
+              >
+                <div className="text-3xl mb-3">{point.icon}</div>
+                <h3 className="font-semibold text-navy-500 mb-2">{point.problem}</h3>
+                <p className="text-gray-600">→ {point.solution}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== FEATURES SECTION ==================== */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-16">
-          <h2 className="text-2xl font-bold text-navy-500 mb-8">Platform Features</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-navy-500 mb-3">One Platform. Every Tool.</h2>
+          </div>
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featureList.map((feature, index) => (
               <div key={index} className="flex items-start gap-3">
@@ -286,7 +401,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Demo Cards Section */}
+      {/* ==================== DEMO CARDS SECTION ==================== */}
       <div id="demos" className="bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 py-16">
           {/* Section Header */}
@@ -296,7 +411,7 @@ export default function Home() {
             </span>
             <h2 className="text-3xl font-bold text-navy-500 mb-3">Try Our Interactive Demos</h2>
             <p className="text-gray-600 max-w-xl mx-auto">
-              Click any feature below to see exactly how ToolTime Pro works. No signup required.
+              See exactly how ToolTime Pro works. No signup required.
             </p>
           </div>
 
@@ -320,8 +435,8 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Row 2 - 3 cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Row 2 - 4 cards */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {demoCards.row2.map((card, index) => (
               <Link
                 key={index}
@@ -339,20 +454,37 @@ export default function Home() {
               </Link>
             ))}
           </div>
+
+          {/* Row 3 - 1 card centered */}
+          <div className="flex justify-center">
+            <Link
+              href={demoCards.row3[0].href}
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col group w-full sm:w-1/2 lg:w-1/4"
+            >
+              <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gold-200 transition-colors">
+                <span className="text-2xl">{demoCards.row3[0].icon}</span>
+              </div>
+              <h3 className="font-semibold text-navy-500 mb-2">{demoCards.row3[0].name}</h3>
+              <p className="text-sm text-gray-600 flex-grow">{demoCards.row3[0].tagline}</p>
+              <span className="text-sm text-gold-600 font-medium mt-3 group-hover:text-gold-700">
+                Try Demo →
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* ToolTime Shield + HR Section */}
-      <div className="bg-[#f8f9fa]">
+      {/* ==================== TOOLTIME SHIELD + HR SECTION ==================== */}
+      <div className="bg-white">
         <div className="max-w-6xl mx-auto px-4 py-16">
           {/* Section Header */}
           <div className="text-center mb-12">
             <span className="inline-block bg-navy-100 text-navy-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-              ToolTime HR
+              ToolTime Shield
             </span>
             <h2 className="text-3xl font-bold text-navy-500 mb-3">Your Back-Office Safety Net</h2>
             <p className="text-gray-600 max-w-xl mx-auto">
-              The HR support that other platforms don&apos;t offer. Sleep better knowing you&apos;re protected.
+              The HR support that other platforms don&apos;t offer.
             </p>
           </div>
 
@@ -374,27 +506,27 @@ export default function Home() {
             {/* Right Column: Interactive Tools */}
             <div className="space-y-6">
               {/* HR Document Library Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-[#f8f9fa] rounded-xl p-6">
                 <h4 className="font-bold text-navy-500 mb-1">HR Document Library</h4>
                 <p className="text-sm text-gray-600 mb-4">All templates ready to use</p>
                 <div className="space-y-2">
                   <Link
                     href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-sm text-navy-500">Offer Letter Template</span>
                     <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded font-medium">Download</span>
                   </Link>
                   <Link
                     href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-sm text-navy-500">Termination Checklist</span>
                     <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded font-medium">Download</span>
                   </Link>
                   <Link
                     href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-sm text-navy-500">1099 Onboarding</span>
                     <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded font-medium">Download</span>
@@ -403,15 +535,15 @@ export default function Home() {
               </div>
 
               {/* Worker Classification Quiz Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-[#f8f9fa] rounded-xl p-6">
                 <h4 className="font-bold text-navy-500 mb-1">Worker Classification Quiz</h4>
                 <p className="text-sm text-gray-600 mb-4">Does this worker control how & when they work?</p>
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="bg-white rounded-lg p-4 mb-4">
                   <p className="text-sm text-gray-700 mb-3">Sample Question:</p>
                   <p className="text-navy-500 font-medium mb-3">&quot;Does this worker set their own schedule?&quot;</p>
                   <div className="flex gap-3">
-                    <span className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm">Yes</span>
-                    <span className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm">No</span>
+                    <span className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm">Yes</span>
+                    <span className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm">No</span>
                   </div>
                 </div>
                 <Link
@@ -426,7 +558,56 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Pricing Section */}
+      {/* ==================== TESTIMONIALS SECTION ==================== */}
+      <div className="bg-[#f8f9fa]">
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <span className="inline-block bg-gold-100 text-gold-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+              Real Results
+            </span>
+            <h2 className="text-3xl font-bold text-navy-500 mb-3">Trusted By Service Pros</h2>
+          </div>
+
+          {/* Testimonials Grid */}
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-white rounded-xl p-6 shadow-sm">
+                <p className="text-gray-700 mb-4 italic">&quot;{testimonial.quote}&quot;</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gold-100 rounded-full flex items-center justify-center">
+                    <span className="text-gold-600 font-semibold">{testimonial.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-navy-500">{testimonial.name}</p>
+                    <p className="text-sm text-gray-600">{testimonial.business} • {testimonial.location}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats Bar */}
+          <div className="bg-navy-500 rounded-xl p-6">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-gold-500">500+</div>
+                <div className="text-white/70 text-sm">businesses</div>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-gold-500">4.9/5</div>
+                <div className="text-white/70 text-sm">rating</div>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-gold-500">10,000+</div>
+                <div className="text-white/70 text-sm">jobs scheduled</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== PRICING SECTION ==================== */}
       <div className="bg-white">
         <div className="max-w-6xl mx-auto px-4 py-16">
           {/* Section Header */}
@@ -578,11 +759,44 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* ==================== FINAL CTA SECTION ==================== */}
+      <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4a] text-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Stop Juggling. Start Growing.</h2>
+          <p className="text-xl text-white/80 mb-8">
+            Join hundreds of service businesses running smarter.
+          </p>
+          <Link
+            href="/auth/register"
+            className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold text-xl px-10 py-4 rounded-lg transition-colors mb-4"
+          >
+            Get Started Free
+          </Link>
+          <p className="text-white/60 mb-8">No credit card required. Free 14-day trial.</p>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/70">
+            <div className="flex items-center gap-2">
+              <span>🔒</span>
+              <span>Bank-level security</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>💳</span>
+              <span>No hidden fees</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>📞</span>
+              <span>Real human support</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== FOOTER ==================== */}
       <footer className="bg-navy-500 text-white/70 py-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="font-bold text-white mb-2">ToolTime Pro</p>
-          <p className="text-sm">Built for landscapers, painters, pool pros, handymen, and cleaners.</p>
+          <p className="text-sm">Built for service businesses — home services, mobile services, skilled trades, and more.</p>
         </div>
       </footer>
     </main>
