@@ -313,9 +313,18 @@ export interface Database {
           clock_out: string | null
           clock_in_location: Json | null
           clock_out_location: Json | null
+          clock_in_photo_url: string | null
+          clock_out_photo_url: string | null
           break_minutes: number
           notes: string | null
           status: 'active' | 'completed' | 'edited'
+          attestation_completed: boolean
+          attestation_at: string | null
+          attestation_signature: string | null
+          missed_meal_break: boolean
+          missed_meal_reason: string | null
+          missed_rest_break: boolean
+          missed_rest_reason: string | null
           created_at: string
           updated_at: string
         }
@@ -328,9 +337,18 @@ export interface Database {
           clock_out?: string | null
           clock_in_location?: Json | null
           clock_out_location?: Json | null
+          clock_in_photo_url?: string | null
+          clock_out_photo_url?: string | null
           break_minutes?: number
           notes?: string | null
           status?: 'active' | 'completed' | 'edited'
+          attestation_completed?: boolean
+          attestation_at?: string | null
+          attestation_signature?: string | null
+          missed_meal_break?: boolean
+          missed_meal_reason?: string | null
+          missed_rest_break?: boolean
+          missed_rest_reason?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -343,9 +361,18 @@ export interface Database {
           clock_out?: string | null
           clock_in_location?: Json | null
           clock_out_location?: Json | null
+          clock_in_photo_url?: string | null
+          clock_out_photo_url?: string | null
           break_minutes?: number
           notes?: string | null
           status?: 'active' | 'completed' | 'edited'
+          attestation_completed?: boolean
+          attestation_at?: string | null
+          attestation_signature?: string | null
+          missed_meal_break?: boolean
+          missed_meal_reason?: string | null
+          missed_rest_break?: boolean
+          missed_rest_reason?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -571,6 +598,53 @@ export interface Database {
           updated_at?: string
         }
       }
+      compliance_alerts: {
+        Row: {
+          id: string
+          company_id: string | null
+          user_id: string | null
+          time_entry_id: string | null
+          alert_type: 'meal_break_due' | 'meal_break_missed' | 'rest_break_due' | 'overtime_warning' | 'double_time_warning'
+          severity: 'info' | 'warning' | 'violation'
+          title: string
+          description: string | null
+          hours_worked: number | null
+          acknowledged: boolean
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id?: string | null
+          user_id?: string | null
+          time_entry_id?: string | null
+          alert_type: 'meal_break_due' | 'meal_break_missed' | 'rest_break_due' | 'overtime_warning' | 'double_time_warning'
+          severity?: 'info' | 'warning' | 'violation'
+          title: string
+          description?: string | null
+          hours_worked?: number | null
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string | null
+          user_id?: string | null
+          time_entry_id?: string | null
+          alert_type?: 'meal_break_due' | 'meal_break_missed' | 'rest_break_due' | 'overtime_warning' | 'double_time_warning'
+          severity?: 'info' | 'warning' | 'violation'
+          title?: string
+          description?: string | null
+          hours_worked?: number | null
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }
@@ -587,6 +661,7 @@ export type Break = Database['public']['Tables']['breaks']['Row']
 export type Quote = Database['public']['Tables']['quotes']['Row']
 export type Invoice = Database['public']['Tables']['invoices']['Row']
 export type Incident = Database['public']['Tables']['incidents']['Row']
+export type ComplianceAlert = Database['public']['Tables']['compliance_alerts']['Row']
 
 // Insert types
 export type CompanyInsert = Database['public']['Tables']['companies']['Insert']
@@ -600,6 +675,7 @@ export type BreakInsert = Database['public']['Tables']['breaks']['Insert']
 export type QuoteInsert = Database['public']['Tables']['quotes']['Insert']
 export type InvoiceInsert = Database['public']['Tables']['invoices']['Insert']
 export type IncidentInsert = Database['public']['Tables']['incidents']['Insert']
+export type ComplianceAlertInsert = Database['public']['Tables']['compliance_alerts']['Insert']
 
 // Update types
 export type CompanyUpdate = Database['public']['Tables']['companies']['Update']
@@ -613,3 +689,13 @@ export type BreakUpdate = Database['public']['Tables']['breaks']['Update']
 export type QuoteUpdate = Database['public']['Tables']['quotes']['Update']
 export type InvoiceUpdate = Database['public']['Tables']['invoices']['Update']
 export type IncidentUpdate = Database['public']['Tables']['incidents']['Update']
+export type ComplianceAlertUpdate = Database['public']['Tables']['compliance_alerts']['Update']
+
+// Location type for GPS tracking
+export interface GeoLocation {
+  lat: number
+  lng: number
+  address?: string
+  accuracy?: number
+  timestamp?: string
+}

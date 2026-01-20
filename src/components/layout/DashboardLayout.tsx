@@ -28,8 +28,8 @@ const navItems = [
   { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
   { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
+  { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
   { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
-  { href: '/dashboard/shield', label: 'ToolTime Shield', icon: Shield },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
