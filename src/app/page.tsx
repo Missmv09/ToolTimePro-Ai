@@ -167,97 +167,71 @@ export default function Home() {
           {/* Tagline Badge */}
           <div className="mb-6">
             <span className="inline-block bg-gold-500 text-navy-900 text-sm font-semibold px-4 py-1.5 rounded-full">
-              Everything You Need
+              Built For You
             </span>
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
-            One Platform. Zero Headaches.
+            For Service Businesses That Go To Their Customers
           </h1>
 
           {/* Subheadline */}
-          <p className="text-xl text-white/80 max-w-2xl mb-10">
-            Website, scheduling, worker management, HR & compliance — all in one place.
+          <p className="text-xl text-white/80 max-w-3xl mb-12">
+            Whether you&apos;re a solo operator or managing a crew, ToolTime Pro handles the back office so you can focus on the work.
           </p>
 
-          {/* Stats Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10 max-w-3xl">
-            <div className="text-center sm:text-left">
-              <div className="text-3xl sm:text-4xl font-bold text-gold-500">$49/mo</div>
-              <div className="text-white/70 text-sm">starting</div>
+          {/* Industry Grid (4x2) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">🏠</div>
+              <div className="font-semibold text-gold-500 mb-1">Home Services</div>
+              <div className="text-sm text-white/70">Cleaning, handyman, organizing, inspections</div>
             </div>
-            <div className="text-center sm:text-left">
-              <div className="text-3xl sm:text-4xl font-bold text-gold-500">Up to 10x</div>
-              <div className="text-white/70 text-sm">Cheaper than competitors</div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">🌿</div>
+              <div className="font-semibold text-gold-500 mb-1">Outdoor Services</div>
+              <div className="text-sm text-white/70">Landscaping, pool, pressure washing</div>
             </div>
-            <div className="text-center sm:text-left">
-              <div className="text-3xl sm:text-4xl font-bold text-gold-500">Done-For-You</div>
-              <div className="text-white/70 text-sm">0 tech skills required</div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">🚗</div>
+              <div className="font-semibold text-gold-500 mb-1">Mobile Services</div>
+              <div className="text-sm text-white/70">Auto detailing, notary, locksmith, towing</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">💆</div>
+              <div className="font-semibold text-gold-500 mb-1">Wellness & Beauty</div>
+              <div className="text-sm text-white/70">Massage, salon, personal training</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">🐕</div>
+              <div className="font-semibold text-gold-500 mb-1">Pet Services</div>
+              <div className="text-sm text-white/70">Grooming, walking, sitting, training</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">📚</div>
+              <div className="font-semibold text-gold-500 mb-1">Lessons & Events</div>
+              <div className="text-sm text-white/70">Tutoring, photography, DJ, catering</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">🔧</div>
+              <div className="font-semibold text-gold-500 mb-1">Skilled Trades</div>
+              <div className="text-sm text-white/70">Electrical, plumbing, HVAC, painting, roofing</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="text-2xl mb-2">✨</div>
+              <div className="font-semibold text-gold-500 mb-1">And More</div>
+              <div className="text-sm text-white/70">If you book appointments and send invoices, we&apos;re for you</div>
             </div>
           </div>
 
-          {/* Feature Tabs - Mobile Dropdown */}
-          <div className="md:hidden mb-8">
-            <button
-              onClick={() => setMobileFeatureOpen(!mobileFeatureOpen)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg flex items-center justify-between"
-            >
-              <span className="font-medium">Features Included</span>
-              <span className={`transition-transform ${mobileFeatureOpen ? 'rotate-180' : ''}`}>▼</span>
-            </button>
-            {mobileFeatureOpen && (
-              <div className="mt-2 bg-white/10 border border-white/20 rounded-lg p-4 space-y-2">
-                {heroFeatureTabs.map((tab, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className={tab.comingSoon ? 'text-white/50' : 'text-gold-500'}>
-                      {tab.comingSoon ? '⏳' : '✓'}
-                    </span>
-                    <span className={tab.comingSoon ? 'text-white/50' : ''}>
-                      {tab.name}
-                      {tab.comingSoon && <span className="text-xs ml-2">(Soon)</span>}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Feature Tabs - Desktop */}
-          <div className="hidden md:flex flex-wrap gap-2 mb-10">
-            {heroFeatureTabs.map((tab, index) => (
-              <span
-                key={index}
-                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 ${
-                  tab.comingSoon
-                    ? 'bg-white/10 text-white/50'
-                    : 'bg-navy-500 text-white border border-white/20'
-                }`}
-              >
-                <span className={tab.comingSoon ? 'text-white/50' : 'text-gold-500'}>
-                  {tab.comingSoon ? '⏳' : '✓'}
-                </span>
-                {tab.name}
-                {tab.comingSoon && (
-                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full ml-1">Soon</span>
-                )}
-              </span>
-            ))}
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/auth/register"
-              className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
-            >
-              Get Started
-            </Link>
+          {/* CTA Button */}
+          <div>
             <Link
               href="#demos"
-              className="border-2 border-navy-300 text-white hover:bg-white/10 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
+              className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
             >
-              See How It Works
+              See How It Works →
             </Link>
           </div>
         </div>
