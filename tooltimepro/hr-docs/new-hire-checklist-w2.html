@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Hire Checklist — W-2 Employee | ToolTime Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠</text></svg>">
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --accent: #f5a623;
+            --accent-light: #fef5e6;
+            --success: #16a34a;
+            --success-light: #dcfce7;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --text: #1a1a2e;
+            --text-light: #5c5c70;
+            --text-muted: #8e8e9f;
+            --border: #e5e5e5;
+            --bg: #fafafa;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.5;
+            color: var(--text);
+            padding: 40px;
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 4px solid var(--accent);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+        }
+        .doc-title {
+            text-align: right;
+        }
+        .doc-title h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .badge-w2 {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Employee Info Box */
+        .employee-info {
+            background: var(--accent-light);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .employee-info h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .info-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-input {
+            border-bottom: 2px solid var(--primary);
+            min-height: 28px;
+            padding-bottom: 4px;
+        }
+
+        /* Section Headers */
+        .section {
+            margin-bottom: 28px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg);
+            border-left: 4px solid var(--accent);
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+        .section-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+        .section-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .item-content {
+            flex: 1;
+        }
+        .item-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 2px;
+        }
+        .item-note {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+        .item-deadline {
+            display: inline-block;
+            background: var(--danger-light);
+            color: var(--danger);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+        .item-required {
+            display: inline-block;
+            background: var(--accent-light);
+            color: #92400e;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+
+        /* Important Notice */
+        .notice {
+            background: var(--danger-light);
+            border: 2px solid var(--danger);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 24px 0;
+        }
+        .notice-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 8px;
+        }
+        .notice p {
+            font-size: 0.9375rem;
+            color: var(--text);
+            margin: 0;
+        }
+
+        /* Tip Box */
+        .tip-box {
+            background: var(--success-light);
+            border-left: 4px solid var(--success);
+            padding: 14px 18px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .tip-box p {
+            font-size: 0.875rem;
+            color: var(--text);
+            margin: 0;
+        }
+        .tip-box strong {
+            color: var(--success);
+        }
+
+        /* Signature Section */
+        .signature-section {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 32px;
+        }
+        .signature-section h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        .signature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .signature-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .signature-line {
+            border-bottom: 2px solid var(--primary);
+            height: 40px;
+            margin-bottom: 6px;
+        }
+        .signature-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .footer p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* Print Button */
+        .print-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(26,26,46,0.25);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(26,26,46,0.35);
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                padding: 20px;
+                font-size: 11pt;
+            }
+            .print-btn {
+                display: none;
+            }
+            .section {
+                page-break-inside: avoid;
+            }
+            .employee-info, .signature-section {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 20px; }
+            .header { flex-direction: column; gap: 16px; }
+            .doc-title { text-align: left; }
+            .info-grid { grid-template-columns: 1fr; }
+            .signature-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        🖨️ Print / Save PDF
+    </button>
+
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">🛠</div>
+            ToolTime Pro
+        </div>
+        <div class="doc-title">
+            <h1>NEW HIRE CHECKLIST</h1>
+            <span class="badge-w2">W-2 Employee</span>
+        </div>
+    </header>
+
+    <div class="employee-info">
+        <h2>👤 Employee Information</h2>
+        <div class="info-grid">
+            <div class="info-field">
+                <span class="info-label">Employee Full Name</span>
+                <div class="info-input"></div>
+            </div>
+            <div class="info-field">
+                <span class="info-label">Start Date</span>
+                <div class="info-input"></div>
+            </div>
+            <div class="info-field">
+                <span class="info-label">Position / Job Title</span>
+                <div class="info-input"></div>
+            </div>
+            <div class="info-field">
+                <span class="info-label">Hourly Rate / Salary</span>
+                <div class="info-input"></div>
+            </div>
+            <div class="info-field">
+                <span class="info-label">Manager / Supervisor</span>
+                <div class="info-input"></div>
+            </div>
+            <div class="info-field">
+                <span class="info-label">Work Location</span>
+                <div class="info-input"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRE-HIRE SECTION -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">📋</span>
+            <h2>Before First Day</h2>
+        </div>
+        <ul class="checklist">
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Signed Offer Letter <span class="item-required">Required</span></div>
+                    <div class="item-note">Must include: at-will statement, compensation, start date, work schedule, and CA disclosures</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Background Check Authorization (if applicable)</div>
+                    <div class="item-note">Must comply with CA "ban-the-box" law — wait until after conditional offer</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Confirm Start Date & Time</div>
+                    <div class="item-note">Send confirmation email with first day instructions, parking, what to bring</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- FIRST DAY FORMS -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">📝</span>
+            <h2>First Day — Required Forms</h2>
+        </div>
+
+        <div class="notice">
+            <div class="notice-header">
+                ⚠️ California Law: Complete These on Day 1
+            </div>
+            <p>Failure to provide required notices can result in penalties. The Wage Theft Prevention Notice is required by Labor Code 2810.5.</p>
+        </div>
+
+        <ul class="checklist">
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Form I-9 (Section 1) <span class="item-required">Federal</span> <span class="item-deadline">Day 1</span></div>
+                    <div class="item-note">Employee completes Section 1 on first day. Employer completes Section 2 within 3 business days.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Form W-4 (Federal Tax Withholding) <span class="item-required">Federal</span></div>
+                    <div class="item-note">Employee completes and signs. Keep on file for payroll.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Form DE-4 (CA State Tax Withholding) <span class="item-required">CA</span></div>
+                    <div class="item-note">Required for California employees. Different from federal W-4.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Wage Theft Prevention Notice (DLSE Notice) <span class="item-required">CA Required</span> <span class="item-deadline">At Hire</span></div>
+                    <div class="item-note">MUST include: pay rate, pay day, employer info, overtime rates, sick leave info. Get signed copy.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Direct Deposit Authorization (optional)</div>
+                    <div class="item-note">Employee may choose paper check instead. Cannot be mandatory in CA.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Emergency Contact Form</div>
+                    <div class="item-note">Name, relationship, phone number for emergency situations.</div>
+                </div>
+            </li>
+        </ul>
+
+        <div class="tip-box">
+            <p><strong>💡 Pro Tip:</strong> Use ToolTime Pro's HR Document Library to download all these templates pre-filled with your company info.</p>
+        </div>
+    </div>
+
+    <!-- I-9 VERIFICATION -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">🆔</span>
+            <h2>I-9 Document Verification</h2>
+        </div>
+        <ul class="checklist">
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Complete I-9 Section 2 <span class="item-deadline">Within 3 Days</span></div>
+                    <div class="item-note">Examine employee's original documents in person. Do NOT specify which documents to use.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Record document information accurately</div>
+                    <div class="item-note">Document title, issuing authority, number, expiration date (if applicable)</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- EQUIPMENT & ACCESS -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">🔧</span>
+            <h2>Equipment & Access</h2>
+        </div>
+        <ul class="checklist">
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Company Vehicle Keys / Access (if applicable)</div>
+                    <div class="item-note">Document vehicle ID number and condition on equipment form</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Tools & Equipment Issued</div>
+                    <div class="item-note">List all items on equipment checkout form with serial numbers</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Uniform / Safety Gear</div>
+                    <div class="item-note">Shirts, hats, safety glasses, gloves, hard hat, steel-toe boots</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Building / Office Keys or Access Code</div>
+                    <div class="item-note">Document key numbers and access credentials issued</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">ToolTime Pro Worker App Login</div>
+                    <div class="item-note">Set up account for time tracking, job assignments, and communication</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- TRAINING & ORIENTATION -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">📚</span>
+            <h2>Training & Orientation</h2>
+        </div>
+        <ul class="checklist">
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Company Policies Review</div>
+                    <div class="item-note">Attendance, conduct, safety, anti-harassment, drug-free workplace</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">CA Sexual Harassment Prevention Training <span class="item-deadline">Within 6 Months</span></div>
+                    <div class="item-note">Required for employers with 5+ employees. 1 hour for non-supervisors, 2 hours for supervisors.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Job-Specific Safety Training</div>
+                    <div class="item-note">Equipment operation, chemical handling, PPE usage, emergency procedures</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Time Tracking & Break Procedures</div>
+                    <div class="item-note">How to clock in/out, required meal breaks (30 min), rest breaks (10 min), overtime rules</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Job Procedures & Quality Standards</div>
+                    <div class="item-note">Service standards, customer interaction, job completion requirements</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- ADMIN & SYSTEMS -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">💻</span>
+            <h2>Admin & Systems Setup</h2>
+        </div>
+        <ul class="checklist">
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Add to Payroll System</div>
+                    <div class="item-note">Enter all tax forms, pay rate, schedule, and payment preferences</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Report New Hire to CA EDD <span class="item-required">CA Required</span> <span class="item-deadline">Within 20 Days</span></div>
+                    <div class="item-note">Submit via EDD e-Services or DE 34 form. Required by law.</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Add to Communication Channels</div>
+                    <div class="item-note">Team group chat, email list, scheduling system, emergency contact list</div>
+                </div>
+            </li>
+            <li class="checklist-item">
+                <div class="checkbox"></div>
+                <div class="item-content">
+                    <div class="item-title">Create Personnel File</div>
+                    <div class="item-note">Store all signed documents securely. Employee has right to inspect upon request.</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- SIGNATURE SECTION -->
+    <div class="signature-section">
+        <h3>Checklist Completion</h3>
+        <div class="signature-grid">
+            <div class="signature-field">
+                <div class="signature-line"></div>
+                <span class="signature-label">Completed By (Manager/HR)</span>
+            </div>
+            <div class="signature-field">
+                <div class="signature-line"></div>
+                <span class="signature-label">Date</span>
+            </div>
+            <div class="signature-field">
+                <div class="signature-line"></div>
+                <span class="signature-label">Employee Signature</span>
+            </div>
+            <div class="signature-field">
+                <div class="signature-line"></div>
+                <span class="signature-label">Date</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>ToolTime Pro HR Document Library</strong></p>
+        <p>For informational purposes only — consult legal/HR professionals for specific situations.</p>
+        <p>California employment law requirements current as of 2026. Laws may change.</p>
+    </footer>
+</body>
+</html>
