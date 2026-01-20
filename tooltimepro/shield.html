@@ -1050,6 +1050,142 @@
             background: rgba(245, 166, 35, 0.05);
         }
 
+        /* Quick Reference Cards */
+        .quick-ref-section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(26, 26, 46, 0.06);
+        }
+
+        .quick-ref-section h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .quick-ref-cards {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 8px;
+        }
+
+        .quick-ref-card {
+            flex: 1;
+            min-width: 200px;
+            max-width: 280px;
+            border-radius: 12px;
+            padding: 20px;
+            scroll-snap-align: start;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .quick-ref-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(26, 26, 46, 0.12);
+        }
+
+        .quick-ref-card.pay-rate {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 2px solid var(--success);
+        }
+
+        .quick-ref-card.final-pay {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border: 2px solid var(--danger);
+        }
+
+        .quick-ref-card.breaks {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border: 2px solid var(--warning);
+        }
+
+        .quick-ref-card.sick-leave {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #2196f3;
+        }
+
+        .quick-ref-card .card-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .quick-ref-card .card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .quick-ref-card .card-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .quick-ref-card.pay-rate .card-value {
+            color: #2e7d32;
+        }
+
+        .quick-ref-card.final-pay .card-value {
+            color: var(--danger);
+        }
+
+        .quick-ref-card.breaks .card-value {
+            color: #f57c00;
+        }
+
+        .quick-ref-card.sick-leave .card-value {
+            color: #1976d2;
+        }
+
+        .quick-ref-card .card-detail {
+            font-size: 0.8125rem;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        .quick-ref-card .card-source {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .quick-ref-cards {
+                flex-wrap: nowrap;
+            }
+
+            .quick-ref-card {
+                min-width: 180px;
+                flex: 0 0 auto;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .quick-ref-cards {
+                overflow-x: visible;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .quick-ref-card {
+                flex: 1 1 calc(25% - 16px);
+                max-width: calc(25% - 12px);
+            }
+        }
+
         /* Print Styles */
         @media print {
             body * {
@@ -1373,6 +1509,48 @@
                     50-99
                     <span>employees</span>
                 </button>
+            </div>
+        </section>
+
+        <!-- Quick Reference Cards -->
+        <section class="quick-ref-section">
+            <h3>⚡ Quick Reference — Know These Cold</h3>
+            <div class="quick-ref-cards">
+                <!-- Card 1: Pay Rate -->
+                <div class="quick-ref-card pay-rate" id="quickRefPayRate">
+                    <div class="card-icon">💰</div>
+                    <div class="card-title">Minimum Pay Rate</div>
+                    <div class="card-value" id="quickRefWage">$16.00/hr</div>
+                    <div class="card-detail" id="quickRefWageDetail">CA state minimum. Select a city for local rates.</div>
+                    <div class="card-source">CA Labor Code §1182.12</div>
+                </div>
+
+                <!-- Card 2: Final Pay -->
+                <div class="quick-ref-card final-pay">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-title">Final Pay (Fired)</div>
+                    <div class="card-value">IMMEDIATELY</div>
+                    <div class="card-detail">Same day. Penalty: Up to 30 days wages if late!</div>
+                    <div class="card-source">CA Labor Code §201-203</div>
+                </div>
+
+                <!-- Card 3: Breaks -->
+                <div class="quick-ref-card breaks">
+                    <div class="card-icon">☕</div>
+                    <div class="card-title">Required Breaks</div>
+                    <div class="card-value">30 + 10 min</div>
+                    <div class="card-detail">30 min meal at 5 hrs, 10 min rest per 4 hrs. Penalty: 1 hr pay each.</div>
+                    <div class="card-source">CA Labor Code §512</div>
+                </div>
+
+                <!-- Card 4: Sick Leave -->
+                <div class="quick-ref-card sick-leave">
+                    <div class="card-icon">🏥</div>
+                    <div class="card-title">Paid Sick Leave</div>
+                    <div class="card-value">40 hrs/year</div>
+                    <div class="card-detail">Accrues 1 hr per 30 hrs worked. Use starts at 90 days.</div>
+                    <div class="card-source">CA Labor Code §246</div>
+                </div>
             </div>
         </section>
 
@@ -2517,12 +2695,34 @@
             generateChecklist();
         };
 
+        // Update Quick Reference Pay Rate card
+        function updateQuickRefPayRate(cityId) {
+            const wageEl = document.getElementById('quickRefWage');
+            const detailEl = document.getElementById('quickRefWageDetail');
+
+            if (cityId && cityData[cityId]) {
+                const city = cityData[cityId];
+                wageEl.textContent = `$${city.wage.toFixed(2)}/hr`;
+
+                if (city.wage > STATE_WAGE) {
+                    const diff = (city.wage - STATE_WAGE).toFixed(2);
+                    detailEl.textContent = `${city.name} rate (+$${diff} above CA state)`;
+                } else {
+                    detailEl.textContent = `${city.name} follows CA state minimum`;
+                }
+            } else {
+                wageEl.textContent = '$16.00/hr';
+                detailEl.textContent = 'CA state minimum. Select a city for local rates.';
+            }
+        }
+
         // Update checklist when city changes - modify existing selectCity
         const originalSelectCity = selectCity;
         selectCity = function(btn) {
             originalSelectCity(btn);
             selectedCity = btn.dataset.city;
             selectedCityWage = cityData[selectedCity].wage;
+            updateQuickRefPayRate(selectedCity);
             generateChecklist();
         };
 
