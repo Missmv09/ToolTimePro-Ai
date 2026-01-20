@@ -542,6 +542,281 @@
             font-size: 0.8125rem;
         }
 
+        /* Calculator Styles */
+        .calculators-section {
+            margin-top: 48px;
+        }
+
+        .calculators-section > h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .calc-card {
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(26, 26, 46, 0.06);
+            border: 1px solid var(--border);
+        }
+
+        .calc-header {
+            background: var(--navy);
+            color: var(--white);
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+
+        .calc-header:hover {
+            background: var(--navy-light);
+        }
+
+        .calc-header h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .calc-toggle {
+            font-size: 1.25rem;
+            transition: transform 0.3s;
+        }
+
+        .calc-card.open .calc-toggle {
+            transform: rotate(180deg);
+        }
+
+        .calc-body {
+            padding: 20px;
+            display: none;
+        }
+
+        .calc-card.open .calc-body {
+            display: block;
+        }
+
+        .calc-form-group {
+            margin-bottom: 16px;
+        }
+
+        .calc-form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .calc-input,
+        .calc-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text);
+            background: var(--background);
+            transition: all 0.2s;
+        }
+
+        .calc-input:focus,
+        .calc-select:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: var(--white);
+        }
+
+        .calc-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .calc-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--gold);
+            color: var(--navy);
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .calc-btn:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+        }
+
+        /* Calculator Result Boxes */
+        .calc-result {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .calc-result.show {
+            display: block;
+        }
+
+        .result-box {
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid;
+        }
+
+        .result-box.warning {
+            background: rgba(255, 82, 82, 0.08);
+            border-color: var(--danger);
+        }
+
+        .result-box.success {
+            background: rgba(0, 200, 83, 0.08);
+            border-color: var(--success);
+        }
+
+        .result-box.info {
+            background: rgba(245, 166, 35, 0.08);
+            border-color: var(--gold);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .result-box.warning .result-header {
+            color: var(--danger);
+        }
+
+        .result-box.success .result-header {
+            color: var(--success);
+        }
+
+        .result-box.info .result-header {
+            color: var(--gold);
+        }
+
+        .result-date {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .result-detail {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .result-penalty {
+            background: rgba(255, 82, 82, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .result-penalty-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--danger);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .result-penalty-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--danger);
+        }
+
+        .result-note {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Input row for side by side inputs */
+        .calc-input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .calc-input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Result breakdown */
+        .result-breakdown {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.875rem;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .breakdown-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: var(--navy);
+            padding-top: 8px;
+            margin-top: 4px;
+            border-top: 2px solid var(--navy);
+        }
+
+        .breakdown-label {
+            color: var(--text-light);
+        }
+
+        .breakdown-value {
+            color: var(--navy);
+            font-weight: 600;
+        }
+
         /* Size Requirements Table */
         .size-table-section {
             margin-top: 32px;
@@ -1172,19 +1447,100 @@
             </div>
         </section>
 
-        <!-- Bottom Section -->
-        <section class="bottom-section">
-            <!-- Final Pay Calculator -->
-            <div class="bottom-card">
-                <h3><span class="icon">🧮</span> Final Pay Calculator</h3>
-                <div class="calculator-placeholder">
-                    <div class="calc-icon">📅</div>
-                    <p>Calculate final pay deadlines based on termination type and California law.</p>
+        <!-- Calculators Section -->
+        <section class="calculators-section">
+            <h3>🧮 Compliance Calculators</h3>
+
+            <div class="calculator-grid">
+                <!-- Final Pay Deadline Calculator -->
+                <div class="calc-card open" id="finalPayCalc">
+                    <div class="calc-header" onclick="toggleCalc('finalPayCalc')">
+                        <h4>📅 Final Pay Deadline</h4>
+                        <span class="calc-toggle">▼</span>
+                    </div>
+                    <div class="calc-body">
+                        <div class="calc-form-group">
+                            <label>Termination Type</label>
+                            <select class="calc-select" id="termType">
+                                <option value="">Select type...</option>
+                                <option value="fired">Fired / Laid Off</option>
+                                <option value="quit-notice">Quit WITH 72+ hours notice</option>
+                                <option value="quit-no-notice">Quit WITHOUT notice</option>
+                            </select>
+                        </div>
+                        <div class="calc-form-group">
+                            <label>Last Day Worked</label>
+                            <input type="date" class="calc-input" id="lastDayWorked">
+                        </div>
+                        <button class="calc-btn" onclick="calculateFinalPay()">Calculate Deadline</button>
+
+                        <div class="calc-result" id="finalPayResult">
+                            <!-- Results will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Waiting Time Penalty Calculator -->
+                <div class="calc-card" id="penaltyCalc">
+                    <div class="calc-header" onclick="toggleCalc('penaltyCalc')">
+                        <h4>⚠️ Waiting Time Penalty</h4>
+                        <span class="calc-toggle">▼</span>
+                    </div>
+                    <div class="calc-body">
+                        <div class="calc-input-row">
+                            <div class="calc-form-group">
+                                <label>Hourly Rate ($)</label>
+                                <input type="number" class="calc-input" id="penaltyRate" placeholder="20.00" step="0.01" min="0">
+                            </div>
+                            <div class="calc-form-group">
+                                <label>Hours/Day</label>
+                                <input type="number" class="calc-input" id="penaltyHours" value="8" min="1" max="24">
+                            </div>
+                        </div>
+                        <div class="calc-form-group">
+                            <label>Days Late</label>
+                            <input type="number" class="calc-input" id="daysLate" placeholder="1" min="1" max="30">
+                        </div>
+                        <button class="calc-btn" onclick="calculatePenalty()">Calculate Penalty</button>
+
+                        <div class="calc-result" id="penaltyResult">
+                            <!-- Results will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Break Violation Calculator -->
+                <div class="calc-card" id="breakCalc">
+                    <div class="calc-header" onclick="toggleCalc('breakCalc')">
+                        <h4>☕ Break Violation Penalty</h4>
+                        <span class="calc-toggle">▼</span>
+                    </div>
+                    <div class="calc-body">
+                        <div class="calc-input-row">
+                            <div class="calc-form-group">
+                                <label>Missed Meal Breaks</label>
+                                <input type="number" class="calc-input" id="missedMeals" placeholder="0" min="0">
+                            </div>
+                            <div class="calc-form-group">
+                                <label>Missed Rest Breaks</label>
+                                <input type="number" class="calc-input" id="missedRests" placeholder="0" min="0">
+                            </div>
+                        </div>
+                        <div class="calc-form-group">
+                            <label>Employee Hourly Rate ($)</label>
+                            <input type="number" class="calc-input" id="breakRate" placeholder="20.00" step="0.01" min="0">
+                        </div>
+                        <button class="calc-btn" onclick="calculateBreakPenalty()">Calculate Penalties</button>
+
+                        <div class="calc-result" id="breakResult">
+                            <!-- Results will be inserted here -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Download Checklist -->
-            <div class="bottom-card">
+            <div class="bottom-card" style="margin-top: 24px;">
                 <h3><span class="icon">📋</span> Compliance Checklist</h3>
                 <div class="download-card-content">
                     <p>Get your personalized compliance checklist based on company size and location.</p>
@@ -1440,7 +1796,206 @@
             if (activeBtn) {
                 updateTableHighlighting(activeBtn.dataset.size);
             }
+
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('lastDayWorked').value = today;
         });
+
+        // Calculator Toggle
+        function toggleCalc(calcId) {
+            const card = document.getElementById(calcId);
+            card.classList.toggle('open');
+        }
+
+        // Format date for display
+        function formatDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Add business days (skip weekends)
+        function addBusinessDays(date, days) {
+            let result = new Date(date);
+            let added = 0;
+            while (added < days) {
+                result.setDate(result.getDate() + 1);
+                if (result.getDay() !== 0 && result.getDay() !== 6) {
+                    added++;
+                }
+            }
+            return result;
+        }
+
+        // Add hours to date
+        function addHours(date, hours) {
+            const result = new Date(date);
+            result.setHours(result.getHours() + hours);
+            return result;
+        }
+
+        // Final Pay Deadline Calculator
+        function calculateFinalPay() {
+            const termType = document.getElementById('termType').value;
+            const lastDayInput = document.getElementById('lastDayWorked').value;
+            const resultDiv = document.getElementById('finalPayResult');
+
+            if (!termType || !lastDayInput) {
+                resultDiv.innerHTML = '<div class="result-box info"><div class="result-header">Please fill in all fields</div></div>';
+                resultDiv.classList.add('show');
+                return;
+            }
+
+            const lastDay = new Date(lastDayInput + 'T17:00:00'); // Assume 5 PM end of day
+            let resultHTML = '';
+
+            if (termType === 'fired') {
+                resultHTML = `
+                    <div class="result-box warning">
+                        <div class="result-header">⚠️ FINAL PAY DUE: IMMEDIATELY</div>
+                        <div class="result-date">${formatDate(lastDay)}</div>
+                        <div class="result-detail">
+                            Must pay on the <strong>same day</strong> as termination — no exceptions.
+                        </div>
+                        <div class="result-penalty">
+                            <div class="result-penalty-label">If Late: Waiting Time Penalty</div>
+                            <div class="result-penalty-amount">Up to 30 days wages!</div>
+                        </div>
+                        <div class="result-note">
+                            Example: $20/hr × 8 hrs × 30 days = <strong>$4,800 penalty</strong>
+                        </div>
+                    </div>
+                `;
+            } else if (termType === 'quit-notice') {
+                resultHTML = `
+                    <div class="result-box success">
+                        <div class="result-header">✅ FINAL PAY DUE: Last Day</div>
+                        <div class="result-date">${formatDate(lastDay)}</div>
+                        <div class="result-detail">
+                            Employee gave 72+ hours notice, so final pay is due on their <strong>last working day</strong>.
+                        </div>
+                        <div class="result-note">
+                            Must include all wages earned + all accrued vacation time.
+                        </div>
+                    </div>
+                `;
+            } else if (termType === 'quit-no-notice') {
+                const dueDate = addHours(lastDay, 72);
+                // Check if due date falls on weekend
+                let adjustedDate = new Date(dueDate);
+                if (adjustedDate.getDay() === 0) adjustedDate.setDate(adjustedDate.getDate() + 1);
+                if (adjustedDate.getDay() === 6) adjustedDate.setDate(adjustedDate.getDate() + 2);
+
+                resultHTML = `
+                    <div class="result-box info">
+                        <div class="result-header">⏰ FINAL PAY DUE: Within 72 Hours</div>
+                        <div class="result-date">${formatDate(adjustedDate)}</div>
+                        <div class="result-detail">
+                            Employee quit without notice. You have <strong>72 hours</strong> to provide final pay.
+                        </div>
+                        ${adjustedDate.getTime() !== dueDate.getTime() ?
+                            '<div class="result-note">Note: 72-hour deadline fell on weekend, adjusted to next business day.</div>' :
+                            '<div class="result-note">Must include all wages earned + all accrued vacation time.</div>'}
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = resultHTML;
+            resultDiv.classList.add('show');
+        }
+
+        // Waiting Time Penalty Calculator
+        function calculatePenalty() {
+            const rate = parseFloat(document.getElementById('penaltyRate').value);
+            const hours = parseFloat(document.getElementById('penaltyHours').value) || 8;
+            const daysLate = Math.min(parseInt(document.getElementById('daysLate').value) || 0, 30);
+            const resultDiv = document.getElementById('penaltyResult');
+
+            if (!rate || rate <= 0 || daysLate <= 0) {
+                resultDiv.innerHTML = '<div class="result-box info"><div class="result-header">Please fill in all fields</div></div>';
+                resultDiv.classList.add('show');
+                return;
+            }
+
+            const dailyWage = rate * hours;
+            const totalPenalty = dailyWage * daysLate;
+
+            resultDiv.innerHTML = `
+                <div class="result-box warning">
+                    <div class="result-header">💸 POTENTIAL PENALTY</div>
+                    <div class="result-breakdown">
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">Daily wage</span>
+                            <span class="breakdown-value">$${rate.toFixed(2)} × ${hours} hrs = $${dailyWage.toFixed(2)}</span>
+                        </div>
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">Days late</span>
+                            <span class="breakdown-value">${daysLate} day${daysLate > 1 ? 's' : ''} (max 30)</span>
+                        </div>
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">TOTAL PENALTY</span>
+                            <span class="breakdown-value" style="color: var(--danger); font-size: 1.25rem;">$${totalPenalty.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div class="result-note">
+                        ⚠️ This penalty is <strong>ON TOP OF</strong> all wages owed to the employee!
+                    </div>
+                </div>
+            `;
+            resultDiv.classList.add('show');
+        }
+
+        // Break Violation Penalty Calculator
+        function calculateBreakPenalty() {
+            const missedMeals = parseInt(document.getElementById('missedMeals').value) || 0;
+            const missedRests = parseInt(document.getElementById('missedRests').value) || 0;
+            const rate = parseFloat(document.getElementById('breakRate').value);
+            const resultDiv = document.getElementById('breakResult');
+
+            if (!rate || rate <= 0) {
+                resultDiv.innerHTML = '<div class="result-box info"><div class="result-header">Please enter an hourly rate</div></div>';
+                resultDiv.classList.add('show');
+                return;
+            }
+
+            if (missedMeals === 0 && missedRests === 0) {
+                resultDiv.innerHTML = '<div class="result-box success"><div class="result-header">✅ No violations — no penalties!</div></div>';
+                resultDiv.classList.add('show');
+                return;
+            }
+
+            const mealPenalty = missedMeals * rate;
+            const restPenalty = missedRests * rate;
+            const totalPenalty = mealPenalty + restPenalty;
+
+            resultDiv.innerHTML = `
+                <div class="result-box warning">
+                    <div class="result-header">💸 BREAK VIOLATION PENALTIES</div>
+                    <div class="result-breakdown">
+                        ${missedMeals > 0 ? `
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">Missed Meals</span>
+                            <span class="breakdown-value">${missedMeals} × $${rate.toFixed(2)} = $${mealPenalty.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                        ${missedRests > 0 ? `
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">Missed Rests</span>
+                            <span class="breakdown-value">${missedRests} × $${rate.toFixed(2)} = $${restPenalty.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">TOTAL OWED</span>
+                            <span class="breakdown-value" style="color: var(--danger); font-size: 1.25rem;">$${totalPenalty.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div class="result-note">
+                        Note: Penalty is <strong>1 hour of pay per violation per day</strong>. Meal and rest break violations are separate.
+                    </div>
+                </div>
+            `;
+            resultDiv.classList.add('show');
+        }
     </script>
 </body>
 </html>
