@@ -1,5 +1,6 @@
 import '@/styles/globals.css';
 import { Metadata } from 'next';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
   title: 'ToolTime Pro - All-in-One Platform for Service Businesses',
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
