@@ -263,6 +263,168 @@
             display: block;
         }
 
+        /* Federal Rules Content */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .rules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .rule-card {
+            background: var(--background);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .rule-card h5 {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rule-card ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .rule-card li {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .rule-card li:last-child {
+            border-bottom: none;
+        }
+
+        .rule-card li::before {
+            content: '•';
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .rule-card .note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Size Requirements Table */
+        .size-table-section {
+            margin-top: 32px;
+        }
+
+        .size-table-section h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .size-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .size-table th {
+            background: var(--navy);
+            color: var(--white);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            text-align: left;
+            padding: 14px 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .size-table td {
+            padding: 14px 16px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .size-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .size-table tr.inactive {
+            color: var(--text-muted);
+            background: var(--background);
+        }
+
+        .size-table tr.inactive .status-icon {
+            opacity: 0.4;
+        }
+
+        .size-table tr.active-row {
+            background: rgba(0, 200, 83, 0.08);
+            border-left: 4px solid var(--success);
+        }
+
+        .size-table tr.active-row td:first-child {
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .size-table .size-cell {
+            font-weight: 600;
+            white-space: nowrap;
+            min-width: 100px;
+        }
+
+        .size-table .requirements-cell {
+            line-height: 1.6;
+        }
+
+        .status-icon {
+            margin-right: 6px;
+        }
+
+        .status-applies {
+            color: var(--success);
+        }
+
+        .status-not-yet {
+            color: var(--text-muted);
+        }
+
+        /* Mobile table */
+        @media (max-width: 600px) {
+            .size-table {
+                font-size: 0.8125rem;
+            }
+
+            .size-table th,
+            .size-table td {
+                padding: 10px 12px;
+            }
+        }
+
         /* Bottom Section */
         .bottom-section {
             display: grid;
@@ -474,10 +636,90 @@
             </div>
 
             <div class="tab-content active" id="tab-federal">
-                <h4>Federal Compliance Requirements</h4>
-                <div class="placeholder-text">
-                    <span class="icon">🇺🇸</span>
-                    Federal compliance rules loading...
+                <h4>🇺🇸 Federal Compliance (Applies to All Employers)</h4>
+
+                <!-- Rules Grid -->
+                <div class="rules-grid">
+                    <!-- Wage & Hour -->
+                    <div class="rule-card">
+                        <h5>💰 Wage & Hour (FLSA)</h5>
+                        <ul>
+                            <li>Minimum Wage: $7.25/hr <span class="note">(CA is higher — use CA rate)</span></li>
+                            <li>Overtime: 1.5x after 40 hrs/week</li>
+                            <li>Recordkeeping: Keep payroll records 3 years</li>
+                        </ul>
+                    </div>
+
+                    <!-- Tax & Forms -->
+                    <div class="rule-card">
+                        <h5>📋 Tax & Forms</h5>
+                        <ul>
+                            <li>W-2: Issue to employees by Jan 31</li>
+                            <li>1099-NEC: Issue to contractors ($600+) by Jan 31</li>
+                            <li>I-9: Complete within 3 business days of hire</li>
+                            <li>W-4: Collect at hire</li>
+                        </ul>
+                    </div>
+
+                    <!-- Workplace Safety -->
+                    <div class="rule-card">
+                        <h5>🦺 Workplace Safety (OSHA)</h5>
+                        <ul>
+                            <li>Provide safe workplace</li>
+                            <li>Report fatalities within 8 hours</li>
+                            <li>Report hospitalizations within 24 hours</li>
+                            <li>Post OSHA poster</li>
+                        </ul>
+                    </div>
+
+                    <!-- Employee Rights -->
+                    <div class="rule-card">
+                        <h5>⚖️ Employee Rights</h5>
+                        <ul>
+                            <li>USERRA: Military leave protection</li>
+                            <li>Jury Duty: Can't fire for jury service</li>
+                            <li>NLRA: Right to discuss wages</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Size Requirements Table -->
+                <div class="size-table-section">
+                    <h5>📊 Federal Requirements by Company Size</h5>
+                    <table class="size-table" id="federalSizeTable">
+                        <thead>
+                            <tr>
+                                <th>Employees</th>
+                                <th>What Kicks In</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-min="1" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>1+</td>
+                                <td class="requirements-cell">FLSA, I-9, OSHA, FUTA taxes</td>
+                            </tr>
+                            <tr data-min="11" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>11+</td>
+                                <td class="requirements-cell">OSHA injury logs (Form 300)</td>
+                            </tr>
+                            <tr data-min="15" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>15+</td>
+                                <td class="requirements-cell">Title VII (discrimination), ADA, Pregnancy Discrimination Act</td>
+                            </tr>
+                            <tr data-min="20" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>20+</td>
+                                <td class="requirements-cell">ADEA (age 40+), COBRA</td>
+                            </tr>
+                            <tr data-min="50" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>50+</td>
+                                <td class="requirements-cell">FMLA (12 weeks leave), ACA health insurance</td>
+                            </tr>
+                            <tr data-min="100" data-max="999">
+                                <td class="size-cell"><span class="status-icon">✅</span>100+</td>
+                                <td class="requirements-cell">WARN Act (60-day layoff notice)</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -533,13 +775,53 @@
     </footer>
 
     <script>
+        // Get max employee count from size range
+        function getMaxFromSize(sizeRange) {
+            const parts = sizeRange.split('-');
+            return parseInt(parts[1] || parts[0]);
+        }
+
+        // Update table highlighting based on company size
+        function updateTableHighlighting(sizeRange) {
+            const maxEmployees = getMaxFromSize(sizeRange);
+            const rows = document.querySelectorAll('#federalSizeTable tbody tr');
+
+            rows.forEach(row => {
+                const minRequired = parseInt(row.dataset.min);
+                const statusIcon = row.querySelector('.status-icon');
+
+                // Remove all classes first
+                row.classList.remove('active-row', 'inactive');
+
+                if (maxEmployees >= minRequired) {
+                    // This requirement applies
+                    row.classList.remove('inactive');
+                    statusIcon.textContent = '✅';
+                    statusIcon.classList.remove('status-not-yet');
+                    statusIcon.classList.add('status-applies');
+
+                    // Highlight the row that matches current size bracket
+                    const sizeThresholds = [1, 11, 15, 20, 50, 100];
+                    const currentThreshold = sizeThresholds.filter(t => maxEmployees >= t).pop();
+                    if (minRequired === currentThreshold) {
+                        row.classList.add('active-row');
+                    }
+                } else {
+                    // Not yet required
+                    row.classList.add('inactive');
+                    statusIcon.textContent = '○';
+                    statusIcon.classList.remove('status-applies');
+                    statusIcon.classList.add('status-not-yet');
+                }
+            });
+        }
+
         // Company Size Selection
         function selectSize(btn) {
             document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const size = btn.dataset.size;
-            console.log('Selected company size:', size);
-            // Future: Update rules based on company size
+            updateTableHighlighting(size);
         }
 
         // Tab Navigation
@@ -558,6 +840,14 @@
             const activeSize = document.querySelector('.size-btn.active').dataset.size;
             alert(`Downloading compliance checklist for ${activeSize} employees...\n\nIn the full version, this would generate a PDF checklist customized for your company size.`);
         }
+
+        // Initialize table highlighting on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const activeBtn = document.querySelector('.size-btn.active');
+            if (activeBtn) {
+                updateTableHighlighting(activeBtn.dataset.size);
+            }
+        });
     </script>
 </body>
 </html>
