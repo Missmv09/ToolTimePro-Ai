@@ -303,6 +303,23 @@
 
         .animate-on-scroll{opacity:0;transform:translateY(30px);transition:all 0.6s ease}
         .animate-on-scroll.visible{opacity:1;transform:translateY(0)}
+
+        /* Shield Promo Section */
+        .shield-promo{background:#f8f9fa;position:relative;overflow:hidden}
+        .shield-promo::before{content:'';position:absolute;top:-100px;left:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(245,166,35,0.15) 0%,transparent 70%)}
+        .shield-promo .section-label{background:var(--danger-light);color:var(--danger)}
+        .shield-promo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:48px}
+        @media(max-width:968px){.shield-promo-grid{grid-template-columns:1fr}}
+        .shield-card{background:var(--white);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);transition:all 0.3s ease;border:1px solid var(--border)}
+        .shield-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+        .shield-card-header{background:var(--primary);color:var(--white);padding:20px 24px;display:flex;align-items:center;gap:12px}
+        .shield-card-header .icon{font-size:1.5rem}
+        .shield-card-header h3{color:var(--white);font-size:1.125rem;margin:0}
+        .shield-card-body{padding:24px}
+        .shield-card-body p{margin-bottom:8px;font-size:0.9375rem}
+        .shield-card-body p:last-child{margin-bottom:0;color:var(--text-muted);font-size:0.875rem}
+        .shield-cta{text-align:center}
+        .shield-cta .btn{padding:18px 40px;font-size:1.0625rem}
     </style>
 </head>
 <body>
@@ -313,6 +330,7 @@
                 <a href="#features">Features</a>
                 <a href="#demos">Demos</a>
                 <a href="#hr">HR Tools</a>
+                <a href="shield.html">🛡️ Compliance</a>
                 <a href="#pricing">Pricing</a>
                 <a href="#contact" class="nav-cta">Get Started</a>
             </div>
@@ -571,6 +589,52 @@
             </div>
             <div class="hr-cta">
                 <a href="#contact" class="btn btn-primary btn-large">Get HR Peace of Mind →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shield Promo Section -->
+    <section class="shield-promo" id="shield">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">⚠️ California Employers</span>
+                <h2>🛡️ ToolTime Shield — Stay Out of Trouble</h2>
+                <p>California employment law is brutal. One mistake can cost you thousands. We make compliance dead simple.</p>
+            </div>
+            <div class="shield-promo-grid">
+                <div class="shield-card animate-on-scroll">
+                    <div class="shield-card-header">
+                        <span class="icon">💰</span>
+                        <h3>Final Pay Calculator</h3>
+                    </div>
+                    <div class="shield-card-body">
+                        <p>Know exactly when to pay terminated employees</p>
+                        <p>Avoid up to 30 days wage penalties</p>
+                    </div>
+                </div>
+                <div class="shield-card animate-on-scroll">
+                    <div class="shield-card-header">
+                        <span class="icon">📋</span>
+                        <h3>Size-Based Requirements</h3>
+                    </div>
+                    <div class="shield-card-body">
+                        <p>See exactly what laws apply to YOUR business</p>
+                        <p>1-4 employees? 50+? Different rules.</p>
+                    </div>
+                </div>
+                <div class="shield-card animate-on-scroll">
+                    <div class="shield-card-header">
+                        <span class="icon">📍</span>
+                        <h3>Local Wage Lookup</h3>
+                    </div>
+                    <div class="shield-card-body">
+                        <p>SF pays $18.07/hr, not $16.00</p>
+                        <p>Know your city's minimum wage</p>
+                    </div>
+                </div>
+            </div>
+            <div class="shield-cta">
+                <a href="shield.html" class="btn btn-primary btn-large">Check Your Compliance →</a>
             </div>
         </div>
     </section>
