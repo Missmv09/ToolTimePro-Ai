@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Quote - ToolTime Pro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fa;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .quote-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .quote-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    .quote-header h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .quote-header .business-name { color: #f5a623; font-size: 1.1rem; }
+    .quote-body { padding: 24px; }
+    .customer-info {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .customer-info h3 { color: #1a1a2e; margin-bottom: 8px; font-size: 0.9rem; }
+    .customer-info p { color: #666; }
+    .line-items { margin-bottom: 24px; }
+    .line-items h3 { color: #1a1a2e; margin-bottom: 12px; }
+    .line-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .line-item:last-child { border-bottom: none; }
+    .line-item .description { flex: 1; }
+    .line-item .qty { color: #666; margin: 0 16px; }
+    .line-item .price { font-weight: 600; }
+    .quote-total {
+      background: #1a1a2e;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .quote-total .label { font-size: 1.1rem; }
+    .quote-total .amount { font-size: 1.8rem; font-weight: 700; color: #f5a623; }
+    .approve-btn {
+      width: 100%;
+      padding: 16px;
+      background: #f5a623;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .approve-btn:hover { background: #e09000; }
+    .approve-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .approve-btn.approved { background: #00c853; color: white; }
+    .signature-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #eee;
+    }
+    .signature-section h3 { margin-bottom: 12px; color: #1a1a2e; }
+    .signature-pad {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      margin-bottom: 12px;
+      cursor: crosshair;
+    }
+    .signature-pad.signed { border-color: #00c853; background: #f0fff4; }
+    .clear-signature {
+      background: none;
+      border: 1px solid #ccc;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .loading { text-align: center; padding: 40px; color: #666; }
+    .error { text-align: center; padding: 40px; color: #ff5252; }
+    .approved-badge {
+      background: #00c853;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 12px;
+    }
+    .footer {
+      text-align: center;
+      padding: 16px;
+      color: #999;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="quote-container">
+    <div id="loading" class="loading">Loading your quote...</div>
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="quote-content" style="display: none;">
+      <div class="quote-header">
+        <p class="business-name" id="business-name">Business Name</p>
+        <h1>Your Quote</h1>
+        <p id="quote-date"></p>
+      </div>
+      <div class="quote-body">
+        <div class="customer-info">
+          <h3>PREPARED FOR</h3>
+          <p id="customer-name">Customer Name</p>
+        </div>
+        <div class="line-items">
+          <h3>SERVICES</h3>
+          <div id="line-items-list"></div>
+        </div>
+        <div class="quote-total">
+          <span class="label">Total</span>
+          <span class="amount" id="quote-total">$0.00</span>
+        </div>
+        <div id="approval-section">
+          <button class="approve-btn" id="approve-btn" onclick="approveQuote()">
+            Approve Quote
+          </button>
+        </div>
+        <div id="approved-section" style="display: none; text-align: center;">
+          <span class="approved-badge">Quote Approved</span>
+          <p style="margin-top: 12px; color: #666;">Thank you! We'll be in touch soon.</p>
+        </div>
+      </div>
+      <div class="footer">
+        Powered by ToolTime Pro
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // IMPORTANT: Replace these with your actual Supabase credentials
+    const SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co'
+    const SUPABASE_ANON_KEY = 'your-anon-key'
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    // Get quote ID from URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const quoteId = urlParams.get('id')
+
+    let quoteData = null
+
+    async function loadQuote() {
+      if (!quoteId) {
+        showError('Quote not found')
+        return
+      }
+
+      try {
+        // Fetch quote with line items and company info
+        const { data: quote, error: quoteError } = await supabaseClient
+          .from('quotes')
+          .select('*, quote_items(*), companies(name)')
+          .eq('id', quoteId)
+          .single()
+
+        if (quoteError) throw quoteError
+
+        quoteData = quote
+
+        // Mark as viewed
+        await supabaseClient
+          .from('quotes')
+          .update({ viewed_at: new Date().toISOString() })
+          .eq('id', quoteId)
+
+        // Populate page
+        document.getElementById('business-name').textContent = quote.companies?.name || 'Your Service Provider'
+        document.getElementById('customer-name').textContent = quote.customer_name || 'Valued Customer'
+        document.getElementById('quote-date').textContent = new Date(quote.created_at).toLocaleDateString()
+        document.getElementById('quote-total').textContent = `$${parseFloat(quote.total).toFixed(2)}`
+
+        // Populate line items
+        const lineItems = quote.quote_items || []
+        if (lineItems.length > 0) {
+          const lineItemsHtml = lineItems.map(item => `
+            <div class="line-item">
+              <span class="description">${item.description}</span>
+              <span class="qty">x${item.quantity}</span>
+              <span class="price">$${parseFloat(item.total_price || item.total || 0).toFixed(2)}</span>
+            </div>
+          `).join('')
+          document.getElementById('line-items-list').innerHTML = lineItemsHtml
+        } else {
+          document.getElementById('line-items-list').innerHTML = '<p style="color: #666;">No items listed</p>'
+        }
+
+        // Check if already approved
+        if (quote.status === 'approved') {
+          document.getElementById('approval-section').style.display = 'none'
+          document.getElementById('approved-section').style.display = 'block'
+        }
+
+        // Show content
+        document.getElementById('loading').style.display = 'none'
+        document.getElementById('quote-content').style.display = 'block'
+
+      } catch (error) {
+        showError('Unable to load quote: ' + error.message)
+      }
+    }
+
+    async function approveQuote() {
+      const btn = document.getElementById('approve-btn')
+      btn.disabled = true
+      btn.textContent = 'Approving...'
+
+      try {
+        // Update quote status
+        const { error } = await supabaseClient
+          .from('quotes')
+          .update({
+            status: 'approved',
+            approved_at: new Date().toISOString()
+          })
+          .eq('id', quoteId)
+
+        if (error) throw error
+
+        // Show approved state
+        btn.textContent = 'Approved!'
+        btn.classList.add('approved')
+
+        setTimeout(() => {
+          document.getElementById('approval-section').style.display = 'none'
+          document.getElementById('approved-section').style.display = 'block'
+        }, 1000)
+
+        // Optionally notify business owner via SMS
+        // await supabaseClient.functions.invoke('send-sms', {
+        //   body: {
+        //     to: businessOwnerPhone,
+        //     message: `${quoteData.customer_name} just approved quote #${quoteId} for $${quoteData.total}!`
+        //   }
+        // })
+
+      } catch (error) {
+        btn.disabled = false
+        btn.textContent = 'Approve Quote'
+        alert('Error approving quote. Please try again.')
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none'
+      document.getElementById('error').style.display = 'block'
+      document.getElementById('error').textContent = message
+    }
+
+    // Load quote on page load
+    loadQuote()
+  </script>
+</body>
+</html>
