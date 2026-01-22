@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ToolTime Pro | Worker App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --navy: #1a1a2e;
+            --navy-light: #252542;
+            --navy-dark: #12121f;
+            --gold: #f5a623;
+            --gold-light: #ffc857;
+            --success: #00c853;
+            --success-bg: rgba(0, 200, 83, 0.15);
+            --warning: #ffab00;
+            --warning-bg: rgba(255, 171, 0, 0.15);
+            --danger: #ff5252;
+            --danger-bg: rgba(255, 82, 82, 0.15);
+            --info: #2196f3;
+            --info-bg: rgba(33, 150, 243, 0.15);
+            --text: #e8e8e8;
+            --text-muted: #a0a0b0;
+            --border: #3a3a5a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--navy);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Mobile App Container */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .app-header {
+            background: var(--navy-light);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--navy);
+            font-size: 1rem;
+        }
+
+        .user-greeting {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-toggle {
+            background: var(--navy);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .sos-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            animation: sos-pulse 2s infinite;
+        }
+
+        @keyframes sos-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(255, 82, 82, 0); }
+        }
+
+        /* Screen Container */
+        .screen {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Clock In Screen */
+        .clock-status-card {
+            background: linear-gradient(135deg, var(--navy-light), var(--navy));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .clock-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .clock-status.clocked-in { color: var(--success); }
+        .clock-status.clocked-out { color: var(--text-muted); }
+
+        .clock-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .clock-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .clock-date {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .clock-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: none;
+            font-family: inherit;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .clock-btn.clock-in {
+            background: linear-gradient(135deg, var(--success), #00a844);
+            color: white;
+        }
+
+        .clock-btn.clock-out {
+            background: linear-gradient(135deg, var(--danger), #cc4040);
+            color: white;
+        }
+
+        .clock-btn:active {
+            transform: scale(0.95);
+        }
+
+        .clock-btn-icon {
+            font-size: 2.5rem;
+        }
+
+        .clock-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .clock-info-item {
+            text-align: center;
+        }
+
+        .clock-info-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .clock-info-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .gps-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-top: 16px;
+        }
+
+        /* Late Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--navy-light);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .modal-reminder {
+            background: var(--warning-bg);
+            border-left: 4px solid var(--warning);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .reason-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .reason-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reason-option:hover {
+            border-color: var(--gold);
+        }
+
+        .reason-option.selected {
+            border-color: var(--gold);
+            background: rgba(245, 166, 35, 0.1);
+        }
+
+        .reason-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reason-option.selected .reason-radio {
+            border-color: var(--gold);
+        }
+
+        .reason-option.selected .reason-radio::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--gold);
+            border-radius: 50%;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.primary {
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        .modal-btn.danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Jobs List */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-badge {
+            background: var(--gold);
+            color: var(--navy);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .current-job-card {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: var(--navy);
+        }
+
+        .current-job-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .current-job-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .current-job-address {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-bottom: 16px;
+        }
+
+        .current-job-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .job-action-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--navy);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .job-action-btn:hover {
+            background: var(--navy-light);
+        }
+
+        .job-action-btn.complete {
+            background: var(--success);
+            flex: 2;
+        }
+
+        .job-card {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .job-card:hover {
+            border-color: var(--gold);
+        }
+
+        .job-time-block {
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .job-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .job-time-period {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .job-info {
+            flex: 1;
+        }
+
+        .job-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 4px;
+        }
+
+        .job-customer {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .job-status-badge {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .job-status-badge.scheduled {
+            background: var(--info-bg);
+            color: var(--info);
+        }
+
+        .job-status-badge.next {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        /* Job Detail Screen */
+        .job-detail-header {
+            background: var(--navy-light);
+            margin: -20px -20px 20px;
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gold);
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .job-detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .job-detail-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .detail-section {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .detail-section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .customer-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--navy);
+            font-size: 1.25rem;
+        }
+
+        .customer-details h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .customer-details p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .customer-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .customer-action-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .customer-action-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .office-notes {
+            background: var(--navy);
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .office-notes strong {
+            color: var(--gold);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checklist-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .checklist-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: 700;
+        }
+
+        .checklist-text {
+            flex: 1;
+            font-size: 0.9375rem;
+        }
+
+        .checklist-text.completed {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .photo-upload-box {
+            aspect-ratio: 4/3;
+            background: var(--navy);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .photo-upload-box:hover {
+            border-color: var(--gold);
+        }
+
+        .photo-upload-box .icon {
+            font-size: 2rem;
+        }
+
+        .photo-upload-box span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .photo-thumbnail {
+            aspect-ratio: 4/3;
+            background: var(--navy);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-timestamp {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+
+        .voice-note-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .voice-note-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .voice-note-btn.recording {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .complete-job-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--success), #00a844);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-family: inherit;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0, 200, 83, 0.3);
+        }
+
+        /* Earnings Screen */
+        .earnings-hero {
+            background: linear-gradient(135deg, var(--navy-light), var(--navy));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .earnings-period {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .earnings-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 4px;
+        }
+
+        .earnings-hours {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .earnings-progress {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--navy);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .earnings-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .earnings-stat-card {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .earnings-stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .earnings-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Leaderboard */
+        .leaderboard-card {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .leaderboard-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .leaderboard-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-item.you {
+            background: rgba(245, 166, 35, 0.1);
+        }
+
+        .leaderboard-rank {
+            font-size: 1.25rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .leaderboard-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--navy);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .leaderboard-item.you .leaderboard-avatar {
+            background: var(--gold);
+            color: var(--navy);
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .leaderboard-points {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .leaderboard-bonus {
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        /* Safety Screen */
+        .safety-card {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .safety-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .safety-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .safety-description {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .safety-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .safety-btn.ok {
+            background: var(--success);
+            color: white;
+        }
+
+        .safety-btn.help {
+            background: var(--danger);
+            color: white;
+            margin-top: 12px;
+        }
+
+        .safety-checkin-timer {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 16px;
+        }
+
+        /* Break Reminder */
+        .break-reminder {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .break-reminder-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .break-reminder-icon {
+            font-size: 2rem;
+        }
+
+        .break-reminder-title {
+            font-weight: 600;
+            color: var(--warning);
+        }
+
+        .break-reminder-text {
+            font-size: 0.875rem;
+            color: var(--text);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .break-reminder-btn {
+            background: var(--warning);
+            color: var(--navy);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Running Late Button */
+        .running-late-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--navy-light);
+            border: 1px solid var(--warning);
+            border-radius: 12px;
+            color: var(--warning);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--navy-light);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-item-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--navy-light);
+            border: 1px solid var(--gold);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1001;
+            transition: transform 0.3s ease;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+
+        .toast-message {
+            font-size: 0.9375rem;
+            font-weight: 500;
+        }
+
+        /* SOS Modal */
+        .sos-modal {
+            background: var(--danger);
+            text-align: center;
+        }
+
+        .sos-modal .modal-icon {
+            font-size: 4rem;
+            animation: sos-flash 0.5s infinite;
+        }
+
+        @keyframes sos-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .sos-modal .modal-title {
+            color: white;
+        }
+
+        .sos-modal .modal-subtitle {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .sos-countdown {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4rem;
+            font-weight: 700;
+            color: white;
+            margin: 20px 0;
+        }
+
+        .sos-cancel-btn {
+            background: white;
+            color: var(--danger);
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Utility Classes */
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .text-danger { color: var(--danger); }
+        .text-muted { color: var(--text-muted); }
+        .text-gold { color: var(--gold); }
+
+        .mt-16 { margin-top: 16px; }
+        .mb-16 { margin-bottom: 16px; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        /* Materials Scanner */
+        .scanner-box {
+            background: var(--navy);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scanner-box:hover {
+            border-color: var(--gold);
+        }
+
+        .scanner-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .scanner-text {
+            font-size: 0.9375rem;
+            font-weight: 500;
+        }
+
+        .materials-list {
+            margin-top: 16px;
+        }
+
+        .material-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .material-name {
+            font-size: 0.9375rem;
+        }
+
+        .material-qty {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="user-avatar" id="worker-avatar">MR</div>
+                <div>
+                    <div class="user-greeting" id="greeting">Good morning,</div>
+                    <div class="user-name" id="worker-name">Miguel R.</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="lang-toggle" onclick="toggleLanguage()">
+                    <span id="lang-label">EN</span>
+                </button>
+                <button class="sos-btn" onclick="showSOSModal()">SOS</button>
+            </div>
+        </header>
+
+        <!-- Home Screen -->
+        <div class="screen active" id="screen-home">
+            <!-- Clock Status Card -->
+            <div class="clock-status-card">
+                <div class="clock-status clocked-out" id="clock-status">
+                    <span class="clock-status-dot"></span>
+                    <span id="clock-status-text">Not Clocked In</span>
+                </div>
+                <div class="clock-time" id="current-time">8:00</div>
+                <div class="clock-date" id="current-date">Monday, January 22</div>
+
+                <button class="clock-btn clock-in" id="clock-btn" onclick="handleClockAction()">
+                    <span class="clock-btn-icon">▶</span>
+                    <span id="clock-btn-text">START DAY</span>
+                </button>
+
+                <div class="gps-status" id="gps-status">
+                    <span>📍</span>
+                    <span>GPS Verified</span>
+                </div>
+
+                <div class="clock-info" id="clock-info" style="display: none;">
+                    <div class="clock-info-item">
+                        <div class="clock-info-value" id="hours-worked">0.0</div>
+                        <div class="clock-info-label">Hours</div>
+                    </div>
+                    <div class="clock-info-item">
+                        <div class="clock-info-value" id="today-earnings">$0</div>
+                        <div class="clock-info-label">Earned</div>
+                    </div>
+                    <div class="clock-info-item">
+                        <div class="clock-info-value" id="jobs-done">0/3</div>
+                        <div class="clock-info-label">Jobs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Running Late Button -->
+            <button class="running-late-btn" id="running-late-btn" onclick="showRunningLateModal()">
+                🚨 <span data-i18n="running_late">Running Late? Notify Manager</span>
+            </button>
+        </div>
+
+        <!-- Jobs Screen -->
+        <div class="screen" id="screen-jobs">
+            <!-- Break Reminder (conditionally shown) -->
+            <div class="break-reminder" id="break-reminder" style="display: none;">
+                <div class="break-reminder-header">
+                    <span class="break-reminder-icon">☕</span>
+                    <span class="break-reminder-title" data-i18n="break_required">Break Required</span>
+                </div>
+                <p class="break-reminder-text" data-i18n="break_text">
+                    You've worked 4 hours straight. Labor law requires a 30-minute meal break.
+                </p>
+                <button class="break-reminder-btn" onclick="startBreak()">
+                    🍔 <span data-i18n="start_break">Start Break</span>
+                </button>
+            </div>
+
+            <!-- Current Job -->
+            <div class="current-job-card" id="current-job-card">
+                <div class="current-job-label" data-i18n="current_job">CURRENT JOB</div>
+                <div class="current-job-title">Johnson Residence</div>
+                <div class="current-job-address">📍 123 Oak Street, Austin TX</div>
+                <div class="current-job-actions">
+                    <button class="job-action-btn" onclick="navigateToJob()">
+                        🗺️ <span data-i18n="navigate">Navigate</span>
+                    </button>
+                    <button class="job-action-btn" onclick="callCustomer()">
+                        📞 <span data-i18n="call">Call</span>
+                    </button>
+                    <button class="job-action-btn complete" onclick="showScreen('job-detail')">
+                        ✅ <span data-i18n="details">Details</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upcoming Jobs -->
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span data-i18n="up_next">Up Next</span>
+                </h2>
+                <span class="section-badge">2 more</span>
+            </div>
+
+            <div class="job-card" onclick="showScreen('job-detail')">
+                <div class="job-time-block">
+                    <div class="job-time">2:30</div>
+                    <div class="job-time-period">PM</div>
+                </div>
+                <div class="job-info">
+                    <div class="job-title">Smith - HVAC Service</div>
+                    <div class="job-customer">456 Pine Ave</div>
+                </div>
+                <span class="job-status-badge next">NEXT</span>
+            </div>
+
+            <div class="job-card" onclick="showScreen('job-detail')">
+                <div class="job-time-block">
+                    <div class="job-time">4:00</div>
+                    <div class="job-time-period">PM</div>
+                </div>
+                <div class="job-info">
+                    <div class="job-title">Davis - Plumbing Repair</div>
+                    <div class="job-customer">789 Elm Street</div>
+                </div>
+                <span class="job-status-badge scheduled">SCHEDULED</span>
+            </div>
+        </div>
+
+        <!-- Job Detail Screen -->
+        <div class="screen" id="screen-job-detail">
+            <div class="job-detail-header">
+                <button class="back-btn" onclick="showScreen('jobs')">
+                    ← <span data-i18n="back">Back</span>
+                </button>
+                <h1 class="job-detail-title">Johnson Residence</h1>
+                <div class="job-detail-meta">
+                    <span>🔧 Kitchen Remodel</span>
+                    <span>⏱️ Est: 3 hrs</span>
+                    <span>💰 $450</span>
+                </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="detail-section">
+                <div class="detail-section-title" data-i18n="customer">Customer</div>
+                <div class="customer-info">
+                    <div class="customer-avatar">SJ</div>
+                    <div class="customer-details">
+                        <h4>Sarah Johnson</h4>
+                        <p>📍 123 Oak Street, Austin TX</p>
+                    </div>
+                </div>
+                <div class="customer-actions">
+                    <button class="customer-action-btn" onclick="callCustomer()">
+                        📞 <span data-i18n="call">Call</span>
+                    </button>
+                    <button class="customer-action-btn" onclick="textCustomer()">
+                        💬 <span data-i18n="text">Text</span>
+                    </button>
+                    <button class="customer-action-btn" onclick="navigateToJob()">
+                        🗺️ <span data-i18n="navigate">Navigate</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Office Notes -->
+            <div class="detail-section">
+                <div class="detail-section-title" data-i18n="notes_from_office">Notes from Office</div>
+                <div class="office-notes">
+                    <strong>Gate code:</strong> 1234<br>
+                    <strong>Dog:</strong> Friendly golden retriever<br>
+                    <strong>Parking:</strong> Driveway is fine
+                </div>
+            </div>
+
+            <!-- Checklist -->
+            <div class="detail-section">
+                <div class="detail-section-title" data-i18n="checklist">Checklist</div>
+                <div class="checklist-item" onclick="toggleChecklist(this)">
+                    <div class="checklist-checkbox"></div>
+                    <span class="checklist-text">Remove old cabinet</span>
+                </div>
+                <div class="checklist-item" onclick="toggleChecklist(this)">
+                    <div class="checklist-checkbox"></div>
+                    <span class="checklist-text">Install new frames</span>
+                </div>
+                <div class="checklist-item" onclick="toggleChecklist(this)">
+                    <div class="checklist-checkbox"></div>
+                    <span class="checklist-text">Mount cabinet</span>
+                </div>
+                <div class="checklist-item" onclick="toggleChecklist(this)">
+                    <div class="checklist-checkbox"></div>
+                    <span class="checklist-text">Final inspection</span>
+                </div>
+            </div>
+
+            <!-- Photos -->
+            <div class="detail-section">
+                <div class="detail-section-title" data-i18n="photos">Photos</div>
+                <div class="photo-grid">
+                    <div class="photo-upload-box" onclick="capturePhoto('before')">
+                        <span class="icon">📸</span>
+                        <span data-i18n="before">BEFORE</span>
+                    </div>
+                    <div class="photo-upload-box" onclick="capturePhoto('after')">
+                        <span class="icon">📸</span>
+                        <span data-i18n="after">AFTER</span>
+                    </div>
+                </div>
+                <button class="voice-note-btn" id="voice-note-btn" onclick="toggleVoiceNote()">
+                    🎤 <span data-i18n="add_voice_note">Add Voice Note</span>
+                </button>
+            </div>
+
+            <!-- Materials -->
+            <div class="detail-section">
+                <div class="detail-section-title" data-i18n="materials_used">Materials Used</div>
+                <div class="scanner-box" onclick="scanBarcode()">
+                    <div class="scanner-icon">📷</div>
+                    <div class="scanner-text" data-i18n="scan_barcode">Scan Barcode</div>
+                </div>
+                <div class="materials-list" id="materials-list">
+                    <div class="material-item">
+                        <span class="material-name">Cabinet hinge</span>
+                        <span class="material-qty">x4</span>
+                    </div>
+                    <div class="material-item">
+                        <span class="material-name">Wood screws</span>
+                        <span class="material-qty">x12</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complete Job Button -->
+            <button class="complete-job-btn" onclick="completeJob()">
+                ✅ <span data-i18n="complete_job">COMPLETE JOB</span>
+            </button>
+        </div>
+
+        <!-- Earnings Screen -->
+        <div class="screen" id="screen-earnings">
+            <div class="earnings-hero">
+                <div class="earnings-period" data-i18n="today">TODAY</div>
+                <div class="earnings-amount" id="earnings-today">$156.00</div>
+                <div class="earnings-hours">4.5 <span data-i18n="hours">hours</span></div>
+
+                <div class="earnings-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%"></div>
+                    </div>
+                    <div class="progress-label">65% <span data-i18n="of_weekly_goal">of weekly goal</span></div>
+                </div>
+            </div>
+
+            <div class="earnings-stats">
+                <div class="earnings-stat-card">
+                    <div class="earnings-stat-value">$892</div>
+                    <div class="earnings-stat-label" data-i18n="this_week">This Week</div>
+                </div>
+                <div class="earnings-stat-card">
+                    <div class="earnings-stat-value">26 hrs</div>
+                    <div class="earnings-stat-label" data-i18n="hours_worked">Hours Worked</div>
+                </div>
+                <div class="earnings-stat-card">
+                    <div class="earnings-stat-value">$3,240</div>
+                    <div class="earnings-stat-label" data-i18n="this_month">This Month</div>
+                </div>
+                <div class="earnings-stat-card">
+                    <div class="earnings-stat-value">12</div>
+                    <div class="earnings-stat-label" data-i18n="jobs_completed">Jobs Completed</div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="leaderboard-card">
+                <div class="leaderboard-header">
+                    <span class="leaderboard-title">🏆 <span data-i18n="leaderboard">Leaderboard</span></span>
+                    <span class="text-muted" data-i18n="this_week">This Week</span>
+                </div>
+                <div class="leaderboard-item">
+                    <span class="leaderboard-rank">🥇</span>
+                    <div class="leaderboard-avatar">CM</div>
+                    <span class="leaderboard-name">Carlos M.</span>
+                    <div>
+                        <div class="leaderboard-points">98 pts</div>
+                        <div class="leaderboard-bonus">+$50</div>
+                    </div>
+                </div>
+                <div class="leaderboard-item you">
+                    <span class="leaderboard-rank">🥈</span>
+                    <div class="leaderboard-avatar">MR</div>
+                    <span class="leaderboard-name"><span data-i18n="you">You</span></span>
+                    <div>
+                        <div class="leaderboard-points">92 pts</div>
+                        <div class="leaderboard-bonus">+$25</div>
+                    </div>
+                </div>
+                <div class="leaderboard-item">
+                    <span class="leaderboard-rank">🥉</span>
+                    <div class="leaderboard-avatar">AS</div>
+                    <span class="leaderboard-name">Ana S.</span>
+                    <div>
+                        <div class="leaderboard-points">87 pts</div>
+                        <div class="leaderboard-bonus">+$10</div>
+                    </div>
+                </div>
+                <div class="leaderboard-item">
+                    <span class="leaderboard-rank">4</span>
+                    <div class="leaderboard-avatar">JK</div>
+                    <span class="leaderboard-name">James K.</span>
+                    <div>
+                        <div class="leaderboard-points">85 pts</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section mt-16">
+                <div class="detail-section-title" data-i18n="how_points_work">How Points Work</div>
+                <div class="checklist-item">
+                    <span class="text-gold">+5</span>
+                    <span class="checklist-text" data-i18n="on_time_arrival">On-time arrival</span>
+                </div>
+                <div class="checklist-item">
+                    <span class="text-gold">+10</span>
+                    <span class="checklist-text" data-i18n="five_star_review">5-star customer review</span>
+                </div>
+                <div class="checklist-item">
+                    <span class="text-gold">+2</span>
+                    <span class="checklist-text" data-i18n="photo_documentation">Photo documentation</span>
+                </div>
+                <div class="checklist-item">
+                    <span class="text-gold">+3</span>
+                    <span class="checklist-text" data-i18n="job_under_estimate">Job completed under estimate</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safety Screen -->
+        <div class="screen" id="screen-safety">
+            <div class="safety-card">
+                <div class="safety-icon">🛡️</div>
+                <h2 class="safety-title" data-i18n="safety_checkin">Safety Check-in</h2>
+                <p class="safety-description" data-i18n="safety_description">
+                    You've been on-site for 2 hours. Please confirm you're OK to continue working safely.
+                </p>
+                <button class="safety-btn ok" onclick="confirmSafetyOK()">
+                    👍 <span data-i18n="im_ok">I'm OK</span>
+                </button>
+                <button class="safety-btn help" onclick="showSOSModal()">
+                    🆘 <span data-i18n="need_help">Need Help</span>
+                </button>
+                <p class="safety-checkin-timer" data-i18n="safety_timer">
+                    No response in 15 min = Manager automatically alerted
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-section-title" data-i18n="todays_safety_log">Today's Safety Log</div>
+                <div class="checklist-item">
+                    <span>✅</span>
+                    <span class="checklist-text">9:15 AM - Checked in OK</span>
+                </div>
+                <div class="checklist-item">
+                    <span>✅</span>
+                    <span class="checklist-text">11:30 AM - Checked in OK</span>
+                </div>
+                <div class="checklist-item">
+                    <span>⏳</span>
+                    <span class="checklist-text">1:30 PM - Pending</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-section-title" data-i18n="emergency_contacts">Emergency Contacts</div>
+                <div class="checklist-item">
+                    <span>📞</span>
+                    <span class="checklist-text">Dispatch: (555) 123-4567</span>
+                </div>
+                <div class="checklist-item">
+                    <span>📞</span>
+                    <span class="checklist-text">Manager (John): (555) 987-6543</span>
+                </div>
+                <div class="checklist-item">
+                    <span>🚨</span>
+                    <span class="checklist-text">911 Emergency</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="showScreen('home')" data-screen="home">
+                <span class="nav-item-icon">🏠</span>
+                <span data-i18n="home">Home</span>
+            </button>
+            <button class="nav-item" onclick="showScreen('jobs')" data-screen="jobs">
+                <span class="nav-item-icon">📋</span>
+                <span data-i18n="jobs">Jobs</span>
+            </button>
+            <button class="nav-item" onclick="showScreen('earnings')" data-screen="earnings">
+                <span class="nav-item-icon">💰</span>
+                <span data-i18n="earnings">Earnings</span>
+            </button>
+            <button class="nav-item" onclick="showScreen('safety')" data-screen="safety">
+                <span class="nav-item-icon">🛡️</span>
+                <span data-i18n="safety">Safety</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Late Clock-in Modal -->
+    <div class="modal-overlay" id="late-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">⏰</div>
+                <h2 class="modal-title" data-i18n="late_clockin">Late Clock-In</h2>
+                <p class="modal-subtitle" id="late-time-text">You're clocking in 47 minutes late</p>
+            </div>
+            <div class="modal-reminder">
+                <strong data-i18n="reminder">Reminder:</strong> <span data-i18n="late_reminder_text">Being on time helps our team deliver great service. Please notify your manager at least 1 hour before your shift when possible.</span>
+            </div>
+            <div class="reason-options" id="late-reasons">
+                <div class="reason-option" onclick="selectReason(this, 'traffic')">
+                    <div class="reason-radio"></div>
+                    <span data-i18n="reason_traffic">Traffic/Road conditions</span>
+                </div>
+                <div class="reason-option" onclick="selectReason(this, 'emergency')">
+                    <div class="reason-radio"></div>
+                    <span data-i18n="reason_emergency">Personal emergency</span>
+                </div>
+                <div class="reason-option" onclick="selectReason(this, 'vehicle')">
+                    <div class="reason-radio"></div>
+                    <span data-i18n="reason_vehicle">Vehicle issues</span>
+                </div>
+                <div class="reason-option" onclick="selectReason(this, 'notified')">
+                    <div class="reason-radio"></div>
+                    <span data-i18n="reason_notified">Notified manager in advance</span>
+                </div>
+                <div class="reason-option" onclick="selectReason(this, 'other')">
+                    <div class="reason-radio"></div>
+                    <span data-i18n="reason_other">Other</span>
+                </div>
+            </div>
+            <button class="modal-btn primary" onclick="confirmLateClockIn()" id="confirm-late-btn" disabled>
+                <span data-i18n="clock_in_late">Clock In (47 min late)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Running Late Modal -->
+    <div class="modal-overlay" id="running-late-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">🚨</div>
+                <h2 class="modal-title" data-i18n="running_late_title">Running Late?</h2>
+                <p class="modal-subtitle" data-i18n="running_late_subtitle">Let your manager know right away</p>
+            </div>
+            <div class="detail-section-title" data-i18n="how_late">How late will you be?</div>
+            <div class="reason-options" id="delay-options">
+                <div class="reason-option" onclick="selectDelay(this, 15)">
+                    <div class="reason-radio"></div>
+                    <span>15 <span data-i18n="minutes">minutes</span></span>
+                </div>
+                <div class="reason-option" onclick="selectDelay(this, 30)">
+                    <div class="reason-radio"></div>
+                    <span>30 <span data-i18n="minutes">minutes</span></span>
+                </div>
+                <div class="reason-option" onclick="selectDelay(this, 60)">
+                    <div class="reason-radio"></div>
+                    <span>1 <span data-i18n="hour">hour</span></span>
+                </div>
+            </div>
+            <textarea placeholder="Reason (optional)" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--navy); color:var(--text); font-family:inherit; margin-bottom:16px; resize:none;" rows="2" id="delay-reason"></textarea>
+            <button class="modal-btn primary" onclick="notifyManager()" id="notify-manager-btn" disabled>
+                📤 <span data-i18n="notify_manager">Notify Manager</span>
+            </button>
+            <button class="modal-btn" style="background:transparent; color:var(--text-muted); margin-top:10px;" onclick="closeModal('running-late-modal')">
+                <span data-i18n="cancel">Cancel</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- SOS Modal -->
+    <div class="modal-overlay" id="sos-modal">
+        <div class="modal sos-modal">
+            <div class="modal-header">
+                <div class="modal-icon">🆘</div>
+                <h2 class="modal-title" data-i18n="emergency">EMERGENCY</h2>
+                <p class="modal-subtitle" data-i18n="sos_releasing">Releasing in...</p>
+            </div>
+            <div class="sos-countdown" id="sos-countdown">3</div>
+            <p class="modal-subtitle" data-i18n="sos_actions">This will alert your manager and share your GPS location</p>
+            <button class="sos-cancel-btn" onclick="cancelSOS()">
+                <span data-i18n="cancel">CANCEL</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Job Complete Modal -->
+    <div class="modal-overlay" id="complete-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">✅</div>
+                <h2 class="modal-title" data-i18n="job_complete">Job Complete!</h2>
+                <p class="modal-subtitle" data-i18n="great_work">Great work, Miguel!</p>
+            </div>
+            <div class="earnings-stats" style="margin-bottom:20px;">
+                <div class="earnings-stat-card">
+                    <div class="earnings-stat-value">2.5 hrs</div>
+                    <div class="earnings-stat-label" data-i18n="time_spent">Time Spent</div>
+                </div>
+                <div class="earnings-stat-card">
+                    <div class="earnings-stat-value">+$112</div>
+                    <div class="earnings-stat-label" data-i18n="earned">Earned</div>
+                </div>
+            </div>
+            <div class="detail-section" style="text-align:left; margin-bottom:20px;">
+                <div class="checklist-item">
+                    <span class="text-success">+5 pts</span>
+                    <span class="checklist-text" data-i18n="on_time">On-time arrival</span>
+                </div>
+                <div class="checklist-item">
+                    <span class="text-success">+2 pts</span>
+                    <span class="checklist-text" data-i18n="photos_uploaded">Photos uploaded</span>
+                </div>
+                <div class="checklist-item">
+                    <span class="text-success">+3 pts</span>
+                    <span class="checklist-text" data-i18n="under_estimate">Under time estimate</span>
+                </div>
+            </div>
+            <button class="modal-btn primary" onclick="closeModal('complete-modal'); showScreen('jobs')">
+                <span data-i18n="next_job">Next Job →</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-icon" id="toast-icon">✅</span>
+            <span class="toast-message" id="toast-message">Action completed</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // STATE
+        // ============================================
+        let isClockedIn = false
+        let clockInTime = null
+        let scheduledStartTime = new Date()
+        scheduledStartTime.setHours(8, 0, 0, 0)
+        let selectedLateReason = null
+        let selectedDelay = null
+        let sosCountdown = null
+        let currentLanguage = 'en'
+
+        // ============================================
+        // TRANSLATIONS
+        // ============================================
+        const translations = {
+            en: {
+                home: 'Home',
+                jobs: 'Jobs',
+                earnings: 'Earnings',
+                safety: 'Safety',
+                running_late: 'Running Late? Notify Manager',
+                current_job: 'CURRENT JOB',
+                navigate: 'Navigate',
+                call: 'Call',
+                text: 'Text',
+                details: 'Details',
+                up_next: 'Up Next',
+                back: 'Back',
+                customer: 'Customer',
+                notes_from_office: 'Notes from Office',
+                checklist: 'Checklist',
+                photos: 'Photos',
+                before: 'BEFORE',
+                after: 'AFTER',
+                add_voice_note: 'Add Voice Note',
+                materials_used: 'Materials Used',
+                scan_barcode: 'Scan Barcode',
+                complete_job: 'COMPLETE JOB',
+                today: 'TODAY',
+                hours: 'hours',
+                of_weekly_goal: 'of weekly goal',
+                this_week: 'This Week',
+                hours_worked: 'Hours Worked',
+                this_month: 'This Month',
+                jobs_completed: 'Jobs Completed',
+                leaderboard: 'Leaderboard',
+                you: 'You',
+                how_points_work: 'How Points Work',
+                on_time_arrival: 'On-time arrival',
+                five_star_review: '5-star customer review',
+                photo_documentation: 'Photo documentation',
+                job_under_estimate: 'Job completed under estimate',
+                safety_checkin: 'Safety Check-in',
+                safety_description: "You've been on-site for 2 hours. Please confirm you're OK to continue working safely.",
+                im_ok: "I'm OK",
+                need_help: 'Need Help',
+                safety_timer: 'No response in 15 min = Manager automatically alerted',
+                todays_safety_log: "Today's Safety Log",
+                emergency_contacts: 'Emergency Contacts',
+                late_clockin: 'Late Clock-In',
+                reminder: 'Reminder:',
+                late_reminder_text: 'Being on time helps our team deliver great service. Please notify your manager at least 1 hour before your shift when possible.',
+                reason_traffic: 'Traffic/Road conditions',
+                reason_emergency: 'Personal emergency',
+                reason_vehicle: 'Vehicle issues',
+                reason_notified: 'Notified manager in advance',
+                reason_other: 'Other',
+                clock_in_late: 'Clock In',
+                running_late_title: 'Running Late?',
+                running_late_subtitle: 'Let your manager know right away',
+                how_late: 'How late will you be?',
+                minutes: 'minutes',
+                hour: 'hour',
+                notify_manager: 'Notify Manager',
+                cancel: 'Cancel',
+                emergency: 'EMERGENCY',
+                sos_releasing: 'Releasing in...',
+                sos_actions: 'This will alert your manager and share your GPS location',
+                job_complete: 'Job Complete!',
+                great_work: 'Great work!',
+                time_spent: 'Time Spent',
+                earned: 'Earned',
+                on_time: 'On-time arrival',
+                photos_uploaded: 'Photos uploaded',
+                under_estimate: 'Under time estimate',
+                next_job: 'Next Job →',
+                break_required: 'Break Required',
+                break_text: "You've worked 4 hours straight. Labor law requires a 30-minute meal break.",
+                start_break: 'Start Break'
+            },
+            es: {
+                home: 'Inicio',
+                jobs: 'Trabajos',
+                earnings: 'Ganancias',
+                safety: 'Seguridad',
+                running_late: '¿Llegando tarde? Notificar al gerente',
+                current_job: 'TRABAJO ACTUAL',
+                navigate: 'Navegar',
+                call: 'Llamar',
+                text: 'Mensaje',
+                details: 'Detalles',
+                up_next: 'Siguiente',
+                back: 'Volver',
+                customer: 'Cliente',
+                notes_from_office: 'Notas de la Oficina',
+                checklist: 'Lista de Tareas',
+                photos: 'Fotos',
+                before: 'ANTES',
+                after: 'DESPUÉS',
+                add_voice_note: 'Agregar Nota de Voz',
+                materials_used: 'Materiales Usados',
+                scan_barcode: 'Escanear Código',
+                complete_job: 'COMPLETAR TRABAJO',
+                today: 'HOY',
+                hours: 'horas',
+                of_weekly_goal: 'de meta semanal',
+                this_week: 'Esta Semana',
+                hours_worked: 'Horas Trabajadas',
+                this_month: 'Este Mes',
+                jobs_completed: 'Trabajos Completados',
+                leaderboard: 'Clasificación',
+                you: 'Tú',
+                how_points_work: 'Cómo Funcionan los Puntos',
+                on_time_arrival: 'Llegada a tiempo',
+                five_star_review: 'Reseña de 5 estrellas',
+                photo_documentation: 'Documentación fotográfica',
+                job_under_estimate: 'Trabajo completado antes del estimado',
+                safety_checkin: 'Control de Seguridad',
+                safety_description: 'Has estado en el sitio por 2 horas. Por favor confirma que estás bien para continuar trabajando de manera segura.',
+                im_ok: 'Estoy Bien',
+                need_help: 'Necesito Ayuda',
+                safety_timer: 'Sin respuesta en 15 min = Gerente alertado automáticamente',
+                todays_safety_log: 'Registro de Seguridad de Hoy',
+                emergency_contacts: 'Contactos de Emergencia',
+                late_clockin: 'Entrada Tardía',
+                reminder: 'Recordatorio:',
+                late_reminder_text: 'Llegar a tiempo ayuda a nuestro equipo a brindar un gran servicio. Por favor notifica a tu gerente al menos 1 hora antes de tu turno cuando sea posible.',
+                reason_traffic: 'Tráfico/Condiciones del camino',
+                reason_emergency: 'Emergencia personal',
+                reason_vehicle: 'Problemas con el vehículo',
+                reason_notified: 'Notifiqué al gerente con anticipación',
+                reason_other: 'Otro',
+                clock_in_late: 'Registrar Entrada',
+                running_late_title: '¿Llegando Tarde?',
+                running_late_subtitle: 'Avisa a tu gerente de inmediato',
+                how_late: '¿Cuánto tiempo tardarás?',
+                minutes: 'minutos',
+                hour: 'hora',
+                notify_manager: 'Notificar al Gerente',
+                cancel: 'Cancelar',
+                emergency: 'EMERGENCIA',
+                sos_releasing: 'Liberando en...',
+                sos_actions: 'Esto alertará a tu gerente y compartirá tu ubicación GPS',
+                job_complete: '¡Trabajo Completado!',
+                great_work: '¡Buen trabajo!',
+                time_spent: 'Tiempo',
+                earned: 'Ganado',
+                on_time: 'Llegada a tiempo',
+                photos_uploaded: 'Fotos subidas',
+                under_estimate: 'Bajo el estimado',
+                next_job: 'Siguiente Trabajo →',
+                break_required: 'Descanso Requerido',
+                break_text: 'Has trabajado 4 horas seguidas. La ley laboral requiere un descanso de 30 minutos.',
+                start_break: 'Iniciar Descanso'
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock()
+            setInterval(updateClock, 1000)
+            updateGreeting()
+        })
+
+        function updateClock() {
+            const now = new Date()
+            const hours = now.getHours()
+            const minutes = now.getMinutes().toString().padStart(2, '0')
+            const ampm = hours >= 12 ? 'PM' : 'AM'
+            const displayHours = hours % 12 || 12
+
+            document.getElementById('current-time').textContent = `${displayHours}:${minutes} ${ampm}`
+
+            const options = { weekday: 'long', month: 'long', day: 'numeric' }
+            document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options)
+
+            // Update hours worked if clocked in
+            if (isClockedIn && clockInTime) {
+                const hoursWorked = ((now - clockInTime) / 3600000).toFixed(1)
+                document.getElementById('hours-worked').textContent = hoursWorked
+                // Rough earnings calculation
+                const earnings = (parseFloat(hoursWorked) * 35).toFixed(0)
+                document.getElementById('today-earnings').textContent = '$' + earnings
+            }
+        }
+
+        function updateGreeting() {
+            const hour = new Date().getHours()
+            let greeting = 'Good morning,'
+            if (hour >= 12 && hour < 17) greeting = 'Good afternoon,'
+            if (hour >= 17) greeting = 'Good evening,'
+            document.getElementById('greeting').textContent = greeting
+        }
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+
+            // Show target screen
+            const targetScreen = document.getElementById('screen-' + screenId)
+            if (targetScreen) {
+                targetScreen.classList.add('active')
+            }
+
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+            const navItem = document.querySelector(`.nav-item[data-screen="${screenId}"]`)
+            if (navItem) {
+                navItem.classList.add('active')
+            }
+        }
+
+        // ============================================
+        // CLOCK IN/OUT
+        // ============================================
+        function handleClockAction() {
+            if (!isClockedIn) {
+                // Check if late
+                const now = new Date()
+                const minutesLate = Math.floor((now - scheduledStartTime) / 60000)
+
+                if (minutesLate > 5) {
+                    document.getElementById('late-time-text').textContent =
+                        `You're clocking in ${minutesLate} minutes late`
+                    document.getElementById('confirm-late-btn').textContent =
+                        `Clock In (${minutesLate} min late)`
+                    showModal('late-modal')
+                } else {
+                    clockIn()
+                }
+            } else {
+                clockOut()
+            }
+        }
+
+        function clockIn() {
+            isClockedIn = true
+            clockInTime = new Date()
+
+            // Update UI
+            document.getElementById('clock-status').classList.remove('clocked-out')
+            document.getElementById('clock-status').classList.add('clocked-in')
+            document.getElementById('clock-status-text').textContent = 'Clocked In'
+
+            document.getElementById('clock-btn').classList.remove('clock-in')
+            document.getElementById('clock-btn').classList.add('clock-out')
+            document.getElementById('clock-btn-text').textContent = 'END DAY'
+            document.querySelector('.clock-btn-icon').textContent = '⏹'
+
+            document.getElementById('clock-info').style.display = 'flex'
+            document.getElementById('running-late-btn').style.display = 'none'
+
+            showToast('✅', 'Clocked in successfully!')
+        }
+
+        function clockOut() {
+            isClockedIn = false
+
+            // Update UI
+            document.getElementById('clock-status').classList.remove('clocked-in')
+            document.getElementById('clock-status').classList.add('clocked-out')
+            document.getElementById('clock-status-text').textContent = 'Clocked Out'
+
+            document.getElementById('clock-btn').classList.remove('clock-out')
+            document.getElementById('clock-btn').classList.add('clock-in')
+            document.getElementById('clock-btn-text').textContent = 'START DAY'
+            document.querySelector('.clock-btn-icon').textContent = '▶'
+
+            showToast('👋', 'Clocked out. Great work today!')
+        }
+
+        function selectReason(element, reason) {
+            document.querySelectorAll('#late-reasons .reason-option').forEach(opt => {
+                opt.classList.remove('selected')
+            })
+            element.classList.add('selected')
+            selectedLateReason = reason
+            document.getElementById('confirm-late-btn').disabled = false
+        }
+
+        function confirmLateClockIn() {
+            closeModal('late-modal')
+            clockIn()
+            showToast('📋', 'Late reason recorded. Please try to arrive on time.')
+        }
+
+        // ============================================
+        // RUNNING LATE
+        // ============================================
+        function showRunningLateModal() {
+            showModal('running-late-modal')
+        }
+
+        function selectDelay(element, minutes) {
+            document.querySelectorAll('#delay-options .reason-option').forEach(opt => {
+                opt.classList.remove('selected')
+            })
+            element.classList.add('selected')
+            selectedDelay = minutes
+            document.getElementById('notify-manager-btn').disabled = false
+        }
+
+        function notifyManager() {
+            closeModal('running-late-modal')
+            showToast('📤', `Manager notified. You're running ${selectedDelay} min late.`)
+            selectedDelay = null
+            document.getElementById('delay-reason').value = ''
+        }
+
+        // ============================================
+        // MODALS
+        // ============================================
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active')
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active')
+        }
+
+        // ============================================
+        // SOS
+        // ============================================
+        function showSOSModal() {
+            showModal('sos-modal')
+            let count = 3
+            document.getElementById('sos-countdown').textContent = count
+
+            sosCountdown = setInterval(() => {
+                count--
+                document.getElementById('sos-countdown').textContent = count
+
+                if (count <= 0) {
+                    clearInterval(sosCountdown)
+                    triggerSOS()
+                }
+            }, 1000)
+        }
+
+        function cancelSOS() {
+            clearInterval(sosCountdown)
+            closeModal('sos-modal')
+            document.getElementById('sos-countdown').textContent = '3'
+        }
+
+        function triggerSOS() {
+            closeModal('sos-modal')
+            showToast('🚨', 'SOS sent! Manager and emergency contacts alerted.')
+            // In production: send GPS location, alert manager, potentially call 911
+        }
+
+        // ============================================
+        // JOB ACTIONS
+        // ============================================
+        function navigateToJob() {
+            // Open maps with address
+            const address = '123 Oak Street, Austin TX'
+            const encodedAddress = encodeURIComponent(address)
+            window.open(`https://maps.google.com/maps?q=${encodedAddress}`, '_blank')
+        }
+
+        function callCustomer() {
+            window.location.href = 'tel:+15551234567'
+        }
+
+        function textCustomer() {
+            window.location.href = 'sms:+15551234567'
+        }
+
+        function toggleChecklist(item) {
+            const checkbox = item.querySelector('.checklist-checkbox')
+            const text = item.querySelector('.checklist-text')
+            checkbox.classList.toggle('checked')
+            text.classList.toggle('completed')
+        }
+
+        function capturePhoto(type) {
+            // In production: open camera
+            showToast('📸', `${type.toUpperCase()} photo captured!`)
+        }
+
+        function toggleVoiceNote() {
+            const btn = document.getElementById('voice-note-btn')
+            if (btn.classList.contains('recording')) {
+                btn.classList.remove('recording')
+                btn.innerHTML = '🎤 <span data-i18n="add_voice_note">Add Voice Note</span>'
+                showToast('🎤', 'Voice note saved!')
+            } else {
+                btn.classList.add('recording')
+                btn.innerHTML = '⏹ Recording...'
+            }
+        }
+
+        function scanBarcode() {
+            // In production: open barcode scanner
+            showToast('📷', 'Barcode scanned! Material added.')
+        }
+
+        function completeJob() {
+            showModal('complete-modal')
+        }
+
+        // ============================================
+        // SAFETY
+        // ============================================
+        function confirmSafetyOK() {
+            showToast('✅', 'Safety check-in confirmed!')
+        }
+
+        function startBreak() {
+            document.getElementById('break-reminder').style.display = 'none'
+            showToast('☕', 'Break started. Enjoy your meal!')
+        }
+
+        // ============================================
+        // LANGUAGE
+        // ============================================
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'en' ? 'es' : 'en'
+            document.getElementById('lang-label').textContent = currentLanguage.toUpperCase()
+            applyTranslations()
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLanguage]
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n')
+                if (t[key]) {
+                    el.textContent = t[key]
+                }
+            })
+        }
+
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(icon, message) {
+            const toast = document.getElementById('toast')
+            document.getElementById('toast-icon').textContent = icon
+            document.getElementById('toast-message').textContent = message
+            toast.classList.add('show')
+
+            setTimeout(() => {
+                toast.classList.remove('show')
+            }, 3000)
+        }
+    </script>
+</body>
+</html>
