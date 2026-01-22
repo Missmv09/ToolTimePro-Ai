@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | ToolTime Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --navy: #1a1a2e;
@@ -64,15 +65,32 @@
         .header-title h1 { font-size: 1.5rem; font-weight: 700; color: white; }
         .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
 
-        .demo-badge {
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            color: var(--navy);
-            padding: 8px 16px;
-            border-radius: 20px;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 600;
+            color: var(--navy);
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .company-name {
             font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: var(--text-muted);
         }
 
         /* Stats Row */
@@ -115,7 +133,7 @@
         .stat-icon.revenue { background: rgba(0, 200, 83, 0.15); }
         .stat-icon.jobs { background: rgba(33, 150, 243, 0.15); }
         .stat-icon.workers { background: rgba(245, 166, 35, 0.15); }
-        .stat-icon.quotes { background: rgba(255, 171, 0, 0.15); }
+        .stat-icon.leads { background: rgba(255, 82, 82, 0.15); }
 
         .stat-value {
             font-family: 'JetBrains Mono', monospace;
@@ -142,6 +160,30 @@
 
         .stat-change.up { background: rgba(0, 200, 83, 0.15); color: var(--success); }
         .stat-change.neutral { background: rgba(33, 150, 243, 0.15); color: var(--info); }
+
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, var(--navy) 25%, var(--navy-light) 50%, var(--navy) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-text {
+            height: 2rem;
+            width: 80px;
+        }
+
+        .skeleton-line {
+            height: 1rem;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
 
         /* Main Dashboard Grid */
         .dashboard-grid {
@@ -198,6 +240,15 @@
             gap: 12px;
             padding: 14px 0;
             border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .job-item:hover {
+            background: rgba(245, 166, 35, 0.05);
+            margin: 0 -20px;
+            padding-left: 20px;
+            padding-right: 20px;
         }
 
         .job-item:last-child { border-bottom: none; }
@@ -206,11 +257,11 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
             color: var(--text-muted);
-            width: 60px;
+            width: 70px;
             flex-shrink: 0;
         }
 
-        .job-status {
+        .job-status-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
@@ -218,10 +269,10 @@
             flex-shrink: 0;
         }
 
-        .job-status.confirmed { background: var(--success); }
-        .job-status.pending { background: var(--warning); }
-        .job-status.in-progress { background: var(--info); animation: pulse 2s infinite; }
-        .job-status.unassigned { background: var(--text-muted); }
+        .job-status-dot.scheduled { background: var(--info); }
+        .job-status-dot.in_progress { background: var(--warning); animation: pulse 2s infinite; }
+        .job-status-dot.completed { background: var(--success); }
+        .job-status-dot.cancelled { background: var(--danger); }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -241,19 +292,26 @@
             color: var(--text-muted);
         }
 
-        .job-tag {
+        /* Status Badges */
+        .status-badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 600;
             margin-top: 6px;
         }
 
-        .job-tag.in-progress { background: rgba(33, 150, 243, 0.15); color: var(--info); }
-        .job-tag.pending { background: rgba(255, 171, 0, 0.15); color: var(--warning); }
-        .job-tag.assign { background: rgba(160, 160, 176, 0.15); color: var(--text-muted); cursor: pointer; }
-        .job-tag.assign:hover { background: rgba(245, 166, 35, 0.15); color: var(--gold); }
+        .status-new { background: #e3f2fd; color: #1565c0; }
+        .status-contacted { background: #fff3e0; color: #ef6c00; }
+        .status-quoted { background: #f3e5f5; color: #7b1fa2; }
+        .status-won { background: #e8f5e9; color: #2e7d32; }
+        .status-lost { background: #ffebee; color: #c62828; }
+
+        .status-scheduled { background: rgba(33, 150, 243, 0.15); color: var(--info); }
+        .status-active, .status-in_progress { background: rgba(255, 171, 0, 0.15); color: var(--warning); }
+        .status-completed { background: rgba(0, 200, 83, 0.15); color: var(--success); }
+        .status-cancelled { background: rgba(255, 82, 82, 0.15); color: var(--danger); }
 
         /* Lead Items */
         .lead-item {
@@ -308,7 +366,7 @@
             gap: 8px;
         }
 
-        .lead-btn {
+        .lead-btn, .btn-icon {
             padding: 8px 14px;
             border-radius: 8px;
             border: none;
@@ -321,95 +379,113 @@
 
         .lead-btn.primary { background: var(--gold); color: var(--navy); }
         .lead-btn.secondary { background: var(--navy-light); color: var(--text); border: 1px solid var(--border); }
-        .lead-btn:hover { opacity: 0.9; }
+        .lead-btn:hover, .btn-icon:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        /* Pipeline */
-        .pipeline {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            margin-top: 12px;
-            border-top: 1px solid var(--border);
+        .btn-icon {
+            padding: 6px 10px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
         }
 
-        .pipeline-stage {
-            text-align: center;
-        }
-
-        .pipeline-count {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--gold);
-        }
-
-        .pipeline-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .pipeline-arrow {
-            color: var(--text-muted);
-            font-size: 1.25rem;
-            align-self: center;
-        }
-
-        /* Crew Items */
-        .crew-item {
+        /* Worker Cards */
+        .worker-card {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
+            gap: 16px;
+            padding: 16px;
+            background: var(--navy);
+            border-radius: 12px;
+            margin-bottom: 12px;
         }
 
-        .crew-item:last-child { border-bottom: none; }
+        .worker-card:last-child { margin-bottom: 0; }
 
-        .crew-avatar {
-            width: 40px;
-            height: 40px;
-            background: var(--gold);
-            border-radius: 50%;
+        .worker-avatar {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            color: var(--navy);
-            font-size: 0.875rem;
+            background: rgba(245, 166, 35, 0.15);
+            border-radius: 50%;
         }
 
-        .crew-info { flex: 1; }
+        .worker-info { flex: 1; }
 
-        .crew-name {
-            font-weight: 600;
+        .worker-info h4 {
             font-size: 0.9375rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .worker-status {
+            font-size: 0.8125rem;
+            color: var(--success);
             margin-bottom: 2px;
         }
 
-        .crew-detail {
-            font-size: 0.8125rem;
+        .worker-hours {
+            font-size: 0.75rem;
             color: var(--text-muted);
         }
 
-        .crew-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .worker-job {
             font-size: 0.75rem;
-            font-weight: 500;
+            color: var(--gold);
+            margin-top: 4px;
         }
 
-        .crew-status.on-job { color: var(--success); }
-        .crew-status.on-break { color: var(--warning); }
-        .crew-status.not-started { color: var(--text-muted); }
-        .crew-status.in-transit { color: var(--info); }
+        .worker-actions .btn-sm {
+            padding: 6px 12px;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-        .crew-status::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: currentColor;
+        .worker-actions .btn-sm:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--navy-light);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--gold);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 32px 24px;
+            font-style: italic;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
         }
 
         /* Quick Actions */
@@ -515,6 +591,42 @@
             .actions-grid { flex-direction: column; }
             .action-btn { justify-content: center; }
         }
+
+        /* Tables for responsive display */
+        .jobs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .jobs-table th {
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .jobs-table td {
+            padding: 12px 8px 12px 0;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .jobs-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .jobs-table tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .jobs-table tr:hover {
+            background: rgba(245, 166, 35, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -530,14 +642,20 @@
                 <h1>Admin Dashboard</h1>
                 <p>Your entire business at a glance. Jobs, leads, crew, revenue - all in one place.</p>
             </div>
-            <span class="demo-badge">Interactive Demo</span>
+            <div class="user-info" id="user-info">
+                <div class="user-avatar" id="user-avatar">--</div>
+                <div>
+                    <div class="user-name" id="user-name">Loading...</div>
+                    <div class="company-name" id="company-name">--</div>
+                </div>
+            </div>
         </div>
     </header>
 
     <!-- Payroll Coming Soon Banner -->
     <div class="payroll-banner">
-        <span class="payroll-banner-text">💰 Payroll is coming! Direct deposit, tax forms, time sync — all built-in.</span>
-        <a href="payroll.html#waitlist" class="payroll-banner-link">Join Waitlist →</a>
+        <span class="payroll-banner-text">Payroll is coming! Direct deposit, tax forms, time sync - all built-in.</span>
+        <a href="payroll.html#waitlist" class="payroll-banner-link">Join Waitlist</a>
     </div>
 
     <!-- Stats Row -->
@@ -545,35 +663,31 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon revenue">💰</div>
-                </div>
-                <div class="stat-value">$12,450</div>
-                <div class="stat-label">Revenue This Month</div>
-                <span class="stat-change up">↑ +18% vs last month</span>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
                     <div class="stat-icon jobs">📋</div>
                 </div>
-                <div class="stat-value">47</div>
-                <div class="stat-label">Jobs This Month</div>
-                <span class="stat-change neutral">+5 vs last month</span>
+                <div class="stat-value" id="today-jobs-count"><span class="skeleton skeleton-text"></span></div>
+                <div class="stat-label">Jobs Today</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon workers">👥</div>
+                    <div class="stat-icon leads">🔥</div>
                 </div>
-                <div class="stat-value">8</div>
-                <div class="stat-label">Active Workers</div>
-                <span class="stat-change up">6 on jobs now</span>
+                <div class="stat-value" id="new-leads-count"><span class="skeleton skeleton-text"></span></div>
+                <div class="stat-label">New Leads</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon quotes">⏳</div>
+                    <div class="stat-icon workers">👷</div>
                 </div>
-                <div class="stat-value">12</div>
-                <div class="stat-label">Pending Quotes</div>
-                <span class="stat-change neutral">$8,200 value</span>
+                <div class="stat-value" id="clocked-in-count"><span class="skeleton skeleton-text"></span></div>
+                <div class="stat-label">Workers Clocked In</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon revenue">💰</div>
+                </div>
+                <div class="stat-value" id="month-revenue"><span class="skeleton skeleton-text"></span></div>
+                <div class="stat-label">Revenue This Month</div>
             </div>
         </div>
     </section>
@@ -584,59 +698,13 @@
         <div class="panel">
             <div class="panel-header">
                 <div class="panel-title">📅 Today's Schedule</div>
-                <span class="panel-badge">8 jobs</span>
+                <span class="panel-badge" id="jobs-count-badge">--</span>
             </div>
             <div class="panel-body">
-                <div class="job-item">
-                    <div class="job-time">9:00 AM</div>
-                    <div class="job-status confirmed"></div>
-                    <div class="job-details">
-                        <div class="job-name">Martinez - Lawn Care</div>
-                        <div class="job-info">Miguel R. • 123 Oak St</div>
-                    </div>
-                </div>
-                <div class="job-item">
-                    <div class="job-time">10:30 AM</div>
-                    <div class="job-status confirmed"></div>
-                    <div class="job-details">
-                        <div class="job-name">Thompson - Pool Service</div>
-                        <div class="job-info">Carlos M. • 456 Pine Ave</div>
-                    </div>
-                </div>
-                <div class="job-item">
-                    <div class="job-time">11:00 AM</div>
-                    <div class="job-status in-progress"></div>
-                    <div class="job-details">
-                        <div class="job-name">Oak Valley HOA</div>
-                        <div class="job-info">Team A • 789 Oak Valley Dr</div>
-                        <span class="job-tag in-progress">IN PROGRESS</span>
-                    </div>
-                </div>
-                <div class="job-item">
-                    <div class="job-time">1:00 PM</div>
-                    <div class="job-status pending"></div>
-                    <div class="job-details">
-                        <div class="job-name">Johnson - Hedge Trim</div>
-                        <div class="job-info">Miguel R. • 321 Elm St</div>
-                        <span class="job-tag pending">PENDING CONFIRM</span>
-                    </div>
-                </div>
-                <div class="job-item">
-                    <div class="job-time">2:30 PM</div>
-                    <div class="job-status unassigned"></div>
-                    <div class="job-details">
-                        <div class="job-name">Williams - Lawn Care</div>
-                        <div class="job-info">Unassigned</div>
-                        <span class="job-tag assign">ASSIGN WORKER</span>
-                    </div>
-                </div>
-                <div class="job-item">
-                    <div class="job-time">3:30 PM</div>
-                    <div class="job-status confirmed"></div>
-                    <div class="job-details">
-                        <div class="job-name">Davis - Sprinkler Check</div>
-                        <div class="job-info">Ana S. • 654 Maple Ln</div>
-                    </div>
+                <div id="jobs-table-body">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
                 </div>
             </div>
         </div>
@@ -644,66 +712,14 @@
         <!-- Leads & CRM -->
         <div class="panel">
             <div class="panel-header">
-                <div class="panel-title">🔥 New Leads</div>
-                <span class="panel-badge">5 this week</span>
+                <div class="panel-title">🔥 Recent Leads</div>
+                <span class="panel-badge" id="leads-count-badge">--</span>
             </div>
             <div class="panel-body">
-                <div class="lead-item">
-                    <div class="lead-header">
-                        <div class="lead-name">Sarah M.</div>
-                        <span class="lead-source hot">🔥 JUST NOW</span>
-                    </div>
-                    <div class="lead-description">Pool cleaning, monthly service</div>
-                    <div class="lead-meta">📞 555-0123 • Via chatbot</div>
-                    <div class="lead-actions">
-                        <button class="lead-btn primary">Call</button>
-                        <button class="lead-btn secondary">Quote</button>
-                        <button class="lead-btn secondary">Assign</button>
-                    </div>
-                </div>
-
-                <div class="lead-item">
-                    <div class="lead-header">
-                        <div class="lead-name">Mike T.</div>
-                        <span class="lead-source">📧 2 hours ago</span>
-                    </div>
-                    <div class="lead-description">Landscaping, new install</div>
-                    <div class="lead-meta">Budget: $2,000-3,000</div>
-                    <div class="lead-actions">
-                        <button class="lead-btn primary">Call</button>
-                        <button class="lead-btn secondary">Quote</button>
-                        <button class="lead-btn secondary">Assign</button>
-                    </div>
-                </div>
-
-                <div class="lead-item">
-                    <div class="lead-header">
-                        <div class="lead-name">Lisa R.</div>
-                        <span class="lead-source">📱 Yesterday</span>
-                    </div>
-                    <div class="lead-description">Weekly lawn care</div>
-                    <div class="lead-meta">Quote sent - awaiting response</div>
-                    <div class="lead-actions">
-                        <button class="lead-btn secondary">Follow Up</button>
-                        <button class="lead-btn secondary">View Quote</button>
-                    </div>
-                </div>
-
-                <div class="pipeline">
-                    <div class="pipeline-stage">
-                        <div class="pipeline-count">5</div>
-                        <div class="pipeline-label">New</div>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-stage">
-                        <div class="pipeline-count">12</div>
-                        <div class="pipeline-label">Quoted</div>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-stage">
-                        <div class="pipeline-count">8</div>
-                        <div class="pipeline-label">Won</div>
-                    </div>
+                <div id="leads-table-body">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
                 </div>
             </div>
         </div>
@@ -711,54 +727,13 @@
         <!-- Crew Status -->
         <div class="panel">
             <div class="panel-header">
-                <div class="panel-title">👷 Crew Status</div>
+                <div class="panel-title">👷 Clocked In Now</div>
             </div>
             <div class="panel-body">
-                <div class="crew-item">
-                    <div class="crew-avatar">MR</div>
-                    <div class="crew-info">
-                        <div class="crew-name">Miguel R.</div>
-                        <div class="crew-detail">Martinez Residence</div>
-                        <div class="crew-detail">Clocked in: 8:47 AM</div>
-                    </div>
-                    <div class="crew-status on-job">On Job</div>
-                </div>
-
-                <div class="crew-item">
-                    <div class="crew-avatar">CM</div>
-                    <div class="crew-info">
-                        <div class="crew-name">Carlos M.</div>
-                        <div class="crew-detail">Thompson Pool</div>
-                        <div class="crew-detail">Clocked in: 9:15 AM</div>
-                    </div>
-                    <div class="crew-status on-job">On Job</div>
-                </div>
-
-                <div class="crew-item">
-                    <div class="crew-avatar">AS</div>
-                    <div class="crew-info">
-                        <div class="crew-name">Ana S.</div>
-                        <div class="crew-detail">Meal break since 11:30 AM</div>
-                    </div>
-                    <div class="crew-status on-break">On Break</div>
-                </div>
-
-                <div class="crew-item">
-                    <div class="crew-avatar">JK</div>
-                    <div class="crew-info">
-                        <div class="crew-name">James K.</div>
-                        <div class="crew-detail">First job: 1:00 PM</div>
-                    </div>
-                    <div class="crew-status not-started">Not Started</div>
-                </div>
-
-                <div class="crew-item">
-                    <div class="crew-avatar">A3</div>
-                    <div class="crew-info">
-                        <div class="crew-name">Team A (3)</div>
-                        <div class="crew-detail">Heading to Oak Valley</div>
-                    </div>
-                    <div class="crew-status in-transit">In Transit</div>
+                <div id="workers-container">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
                 </div>
             </div>
         </div>
@@ -773,34 +748,443 @@
             <button class="action-btn" onclick="window.location.href='quote.html'">
                 <span>📄</span> New Quote
             </button>
-            <button class="action-btn">
+            <button class="action-btn" onclick="window.location.href='workers.html'">
                 <span>👤</span> Add Worker
             </button>
-            <button class="action-btn">
+            <button class="action-btn" onclick="window.location.href='reports.html'">
                 <span>📊</span> Reports
             </button>
-            <button class="action-btn">
+            <button class="action-btn" onclick="window.location.href='settings.html'">
                 <span>⚙️</span> Settings
             </button>
         </div>
     </section>
 
     <script>
-        // Simple interactivity demo
-        document.querySelectorAll('.lead-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const action = this.textContent;
-                const leadName = this.closest('.lead-item').querySelector('.lead-name').textContent;
-                alert(`${action} action for ${leadName}`);
-            });
-        });
+        // ============================================
+        // SUPABASE CONNECTION
+        // ============================================
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-        document.querySelectorAll('.job-tag.assign').forEach(tag => {
-            tag.addEventListener('click', function() {
-                const jobName = this.closest('.job-details').querySelector('.job-name').textContent;
-                alert(`Assign worker to: ${jobName}`);
-            });
-        });
+        // Global variables
+        let currentUser = null
+        let companyId = null
+
+        // ============================================
+        // AUTH CHECK (on page load)
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { user } } = await supabaseClient.auth.getUser()
+
+            if (!user) {
+                window.location.href = '/login.html'
+                return
+            }
+
+            // Get user's company
+            const { data: userData, error } = await supabaseClient
+                .from('users')
+                .select('*, companies(*)')
+                .eq('id', user.id)
+                .single()
+
+            if (error || !userData) {
+                console.error('Error fetching user data:', error)
+                window.location.href = '/login.html'
+                return
+            }
+
+            currentUser = userData
+            companyId = userData.company_id
+
+            // Update UI with user info
+            document.getElementById('user-name').textContent = userData.name || user.email
+            document.getElementById('company-name').textContent = userData.companies?.name || 'My Company'
+            document.getElementById('user-avatar').textContent = getInitials(userData.name || user.email)
+
+            // Load dashboard data
+            loadDashboardData()
+
+            // Setup real-time subscriptions
+            setupRealtimeSubscriptions()
+        })
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        }
+
+        // ============================================
+        // TOP STATS CARDS
+        // ============================================
+        async function loadDashboardData() {
+            const today = new Date().toISOString().split('T')[0]
+            const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+
+            // Card 1: Today's Jobs
+            const { count: todayJobs } = await supabaseClient
+                .from('jobs')
+                .select('*', { count: 'exact', head: true })
+                .eq('company_id', companyId)
+                .eq('scheduled_date', today)
+
+            document.getElementById('today-jobs-count').textContent = todayJobs || 0
+
+            // Card 2: New Leads (status = 'new')
+            const { count: newLeads } = await supabaseClient
+                .from('leads')
+                .select('*', { count: 'exact', head: true })
+                .eq('company_id', companyId)
+                .eq('status', 'new')
+
+            document.getElementById('new-leads-count').textContent = newLeads || 0
+
+            // Card 3: Workers Clocked In
+            const { count: clockedIn } = await supabaseClient
+                .from('time_entries')
+                .select('*', { count: 'exact', head: true })
+                .eq('company_id', companyId)
+                .gte('clock_in', today)
+                .is('clock_out', null)
+
+            document.getElementById('clocked-in-count').textContent = clockedIn || 0
+
+            // Card 4: Revenue This Month
+            const { data: paidInvoices } = await supabaseClient
+                .from('invoices')
+                .select('amount')
+                .eq('company_id', companyId)
+                .eq('status', 'paid')
+                .gte('paid_date', startOfMonth)
+
+            const monthRevenue = paidInvoices?.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0) || 0
+            document.getElementById('month-revenue').textContent = '$' + monthRevenue.toLocaleString()
+
+            // Load tables
+            loadTodaysJobs()
+            loadRecentLeads()
+            loadClockedInWorkers()
+        }
+
+        // ============================================
+        // TODAY'S JOBS TABLE
+        // ============================================
+        async function loadTodaysJobs() {
+            const today = new Date().toISOString().split('T')[0]
+
+            const { data: jobs, error } = await supabaseClient
+                .from('jobs')
+                .select(`
+                    *,
+                    customers(name, address, phone),
+                    job_assignments(users(name))
+                `)
+                .eq('company_id', companyId)
+                .eq('scheduled_date', today)
+                .order('scheduled_time', { ascending: true })
+                .limit(10)
+
+            const container = document.getElementById('jobs-table-body')
+
+            // Update badge
+            document.getElementById('jobs-count-badge').textContent = (jobs?.length || 0) + ' jobs'
+
+            if (error) {
+                console.error('Error loading jobs:', error)
+                container.innerHTML = '<div class="empty-state">Error loading jobs</div>'
+                return
+            }
+
+            if (!jobs || jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>No jobs scheduled today</p>
+                    </div>
+                `
+                return
+            }
+
+            container.innerHTML = jobs.map(job => {
+                const assignedWorker = job.job_assignments?.[0]?.users?.name || 'Unassigned'
+                const statusClass = getStatusClass(job.status)
+
+                return `
+                    <div class="job-item" onclick="viewJob('${job.id}')">
+                        <div class="job-time">${formatTime(job.scheduled_time)}</div>
+                        <div class="job-status-dot ${job.status}"></div>
+                        <div class="job-details">
+                            <div class="job-name">${escapeHtml(job.title)}</div>
+                            <div class="job-info">${escapeHtml(assignedWorker)} &bull; ${escapeHtml(job.customers?.address || 'No address')}</div>
+                            <span class="status-badge ${statusClass}">${formatStatus(job.status)}</span>
+                        </div>
+                    </div>
+                `
+            }).join('')
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'scheduled': 'status-scheduled',
+                'in_progress': 'status-active',
+                'completed': 'status-completed',
+                'cancelled': 'status-cancelled'
+            }
+            return classes[status] || 'status-scheduled'
+        }
+
+        function formatStatus(status) {
+            return (status || 'scheduled').replace(/_/g, ' ').toUpperCase()
+        }
+
+        function formatTime(time) {
+            if (!time) return 'TBD'
+            try {
+                return new Date('1970-01-01T' + time).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                })
+            } catch (e) {
+                return time
+            }
+        }
+
+        // ============================================
+        // RECENT LEADS TABLE
+        // ============================================
+        async function loadRecentLeads() {
+            const { data: leads, error } = await supabaseClient
+                .from('leads')
+                .select('*')
+                .eq('company_id', companyId)
+                .order('created_at', { ascending: false })
+                .limit(5)
+
+            const container = document.getElementById('leads-table-body')
+
+            // Update badge
+            const newLeadsCount = leads?.filter(l => l.status === 'new').length || 0
+            document.getElementById('leads-count-badge').textContent = newLeadsCount + ' new'
+
+            if (error) {
+                console.error('Error loading leads:', error)
+                container.innerHTML = '<div class="empty-state">Error loading leads</div>'
+                return
+            }
+
+            if (!leads || leads.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔥</div>
+                        <p>No leads yet</p>
+                    </div>
+                `
+                return
+            }
+
+            container.innerHTML = leads.map(lead => {
+                const statusClass = getLeadStatusClass(lead.status)
+                const timeAgo = getTimeAgo(lead.created_at)
+                const isHot = lead.status === 'new' && timeAgo.includes('m')
+
+                return `
+                    <div class="lead-item">
+                        <div class="lead-header">
+                            <div class="lead-name">${escapeHtml(lead.name || 'Unknown')}</div>
+                            <span class="lead-source ${isHot ? 'hot' : ''}">${isHot ? '🔥 ' : ''}${timeAgo}</span>
+                        </div>
+                        <div class="lead-description">${escapeHtml(lead.service_type || 'General inquiry')}</div>
+                        <div class="lead-meta">
+                            ${lead.phone ? `📞 ${escapeHtml(lead.phone)}` : ''}
+                            ${lead.source ? `&bull; Via ${escapeHtml(lead.source)}` : ''}
+                        </div>
+                        <div class="lead-actions">
+                            ${lead.phone ? `<button class="lead-btn primary" onclick="callLead('${escapeHtml(lead.phone)}')">📞 Call</button>` : ''}
+                            <button class="lead-btn secondary" onclick="createQuote('${lead.id}')">📝 Quote</button>
+                            <span class="status-badge ${statusClass}">${escapeHtml(lead.status || 'new')}</span>
+                        </div>
+                    </div>
+                `
+            }).join('')
+        }
+
+        function getLeadStatusClass(status) {
+            const classes = {
+                'new': 'status-new',
+                'contacted': 'status-contacted',
+                'quoted': 'status-quoted',
+                'won': 'status-won',
+                'lost': 'status-lost'
+            }
+            return classes[status] || 'status-new'
+        }
+
+        function getTimeAgo(dateString) {
+            if (!dateString) return 'Unknown'
+            const date = new Date(dateString)
+            const now = new Date()
+            const diffMs = now - date
+            const diffMins = Math.floor(diffMs / 60000)
+            const diffHours = Math.floor(diffMins / 60)
+            const diffDays = Math.floor(diffHours / 24)
+
+            if (diffMins < 60) return `${diffMins}m ago`
+            if (diffHours < 24) return `${diffHours}h ago`
+            return `${diffDays}d ago`
+        }
+
+        // ============================================
+        // CLOCKED IN WORKERS
+        // ============================================
+        async function loadClockedInWorkers() {
+            const today = new Date().toISOString().split('T')[0]
+
+            const { data: timeEntries, error } = await supabaseClient
+                .from('time_entries')
+                .select(`
+                    *,
+                    users(name, phone),
+                    jobs(title, customers(name, address))
+                `)
+                .eq('company_id', companyId)
+                .gte('clock_in', today)
+                .is('clock_out', null)
+
+            const container = document.getElementById('workers-container')
+
+            if (error) {
+                console.error('Error loading workers:', error)
+                container.innerHTML = '<div class="empty-state">Error loading workers</div>'
+                return
+            }
+
+            if (!timeEntries || timeEntries.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👷</div>
+                        <p>No workers currently clocked in</p>
+                    </div>
+                `
+                return
+            }
+
+            container.innerHTML = timeEntries.map(entry => {
+                const clockInTime = new Date(entry.clock_in)
+                const now = new Date()
+                const hoursWorked = ((now - clockInTime) / 3600000).toFixed(1)
+                const clockInFormatted = clockInTime.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                })
+
+                return `
+                    <div class="worker-card">
+                        <div class="worker-avatar">👷</div>
+                        <div class="worker-info">
+                            <h4>${escapeHtml(entry.users?.name || 'Unknown')}</h4>
+                            <p class="worker-status">🟢 Clocked in ${clockInFormatted}</p>
+                            <p class="worker-hours">${hoursWorked} hrs worked</p>
+                            ${entry.jobs ? `<p class="worker-job">📍 ${escapeHtml(entry.jobs.title)}</p>` : ''}
+                        </div>
+                        <div class="worker-actions">
+                            ${entry.users?.phone ? `<button class="btn-sm" onclick="callWorker('${escapeHtml(entry.users.phone)}')">📞 Call</button>` : ''}
+                        </div>
+                    </div>
+                `
+            }).join('')
+        }
+
+        // ============================================
+        // REAL-TIME SUBSCRIPTIONS
+        // ============================================
+        function setupRealtimeSubscriptions() {
+            // Subscribe to new leads
+            supabaseClient
+                .channel('leads-changes')
+                .on('postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'leads', filter: `company_id=eq.${companyId}` },
+                    (payload) => {
+                        showNotification('🔥 New lead: ' + (payload.new.name || 'Unknown'))
+                        loadRecentLeads()
+                        loadDashboardData()
+                    }
+                )
+                .subscribe()
+
+            // Subscribe to time entries (clock in/out)
+            supabaseClient
+                .channel('time-entries-changes')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'time_entries', filter: `company_id=eq.${companyId}` },
+                    (payload) => {
+                        if (payload.eventType === 'INSERT') {
+                            showNotification('👷 Worker clocked in')
+                        } else if (payload.eventType === 'UPDATE' && payload.new.clock_out) {
+                            showNotification('👷 Worker clocked out')
+                        }
+                        loadClockedInWorkers()
+                        loadDashboardData()
+                    }
+                )
+                .subscribe()
+
+            // Subscribe to job changes
+            supabaseClient
+                .channel('jobs-changes')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'jobs', filter: `company_id=eq.${companyId}` },
+                    (payload) => {
+                        loadTodaysJobs()
+                        loadDashboardData()
+                    }
+                )
+                .subscribe()
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div')
+            notification.className = 'toast-notification'
+            notification.innerHTML = message
+            document.body.appendChild(notification)
+
+            setTimeout(() => notification.classList.add('show'), 100)
+            setTimeout(() => {
+                notification.classList.remove('show')
+                setTimeout(() => notification.remove(), 300)
+            }, 5000)
+        }
+
+        // ============================================
+        // QUICK ACTIONS
+        // ============================================
+        function callLead(phone) {
+            if (phone) window.location.href = `tel:${phone}`
+        }
+
+        function callWorker(phone) {
+            if (phone) window.location.href = `tel:${phone}`
+        }
+
+        function createQuote(leadId) {
+            window.location.href = `/quote.html?lead=${leadId}`
+        }
+
+        function viewJob(jobId) {
+            window.location.href = `/job.html?id=${jobId}`
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function escapeHtml(text) {
+            if (!text) return ''
+            const div = document.createElement('div')
+            div.textContent = text
+            return div.innerHTML
+        }
     </script>
 </body>
 </html>
