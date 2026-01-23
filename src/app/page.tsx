@@ -10,7 +10,7 @@ const heroFeatureTabs = [
   { name: 'Scheduling', active: true },
   { name: 'Quoting', active: true },
   { name: 'Worker App', active: true },
-  { name: 'Compliance & HR', active: true },
+  { name: 'ToolTime Shield', active: true },
   { name: 'Payments', active: true },
   { name: 'Payroll', active: false, comingSoon: true },
 ];
