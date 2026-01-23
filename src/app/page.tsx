@@ -8,6 +8,7 @@ import { submitWebsiteLead } from '@/lib/supabase-browser';
 const heroFeatureTabs = [
   { name: 'Website', active: true },
   { name: 'Scheduling', active: true },
+  { name: 'Quoting', active: true },
   { name: 'Worker App', active: true },
   { name: 'Compliance & HR', active: true },
   { name: 'Payments', active: true },
