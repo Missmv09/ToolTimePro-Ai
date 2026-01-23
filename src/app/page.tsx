@@ -50,21 +50,17 @@ const featureList = [
   { name: 'Payroll', tagline: 'Coming Soon', description: 'Auto-calculate CA overtime & double-time. Join the waitlist.', icon: '⏳' },
 ];
 
-// Demo cards
+// Demo cards - 7 core demos (per original spec)
 const demoCards = {
   row1: [
-    { name: 'Website Builder', tagline: 'See a sample site we\'d build for you', icon: '🌐', href: '/demo/website' },
-    { name: 'Online Scheduling', tagline: 'Book a fake appointment', icon: '📅', href: '/demo/scheduling' },
     { name: 'Smart Quoting', tagline: 'Build a quote in 60 seconds', icon: '📝', href: '/demo/quoting' },
+    { name: 'Online Scheduling', tagline: 'Book a fake appointment', icon: '📅', href: '/demo/scheduling' },
     { name: 'AI Chatbot', tagline: 'Chat with our AI right now', icon: '🤖', href: '/demo/chatbot' },
+    { name: 'Review Machine', tagline: 'See the review flow', icon: '⭐', href: '/demo/reviews' },
   ],
   row2: [
     { name: 'Worker App', tagline: 'See what your crew sees', icon: '👷', href: '/worker' },
     { name: 'Admin Dashboard', tagline: 'Explore the command center', icon: '📊', href: '/dashboard' },
-    { name: 'Invoicing & Payments', tagline: 'See a sample invoice', icon: '💳', href: '/demo/invoicing' },
-    { name: 'Review Machine', tagline: 'See the review flow', icon: '⭐', href: '/demo/reviews' },
-  ],
-  row3: [
     { name: 'ToolTime Shield', tagline: 'Check your CA compliance', icon: '🛡️', href: '/dashboard/shield' },
   ],
 };
@@ -518,8 +514,8 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Row 2 - 4 cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {/* Row 2 - 3 cards centered */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
             {demoCards.row2.map((card, index) => (
               <Link
                 key={index}
@@ -536,23 +532,6 @@ export default function Home() {
                 </span>
               </Link>
             ))}
-          </div>
-
-          {/* Row 3 - 1 card centered */}
-          <div className="flex justify-center">
-            <Link
-              href={demoCards.row3[0].href}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col group w-full sm:w-1/2 lg:w-1/4"
-            >
-              <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gold-200 transition-colors">
-                <span className="text-2xl">{demoCards.row3[0].icon}</span>
-              </div>
-              <h3 className="font-semibold text-navy-500 mb-2">{demoCards.row3[0].name}</h3>
-              <p className="text-sm text-gray-600 flex-grow">{demoCards.row3[0].tagline}</p>
-              <span className="text-sm text-gold-600 font-medium mt-3 group-hover:text-gold-700">
-                Try Demo →
-              </span>
-            </Link>
           </div>
         </div>
       </div>
