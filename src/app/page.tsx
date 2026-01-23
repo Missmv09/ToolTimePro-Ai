@@ -50,7 +50,7 @@ const featureList = [
   { name: 'Payroll', tagline: 'Coming Soon', description: 'Auto-calculate CA overtime & double-time. Join the waitlist.', icon: '⏳' },
 ];
 
-// Demo cards
+// Demo cards - all features we offer
 const demoCards = {
   row1: [
     { name: 'Website Builder', tagline: 'See a sample site we\'d build for you', icon: '🌐', href: '/demo/website' },
