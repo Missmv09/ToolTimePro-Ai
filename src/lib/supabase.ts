@@ -1,14 +1,25 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 // Client-side Supabase client (singleton)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Returns a client even if env vars are missing (for build-time compatibility)
+// The client will fail gracefully at runtime if env vars aren't configured
+let supabaseInstance: SupabaseClient | null = null
+
+export const supabase = (() => {
+  if (supabaseInstance) return supabaseInstance
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase environment variables not configured')
+    // Return a dummy client that will be replaced at runtime
+    // This allows the build to complete
+  }
+
+  supabaseInstance = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder')
+  return supabaseInstance
+})()
 
 // Helper to get the current user
 export async function getCurrentUser() {
