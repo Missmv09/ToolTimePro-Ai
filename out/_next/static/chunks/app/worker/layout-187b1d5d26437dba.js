@@ -1,0 +1,41 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[300],{2898:function(e,t,r){"use strict";r.d(t,{Z:function(){return createLucideIcon}});var a=r(2265),n={xmlns:"http://www.w3.org/2000/svg",width:24,height:24,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"};/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let toKebabCase=e=>e.replace(/([a-z0-9])([A-Z])/g,"$1-$2").toLowerCase().trim(),createLucideIcon=(e,t)=>{let r=(0,a.forwardRef)(({color:r="currentColor",size:s=24,strokeWidth:i=2,absoluteStrokeWidth:l,className:o="",children:c,...d},h)=>(0,a.createElement)("svg",{ref:h,...n,width:s,height:s,stroke:r,strokeWidth:l?24*Number(i)/Number(s):i,className:["lucide",`lucide-${toKebabCase(e)}`,o].join(" "),...d},[...t.map(([e,t])=>(0,a.createElement)(e,t)),...Array.isArray(c)?c:[c]]));return r.displayName=`${e}`,r}},2894:function(e,t,r){"use strict";r.d(t,{Z:function(){return n}});var a=r(2898);/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=(0,a.Z)("AlertTriangle",[["path",{d:"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z",key:"c3ski4"}],["path",{d:"M12 9v4",key:"juzpu7"}],["path",{d:"M12 17h.01",key:"p32p05"}]])},7619:function(e,t,r){"use strict";r.d(t,{Z:function(){return n}});var a=r(2898);/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=(0,a.Z)("ClipboardList",[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1",key:"tgr4d6"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2",key:"116196"}],["path",{d:"M12 11h4",key:"1jrz19"}],["path",{d:"M12 16h4",key:"n85exb"}],["path",{d:"M8 11h.01",key:"1dfujw"}],["path",{d:"M8 16h.01",key:"18s6g9"}]])},6141:function(e,t,r){"use strict";r.d(t,{Z:function(){return n}});var a=r(2898);/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=(0,a.Z)("Clock",[["circle",{cx:"12",cy:"12",r:"10",key:"1mglay"}],["polyline",{points:"12 6 12 12 16 14",key:"68esgv"}]])},8083:function(e,t,r){"use strict";r.d(t,{Z:function(){return n}});var a=r(2898);/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=(0,a.Z)("HardHat",[["path",{d:"M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z",key:"1dej2m"}],["path",{d:"M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5",key:"1p9q5i"}],["path",{d:"M4 15v-3a6 6 0 0 1 6-6h0",key:"1uc279"}],["path",{d:"M14 6h0a6 6 0 0 1 6 6v3",key:"1j9mnm"}]])},9036:function(e,t,r){"use strict";r.d(t,{Z:function(){return n}});var a=r(2898);/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=(0,a.Z)("Shield",[["path",{d:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10",key:"1irkt0"}]])},7972:function(e,t,r){"use strict";r.d(t,{Z:function(){return n}});var a=r(2898);/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=(0,a.Z)("User",[["path",{d:"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2",key:"975kel"}],["circle",{cx:"12",cy:"7",r:"4",key:"17ys0d"}]])},2549:function(e,t,r){"use strict";r.d(t,{Z:function(){return n}});var a=r(2898);/**
+ * @license lucide-react v0.321.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=(0,a.Z)("X",[["path",{d:"M18 6 6 18",key:"1bl5f8"}],["path",{d:"m6 6 12 12",key:"d8bk6v"}]])},2205:function(e,t,r){Promise.resolve().then(r.bind(r,7946))},7946:function(e,t,r){"use strict";r.r(t),r.d(t,{default:function(){return WorkerLayout}});var a=r(7437),n=r(2265),s=r(1396),i=r.n(s),l=r(4033),o=r(7619),c=r(6141),d=r(9036),h=r(7972),u=r(8083),x=r(2549),m=r(2894);let f=[{href:"/worker",label:"Jobs",icon:o.Z},{href:"/worker/time",label:"Time",icon:c.Z},{href:"/worker/safety",label:"Safety",icon:d.Z},{href:"/worker/profile",label:"Profile",icon:h.Z}];function WorkerLayout(e){let{children:t}=e,r=(0,l.usePathname)(),[s,o]=(0,n.useState)(!1),[c,d]=(0,n.useState)(3),[h,y]=(0,n.useState)(!1);(0,n.useEffect)(()=>{let e;return s&&c>0?e=setTimeout(()=>{d(e=>e-1)},1e3):s&&0===c&&!h&&(y(!0),p()),()=>clearTimeout(e)},[s,c,h]);let cancelSOS=()=>{o(!1),d(3),y(!1)},p=(0,n.useCallback)(()=>{navigator.geolocation&&navigator.geolocation.getCurrentPosition(e=>{console.log("SOS triggered with location:",{lat:e.coords.latitude,lng:e.coords.longitude})},e=>{console.error("Location error:",e)}),setTimeout(()=>{o(!1),alert("SOS sent! Manager and emergency contacts have been alerted with your GPS location.")},500)},[]);return"/worker/login"===r?(0,a.jsx)(a.Fragment,{children:t}):(0,a.jsxs)("div",{className:"min-h-screen bg-gray-50 flex flex-col",children:[(0,a.jsxs)("header",{className:"bg-navy-500 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10",children:[(0,a.jsxs)("div",{className:"flex items-center gap-2",children:[(0,a.jsx)("div",{className:"w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center",children:(0,a.jsx)(u.Z,{className:"w-5 h-5 text-navy-500"})}),(0,a.jsx)("span",{className:"font-bold",children:"ToolTime Pro"})]}),(0,a.jsxs)("div",{className:"flex items-center gap-3",children:[(0,a.jsx)("span",{className:"text-sm text-white/70",children:"Worker App"}),(0,a.jsx)("button",{onClick:()=>{o(!0),d(3),y(!1)},className:"w-11 h-11 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-lg animate-pulse transition-colors","aria-label":"Emergency SOS",children:"SOS"})]})]}),(0,a.jsx)("main",{className:"flex-1 pb-20",children:t}),(0,a.jsx)("nav",{className:"fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-10",children:(0,a.jsx)("div",{className:"flex justify-around max-w-md mx-auto",children:f.map(e=>{let t=r===e.href||"/worker"===e.href&&"/worker"===r||"/worker"!==e.href&&r.startsWith(e.href);return(0,a.jsxs)(i(),{href:e.href,className:"flex flex-col items-center py-2 px-3 rounded-lg transition-colors ".concat(t?"text-gold-500":"text-gray-400 hover:text-navy-500"),children:[(0,a.jsx)(e.icon,{size:22}),(0,a.jsx)("span",{className:"text-xs mt-1 font-medium",children:e.label})]},e.href)})})}),s&&(0,a.jsx)("div",{className:"fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4",children:(0,a.jsxs)("div",{className:"bg-red-500 rounded-2xl p-6 w-full max-w-sm text-center",children:[(0,a.jsx)("div",{className:"flex justify-end mb-2",children:(0,a.jsx)("button",{onClick:cancelSOS,className:"text-white/70 hover:text-white",children:(0,a.jsx)(x.Z,{size:24})})}),(0,a.jsx)("div",{className:"text-6xl mb-4 animate-pulse",children:(0,a.jsx)(m.Z,{className:"w-20 h-20 mx-auto text-white"})}),(0,a.jsx)("h2",{className:"text-2xl font-bold text-white mb-2",children:"EMERGENCY"}),(0,a.jsx)("p",{className:"text-white/80 text-sm mb-4",children:"Releasing in..."}),(0,a.jsx)("div",{className:"text-7xl font-mono font-bold text-white mb-6",children:c}),(0,a.jsx)("p",{className:"text-white/80 text-sm mb-6",children:"This will alert your manager and share your GPS location"}),(0,a.jsx)("button",{onClick:cancelSOS,className:"w-full py-4 bg-white text-red-500 font-bold rounded-xl hover:bg-gray-100 transition-colors",children:"CANCEL"})]})})]})}},4033:function(e,t,r){e.exports=r(94)}},function(e){e.O(0,[176,971,472,744],function(){return e(e.s=2205)}),_N_E=e.O()}]);
