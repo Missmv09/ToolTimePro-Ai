@@ -19,6 +19,8 @@ import {
   X,
   AlertCircle,
   Timer,
+  Bell,
+  Send,
 } from 'lucide-react';
 import { useTimeClock, AttestationData } from '@/hooks/useTimeClock';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,6 +42,22 @@ function formatTime(dateStr: string): string {
     hour12: true,
   });
 }
+
+// Late reasons for tardiness policy compliance
+const LATE_REASONS = [
+  { id: 'traffic', label: 'Traffic/Road conditions' },
+  { id: 'emergency', label: 'Personal emergency' },
+  { id: 'vehicle', label: 'Vehicle issues' },
+  { id: 'notified', label: 'Notified manager in advance' },
+  { id: 'other', label: 'Other' },
+];
+
+// Delay options for running late
+const DELAY_OPTIONS = [
+  { minutes: 15, label: '15 minutes' },
+  { minutes: 30, label: '30 minutes' },
+  { minutes: 60, label: '1 hour' },
+];
 
 export default function TimeClockPage() {
   const { dbUser, company } = useAuth();
@@ -64,6 +82,24 @@ export default function TimeClockPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAttestation, setShowAttestation] = useState(false);
   const [locationStatus, setLocationStatus] = useState<'pending' | 'granted' | 'denied'>('pending');
+
+  // Late clock-in state
+  const [showLateModal, setShowLateModal] = useState(false);
+  const [minutesLate, setMinutesLate] = useState(0);
+  const [selectedLateReason, setSelectedLateReason] = useState<string | null>(null);
+  const [pendingPhotoData, setPendingPhotoData] = useState<string | null>(null);
+
+  // Running late notification state
+  const [showRunningLateModal, setShowRunningLateModal] = useState(false);
+  const [selectedDelay, setSelectedDelay] = useState<number | null>(null);
+  const [delayReason, setDelayReason] = useState('');
+
+  // Scheduled start time (default 8:00 AM for demo)
+  const [scheduledStartTime] = useState(() => {
+    const now = new Date();
+    now.setHours(8, 0, 0, 0);
+    return now;
+  });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -124,8 +160,32 @@ export default function TimeClockPage() {
     setShowCamera(false);
   };
 
+  // Check if clocking in late
+  const checkIfLate = (): number => {
+    const now = new Date();
+    const diffMs = now.getTime() - scheduledStartTime.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    return diffMinutes > 5 ? diffMinutes : 0;
+  };
+
   // Handle clock in/out action
   const handleClockAction = async (photo: string | null) => {
+    if (!currentEntry) {
+      // Check if late (more than 5 minutes past scheduled time)
+      const lateMinutes = checkIfLate();
+      if (lateMinutes > 0) {
+        setMinutesLate(lateMinutes);
+        setPendingPhotoData(photo);
+        setShowLateModal(true);
+        return;
+      }
+    }
+
+    await performClockIn(photo);
+  };
+
+  // Perform the actual clock in
+  const performClockIn = async (photo: string | null) => {
     setIsProcessing(true);
 
     if (!currentEntry) {
@@ -138,6 +198,43 @@ export default function TimeClockPage() {
 
     setIsProcessing(false);
     setPhotoData(null);
+    setPendingPhotoData(null);
+  };
+
+  // Confirm late clock-in with reason
+  const confirmLateClockIn = async () => {
+    if (!selectedLateReason) return;
+
+    setShowLateModal(false);
+    // Log the late reason (in production, save to database)
+    console.log('Late clock-in recorded:', {
+      minutesLate,
+      reason: selectedLateReason,
+      timestamp: new Date().toISOString(),
+    });
+
+    await performClockIn(pendingPhotoData);
+    setSelectedLateReason(null);
+    setMinutesLate(0);
+  };
+
+  // Notify manager about running late
+  const notifyManagerRunningLate = () => {
+    if (!selectedDelay) return;
+
+    // In production: Send notification to manager via backend
+    console.log('Running late notification:', {
+      delay: selectedDelay,
+      reason: delayReason,
+      timestamp: new Date().toISOString(),
+    });
+
+    setShowRunningLateModal(false);
+    setSelectedDelay(null);
+    setDelayReason('');
+
+    // Show confirmation
+    alert(`Manager notified! You're running ${selectedDelay} minutes late.`);
   };
 
   // Handle clock out with attestation
@@ -404,6 +501,17 @@ export default function TimeClockPage() {
               {error}
             </div>
           )}
+
+          {/* Running Late Button (show when not clocked in) */}
+          {!currentEntry && (
+            <button
+              onClick={() => setShowRunningLateModal(true)}
+              className="w-full p-4 mt-4 rounded-xl border-2 border-amber-500/50 bg-amber-500/10 text-amber-400 font-semibold flex items-center justify-center gap-3 hover:bg-amber-500/20 transition-colors"
+            >
+              <Bell className="w-5 h-5" />
+              Running Late? Notify Manager
+            </button>
+          )}
         </div>
 
         {/* Camera Modal */}
@@ -453,6 +561,167 @@ export default function TimeClockPage() {
             }}
             onCancel={() => setShowAttestation(false)}
           />
+        )}
+
+        {/* Late Clock-In Modal */}
+        {showLateModal && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-navy-600 rounded-2xl p-6 w-full max-w-md border border-white/10">
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => {
+                    setShowLateModal(false);
+                    setSelectedLateReason(null);
+                    setPendingPhotoData(null);
+                  }}
+                  className="text-white/50 hover:text-white"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-4">
+                  <Clock className="w-16 h-16 mx-auto text-amber-400" />
+                </div>
+                <h2 className="text-xl font-bold text-white mb-2">Late Clock-In</h2>
+                <p className="text-white/70">
+                  You&apos;re clocking in {minutesLate} minutes late
+                </p>
+              </div>
+
+              {/* Tardiness Policy Reminder */}
+              <div className="bg-amber-500/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+                <p className="text-sm text-white/90">
+                  <strong className="text-amber-400">Reminder:</strong> Being on time helps our
+                  team deliver great service. Please notify your manager at least 1 hour before
+                  your shift when possible.
+                </p>
+              </div>
+
+              {/* Reason Selection */}
+              <div className="space-y-3 mb-6">
+                {LATE_REASONS.map((reason) => (
+                  <button
+                    key={reason.id}
+                    onClick={() => setSelectedLateReason(reason.id)}
+                    className={`w-full p-4 rounded-xl flex items-center gap-3 border transition-all ${
+                      selectedLateReason === reason.id
+                        ? 'bg-gold-500/20 border-gold-500 text-white'
+                        : 'bg-white/5 border-white/10 text-white/80 hover:border-white/30'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedLateReason === reason.id
+                          ? 'border-gold-500'
+                          : 'border-white/30'
+                      }`}
+                    >
+                      {selectedLateReason === reason.id && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-gold-500" />
+                      )}
+                    </div>
+                    <span>{reason.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={confirmLateClockIn}
+                disabled={!selectedLateReason}
+                className="w-full py-4 bg-gold-500 text-navy-500 font-bold rounded-xl hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Clock In ({minutesLate} min late)
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Running Late Modal */}
+        {showRunningLateModal && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-navy-600 rounded-2xl p-6 w-full max-w-md border border-white/10">
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => {
+                    setShowRunningLateModal(false);
+                    setSelectedDelay(null);
+                    setDelayReason('');
+                  }}
+                  className="text-white/50 hover:text-white"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-4">
+                  <Bell className="w-16 h-16 mx-auto text-amber-400" />
+                </div>
+                <h2 className="text-xl font-bold text-white mb-2">Running Late?</h2>
+                <p className="text-white/70">Let your manager know right away</p>
+              </div>
+
+              {/* Delay Selection */}
+              <p className="text-white/60 text-sm mb-3">How late will you be?</p>
+              <div className="space-y-3 mb-4">
+                {DELAY_OPTIONS.map((option) => (
+                  <button
+                    key={option.minutes}
+                    onClick={() => setSelectedDelay(option.minutes)}
+                    className={`w-full p-4 rounded-xl flex items-center gap-3 border transition-all ${
+                      selectedDelay === option.minutes
+                        ? 'bg-gold-500/20 border-gold-500 text-white'
+                        : 'bg-white/5 border-white/10 text-white/80 hover:border-white/30'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedDelay === option.minutes
+                          ? 'border-gold-500'
+                          : 'border-white/30'
+                      }`}
+                    >
+                      {selectedDelay === option.minutes && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-gold-500" />
+                      )}
+                    </div>
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Optional Reason */}
+              <textarea
+                value={delayReason}
+                onChange={(e) => setDelayReason(e.target.value)}
+                placeholder="Reason (optional)"
+                className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 resize-none mb-6"
+                rows={2}
+              />
+
+              <button
+                onClick={notifyManagerRunningLate}
+                disabled={!selectedDelay}
+                className="w-full py-4 bg-gold-500 text-navy-500 font-bold rounded-xl hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Send className="w-5 h-5" />
+                Notify Manager
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowRunningLateModal(false);
+                  setSelectedDelay(null);
+                  setDelayReason('');
+                }}
+                className="w-full py-3 mt-3 text-white/50 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </ProtectedRoute>
