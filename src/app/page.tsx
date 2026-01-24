@@ -9,7 +9,7 @@ const heroFeatureTabs = [
   { name: 'Scheduling', active: true, href: '/demo/scheduling' },
   { name: 'Quoting', active: true, href: '/demo/quoting' },
   { name: 'Worker App', active: true, href: '/worker' },
-  { name: 'ToolTime Shield', active: true, href: '/dashboard/shield' },
+  { name: 'Compliance & HR', active: true, href: '/dashboard/shield' },
   { name: 'Payments', active: true, href: '/demo/invoicing' },
   { name: 'Payroll', active: false, comingSoon: true, href: '#' },
 ];
@@ -52,19 +52,16 @@ const featureList = [
 // Demo cards - all features we offer
 const demoCards = {
   row1: [
-    { name: 'Website Builder', tagline: 'See a sample site we\'d build for you', icon: '🌐', href: '/demo/website' },
-    { name: 'Online Scheduling', tagline: 'Book a fake appointment', icon: '📅', href: '/demo/scheduling' },
-    { name: 'Smart Quoting', tagline: 'Build a quote in 60 seconds', icon: '📝', href: '/demo/quoting' },
-    { name: 'AI Chatbot', tagline: 'Chat with our AI right now', icon: '🤖', href: '/demo/chatbot' },
+    { name: 'Website Builder', tagline: 'See a sample site we\'d build for your business', icon: '🌐', href: '/demo/website' },
+    { name: 'Smart Quoting', tagline: 'Create professional quotes in seconds with live preview', icon: '📝', href: '/demo/quoting' },
+    { name: 'Online Booking', tagline: 'Let customers book online + manage your calendar', icon: '📅', href: '/demo/scheduling' },
+    { name: 'AI Chatbot', tagline: '24/7 lead capture that never misses a customer', icon: '🤖', href: '/demo/chatbot' },
   ],
   row2: [
-    { name: 'Worker App', tagline: 'See what your crew sees', icon: '👷', href: '/worker' },
-    { name: 'Admin Dashboard', tagline: 'Explore the command center', icon: '📊', href: '/dashboard' },
-    { name: 'Invoicing & Payments', tagline: 'See a sample invoice', icon: '💳', href: '/demo/invoicing' },
-    { name: 'Review Machine', tagline: 'See the review flow', icon: '⭐', href: '/demo/reviews' },
-  ],
-  row3: [
-    { name: 'ToolTime Shield', tagline: 'Check your CA compliance', icon: '🛡️', href: '/dashboard/shield' },
+    { name: 'Review Machine', tagline: 'Automate 5-star reviews with SMS follow-ups', icon: '⭐', href: '/demo/reviews' },
+    { name: 'Worker App', tagline: 'GPS clock-in, job details, and compliance tracking', icon: '👷', href: '/worker' },
+    { name: 'Admin Dashboard', tagline: 'See jobs, revenue, crew status at a glance', icon: '📊', href: '/dashboard' },
+    { name: 'ToolTime Shield', tagline: 'Worker classification, final pay calculator, HR docs', icon: '🛡️', href: '/dashboard/shield' },
   ],
 };
 
@@ -311,7 +308,7 @@ export default function Home() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 mb-16">
             <Link
               href="/pricing"
               className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
@@ -324,6 +321,117 @@ export default function Home() {
             >
               See How It Works
             </Link>
+          </div>
+
+          {/* Features with Worker App Preview */}
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
+            {/* Left: Feature List */}
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">Professional Website — Built For You</span>
+                  <p className="text-white/70 text-sm mt-1">We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">24/7 AI Chatbot</span>
+                  <p className="text-white/70 text-sm mt-1">Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">Online Scheduling — Fill Your Calendar</span>
+                  <p className="text-white/70 text-sm mt-1">Customers book online anytime. Automatic reminders reduce no-shows by 50%.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">Smart Quoting — Win More Jobs</span>
+                  <p className="text-white/70 text-sm mt-1">Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signatures.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">Worker App with GPS Clock-In</span>
+                  <p className="text-white/70 text-sm mt-1">Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">ToolTime Shield — Legal Protection</span>
+                  <p className="text-white/70 text-sm mt-1">Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">HR Document Library</span>
+                  <p className="text-white/70 text-sm mt-1">10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">Review Machine — Get More 5-Star Reviews</span>
+                  <p className="text-white/70 text-sm mt-1">Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-gold-500 mt-0.5">✓</span>
+                <div>
+                  <span className="font-semibold text-white">Admin Dashboard</span>
+                  <p className="text-white/70 text-sm mt-1">See jobs, revenue, and crew status at a glance. <span className="text-gold-500">Track performance</span> and make smarter business decisions.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Worker App Preview */}
+            <div className="flex justify-center lg:justify-end">
+              <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gold-500 rounded-lg flex items-center justify-center">
+                    <span className="text-navy-900 font-bold text-lg">⚙️</span>
+                  </div>
+                  <span className="font-bold text-navy-500 text-lg">Worker App</span>
+                </div>
+
+                {/* Job Card 1 */}
+                <div className="bg-gray-50 rounded-xl p-4 mb-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-gold-500 mt-1">📍</span>
+                    <div className="flex-1">
+                      <p className="font-semibold text-navy-500">Martinez Residence</p>
+                      <p className="text-sm text-gray-500">123 Oak Street</p>
+                      <p className="text-sm text-gray-600 mt-1 font-medium">9:00 AM - 11:00 AM</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Job Card 2 */}
+                <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <span className="text-gray-400 mt-1">📍</span>
+                    <div className="flex-1">
+                      <p className="font-semibold text-navy-500">Oak Valley HOA</p>
+                      <p className="text-sm text-gray-500">456 Pine Avenue</p>
+                      <p className="text-sm text-gray-600 mt-1 font-medium">11:30 AM - 3:00 PM</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clock In Button */}
+                <button className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-colors">
+                  ✓ Clock In Now
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -382,32 +490,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ==================== FEATURES SECTION ==================== */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">One Platform. Every Tool.</h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featureList.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <span className={`mt-1 text-lg ${feature.icon === '⏳' ? 'text-gray-400' : 'text-gold-500'}`}>
-                  {feature.icon}
-                </span>
-                <div>
-                  <span className={`font-semibold ${feature.icon === '⏳' ? 'text-gray-500' : 'text-navy-500'}`}>
-                    {feature.name}
-                    {feature.tagline && <span className="text-gray-500 font-normal"> — {feature.tagline}</span>}
-                  </span>
-                  <p className="text-sm text-gray-600 mt-1">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* ==================== DEMO CARDS SECTION ==================== */}
       <div id="demos" className="bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 py-16">
@@ -423,87 +505,73 @@ export default function Home() {
           </div>
 
           {/* Row 1 - 4 cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
             {demoCards.row1.map((card, index) => (
               <Link
                 key={index}
                 href={card.href}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col group"
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 flex flex-col group min-h-[200px]"
               >
                 <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gold-200 transition-colors">
                   <span className="text-2xl">{card.icon}</span>
                 </div>
-                <h3 className="font-semibold text-navy-500 mb-2">{card.name}</h3>
-                <p className="text-sm text-gray-600 flex-grow">{card.tagline}</p>
-                <span className="text-sm text-gold-600 font-medium mt-3 group-hover:text-gold-700">
-                  Try Demo →
+                <h3 className="font-semibold text-navy-500 mb-1 text-base">{card.name}</h3>
+                <p className="text-sm text-gray-500 flex-grow leading-relaxed">{card.tagline}</p>
+                <span className="text-sm text-gold-600 font-medium mt-4 group-hover:text-gold-700 inline-flex items-center gap-1">
+                  Try Demo <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </span>
               </Link>
             ))}
           </div>
 
           {/* Row 2 - 4 cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {demoCards.row2.map((card, index) => (
               <Link
                 key={index}
                 href={card.href}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col group"
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 flex flex-col group min-h-[200px]"
               >
                 <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gold-200 transition-colors">
                   <span className="text-2xl">{card.icon}</span>
                 </div>
-                <h3 className="font-semibold text-navy-500 mb-2">{card.name}</h3>
-                <p className="text-sm text-gray-600 flex-grow">{card.tagline}</p>
-                <span className="text-sm text-gold-600 font-medium mt-3 group-hover:text-gold-700">
-                  Try Demo →
+                <h3 className="font-semibold text-navy-500 mb-1 text-base">{card.name}</h3>
+                <p className="text-sm text-gray-500 flex-grow leading-relaxed">{card.tagline}</p>
+                <span className="text-sm text-gold-600 font-medium mt-4 group-hover:text-gold-700 inline-flex items-center gap-1">
+                  Try Demo <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </span>
               </Link>
             ))}
-          </div>
-
-          {/* Row 3 - 1 card centered */}
-          <div className="flex justify-center">
-            <Link
-              href={demoCards.row3[0].href}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col group w-full sm:w-1/2 lg:w-1/4"
-            >
-              <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gold-200 transition-colors">
-                <span className="text-2xl">{demoCards.row3[0].icon}</span>
-              </div>
-              <h3 className="font-semibold text-navy-500 mb-2">{demoCards.row3[0].name}</h3>
-              <p className="text-sm text-gray-600 flex-grow">{demoCards.row3[0].tagline}</p>
-              <span className="text-sm text-gold-600 font-medium mt-3 group-hover:text-gold-700">
-                Try Demo →
-              </span>
-            </Link>
           </div>
         </div>
       </div>
 
       {/* ==================== TOOLTIME SHIELD + HR SECTION ==================== */}
-      <div className="bg-white">
+      <div className="bg-navy-500">
         <div className="max-w-6xl mx-auto px-4 py-16">
           {/* Section Header */}
           <div className="text-center mb-12">
-            <span className="inline-block bg-navy-100 text-navy-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-              ToolTime Shield
+            <span className="inline-block bg-navy-400 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-4 flex items-center gap-2 mx-auto w-fit">
+              <span>🛡️</span> ToolTime Shield
             </span>
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">Your Back-Office Safety Net</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              The HR support that other platforms don&apos;t offer.
+            <h2 className="text-3xl font-bold text-white mb-3">Your Back-Office Safety Net</h2>
+            <p className="text-white/70 max-w-xl mx-auto">
+              The HR support that other platforms don&apos;t offer. Sleep better knowing you&apos;re protected.
             </p>
           </div>
 
           {/* Two Column Layout */}
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Left Column: Document Templates */}
-            <div>
-              <h3 className="text-xl font-bold text-navy-500 mb-4">Document Templates (Included)</h3>
-              <ul className="space-y-3">
+            <div className="bg-white rounded-xl p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-lg">📄</span>
+                <h3 className="text-lg font-bold text-navy-500">Document Templates (Included)</h3>
+              </div>
+              <ul className="space-y-2.5">
                 {hrDocuments.map((doc, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="text-gold-500 mt-0.5">✓</span>
+                  <li key={index} className="flex items-start gap-2.5 text-sm">
+                    <span className="text-gold-500 mt-0.5">›</span>
                     <span className="text-gray-700">{doc}</span>
                   </li>
                 ))}
@@ -511,54 +579,46 @@ export default function Home() {
             </div>
 
             {/* Right Column: Interactive Tools */}
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* HR Document Library Card */}
-              <div className="bg-[#f8f9fa] rounded-xl p-6">
-                <h4 className="font-bold text-navy-500 mb-1">HR Document Library</h4>
-                <p className="text-sm text-gray-600 mb-4">All templates ready to use</p>
-                <div className="space-y-2">
+              <div className="bg-white rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">📁</span>
+                  <h4 className="font-bold text-navy-500">HR Document Library</h4>
+                </div>
+                <p className="text-sm text-gray-500 mb-4">All templates ready to use</p>
+                <div className="space-y-2.5">
                   <Link
                     href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <span className="text-sm text-navy-500">Offer Letter Template</span>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded font-medium">Download</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gold-500">📄</span>
+                      <span className="text-sm text-navy-500">Offer Letter Template</span>
+                    </div>
+                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1.5 rounded-full font-semibold">Download</span>
                   </Link>
                   <Link
                     href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <span className="text-sm text-navy-500">Termination Checklist</span>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded font-medium">Download</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gold-500">📄</span>
+                      <span className="text-sm text-navy-500">Termination Checklist</span>
+                    </div>
+                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1.5 rounded-full font-semibold">Download</span>
                   </Link>
                   <Link
                     href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <span className="text-sm text-navy-500">1099 Onboarding</span>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded font-medium">Download</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gold-500">📄</span>
+                      <span className="text-sm text-navy-500">1099 Onboarding</span>
+                    </div>
+                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1.5 rounded-full font-semibold">Download</span>
                   </Link>
                 </div>
-              </div>
-
-              {/* Worker Classification Quiz Card */}
-              <div className="bg-[#f8f9fa] rounded-xl p-6">
-                <h4 className="font-bold text-navy-500 mb-1">Worker Classification Quiz</h4>
-                <p className="text-sm text-gray-600 mb-4">Does this worker control how & when they work?</p>
-                <div className="bg-white rounded-lg p-4 mb-4">
-                  <p className="text-sm text-gray-700 mb-3">Sample Question:</p>
-                  <p className="text-navy-500 font-medium mb-3">&quot;Does this worker set their own schedule?&quot;</p>
-                  <div className="flex gap-3">
-                    <span className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm">Yes</span>
-                    <span className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm">No</span>
-                  </div>
-                </div>
-                <Link
-                  href="/dashboard/shield"
-                  className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-medium px-6 py-2 rounded-lg transition-colors"
-                >
-                  Take the Quiz →
-                </Link>
               </div>
             </div>
           </div>
