@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 export default function PricingPage() {
   const [billing, setBilling] = useState('monthly');
-  const [loading, setLoading] = useState(null);
   const [selectedAddOns, setSelectedAddOns] = useState({ starter: [], pro: [], elite: [] });
 
   const plans = [
@@ -77,29 +76,10 @@ export default function PricingPage() {
     }));
   };
 
-  const handleCheckout = async (planId) => {
-    setLoading(planId);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId, billing, addOns: selectedAddOns[planId] })
-      });
-      const { url, error } = await res.json();
-      if (url) {
-        window.location.href = url;
-      } else if (error) {
-        console.error('Checkout error:', error);
-        window.location.href = '/auth/signup';
-      } else {
-        window.location.href = '/auth/signup';
-      }
-    } catch (e) {
-      console.error('Checkout error:', e);
-      window.location.href = '/auth/signup';
-    } finally {
-      setLoading(null);
-    }
+  const handleCheckout = (planId) => {
+    // Direct redirect to signup with plan info
+    const addOnsParam = selectedAddOns[planId].length > 0 ? `&addons=${selectedAddOns[planId].join(',')}` : '';
+    window.location.href = `/auth/signup?plan=${planId}&billing=${billing}${addOnsParam}`;
   };
 
   const calculateTotal = (plan) => {
@@ -229,14 +209,13 @@ export default function PricingPage() {
               {/* CTA Button */}
               <button
                 onClick={() => handleCheckout(plan.id)}
-                disabled={loading === plan.id}
                 className={`w-full py-3 rounded-lg font-semibold transition-colors ${
                   plan.popular
                     ? 'bg-orange-500 hover:bg-orange-600 text-white'
                     : 'bg-gray-900 hover:bg-gray-800 text-white'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                }`}
               >
-                {loading === plan.id ? 'Processing...' : 'Start Free Trial'}
+                Start Free Trial
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-3">
