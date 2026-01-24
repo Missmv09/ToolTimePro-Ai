@@ -303,7 +303,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* ==================== HERO SECTION ==================== */}
-      <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4a] text-white">
+      <div className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
         <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20">
           {/* Tagline Badge */}
           <div className="mb-6">
@@ -691,7 +691,7 @@ export default function Home() {
       </div>
 
       {/* ==================== QUESTIONNAIRE FORM SECTION ==================== */}
-      <div id="get-started" className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4a] text-white">
+      <div id="get-started" className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center mb-10">
             <span className="inline-block bg-gold-500 text-navy-900 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
@@ -1017,7 +1017,7 @@ export default function Home() {
       </div>
 
       {/* ==================== FINAL CTA SECTION ==================== */}
-      <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4a] text-white">
+      <div className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Stop Juggling. Start Growing.</h2>
           <p className="text-xl text-white/80 mb-8">
