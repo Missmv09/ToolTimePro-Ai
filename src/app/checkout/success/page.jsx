@@ -48,7 +48,7 @@ export default function CheckoutSuccess() {
         </h1>
 
         <p className="text-gray-600 mb-6">
-          Your subscription is now active. Let's get your business set up.
+          Your subscription is now active. Let&apos;s get your business set up.
         </p>
 
         {session && (
@@ -65,7 +65,7 @@ export default function CheckoutSuccess() {
         )}
 
         <div className="bg-orange-50 rounded-lg p-4 mb-6 text-left">
-          <h3 className="font-semibold text-orange-900 mb-2">What's Next?</h3>
+          <h3 className="font-semibold text-orange-900 mb-2">What&apos;s Next?</h3>
           <ul className="text-sm text-orange-800 space-y-2">
             <li>1. Check your email for login details</li>
             <li>2. Complete your company profile</li>
