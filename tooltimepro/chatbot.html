@@ -947,24 +947,34 @@
             addMessage("No problem! Let me know if you have any other questions or want to book later.", false, ['Get a quote', 'Learn more', 'Book now']);
         }
 
-        // Save booking to backend
+        // Save booking to backend (uses booking-store which checks for conflicts)
         async function saveBooking(bookingData) {
             try {
-                const response = await fetch('/.netlify/functions/save-booking', {
+                const response = await fetch('/.netlify/functions/booking-store', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(bookingData)
                 });
 
-                if (!response.ok) {
-                    console.error('Failed to save booking');
-                    return;
+                const result = await response.json();
+
+                if (response.status === 409) {
+                    // Conflict - slot was taken
+                    console.warn('Booking conflict:', result.message);
+                    addMessage(result.message + ' Please try booking again.', false, ['Book now']);
+                    return false;
                 }
 
-                const result = await response.json();
+                if (!response.ok) {
+                    console.error('Failed to save booking');
+                    return false;
+                }
+
                 console.log('Booking saved:', result);
+                return true;
             } catch (error) {
                 console.error('Error saving booking:', error);
+                return false;
             }
         }
     </script>
