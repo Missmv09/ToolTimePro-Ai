@@ -6,13 +6,13 @@ import { submitWebsiteLead } from '@/lib/supabase-browser';
 
 // Hero feature tabs
 const heroFeatureTabs = [
-  { name: 'Website', active: true },
-  { name: 'Scheduling', active: true },
-  { name: 'Quoting', active: true },
-  { name: 'Worker App', active: true },
-  { name: 'ToolTime Shield', active: true },
-  { name: 'Payments', active: true },
-  { name: 'Payroll', active: false, comingSoon: true },
+  { name: 'Website', active: true, href: '/demo/website' },
+  { name: 'Scheduling', active: true, href: '/demo/scheduling' },
+  { name: 'Quoting', active: true, href: '/demo/quoting' },
+  { name: 'Worker App', active: true, href: '/worker' },
+  { name: 'ToolTime Shield', active: true, href: '/dashboard/shield' },
+  { name: 'Payments', active: true, href: '/demo/invoicing' },
+  { name: 'Payroll', active: false, comingSoon: true, href: '#' },
 ];
 
 // Industry cards for "Who It's For" section
@@ -350,7 +350,11 @@ export default function Home() {
             {mobileFeatureOpen && (
               <div className="mt-2 bg-white/10 border border-white/20 rounded-lg p-4 space-y-2">
                 {heroFeatureTabs.map((tab, index) => (
-                  <div key={index} className="flex items-center gap-2">
+                  <Link
+                    key={index}
+                    href={tab.href}
+                    className={`flex items-center gap-2 ${tab.comingSoon ? 'pointer-events-none' : 'hover:bg-white/10 -mx-2 px-2 py-1 rounded'}`}
+                  >
                     <span className={tab.comingSoon ? 'text-white/50' : 'text-gold-500'}>
                       {tab.comingSoon ? '⏳' : '✓'}
                     </span>
@@ -358,7 +362,7 @@ export default function Home() {
                       {tab.name}
                       {tab.comingSoon && <span className="text-xs ml-2">(Soon)</span>}
                     </span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -367,12 +371,13 @@ export default function Home() {
           {/* Feature Tabs - Desktop */}
           <div className="hidden md:flex flex-wrap gap-2 mb-10">
             {heroFeatureTabs.map((tab, index) => (
-              <span
+              <Link
                 key={index}
-                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 ${
+                href={tab.href}
+                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${
                   tab.comingSoon
-                    ? 'bg-white/10 text-white/50'
-                    : 'bg-navy-500 text-white border border-white/20'
+                    ? 'bg-white/10 text-white/50 pointer-events-none'
+                    : 'bg-navy-500 text-white border border-white/20 hover:bg-navy-400 hover:border-white/40'
                 }`}
               >
                 <span className={tab.comingSoon ? 'text-white/50' : 'text-gold-500'}>
@@ -382,7 +387,7 @@ export default function Home() {
                 {tab.comingSoon && (
                   <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full ml-1">Soon</span>
                 )}
-              </span>
+              </Link>
             ))}
           </div>
 
