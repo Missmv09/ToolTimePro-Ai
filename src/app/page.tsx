@@ -116,7 +116,7 @@ const pricingPlans = [
   {
     name: 'Starter',
     price: 30,
-    setup: 499,
+    setup: 0,
     tagline: 'Best for solo operators (1-2 people)',
     popular: false,
     features: [
@@ -133,7 +133,7 @@ const pricingPlans = [
   {
     name: 'Pro',
     price: 49,
-    setup: 699,
+    setup: 149,
     tagline: 'Best for growing teams (3-10 people)',
     popular: true,
     features: [
@@ -150,7 +150,7 @@ const pricingPlans = [
   {
     name: 'Elite',
     price: 79,
-    setup: 999,
+    setup: 349,
     tagline: 'Best for larger crews (10-50 people)',
     popular: false,
     features: [
@@ -733,7 +733,9 @@ export default function Home() {
                   <span className="text-4xl font-bold text-navy-500">${plan.price}</span>
                   <span className="text-gray-500">/mo</span>
                 </div>
-                <p className="text-sm text-gray-500 mb-4">+ ${plan.setup} one-time setup</p>
+                {plan.setup > 0 && (
+                  <p className="text-sm text-gray-500 mb-4">+ ${plan.setup} one-time setup</p>
+                )}
                 <p className="text-sm text-gray-600 mb-6">{plan.tagline}</p>
                 <ul className="space-y-3 mb-6 flex-grow">
                   {plan.features.map((feature, fIndex) => (
@@ -803,9 +805,9 @@ export default function Home() {
                 </tr>
                 <tr className="bg-white">
                   <td className="p-4 text-gray-600">Setup Fee</td>
-                  <td className="text-center p-4 text-gray-600">$499</td>
-                  <td className="text-center p-4 text-gray-600 bg-gold-50">$699</td>
-                  <td className="text-center p-4 text-gray-600">$999</td>
+                  <td className="text-center p-4 text-gray-600">$0</td>
+                  <td className="text-center p-4 text-gray-600 bg-gold-50">$149</td>
+                  <td className="text-center p-4 text-gray-600">$349</td>
                 </tr>
               </tbody>
             </table>
