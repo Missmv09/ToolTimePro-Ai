@@ -31,7 +31,7 @@ exports.handler = async (event, context) => {
 
     // Handle booking flow if active
     if (bookingState || bookingIntent.wantsToBook) {
-      return handleBookingFlow(message, conversationHistory, bookingState, bookingIntent, businessName, headers);
+      return await handleBookingFlow(message, conversationHistory, bookingState, bookingIntent, businessName, headers);
     }
 
     // Build the system prompt for a service business chatbot
@@ -158,7 +158,7 @@ function detectBookingIntent(message, history) {
 }
 
 // Handle the booking flow state machine
-function handleBookingFlow(message, conversationHistory, bookingState, bookingIntent, businessName, headers) {
+async function handleBookingFlow(message, conversationHistory, bookingState, bookingIntent, businessName, headers) {
   const lowerMessage = message.toLowerCase();
 
   // Initialize booking state if starting fresh
@@ -185,14 +185,24 @@ function handleBookingFlow(message, conversationHistory, bookingState, bookingIn
       // Check if user selected a valid date
       const selectedDate = parseSelectedDate(message, bookingState.availableDates);
       if (selectedDate) {
-        const availableSlots = getAvailableTimeSlots(selectedDate);
-        reply = `Perfect! ${selectedDate} works great. ⏰\n\nWhat time would you prefer?`;
-        quickReplies = availableSlots;
-        newBookingState = {
-          step: 'awaiting_time',
-          selectedDate,
-          availableSlots
-        };
+        // Fetch already booked slots for this date
+        const bookedSlots = await fetchBookedSlots(selectedDate);
+        const availableSlots = await getAvailableTimeSlots(selectedDate, bookedSlots);
+
+        if (availableSlots.length === 0) {
+          reply = `Sorry, ${selectedDate} is fully booked. 😔\n\nPlease choose another date:`;
+          quickReplies = bookingState.availableDates.filter(d => d !== selectedDate);
+          newBookingState = bookingState;
+        } else {
+          reply = `Perfect! ${selectedDate} works great. ⏰\n\nWhat time would you prefer?`;
+          quickReplies = availableSlots;
+          newBookingState = {
+            step: 'awaiting_time',
+            selectedDate,
+            availableSlots,
+            bookedSlots
+          };
+        }
       } else {
         reply = `I didn't catch that date. Please select from the available options:`;
         quickReplies = bookingState.availableDates;
@@ -336,20 +346,36 @@ function getAvailableDates() {
   return dates;
 }
 
-// Get available time slots for a given date
-function getAvailableTimeSlots(date) {
-  // In a real implementation, this would check against actual calendar
-  // For demo, return standard slots with some randomly "booked"
+// Get available time slots for a given date (checks against booked slots)
+async function getAvailableTimeSlots(date, bookedSlots = []) {
   const allSlots = [
     '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM',
     '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
   ];
 
-  // Simulate some slots being unavailable (random but deterministic per date)
-  const dateHash = date.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  const unavailableIndex = dateHash % allSlots.length;
+  // Filter out already booked slots
+  const availableSlots = allSlots.filter(slot => !bookedSlots.includes(slot));
 
-  return allSlots.filter((_, i) => i !== unavailableIndex && i !== (unavailableIndex + 3) % allSlots.length);
+  return availableSlots;
+}
+
+// Fetch booked slots from booking store
+async function fetchBookedSlots(date) {
+  try {
+    // Use internal function URL or environment-configured URL
+    const baseUrl = process.env.URL || 'http://localhost:8888';
+    const response = await fetch(
+      `${baseUrl}/.netlify/functions/booking-store/booked-slots?date=${encodeURIComponent(date)}`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.bookedSlots || [];
+    }
+  } catch (error) {
+    console.log('Could not fetch booked slots, using empty list:', error.message);
+  }
+  return [];
 }
 
 // Parse user's date selection
