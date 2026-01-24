@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { submitWebsiteLead } from '@/lib/supabase-browser';
 
 // Hero feature tabs
 const heroFeatureTabs = [
@@ -215,90 +214,10 @@ const pricingFaqs = [
   },
 ];
 
-// Business types for questionnaire
-const businessTypes = [
-  { value: 'landscaping', label: 'Landscaping & Lawn Care' },
-  { value: 'pool', label: 'Pool Service & Maintenance' },
-  { value: 'painting', label: 'Painting & Drywall' },
-  { value: 'cleaning', label: 'Cleaning & Janitorial' },
-  { value: 'hvac', label: 'HVAC & Plumbing' },
-  { value: 'electrical', label: 'Electrical' },
-  { value: 'roofing', label: 'Roofing & Gutters' },
-  { value: 'handyman', label: 'Handyman Services' },
-  { value: 'pest', label: 'Pest Control' },
-  { value: 'other', label: 'Other Home Services' },
-];
-
-// Pain points for questionnaire
-const painPointOptions = [
-  { value: 'scheduling', label: 'Scheduling & dispatching jobs' },
-  { value: 'payments', label: 'Getting paid on time' },
-  { value: 'compliance', label: 'CA labor law compliance' },
-  { value: 'time_tracking', label: 'Tracking worker hours' },
-  { value: 'quoting', label: 'Creating quotes & estimates' },
-  { value: 'reviews', label: 'Getting more reviews' },
-  { value: 'leads', label: 'Managing leads & customers' },
-  { value: 'website', label: 'Need a better website' },
-];
-
-// Employee count options
-const employeeCountOptions = [
-  { value: 'just_me', label: 'Just me' },
-  { value: '2-5', label: '2-5 workers' },
-  { value: '6-10', label: '6-10 workers' },
-  { value: '11-25', label: '11-25 workers' },
-  { value: '25+', label: '25+ workers' },
-];
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mobileFeatureOpen, setMobileFeatureOpen] = useState(false);
-
-  // Questionnaire form state
-  const [formData, setFormData] = useState({
-    email: '',
-    phone: '',
-    companyName: '',
-    businessType: '',
-    painPoints: [] as string[],
-    employeeCount: '',
-  });
-  const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-
-  const handlePainPointChange = (value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      painPoints: prev.painPoints.includes(value)
-        ? prev.painPoints.filter((p) => p !== value)
-        : [...prev.painPoints, value],
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.email) {
-      return;
-    }
-
-    setFormStatus('submitting');
-
-    const result = await submitWebsiteLead({
-      email: formData.email,
-      phone: formData.phone || undefined,
-      companyName: formData.companyName || undefined,
-      businessType: formData.businessType || undefined,
-      painPoints: formData.painPoints.length > 0 ? formData.painPoints : undefined,
-      employeeCount: formData.employeeCount || undefined,
-    });
-
-    if (result.success) {
-      setFormStatus('success');
-    } else {
-      // Still show success to not lose the lead
-      setFormStatus('success');
-    }
-  };
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -695,177 +614,27 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ==================== QUESTIONNAIRE FORM SECTION ==================== */}
+      {/* ==================== GET STARTED CTA SECTION ==================== */}
       <div id="get-started" className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
         <div className="max-w-4xl mx-auto px-4 py-16">
-          <div className="text-center mb-10">
+          <div className="text-center">
             <span className="inline-block bg-gold-500 text-navy-900 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
               Get Started
             </span>
-            <h2 className="text-3xl font-bold mb-4">Tell Us About Your Business</h2>
-            <p className="text-white/80 max-w-2xl mx-auto">
-              We&apos;ll show you how ToolTime Pro can help you save time, stay compliant, and grow.
+            <h2 className="text-3xl font-bold mb-4">Ready to Grow Your Business?</h2>
+            <p className="text-white/80 max-w-2xl mx-auto mb-8">
+              Join thousands of service businesses using ToolTime Pro to save time, stay compliant, and get more customers.
+            </p>
+            <Link
+              href="/pricing"
+              className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg px-8 py-4 rounded-lg transition-colors"
+            >
+              View Plans & Pricing
+            </Link>
+            <p className="text-white/60 text-sm mt-4">
+              No contracts. Cancel anytime. 30-day money-back guarantee.
             </p>
           </div>
-
-          {formStatus === 'success' ? (
-            <div className="bg-white rounded-xl p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-navy-500 mb-2">Thanks!</h3>
-              <p className="text-gray-600 mb-6">We&apos;ll be in touch within 24 hours.</p>
-              <Link href="/dashboard" className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-6 py-3 rounded-lg transition-colors">
-                Explore the Dashboard
-              </Link>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="bg-white rounded-xl p-8">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Email (Required) */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-navy-500 mb-2">
-                    Email Address <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-navy-500"
-                    placeholder="you@company.com"
-                  />
-                </div>
-
-                {/* Phone (Optional) */}
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-navy-500 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-navy-500"
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-
-                {/* Company Name (Optional) */}
-                <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium text-navy-500 mb-2">
-                    Company Name
-                  </label>
-                  <input
-                    type="text"
-                    id="companyName"
-                    value={formData.companyName}
-                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-navy-500"
-                    placeholder="Your Company LLC"
-                  />
-                </div>
-
-                {/* Business Type (Dropdown) */}
-                <div>
-                  <label htmlFor="businessType" className="block text-sm font-medium text-navy-500 mb-2">
-                    Business Type
-                  </label>
-                  <select
-                    id="businessType"
-                    value={formData.businessType}
-                    onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-navy-500 bg-white"
-                  >
-                    <option value="">Select your industry...</option>
-                    {businessTypes.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Employee Count */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-navy-500 mb-2">
-                    Team Size
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {employeeCountOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, employeeCount: option.value })}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                          formData.employeeCount === option.value
-                            ? 'bg-navy-500 text-white'
-                            : 'bg-gray-100 text-navy-500 hover:bg-gray-200'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Pain Points (Checkboxes) */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-navy-500 mb-3">
-                    What challenges are you facing? (Select all that apply)
-                  </label>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {painPointOptions.map((option) => (
-                      <label
-                        key={option.value}
-                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                          formData.painPoints.includes(option.value)
-                            ? 'border-gold-500 bg-gold-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.painPoints.includes(option.value)}
-                          onChange={() => handlePainPointChange(option.value)}
-                          className="w-4 h-4 text-gold-500 border-gray-300 rounded focus:ring-gold-500"
-                        />
-                        <span className="text-sm text-navy-500">{option.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="mt-8">
-                <button
-                  type="submit"
-                  disabled={formStatus === 'submitting' || !formData.email}
-                  className="w-full bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg py-4 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {formStatus === 'submitting' ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <span>Get My Free Demo</span>
-                  )}
-                </button>
-                <p className="text-center text-sm text-gray-500 mt-3">
-                  No credit card required. We&apos;ll reach out within 24 hours.
-                </p>
-              </div>
-            </form>
-          )}
         </div>
       </div>
 
