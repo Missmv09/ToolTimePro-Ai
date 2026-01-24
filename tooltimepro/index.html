@@ -250,6 +250,33 @@
         .pricing-card .btn{width:100%}
         .pricing-trial-note{font-size:0.8125rem;color:var(--text-muted);text-align:center;margin-top:12px}
 
+        /* Billing Toggle */
+        .billing-toggle{display:flex;justify-content:center;gap:0;margin-bottom:48px;background:var(--bg-alt);border-radius:100px;padding:6px;max-width:360px;margin-left:auto;margin-right:auto}
+        .billing-option{background:transparent;border:none;padding:14px 28px;border-radius:100px;font-weight:600;font-size:0.9375rem;cursor:pointer;transition:all 0.3s;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+        .billing-option.active{background:var(--white);color:var(--primary);box-shadow:var(--shadow)}
+        .billing-option:hover:not(.active){color:var(--primary)}
+        .billing-save{background:var(--success);color:var(--white);padding:4px 10px;border-radius:100px;font-size:0.6875rem;font-weight:700}
+
+        /* Pricing Add-ons */
+        .pricing-addons{margin:24px 0;padding:20px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border)}
+        .addons-title{font-weight:700;color:var(--primary);margin-bottom:12px;font-size:0.875rem}
+        .addon-option{display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;font-size:0.9375rem;color:var(--text);border-bottom:1px solid var(--border)}
+        .addon-option:last-child{border-bottom:none;padding-bottom:0}
+        .addon-option input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+        .addon-option span{flex:1}
+
+        /* Onboarding Services */
+        .onboarding-services{margin-top:64px;text-align:center}
+        .onboarding-services h3{font-size:1.375rem;color:var(--primary);margin-bottom:24px}
+        .onboarding-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:700px;margin:0 auto}
+        @media(max-width:600px){.onboarding-grid{grid-template-columns:1fr}}
+        .onboarding-card{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);padding:28px;transition:all 0.3s}
+        .onboarding-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+        .onboarding-name{font-weight:700;font-size:1.125rem;color:var(--primary);margin-bottom:8px}
+        .onboarding-price{font-size:1.75rem;font-weight:800;color:var(--primary);margin-bottom:12px}
+        .onboarding-price span{font-size:0.9375rem;font-weight:500;color:var(--text-muted)}
+        .onboarding-card p{font-size:0.9375rem;color:var(--text-light);line-height:1.5}
+
         .questionnaire{background:linear-gradient(145deg,var(--primary) 0%,var(--primary-light) 100%);color:var(--white);position:relative;overflow:hidden}
         .questionnaire::before{content:'';position:absolute;top:-200px;right:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(245,166,35,0.15) 0%,transparent 70%)}
         .questionnaire .section-label{background:rgba(245,166,35,0.2);color:var(--accent)}
@@ -349,7 +376,7 @@
                     <a href="#features" class="btn btn-secondary">See How It Works</a>
                 </div>
                 <div class="hero-stats">
-                    <div class="stat"><div class="stat-number mono">$49</div><div class="stat-label">Starting at /month</div></div>
+                    <div class="stat"><div class="stat-number mono">$30</div><div class="stat-label">Starting at /month</div></div>
                     <div class="stat"><div class="stat-number mono">10x</div><div class="stat-label">Cheaper than competitors</div></div>
                     <div class="stat"><div class="stat-number mono">0</div><div class="stat-label">Tech skills required</div></div>
                 </div>
@@ -741,60 +768,112 @@
         <div class="container">
             <div class="section-header">
                 <span class="section-label">Simple Pricing</span>
-                <h2>Pick Your Plan. We Handle The Rest.</h2>
-                <p>No hidden fees. No long contracts. Cancel anytime.</p>
+                <h2>Start Your 14-Day Free Trial</h2>
+                <p>No credit card required. No contracts. Cancel anytime.</p>
             </div>
+
+            <!-- Billing Toggle -->
+            <div class="billing-toggle">
+                <button type="button" class="billing-option active" data-billing="monthly">Monthly</button>
+                <button type="button" class="billing-option" data-billing="annual">Annual <span class="billing-save">2 months free</span></button>
+            </div>
+
             <div class="pricing-grid">
-                <div class="pricing-card animate-on-scroll">
+                <div class="pricing-card animate-on-scroll" data-plan="starter">
                     <div class="pricing-name">Starter</div>
                     <p class="pricing-desc">Perfect for solo operators getting started</p>
-                    <div class="pricing-price"><span class="price-amount">$30</span><span class="price-period">/mo</span><span class="price-setup">+ $499 one-time setup</span></div>
+                    <div class="pricing-price">
+                        <span class="price-amount" data-monthly="30" data-annual="300">$30</span>
+                        <span class="price-period">/mo</span>
+                        <span class="price-annual-note" style="display:none">billed annually</span>
+                    </div>
                     <ul class="pricing-features">
-                        <li>Professional branded website</li>
-                        <li>24/7 AI chatbot</li>
-                        <li>Contact form + lead capture</li>
-                        <li>Basic email automations</li>
-                        <li>Google Business Profile setup</li>
-                        <li class="hr-feature">Basic HR templates (3 docs)</li>
+                        <li>Up to 5 worker app users</li>
+                        <li>+$2/user/mo for additional workers</li>
+                        <li>Online scheduling & booking</li>
+                        <li>Smart quoting & invoicing</li>
+                        <li>GPS clock-in</li>
+                        <li class="hr-feature">Federal compliance (ToolTime Shield)</li>
+                        <li>1-page website</li>
+                        <li>Spanish language support</li>
+                        <li>Chat & email support</li>
                     </ul>
+                    <div class="pricing-addons">
+                        <p class="addons-title">Add-Ons:</p>
+                        <label class="addon-option"><input type="checkbox" name="addon_starter" value="keepMeLegal"><span>Keep Me Legal - $29/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_starter" value="aiChatbot"><span>AI Chatbot - $19/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_starter" value="extraPage"><span>Extra Website Page - $10/mo</span></label>
+                    </div>
                     <button type="button" class="btn btn-secondary" onclick="startCheckout('starter')">Start Free Trial</button>
-                    <p class="pricing-trial-note">14-day free trial, no credit card required</p>
+                    <p class="pricing-trial-note">14-day free trial • No credit card required</p>
                 </div>
-                <div class="pricing-card featured animate-on-scroll">
-                    <span class="pricing-badge">⭐ MOST POPULAR</span>
+                <div class="pricing-card featured animate-on-scroll" data-plan="pro">
+                    <span class="pricing-badge">Most Popular</span>
                     <div class="pricing-name">Pro</div>
                     <p class="pricing-desc">For growing teams who need more tools</p>
-                    <div class="pricing-price"><span class="price-amount">$49</span><span class="price-period">/mo</span><span class="price-setup">+ $699 one-time setup</span></div>
+                    <div class="pricing-price">
+                        <span class="price-amount" data-monthly="49" data-annual="490">$49</span>
+                        <span class="price-period">/mo</span>
+                        <span class="price-annual-note" style="display:none">billed annually</span>
+                    </div>
                     <ul class="pricing-features">
+                        <li>Up to 15 worker app users</li>
+                        <li>+$2/user/mo for additional workers</li>
                         <li class="highlight">Everything in Starter, plus:</li>
-                        <li>Online booking + scheduler</li>
-                        <li>Admin dashboard</li>
-                        <li>Worker app (clock in/out, jobs)</li>
-                        <li>Automated review requests</li>
-                        <li class="hr-feature">Full HR document library (10+ templates)</li>
-                        <li class="hr-feature">ToolTime Shield compliance tools</li>
-                        <li class="hr-feature">Final pay calculator</li>
+                        <li>California state compliance rules</li>
+                        <li>3-page website</li>
+                        <li>Phone support</li>
                     </ul>
+                    <div class="pricing-addons">
+                        <p class="addons-title">Add-Ons:</p>
+                        <label class="addon-option"><input type="checkbox" name="addon_pro" value="keepMeLegal"><span>Keep Me Legal - $29/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_pro" value="aiChatbot"><span>AI Chatbot - $19/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_pro" value="extraPage"><span>Extra Website Page - $10/mo</span></label>
+                    </div>
                     <button type="button" class="btn btn-primary" onclick="startCheckout('pro')">Start Free Trial</button>
-                    <p class="pricing-trial-note">14-day free trial, no credit card required</p>
+                    <p class="pricing-trial-note">14-day free trial • No credit card required</p>
                 </div>
-                <div class="pricing-card animate-on-scroll">
+                <div class="pricing-card animate-on-scroll" data-plan="elite">
                     <div class="pricing-name">Elite</div>
                     <p class="pricing-desc">Full operations suite for serious businesses</p>
-                    <div class="pricing-price"><span class="price-amount">$79</span><span class="price-period">/mo</span><span class="price-setup">+ $999 one-time setup</span></div>
+                    <div class="pricing-price">
+                        <span class="price-amount" data-monthly="79" data-annual="790">$79</span>
+                        <span class="price-period">/mo</span>
+                        <span class="price-annual-note" style="display:none">billed annually</span>
+                    </div>
                     <ul class="pricing-features">
+                        <li>Up to 30 worker app users</li>
+                        <li>+$2/user/mo for additional workers</li>
                         <li class="highlight">Everything in Pro, plus:</li>
-                        <li>Smart quote forms + auto-estimates</li>
-                        <li>Route optimization</li>
-                        <li>Time logs + payroll export</li>
-                        <li class="hr-feature">HR On-Demand expert support</li>
-                        <li class="hr-feature">Priority HR response (4 hours)</li>
-                        <li class="hr-feature">Custom document review</li>
-                        <li class="payroll-feature">Payroll integration (coming soon)</li>
+                        <li>Local/city compliance rules</li>
+                        <li>5-page website</li>
                         <li>Priority support</li>
                     </ul>
+                    <div class="pricing-addons">
+                        <p class="addons-title">Add-Ons:</p>
+                        <label class="addon-option"><input type="checkbox" name="addon_elite" value="keepMeLegal"><span>Keep Me Legal - $29/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_elite" value="aiChatbot"><span>AI Chatbot - $19/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_elite" value="extraPage"><span>Extra Website Page - $10/mo</span></label>
+                    </div>
                     <button type="button" class="btn btn-secondary" onclick="startCheckout('elite')">Start Free Trial</button>
-                    <p class="pricing-trial-note">14-day free trial, no credit card required</p>
+                    <p class="pricing-trial-note">14-day free trial • No credit card required</p>
+                </div>
+            </div>
+
+            <!-- Onboarding Services -->
+            <div class="onboarding-services">
+                <h3>Optional Onboarding Services</h3>
+                <div class="onboarding-grid">
+                    <div class="onboarding-card">
+                        <div class="onboarding-name">Assisted Onboarding</div>
+                        <div class="onboarding-price">$149 <span>one-time</span></div>
+                        <p>Guided setup with our team to get you started quickly</p>
+                    </div>
+                    <div class="onboarding-card">
+                        <div class="onboarding-name">White-Glove Setup</div>
+                        <div class="onboarding-price">$349 <span>one-time</span></div>
+                        <p>We handle everything - full setup and customization</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -880,21 +959,72 @@
 
     <script>
         function toggleMenu(){document.getElementById('navLinks').classList.toggle('active')}
-        async function startCheckout(plan){
-            try{
-                const response=await fetch('/api/checkout',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({plan:plan,billing:'monthly'})
+
+        // Billing toggle state
+        let currentBilling = 'monthly';
+
+        // Billing toggle functionality
+        document.querySelectorAll('.billing-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.billing-option').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentBilling = this.dataset.billing;
+                updatePricing();
+            });
+        });
+
+        function updatePricing() {
+            const isAnnual = currentBilling === 'annual';
+            document.querySelectorAll('.price-amount').forEach(el => {
+                const monthly = el.dataset.monthly;
+                const annual = el.dataset.annual;
+                if (isAnnual) {
+                    el.textContent = '$' + annual;
+                } else {
+                    el.textContent = '$' + monthly;
+                }
+            });
+            document.querySelectorAll('.price-period').forEach(el => {
+                el.textContent = isAnnual ? '/yr' : '/mo';
+            });
+            document.querySelectorAll('.price-annual-note').forEach(el => {
+                el.style.display = isAnnual ? 'block' : 'none';
+            });
+        }
+
+        // Get selected add-ons for a plan
+        function getAddOns(plan) {
+            const addOns = [];
+            document.querySelectorAll(`input[name="addon_${plan}"]:checked`).forEach(checkbox => {
+                addOns.push(checkbox.value);
+            });
+            return addOns;
+        }
+
+        async function startCheckout(plan) {
+            try {
+                const addOns = getAddOns(plan);
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        plan: plan,
+                        billing: currentBilling,
+                        addOns: addOns
+                    })
                 });
-                const data=await response.json();
-                if(data.url){window.location.href=data.url}
-                else{alert('Unable to start checkout. Please try again.')}
-            }catch(error){
-                console.error('Checkout error:',error);
-                alert('Unable to start checkout. Please try again.')
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Unable to start checkout. Please try again.');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Unable to start checkout. Please try again.');
             }
         }
+
         document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));t&&(t.scrollIntoView({behavior:'smooth',block:'start'}),document.getElementById('navLinks').classList.remove('active'))})});
         document.getElementById('questionnaire-form').addEventListener('submit',function(e){e.preventDefault();alert("Thanks! We'll be in touch within 24 hours.");this.reset()});
         document.querySelectorAll('.feature-tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('.feature-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')})});
