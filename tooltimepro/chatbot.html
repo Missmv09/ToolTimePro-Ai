@@ -587,7 +587,7 @@
                 <div class="chat-avatar">🌿</div>
                 <div class="chat-info">
                     <h4>Chat with Pro Landscaping</h4>
-                    <div class="chat-status">Online now</div>
+                    <div class="chat-status">Online now • Powered by AI ✨</div>
                 </div>
             </div>
             <div class="chat-messages" id="chatMessages">
@@ -663,41 +663,8 @@
     <script>
         const chatMessages = document.getElementById('chatMessages');
         const userInput = document.getElementById('userInput');
-        let conversationStep = 0;
+        let conversationHistory = [];
         let leadCaptured = false;
-
-        // Predefined responses based on keywords
-        const responses = {
-            lawn: {
-                text: "Yes! We offer weekly and bi-weekly lawn care starting at $45/visit. This includes mowing, edging, and blowing. Would you like a free quote?",
-                quickReplies: ["Yes please!", "What about larger yards?", "Other services?"]
-            },
-            price: {
-                text: "Here are our most popular services:\n\n🌿 Lawn Care: $45-85/visit\n🏊 Pool Service: $75-150/month\n🔧 Handyman: $65/hour\n🌳 Landscaping: Custom quotes\n\nWant a personalized quote for your property?",
-                quickReplies: ["Get a quote", "Tell me more", "Book appointment"]
-            },
-            quote: {
-                text: "I'd be happy to get you a quote! For the most accurate pricing, can you tell me:\n\n1. What service do you need?\n2. Approximate property size?\n\nOr I can have someone call you - what's your phone number?",
-                quickReplies: ["Lawn care, 1/4 acre", "Pool service", "Call me instead"]
-            },
-            book: {
-                text: "Great! I can help you book an appointment. We have availability:\n\n📅 Tomorrow: 9am, 2pm\n📅 Thursday: 10am, 1pm, 3pm\n📅 Friday: 9am, 11am\n\nWhich works best for you?",
-                quickReplies: ["Tomorrow 9am", "Thursday 1pm", "Check next week"]
-            },
-            phone: {
-                text: "Perfect! I've captured your info. Mike will call you within 2 hours to schedule a walkthrough and provide an exact quote. Is there anything else I can help with?",
-                quickReplies: ["That's all, thanks!", "What's included?", "Service area?"],
-                capturesLead: true
-            },
-            thanks: {
-                text: "You're welcome! 😊 We look forward to helping you. Have a great day!",
-                quickReplies: []
-            },
-            default: {
-                text: "I'd be happy to help with that! For specific questions, you can also reach us at (512) 555-0100 or I can have someone call you. Would you like to leave your number?",
-                quickReplies: ["Leave my number", "Call me", "Other question"]
-            }
-        };
 
         function addMessage(text, isUser = false, quickReplies = []) {
             const messageDiv = document.createElement('div');
@@ -705,7 +672,7 @@
 
             let quickRepliesHtml = '';
             if (quickReplies.length > 0) {
-                quickRepliesHtml = `<div class="quick-replies">${quickReplies.map(r => `<span class="quick-reply" onclick="sendQuickReply('${r}')">${r}</span>`).join('')}</div>`;
+                quickRepliesHtml = `<div class="quick-replies">${quickReplies.map(r => `<span class="quick-reply" onclick="sendQuickReply('${r.replace(/'/g, "\\'")}')">${r}</span>`).join('')}</div>`;
             }
 
             messageDiv.innerHTML = `
@@ -715,6 +682,9 @@
 
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Track conversation
+            conversationHistory.push({ text: text, isUser: isUser });
         }
 
         function showTyping() {
@@ -738,38 +708,35 @@
             if (typing) typing.remove();
         }
 
-        function getResponse(input) {
-            const lowerInput = input.toLowerCase();
+        async function getAIResponse(message) {
+            try {
+                const response = await fetch('/.netlify/functions/ai-chatbot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        conversationHistory: conversationHistory.slice(-10), // Last 10 messages for context
+                        businessType: 'landscaping',
+                        businessName: 'Pro Landscaping'
+                    })
+                });
 
-            // Check for phone number
-            if (/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(input) || /\d{10}/.test(input)) {
-                return responses.phone;
-            }
+                if (!response.ok) throw new Error('API error');
 
-            // Check keywords
-            if (lowerInput.includes('lawn') || lowerInput.includes('mow') || lowerInput.includes('grass') || lowerInput.includes('1/4 acre')) {
-                return responses.lawn;
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('AI error:', error);
+                // Fallback response
+                return {
+                    reply: "I'd be happy to help! For the fastest response, you can reach us at (512) 555-0100, or leave your number and we'll call you right back.",
+                    quickReplies: ['Leave my number', 'Other question'],
+                    leadCaptured: false
+                };
             }
-            if (lowerInput.includes('price') || lowerInput.includes('cost') || lowerInput.includes('how much') || lowerInput.includes('pricing')) {
-                return responses.price;
-            }
-            if (lowerInput.includes('quote') || lowerInput.includes('estimate') || lowerInput.includes('yes please')) {
-                return responses.quote;
-            }
-            if (lowerInput.includes('book') || lowerInput.includes('appointment') || lowerInput.includes('schedule') || lowerInput.includes('tomorrow') || lowerInput.includes('thursday')) {
-                return responses.book;
-            }
-            if (lowerInput.includes('thank') || lowerInput.includes("that's all") || lowerInput.includes('great')) {
-                return responses.thanks;
-            }
-            if (lowerInput.includes('call me') || lowerInput.includes('leave') || lowerInput.includes('number') || lowerInput.includes('555') || lowerInput.includes('phone')) {
-                return responses.phone;
-            }
-
-            return responses.default;
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
@@ -778,18 +745,17 @@
 
             showTyping();
 
-            setTimeout(() => {
-                hideTyping();
-                const response = getResponse(text);
-                addMessage(response.text, false, response.quickReplies);
+            const response = await getAIResponse(text);
 
-                if (response.capturesLead && !leadCaptured) {
-                    leadCaptured = true;
-                    setTimeout(() => {
-                        showLeadAlert();
-                    }, 1000);
-                }
-            }, 1000 + Math.random() * 500);
+            hideTyping();
+            addMessage(response.reply, false, response.quickReplies || []);
+
+            if (response.leadCaptured && !leadCaptured) {
+                leadCaptured = true;
+                setTimeout(() => {
+                    showLeadAlert();
+                }, 1000);
+            }
         }
 
         function sendQuickReply(text) {
