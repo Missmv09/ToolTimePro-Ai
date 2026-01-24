@@ -1456,6 +1456,196 @@
         .footer a:hover {
             text-decoration: underline;
         }
+
+        /* AI Compliance Assistant */
+        .ai-assistant {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .ai-assistant-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ai-assistant-header h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #667eea;
+            margin: 0;
+        }
+
+        .ai-badge-shield {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .ai-assistant-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9375rem;
+            margin-bottom: 16px;
+        }
+
+        .ai-question-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text);
+            background: var(--white);
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .ai-question-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .ai-question-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .ai-quick-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ai-quick-btn {
+            padding: 8px 14px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 0.8125rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-quick-btn:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            color: #667eea;
+        }
+
+        .ai-ask-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .ai-ask-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .ai-ask-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .ai-ask-btn .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: ai-spin 0.8s linear infinite;
+        }
+
+        @keyframes ai-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-response {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .ai-response.show {
+            display: block;
+        }
+
+        .ai-response-box {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--border);
+        }
+
+        .ai-response-box.warning {
+            border-color: var(--warning);
+            background: rgba(255, 171, 0, 0.05);
+        }
+
+        .ai-response-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .ai-response-box.warning .ai-response-header {
+            color: var(--warning);
+        }
+
+        .ai-response-content {
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        .ai-response-content p {
+            margin-bottom: 12px;
+        }
+
+        .ai-response-content ul {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+
+        .ai-response-content li {
+            margin-bottom: 6px;
+        }
+
+        .ai-disclaimer {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -1550,6 +1740,40 @@
                     <div class="card-value">40 hrs/year</div>
                     <div class="card-detail">Accrues 1 hr per 30 hrs worked. Use starts at 90 days.</div>
                     <div class="card-source">CA Labor Code §246</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Compliance Assistant -->
+        <section class="ai-assistant">
+            <div class="ai-assistant-header">
+                <span style="font-size: 1.5rem;">✨</span>
+                <h3>AI Compliance Assistant</h3>
+                <span class="ai-badge-shield">Powered by AI</span>
+            </div>
+            <p class="ai-assistant-subtitle">Ask any question about California labor law, overtime, breaks, wages, or compliance requirements.</p>
+
+            <div class="ai-quick-questions">
+                <button class="ai-quick-btn" onclick="askQuickQuestion('What are the overtime rules in California?')">Overtime rules</button>
+                <button class="ai-quick-btn" onclick="askQuickQuestion('When do I need to pay final wages if I fire someone?')">Final pay deadline</button>
+                <button class="ai-quick-btn" onclick="askQuickQuestion('What breaks am I required to give employees?')">Required breaks</button>
+                <button class="ai-quick-btn" onclick="askQuickQuestion('How much sick leave do I need to provide?')">Sick leave</button>
+                <button class="ai-quick-btn" onclick="askQuickQuestion('What happens if I pay an employee late?')">Late payment penalties</button>
+            </div>
+
+            <textarea class="ai-question-input" id="aiQuestion" placeholder="Example: 'My employee worked 10 hours today. How much overtime do I owe them?' or 'What training do I need to provide for a crew of 8?'"></textarea>
+
+            <button class="ai-ask-btn" id="aiAskBtn" onclick="askComplianceQuestion()">
+                <span id="aiAskBtnText">✨ Ask AI Assistant</span>
+            </button>
+
+            <div class="ai-response" id="aiResponse">
+                <div class="ai-response-box" id="aiResponseBox">
+                    <div class="ai-response-header">
+                        <span>🤖</span> AI Response
+                    </div>
+                    <div class="ai-response-content" id="aiResponseContent"></div>
+                    <div class="ai-disclaimer" id="aiDisclaimer"></div>
                 </div>
             </div>
         </section>
@@ -2731,6 +2955,98 @@
             // Set initial wage from state minimum
             selectedCityWage = STATE_WAGE;
             generateChecklist();
+        });
+
+        // AI Compliance Assistant Functions
+        function askQuickQuestion(question) {
+            document.getElementById('aiQuestion').value = question;
+            askComplianceQuestion();
+        }
+
+        async function askComplianceQuestion() {
+            const question = document.getElementById('aiQuestion').value.trim();
+            if (question.length < 5) {
+                alert('Please enter a more detailed question');
+                return;
+            }
+
+            const btn = document.getElementById('aiAskBtn');
+            const btnText = document.getElementById('aiAskBtnText');
+            const responseDiv = document.getElementById('aiResponse');
+            const responseBox = document.getElementById('aiResponseBox');
+            const responseContent = document.getElementById('aiResponseContent');
+            const disclaimer = document.getElementById('aiDisclaimer');
+
+            // Get company size
+            const activeSize = document.querySelector('.size-btn.active');
+            const companySize = activeSize ? activeSize.dataset.size : 'Unknown';
+
+            // Show loading state
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span> Thinking...';
+            responseDiv.classList.remove('show');
+
+            try {
+                const response = await fetch('/.netlify/functions/ai-compliance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: question,
+                        companySize: companySize
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API error');
+                }
+
+                const data = await response.json();
+
+                // Format the response with proper HTML
+                let formattedAnswer = data.answer
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n- /g, '</p><ul><li>')
+                    .replace(/\n• /g, '</p><ul><li>')
+                    .replace(/- /g, '<li>')
+                    .replace(/• /g, '<li>')
+                    .replace(/\n/g, '<br>');
+
+                // Wrap in paragraph if not already
+                if (!formattedAnswer.startsWith('<p>')) {
+                    formattedAnswer = '<p>' + formattedAnswer + '</p>';
+                }
+
+                responseContent.innerHTML = formattedAnswer;
+                disclaimer.textContent = data.disclaimer || 'This is general information, not legal advice.';
+
+                // Add warning styling if needed
+                if (data.hasWarning) {
+                    responseBox.classList.add('warning');
+                } else {
+                    responseBox.classList.remove('warning');
+                }
+
+                responseDiv.classList.add('show');
+
+            } catch (error) {
+                console.error('AI compliance error:', error);
+                // Show fallback response
+                responseContent.innerHTML = '<p>I apologize, but I couldn\'t process your question right now. For California labor law questions, you can:</p><ul><li>Visit the <a href="https://www.dir.ca.gov" target="_blank">CA Department of Industrial Relations</a></li><li>Call the Labor Commissioner: 1-833-526-4636</li><li>Consult with an employment attorney</li></ul>';
+                disclaimer.textContent = 'This is general information, not legal advice.';
+                responseBox.classList.remove('warning');
+                responseDiv.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = '✨ Ask AI Assistant';
+            }
+        }
+
+        // Allow Enter key to submit (with Shift+Enter for new line)
+        document.getElementById('aiQuestion').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askComplianceQuestion();
+            }
         });
     </script>
 </body>
