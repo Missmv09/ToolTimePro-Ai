@@ -259,31 +259,10 @@ export default function Home() {
     }));
   };
 
-  const handleStartTrial = async (planName: string) => {
+  const handleStartTrial = (planName: string) => {
     const addOns = selectedAddOns[planName];
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: planName.toLowerCase(),
-          billing: billingPeriod,
-          addOns,
-        }),
-      });
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else if (data.error) {
-        console.error('Checkout error:', data.error);
-        window.location.href = '/auth/signup';
-      } else {
-        window.location.href = '/auth/signup';
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      window.location.href = '/auth/signup';
-    }
+    const addOnsParam = addOns.length > 0 ? `&addons=${addOns.join(',')}` : '';
+    window.location.href = `/auth/signup?plan=${planName.toLowerCase()}&billing=${billingPeriod}${addOnsParam}`;
   };
 
   return (
