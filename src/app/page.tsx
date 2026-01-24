@@ -190,9 +190,9 @@ const pricingPlans = [
 
 // Pricing add-ons
 const pricingAddOns = [
-  { id: 'keep-me-legal', name: 'Keep Me Legal', price: 29 },
-  { id: 'ai-chatbot', name: 'AI Chatbot', price: 19 },
-  { id: 'extra-page', name: 'Extra Website Page', price: 10 },
+  { id: 'keepMeLegal', name: 'Keep Me Legal', price: 29 },
+  { id: 'aiChatbot', name: 'AI Chatbot', price: 19 },
+  { id: 'extraPage', name: 'Extra Website Page', price: 10 },
 ];
 
 // Comparison table features
@@ -274,9 +274,15 @@ export default function Home() {
       const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.error) {
+        console.error('Checkout error:', data.error);
+        window.location.href = '/auth/signup';
+      } else {
+        window.location.href = '/auth/signup';
       }
     } catch (error) {
       console.error('Checkout error:', error);
+      window.location.href = '/auth/signup';
     }
   };
 
