@@ -552,7 +552,7 @@ export default function Home() {
           {/* Section Header */}
           <div className="text-center mb-12">
             <span className="inline-block bg-navy-400 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-4 flex items-center gap-2 mx-auto w-fit">
-              <span>🛡️</span> ToolTime Shield
+              <span>🛡️</span> ToolTime HR + Shield
             </span>
             <h2 className="text-3xl font-bold text-white mb-3">Your Back-Office Safety Net</h2>
             <p className="text-white/70 max-w-xl mx-auto">
@@ -620,6 +620,60 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* California Compliance Tools Subsection */}
+          <div className="mt-12 pt-12 border-t border-navy-400">
+            <div className="text-center mb-8">
+              <span className="inline-block bg-red-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+                ⚠️ California Employers
+              </span>
+              <h3 className="text-2xl font-bold text-white mb-2">Stay Out of Trouble</h3>
+              <p className="text-white/70 max-w-xl mx-auto">
+                California employment law is brutal. One mistake can cost you thousands. We make compliance dead simple.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Final Pay Calculator */}
+              <Link href="/dashboard/shield" className="bg-gradient-to-br from-gold-500 to-gold-600 rounded-xl p-6 text-navy-900 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">💰</span>
+                  <h4 className="font-bold">Final Pay Calculator</h4>
+                </div>
+                <p className="text-navy-800 mb-2">Know exactly when to pay terminated employees</p>
+                <p className="text-sm text-navy-700">Avoid up to 30 days wage penalties</p>
+              </Link>
+
+              {/* Size-Based Requirements */}
+              <Link href="/dashboard/shield" className="bg-gradient-to-br from-navy-500 to-navy-600 rounded-xl p-6 text-white hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">📋</span>
+                  <h4 className="font-bold">Size-Based Requirements</h4>
+                </div>
+                <p className="text-white/90 mb-2">See exactly what laws apply to YOUR business</p>
+                <p className="text-sm text-white/70">1-4 employees? 50+? Different rules.</p>
+              </Link>
+
+              {/* Local Wage Lookup */}
+              <Link href="/dashboard/shield" className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">📍</span>
+                  <h4 className="font-bold">Local Wage Lookup</h4>
+                </div>
+                <p className="text-white/90 mb-2">SF pays $18.07/hr, not $16.00</p>
+                <p className="text-sm text-white/70">Know your city&apos;s minimum wage</p>
+              </Link>
+            </div>
+
+            <div className="text-center mt-8">
+              <Link
+                href="/dashboard/shield"
+                className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-8 py-3 rounded-lg transition-colors"
+              >
+                Check Your Compliance →
+              </Link>
             </div>
           </div>
         </div>
