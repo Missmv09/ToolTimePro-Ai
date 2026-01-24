@@ -249,6 +249,7 @@ export default function Home() {
     Pro: [],
     Elite: [],
   });
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const toggleAddOn = (planName: string, addOnId: string) => {
     setSelectedAddOns(prev => ({
@@ -259,10 +260,35 @@ export default function Home() {
     }));
   };
 
-  const handleStartTrial = (planName: string) => {
-    const addOns = selectedAddOns[planName];
-    const addOnsParam = addOns.length > 0 ? `&addons=${addOns.join(',')}` : '';
-    window.location.href = `/auth/signup?plan=${planName.toLowerCase()}&billing=${billingPeriod}${addOnsParam}`;
+  const handleStartTrial = async (planName: string) => {
+    setLoadingPlan(planName);
+
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: planName.toLowerCase(),
+          billing: billingPeriod,
+          addOns: selectedAddOns[planName]
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        alert('Error: ' + data.error);
+        setLoadingPlan(null);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      alert('Something went wrong. Please try again.');
+      setLoadingPlan(null);
+    }
   };
 
   return (
@@ -947,13 +973,14 @@ export default function Home() {
                 {/* CTA Button */}
                 <button
                   onClick={() => handleStartTrial(plan.name)}
+                  disabled={loadingPlan === plan.name}
                   className={`text-center py-3 rounded-lg font-semibold transition-colors ${
                     plan.popular
                       ? 'bg-gold-500 hover:bg-gold-600 text-navy-900'
                       : 'border-2 border-navy-500 text-navy-500 hover:bg-navy-50'
-                  }`}
+                  } ${loadingPlan === plan.name ? 'opacity-75 cursor-not-allowed' : ''}`}
                 >
-                  Start Free Trial
+                  {loadingPlan === plan.name ? 'Processing...' : 'Start Free Trial'}
                 </button>
                 <p className="text-xs text-gray-500 text-center mt-3">
                   14-day free trial • No credit card required • Cancel anytime
