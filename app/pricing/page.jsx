@@ -86,10 +86,17 @@ export default function PricingPage() {
         body: JSON.stringify({ plan: planId, billing, addOns: selectedAddOns[planId] })
       });
       const { url, error } = await res.json();
-      if (error) { alert(error); return; }
-      window.location.href = url;
+      if (url) {
+        window.location.href = url;
+      } else if (error) {
+        console.error('Checkout error:', error);
+        window.location.href = '/auth/signup';
+      } else {
+        window.location.href = '/auth/signup';
+      }
     } catch (e) {
-      alert('Something went wrong');
+      console.error('Checkout error:', e);
+      window.location.href = '/auth/signup';
     } finally {
       setLoading(null);
     }
