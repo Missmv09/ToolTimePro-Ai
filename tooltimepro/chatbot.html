@@ -515,6 +515,98 @@
             border-color: var(--gold);
         }
 
+        /* Booking Flow Styles */
+        .booking-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .booking-option {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #dee2e6;
+            padding: 10px 12px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .booking-option:hover {
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            border-color: var(--gold);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+        }
+
+        /* Booking Confirmation Card */
+        .booking-confirmation {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9) !important;
+            border: 2px solid #4caf50 !important;
+            border-radius: 16px !important;
+        }
+
+        .booking-header {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #2e7d32;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(46, 125, 50, 0.2);
+        }
+
+        .booking-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .booking-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9375rem;
+            color: #333;
+        }
+
+        .booking-item span {
+            font-size: 1rem;
+        }
+
+        .booking-footer {
+            font-size: 0.8125rem;
+            color: #558b2f;
+            font-weight: 500;
+            padding-top: 8px;
+            border-top: 1px solid rgba(46, 125, 50, 0.2);
+            margin-bottom: 12px;
+        }
+
+        /* Booking progress indicator */
+        .booking-progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .progress-step {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+
+        .progress-step.active {
+            background: var(--gold);
+        }
+
+        .progress-step.completed {
+            background: var(--success);
+        }
+
         /* Responsive */
         @media (max-width: 1100px) {
             .main-container {
@@ -529,6 +621,11 @@
         @media (max-width: 768px) {
             .header-content { flex-direction: column; align-items: flex-start; }
             .chat-widget { max-height: 500px; }
+            .booking-options { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 400px) {
+            .booking-options { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -665,14 +762,17 @@
         const userInput = document.getElementById('userInput');
         let conversationHistory = [];
         let leadCaptured = false;
+        let currentBookingState = null; // Track booking flow state
 
-        function addMessage(text, isUser = false, quickReplies = []) {
+        function addMessage(text, isUser = false, quickReplies = [], isBookingFlow = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
 
             let quickRepliesHtml = '';
             if (quickReplies.length > 0) {
-                quickRepliesHtml = `<div class="quick-replies">${quickReplies.map(r => `<span class="quick-reply" onclick="sendQuickReply('${r.replace(/'/g, "\\'")}')">${r}</span>`).join('')}</div>`;
+                // Use different styling for booking flow buttons
+                const buttonClass = isBookingFlow ? 'quick-reply booking-option' : 'quick-reply';
+                quickRepliesHtml = `<div class="quick-replies${isBookingFlow ? ' booking-options' : ''}">${quickReplies.map(r => `<span class="${buttonClass}" onclick="sendQuickReply('${r.replace(/'/g, "\\'")}')">${r}</span>`).join('')}</div>`;
             }
 
             messageDiv.innerHTML = `
@@ -685,6 +785,31 @@
 
             // Track conversation
             conversationHistory.push({ text: text, isUser: isUser });
+        }
+
+        function addBookingConfirmation(bookingData) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-bubble booking-confirmation">
+                    <div class="booking-header">🎉 Booking Confirmed!</div>
+                    <div class="booking-details">
+                        <div class="booking-item"><span>📅</span> ${bookingData.date}</div>
+                        <div class="booking-item"><span>⏰</span> ${bookingData.time}</div>
+                        <div class="booking-item"><span>👤</span> ${bookingData.name}</div>
+                        <div class="booking-item"><span>📱</span> ${bookingData.phone}</div>
+                        <div class="booking-item"><span>🔧</span> ${bookingData.service.charAt(0).toUpperCase() + bookingData.service.slice(1)}</div>
+                    </div>
+                    <div class="booking-footer">You'll receive a confirmation text shortly!</div>
+                    <div class="quick-replies">
+                        <span class="quick-reply" onclick="sendQuickReply('Thanks!')">Thanks!</span>
+                        <span class="quick-reply" onclick="sendQuickReply('I have another question')">Ask another question</span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function showTyping() {
@@ -717,7 +842,8 @@
                         message: message,
                         conversationHistory: conversationHistory.slice(-10), // Last 10 messages for context
                         businessType: 'landscaping',
-                        businessName: 'Pro Landscaping'
+                        businessName: 'Pro Landscaping',
+                        bookingState: currentBookingState // Pass current booking state
                     })
                 });
 
@@ -730,8 +856,9 @@
                 // Fallback response
                 return {
                     reply: "I'd be happy to help! For the fastest response, you can reach us at (512) 555-0100, or leave your number and we'll call you right back.",
-                    quickReplies: ['Leave my number', 'Other question'],
-                    leadCaptured: false
+                    quickReplies: ['Leave my number', 'Book appointment'],
+                    leadCaptured: false,
+                    bookingState: null
                 };
             }
         }
@@ -748,9 +875,30 @@
             const response = await getAIResponse(text);
 
             hideTyping();
-            addMessage(response.reply, false, response.quickReplies || []);
 
-            if (response.leadCaptured && !leadCaptured) {
+            // Update booking state
+            currentBookingState = response.bookingState;
+
+            // Check if booking was completed
+            if (response.bookingComplete && response.bookingData) {
+                addBookingConfirmation(response.bookingData);
+                // Save the booking
+                saveBooking(response.bookingData);
+                // Trigger lead alert for completed booking
+                if (!leadCaptured) {
+                    leadCaptured = true;
+                    setTimeout(() => {
+                        updateLeadAlert(response.bookingData);
+                        showLeadAlert();
+                    }, 1000);
+                }
+            } else {
+                // Determine if we're in booking flow for styling
+                const isBookingFlow = currentBookingState !== null;
+                addMessage(response.reply, false, response.quickReplies || [], isBookingFlow);
+            }
+
+            if (response.leadCaptured && !leadCaptured && !response.bookingComplete) {
                 leadCaptured = true;
                 setTimeout(() => {
                     showLeadAlert();
@@ -769,11 +917,55 @@
             }
         }
 
+        function updateLeadAlert(bookingData) {
+            const leadName = document.querySelector('.lead-name');
+            const leadDetails = document.querySelector('.lead-details');
+            const leadMessage = document.querySelector('.lead-message');
+
+            if (leadName) leadName.textContent = bookingData.name;
+            if (leadDetails) {
+                leadDetails.innerHTML = `
+                    <div class="lead-detail"><span>📞</span> ${bookingData.phone}</div>
+                    <div class="lead-detail"><span>📅</span> ${bookingData.date} at ${bookingData.time}</div>
+                `;
+            }
+            if (leadMessage) {
+                leadMessage.textContent = `"${bookingData.service.charAt(0).toUpperCase() + bookingData.service.slice(1)} - Booked via chatbot"`;
+            }
+        }
+
         function showLeadAlert() {
             const alert = document.getElementById('leadAlert');
             alert.style.transition = 'all 0.5s ease';
             alert.style.opacity = '1';
             alert.style.transform = 'translateX(0)';
+        }
+
+        // Cancel booking flow
+        function cancelBooking() {
+            currentBookingState = null;
+            addMessage("No problem! Let me know if you have any other questions or want to book later.", false, ['Get a quote', 'Learn more', 'Book now']);
+        }
+
+        // Save booking to backend
+        async function saveBooking(bookingData) {
+            try {
+                const response = await fetch('/.netlify/functions/save-booking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookingData)
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to save booking');
+                    return;
+                }
+
+                const result = await response.json();
+                console.log('Booking saved:', result);
+            } catch (error) {
+                console.error('Error saving booking:', error);
+            }
         }
     </script>
 </body>
