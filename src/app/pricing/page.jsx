@@ -101,14 +101,17 @@ export default function PricingPage() {
         })
       });
       const { url, error } = await response.json();
-      if (error) {
-        alert(error);
-        return;
+      if (url) {
+        window.location.href = url;
+      } else if (error) {
+        console.error('Checkout error:', error);
+        window.location.href = '/auth/signup';
+      } else {
+        window.location.href = '/auth/signup';
       }
-      window.location.href = url;
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Something went wrong. Please try again.');
+      window.location.href = '/auth/signup';
     } finally {
       setLoading(null);
     }
@@ -230,17 +233,20 @@ export default function PricingPage() {
                     : 'bg-gray-900 hover:bg-gray-800 text-white'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {loading === plan.id ? 'Processing...' : `Start ${plan.name}`}
+                {loading === plan.id ? 'Processing...' : 'Start Free Trial'}
               </button>
+              <p className="text-xs text-gray-500 text-center mt-3">
+                14-day free trial • No credit card required • Cancel anytime
+              </p>
             </div>
           ))}
         </div>
 
         <div className="text-center">
           <div className="inline-flex flex-wrap justify-center gap-6 text-sm text-gray-500">
-            <span>No contracts</span>
+            <span>14-day free trial</span>
+            <span>No credit card required</span>
             <span>Cancel anytime</span>
-            <span>30-day money-back guarantee</span>
           </div>
         </div>
 
