@@ -37,8 +37,10 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid plan or billing period' }, { status: 400 });
     }
 
+    // Add base plan
     lineItems.push({ price: planPrice, quantity: 1 });
 
+    // Add selected add-ons
     if (addOns && Array.isArray(addOns)) {
       for (const addOn of addOns) {
         if (addOnPrices[addOn]) {
@@ -47,6 +49,7 @@ export async function POST(request) {
       }
     }
 
+    // Add extra workers if specified
     if (extraWorkers && extraWorkers > 0) {
       lineItems.push({ price: addOnPrices.extraWorker, quantity: extraWorkers });
     }
