@@ -88,6 +88,195 @@
             letter-spacing: 0.5px;
         }
 
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* AI Suggestion Section */
+        .ai-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .ai-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .ai-section-header h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #a78bfa;
+        }
+
+        .ai-textarea {
+            width: 100%;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 12px;
+        }
+
+        .ai-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .ai-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-ai:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ai .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-suggestions {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .ai-suggestion-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-suggestion-item:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .ai-suggestion-item.added {
+            border-color: var(--success);
+            background: rgba(0, 200, 83, 0.1);
+        }
+
+        .ai-suggestion-info {
+            flex: 1;
+        }
+
+        .ai-suggestion-name {
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .ai-suggestion-reason {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .ai-suggestion-price {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: #a78bfa;
+            font-size: 1rem;
+            margin-right: 12px;
+        }
+
+        .ai-suggestion-add {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .ai-suggestion-add:hover {
+            background: #764ba2;
+        }
+
+        .ai-suggestion-item.added .ai-suggestion-add {
+            background: var(--success);
+        }
+
+        .ai-add-all {
+            width: 100%;
+            margin-top: 8px;
+            background: transparent;
+            border: 1px dashed #667eea;
+            color: #a78bfa;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-add-all:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
         /* Main Container */
         .main-container {
             max-width: 1400px;
@@ -851,6 +1040,7 @@
                 <p>Create professional quotes in 60 seconds. Send via SMS or email. Get e-signatures.</p>
             </div>
             <span class="demo-badge">Interactive Demo</span>
+            <span class="ai-badge">Powered by AI ✨</span>
         </div>
     </header>
 
@@ -883,6 +1073,24 @@
                         <div class="form-group">
                             <label>Address</label>
                             <input type="text" id="customerAddress" placeholder="123 Main St, Austin TX" oninput="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Job Description -->
+                <div class="form-section">
+                    <div class="ai-section">
+                        <div class="ai-section-header">
+                            <span style="font-size: 1.25rem;">✨</span>
+                            <h4>AI Quote Assistant</h4>
+                        </div>
+                        <textarea class="ai-textarea" id="jobDescription" placeholder="Describe the job in detail... e.g., 'Customer has a 1/4 acre backyard that needs full cleanup - overgrown hedges along the fence (about 100ft), leaves everywhere, and the lawn hasn't been mowed in a month. Also wants 3 flower beds mulched.'"></textarea>
+                        <button class="btn-ai" id="aiSuggestBtn" onclick="getAISuggestions()">
+                            <span id="aiButtonText">✨ Suggest Services & Pricing</span>
+                        </button>
+                        <div class="ai-suggestions" id="aiSuggestions" style="display: none;">
+                            <div id="suggestionsList"></div>
+                            <button class="ai-add-all" id="addAllBtn" onclick="addAllSuggestions()">+ Add All Suggested Services</button>
                         </div>
                     </div>
                 </div>
@@ -1289,6 +1497,173 @@
         document.getElementById('successModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+
+        // AI Suggestions
+        let aiSuggestions = [];
+
+        async function getAISuggestions() {
+            const jobDescription = document.getElementById('jobDescription').value.trim();
+            if (jobDescription.length < 10) {
+                alert('Please provide a more detailed job description');
+                return;
+            }
+
+            const btn = document.getElementById('aiSuggestBtn');
+            const btnText = document.getElementById('aiButtonText');
+
+            // Show loading state
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span> Analyzing...';
+
+            try {
+                const response = await fetch('/.netlify/functions/ai-quote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jobDescription: jobDescription,
+                        businessType: 'landscaping/lawn care'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API error');
+                }
+
+                const data = await response.json();
+                aiSuggestions = data.services || [];
+
+                // Show suggestions
+                displaySuggestions(data);
+
+                // Update estimated hours if provided
+                if (data.estimatedHours) {
+                    document.getElementById('estHours').value = data.estimatedHours;
+                }
+
+                // Update notes if provided
+                if (data.notes) {
+                    const notesField = document.getElementById('quoteNotes');
+                    if (!notesField.value) {
+                        notesField.value = data.notes;
+                    }
+                }
+
+                updatePreview();
+
+            } catch (error) {
+                console.error('AI suggestion error:', error);
+                // Show fallback suggestions
+                displayFallbackSuggestions(jobDescription);
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = '✨ Suggest Services & Pricing';
+            }
+        }
+
+        function displaySuggestions(data) {
+            const container = document.getElementById('aiSuggestions');
+            const list = document.getElementById('suggestionsList');
+
+            if (!data.services || data.services.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 16px;">No suggestions generated. Try a more detailed description.</p>';
+                container.style.display = 'block';
+                return;
+            }
+
+            list.innerHTML = data.services.map((service, index) => `
+                <div class="ai-suggestion-item" id="suggestion-${index}">
+                    <div class="ai-suggestion-info">
+                        <div class="ai-suggestion-name">${escapeHtml(service.name)}</div>
+                        ${service.reason ? `<div class="ai-suggestion-reason">${escapeHtml(service.reason)}</div>` : ''}
+                    </div>
+                    <div class="ai-suggestion-price">$${service.price.toFixed(2)}</div>
+                    <button class="ai-suggestion-add" onclick="addSuggestion(${index})" title="Add to quote">+</button>
+                </div>
+            `).join('');
+
+            container.style.display = 'block';
+        }
+
+        function displayFallbackSuggestions(description) {
+            // Generate basic suggestions based on keywords
+            const suggestions = [];
+            const lower = description.toLowerCase();
+
+            if (lower.includes('lawn') || lower.includes('mow') || lower.includes('grass')) {
+                suggestions.push({ name: 'Lawn Mowing', price: 65, reason: 'Standard lawn service' });
+            }
+            if (lower.includes('hedge') || lower.includes('bush') || lower.includes('shrub')) {
+                suggestions.push({ name: 'Hedge Trimming', price: 85, reason: 'Hedge maintenance' });
+            }
+            if (lower.includes('leaf') || lower.includes('leaves') || lower.includes('cleanup') || lower.includes('clean')) {
+                suggestions.push({ name: 'Yard Cleanup', price: 120, reason: 'General cleanup service' });
+            }
+            if (lower.includes('mulch')) {
+                suggestions.push({ name: 'Mulch Installation', price: 150, reason: 'Mulch for flower beds' });
+            }
+            if (lower.includes('tree') || lower.includes('branch')) {
+                suggestions.push({ name: 'Tree Trimming', price: 200, reason: 'Tree maintenance' });
+            }
+            if (lower.includes('weed')) {
+                suggestions.push({ name: 'Weed Control', price: 75, reason: 'Weed treatment' });
+            }
+            if (lower.includes('sprinkler') || lower.includes('irrigation')) {
+                suggestions.push({ name: 'Sprinkler Check', price: 55, reason: 'Irrigation inspection' });
+            }
+
+            if (suggestions.length === 0) {
+                suggestions.push({ name: 'General Yard Service', price: 100, reason: 'Based on description' });
+            }
+
+            aiSuggestions = suggestions;
+            displaySuggestions({ services: suggestions });
+        }
+
+        function addSuggestion(index) {
+            const suggestion = aiSuggestions[index];
+            if (!suggestion) return;
+
+            // Check if already added
+            const existing = customServices.find(s => s.name === suggestion.name);
+            if (existing) return;
+
+            // Add to custom services
+            customServices.push({
+                name: suggestion.name,
+                price: suggestion.price
+            });
+
+            // Update UI
+            const item = document.getElementById(`suggestion-${index}`);
+            if (item) {
+                item.classList.add('added');
+                const btn = item.querySelector('.ai-suggestion-add');
+                if (btn) btn.textContent = '✓';
+            }
+
+            updatePreview();
+        }
+
+        function addAllSuggestions() {
+            aiSuggestions.forEach((suggestion, index) => {
+                const existing = customServices.find(s => s.name === suggestion.name);
+                if (!existing) {
+                    customServices.push({
+                        name: suggestion.name,
+                        price: suggestion.price
+                    });
+
+                    const item = document.getElementById(`suggestion-${index}`);
+                    if (item) {
+                        item.classList.add('added');
+                        const btn = item.querySelector('.ai-suggestion-add');
+                        if (btn) btn.textContent = '✓';
+                    }
+                }
+            });
+
+            updatePreview();
+        }
 
         // Initialize
         updatePreview();
