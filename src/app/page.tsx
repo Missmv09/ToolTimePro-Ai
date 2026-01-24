@@ -79,6 +79,26 @@ const hrDocuments = [
   'I-9 & W-4 form links',
 ];
 
+// Compliance Tools
+const complianceTools = [
+  'Worker classification quiz (Employee vs Contractor)',
+  'Final pay deadline calculator (CA same-day / 72-hour rules)',
+  'Waiting time penalty estimator',
+  'AB5 compliance checklist',
+  'Minimum wage chart (CA state + cities)',
+  'Paid sick leave tracker',
+  'Required workplace poster guide',
+];
+
+// HR On-Demand features
+const hrOnDemand = [
+  'Live expert for tricky terminations',
+  'Wage dispute guidance',
+  'Classification questions answered',
+  'Document review before sending',
+  'Priority response within 4 hours',
+];
+
 // Testimonials
 const testimonials = [
   {
@@ -546,87 +566,136 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ==================== TOOLTIME SHIELD + HR SECTION ==================== */}
-      <div className="bg-navy-500">
+      {/* ==================== HR & COMPLIANCE SECTION ==================== */}
+      <div className="bg-[#fef9f0]">
         <div className="max-w-6xl mx-auto px-4 py-16">
           {/* Section Header */}
           <div className="text-center mb-12">
-            <span className="inline-block bg-navy-400 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-4 flex items-center gap-2 mx-auto w-fit">
-              <span>🛡️</span> ToolTime HR + Shield
+            <span className="inline-block bg-navy-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+              🛡️ ToolTime HR
             </span>
-            <h2 className="text-3xl font-bold text-white mb-3">Your Back-Office Safety Net</h2>
-            <p className="text-white/70 max-w-xl mx-auto">
+            <h2 className="text-3xl font-bold text-navy-500 mb-3">Your Back-Office Safety Net</h2>
+            <p className="text-gray-600 max-w-xl mx-auto">
               The HR support that other platforms don&apos;t offer. Sleep better knowing you&apos;re protected.
             </p>
           </div>
 
-          {/* Two Column Layout */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Left Column: Document Templates */}
-            <div className="bg-white rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">📄</span>
-                <h3 className="text-lg font-bold text-navy-500">Document Templates (Included)</h3>
+          {/* Three Category Cards + Right Side Preview */}
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Left Column: Three Category Cards */}
+            <div className="space-y-4">
+              {/* Document Templates Card */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">📄</span>
+                  <h3 className="font-bold text-navy-500">Document Templates (Included)</h3>
+                </div>
+                <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                  {hrDocuments.map((doc, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <span className="text-gold-500 mt-0.5">›</span>
+                      <span className="text-gray-600">{doc}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-2.5">
-                {hrDocuments.map((doc, index) => (
-                  <li key={index} className="flex items-start gap-2.5 text-sm">
-                    <span className="text-gold-500 mt-0.5">›</span>
-                    <span className="text-gray-700">{doc}</span>
-                  </li>
-                ))}
-              </ul>
+
+              {/* Compliance Tools Card */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">⚖️</span>
+                  <h3 className="font-bold text-navy-500">Compliance Tools (Included)</h3>
+                </div>
+                <ul className="space-y-1.5">
+                  {complianceTools.map((tool, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <span className="text-gold-500 mt-0.5">›</span>
+                      <span className="text-gray-600">{tool}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* HR On-Demand Card */}
+              <div className="bg-gradient-to-r from-gold-50 to-gold-100 rounded-xl p-6 border-2 border-gold-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">👨‍💼</span>
+                  <h3 className="font-bold text-navy-500">HR On-Demand</h3>
+                  <span className="text-xs bg-gold-500 text-navy-900 px-2 py-0.5 rounded-full font-semibold">Elite Plan</span>
+                </div>
+                <ul className="space-y-1.5">
+                  {hrOnDemand.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <span className="text-gold-600 mt-0.5">›</span>
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
-            {/* Right Column: Interactive Tools */}
-            <div className="space-y-5">
+            {/* Right Column: Interactive Preview */}
+            <div className="space-y-4">
               {/* HR Document Library Card */}
-              <div className="bg-white rounded-xl p-6">
+              <div className="bg-white rounded-xl p-6 border border-gray-100">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">📁</span>
                   <h4 className="font-bold text-navy-500">HR Document Library</h4>
                 </div>
-                <p className="text-sm text-gray-500 mb-4">All templates ready to use</p>
-                <div className="space-y-2.5">
-                  <Link
-                    href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
+                <p className="text-sm text-gray-500 mb-4">10+ templates ready to use</p>
+                <div className="space-y-2">
+                  <Link href="/dashboard/hr-toolkit" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <span className="text-gold-500">📄</span>
                       <span className="text-sm text-navy-500">Offer Letter Template</span>
                     </div>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1.5 rounded-full font-semibold">Download</span>
+                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded-full font-semibold">Download</span>
                   </Link>
-                  <Link
-                    href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
+                  <Link href="/dashboard/hr-toolkit" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <span className="text-gold-500">📄</span>
                       <span className="text-sm text-navy-500">Termination Checklist</span>
                     </div>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1.5 rounded-full font-semibold">Download</span>
+                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded-full font-semibold">Download</span>
                   </Link>
-                  <Link
-                    href="/dashboard/hr-toolkit"
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
+                  <Link href="/dashboard/hr-toolkit" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <span className="text-gold-500">📄</span>
                       <span className="text-sm text-navy-500">1099 Onboarding</span>
                     </div>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1.5 rounded-full font-semibold">Download</span>
+                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded-full font-semibold">Download</span>
                   </Link>
                 </div>
+              </div>
+
+              {/* Worker Classification Quiz Card */}
+              <div className="bg-navy-500 rounded-xl p-6 text-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">⚖️</span>
+                  <h4 className="font-bold">Worker Classification Quiz</h4>
+                </div>
+                <p className="text-sm text-white/70 mb-4">Does this worker control how & when they work?</p>
+                <div className="bg-navy-600 rounded-lg p-4 mb-4">
+                  <div className="space-y-2">
+                    <button className="w-full text-left px-4 py-2 bg-navy-500 hover:bg-navy-400 rounded-lg text-sm transition-colors">
+                      Yes — they set their own schedule
+                    </button>
+                    <button className="w-full text-left px-4 py-2 bg-navy-500 hover:bg-navy-400 rounded-lg text-sm transition-colors">
+                      No — I control their hours
+                    </button>
+                  </div>
+                </div>
+                <Link href="/dashboard/shield" className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-4 py-2 rounded-lg transition-colors text-sm">
+                  Take the Full Quiz →
+                </Link>
               </div>
             </div>
           </div>
 
-          {/* California Compliance Tools Subsection */}
-          <div className="mt-12 pt-12 border-t border-navy-400">
+          {/* California Compliance Tools - Same Section */}
+          <div className="bg-navy-500 rounded-2xl p-8">
             <div className="text-center mb-8">
-              <span className="inline-block bg-red-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+              <span className="inline-block bg-red-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-3">
                 ⚠️ California Employers
               </span>
               <h3 className="text-2xl font-bold text-white mb-2">Stay Out of Trouble</h3>
@@ -635,43 +704,37 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Final Pay Calculator */}
-              <Link href="/dashboard/shield" className="bg-gradient-to-br from-gold-500 to-gold-600 rounded-xl p-6 text-navy-900 hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">💰</span>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Link href="/dashboard/shield" className="bg-gradient-to-br from-gold-500 to-gold-600 rounded-xl p-5 text-navy-900 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">💰</span>
                   <h4 className="font-bold">Final Pay Calculator</h4>
                 </div>
-                <p className="text-navy-800 mb-2">Know exactly when to pay terminated employees</p>
-                <p className="text-sm text-navy-700">Avoid up to 30 days wage penalties</p>
+                <p className="text-sm text-navy-800">Know exactly when to pay terminated employees</p>
+                <p className="text-xs text-navy-700 mt-1">Avoid up to 30 days wage penalties</p>
               </Link>
 
-              {/* Size-Based Requirements */}
-              <Link href="/dashboard/shield" className="bg-gradient-to-br from-navy-500 to-navy-600 rounded-xl p-6 text-white hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">📋</span>
+              <Link href="/dashboard/shield" className="bg-gradient-to-br from-navy-600 to-navy-700 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">📋</span>
                   <h4 className="font-bold">Size-Based Requirements</h4>
                 </div>
-                <p className="text-white/90 mb-2">See exactly what laws apply to YOUR business</p>
-                <p className="text-sm text-white/70">1-4 employees? 50+? Different rules.</p>
+                <p className="text-sm text-white/90">See exactly what laws apply to YOUR business</p>
+                <p className="text-xs text-white/70 mt-1">1-4 employees? 50+? Different rules.</p>
               </Link>
 
-              {/* Local Wage Lookup */}
-              <Link href="/dashboard/shield" className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">📍</span>
+              <Link href="/dashboard/shield" className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">📍</span>
                   <h4 className="font-bold">Local Wage Lookup</h4>
                 </div>
-                <p className="text-white/90 mb-2">SF pays $18.07/hr, not $16.00</p>
-                <p className="text-sm text-white/70">Know your city&apos;s minimum wage</p>
+                <p className="text-sm text-white/90">SF pays $18.07/hr, not $16.00</p>
+                <p className="text-xs text-white/70 mt-1">Know your city&apos;s minimum wage</p>
               </Link>
             </div>
 
-            <div className="text-center mt-8">
-              <Link
-                href="/dashboard/shield"
-                className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-8 py-3 rounded-lg transition-colors"
-              >
+            <div className="text-center mt-6">
+              <Link href="/dashboard/shield" className="inline-block bg-white hover:bg-gray-100 text-navy-900 font-semibold px-8 py-3 rounded-lg transition-colors">
                 Check Your Compliance →
               </Link>
             </div>
