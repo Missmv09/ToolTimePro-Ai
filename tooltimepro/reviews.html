@@ -74,6 +74,243 @@
             letter-spacing: 0.5px;
         }
 
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* AI Review Response Section */
+        .ai-response-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .ai-response-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #a78bfa;
+        }
+
+        .ai-response-section > p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+        }
+
+        .ai-form-group {
+            margin-bottom: 16px;
+        }
+
+        .ai-form-group label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .ai-textarea {
+            width: 100%;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .ai-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .ai-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .ai-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .ai-select {
+            width: 100%;
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .ai-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 4px;
+        }
+
+        .star-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: all 0.2s;
+        }
+
+        .star-btn.active {
+            opacity: 1;
+        }
+
+        .star-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .ai-generate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .ai-generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .ai-generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .ai-generate-btn .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-result {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .ai-result.show {
+            display: block;
+        }
+
+        .ai-result-box {
+            background: var(--navy);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .ai-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .ai-result-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            background: var(--gold);
+            color: var(--navy);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--gold-light);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+            color: white;
+        }
+
+        .ai-result-text {
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            color: var(--text);
+            white-space: pre-wrap;
+        }
+
+        .ai-tip {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .ai-form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Stats Dashboard */
         .stats-section {
             max-width: 1400px;
@@ -573,6 +810,7 @@
                 <p>Automatically request reviews after every job. Watch your rating climb.</p>
             </div>
             <span class="demo-badge">Interactive Demo</span>
+            <span class="ai-badge">Powered by AI ✨</span>
         </div>
     </header>
 
@@ -598,6 +836,67 @@
                 <div class="stat-icon">💬</div>
                 <div class="stat-value">89%</div>
                 <div class="stat-label">Response Rate</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Review Response Generator -->
+    <section class="stats-section">
+        <div class="ai-response-section">
+            <h3>✨ AI Review Response Generator</h3>
+            <p>Paste any customer review and get a professional response instantly. Copy and post to Google, Yelp, or Facebook.</p>
+
+            <div class="ai-form-group">
+                <label>Paste Customer Review</label>
+                <textarea class="ai-textarea" id="reviewText" placeholder="Example: 'Great service! Miguel arrived on time and did an amazing job on our lawn. Will definitely use again!'"></textarea>
+            </div>
+
+            <div class="ai-form-row">
+                <div class="ai-form-group">
+                    <label>Rating</label>
+                    <div class="star-rating" id="starRating">
+                        <button class="star-btn active" data-rating="1" onclick="setRating(1)">⭐</button>
+                        <button class="star-btn active" data-rating="2" onclick="setRating(2)">⭐</button>
+                        <button class="star-btn active" data-rating="3" onclick="setRating(3)">⭐</button>
+                        <button class="star-btn active" data-rating="4" onclick="setRating(4)">⭐</button>
+                        <button class="star-btn active" data-rating="5" onclick="setRating(5)">⭐</button>
+                    </div>
+                </div>
+                <div class="ai-form-group">
+                    <label>Platform</label>
+                    <select class="ai-select" id="platformSelect">
+                        <option value="Google">Google</option>
+                        <option value="Yelp">Yelp</option>
+                        <option value="Facebook">Facebook</option>
+                    </select>
+                </div>
+                <div class="ai-form-group">
+                    <label>Tone</label>
+                    <select class="ai-select" id="toneSelect">
+                        <option value="professional">Professional</option>
+                        <option value="friendly">Friendly & Warm</option>
+                        <option value="apologetic">Apologetic (for complaints)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="ai-generate-btn" id="generateBtn" onclick="generateResponse()">
+                <span id="generateBtnText">✨ Generate Response</span>
+            </button>
+
+            <div class="ai-result" id="aiResult">
+                <div class="ai-result-box">
+                    <div class="ai-result-header">
+                        <span class="ai-result-label">🤖 AI-Generated Response</span>
+                        <button class="copy-btn" id="copyBtn" onclick="copyResponse()">
+                            <span id="copyBtnText">📋 Copy</span>
+                        </button>
+                    </div>
+                    <div class="ai-result-text" id="responseText"></div>
+                    <div class="ai-tip">
+                        💡 Tip: Copy this response and paste it directly into your Google/Yelp/Facebook review reply!
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -798,6 +1097,103 @@
                 btn.style.animation = 'pulse 1s infinite';
             }
         }, 3000);
+
+        // AI Review Response Generator
+        let selectedRating = 5;
+
+        function setRating(rating) {
+            selectedRating = rating;
+            const stars = document.querySelectorAll('.star-btn');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < rating);
+            });
+
+            // Auto-switch to apologetic tone for low ratings
+            if (rating <= 3) {
+                document.getElementById('toneSelect').value = 'apologetic';
+            } else {
+                document.getElementById('toneSelect').value = 'friendly';
+            }
+        }
+
+        async function generateResponse() {
+            const reviewText = document.getElementById('reviewText').value.trim();
+            if (reviewText.length < 5) {
+                alert('Please paste a customer review first');
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            const btnText = document.getElementById('generateBtnText');
+            const resultDiv = document.getElementById('aiResult');
+
+            // Show loading
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span> Generating...';
+
+            try {
+                const response = await fetch('/.netlify/functions/ai-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        review: reviewText,
+                        rating: selectedRating,
+                        platform: document.getElementById('platformSelect').value,
+                        tone: document.getElementById('toneSelect').value,
+                        businessName: 'Pro Landscaping'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API error');
+                }
+
+                const data = await response.json();
+                document.getElementById('responseText').textContent = data.response;
+                resultDiv.classList.add('show');
+
+                // Reset copy button
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.classList.remove('copied');
+                document.getElementById('copyBtnText').textContent = '📋 Copy';
+
+            } catch (error) {
+                console.error('AI review error:', error);
+                // Generate fallback response
+                const fallbackResponse = generateFallbackResponse(reviewText, selectedRating);
+                document.getElementById('responseText').textContent = fallbackResponse;
+                resultDiv.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = '✨ Generate Response';
+            }
+        }
+
+        function generateFallbackResponse(review, rating) {
+            if (rating >= 4) {
+                return `Thank you so much for your kind words! We're thrilled to hear you had a great experience with our team. Your feedback means the world to us, and we look forward to serving you again soon!
+
+- The Pro Landscaping Team`;
+            } else {
+                return `Thank you for taking the time to share your feedback. We're sorry to hear your experience didn't meet expectations, and we take your concerns seriously. We'd love the opportunity to make this right. Please reach out to us directly so we can address this personally.
+
+- The Pro Landscaping Team`;
+            }
+        }
+
+        function copyResponse() {
+            const responseText = document.getElementById('responseText').textContent;
+            navigator.clipboard.writeText(responseText).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.classList.add('copied');
+                document.getElementById('copyBtnText').textContent = '✓ Copied!';
+
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    document.getElementById('copyBtnText').textContent = '📋 Copy';
+                }, 2000);
+            });
+        }
     </script>
 </body>
 </html>
