@@ -135,15 +135,15 @@ const testimonials = [
 const pricingPlans = [
   {
     name: 'Starter',
-    price: 30,
-    setup: 499,
-    tagline: 'Best for solo operators (1-2 people)',
+    monthlyPrice: 30,
+    annualPrice: 300,
+    workers: 5,
+    tagline: 'Best for solo operators',
     popular: false,
     features: [
       'Professional website (built for you)',
       'Online booking page',
       'Basic scheduling',
-      'AI chatbot (lead capture)',
       'Invoicing + card payments',
       'ToolTime Shield (compliance tools)',
       'HR document library (10+ templates)',
@@ -152,9 +152,10 @@ const pricingPlans = [
   },
   {
     name: 'Pro',
-    price: 49,
-    setup: 699,
-    tagline: 'Best for growing teams (3-10 people)',
+    monthlyPrice: 49,
+    annualPrice: 490,
+    workers: 15,
+    tagline: 'Best for growing teams',
     popular: true,
     features: [
       'Everything in Starter, plus:',
@@ -169,9 +170,10 @@ const pricingPlans = [
   },
   {
     name: 'Elite',
-    price: 79,
-    setup: 999,
-    tagline: 'Best for larger crews (10-50 people)',
+    monthlyPrice: 79,
+    annualPrice: 790,
+    workers: 30,
+    tagline: 'Best for larger crews',
     popular: false,
     features: [
       'Everything in Pro, plus:',
@@ -182,9 +184,15 @@ const pricingPlans = [
       'Compliance dashboard + violation alerts',
       'Dedicated account manager',
       'Phone support',
-      'Payroll (when launched) — included free',
     ],
   },
+];
+
+// Pricing add-ons
+const pricingAddOns = [
+  { id: 'keep-me-legal', name: 'Keep Me Legal', price: 29 },
+  { id: 'ai-chatbot', name: 'AI Chatbot', price: 19 },
+  { id: 'extra-page', name: 'Extra Website Page', price: 10 },
 ];
 
 // Comparison table features
@@ -235,6 +243,42 @@ const pricingFaqs = [
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mobileFeatureOpen, setMobileFeatureOpen] = useState(false);
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const [selectedAddOns, setSelectedAddOns] = useState<Record<string, string[]>>({
+    Starter: [],
+    Pro: [],
+    Elite: [],
+  });
+
+  const toggleAddOn = (planName: string, addOnId: string) => {
+    setSelectedAddOns(prev => ({
+      ...prev,
+      [planName]: prev[planName].includes(addOnId)
+        ? prev[planName].filter(id => id !== addOnId)
+        : [...prev[planName], addOnId],
+    }));
+  };
+
+  const handleStartTrial = async (planName: string) => {
+    const addOns = selectedAddOns[planName];
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: planName.toLowerCase(),
+          billing: billingPeriod,
+          addOns,
+        }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -819,12 +863,38 @@ export default function Home() {
       <div className="bg-white">
         <div className="max-w-6xl mx-auto px-4 py-16">
           {/* Section Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <span className="inline-block bg-gold-100 text-gold-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
               Simple Pricing
             </span>
             <h2 className="text-3xl font-bold text-navy-500 mb-3">Plans That Grow With You</h2>
-            <p className="text-gray-600">No hidden fees. No annual contracts. Cancel anytime.</p>
+            <p className="text-gray-600">No hidden fees. Cancel anytime.</p>
+          </div>
+
+          {/* Billing Toggle */}
+          <div className="flex justify-center items-center gap-4 mb-12">
+            <span className={`font-medium ${billingPeriod === 'monthly' ? 'text-navy-500' : 'text-gray-400'}`}>
+              Monthly
+            </span>
+            <button
+              onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'annual' : 'monthly')}
+              className="relative w-14 h-8 bg-gray-200 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500"
+              style={{ backgroundColor: billingPeriod === 'annual' ? '#c9a227' : '#e5e7eb' }}
+            >
+              <span
+                className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                  billingPeriod === 'annual' ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className={`font-medium ${billingPeriod === 'annual' ? 'text-navy-500' : 'text-gray-400'}`}>
+              Annual
+            </span>
+            {billingPeriod === 'annual' && (
+              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                Save 2 months
+              </span>
+            )}
           </div>
 
           {/* Pricing Cards */}
@@ -847,12 +917,21 @@ export default function Home() {
                 )}
                 <h3 className="text-xl font-bold text-navy-500 mb-2">{plan.name}</h3>
                 <div className="mb-1">
-                  <span className="text-4xl font-bold text-navy-500">${plan.price}</span>
-                  <span className="text-gray-500">/mo</span>
+                  <span className="text-4xl font-bold text-navy-500">
+                    ${billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice}
+                  </span>
+                  <span className="text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                 </div>
-                <p className="text-sm text-gray-500 mb-4">+ ${plan.setup} one-time setup</p>
-                <p className="text-sm text-gray-600 mb-6">{plan.tagline}</p>
-                <ul className="space-y-3 mb-6 flex-grow">
+                <p className="text-sm text-gray-600 mb-4">{plan.tagline}</p>
+
+                {/* Workers included */}
+                <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                  <p className="text-sm font-semibold text-navy-500">{plan.workers} workers included</p>
+                  <p className="text-xs text-gray-500">+$2/user for additional workers</p>
+                </div>
+
+                {/* Features list */}
+                <ul className="space-y-2 mb-6 flex-grow">
                   {plan.features.map((feature, fIndex) => (
                     <li key={fIndex} className="flex items-start gap-2 text-sm">
                       <span className="text-gold-500 mt-0.5">✓</span>
@@ -860,16 +939,40 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href="/pricing"
+
+                {/* Add-ons */}
+                <div className="border-t border-gray-200 pt-4 mb-6">
+                  <p className="text-sm font-semibold text-navy-500 mb-3">Optional Add-ons:</p>
+                  <div className="space-y-2">
+                    {pricingAddOns.map((addOn) => (
+                      <label key={addOn.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedAddOns[plan.name].includes(addOn.id)}
+                          onChange={() => toggleAddOn(plan.name, addOn.id)}
+                          className="w-4 h-4 rounded border-gray-300 text-gold-500 focus:ring-gold-500"
+                        />
+                        <span className="text-sm text-gray-700">{addOn.name}</span>
+                        <span className="text-sm text-gray-500 ml-auto">${addOn.price}/mo</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <button
+                  onClick={() => handleStartTrial(plan.name)}
                   className={`text-center py-3 rounded-lg font-semibold transition-colors ${
                     plan.popular
                       ? 'bg-gold-500 hover:bg-gold-600 text-navy-900'
                       : 'border-2 border-navy-500 text-navy-500 hover:bg-navy-50'
                   }`}
                 >
-                  Get Started
-                </Link>
+                  Start Free Trial
+                </button>
+                <p className="text-xs text-gray-500 text-center mt-3">
+                  14-day free trial • No credit card required • Cancel anytime
+                </p>
               </div>
             ))}
           </div>
@@ -913,16 +1016,22 @@ export default function Home() {
                   </tr>
                 ))}
                 <tr className="bg-navy-50 font-bold">
-                  <td className="p-4 text-navy-500">Monthly Price</td>
-                  <td className="text-center p-4 text-navy-500">$30</td>
-                  <td className="text-center p-4 text-navy-500 bg-gold-100">$49</td>
-                  <td className="text-center p-4 text-navy-500">$79</td>
+                  <td className="p-4 text-navy-500">Workers Included</td>
+                  <td className="text-center p-4 text-navy-500">5</td>
+                  <td className="text-center p-4 text-navy-500 bg-gold-100">15</td>
+                  <td className="text-center p-4 text-navy-500">30</td>
                 </tr>
                 <tr className="bg-white">
-                  <td className="p-4 text-gray-600">Setup Fee</td>
-                  <td className="text-center p-4 text-gray-600">$499</td>
-                  <td className="text-center p-4 text-gray-600 bg-gold-50">$699</td>
-                  <td className="text-center p-4 text-gray-600">$999</td>
+                  <td className="p-4 text-navy-500">Monthly Price</td>
+                  <td className="text-center p-4 text-navy-500">$30</td>
+                  <td className="text-center p-4 text-navy-500 bg-gold-50">$49</td>
+                  <td className="text-center p-4 text-navy-500">$79</td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="p-4 text-navy-500">Annual Price</td>
+                  <td className="text-center p-4 text-navy-500">$300</td>
+                  <td className="text-center p-4 text-navy-500 bg-gold-50/50">$490</td>
+                  <td className="text-center p-4 text-navy-500">$790</td>
                 </tr>
               </tbody>
             </table>
@@ -951,18 +1060,6 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Pricing CTA */}
-          <div className="text-center">
-            <p className="text-gray-600 mb-4">Ready to get started?</p>
-            <Link
-              href="/pricing"
-              className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-8 py-3 rounded-lg transition-colors"
-            >
-              View Plans & Pricing
-            </Link>
-            <p className="text-sm text-gray-500 mt-3">No credit card required to explore.</p>
           </div>
         </div>
       </div>
