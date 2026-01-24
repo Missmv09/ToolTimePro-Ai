@@ -9,6 +9,7 @@ export default function PricingPage() {
     pro: [],
     elite: []
   });
+  const [loadingPlan, setLoadingPlan] = useState(null);
 
   const plans = [
     {
@@ -87,10 +88,35 @@ export default function PricingPage() {
     }));
   };
 
-  const handleCheckout = (planId) => {
-    // Direct redirect to signup with plan info
-    const addOnsParam = selectedAddOns[planId].length > 0 ? `&addons=${selectedAddOns[planId].join(',')}` : '';
-    window.location.href = `/auth/signup?plan=${planId}&billing=${billing}${addOnsParam}`;
+  const handleCheckout = async (planId) => {
+    setLoadingPlan(planId);
+
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: planId,
+          billing,
+          addOns: selectedAddOns[planId]
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        alert('Error: ' + data.error);
+        setLoadingPlan(null);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      alert('Something went wrong. Please try again.');
+      setLoadingPlan(null);
+    }
   };
 
   const calculateTotal = (plan) => {
@@ -202,13 +228,14 @@ export default function PricingPage() {
 
               <button
                 onClick={() => handleCheckout(plan.id)}
+                disabled={loadingPlan === plan.id}
                 className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
                   plan.popular
                     ? 'bg-orange-500 hover:bg-orange-600 text-white'
                     : 'bg-gray-900 hover:bg-gray-800 text-white'
-                }`}
+                } ${loadingPlan === plan.id ? 'opacity-75 cursor-not-allowed' : ''}`}
               >
-                Start Free Trial
+                {loadingPlan === plan.id ? 'Processing...' : 'Start Free Trial'}
               </button>
               <p className="text-xs text-gray-500 text-center mt-3">
                 14-day free trial • No credit card required • Cancel anytime
