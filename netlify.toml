@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build && cp -r tooltimepro/* out/"
+  command = "mkdir -p out && cp -r tooltimepro/* out/"
   publish = "out"
   functions = "netlify/functions"
 

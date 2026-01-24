@@ -1,5 +1,5 @@
 // Netlify Function to call OpenAI for AI-assisted content generation
-const fetch = require('node-fetch');
+// Uses native fetch (Node 18+)
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
