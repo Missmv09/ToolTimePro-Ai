@@ -255,6 +255,108 @@
             border-color: var(--gold);
         }
 
+        /* AI Helper */
+        .input-with-ai {
+            position: relative;
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-with-ai input {
+            flex: 1;
+        }
+
+        .ai-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .ai-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .ai-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .ai-btn .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 8px;
+            z-index: 100;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .ai-suggestions-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .ai-suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .ai-suggestion-item:hover {
+            background: rgba(245, 166, 35, 0.1);
+        }
+
+        .ai-suggestions-close {
+            padding: 8px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .ai-suggestions-close:hover {
+            color: var(--text);
+        }
+
         /* Color Schemes */
         .color-schemes {
             display: flex;
@@ -744,11 +846,23 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>Business Name</label>
-                    <input type="text" id="businessName" placeholder="e.g., Green Valley Landscaping">
+                    <div class="input-with-ai">
+                        <input type="text" id="businessName" placeholder="e.g., Green Valley Landscaping">
+                        <button class="ai-btn" onclick="getAISuggestions('businessName')" id="ai-btn-businessName">
+                            <span>✨</span> Suggest
+                        </button>
+                        <div class="ai-suggestions hidden" id="suggestions-businessName"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Tagline</label>
-                    <input type="text" id="tagline" placeholder="Beautiful Lawns, Happy Customers">
+                    <div class="input-with-ai">
+                        <input type="text" id="tagline" placeholder="Beautiful Lawns, Happy Customers">
+                        <button class="ai-btn" onclick="getAISuggestions('tagline')" id="ai-btn-tagline">
+                            <span>✨</span> Suggest
+                        </button>
+                        <div class="ai-suggestions hidden" id="suggestions-tagline"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Phone Number</label>
@@ -895,6 +1009,112 @@
             hvac: 'linear-gradient(135deg, #607d8b, #90a4ae)',
             detailing: 'linear-gradient(135deg, #212121, #424242)'
         };
+
+        // AI Helper Functions
+        async function getAISuggestions(type) {
+            const btn = document.getElementById('ai-btn-' + type);
+            const suggestionsDiv = document.getElementById('suggestions-' + type);
+            const businessName = document.getElementById('businessName').value;
+
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Thinking...';
+
+            try {
+                const response = await fetch('/.netlify/functions/ai-helper', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: type,
+                        industry: selectedIndustry,
+                        businessName: businessName
+                    })
+                });
+
+                if (!response.ok) throw new Error('API error');
+
+                const data = await response.json();
+
+                // Show suggestions
+                if (data.suggestions && data.suggestions.length > 0) {
+                    suggestionsDiv.innerHTML = `
+                        <div class="ai-suggestions-header">
+                            <span>✨</span> AI Suggestions
+                        </div>
+                        ${data.suggestions.map(s => `
+                            <div class="ai-suggestion-item" onclick="selectSuggestion('${type}', '${s.replace(/'/g, "\\'")}')">
+                                ${s}
+                            </div>
+                        `).join('')}
+                        <div class="ai-suggestions-close" onclick="closeSuggestions('${type}')">
+                            Click to close
+                        </div>
+                    `;
+                    suggestionsDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('AI error:', error);
+                // Fallback to preset suggestions
+                showFallbackSuggestions(type);
+            }
+
+            // Reset button
+            btn.disabled = false;
+            btn.innerHTML = '<span>✨</span> Suggest';
+        }
+
+        function showFallbackSuggestions(type) {
+            const suggestionsDiv = document.getElementById('suggestions-' + type);
+            const industryName = selectedIndustry.charAt(0).toUpperCase() + selectedIndustry.slice(1);
+
+            const fallbackSuggestions = {
+                businessName: [
+                    `${industryName} Pro Services`,
+                    `Elite ${industryName} Solutions`,
+                    `Premier ${industryName} Co.`
+                ],
+                tagline: [
+                    'Quality Service, Every Time',
+                    'Your Trusted Local Experts',
+                    'Excellence in Every Detail'
+                ]
+            };
+
+            const suggestions = fallbackSuggestions[type] || ['No suggestions available'];
+
+            suggestionsDiv.innerHTML = `
+                <div class="ai-suggestions-header">
+                    <span>✨</span> Suggestions
+                </div>
+                ${suggestions.map(s => `
+                    <div class="ai-suggestion-item" onclick="selectSuggestion('${type}', '${s.replace(/'/g, "\\'")}')">
+                        ${s}
+                    </div>
+                `).join('')}
+                <div class="ai-suggestions-close" onclick="closeSuggestions('${type}')">
+                    Click to close
+                </div>
+            `;
+            suggestionsDiv.classList.remove('hidden');
+        }
+
+        function selectSuggestion(type, value) {
+            document.getElementById(type).value = value;
+            closeSuggestions(type);
+        }
+
+        function closeSuggestions(type) {
+            document.getElementById('suggestions-' + type).classList.add('hidden');
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.input-with-ai')) {
+                document.querySelectorAll('.ai-suggestions').forEach(div => {
+                    div.classList.add('hidden');
+                });
+            }
+        });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
