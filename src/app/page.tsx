@@ -394,7 +394,7 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-wrap gap-4">
             <Link
-              href="/auth/register"
+              href="/pricing"
               className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
             >
               Get Started
@@ -915,14 +915,14 @@ export default function Home() {
                   ))}
                 </ul>
                 <Link
-                  href="/auth/register"
+                  href="/pricing"
                   className={`text-center py-3 rounded-lg font-semibold transition-colors ${
                     plan.popular
                       ? 'bg-gold-500 hover:bg-gold-600 text-navy-900'
                       : 'border-2 border-navy-500 text-navy-500 hover:bg-navy-50'
                   }`}
                 >
-                  Start Free Trial
+                  Get Started
                 </Link>
               </div>
             ))}
@@ -1009,14 +1009,14 @@ export default function Home() {
 
           {/* Pricing CTA */}
           <div className="text-center">
-            <p className="text-gray-600 mb-4">Not sure which plan is right for you?</p>
+            <p className="text-gray-600 mb-4">Ready to get started?</p>
             <Link
-              href="/contact"
+              href="/pricing"
               className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-8 py-3 rounded-lg transition-colors"
             >
-              Schedule a Free Consultation
+              View Plans & Pricing
             </Link>
-            <p className="text-sm text-gray-500 mt-3">Talk to a real human. No pressure.</p>
+            <p className="text-sm text-gray-500 mt-3">No credit card required to explore.</p>
           </div>
         </div>
       </div>
@@ -1029,12 +1029,12 @@ export default function Home() {
             Join hundreds of service businesses running smarter.
           </p>
           <Link
-            href="/auth/register"
+            href="/pricing"
             className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold text-xl px-10 py-4 rounded-lg transition-colors mb-4"
           >
-            Get Started Free
+            Get Started
           </Link>
-          <p className="text-white/60 mb-8">No credit card required. Free 14-day trial.</p>
+          <p className="text-white/60 mb-8">Simple pricing. No hidden fees.</p>
 
           {/* Trust Badges */}
           <div className="flex flex-wrap justify-center gap-6 text-sm text-white/70">
