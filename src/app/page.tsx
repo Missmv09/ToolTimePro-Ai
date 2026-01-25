@@ -47,6 +47,8 @@ const featureList = [
   { name: 'Review Machine', tagline: 'Automated 5-Star Growth', description: 'Auto-request reviews after every job. Watch your Google rating climb automatically.', icon: '✓' },
   { name: 'ToolTime Shield', tagline: 'Legal Protection + HR', description: 'Worker classification quiz, final pay calculator, compliance tools, AND 10+ HR templates. Stay lawsuit-free.', icon: '✓' },
   { name: 'Payroll', tagline: 'Coming Soon', description: 'Auto-calculate CA overtime & double-time. Join the waitlist.', icon: '⏳' },
+  { icon: '🗺️', title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
+  { icon: '🛣️', title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
 ];
 
 // Demo cards - all features we offer
@@ -62,6 +64,7 @@ const demoCards = {
     { name: 'Worker App', tagline: 'GPS clock-in, job details, and compliance tracking', icon: '👷', href: '/worker' },
     { name: 'Admin Dashboard', tagline: 'See jobs, revenue, crew status at a glance', icon: '📊', href: '/dashboard' },
     { name: 'ToolTime Shield', tagline: 'Worker classification, final pay calculator, HR docs', icon: '🛡️', href: '/dashboard/shield' },
+    { name: 'Dispatch Board', tagline: 'Real-time crew tracking and drag-and-drop scheduling', icon: '🗺️', href: '/dashboard/dispatch', badge: 'Elite' },
   ],
 };
 
@@ -193,6 +196,27 @@ const pricingAddOns = [
   { id: 'keepMeLegal', name: 'Keep Me Legal', price: 29 },
   { id: 'aiChatbot', name: 'AI Chatbot', price: 19 },
   { id: 'extraPage', name: 'Extra Website Page', price: 10 },
+  { id: 'website_builder', name: 'Website Builder', price: 10, description: 'Custom landing page built for you' },
+];
+
+// Standalone plans
+const standalonePlans = [
+  {
+    id: 'booking_only',
+    name: 'Booking Only',
+    price: 15,
+    annualPrice: 150,
+    icon: '📅',
+    description: 'Just need online booking? Start here.',
+  },
+  {
+    id: 'invoicing_only',
+    name: 'Invoicing Only',
+    price: 15,
+    annualPrice: 150,
+    icon: '🧾',
+    description: 'Just need to send invoices? This is for you.',
+  }
 ];
 
 // Comparison table features
@@ -960,6 +984,42 @@ export default function Home() {
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* Just Need One Thing? Section */}
+          <div className="bg-gray-50 rounded-2xl p-8 mb-12">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-navy-500 mb-2">Just Need One Thing?</h3>
+              <p className="text-gray-600 max-w-xl mx-auto">
+                Not ready for a full plan? Start with just what you need. Upgrade anytime — we&apos;ll credit your payments.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              {standalonePlans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-3xl">{plan.icon}</span>
+                    <h4 className="font-bold text-navy-500">{plan.name}</h4>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+                  <div className="mb-4">
+                    <span className="text-2xl font-bold text-navy-500">
+                      ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}
+                    </span>
+                    <span className="text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                  </div>
+                  <Link
+                    href={`/auth/signup?plan=${plan.id}&billing=${billingPeriod}`}
+                    className="block text-center py-2 px-4 border-2 border-navy-500 text-navy-500 rounded-lg font-semibold hover:bg-navy-50 transition-colors"
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Comparison Table */}
