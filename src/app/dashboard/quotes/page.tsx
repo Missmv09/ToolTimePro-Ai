@@ -1,194 +1,118 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-
-interface Quote {
-  id: string
-  customer: {
-    name: string
-    email: string
-    phone: string
-  }
-  title: string
-  amount: number
-  package: 'good' | 'better' | 'best'
-  status: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired'
-  createdAt: string
-  sentAt?: string
-  viewedAt?: string
-  respondedAt?: string
-  expiresAt: string
-  lineItemsCount: number
-  createdVia: 'voice' | 'photo' | 'manual'
-}
-
-// Mock data - would come from Supabase in production
-const mockQuotes: Quote[] = [
-  {
-    id: 'q-001',
-    customer: { name: 'Sarah Johnson', email: 'sarah@email.com', phone: '(555) 123-4567' },
-    title: 'Kitchen Remodel - Full Service',
-    amount: 12500,
-    package: 'best',
-    status: 'approved',
-    createdAt: '2024-01-18T10:30:00Z',
-    sentAt: '2024-01-18T11:00:00Z',
-    viewedAt: '2024-01-18T14:22:00Z',
-    respondedAt: '2024-01-18T15:45:00Z',
-    expiresAt: '2024-02-18T11:00:00Z',
-    lineItemsCount: 8,
-    createdVia: 'voice',
-  },
-  {
-    id: 'q-002',
-    customer: { name: 'Mike Chen', email: 'mike.chen@company.com', phone: '(555) 987-6543' },
-    title: 'Bathroom Renovation',
-    amount: 8750,
-    package: 'better',
-    status: 'viewed',
-    createdAt: '2024-01-19T09:15:00Z',
-    sentAt: '2024-01-19T09:30:00Z',
-    viewedAt: '2024-01-20T08:45:00Z',
-    expiresAt: '2024-02-19T09:30:00Z',
-    lineItemsCount: 5,
-    createdVia: 'photo',
-  },
-  {
-    id: 'q-003',
-    customer: { name: 'Emily Davis', email: 'emily.d@gmail.com', phone: '(555) 456-7890' },
-    title: 'HVAC System Replacement',
-    amount: 15200,
-    package: 'best',
-    status: 'sent',
-    createdAt: '2024-01-20T14:00:00Z',
-    sentAt: '2024-01-20T14:15:00Z',
-    expiresAt: '2024-02-20T14:15:00Z',
-    lineItemsCount: 4,
-    createdVia: 'manual',
-  },
-  {
-    id: 'q-004',
-    customer: { name: 'Robert Wilson', email: 'rwilson@email.com', phone: '(555) 321-0987' },
-    title: 'Deck Construction',
-    amount: 6800,
-    package: 'good',
-    status: 'rejected',
-    createdAt: '2024-01-15T11:30:00Z',
-    sentAt: '2024-01-15T12:00:00Z',
-    viewedAt: '2024-01-16T09:00:00Z',
-    respondedAt: '2024-01-17T10:30:00Z',
-    expiresAt: '2024-02-15T12:00:00Z',
-    lineItemsCount: 6,
-    createdVia: 'voice',
-  },
-  {
-    id: 'q-005',
-    customer: { name: 'Lisa Thompson', email: 'lisa.t@business.com', phone: '(555) 654-3210' },
-    title: 'Plumbing Repair Bundle',
-    amount: 2400,
-    package: 'better',
-    status: 'draft',
-    createdAt: '2024-01-21T16:45:00Z',
-    expiresAt: '2024-02-21T16:45:00Z',
-    lineItemsCount: 3,
-    createdVia: 'photo',
-  },
-  {
-    id: 'q-006',
-    customer: { name: 'James Miller', email: 'jmiller@email.com', phone: '(555) 789-0123' },
-    title: 'Electrical Panel Upgrade',
-    amount: 4500,
-    package: 'good',
-    status: 'expired',
-    createdAt: '2024-01-01T08:00:00Z',
-    sentAt: '2024-01-01T08:30:00Z',
-    viewedAt: '2024-01-02T10:15:00Z',
-    expiresAt: '2024-01-15T08:30:00Z',
-    lineItemsCount: 2,
-    createdVia: 'manual',
-  },
-]
+import { useState } from 'react';
+import Link from 'next/link';
+import { RefreshCw, AlertCircle, Plus, Search, FileText, Eye, Send, Bell } from 'lucide-react';
+import { useQuotes } from '@/hooks/useQuotes';
+import { useAuth } from '@/contexts/AuthContext';
 
 const statusConfig = {
-  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: '📝' },
-  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700', icon: '📤' },
-  viewed: { label: 'Viewed', color: 'bg-purple-100 text-purple-700', icon: '👁️' },
-  approved: { label: 'Approved', color: 'bg-green-100 text-green-700', icon: '✅' },
-  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700', icon: '❌' },
-  expired: { label: 'Expired', color: 'bg-orange-100 text-orange-700', icon: '⏰' },
+  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700' },
+  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700' },
+  viewed: { label: 'Viewed', color: 'bg-purple-100 text-purple-700' },
+  approved: { label: 'Approved', color: 'bg-green-100 text-green-700' },
+  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700' },
+  expired: { label: 'Expired', color: 'bg-orange-100 text-orange-700' },
+};
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '-';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-const packageConfig = {
-  good: { label: 'Good', color: 'text-blue-600' },
-  better: { label: 'Better', color: 'text-purple-600' },
-  best: { label: 'Best', color: 'text-amber-600' },
+function formatTime(dateStr: string | null): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
-const createdViaConfig = {
-  voice: { label: 'Voice', icon: '🎤' },
-  photo: { label: 'Photo', icon: '📸' },
-  manual: { label: 'Manual', icon: '✏️' },
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 export default function QuotesDashboard() {
-  const [filter, setFilter] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'status'>('date')
-  const [selectedQuotes, setSelectedQuotes] = useState<string[]>([])
+  const { company } = useAuth();
+  const { quotes, stats, isLoading, error, refetch, sendQuote } = useQuotes();
+  const [filter, setFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [selectedQuotes, setSelectedQuotes] = useState<string[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
+
+  const handleSendQuote = async (id: string) => {
+    await sendQuote(id);
+  };
 
   // Filter quotes
-  const filteredQuotes = mockQuotes.filter(quote => {
-    const matchesFilter = filter === 'all' || quote.status === filter
+  const filteredQuotes = quotes.filter((quote) => {
+    const matchesFilter = filter === 'all' || quote.status === filter;
+    const customerName = quote.customer?.name || '';
     const matchesSearch =
-      quote.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quote.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quote.customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesFilter && matchesSearch
-  })
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (quote.title || '').toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   // Sort quotes
   const sortedQuotes = [...filteredQuotes].sort((a, b) => {
-    if (sortBy === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    if (sortBy === 'amount') return b.amount - a.amount
-    return 0
-  })
-
-  // Stats
-  const stats = {
-    total: mockQuotes.length,
-    pending: mockQuotes.filter(q => ['sent', 'viewed'].includes(q.status)).length,
-    approved: mockQuotes.filter(q => q.status === 'approved').length,
-    conversionRate: Math.round(
-      (mockQuotes.filter(q => q.status === 'approved').length /
-       mockQuotes.filter(q => ['approved', 'rejected'].includes(q.status)).length) * 100
-    ) || 0,
-    totalValue: mockQuotes.filter(q => q.status === 'approved').reduce((sum, q) => sum + q.amount, 0),
-    avgResponseTime: '1.2 days',
-  }
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
-
-  const formatTime = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-  }
+    if (sortBy === 'date') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    if (sortBy === 'amount') return (b.total || 0) - (a.total || 0);
+    return 0;
+  });
 
   const toggleSelectAll = () => {
     if (selectedQuotes.length === sortedQuotes.length) {
-      setSelectedQuotes([])
+      setSelectedQuotes([]);
     } else {
-      setSelectedQuotes(sortedQuotes.map(q => q.id))
+      setSelectedQuotes(sortedQuotes.map((q) => q.id));
     }
-  }
+  };
 
   const toggleSelect = (id: string) => {
-    setSelectedQuotes(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    )
+    setSelectedQuotes((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-8" />
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-xl p-4 shadow-sm border h-20 animate-pulse" />
+            ))}
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border h-96 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-semibold text-navy-500 mb-2">Error Loading Quotes</h2>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button onClick={handleRefresh} className="btn-primary">
+          Try Again
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -201,13 +125,22 @@ export default function QuotesDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">Smart Quotes</h1>
               <p className="text-gray-500 mt-1">Manage and track your customer quotes</p>
             </div>
-            <Link
-              href="/demo/quoting"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
-            >
-              <span className="text-xl">+</span>
-              Create Quote
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+              <Link
+                href="/demo/quoting"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
+              >
+                <Plus size={20} />
+                Create Quote
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -220,7 +153,7 @@ export default function QuotesDashboard() {
             <div className="text-sm text-gray-500">Total Quotes</div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-purple-600">{stats.pending}</div>
+            <div className="text-2xl font-bold text-purple-600">{stats.sent + stats.viewed}</div>
             <div className="text-sm text-gray-500">Awaiting Response</div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border">
@@ -232,12 +165,12 @@ export default function QuotesDashboard() {
             <div className="text-sm text-gray-500">Win Rate</div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-amber-600">${stats.totalValue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-amber-600">{formatCurrency(stats.approvedValue)}</div>
             <div className="text-sm text-gray-500">Won Revenue</div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-gray-700">{stats.avgResponseTime}</div>
-            <div className="text-sm text-gray-500">Avg Response</div>
+            <div className="text-2xl font-bold text-gray-700">{stats.draft}</div>
+            <div className="text-sm text-gray-500">Drafts</div>
           </div>
         </div>
 
@@ -259,7 +192,7 @@ export default function QuotesDashboard() {
                   {status === 'all' ? 'All' : statusConfig[status as keyof typeof statusConfig].label}
                   {status !== 'all' && (
                     <span className="ml-2 opacity-70">
-                      {mockQuotes.filter(q => q.status === status).length}
+                      {quotes.filter((q) => q.status === status).length}
                     </span>
                   )}
                 </button>
@@ -269,6 +202,7 @@ export default function QuotesDashboard() {
             {/* Search and Sort */}
             <div className="flex gap-3 w-full lg:w-auto">
               <div className="relative flex-1 lg:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
                   placeholder="Search quotes..."
@@ -276,11 +210,10 @@ export default function QuotesDashboard() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
               </div>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'date' | 'amount' | 'status')}
+                onChange={(e) => setSortBy(e.target.value as 'date' | 'amount')}
                 className="px-4 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500"
               >
                 <option value="date">Sort by Date</option>
@@ -302,9 +235,6 @@ export default function QuotesDashboard() {
               </button>
               <button className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 text-sm font-medium">
                 Export
-              </button>
-              <button className="px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-50 text-sm font-medium">
-                Delete
               </button>
             </div>
           </div>
@@ -330,13 +260,13 @@ export default function QuotesDashboard() {
                   Status
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Package
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Amount
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Created
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Valid Until
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Actions
@@ -357,44 +287,40 @@ export default function QuotesDashboard() {
                   <td className="px-4 py-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
-                        {quote.customer.name.charAt(0)}
+                        {(quote.customer?.name || 'U').charAt(0)}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">{quote.customer.name}</div>
-                        <div className="text-sm text-gray-500">{quote.title}</div>
-                        <div className="text-xs text-gray-400 mt-1 flex items-center gap-2">
-                          <span>{createdViaConfig[quote.createdVia].icon} {createdViaConfig[quote.createdVia].label}</span>
-                          <span>•</span>
-                          <span>{quote.lineItemsCount} items</span>
+                        <div className="font-medium text-gray-900">{quote.customer?.name || 'Unknown'}</div>
+                        <div className="text-sm text-gray-500">{quote.title || 'Untitled Quote'}</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {quote.quote_number && <span>#{quote.quote_number}</span>}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex flex-col gap-1">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[quote.status].color}`}>
-                        {statusConfig[quote.status].icon} {statusConfig[quote.status].label}
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                          statusConfig[quote.status].color
+                        }`}
+                      >
+                        {statusConfig[quote.status].label}
                       </span>
-                      {quote.viewedAt && quote.status !== 'draft' && (
-                        <span className="text-xs text-gray-400">
-                          Viewed {formatDate(quote.viewedAt)}
-                        </span>
+                      {quote.viewed_at && quote.status !== 'draft' && (
+                        <span className="text-xs text-gray-400">Viewed {formatDate(quote.viewed_at)}</span>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`font-medium ${packageConfig[quote.package].color}`}>
-                      {packageConfig[quote.package].label}
-                    </span>
+                    <div className="font-semibold text-gray-900">{formatCurrency(quote.total || 0)}</div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="font-semibold text-gray-900">
-                      ${quote.amount.toLocaleString()}
-                    </div>
+                    <div className="text-sm text-gray-600">{formatDate(quote.created_at)}</div>
+                    <div className="text-xs text-gray-400">{formatTime(quote.created_at)}</div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-sm text-gray-600">{formatDate(quote.createdAt)}</div>
-                    <div className="text-xs text-gray-400">{formatTime(quote.createdAt)}</div>
+                    <div className="text-sm text-gray-600">{formatDate(quote.valid_until)}</div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
@@ -403,20 +329,21 @@ export default function QuotesDashboard() {
                         className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="View Quote"
                       >
-                        👁️
+                        <Eye size={16} />
                       </Link>
                       <button
                         className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Edit Quote"
                       >
-                        ✏️
+                        <FileText size={16} />
                       </button>
                       {quote.status === 'draft' && (
                         <button
+                          onClick={() => handleSendQuote(quote.id)}
                           className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                           title="Send Quote"
                         >
-                          📤
+                          <Send size={16} />
                         </button>
                       )}
                       {['sent', 'viewed'].includes(quote.status) && (
@@ -424,15 +351,9 @@ export default function QuotesDashboard() {
                           className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                           title="Send Reminder"
                         >
-                          🔔
+                          <Bell size={16} />
                         </button>
                       )}
-                      <button
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="More Actions"
-                      >
-                        ⋮
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -442,7 +363,7 @@ export default function QuotesDashboard() {
 
           {sortedQuotes.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-4xl mb-4">📋</div>
+              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No quotes found</h3>
               <p className="text-gray-500 mb-4">
                 {searchTerm ? 'Try adjusting your search' : 'Create your first quote to get started'}
@@ -451,7 +372,7 @@ export default function QuotesDashboard() {
                 href="/demo/quoting"
                 className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
-                <span className="text-xl">+</span>
+                <Plus size={20} />
                 Create Quote
               </Link>
             </div>
@@ -487,5 +408,5 @@ export default function QuotesDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }
