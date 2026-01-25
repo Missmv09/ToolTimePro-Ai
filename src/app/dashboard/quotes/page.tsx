@@ -1,412 +1,615 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { RefreshCw, AlertCircle, Plus, Search, FileText, Eye, Send, Bell } from 'lucide-react';
-import { useQuotes } from '@/hooks/useQuotes';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState, Suspense } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 
-const statusConfig = {
-  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700' },
-  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700' },
-  viewed: { label: 'Viewed', color: 'bg-purple-100 text-purple-700' },
-  approved: { label: 'Approved', color: 'bg-green-100 text-green-700' },
-  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700' },
-  expired: { label: 'Expired', color: 'bg-orange-100 text-orange-700' },
-};
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+interface QuoteItem {
+  id: string
+  description: string
+  quantity: number
+  unit_price: number
+  total: number
 }
 
-function formatTime(dateStr: string | null): string {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+interface Quote {
+  id: string
+  quote_number: string
+  customer_id: string
+  customer: { id: string; name: string; email: string } | null
+  status: string
+  subtotal: number
+  tax: number
+  total: number
+  notes: string
+  valid_until: string
+  created_at: string
+  items?: QuoteItem[]
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+function Loading() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  )
 }
 
-export default function QuotesDashboard() {
-  const { company } = useAuth();
-  const { quotes, stats, isLoading, error, refetch, sendQuote } = useQuotes();
-  const [filter, setFilter] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
-  const [selectedQuotes, setSelectedQuotes] = useState<string[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+function QuotesContent() {
+  const [quotes, setQuotes] = useState<Quote[]>([])
+  const [customers, setCustomers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [filter, setFilter] = useState<string>('all')
+  const [showModal, setShowModal] = useState(false)
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
-  };
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const customerFilter = searchParams.get('customer')
 
-  const handleSendQuote = async (id: string) => {
-    await sendQuote(id);
-  };
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/auth/login')
+        return
+      }
 
-  // Filter quotes
-  const filteredQuotes = quotes.filter((quote) => {
-    const matchesFilter = filter === 'all' || quote.status === filter;
-    const customerName = quote.customer?.name || '';
-    const matchesSearch =
-      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (quote.title || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+      const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
 
-  // Sort quotes
-  const sortedQuotes = [...filteredQuotes].sort((a, b) => {
-    if (sortBy === 'date') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    if (sortBy === 'amount') return (b.total || 0) - (a.total || 0);
-    return 0;
-  });
-
-  const toggleSelectAll = () => {
-    if (selectedQuotes.length === sortedQuotes.length) {
-      setSelectedQuotes([]);
-    } else {
-      setSelectedQuotes(sortedQuotes.map((q) => q.id));
+      if (userData?.company_id) {
+        setCompanyId(userData.company_id)
+        fetchQuotes(userData.company_id)
+        fetchCustomers(userData.company_id)
+      }
     }
-  };
+    init()
+  }, [router])
 
-  const toggleSelect = (id: string) => {
-    setSelectedQuotes((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
+  const fetchQuotes = async (compId: string) => {
+    let query = supabase
+      .from('quotes')
+      .select(`
+        *,
+        customer:customers(id, name, email),
+        items:quote_items(*)
+      `)
+      .eq('company_id', compId)
+      .order('created_at', { ascending: false })
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-8" />
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-4 shadow-sm border h-20 animate-pulse" />
-            ))}
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border h-96 animate-pulse" />
-        </div>
-      </div>
-    );
+    if (filter !== 'all') {
+      query = query.eq('status', filter)
+    }
+
+    if (customerFilter) {
+      query = query.eq('customer_id', customerFilter)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching quotes:', error)
+    } else {
+      setQuotes(data || [])
+    }
+    setLoading(false)
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-xl font-semibold text-navy-500 mb-2">Error Loading Quotes</h2>
-        <p className="text-gray-600 mb-4">{error}</p>
-        <button onClick={handleRefresh} className="btn-primary">
-          Try Again
-        </button>
-      </div>
-    );
+  const fetchCustomers = async (compId: string) => {
+    const { data } = await supabase
+      .from('customers')
+      .select('id, name, email')
+      .eq('company_id', compId)
+      .order('name')
+    setCustomers(data || [])
+  }
+
+  useEffect(() => {
+    if (companyId) {
+      fetchQuotes(companyId)
+    }
+  }, [filter, companyId, customerFilter])
+
+  const updateQuoteStatus = async (quoteId: string, newStatus: string) => {
+    await supabase
+      .from('quotes')
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', quoteId)
+
+    if (companyId) fetchQuotes(companyId)
+  }
+
+  const convertToInvoice = async (quote: Quote) => {
+    if (!companyId) return
+
+    // Create invoice from quote
+    const { data: invoice, error } = await supabase
+      .from('invoices')
+      .insert({
+        company_id: companyId,
+        customer_id: quote.customer_id,
+        quote_id: quote.id,
+        subtotal: quote.subtotal,
+        tax: quote.tax,
+        total: quote.total,
+        status: 'draft',
+        notes: quote.notes,
+        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating invoice:', error)
+      alert('Error creating invoice')
+      return
+    }
+
+    // Copy quote items to invoice items
+    if (quote.items && quote.items.length > 0) {
+      const invoiceItems = quote.items.map(item => ({
+        invoice_id: invoice.id,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.total,
+      }))
+
+      await supabase.from('invoice_items').insert(invoiceItems)
+    }
+
+    // Update quote status
+    await supabase
+      .from('quotes')
+      .update({ status: 'accepted' })
+      .eq('id', quote.id)
+
+    fetchQuotes(companyId)
+    alert('Invoice created! Go to Invoices to send it.')
+  }
+
+  const duplicateQuote = async (quote: Quote) => {
+    if (!companyId) return
+
+    const { data: newQuote } = await supabase
+      .from('quotes')
+      .insert({
+        company_id: companyId,
+        customer_id: quote.customer_id,
+        subtotal: quote.subtotal,
+        tax: quote.tax,
+        total: quote.total,
+        notes: quote.notes,
+        status: 'draft',
+        valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      })
+      .select()
+      .single()
+
+    if (newQuote && quote.items) {
+      const newItems = quote.items.map(item => ({
+        quote_id: newQuote.id,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.total,
+      }))
+      await supabase.from('quote_items').insert(newItems)
+    }
+
+    fetchQuotes(companyId)
+  }
+
+  const statusColors: Record<string, string> = {
+    draft: 'bg-gray-100 text-gray-700',
+    sent: 'bg-blue-100 text-blue-700',
+    viewed: 'bg-purple-100 text-purple-700',
+    accepted: 'bg-green-100 text-green-700',
+    declined: 'bg-red-100 text-red-700',
+    expired: 'bg-yellow-100 text-yellow-700',
+  }
+
+  if (loading) {
+    return <Loading />
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Smart Quotes</h1>
-              <p className="text-gray-500 mt-1">Manage and track your customer quotes</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
-              <Link
-                href="/demo/quoting"
-                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
-              >
-                <Plus size={20} />
-                Create Quote
-              </Link>
-            </div>
-          </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Quotes</h1>
+        <button
+          onClick={() => {
+            setEditingQuote(null)
+            setShowModal(true)
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          + New Quote
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {['all', 'draft', 'sent', 'viewed', 'accepted', 'declined'].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === status
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border">
+          <p className="text-sm text-gray-500">Total Quotes</p>
+          <p className="text-2xl font-bold">{quotes.length}</p>
+        </div>
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-600">Pending</p>
+          <p className="text-2xl font-bold text-blue-700">
+            ${quotes.filter(q => ['sent', 'viewed'].includes(q.status)).reduce((sum, q) => sum + q.total, 0).toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+          <p className="text-sm text-green-600">Accepted</p>
+          <p className="text-2xl font-bold text-green-700">
+            ${quotes.filter(q => q.status === 'accepted').reduce((sum, q) => sum + q.total, 0).toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <p className="text-sm text-gray-500">Conversion Rate</p>
+          <p className="text-2xl font-bold">
+            {quotes.length > 0
+              ? Math.round((quotes.filter(q => q.status === 'accepted').length / quotes.filter(q => q.status !== 'draft').length) * 100) || 0
+              : 0}%
+          </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-500">Total Quotes</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-purple-600">{stats.sent + stats.viewed}</div>
-            <div className="text-sm text-gray-500">Awaiting Response</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-            <div className="text-sm text-gray-500">Approved</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-blue-600">{stats.conversionRate}%</div>
-            <div className="text-sm text-gray-500">Win Rate</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-amber-600">{formatCurrency(stats.approvedValue)}</div>
-            <div className="text-sm text-gray-500">Won Revenue</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border">
-            <div className="text-2xl font-bold text-gray-700">{stats.draft}</div>
-            <div className="text-sm text-gray-500">Drafts</div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border mb-6">
-          <div className="p-4 flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Status Filters */}
-            <div className="flex flex-wrap gap-2">
-              {['all', 'draft', 'sent', 'viewed', 'approved', 'rejected', 'expired'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilter(status)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === status
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {status === 'all' ? 'All' : statusConfig[status as keyof typeof statusConfig].label}
-                  {status !== 'all' && (
-                    <span className="ml-2 opacity-70">
-                      {quotes.filter((q) => q.status === status).length}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Search and Sort */}
-            <div className="flex gap-3 w-full lg:w-auto">
-              <div className="relative flex-1 lg:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search quotes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'date' | 'amount')}
-                className="px-4 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="date">Sort by Date</option>
-                <option value="amount">Sort by Amount</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Bulk Actions */}
-        {selectedQuotes.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 flex items-center justify-between">
-            <span className="text-blue-700 font-medium">
-              {selectedQuotes.length} quote{selectedQuotes.length > 1 ? 's' : ''} selected
-            </span>
-            <div className="flex gap-2">
-              <button className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 text-sm font-medium">
-                Send Reminder
-              </button>
-              <button className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 text-sm font-medium">
-                Export
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Quotes Table */}
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+      {/* Quotes Table */}
+      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quote #</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valid Until</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {quotes.length === 0 ? (
               <tr>
-                <th className="px-4 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={selectedQuotes.length === sortedQuotes.length && sortedQuotes.length > 0}
-                    onChange={toggleSelectAll}
-                    className="rounded border-gray-300"
-                  />
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Customer / Quote
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Valid Until
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Actions
-                </th>
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  No quotes found. Create your first quote to get started.
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {sortedQuotes.map((quote) => (
-                <tr key={quote.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedQuotes.includes(quote.id)}
-                      onChange={() => toggleSelect(quote.id)}
-                      className="rounded border-gray-300"
-                    />
+            ) : (
+              quotes.map((quote) => (
+                <tr key={quote.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-900">{quote.quote_number || `Q-${quote.id.slice(0, 8)}`}</p>
+                    <p className="text-sm text-gray-500">{new Date(quote.created_at).toLocaleDateString()}</p>
                   </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
-                        {(quote.customer?.name || 'U').charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{quote.customer?.name || 'Unknown'}</div>
-                        <div className="text-sm text-gray-500">{quote.title || 'Untitled Quote'}</div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {quote.quote_number && <span>#{quote.quote_number}</span>}
-                        </div>
-                      </div>
-                    </div>
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-gray-900">{quote.customer?.name || '-'}</p>
+                    <p className="text-sm text-gray-500">{quote.customer?.email}</p>
                   </td>
-                  <td className="px-4 py-4">
-                    <div className="flex flex-col gap-1">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          statusConfig[quote.status].color
-                        }`}
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-900">${quote.total?.toLocaleString() || '0'}</p>
+                    <p className="text-sm text-gray-500">{quote.items?.length || 0} items</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={quote.status}
+                      onChange={(e) => updateQuoteStatus(quote.id, e.target.value)}
+                      className={`text-xs px-2 py-1 rounded-full border-0 ${statusColors[quote.status] || 'bg-gray-100'}`}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="sent">Sent</option>
+                      <option value="viewed">Viewed</option>
+                      <option value="accepted">Accepted</option>
+                      <option value="declined">Declined</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : '-'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingQuote(quote)
+                          setShowModal(true)
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
                       >
-                        {statusConfig[quote.status].label}
-                      </span>
-                      {quote.viewed_at && quote.status !== 'draft' && (
-                        <span className="text-xs text-gray-400">Viewed {formatDate(quote.viewed_at)}</span>
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => duplicateQuote(quote)}
+                        className="text-gray-600 hover:text-gray-800 text-sm"
+                      >
+                        Copy
+                      </button>
+                      {quote.status === 'accepted' && (
+                        <button
+                          onClick={() => convertToInvoice(quote)}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          Invoice
+                        </button>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="font-semibold text-gray-900">{formatCurrency(quote.total || 0)}</div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="text-sm text-gray-600">{formatDate(quote.created_at)}</div>
-                    <div className="text-xs text-gray-400">{formatTime(quote.created_at)}</div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="text-sm text-gray-600">{formatDate(quote.valid_until)}</div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
                       <Link
                         href={`/quote/${quote.id}`}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="View Quote"
+                        className="text-purple-600 hover:text-purple-800 text-sm"
+                        target="_blank"
                       >
-                        <Eye size={16} />
+                        View
                       </Link>
-                      <button
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit Quote"
-                      >
-                        <FileText size={16} />
-                      </button>
-                      {quote.status === 'draft' && (
-                        <button
-                          onClick={() => handleSendQuote(quote.id)}
-                          className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          title="Send Quote"
-                        >
-                          <Send size={16} />
-                        </button>
-                      )}
-                      {['sent', 'viewed'].includes(quote.status) && (
-                        <button
-                          className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                          title="Send Reminder"
-                        >
-                          <Bell size={16} />
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-          {sortedQuotes.length === 0 && (
-            <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No quotes found</h3>
-              <p className="text-gray-500 mb-4">
-                {searchTerm ? 'Try adjusting your search' : 'Create your first quote to get started'}
-              </p>
-              <Link
-                href="/demo/quoting"
-                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <QuoteModal
+          quote={editingQuote}
+          companyId={companyId!}
+          customers={customers}
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false)
+            if (companyId) fetchQuotes(companyId)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
+  quote: Quote | null
+  companyId: string
+  customers: { id: string; name: string; email: string }[]
+  onClose: () => void
+  onSave: () => void
+}) {
+  const [formData, setFormData] = useState({
+    customer_id: quote?.customer_id || '',
+    notes: quote?.notes || '',
+    valid_until: quote?.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  })
+  const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
+    quote?.items?.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })) ||
+    [{ description: '', quantity: 1, unit_price: 0 }]
+  )
+  const [saving, setSaving] = useState(false)
+
+  const addItem = () => {
+    setItems([...items, { description: '', quantity: 1, unit_price: 0 }])
+  }
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index))
+  }
+
+  const updateItem = (index: number, field: string, value: string | number) => {
+    const newItems = [...items]
+    newItems[index] = { ...newItems[index], [field]: value }
+    setItems(newItems)
+  }
+
+  const calculateTotals = () => {
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
+    const tax = subtotal * 0.0875 // CA sales tax estimate
+    const total = subtotal + tax
+    return { subtotal, tax, total }
+  }
+
+  const { subtotal, tax, total } = calculateTotals()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+
+    const quoteData = {
+      company_id: companyId,
+      customer_id: formData.customer_id || null,
+      notes: formData.notes,
+      valid_until: formData.valid_until,
+      subtotal,
+      tax,
+      total,
+      status: quote?.status || 'draft',
+    }
+
+    let quoteId = quote?.id
+
+    if (quote) {
+      await supabase.from('quotes').update(quoteData).eq('id', quote.id)
+      // Delete existing items
+      await supabase.from('quote_items').delete().eq('quote_id', quote.id)
+    } else {
+      const { data } = await supabase.from('quotes').insert(quoteData).select().single()
+      quoteId = data?.id
+    }
+
+    // Insert items
+    if (quoteId && items.length > 0) {
+      const quoteItems = items.filter(i => i.description).map(item => ({
+        quote_id: quoteId,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.quantity * item.unit_price,
+      }))
+
+      if (quoteItems.length > 0) {
+        await supabase.from('quote_items').insert(quoteItems)
+      }
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">{quote ? 'Edit Quote' : 'Create New Quote'}</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+              <select
+                value={formData.customer_id}
+                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <Plus size={20} />
-                Create Quote
-              </Link>
+                <option value="">Select customer...</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
-          )}
-        </div>
-
-        {/* Quick Tips */}
-        <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-          <h3 className="font-semibold text-gray-900 mb-4">Quick Tips for Higher Win Rates</h3>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">🎤</span>
-              <div>
-                <div className="font-medium text-gray-900">Use Voice Quotes</div>
-                <div className="text-sm text-gray-600">Create quotes 3x faster while on-site</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💎</span>
-              <div>
-                <div className="font-medium text-gray-900">Offer Good/Better/Best</div>
-                <div className="text-sm text-gray-600">Customers choose mid-tier 65% of the time</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">⚡</span>
-              <div>
-                <div className="font-medium text-gray-900">Send Within 1 Hour</div>
-                <div className="text-sm text-gray-600">Quotes sent quickly close 40% more often</div>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
+              <input
+                type="date"
+                value={formData.valid_until}
+                onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </div>
-        </div>
+
+          {/* Line Items */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Line Items</label>
+            <div className="space-y-2">
+              {items.map((item, index) => (
+                <div key={index} className="flex gap-2 items-start">
+                  <input
+                    type="text"
+                    placeholder="Description"
+                    value={item.description}
+                    onChange={(e) => updateItem(index, 'description', e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Qty"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(index, 'quantity', Number(e.target.value))}
+                    className="w-20 px-3 py-2 border rounded-lg text-sm"
+                    min="1"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Price"
+                    value={item.unit_price}
+                    onChange={(e) => updateItem(index, 'unit_price', Number(e.target.value))}
+                    className="w-28 px-3 py-2 border rounded-lg text-sm"
+                    step="0.01"
+                  />
+                  <span className="w-24 py-2 text-sm text-right font-medium">
+                    ${(item.quantity * item.unit_price).toFixed(2)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    className="p-2 text-red-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addItem}
+              className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+            >
+              + Add line item
+            </button>
+          </div>
+
+          {/* Totals */}
+          <div className="border-t pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Subtotal</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Tax (8.75%)</span>
+              <span>${tax.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg">
+              <span>Total</span>
+              <span>${total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Payment terms, special conditions..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Quote'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  );
+  )
+}
+
+export default function QuotesPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <QuotesContent />
+    </Suspense>
+  )
 }
