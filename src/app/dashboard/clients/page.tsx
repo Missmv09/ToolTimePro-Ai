@@ -1,248 +1,381 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import {
-  Plus,
-  Search,
-  Users,
-  Phone,
-  Mail,
-  MapPin,
-  MoreVertical,
-  RefreshCw,
-  AlertCircle,
-  Calendar,
-  Building2,
-} from 'lucide-react';
-import { useCustomers } from '@/hooks/useCustomers';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
+interface Customer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  address: string
+  city: string
+  state: string
+  zip: string
+  notes: string
+  source: string
+  created_at: string
+  jobs?: { id: string; status: string }[]
+  invoices?: { id: string; status: string; total: number }[]
 }
 
 export default function ClientsPage() {
-  const { company } = useAuth();
-  const { customers, stats, isLoading, error, refetch } = useCustomers();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
-  };
+  const router = useRouter()
 
-  const filteredCustomers = customers.filter((customer) => {
-    const matchesSearch =
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (customer.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (customer.phone || '').includes(searchQuery) ||
-      (customer.address || '').toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/auth/login')
+        return
+      }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
-            <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mt-2" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="card h-24 animate-pulse bg-gray-100" />
-          ))}
-        </div>
-        <div className="card h-96 animate-pulse bg-gray-100" />
-      </div>
-    );
+      const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
+
+      if (userData?.company_id) {
+        setCompanyId(userData.company_id)
+        fetchCustomers(userData.company_id)
+      } else {
+        setLoading(false)
+      }
+    }
+    init()
+  }, [router])
+
+  const fetchCustomers = async (companyId: string) => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select(`
+        *,
+        jobs:jobs(id, status),
+        invoices:invoices(id, status, total)
+      `)
+      .eq('company_id', companyId)
+      .order('name')
+
+    if (error) {
+      console.error('Error fetching customers:', error)
+    } else {
+      setCustomers(data || [])
+    }
+    setLoading(false)
   }
 
-  if (error) {
+  const filteredCustomers = customers.filter(c =>
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.phone?.includes(searchTerm)
+  )
+
+  const deleteCustomer = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this customer?')) return
+
+    await supabase.from('customers').delete().eq('id', id)
+    if (companyId) fetchCustomers(companyId)
+  }
+
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-xl font-semibold text-navy-500 mb-2">Error Loading Clients</h2>
-        <p className="text-gray-600 mb-4">{error}</p>
-        <button onClick={handleRefresh} className="btn-primary">
-          Try Again
-        </button>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-navy-500">Clients</h1>
-          <p className="text-gray-500">Manage your customer database</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="btn-ghost"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <button className="btn-secondary">
-            <Plus size={18} className="mr-2" />
-            Add Client
-          </button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-navy-500">{stats.total}</p>
-              <p className="text-sm text-gray-500">Total Clients</p>
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-navy-500">{stats.thisMonth}</p>
-              <p className="text-sm text-gray-500">New This Month</p>
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gold-100 rounded-lg flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-gold-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-navy-500">
-                {customers.filter((c) => c.source === 'referral').length}
-              </p>
-              <p className="text-sm text-gray-500">Referrals</p>
-            </div>
-          </div>
-        </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
+        <button
+          onClick={() => {
+            setEditingCustomer(null)
+            setShowModal(true)
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          + Add Client
+        </button>
       </div>
 
       {/* Search */}
-      <div className="card">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search clients by name, email, phone, or address..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-10"
-          />
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search clients by name, email, or phone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-96 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border">
+          <p className="text-sm text-gray-500">Total Clients</p>
+          <p className="text-2xl font-bold">{customers.length}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <p className="text-sm text-gray-500">Active Jobs</p>
+          <p className="text-2xl font-bold">
+            {customers.reduce((sum, c) => sum + (c.jobs?.filter(j => j.status === 'scheduled' || j.status === 'in_progress').length || 0), 0)}
+          </p>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <p className="text-sm text-gray-500">Unpaid Invoices</p>
+          <p className="text-2xl font-bold">
+            {customers.reduce((sum, c) => sum + (c.invoices?.filter(i => i.status !== 'paid').length || 0), 0)}
+          </p>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <p className="text-sm text-gray-500">Total Revenue</p>
+          <p className="text-2xl font-bold">
+            ${customers.reduce((sum, c) => sum + (c.invoices?.filter(i => i.status === 'paid').reduce((s, i) => s + i.total, 0) || 0), 0).toLocaleString()}
+          </p>
         </div>
       </div>
 
       {/* Clients Grid */}
-      {filteredCustomers.length > 0 ? (
+      {filteredCustomers.length === 0 ? (
+        <div className="bg-white rounded-xl border p-12 text-center">
+          <p className="text-gray-500">No clients found. Add your first client or convert a lead.</p>
+        </div>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCustomers.map((customer) => (
-            <div key={customer.id} className="card-hover">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-navy-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold text-navy-500">
-                      {getInitials(customer.name)}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-navy-500">{customer.name}</h3>
-                    {customer.source && (
-                      <span className="text-xs text-gray-400">via {customer.source}</span>
-                    )}
-                  </div>
+            <div key={customer.id} className="bg-white rounded-xl border p-6 hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                  <p className="text-sm text-gray-500">{customer.email}</p>
                 </div>
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <MoreVertical size={18} className="text-gray-400" />
-                </button>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => {
+                      setEditingCustomer(customer)
+                      setShowModal(true)
+                    }}
+                    className="p-2 text-gray-400 hover:text-blue-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteCustomer(customer.id)}
+                    className="p-2 text-gray-400 hover:text-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-2 text-sm">
-                {customer.email && (
-                  <a
-                    href={`mailto:${customer.email}`}
-                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
-                  >
-                    <Mail size={14} />
-                    <span className="truncate">{customer.email}</span>
-                  </a>
-                )}
-                {customer.phone && (
-                  <a
-                    href={`tel:${customer.phone}`}
-                    className="flex items-center gap-2 text-gray-600 hover:text-green-600"
-                  >
-                    <Phone size={14} />
-                    <span>{customer.phone}</span>
-                  </a>
-                )}
-                {customer.address && (
-                  <div className="flex items-start gap-2 text-gray-600">
-                    <MapPin size={14} className="mt-0.5 flex-shrink-0" />
-                    <span className="line-clamp-2">
-                      {customer.address}
-                      {customer.city && `, ${customer.city}`}
-                      {customer.state && `, ${customer.state}`}
-                      {customer.zip && ` ${customer.zip}`}
-                    </span>
-                  </div>
-                )}
+              {customer.phone && (
+                <p className="text-sm text-gray-600 mb-2">Phone: {customer.phone}</p>
+              )}
+
+              {customer.address && (
+                <p className="text-sm text-gray-600 mb-4">
+                  {customer.address}, {customer.city} {customer.state} {customer.zip}
+                </p>
+              )}
+
+              <div className="flex gap-4 text-sm border-t pt-4">
+                <div>
+                  <span className="text-gray-500">Jobs: </span>
+                  <span className="font-medium">{customer.jobs?.length || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Invoices: </span>
+                  <span className="font-medium">{customer.invoices?.length || 0}</span>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                <span className="text-xs text-gray-400">
-                  Added {formatDate(customer.created_at)}
-                </span>
-                <button className="btn-ghost text-sm">View Details</button>
+              <div className="flex gap-2 mt-4">
+                <Link
+                  href={`/dashboard/jobs?customer=${customer.id}`}
+                  className="flex-1 text-center py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  View Jobs
+                </Link>
+                <Link
+                  href={`/dashboard/quotes?customer=${customer.id}`}
+                  className="flex-1 text-center py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                >
+                  New Quote
+                </Link>
               </div>
             </div>
           ))}
         </div>
-      ) : (
-        <div className="card text-center py-12">
-          <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600">No clients found</h3>
-          <p className="text-gray-400 mt-1">
-            {searchQuery
-              ? 'Try adjusting your search'
-              : 'Add your first client to get started'}
-          </p>
-          {!searchQuery && (
-            <button className="btn-secondary mt-4">
-              <Plus size={18} className="mr-2" />
-              Add First Client
-            </button>
-          )}
-        </div>
+      )}
+
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <CustomerModal
+          customer={editingCustomer}
+          companyId={companyId!}
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false)
+            if (companyId) fetchCustomers(companyId)
+          }}
+        />
       )}
     </div>
-  );
+  )
+}
+
+function CustomerModal({ customer, companyId, onClose, onSave }: {
+  customer: Customer | null
+  companyId: string
+  onClose: () => void
+  onSave: () => void
+}) {
+  const [formData, setFormData] = useState({
+    name: customer?.name || '',
+    email: customer?.email || '',
+    phone: customer?.phone || '',
+    address: customer?.address || '',
+    city: customer?.city || '',
+    state: customer?.state || 'CA',
+    zip: customer?.zip || '',
+    notes: customer?.notes || '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+
+    const data = { ...formData, company_id: companyId }
+
+    if (customer) {
+      await supabase.from('customers').update(data).eq('id', customer.id)
+    } else {
+      await supabase.from('customers').insert(data)
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">{customer ? 'Edit Client' : 'Add New Client'}</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <input
+                type="text"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <input
+                type="text"
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+              <input
+                type="text"
+                value={formData.zip}
+                onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Client'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
