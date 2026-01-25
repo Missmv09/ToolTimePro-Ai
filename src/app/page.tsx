@@ -109,6 +109,34 @@ const pricingPlans = [
   },
 ];
 
+// Standalone plans - just need one thing
+const standalonePlans = [
+  {
+    id: 'booking_only',
+    name: 'Booking Only',
+    price: 15,
+    annualPrice: 150,
+    icon: '📅',
+    description: 'Just need online booking? Start here.',
+  },
+  {
+    id: 'invoicing_only',
+    name: 'Invoicing Only',
+    price: 15,
+    annualPrice: 150,
+    icon: '🧾',
+    description: 'Just need to send invoices? This is for you.',
+  },
+];
+
+// Add-ons
+const pricingAddOns = [
+  { id: 'website_builder', name: 'Website Builder', price: 10, icon: '🌐', description: 'Custom landing page built for you' },
+  { id: 'ai_chatbot', name: 'AI Chatbot', price: 19, icon: '💬', description: '24/7 lead capture while you sleep' },
+  { id: 'keep_me_legal', name: 'Keep Me Legal', price: 29, icon: '🛡️', description: 'Compliance monitoring & alerts', highlight: true },
+  { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
+];
+
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
@@ -547,6 +575,64 @@ export default function Home() {
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* Just Need One Thing - Standalone Options */}
+          <div className="mt-16 bg-white rounded-[20px] p-10 border-2 border-gray-200">
+            <div className="text-center mb-8">
+              <h3 className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">Just Need One Thing?</h3>
+              <p className="text-[#8e8e9f]">Not ready for a full plan? Start with just what you need.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-6 max-w-[500px] mx-auto">
+              {standalonePlans.map((plan, index) => (
+                <Link
+                  key={index}
+                  href={`/auth/signup?plan=${plan.id}&billing=${billingPeriod}`}
+                  className="border-2 border-gray-200 rounded-xl p-6 text-center hover:border-[#f5a623] transition-all no-underline group"
+                >
+                  <span className="text-[2.5rem] block mb-2">{plan.icon}</span>
+                  <h4 className="text-[1.125rem] font-bold text-[#1a1a2e] mb-1">{plan.name}</h4>
+                  <p className="text-[1.25rem] font-bold text-[#f5a623] mb-2">
+                    ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}/{billingPeriod === 'monthly' ? 'mo' : 'yr'}
+                  </p>
+                  <p className="text-[0.875rem] text-[#8e8e9f]">{plan.description}</p>
+                </Link>
+              ))}
+            </div>
+            <p className="text-center text-[0.875rem] text-[#8e8e9f] mt-6">
+              💡 Upgrade to a full plan anytime — we&apos;ll credit what you&apos;ve paid!
+            </p>
+          </div>
+
+          {/* Power Add-Ons */}
+          <div className="mt-12">
+            <div className="text-center mb-8">
+              <h3 className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">Power Add-Ons</h3>
+              <p className="text-[#8e8e9f]">Supercharge any plan with these extras.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {pricingAddOns.map((addon, index) => (
+                <div
+                  key={index}
+                  className={`bg-white rounded-xl p-5 border-2 ${addon.highlight ? 'border-[#f5a623]' : 'border-gray-200'}`}
+                >
+                  <span className="text-[1.5rem] block mb-2">{addon.icon}</span>
+                  <h4 className="text-[1rem] font-bold text-[#1a1a2e] mb-1">{addon.name}</h4>
+                  <p className="text-[#f5a623] font-bold mb-1">+${addon.price}/mo</p>
+                  <p className="text-[0.8125rem] text-[#8e8e9f]">{addon.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Full Pricing Page Link */}
+          <div className="text-center mt-10">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 text-[#1a1a2e] font-semibold hover:text-[#f5a623] transition-colors no-underline"
+            >
+              See full pricing details & customize your plan →
+            </Link>
           </div>
         </div>
       </section>
