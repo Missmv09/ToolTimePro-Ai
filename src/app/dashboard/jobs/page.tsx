@@ -1,395 +1,525 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import {
-  Plus,
-  Search,
-  Calendar,
-  Clock,
-  MapPin,
-  User,
-  MoreVertical,
-  CheckCircle,
-  AlertCircle,
-  XCircle,
-  RefreshCw,
-} from 'lucide-react';
-import { useJobs } from '@/hooks/useJobs';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
-const statusConfig = {
-  scheduled: { label: 'Scheduled', color: 'badge-info', icon: Calendar },
-  in_progress: { label: 'In Progress', color: 'badge-warning', icon: Clock },
-  completed: { label: 'Completed', color: 'badge-success', icon: CheckCircle },
-  cancelled: { label: 'Cancelled', color: 'badge-danger', icon: XCircle },
-};
-
-function formatTime(timeStr: string | null): string {
-  if (!timeStr) return '';
-  const [hours, minutes] = timeStr.split(':');
-  const hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
+interface Job {
+  id: string
+  title: string
+  description: string
+  address: string
+  city: string
+  scheduled_date: string
+  scheduled_time_start: string
+  scheduled_time_end: string
+  status: string
+  priority: string
+  price: number
+  customer: { id: string; name: string } | null
+  assigned_users: { user: { id: string; full_name: string } }[]
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '';
-  const date = new Date(dateStr + 'T00:00:00');
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+function JobsContent() {
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [customers, setCustomers] = useState<{ id: string; name: string }[]>([])
+  const [workers, setWorkers] = useState<{ id: string; full_name: string }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [filter, setFilter] = useState<string>('all')
+  const [showModal, setShowModal] = useState(false)
+  const [editingJob, setEditingJob] = useState<Job | null>(null)
 
-  if (date.getTime() === today.getTime()) return 'Today';
-  if (date.getTime() === tomorrow.getTime()) return 'Tomorrow';
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const customerFilter = searchParams.get('customer')
 
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/auth/login')
+        return
+      }
 
-function formatCurrency(amount: number | null): string {
-  if (!amount) return '$0';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+      const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
 
-function getWorkerNames(
-  assignments: { user: { id: string; full_name: string } | null }[] | null
-): string {
-  if (!assignments || assignments.length === 0) return 'Unassigned';
-  return (
-    assignments
-      .map((a) => a.user?.full_name)
-      .filter(Boolean)
-      .join(', ') || 'Unassigned'
-  );
-}
+      if (userData?.company_id) {
+        setCompanyId(userData.company_id)
+        fetchJobs(userData.company_id)
+        fetchCustomers(userData.company_id)
+        fetchWorkers(userData.company_id)
+      } else {
+        setLoading(false)
+      }
+    }
+    init()
+  }, [router])
 
-export default function JobsPage() {
-  const { company } = useAuth();
-  const { jobs, stats, isLoading, error, refetch } = useJobs();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const fetchJobs = async (companyId: string) => {
+    let query = supabase
+      .from('jobs')
+      .select(`
+        *,
+        customer:customers(id, name),
+        assigned_users:job_assignments(user:users(id, full_name))
+      `)
+      .eq('company_id', companyId)
+      .order('scheduled_date', { ascending: true })
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
-  };
+    if (filter !== 'all') {
+      query = query.eq('status', filter)
+    }
 
-  const filteredJobs = jobs.filter((job) => {
-    const customerName = job.customer?.name || '';
-    const workerNames = getWorkerNames(job.assignments);
-    const matchesSearch =
-      customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      workerNames.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+    if (customerFilter) {
+      query = query.eq('customer_id', customerFilter)
+    }
 
-  const today = new Date().toISOString().split('T')[0];
-  const todayJobs = filteredJobs.filter((j) => j.scheduled_date === today);
-  const upcomingJobs = filteredJobs.filter((j) => j.scheduled_date && j.scheduled_date > today);
-  const pastJobs = filteredJobs.filter((j) => j.scheduled_date && j.scheduled_date < today);
+    const { data, error } = await query
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
-            <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mt-2" />
-          </div>
-        </div>
-        <div className="card h-20 animate-pulse bg-gray-100" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="card h-48 animate-pulse bg-gray-100" />
-          ))}
-        </div>
-      </div>
-    );
+    if (error) {
+      console.error('Error fetching jobs:', error)
+    } else {
+      setJobs(data || [])
+    }
+    setLoading(false)
   }
 
-  if (error) {
+  const fetchCustomers = async (companyId: string) => {
+    const { data } = await supabase
+      .from('customers')
+      .select('id, name')
+      .eq('company_id', companyId)
+      .order('name')
+    setCustomers(data || [])
+  }
+
+  const fetchWorkers = async (companyId: string) => {
+    const { data } = await supabase
+      .from('users')
+      .select('id, full_name')
+      .eq('company_id', companyId)
+      .eq('is_active', true)
+    setWorkers(data || [])
+  }
+
+  useEffect(() => {
+    if (companyId) {
+      fetchJobs(companyId)
+    }
+  }, [filter, companyId, customerFilter])
+
+  const updateJobStatus = async (jobId: string, newStatus: string) => {
+    const updates: Record<string, string> = { status: newStatus, updated_at: new Date().toISOString() }
+
+    if (newStatus === 'completed') {
+      updates.completed_at = new Date().toISOString()
+    }
+
+    await supabase.from('jobs').update(updates).eq('id', jobId)
+    if (companyId) fetchJobs(companyId)
+  }
+
+  const statusColors: Record<string, string> = {
+    scheduled: 'bg-blue-100 text-blue-700',
+    in_progress: 'bg-yellow-100 text-yellow-700',
+    completed: 'bg-green-100 text-green-700',
+    cancelled: 'bg-gray-100 text-gray-700',
+  }
+
+  const priorityColors: Record<string, string> = {
+    low: 'text-gray-500',
+    normal: 'text-blue-500',
+    high: 'text-orange-500',
+    urgent: 'text-red-500',
+  }
+
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-xl font-semibold text-navy-500 mb-2">Error Loading Jobs</h2>
-        <p className="text-gray-600 mb-4">{error}</p>
-        <button onClick={handleRefresh} className="btn-primary">
-          Try Again
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Jobs</h1>
+        <button
+          onClick={() => {
+            setEditingJob(null)
+            setShowModal(true)
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          + New Job
         </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-navy-500">Jobs</h1>
-          <p className="text-gray-500">Manage and track all service jobs</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="btn-ghost"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <button className="btn-secondary">
-            <Plus size={18} className="mr-2" />
-            New Job
-          </button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-navy-500">{stats.total}</p>
-          <p className="text-sm text-gray-500">Total</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-blue-500">{stats.scheduled}</p>
-          <p className="text-sm text-gray-500">Scheduled</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-yellow-500">{stats.inProgress}</p>
-          <p className="text-sm text-gray-500">In Progress</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-green-500">{stats.completed}</p>
-          <p className="text-sm text-gray-500">Completed</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-gray-400">{stats.cancelled}</p>
-          <p className="text-sm text-gray-500">Cancelled</p>
-        </div>
       </div>
 
       {/* Filters */}
-      <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search jobs, clients, workers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input pl-10"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {['all', 'scheduled', 'in_progress', 'completed', 'cancelled'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  statusFilter === status
-                    ? 'bg-navy-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {status === 'all' ? 'All' : statusConfig[status as keyof typeof statusConfig].label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {['all', 'scheduled', 'in_progress', 'completed', 'cancelled'].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === status
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {status === 'all' ? 'All' : status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1)}
+          </button>
+        ))}
       </div>
 
-      {/* Today's Jobs */}
-      {todayJobs.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-navy-500 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-gold-500" />
-            Today&apos;s Jobs ({todayJobs.length})
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {todayJobs.map((job) => {
-              const status = statusConfig[job.status];
-              return (
-                <div key={job.id} className="card-hover">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold text-navy-500">{job.customer?.name || 'No Customer'}</h3>
-                      <p className="text-sm text-gray-500">{job.title}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={status.color}>{status.label}</span>
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <MoreVertical size={18} className="text-gray-400" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Clock size={14} />
-                      <span>
-                        {formatTime(job.scheduled_time_start)}
-                        {job.scheduled_time_end && ` - ${formatTime(job.scheduled_time_end)}`}
+      {/* Jobs List */}
+      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Job</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {jobs.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  No jobs found. Create your first job to get started.
+                </td>
+              </tr>
+            ) : (
+              jobs.map((job) => (
+                <tr key={job.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-900">{job.title}</p>
+                    <p className="text-sm text-gray-500 truncate max-w-xs">{job.address}</p>
+                    {job.priority !== 'normal' && (
+                      <span className={`text-xs ${priorityColors[job.priority]}`}>
+                        {job.priority.toUpperCase()}
                       </span>
-                    </div>
-                    {job.address && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin size={14} />
-                        <span>{job.address}</span>
-                      </div>
                     )}
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <User size={14} />
-                      <span>{getWorkerNames(job.assignments)}</span>
-                    </div>
-                  </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {job.customer?.name || '-'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-gray-900">
+                      {job.scheduled_date ? new Date(job.scheduled_date).toLocaleDateString() : 'Unscheduled'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {job.scheduled_time_start || ''} {job.scheduled_time_end ? `- ${job.scheduled_time_end}` : ''}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {job.assigned_users?.map(a => a.user?.full_name).filter(Boolean).join(', ') || 'Unassigned'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={job.status}
+                      onChange={(e) => updateJobStatus(job.id, e.target.value)}
+                      className={`text-xs px-2 py-1 rounded-full border-0 ${statusColors[job.status] || 'bg-gray-100'}`}
+                    >
+                      <option value="scheduled">Scheduled</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    {job.price ? `$${job.price.toLocaleString()}` : '-'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => {
+                        setEditingJob(job)
+                        setShowModal(true)
+                      }}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                    <span className="text-lg font-bold text-navy-500">
-                      {formatCurrency(job.total_amount)}
-                    </span>
-                    <button className="btn-ghost text-sm">View Details</button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Upcoming Jobs */}
-      {upcomingJobs.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-navy-500 mb-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-blue-500" />
-            Upcoming Jobs ({upcomingJobs.length})
-          </h2>
-          <div className="card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="table-header">Client</th>
-                    <th className="table-header">Service</th>
-                    <th className="table-header">Date & Time</th>
-                    <th className="table-header">Worker</th>
-                    <th className="table-header">Amount</th>
-                    <th className="table-header">Status</th>
-                    <th className="table-header"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcomingJobs.map((job) => {
-                    const status = statusConfig[job.status];
-                    return (
-                      <tr key={job.id} className="hover:bg-gray-50">
-                        <td className="table-cell">
-                          <div>
-                            <p className="font-medium text-navy-500">{job.customer?.name || 'No Customer'}</p>
-                            {job.address && <p className="text-xs text-gray-500">{job.address}</p>}
-                          </div>
-                        </td>
-                        <td className="table-cell">{job.title}</td>
-                        <td className="table-cell">
-                          <div>
-                            <p className="font-medium">{formatDate(job.scheduled_date)}</p>
-                            <p className="text-xs text-gray-500">
-                              {formatTime(job.scheduled_time_start)}
-                              {job.scheduled_time_end && ` - ${formatTime(job.scheduled_time_end)}`}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="table-cell">{getWorkerNames(job.assignments)}</td>
-                        <td className="table-cell font-medium">{formatCurrency(job.total_amount)}</td>
-                        <td className="table-cell">
-                          <span className={status.color}>{status.label}</span>
-                        </td>
-                        <td className="table-cell">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <MoreVertical size={18} className="text-gray-400" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Past Jobs (if any visible after filter) */}
-      {pastJobs.length > 0 && statusFilter !== 'scheduled' && (
-        <div>
-          <h2 className="text-lg font-semibold text-navy-500 mb-4 flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-gray-400" />
-            Past Jobs ({pastJobs.length})
-          </h2>
-          <div className="card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="table-header">Client</th>
-                    <th className="table-header">Service</th>
-                    <th className="table-header">Date</th>
-                    <th className="table-header">Worker</th>
-                    <th className="table-header">Amount</th>
-                    <th className="table-header">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pastJobs.slice(0, 10).map((job) => {
-                    const status = statusConfig[job.status];
-                    return (
-                      <tr key={job.id} className="hover:bg-gray-50">
-                        <td className="table-cell">
-                          <p className="font-medium text-navy-500">{job.customer?.name || 'No Customer'}</p>
-                        </td>
-                        <td className="table-cell">{job.title}</td>
-                        <td className="table-cell">{formatDate(job.scheduled_date)}</td>
-                        <td className="table-cell">{getWorkerNames(job.assignments)}</td>
-                        <td className="table-cell font-medium">{formatCurrency(job.total_amount)}</td>
-                        <td className="table-cell">
-                          <span className={status.color}>{status.label}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {filteredJobs.length === 0 && (
-        <div className="card text-center py-12">
-          <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600">No jobs found</h3>
-          <p className="text-gray-400 mt-1">
-            {searchQuery || statusFilter !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Create your first job to get started'}
-          </p>
-          {!searchQuery && statusFilter === 'all' && (
-            <button className="btn-secondary mt-4">
-              <Plus size={18} className="mr-2" />
-              Create First Job
-            </button>
-          )}
-        </div>
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <JobModal
+          job={editingJob}
+          companyId={companyId!}
+          customers={customers}
+          workers={workers}
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false)
+            if (companyId) fetchJobs(companyId)
+          }}
+        />
       )}
     </div>
-  );
+  )
+}
+
+function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
+  job: Job | null
+  companyId: string
+  customers: { id: string; name: string }[]
+  workers: { id: string; full_name: string }[]
+  onClose: () => void
+  onSave: () => void
+}) {
+  const [formData, setFormData] = useState({
+    title: job?.title || '',
+    description: job?.description || '',
+    customer_id: job?.customer?.id || '',
+    address: job?.address || '',
+    city: job?.city || '',
+    scheduled_date: job?.scheduled_date || '',
+    scheduled_time_start: job?.scheduled_time_start || '',
+    scheduled_time_end: job?.scheduled_time_end || '',
+    priority: job?.priority || 'normal',
+    price: job?.price?.toString() || '',
+    assigned_worker_id: job?.assigned_users?.[0]?.user?.id || '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  // Auto-fill address when customer is selected
+  const handleCustomerChange = async (customerId: string) => {
+    setFormData({ ...formData, customer_id: customerId })
+
+    if (customerId) {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('address, city')
+        .eq('id', customerId)
+        .single()
+
+      if (customer) {
+        setFormData(prev => ({
+          ...prev,
+          customer_id: customerId,
+          address: customer.address || prev.address,
+          city: customer.city || prev.city,
+        }))
+      }
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+
+    const jobData = {
+      title: formData.title,
+      description: formData.description,
+      customer_id: formData.customer_id || null,
+      address: formData.address,
+      city: formData.city,
+      scheduled_date: formData.scheduled_date || null,
+      scheduled_time_start: formData.scheduled_time_start || null,
+      scheduled_time_end: formData.scheduled_time_end || null,
+      priority: formData.priority,
+      price: formData.price ? Number(formData.price) : null,
+      company_id: companyId,
+      status: job?.status || 'scheduled',
+    }
+
+    let jobId = job?.id
+
+    if (job) {
+      await supabase.from('jobs').update(jobData).eq('id', job.id)
+    } else {
+      const { data } = await supabase.from('jobs').insert(jobData).select().single()
+      jobId = data?.id
+    }
+
+    // Handle worker assignment
+    if (jobId && formData.assigned_worker_id) {
+      // Remove existing assignments
+      await supabase.from('job_assignments').delete().eq('job_id', jobId)
+
+      // Add new assignment
+      await supabase.from('job_assignments').insert({
+        job_id: jobId,
+        user_id: formData.assigned_worker_id,
+      })
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">{job ? 'Edit Job' : 'Create New Job'}</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+            <input
+              type="text"
+              required
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Weekly pool cleaning"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+            <select
+              value={formData.customer_id}
+              onChange={(e) => handleCustomerChange(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select customer...</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+              <input
+                type="date"
+                value={formData.scheduled_date}
+                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Assign To</label>
+              <select
+                value={formData.assigned_worker_id}
+                onChange={(e) => setFormData({ ...formData, assigned_worker_id: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Unassigned</option>
+                {workers.map((w) => (
+                  <option key={w.id} value={w.id}>{w.full_name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+              <input
+                type="time"
+                value={formData.scheduled_time_start}
+                onChange={(e) => setFormData({ ...formData, scheduled_time_start: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+              <input
+                type="time"
+                value={formData.scheduled_time_end}
+                onChange={(e) => setFormData({ ...formData, scheduled_time_end: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <select
+                value={formData.priority}
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+              <input
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Job details, special instructions..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Job'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <JobsContent />
+    </Suspense>
+  )
 }

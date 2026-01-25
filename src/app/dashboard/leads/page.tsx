@@ -1,467 +1,431 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import {
-  Plus,
-  Search,
-  Phone,
-  Mail,
-  DollarSign,
-  MoreVertical,
-  User,
-  MessageSquare,
-  Star,
-  X,
-  Loader2,
-  RefreshCw,
-  AlertCircle,
-} from 'lucide-react';
-import { useLeads, Lead } from '@/hooks/useLeads';
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
-const statusConfig = {
-  new: { label: 'New', color: 'bg-blue-100 text-blue-700' },
-  contacted: { label: 'Contacted', color: 'bg-yellow-100 text-yellow-700' },
-  quoted: { label: 'Quoted', color: 'bg-purple-100 text-purple-700' },
-  won: { label: 'Won', color: 'bg-green-100 text-green-700' },
-  lost: { label: 'Lost', color: 'bg-gray-100 text-gray-700' },
-};
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffHours < 1) return 'Just now';
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
+interface Lead {
+  id: string
+  name: string
+  email: string
+  phone: string
+  service_requested: string
+  message: string
+  source: string
+  status: string
+  estimated_value: number | null
+  created_at: string
 }
 
 export default function LeadsPage() {
-  const { leads, stats, isLoading, error, refetch, createLead, updateLead } = useLeads();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState('');
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [loading, setLoading] = useState(true)
+  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [filter, setFilter] = useState<string>('all')
+  const [showModal, setShowModal] = useState(false)
+  const [editingLead, setEditingLead] = useState<Lead | null>(null)
 
-  // Filter leads
-  const filteredLeads = leads.filter((lead) => {
-    const matchesSearch =
-      lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (lead.service_requested?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
-      (lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const router = useRouter()
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setFormError('');
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/auth/login')
+        return
+      }
 
-    const formData = new FormData(e.currentTarget);
-    const newLead: Partial<Lead> = {
-      name: formData.get('name') as string,
-      email: formData.get('email') as string || null,
-      phone: formData.get('phone') as string || null,
-      service_requested: formData.get('service') as string || null,
-      source: formData.get('source') as string || 'manual',
-      status: 'new',
-      estimated_value: formData.get('value') ? parseFloat(formData.get('value') as string) : null,
-      message: formData.get('notes') as string || null,
-    };
+      const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
 
-    const { error } = await createLead(newLead);
+      if (userData?.company_id) {
+        setCompanyId(userData.company_id)
+        fetchLeads(userData.company_id)
+      } else {
+        setLoading(false)
+      }
+    }
+    init()
+  }, [router])
 
-    if (error) {
-      setFormError(error.message);
-      setIsSubmitting(false);
-      return;
+  const fetchLeads = async (companyId: string) => {
+    let query = supabase
+      .from('leads')
+      .select('*')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+
+    if (filter !== 'all') {
+      query = query.eq('status', filter)
     }
 
-    setShowAddModal(false);
-    setIsSubmitting(false);
-  };
+    const { data, error } = await query
 
-  // Handle status change
-  const handleStatusChange = async (leadId: string, newStatus: Lead['status']) => {
-    await updateLead(leadId, { status: newStatus });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-gold-500" />
-      </div>
-    );
+    if (error) {
+      console.error('Error fetching leads:', error)
+    } else {
+      setLeads(data || [])
+    }
+    setLoading(false)
   }
 
-  if (error) {
+  useEffect(() => {
+    if (companyId) {
+      fetchLeads(companyId)
+    }
+  }, [filter, companyId])
+
+  const updateLeadStatus = async (leadId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from('leads')
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', leadId)
+
+    if (!error && companyId) {
+      fetchLeads(companyId)
+    }
+  }
+
+  const convertToCustomer = async (lead: Lead) => {
+    if (!companyId) return
+
+    // Create customer from lead
+    const { data: customer, error: customerError } = await supabase
+      .from('customers')
+      .insert({
+        company_id: companyId,
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        source: lead.source,
+        notes: lead.message,
+      })
+      .select()
+      .single()
+
+    if (customerError) {
+      console.error('Error creating customer:', customerError)
+      return
+    }
+
+    // Update lead status and link to customer
+    await supabase
+      .from('leads')
+      .update({
+        status: 'won',
+        customer_id: customer.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', lead.id)
+
+    fetchLeads(companyId)
+    alert('Lead converted to customer!')
+  }
+
+  const statusColors: Record<string, string> = {
+    new: 'bg-green-100 text-green-700',
+    contacted: 'bg-blue-100 text-blue-700',
+    quoted: 'bg-yellow-100 text-yellow-700',
+    won: 'bg-purple-100 text-purple-700',
+    lost: 'bg-gray-100 text-gray-700',
+  }
+
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-xl font-semibold text-navy-500 mb-2">Error Loading Leads</h2>
-        <p className="text-gray-600 mb-4">{error}</p>
-        <button onClick={() => refetch()} className="btn-primary">
-          Try Again
-        </button>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-navy-500">Leads</h1>
-          <p className="text-gray-500">Track and convert potential customers</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => refetch()} className="btn-ghost">
-            <RefreshCw size={18} />
-          </button>
-          <button onClick={() => setShowAddModal(true)} className="btn-secondary">
-            <Plus size={18} className="mr-2" />
-            Add Lead
-          </button>
-        </div>
-      </div>
-
-      {/* Pipeline Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Star className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-navy-500">{stats.new}</p>
-              <p className="text-sm text-gray-500">New Leads</p>
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Phone className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-navy-500">{stats.contacted}</p>
-              <p className="text-sm text-gray-500">Contacted</p>
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-navy-500">{stats.quoted}</p>
-              <p className="text-sm text-gray-500">Quoted</p>
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-navy-500">
-                ${stats.totalValue.toLocaleString()}
-              </p>
-              <p className="text-sm text-gray-500">Pipeline Value</p>
-            </div>
-          </div>
-        </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
+        <button
+          onClick={() => {
+            setEditingLead(null)
+            setShowModal(true)
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          + Add Lead
+        </button>
       </div>
 
       {/* Filters */}
-      <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search leads..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input pl-10"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {['all', 'new', 'contacted', 'quoted', 'won', 'lost'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  statusFilter === status
-                    ? 'bg-navy-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {status === 'all' ? 'All' : statusConfig[status as keyof typeof statusConfig].label}
-              </button>
-            ))}
-          </div>
+      <div className="flex gap-2 mb-6">
+        {['all', 'new', 'contacted', 'quoted', 'won', 'lost'].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === status
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border">
+          <p className="text-sm text-gray-500">Total</p>
+          <p className="text-2xl font-bold">{leads.length}</p>
+        </div>
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+          <p className="text-sm text-green-600">New</p>
+          <p className="text-2xl font-bold text-green-700">
+            {leads.filter(l => l.status === 'new').length}
+          </p>
+        </div>
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-600">Contacted</p>
+          <p className="text-2xl font-bold text-blue-700">
+            {leads.filter(l => l.status === 'contacted').length}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+          <p className="text-sm text-yellow-600">Quoted</p>
+          <p className="text-2xl font-bold text-yellow-700">
+            {leads.filter(l => l.status === 'quoted').length}
+          </p>
+        </div>
+        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <p className="text-sm text-purple-600">Won</p>
+          <p className="text-2xl font-bold text-purple-700">
+            {leads.filter(l => l.status === 'won').length}
+          </p>
         </div>
       </div>
 
       {/* Leads Table */}
-      {filteredLeads.length > 0 ? (
-        <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="table-header">Lead</th>
-                  <th className="table-header">Service</th>
-                  <th className="table-header">Source</th>
-                  <th className="table-header">Value</th>
-                  <th className="table-header">Status</th>
-                  <th className="table-header">Created</th>
-                  <th className="table-header"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLeads.map((lead) => {
-                  const status = statusConfig[lead.status];
-                  return (
-                    <tr key={lead.id} className="hover:bg-gray-50 group">
-                      <td className="table-cell">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-navy-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-navy-500">
-                              {lead.name
-                                .split(' ')
-                                .map((n) => n[0])
-                                .join('')
-                                .substring(0, 2)}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-navy-500">{lead.name}</p>
-                            <div className="flex items-center gap-3 text-xs text-gray-500">
-                              {lead.email && (
-                                <span className="flex items-center gap-1">
-                                  <Mail size={12} />
-                                  {lead.email}
-                                </span>
-                              )}
-                              {lead.phone && (
-                                <span className="flex items-center gap-1">
-                                  <Phone size={12} />
-                                  {lead.phone}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="table-cell">{lead.service_requested || '-'}</td>
-                      <td className="table-cell">
-                        <span className="badge bg-gray-100 text-gray-600">{lead.source}</span>
-                      </td>
-                      <td className="table-cell font-medium text-navy-500">
-                        {lead.estimated_value ? `$${lead.estimated_value.toLocaleString()}` : '-'}
-                      </td>
-                      <td className="table-cell">
-                        <select
-                          value={lead.status}
-                          onChange={(e) => handleStatusChange(lead.id, e.target.value as Lead['status'])}
-                          className={`badge ${status.color} cursor-pointer border-0 appearance-none pr-6 bg-no-repeat bg-right`}
-                          style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-                            backgroundPosition: 'right 4px center',
-                          }}
+      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {leads.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  No leads found. Leads from your website form will appear here.
+                </td>
+              </tr>
+            ) : (
+              leads.map((lead) => (
+                <tr key={lead.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-900">{lead.name}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-gray-900">{lead.email}</p>
+                    <p className="text-sm text-gray-500">{lead.phone}</p>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {lead.service_requested || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {lead.source || 'website'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={lead.status}
+                      onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                      className={`text-xs px-2 py-1 rounded-full border-0 ${statusColors[lead.status] || 'bg-gray-100'}`}
+                    >
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="quoted">Quoted</option>
+                      <option value="won">Won</option>
+                      <option value="lost">Lost</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {new Date(lead.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      {lead.phone && (
+                        <a
+                          href={`tel:${lead.phone}`}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
                         >
-                          <option value="new">New</option>
-                          <option value="contacted">Contacted</option>
-                          <option value="quoted">Quoted</option>
-                          <option value="won">Won</option>
-                          <option value="lost">Lost</option>
-                        </select>
-                      </td>
-                      <td className="table-cell text-gray-500">{formatDate(lead.created_at)}</td>
-                      <td className="table-cell">
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {lead.phone && (
-                            <a
-                              href={`tel:${lead.phone}`}
-                              className="p-2 hover:bg-green-50 rounded-lg text-green-600"
-                            >
-                              <Phone size={16} />
-                            </a>
-                          )}
-                          {lead.email && (
-                            <a
-                              href={`mailto:${lead.email}`}
-                              className="p-2 hover:bg-blue-50 rounded-lg text-blue-600"
-                            >
-                              <Mail size={16} />
-                            </a>
-                          )}
-                          <button className="p-2 hover:bg-gray-100 rounded-lg">
-                            <MoreVertical size={16} className="text-gray-400" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="card text-center py-12">
-          <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600">
-            {leads.length === 0 ? 'No leads yet' : 'No leads found'}
-          </h3>
-          <p className="text-gray-400 mt-1">
-            {leads.length === 0
-              ? 'Add your first lead to start tracking potential customers'
-              : 'Try adjusting your search or filters'}
-          </p>
-          {leads.length === 0 && (
-            <button onClick={() => setShowAddModal(true)} className="btn-secondary mt-4">
-              <Plus size={18} className="mr-2" />
-              Add First Lead
-            </button>
-          )}
-        </div>
-      )}
+                          Call
+                        </a>
+                      )}
+                      {lead.status !== 'won' && (
+                        <button
+                          onClick={() => convertToCustomer(lead)}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          Convert
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Add Lead Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold text-navy-500">Add New Lead</h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="p-1 hover:bg-gray-100 rounded"
-              >
-                <X size={20} className="text-gray-500" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              <div>
-                <label className="input-label">Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  className="input"
-                  placeholder="John Smith"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="input-label">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="input"
-                    placeholder="john@email.com"
-                  />
-                </div>
-                <div>
-                  <label className="input-label">Phone</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    className="input"
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="input-label">Service Requested</label>
-                <input
-                  type="text"
-                  name="service"
-                  className="input"
-                  placeholder="Weekly lawn maintenance"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="input-label">Source</label>
-                  <select name="source" className="input">
-                    <option value="website">Website</option>
-                    <option value="referral">Referral</option>
-                    <option value="google">Google</option>
-                    <option value="facebook">Facebook</option>
-                    <option value="yelp">Yelp</option>
-                    <option value="phone">Phone Call</option>
-                    <option value="chatbot">AI Chatbot</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="input-label">Estimated Value</label>
-                  <input
-                    type="number"
-                    name="value"
-                    className="input"
-                    placeholder="500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="input-label">Notes</label>
-                <textarea
-                  name="notes"
-                  className="input min-h-[80px]"
-                  placeholder="Additional details about this lead..."
-                />
-              </div>
-
-              {formError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                  {formError}
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="btn-ghost flex-1"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="btn-secondary flex-1"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                  ) : (
-                    'Add Lead'
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* Add/Edit Lead Modal */}
+      {showModal && (
+        <LeadModal
+          lead={editingLead}
+          companyId={companyId!}
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false)
+            if (companyId) fetchLeads(companyId)
+          }}
+        />
       )}
     </div>
-  );
+  )
+}
+
+function LeadModal({ lead, companyId, onClose, onSave }: {
+  lead: Lead | null
+  companyId: string
+  onClose: () => void
+  onSave: () => void
+}) {
+  const [formData, setFormData] = useState({
+    name: lead?.name || '',
+    email: lead?.email || '',
+    phone: lead?.phone || '',
+    service_requested: lead?.service_requested || '',
+    message: lead?.message || '',
+    source: lead?.source || 'manual',
+    estimated_value: lead?.estimated_value?.toString() || '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+
+    const data = {
+      ...formData,
+      company_id: companyId,
+      estimated_value: formData.estimated_value ? Number(formData.estimated_value) : null,
+      status: 'new',
+    }
+
+    if (lead) {
+      await supabase.from('leads').update(data).eq('id', lead.id)
+    } else {
+      await supabase.from('leads').insert(data)
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-md w-full p-6">
+        <h2 className="text-xl font-bold mb-4">{lead ? 'Edit Lead' : 'Add New Lead'}</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Service Requested</label>
+            <input
+              type="text"
+              value={formData.service_requested}
+              onChange={(e) => setFormData({ ...formData, service_requested: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Pool cleaning, Lawn care"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Value ($)</label>
+            <input
+              type="number"
+              value={formData.estimated_value}
+              onChange={(e) => setFormData({ ...formData, estimated_value: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="0.00"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Lead'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
