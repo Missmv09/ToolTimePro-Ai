@@ -5,30 +5,25 @@ import { createClient } from '@supabase/supabase-js';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Lazy initialization to prevent build-time errors when env vars aren't available
-let stripeClient = null;
-let supabaseClient = null;
+// Lazy initialization to avoid build-time errors when env vars aren't available
+let stripe;
+let supabase;
 
 function getStripe() {
-  if (!stripeClient) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error('STRIPE_SECRET_KEY is not configured');
-    }
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
-  return stripeClient;
+  return stripe;
 }
 
 function getSupabase() {
-  if (!supabaseClient) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) {
-      throw new Error('Supabase environment variables are not configured');
-    }
-    supabaseClient = createClient(url, key);
+  if (!supabase) {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
   }
-  return supabaseClient;
+  return supabase;
 }
 
 export async function POST(request) {
@@ -38,8 +33,7 @@ export async function POST(request) {
   let event;
 
   try {
-    const stripe = getStripe();
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
@@ -85,20 +79,19 @@ export async function POST(request) {
 }
 
 async function handleCheckoutComplete(session) {
-  const supabase = getSupabase();
   const customerEmail = session.customer_email || session.customer_details?.email;
   const customerId = session.customer;
   const subscriptionId = session.subscription;
   const metadata = session.metadata;
 
-  const { data: existingUser } = await supabase
+  const { data: existingUser } = await getSupabase()
     .from('users')
     .select('id')
     .eq('email', customerEmail)
     .single();
 
   if (existingUser) {
-    await supabase
+    await getSupabase()
       .from('users')
       .update({
         stripe_customer_id: customerId,
@@ -110,7 +103,7 @@ async function handleCheckoutComplete(session) {
       })
       .eq('id', existingUser.id);
   } else {
-    await supabase
+    await getSupabase()
       .from('users')
       .insert({
         email: customerEmail,
@@ -125,8 +118,7 @@ async function handleCheckoutComplete(session) {
 }
 
 async function handleSubscriptionUpdate(subscription) {
-  const supabase = getSupabase();
-  await supabase
+  await getSupabase()
     .from('users')
     .update({
       subscription_status: subscription.status,
@@ -138,8 +130,7 @@ async function handleSubscriptionUpdate(subscription) {
 }
 
 async function handleSubscriptionCanceled(subscription) {
-  const supabase = getSupabase();
-  await supabase
+  await getSupabase()
     .from('users')
     .update({
       subscription_status: 'canceled',
@@ -149,8 +140,7 @@ async function handleSubscriptionCanceled(subscription) {
 }
 
 async function handlePaymentSucceeded(invoice) {
-  const supabase = getSupabase();
-  await supabase
+  await getSupabase()
     .from('payments')
     .insert({
       stripe_customer_id: invoice.customer,
@@ -163,8 +153,7 @@ async function handlePaymentSucceeded(invoice) {
 }
 
 async function handlePaymentFailed(invoice) {
-  const supabase = getSupabase();
-  await supabase
+  await getSupabase()
     .from('payments')
     .insert({
       stripe_customer_id: invoice.customer,
@@ -175,7 +164,7 @@ async function handlePaymentFailed(invoice) {
       created_at: new Date().toISOString()
     });
 
-  await supabase
+  await getSupabase()
     .from('users')
     .update({
       subscription_status: 'past_due',

@@ -3,146 +3,62 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-// Hero feature tabs
-const heroFeatureTabs = [
-  { name: 'Website', active: true, href: '/demo/website' },
-  { name: 'Scheduling', active: true, href: '/demo/scheduling' },
-  { name: 'Quoting', active: true, href: '/demo/quoting' },
-  { name: 'Worker App', active: true, href: '/worker' },
-  { name: 'Compliance & HR', active: true, href: '/dashboard/shield' },
-  { name: 'Payments', active: true, href: '/demo/invoicing' },
-  { name: 'Payroll', active: false, comingSoon: true, href: '#' },
-];
-
-// Industry cards for "Who It's For" section
-const industryCards = [
-  { icon: '🏠', name: 'Home Services', description: 'Cleaning, handyman, organizing, inspections' },
-  { icon: '🌿', name: 'Outdoor Services', description: 'Landscaping, pool, pressure washing' },
-  { icon: '🚗', name: 'Mobile Services', description: 'Auto detailing, notary, locksmith, towing' },
-  { icon: '💆', name: 'Wellness & Beauty', description: 'Massage, salon, personal training' },
-  { icon: '🐕', name: 'Pet Services', description: 'Grooming, walking, sitting, training' },
-  { icon: '📚', name: 'Lessons & Events', description: 'Tutoring, photography, DJ, catering' },
-  { icon: '🔧', name: 'Skilled Trades', description: 'Electrical, plumbing, HVAC, painting' },
-  { icon: '✨', name: 'And More', description: 'If you book appointments and send invoices, we\'re for you' },
-];
-
-// Pain points
+// Pain points data
 const painPoints = [
-  { icon: '🌐', problem: 'No Real Website', solution: 'We build you a real website that gets you found' },
-  { icon: '📞', problem: 'Missed Calls = Missed Money', solution: 'AI chatbot answers 24/7' },
-  { icon: '📅', problem: 'Scheduling Chaos', solution: 'One calendar. Online booking. No more chaos.' },
-  { icon: '👷', problem: 'Where\'s My Crew?', solution: 'GPS clock-in and job tracking' },
-  { icon: '⚖️', problem: 'California Legal Landmines', solution: 'ToolTime Shield keeps you compliant' },
-  { icon: '⭐', problem: 'Zero Online Reviews', solution: 'Automatic review requests after every job' },
+  { icon: '📵', title: 'No Website = Invisible', description: "Customers can't find you online. You're losing jobs to competitors who show up on Google.", solution: 'Done-for-you branded website' },
+  { icon: '📞', title: 'Missed Calls = Lost Money', description: "You're on a job, phone rings, you miss it. That lead goes to someone who answered.", solution: 'AI auto-responder + missed call texts' },
+  { icon: '📅', title: 'Scheduling Chaos', description: 'Double-bookings, forgotten appointments, confused crews. Your calendar is a disaster.', solution: 'Smart scheduler + customer booking' },
+  { icon: '👷', title: 'Worker Time Tracking', description: 'No idea when crew clocked in, where they are, or if they took their breaks.', solution: 'Worker app with GPS clock-in' },
+  { icon: '⚖️', title: 'Legal Landmines', description: 'Final pay rules, worker classification, compliance headaches. One mistake = lawsuit.', solution: 'ToolTime Shield compliance toolkit' },
+  { icon: '⭐', title: 'Zero Reviews', description: 'Happy customers never leave reviews. Your competitor has 100+, you have 3.', solution: 'Automated review request system' },
 ];
 
-// Features list
-const featureList = [
-  { name: 'Professional Website', tagline: 'Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.', icon: '✓' },
-  { name: '24/7 AI Chatbot', tagline: 'Never Miss a Lead', description: 'Our AI answers questions and captures leads around the clock. Even at 2am on Sunday.', icon: '✓' },
-  { name: 'Online Scheduling', tagline: 'Fill Your Calendar', description: 'Customers book online anytime. Automatic reminders reduce no-shows.', icon: '✓' },
-  { name: 'Smart Quoting', tagline: 'Win More Jobs', description: 'Create professional quotes in seconds. Customers approve with one tap.', icon: '✓' },
-  { name: 'Worker App', tagline: 'Your Crew\'s Command Center', description: 'Your crew sees their jobs, clocks in with location proof, uploads photos, and reports issues.', icon: '✓' },
-  { name: 'Invoicing & Payments', tagline: 'Get Paid Faster', description: 'One-click invoices. Accept cards and ACH. Auto-reminders chase late payers for you.', icon: '✓' },
-  { name: 'Review Machine', tagline: 'Automated 5-Star Growth', description: 'Auto-request reviews after every job. Watch your Google rating climb automatically.', icon: '✓' },
-  { name: 'ToolTime Shield', tagline: 'Legal Protection + HR', description: 'Worker classification quiz, final pay calculator, compliance tools, AND 10+ HR templates. Stay lawsuit-free.', icon: '✓' },
-  { name: 'Payroll', tagline: 'Coming Soon', description: 'Auto-calculate CA overtime & double-time. Join the waitlist.', icon: '⏳' },
-  { icon: '🗺️', title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
-  { icon: '🛣️', title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
+// Features data
+const features = [
+  { title: 'Professional Website — Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.' },
+  { title: '24/7 AI Chatbot', description: 'Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.' },
+  { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature.' },
+  { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.' },
+  { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.' },
+  { title: 'HR Document Library', description: '10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.' },
+  { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.' },
+  { title: 'Admin Dashboard', description: 'See jobs, revenue, and crew status at a glance. Track performance and make smarter business decisions.' },
+  { title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
+  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
 ];
 
-// Demo cards - all features we offer
-const demoCards = {
-  row1: [
-    { name: 'Website Builder', tagline: 'See a sample site we\'d build for your business', icon: '🌐', href: '/demo/website' },
-    { name: 'Smart Quoting', tagline: 'Create professional quotes in seconds with live preview', icon: '📝', href: '/demo/quoting' },
-    { name: 'Online Booking', tagline: 'Let customers book online + manage your calendar', icon: '📅', href: '/demo/scheduling' },
-    { name: 'AI Chatbot', tagline: '24/7 lead capture that never misses a customer', icon: '🤖', href: '/demo/chatbot' },
-  ],
-  row2: [
-    { name: 'Review Machine', tagline: 'Automate 5-star reviews with SMS follow-ups', icon: '⭐', href: '/demo/reviews' },
-    { name: 'Worker App', tagline: 'GPS clock-in, job details, and compliance tracking', icon: '👷', href: '/worker' },
-    { name: 'Admin Dashboard', tagline: 'See jobs, revenue, crew status at a glance', icon: '📊', href: '/dashboard' },
-    { name: 'ToolTime Shield', tagline: 'Worker classification, final pay calculator, HR docs', icon: '🛡️', href: '/dashboard/shield' },
-    { name: 'Dispatch Board', tagline: 'Real-time crew tracking and drag-and-drop scheduling', icon: '🗺️', href: '/dashboard/dispatch', badge: 'Elite' },
-  ],
-};
-
-// HR Document templates
-const hrDocuments = [
-  'New hire checklist (W-2 employees)',
-  '1099 contractor onboarding checklist',
-  'Offer letter template (CA at-will compliant)',
-  'Termination checklist',
-  'Resignation acceptance letter',
-  'Wage theft prevention notice (CA required)',
-  'Emergency contact form',
-  'Time-off request form',
-  'Incident report form',
-  'I-9 & W-4 form links',
+// Feature tabs
+const featureTabs = [
+  { name: 'Website', icon: '🌐', href: '/demo/website' },
+  { name: 'Scheduling', icon: '📅', href: '/demo/scheduling' },
+  { name: 'Quoting', icon: '📝', href: '/demo/quoting' },
+  { name: 'Worker App', icon: '👷', href: '/worker' },
+  { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
+  { name: 'Payments', icon: '💰', href: '/demo/invoicing' },
+  { name: 'Payroll', icon: '💰', href: '#', comingSoon: true },
 ];
 
-// Compliance Tools
-const complianceTools = [
-  'Worker classification quiz (Employee vs Contractor)',
-  'Final pay deadline calculator (CA same-day / 72-hour rules)',
-  'Waiting time penalty estimator',
-  'AB5 compliance checklist',
-  'Minimum wage chart (CA state + cities)',
-  'Paid sick leave tracker',
-  'Required workplace poster guide',
-];
-
-// HR On-Demand features
-const hrOnDemand = [
-  'Live expert for tricky terminations',
-  'Wage dispute guidance',
-  'Classification questions answered',
-  'Document review before sending',
-  'Priority response within 4 hours',
-];
-
-// Testimonials
-const testimonials = [
-  {
-    quote: "Before ToolTime Pro, I was losing customers because I couldn't answer the phone while cleaning. Now the AI chatbot books appointments for me 24/7.",
-    name: 'Maria G.',
-    business: 'Sparkle Clean Services',
-    location: 'San Jose, CA',
-    industry: 'House Cleaning',
-  },
-  {
-    quote: "The worker app changed everything. I know exactly where my crews are, breaks are tracked automatically, and I haven't worried about compliance since.",
-    name: 'Carlos R.',
-    business: 'Green Valley Landscaping',
-    location: 'Sacramento, CA',
-    industry: 'Landscaping',
-  },
-  {
-    quote: "I went from 3 Google reviews to 47 in three months. The automatic review requests are pure gold for a small business like mine.",
-    name: 'Jessica T.',
-    business: 'Pawfect Grooming',
-    location: 'Los Angeles, CA',
-    industry: 'Pet Grooming',
-  },
-  {
-    quote: "Setup was done for me in a week. I\'m not tech-savvy at all, but now I have a professional website and online booking. Game changer.",
-    name: 'Marcus D.',
-    business: 'Elite Auto Detailing',
-    location: 'San Diego, CA',
-    industry: 'Mobile Detailing',
-  },
+// Demo cards
+const demoCards = [
+  { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
+  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds with live preview', href: '/demo/quoting' },
+  { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/scheduling' },
+  { icon: '🤖', name: 'AI Chatbot', description: '24/7 lead capture that never misses a customer', href: '/demo/chatbot' },
+  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews with SMS follow-ups', href: '/demo/reviews' },
+  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/worker' },
+  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
+  { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/dashboard/shield' },
+  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and drag-and-drop scheduling', href: '/demo/dispatch', badge: 'Elite' },
 ];
 
 // Pricing plans
 const pricingPlans = [
   {
     name: 'Starter',
-    monthlyPrice: 30,
+    price: 30,
     annualPrice: 300,
     workers: 5,
-    tagline: 'Best for solo operators',
-    popular: false,
+    description: 'Perfect for solo operators',
     features: [
       'Professional website (built for you)',
       'Online booking page',
@@ -152,399 +68,220 @@ const pricingPlans = [
       'HR document library (10+ templates)',
       'Email support',
     ],
+    hrFeature: 'ToolTime Shield included',
   },
   {
     name: 'Pro',
-    monthlyPrice: 49,
+    price: 49,
     annualPrice: 490,
     workers: 15,
-    tagline: 'Best for growing teams',
+    description: 'Best for growing teams',
     popular: true,
     features: [
       'Everything in Starter, plus:',
-      'Worker App (GPS clock-in, job lists)',
+      'Worker App (GPS clock-in)',
       'Smart quoting with e-signatures',
-      'Admin dashboard',
-      'Review Machine (automated 5-star requests)',
+      'Review Machine (auto 5-star requests)',
       'Break tracking + CA compliance alerts',
       'Team scheduling + dispatch',
       'Priority support',
     ],
+    hrFeature: 'Full compliance toolkit',
   },
   {
     name: 'Elite',
-    monthlyPrice: 79,
+    price: 79,
     annualPrice: 790,
     workers: 30,
-    tagline: 'Best for larger crews',
-    popular: false,
+    description: 'For established crews',
     features: [
       'Everything in Pro, plus:',
+      'Dispatch Board + Route Optimization',
       'Multiple admin users',
       'Advanced reporting + analytics',
-      'Custom job checklists',
       'Photo verification (clock-in selfies)',
-      'Compliance dashboard + violation alerts',
+      'Compliance dashboard',
       'Dedicated account manager',
       'Phone support',
     ],
+    hrFeature: 'HR On-Demand access',
+    payrollFeature: 'Payroll (coming soon)',
   },
 ];
-
-// Pricing add-ons
-const pricingAddOns = [
-  { id: 'keepMeLegal', name: 'Keep Me Legal', price: 29 },
-  { id: 'aiChatbot', name: 'AI Chatbot', price: 19 },
-  { id: 'extraPage', name: 'Extra Website Page', price: 10 },
-  { id: 'website_builder', name: 'Website Builder', price: 10, description: 'Custom landing page built for you' },
-];
-
-// Standalone plans
-const standalonePlans = [
-  {
-    id: 'booking_only',
-    name: 'Booking Only',
-    price: 15,
-    annualPrice: 150,
-    icon: '📅',
-    description: 'Just need online booking? Start here.',
-  },
-  {
-    id: 'invoicing_only',
-    name: 'Invoicing Only',
-    price: 15,
-    annualPrice: 150,
-    icon: '🧾',
-    description: 'Just need to send invoices? This is for you.',
-  }
-];
-
-// Comparison table features
-const comparisonFeatures = [
-  { name: 'Professional Website', starter: true, pro: true, elite: true },
-  { name: 'Online Scheduling', starter: true, pro: true, elite: true },
-  { name: 'AI Chatbot', starter: true, pro: true, elite: true },
-  { name: 'Invoicing + Payments', starter: true, pro: true, elite: true },
-  { name: 'ToolTime Shield', starter: true, pro: true, elite: true },
-  { name: 'HR Document Library', starter: true, pro: true, elite: true },
-  { name: 'Worker App (GPS)', starter: false, pro: true, elite: true },
-  { name: 'Smart Quoting', starter: false, pro: true, elite: true },
-  { name: 'Review Machine', starter: false, pro: true, elite: true },
-  { name: 'Break Tracking Alerts', starter: false, pro: true, elite: true },
-  { name: 'Admin Dashboard', starter: false, pro: true, elite: true },
-  { name: 'Multiple Admins', starter: false, pro: false, elite: true },
-  { name: 'Advanced Reports', starter: false, pro: false, elite: true },
-  { name: 'Photo Verification', starter: false, pro: false, elite: true },
-  { name: 'Compliance Dashboard', starter: false, pro: false, elite: true },
-  { name: 'Dedicated Support', starter: false, pro: false, elite: true },
-];
-
-// Pricing FAQs
-const pricingFaqs = [
-  {
-    question: "What's included in the setup fee?",
-    answer: "We build your website, set up your booking system, configure your AI chatbot, and train you on everything. Done-for-you, not DIY.",
-  },
-  {
-    question: "Are there any hidden fees?",
-    answer: "Nope. Just the monthly fee + standard payment processing (2.9% + 30¢ per transaction).",
-  },
-  {
-    question: "Can I switch plans later?",
-    answer: "Yes! Upgrade or downgrade anytime. We'll prorate your billing.",
-  },
-  {
-    question: "What if I want to cancel?",
-    answer: "Cancel anytime. No contracts, no cancellation fees. We'll even help you export your data.",
-  },
-  {
-    question: "Do you offer discounts for annual billing?",
-    answer: "Yes — pay annually and get 2 months free (17% savings).",
-  },
-];
-
 
 export default function Home() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [mobileFeatureOpen, setMobileFeatureOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
-  const [selectedAddOns, setSelectedAddOns] = useState<Record<string, string[]>>({
-    Starter: [],
-    Pro: [],
-    Elite: [],
-  });
-
-  const toggleAddOn = (planName: string, addOnId: string) => {
-    setSelectedAddOns(prev => ({
-      ...prev,
-      [planName]: prev[planName].includes(addOnId)
-        ? prev[planName].filter(id => id !== addOnId)
-        : [...prev[planName], addOnId],
-    }));
-  };
-
-  const handleStartTrial = (planName: string) => {
-    const addOns = selectedAddOns[planName];
-    const addOnsParam = addOns.length > 0 ? `&addons=${addOns.join(',')}` : '';
-    window.location.href = `/auth/signup?plan=${planName.toLowerCase()}&billing=${billingPeriod}${addOnsParam}`;
-  };
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* ==================== HERO SECTION ==================== */}
-      <div className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
-        <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20">
-          {/* Tagline Badge */}
-          <div className="mb-6">
-            <span className="inline-block bg-gold-500 text-navy-900 text-sm font-semibold px-4 py-1.5 rounded-full">
-              Everything You Need
-            </span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
-            One Platform. Zero Headaches.
-          </h1>
-
-          {/* Subheadline */}
-          <p className="text-xl text-white/80 max-w-2xl mb-10">
-            Website, scheduling, worker management, HR & compliance — all in one place.
-          </p>
-
-          {/* Stats Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10 max-w-3xl">
-            <div className="text-center sm:text-left">
-              <div className="text-3xl sm:text-4xl font-bold text-gold-500">$49/mo</div>
-              <div className="text-white/70 text-sm">starting</div>
+    <main className="min-h-screen bg-[#fafafa]">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+        <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2.5 text-[#1a1a2e] font-extrabold text-xl no-underline">
+            <div className="w-[42px] h-[42px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-xl shadow-[0_4px_12px_rgba(245,166,35,0.3)]">
+              🛠
             </div>
-            <div className="text-center sm:text-left">
-              <div className="text-3xl sm:text-4xl font-bold text-gold-500">Up to 10x</div>
-              <div className="text-white/70 text-sm">cheaper than competitors</div>
-            </div>
-            <div className="text-center sm:text-left">
-              <div className="text-3xl sm:text-4xl font-bold text-gold-500">Done-for-you</div>
-              <div className="text-white/70 text-sm">0 tech skills required</div>
-            </div>
-          </div>
+            <span>ToolTime Pro</span>
+          </Link>
 
-          {/* Feature Tabs - Mobile Dropdown */}
-          <div className="md:hidden mb-8">
-            <button
-              onClick={() => setMobileFeatureOpen(!mobileFeatureOpen)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg flex items-center justify-between"
-            >
-              <span className="font-medium">Features Included</span>
-              <span className={`transition-transform ${mobileFeatureOpen ? 'rotate-180' : ''}`}>▼</span>
-            </button>
-            {mobileFeatureOpen && (
-              <div className="mt-2 bg-white/10 border border-white/20 rounded-lg p-4 space-y-2">
-                {heroFeatureTabs.map((tab, index) => (
-                  <Link
-                    key={index}
-                    href={tab.href}
-                    className={`flex items-center gap-2 ${tab.comingSoon ? 'pointer-events-none' : 'hover:bg-white/10 -mx-2 px-2 py-1 rounded'}`}
-                  >
-                    <span className={tab.comingSoon ? 'text-white/50' : 'text-gold-500'}>
-                      {tab.comingSoon ? '⏳' : '✓'}
-                    </span>
-                    <span className={tab.comingSoon ? 'text-white/50' : ''}>
-                      {tab.name}
-                      {tab.comingSoon && <span className="text-xs ml-2">(Soon)</span>}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Feature Tabs - Desktop */}
-          <div className="hidden md:flex flex-wrap gap-2 mb-10">
-            {heroFeatureTabs.map((tab, index) => (
-              <Link
-                key={index}
-                href={tab.href}
-                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${
-                  tab.comingSoon
-                    ? 'bg-white/10 text-white/50 pointer-events-none'
-                    : 'bg-navy-500 text-white border border-white/20 hover:bg-navy-400 hover:border-white/40'
-                }`}
-              >
-                <span className={tab.comingSoon ? 'text-white/50' : 'text-gold-500'}>
-                  {tab.comingSoon ? '⏳' : '✓'}
-                </span>
-                {tab.name}
-                {tab.comingSoon && (
-                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full ml-1">Soon</span>
-                )}
-              </Link>
-            ))}
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-4 mb-16">
+          <div className={`hidden md:flex items-center gap-9 ${mobileMenuOpen ? 'flex' : ''}`}>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">Features</Link>
+            <Link href="#demos" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">Demos</Link>
+            <Link href="#hr" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">🛡️ HR & Compliance</Link>
+            <Link href="#pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">Pricing</Link>
             <Link
-              href="/pricing"
-              className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
+              href="/auth/signup"
+              className="bg-[#1a1a2e] text-white px-6 py-3 rounded-xl font-medium text-[0.9375rem] shadow-[0_4px_12px_rgba(26,26,46,0.08)] hover:bg-[#2d2d44] hover:-translate-y-0.5 transition-all no-underline"
             >
               Get Started
             </Link>
-            <Link
-              href="#demos"
-              className="border-2 border-white/30 text-white hover:bg-white/10 font-semibold text-lg px-8 py-3 rounded-lg transition-colors"
-            >
-              See How It Works
-            </Link>
           </div>
 
-          {/* Features with Worker App Preview */}
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            {/* Left: Feature List */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">Professional Website — Built For You</span>
-                  <p className="text-white/70 text-sm mt-1">We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">24/7 AI Chatbot</span>
-                  <p className="text-white/70 text-sm mt-1">Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">Online Scheduling — Fill Your Calendar</span>
-                  <p className="text-white/70 text-sm mt-1">Customers book online anytime. Automatic reminders reduce no-shows by 50%.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">Smart Quoting — Win More Jobs</span>
-                  <p className="text-white/70 text-sm mt-1">Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signatures.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">Worker App with GPS Clock-In</span>
-                  <p className="text-white/70 text-sm mt-1">Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">ToolTime Shield — Legal Protection</span>
-                  <p className="text-white/70 text-sm mt-1">Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">HR Document Library</span>
-                  <p className="text-white/70 text-sm mt-1">10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">Review Machine — Get More 5-Star Reviews</span>
-                  <p className="text-white/70 text-sm mt-1">Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gold-500 mt-0.5">✓</span>
-                <div>
-                  <span className="font-semibold text-white">Admin Dashboard</span>
-                  <p className="text-white/70 text-sm mt-1">See jobs, revenue, and crew status at a glance. <span className="text-gold-500">Track performance</span> and make smarter business decisions.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Worker App Preview */}
-            <div className="flex justify-center lg:justify-end">
-              <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gold-500 rounded-lg flex items-center justify-center">
-                    <span className="text-navy-900 font-bold text-lg">⚙️</span>
-                  </div>
-                  <span className="font-bold text-navy-500 text-lg">Worker App</span>
-                </div>
-
-                {/* Job Card 1 */}
-                <div className="bg-gray-50 rounded-xl p-4 mb-3">
-                  <div className="flex items-start gap-3">
-                    <span className="text-gold-500 mt-1">📍</span>
-                    <div className="flex-1">
-                      <p className="font-semibold text-navy-500">Martinez Residence</p>
-                      <p className="text-sm text-gray-500">123 Oak Street</p>
-                      <p className="text-sm text-gray-600 mt-1 font-medium">9:00 AM - 11:00 AM</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Job Card 2 */}
-                <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <span className="text-gray-400 mt-1">📍</span>
-                    <div className="flex-1">
-                      <p className="font-semibold text-navy-500">Oak Valley HOA</p>
-                      <p className="text-sm text-gray-500">456 Pine Avenue</p>
-                      <p className="text-sm text-gray-600 mt-1 font-medium">11:30 AM - 3:00 PM</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Clock In Button */}
-                <button className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-colors">
-                  ✓ Clock In Now
-                </button>
-              </div>
-            </div>
-          </div>
+          <button
+            className="md:hidden text-[#1a1a2e] text-2xl bg-transparent border-none cursor-pointer"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            ☰
+          </button>
         </div>
-      </div>
 
-      {/* ==================== WHO IT'S FOR SECTION ==================== */}
-      <div className="bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">
-              For Service Businesses That Go To Their Customers
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Whether you&apos;re a solo operator or managing a crew, we handle the back office.
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
+            <Link href="#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Features</Link>
+            <Link href="#demos" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Demos</Link>
+            <Link href="#hr" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">🛡️ HR & Compliance</Link>
+            <Link href="#pricing" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Pricing</Link>
+            <Link href="/auth/signup" className="bg-[#1a1a2e] text-white px-6 py-3 rounded-xl font-medium text-center no-underline">Get Started</Link>
+          </div>
+        )}
+      </nav>
+
+      {/* Hero Section */}
+      <section className="pt-[140px] pb-[100px] bg-white relative overflow-hidden">
+        {/* Background diagonal */}
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] hidden lg:block" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)' }} />
+        <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(245,166,35,0.12)_0%,transparent_70%)]" />
+
+        <div className="max-w-[1200px] mx-auto px-6 grid lg:grid-cols-2 gap-[60px] items-center relative z-10">
+          <div>
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-[#fef3d6] px-[18px] py-2.5 rounded-full text-sm font-bold text-[#1a1a2e] mb-6 border border-[rgba(245,166,35,0.3)]">
+              <span className="w-2 h-2 bg-[#00c853] rounded-full animate-pulse" />
+              Built for Service Pros
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-[clamp(2.5rem,5.5vw,4rem)] font-extrabold text-[#1a1a2e] leading-[1.15] tracking-tight mb-6">
+              Run Your Business<br />
+              <span className="text-[#f5a623] relative">
+                Like a Pro
+                <span className="absolute bottom-1 left-0 right-0 h-2 bg-[#f5a623] opacity-30 -z-10 rounded" />
+              </span>
+            </h1>
+
+            <p className="text-[1.1875rem] text-[#5c5c70] mb-9 max-w-[480px] leading-relaxed">
+              We set it up. You run your business. It&apos;s that simple.
             </p>
+
+            {/* CTAs */}
+            <div className="flex flex-wrap gap-4 mb-14">
+              <Link
+                href="/auth/signup"
+                className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(245,166,35,0.4)] transition-all no-underline"
+              >
+                Get Started Free →
+              </Link>
+              <Link
+                href="#features"
+                className="inline-flex items-center gap-2 px-10 py-5 bg-white text-[#1a1a2e] border-2 border-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] hover:bg-[#1a1a2e] hover:text-white transition-all no-underline"
+              >
+                See How It Works
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-12 pt-8 border-t border-gray-200">
+              <div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$30</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">Starting at /month</div>
+              </div>
+              <div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">10x</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">Cheaper than competitors</div>
+              </div>
+              <div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">0</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">Tech skills required</div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {industryCards.map((card, index) => (
-              <div
-                key={index}
-                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="text-3xl mb-3">{card.icon}</div>
-                <h3 className="font-semibold text-navy-500 mb-1">{card.name}</h3>
-                <p className="text-sm text-gray-600">{card.description}</p>
+          {/* Dashboard Preview */}
+          <div className="hidden lg:flex justify-center">
+            <div className="bg-white rounded-[20px] p-5 shadow-[0_24px_60px_rgba(26,26,46,0.16)] transform perspective-[1000px] hover:rotate-y-[-2deg] transition-transform duration-500 max-w-[420px]">
+              <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 text-white min-h-[380px]">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="text-[1.125rem] font-bold">📊 Today&apos;s Overview</div>
+                  <div className="text-[0.8125rem] opacity-70 font-mono">Jan 19, 2026</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  <div className="bg-white/10 rounded-[10px] p-3.5">
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Jobs Today</div>
+                    <div className="text-[1.375rem] font-extrabold">8</div>
+                  </div>
+                  <div className="bg-white/10 rounded-[10px] p-3.5">
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Revenue</div>
+                    <div className="text-[1.375rem] font-extrabold"><span className="opacity-60">$</span>2,450</div>
+                  </div>
+                  <div className="bg-white/10 rounded-[10px] p-3.5">
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Active Crew</div>
+                    <div className="text-[1.375rem] font-extrabold">5</div>
+                  </div>
+                  <div className="bg-white/10 rounded-[10px] p-3.5">
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">New Leads</div>
+                    <div className="text-[1.375rem] font-extrabold">12</div>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 rounded-[10px] p-3.5">
+                  <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">Upcoming Jobs</div>
+                  {[
+                    { name: '🏠 Martinez Residence', type: 'Lawn care', time: '9:00 AM', status: 'Active', statusColor: 'bg-[#00c853]' },
+                    { name: '🏢 Oak Valley HOA', type: 'Landscaping', time: '11:30 AM', status: 'Next', statusColor: 'bg-[#f5a623]' },
+                    { name: '🏊 Thompson Pool', type: 'Pool service', time: '2:00 PM', status: 'Later', statusColor: 'bg-[#f5a623]' },
+                  ].map((job, i) => (
+                    <div key={i} className={`flex justify-between items-center py-2.5 ${i < 2 ? 'border-b border-white/10' : ''}`}>
+                      <div>
+                        <div className="text-[0.8125rem] font-semibold">{job.name}</div>
+                        <div className="text-[0.6875rem] opacity-60">{job.type} • {job.time}</div>
+                      </div>
+                      <span className={`${job.statusColor} text-[#1a1a2e] px-2.5 py-1 rounded-full text-[0.625rem] font-bold uppercase`}>
+                        {job.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ==================== PAIN POINTS SECTION ==================== */}
-      <div className="bg-[#f8f9fa]">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">
-              Running a Service Business Is Hard Enough
+      {/* Pain Points Section */}
+      <section className="py-[100px] bg-[#fafafa]">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-16">
+            <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
+              Sound Familiar?
+            </span>
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
+              These Problems Cost You Money
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              You didn&apos;t start your business to fight with software, chase payments, or worry about lawsuits.
+            <p className="text-[1.0625rem] text-[#5c5c70]">
+              You&apos;re great at your trade. But running the business side? That&apos;s where things fall apart.
             </p>
           </div>
 
@@ -552,601 +289,322 @@ export default function Home() {
             {painPoints.map((point, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl p-6 shadow-sm"
+                className="bg-white rounded-xl p-8 border border-gray-200 relative overflow-hidden group hover:-translate-y-1.5 hover:shadow-lg hover:border-transparent transition-all"
               >
-                <div className="text-3xl mb-3">{point.icon}</div>
-                <h3 className="font-semibold text-navy-500 mb-2">{point.problem}</h3>
-                <p className="text-gray-600">→ {point.solution}</p>
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#ff5252] group-hover:bg-[#00c853] transition-colors" />
+                <div className="w-[52px] h-[52px] bg-[#ffebee] group-hover:bg-[#e8f5e9] rounded-xl flex items-center justify-center text-2xl mb-5 transition-colors">
+                  {point.icon}
+                </div>
+                <h3 className="text-[1.125rem] font-extrabold text-[#1a1a2e] mb-2.5">{point.title}</h3>
+                <p className="text-[0.9375rem] text-[#5c5c70] mb-5 leading-relaxed">{point.description}</p>
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#00c853]">
+                  <span className="w-5 h-5 bg-[#00c853] text-white rounded-full flex items-center justify-center text-[0.6875rem]">✓</span>
+                  {point.solution}
+                </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ==================== DEMO CARDS SECTION ==================== */}
-      <div id="demos" className="bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <span className="inline-block bg-gold-100 text-gold-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+      {/* Features Section */}
+      <section id="features" className="py-[100px] bg-[#1a1a2e] text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(245,166,35,0.1)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.08)_0%,transparent_50%)]" />
+
+        <div className="max-w-[1200px] mx-auto px-6 relative z-10">
+          <div className="text-center max-w-[640px] mx-auto mb-16">
+            <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
+              Everything You Need
+            </span>
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
+              One Platform. Zero Headaches.
+            </h2>
+            <p className="text-[1.0625rem] text-white/70">
+              Website, scheduling, worker management, HR & compliance — all in one place. Finally.
+            </p>
+          </div>
+
+          {/* Feature Tabs */}
+          <div className="flex flex-wrap justify-center gap-2 mb-14">
+            {featureTabs.map((tab, index) => (
+              <Link
+                key={index}
+                href={tab.href}
+                className={`px-6 py-3.5 rounded-full font-semibold text-[0.9375rem] transition-all no-underline ${
+                  tab.comingSoon
+                    ? 'bg-white/10 text-white/60 border border-white/10'
+                    : index === 0
+                      ? 'bg-[#f5a623] text-[#1a1a2e] border border-[#f5a623]'
+                      : 'bg-white/10 text-white/80 border border-white/10 hover:bg-white/15 hover:text-white'
+                }`}
+              >
+                {tab.icon} {tab.name}
+                {tab.comingSoon && (
+                  <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded-[10px] text-[0.625rem] font-bold ml-1.5 align-middle">
+                    COMING SOON
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+
+          {/* Feature Content */}
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <div>
+              <ul className="space-y-7">
+                {features.map((feature, index) => (
+                  <li key={index} className="flex gap-5">
+                    <div className="w-9 h-9 min-w-[36px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-[#1a1a2e] font-bold">
+                      ✓
+                    </div>
+                    <div>
+                      <h4 className="text-white font-extrabold text-[1.0625rem] mb-1.5">
+                        {feature.title}
+                        {feature.badge && (
+                          <span className="ml-2 bg-white/20 text-white/90 text-[0.625rem] font-bold px-2 py-0.5 rounded-full align-middle">
+                            {feature.badge}
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-white/65 text-[0.9375rem] leading-relaxed">{feature.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Phone Mockup */}
+            <div className="flex justify-center">
+              <div className="bg-[#0a0a12] rounded-[40px] p-3 shadow-[0_24px_60px_rgba(26,26,46,0.16)] max-w-[300px]">
+                <div className="bg-white rounded-[32px] overflow-hidden">
+                  <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] text-white p-5">
+                    <h4 className="font-extrabold text-[1.0625rem]">👷 Worker App</h4>
+                  </div>
+                  <div className="p-4">
+                    <div className="bg-[#fafafa] rounded-xl p-4 mb-3 border border-gray-200">
+                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏠 Martinez Residence</h5>
+                      <p className="text-[0.8125rem] text-[#8e8e9f]">123 Oak Street</p>
+                      <p className="text-[#1a1a2e] font-semibold text-[0.8125rem] mt-1.5">9:00 AM - 11:00 AM</p>
+                    </div>
+                    <div className="bg-[#fafafa] rounded-xl p-4 mb-3 border border-gray-200">
+                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏢 Oak Valley HOA</h5>
+                      <p className="text-[0.8125rem] text-[#8e8e9f]">456 Pine Avenue</p>
+                      <p className="text-[#1a1a2e] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
+                    </div>
+                    <button className="w-full py-4 bg-[#00c853] text-white font-bold rounded-xl">
+                      ⏰ Clock In Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Demos Section */}
+      <section id="demos" className="py-20 bg-[#fafafa]">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-16">
+            <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
               See It In Action
             </span>
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">Try Our Interactive Demos</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              See exactly how ToolTime Pro works. No signup required.
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
+              Try Our Interactive Demos
+            </h2>
+            <p className="text-[1.0625rem] text-[#5c5c70]">
+              Click any feature below to see exactly how ToolTime Pro works. No signup required.
             </p>
           </div>
 
-          {/* Row 1 - 4 cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
-            {demoCards.row1.map((card, index) => (
-              <Link
-                key={index}
-                href={card.href}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 flex flex-col group min-h-[200px]"
-              >
-                <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gold-200 transition-colors">
-                  <span className="text-2xl">{card.icon}</span>
-                </div>
-                <h3 className="font-semibold text-navy-500 mb-1 text-base">{card.name}</h3>
-                <p className="text-sm text-gray-500 flex-grow leading-relaxed">{card.tagline}</p>
-                <span className="text-sm text-gold-600 font-medium mt-4 group-hover:text-gold-700 inline-flex items-center gap-1">
-                  Try Demo <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </span>
-              </Link>
-            ))}
-          </div>
-
-          {/* Row 2 - 4 cards */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {demoCards.row2.map((card, index) => (
+            {demoCards.map((card, index) => (
               <Link
                 key={index}
                 href={card.href}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 flex flex-col group min-h-[200px]"
+                className="bg-white rounded-[20px] p-6 text-center border-2 border-gray-200 hover:border-[#f5a623] hover:-translate-y-1 hover:shadow-lg transition-all no-underline group relative"
               >
-                <div className="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gold-200 transition-colors">
-                  <span className="text-2xl">{card.icon}</span>
-                </div>
-                <h3 className="font-semibold text-navy-500 mb-1 text-base">{card.name}</h3>
-                <p className="text-sm text-gray-500 flex-grow leading-relaxed">{card.tagline}</p>
-                <span className="text-sm text-gold-600 font-medium mt-4 group-hover:text-gold-700 inline-flex items-center gap-1">
-                  Try Demo <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </span>
+                {card.badge && (
+                  <span className="absolute top-3 right-3 bg-[#1a1a2e] text-white text-[0.625rem] font-bold px-2 py-1 rounded-full">
+                    {card.badge}
+                  </span>
+                )}
+                <div className="text-[2.5rem] mb-3">{card.icon}</div>
+                <h3 className="text-[1.125rem] font-extrabold text-[#1a1a2e] mb-2">{card.name}</h3>
+                <p className="text-[0.875rem] text-[#8e8e9f] leading-relaxed mb-3">{card.description}</p>
+                <span className="text-[#f5a623] font-semibold text-[0.875rem] group-hover:underline">Try Demo →</span>
               </Link>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ==================== HR & COMPLIANCE SECTION ==================== */}
-      <div className="bg-[#fef9f0]">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <span className="inline-block bg-navy-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-              🛡️ ToolTime HR
-            </span>
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">Your Back-Office Safety Net</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              The HR support that other platforms don&apos;t offer. Sleep better knowing you&apos;re protected.
-            </p>
-          </div>
-
-          {/* Three Category Cards + Right Side Preview */}
-          <div className="grid lg:grid-cols-2 gap-8 mb-12">
-            {/* Left Column: Three Category Cards */}
-            <div className="space-y-4">
-              {/* Document Templates Card */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">📄</span>
-                  <h3 className="font-bold text-navy-500">Document Templates (Included)</h3>
-                </div>
-                <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                  {hrDocuments.map((doc, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
-                      <span className="text-gold-500 mt-0.5">›</span>
-                      <span className="text-gray-600">{doc}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Compliance Tools Card */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">⚖️</span>
-                  <h3 className="font-bold text-navy-500">Compliance Tools (Included)</h3>
-                </div>
-                <ul className="space-y-1.5">
-                  {complianceTools.map((tool, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
-                      <span className="text-gold-500 mt-0.5">›</span>
-                      <span className="text-gray-600">{tool}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* HR On-Demand Card */}
-              <div className="bg-gradient-to-r from-gold-50 to-gold-100 rounded-xl p-6 border-2 border-gold-300">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">👨‍💼</span>
-                  <h3 className="font-bold text-navy-500">HR On-Demand</h3>
-                  <span className="text-xs bg-gold-500 text-navy-900 px-2 py-0.5 rounded-full font-semibold">Elite Plan</span>
-                </div>
-                <ul className="space-y-1.5">
-                  {hrOnDemand.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
-                      <span className="text-gold-600 mt-0.5">›</span>
-                      <span className="text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Right Column: Interactive Preview */}
-            <div className="space-y-4">
-              {/* HR Document Library Card */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">📁</span>
-                  <h4 className="font-bold text-navy-500">HR Document Library</h4>
-                </div>
-                <p className="text-sm text-gray-500 mb-4">10+ templates ready to use</p>
-                <div className="space-y-2">
-                  <Link href="/dashboard/hr-toolkit" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gold-500">📄</span>
-                      <span className="text-sm text-navy-500">Offer Letter Template</span>
-                    </div>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded-full font-semibold">Download</span>
-                  </Link>
-                  <Link href="/dashboard/hr-toolkit" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gold-500">📄</span>
-                      <span className="text-sm text-navy-500">Termination Checklist</span>
-                    </div>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded-full font-semibold">Download</span>
-                  </Link>
-                  <Link href="/dashboard/hr-toolkit" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gold-500">📄</span>
-                      <span className="text-sm text-navy-500">1099 Onboarding</span>
-                    </div>
-                    <span className="text-xs bg-gold-500 text-navy-900 px-3 py-1 rounded-full font-semibold">Download</span>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Worker Classification Quiz Card */}
-              <div className="bg-navy-500 rounded-xl p-6 text-white">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">⚖️</span>
-                  <h4 className="font-bold">Worker Classification Quiz</h4>
-                </div>
-                <p className="text-sm text-white/70 mb-4">Does this worker control how & when they work?</p>
-                <div className="bg-navy-600 rounded-lg p-4 mb-4">
-                  <div className="space-y-2">
-                    <button className="w-full text-left px-4 py-2 bg-navy-500 hover:bg-navy-400 rounded-lg text-sm transition-colors">
-                      Yes — they set their own schedule
-                    </button>
-                    <button className="w-full text-left px-4 py-2 bg-navy-500 hover:bg-navy-400 rounded-lg text-sm transition-colors">
-                      No — I control their hours
-                    </button>
-                  </div>
-                </div>
-                <Link href="/dashboard/shield" className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-4 py-2 rounded-lg transition-colors text-sm">
-                  Take the Full Quiz →
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* California Compliance Tools - Same Section */}
-          <div className="bg-navy-500 rounded-2xl p-8">
-            <div className="text-center mb-8">
-              <span className="inline-block bg-red-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-3">
-                ⚠️ California Employers
-              </span>
-              <h3 className="text-2xl font-bold text-white mb-2">Stay Out of Trouble</h3>
-              <p className="text-white/70 max-w-xl mx-auto">
-                California employment law is brutal. One mistake can cost you thousands. We make compliance dead simple.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              <Link href="/dashboard/shield" className="bg-gradient-to-br from-gold-500 to-gold-600 rounded-xl p-5 text-navy-900 hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">💰</span>
-                  <h4 className="font-bold">Final Pay Calculator</h4>
-                </div>
-                <p className="text-sm text-navy-800">Know exactly when to pay terminated employees</p>
-                <p className="text-xs text-navy-700 mt-1">Avoid up to 30 days wage penalties</p>
-              </Link>
-
-              <Link href="/dashboard/shield" className="bg-gradient-to-br from-navy-600 to-navy-700 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">📋</span>
-                  <h4 className="font-bold">Size-Based Requirements</h4>
-                </div>
-                <p className="text-sm text-white/90">See exactly what laws apply to YOUR business</p>
-                <p className="text-xs text-white/70 mt-1">1-4 employees? 50+? Different rules.</p>
-              </Link>
-
-              <Link href="/dashboard/shield" className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">📍</span>
-                  <h4 className="font-bold">Local Wage Lookup</h4>
-                </div>
-                <p className="text-sm text-white/90">SF pays $18.07/hr, not $16.00</p>
-                <p className="text-xs text-white/70 mt-1">Know your city&apos;s minimum wage</p>
-              </Link>
-            </div>
-
-            <div className="text-center mt-6">
-              <Link href="/dashboard/shield" className="inline-block bg-white hover:bg-gray-100 text-navy-900 font-semibold px-8 py-3 rounded-lg transition-colors">
-                Check Your Compliance →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ==================== TESTIMONIALS SECTION ==================== */}
-      <div className="bg-[#f8f9fa]">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <span className="inline-block bg-gold-100 text-gold-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-              Real Results
-            </span>
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">Trusted By Service Pros</h2>
-          </div>
-
-          {/* Testimonials Grid */}
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm">
-                <p className="text-gray-700 mb-4 italic">&quot;{testimonial.quote}&quot;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gold-100 rounded-full flex items-center justify-center">
-                    <span className="text-gold-600 font-semibold">{testimonial.name.charAt(0)}</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-navy-500">{testimonial.name}</p>
-                    <p className="text-sm text-gray-600">{testimonial.business} • {testimonial.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Stats Bar */}
-          <div className="bg-navy-500 rounded-xl p-6">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-gold-500">500+</div>
-                <div className="text-white/70 text-sm">businesses</div>
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-gold-500">4.9/5</div>
-                <div className="text-white/70 text-sm">rating</div>
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-gold-500">10,000+</div>
-                <div className="text-white/70 text-sm">jobs scheduled</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ==================== GET STARTED CTA SECTION ==================== */}
-      <div id="get-started" className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
-        <div className="max-w-4xl mx-auto px-4 py-16">
-          <div className="text-center">
-            <span className="inline-block bg-gold-500 text-navy-900 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-              Get Started
-            </span>
-            <h2 className="text-3xl font-bold mb-4">Ready to Grow Your Business?</h2>
-            <p className="text-white/80 max-w-2xl mx-auto mb-8">
-              Join thousands of service businesses using ToolTime Pro to save time, stay compliant, and get more customers.
-            </p>
-            <Link
-              href="/pricing"
-              className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold text-lg px-8 py-4 rounded-lg transition-colors"
-            >
-              View Plans & Pricing
-            </Link>
-            <p className="text-white/60 text-sm mt-4">
-              No contracts. Cancel anytime. 30-day money-back guarantee.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ==================== PRICING SECTION ==================== */}
-      <div className="bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          {/* Section Header */}
-          <div className="text-center mb-8">
-            <span className="inline-block bg-gold-100 text-gold-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+      {/* Pricing Section */}
+      <section id="pricing" className="py-[100px] bg-[#fafafa]">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-12">
+            <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
               Simple Pricing
             </span>
-            <h2 className="text-3xl font-bold text-navy-500 mb-3">Plans That Grow With You</h2>
-            <p className="text-gray-600">No hidden fees. Cancel anytime.</p>
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
+              Plans That Grow With You
+            </h2>
+            <p className="text-[1.0625rem] text-[#5c5c70]">
+              No hidden fees. No contracts. Cancel anytime.
+            </p>
           </div>
 
           {/* Billing Toggle */}
-          <div className="flex justify-center items-center gap-4 mb-12">
-            <span className={`font-medium ${billingPeriod === 'monthly' ? 'text-navy-500' : 'text-gray-400'}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'annual' : 'monthly')}
-              className="relative w-14 h-8 bg-gray-200 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500"
-              style={{ backgroundColor: billingPeriod === 'annual' ? '#c9a227' : '#e5e7eb' }}
-            >
-              <span
-                className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
-                  billingPeriod === 'annual' ? 'translate-x-7' : 'translate-x-1'
+          <div className="flex justify-center mb-12">
+            <div className="bg-gray-100 rounded-full p-1.5 flex">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-7 py-3.5 rounded-full font-semibold text-[0.9375rem] transition-all ${
+                  billingPeriod === 'monthly'
+                    ? 'bg-white text-[#1a1a2e] shadow-md'
+                    : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
                 }`}
-              />
-            </button>
-            <span className={`font-medium ${billingPeriod === 'annual' ? 'text-navy-500' : 'text-gray-400'}`}>
-              Annual
-            </span>
-            {billingPeriod === 'annual' && (
-              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                Save 2 months
-              </span>
-            )}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingPeriod('annual')}
+                className={`px-7 py-3.5 rounded-full font-semibold text-[0.9375rem] flex items-center gap-2 transition-all ${
+                  billingPeriod === 'annual'
+                    ? 'bg-white text-[#1a1a2e] shadow-md'
+                    : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
+                }`}
+              >
+                Annual
+                <span className="bg-[#00c853] text-white px-2.5 py-1 rounded-full text-[0.6875rem] font-bold">
+                  Save 17%
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-3 gap-6 max-w-[1100px] mx-auto">
             {pricingPlans.map((plan, index) => (
               <div
                 key={index}
-                className={`bg-white rounded-xl p-6 flex flex-col ${
+                className={`bg-white rounded-[20px] p-10 border-2 relative transition-all hover:-translate-y-2 hover:shadow-lg ${
                   plan.popular
-                    ? 'border-2 border-gold-500 shadow-lg relative'
-                    : 'border border-gray-200 shadow-sm'
+                    ? 'border-[#f5a623] shadow-[0_0_0_4px_rgba(245,166,35,0.15),0_12px_40px_rgba(26,26,46,0.12)] scale-[1.03]'
+                    : 'border-gray-200'
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-gold-500 text-navy-900 text-xs font-bold px-4 py-1 rounded-full">
-                      Most Popular
-                    </span>
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#f5a623] text-[#1a1a2e] px-5 py-2 rounded-full text-[0.75rem] font-extrabold whitespace-nowrap">
+                    Most Popular
                   </div>
                 )}
-                <h3 className="text-xl font-bold text-navy-500 mb-2">{plan.name}</h3>
-                <div className="mb-1">
-                  <span className="text-4xl font-bold text-navy-500">
-                    ${billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice}
+
+                <div className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{plan.name}</div>
+                <p className="text-[0.9375rem] text-[#8e8e9f] mb-2">{plan.description}</p>
+                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">Up to {plan.workers} workers</p>
+
+                <div className="mb-7">
+                  <span className="text-[3.25rem] font-extrabold text-[#1a1a2e] leading-none">
+                    ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}
                   </span>
-                  <span className="text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">{plan.tagline}</p>
-
-                {/* Workers included */}
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <p className="text-sm font-semibold text-navy-500">{plan.workers} workers included</p>
-                  <p className="text-xs text-gray-500">+$2/user for additional workers</p>
+                  <span className="text-[#8e8e9f]">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                 </div>
 
-                {/* Features list */}
-                <ul className="space-y-2 mb-6 flex-grow">
+                <ul className="space-y-0 mb-8">
                   {plan.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-start gap-2 text-sm">
-                      <span className="text-gold-500 mt-0.5">✓</span>
-                      <span className="text-gray-700">{feature}</span>
+                    <li key={fIndex} className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#1a1a2e] border-b border-gray-100 last:border-0">
+                      <span className="text-[#00c853] font-bold min-w-[20px]">✓</span>
+                      {feature}
                     </li>
                   ))}
+                  {plan.hrFeature && (
+                    <li className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#1a1a2e] bg-[#fef3d6] -mx-10 px-10 rounded-none">
+                      <span className="min-w-[20px]">🛡️</span>
+                      {plan.hrFeature}
+                    </li>
+                  )}
+                  {plan.payrollFeature && (
+                    <li className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#8e8e9f] italic bg-gradient-to-r from-[rgba(245,166,35,0.1)] to-[rgba(245,166,35,0.05)] -mx-10 px-10">
+                      <span className="min-w-[20px]">💰</span>
+                      {plan.payrollFeature}
+                    </li>
+                  )}
                 </ul>
 
-                {/* Add-ons */}
-                <div className="border-t border-gray-200 pt-4 mb-6">
-                  <p className="text-sm font-semibold text-navy-500 mb-3">Optional Add-ons:</p>
-                  <div className="space-y-2">
-                    {pricingAddOns.map((addOn) => (
-                      <label key={addOn.id} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedAddOns[plan.name].includes(addOn.id)}
-                          onChange={() => toggleAddOn(plan.name, addOn.id)}
-                          className="w-4 h-4 rounded border-gray-300 text-gold-500 focus:ring-gold-500"
-                        />
-                        <span className="text-sm text-gray-700">{addOn.name}</span>
-                        <span className="text-sm text-gray-500 ml-auto">${addOn.price}/mo</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* CTA Button */}
-                <button
-                  onClick={() => handleStartTrial(plan.name)}
-                  className={`text-center py-3 rounded-lg font-semibold transition-colors ${
+                <Link
+                  href={`/auth/signup?plan=${plan.name.toLowerCase()}&billing=${billingPeriod}`}
+                  className={`block w-full py-4 rounded-xl font-bold text-center transition-all no-underline ${
                     plan.popular
-                      ? 'bg-gold-500 hover:bg-gold-600 text-navy-900'
-                      : 'border-2 border-navy-500 text-navy-500 hover:bg-navy-50'
+                      ? 'bg-[#f5a623] text-[#1a1a2e] hover:bg-[#e6991a] shadow-[0_4px_16px_rgba(245,166,35,0.35)]'
+                      : 'bg-[#1a1a2e] text-white hover:bg-[#2d2d44]'
                   }`}
                 >
                   Start Free Trial
-                </button>
-                <p className="text-xs text-gray-500 text-center mt-3">
-                  14-day free trial • No credit card required • Cancel anytime
+                </Link>
+                <p className="text-center text-[0.8125rem] text-[#8e8e9f] mt-3">
+                  14-day free trial • No credit card required
                 </p>
               </div>
             ))}
           </div>
-
-          {/* Just Need One Thing? Section */}
-          <div className="bg-gray-50 rounded-2xl p-8 mb-12">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-navy-500 mb-2">Just Need One Thing?</h3>
-              <p className="text-gray-600 max-w-xl mx-auto">
-                Not ready for a full plan? Start with just what you need. Upgrade anytime — we&apos;ll credit your payments.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              {standalonePlans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-3xl">{plan.icon}</span>
-                    <h4 className="font-bold text-navy-500">{plan.name}</h4>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
-                  <div className="mb-4">
-                    <span className="text-2xl font-bold text-navy-500">
-                      ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}
-                    </span>
-                    <span className="text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
-                  </div>
-                  <Link
-                    href={`/auth/signup?plan=${plan.id}&billing=${billingPeriod}`}
-                    className="block text-center py-2 px-4 border-2 border-navy-500 text-navy-500 rounded-lg font-semibold hover:bg-navy-50 transition-colors"
-                  >
-                    Get Started
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Comparison Table */}
-          <div className="overflow-x-auto mb-12">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-navy-500 text-white">
-                  <th className="text-left p-4 font-semibold">Feature</th>
-                  <th className="text-center p-4 font-semibold">Starter</th>
-                  <th className="text-center p-4 font-semibold bg-navy-600">Pro</th>
-                  <th className="text-center p-4 font-semibold">Elite</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonFeatures.map((feature, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="p-4 text-navy-500">{feature.name}</td>
-                    <td className="text-center p-4">
-                      {feature.starter ? (
-                        <span className="text-gold-500">✓</span>
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                    </td>
-                    <td className={`text-center p-4 ${index % 2 === 0 ? 'bg-gold-50' : 'bg-gold-50/50'}`}>
-                      {feature.pro ? (
-                        <span className="text-gold-500">✓</span>
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                    </td>
-                    <td className="text-center p-4">
-                      {feature.elite ? (
-                        <span className="text-gold-500">✓</span>
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="bg-navy-50 font-bold">
-                  <td className="p-4 text-navy-500">Workers Included</td>
-                  <td className="text-center p-4 text-navy-500">5</td>
-                  <td className="text-center p-4 text-navy-500 bg-gold-100">15</td>
-                  <td className="text-center p-4 text-navy-500">30</td>
-                </tr>
-                <tr className="bg-white">
-                  <td className="p-4 text-navy-500">Monthly Price</td>
-                  <td className="text-center p-4 text-navy-500">$30</td>
-                  <td className="text-center p-4 text-navy-500 bg-gold-50">$49</td>
-                  <td className="text-center p-4 text-navy-500">$79</td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 text-navy-500">Annual Price</td>
-                  <td className="text-center p-4 text-navy-500">$300</td>
-                  <td className="text-center p-4 text-navy-500 bg-gold-50/50">$490</td>
-                  <td className="text-center p-4 text-navy-500">$790</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pricing FAQ */}
-          <div className="max-w-3xl mx-auto mb-12">
-            <h3 className="text-xl font-bold text-navy-500 mb-6 text-center">Frequently Asked Questions</h3>
-            <div className="space-y-3">
-              {pricingFaqs.map((faq, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                    className="w-full flex items-center justify-between p-4 text-left bg-white hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="font-medium text-navy-500">{faq.question}</span>
-                    <span className={`text-gray-400 transition-transform ${openFaq === index ? 'rotate-180' : ''}`}>
-                      ▼
-                    </span>
-                  </button>
-                  {openFaq === index && (
-                    <div className="p-4 bg-gray-50 border-t border-gray-200">
-                      <p className="text-gray-600">{faq.answer}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-      </div>
+      </section>
 
-      {/* ==================== FINAL CTA SECTION ==================== */}
-      <div className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Stop Juggling. Start Growing.</h2>
-          <p className="text-xl text-white/80 mb-8">
-            Join hundreds of service businesses running smarter.
+      {/* Footer CTA */}
+      <section className="bg-[#1a1a2e] text-center py-[100px] px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,166,35,0.1)_0%,transparent_60%)]" />
+        <div className="max-w-[640px] mx-auto relative z-10">
+          <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
+            Ready to Run Your Business Like a Pro?
+          </h2>
+          <p className="text-[1.125rem] text-white/70 mb-9">
+            Join hundreds of service businesses using ToolTime Pro to save time, stay compliant, and get more customers.
           </p>
           <Link
-            href="/pricing"
-            className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold text-xl px-10 py-4 rounded-lg transition-colors mb-4"
+            href="/auth/signup"
+            className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] transition-all no-underline"
           >
-            Get Started
+            Get Started Free →
           </Link>
-          <p className="text-white/60 mb-8">Simple pricing. No hidden fees.</p>
+        </div>
+      </section>
 
-          {/* Trust Badges */}
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/70">
-            <div className="flex items-center gap-2">
-              <span>🔒</span>
-              <span>Bank-level security</span>
+      {/* Footer */}
+      <footer className="bg-[#12121f] text-white py-20 px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div className="md:col-span-2">
+              <Link href="/" className="flex items-center gap-2.5 text-white font-extrabold text-xl mb-4 no-underline">
+                <div className="w-[42px] h-[42px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-xl">
+                  🛠
+                </div>
+                <span>ToolTime Pro</span>
+              </Link>
+              <p className="text-white/50 text-[0.9375rem] leading-relaxed max-w-[300px]">
+                The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span>💳</span>
-              <span>No hidden fees</span>
+            <div>
+              <h4 className="font-bold text-white mb-5">Product</h4>
+              <div className="flex flex-col gap-3">
+                <Link href="#features" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Features</Link>
+                <Link href="#pricing" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
+                <Link href="#demos" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span>📞</span>
-              <span>Real human support</span>
+            <div>
+              <h4 className="font-bold text-white mb-5">Company</h4>
+              <div className="flex flex-col gap-3">
+                <Link href="/auth/login" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Login</Link>
+                <Link href="/auth/signup" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
+                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* ==================== FOOTER ==================== */}
-      <footer className="bg-navy-500 text-white/70 py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="font-bold text-white mb-2">ToolTime Pro</p>
-          <p className="text-sm">Built for service businesses — home services, mobile services, skilled trades, and more.</p>
+          <div className="border-t border-white/10 pt-8 text-center text-white/40 text-[0.875rem]">
+            © 2026 ToolTime Pro. All rights reserved.
+          </div>
         </div>
       </footer>
     </main>
