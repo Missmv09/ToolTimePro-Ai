@@ -23,6 +23,8 @@ const features = [
   { title: 'HR Document Library', description: '10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.' },
   { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.' },
   { title: 'Admin Dashboard', description: 'See jobs, revenue, and crew status at a glance. Track performance and make smarter business decisions.' },
+  { title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
+  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
 ];
 
 // Feature tabs
@@ -46,6 +48,7 @@ const demoCards = [
   { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/worker' },
   { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
   { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/dashboard/shield' },
+  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and drag-and-drop scheduling', href: '/dashboard/dispatch', badge: 'Elite' },
 ];
 
 // Pricing plans
@@ -54,6 +57,7 @@ const pricingPlans = [
     name: 'Starter',
     price: 30,
     annualPrice: 300,
+    workers: 5,
     description: 'Perfect for solo operators',
     features: [
       'Professional website (built for you)',
@@ -70,6 +74,7 @@ const pricingPlans = [
     name: 'Pro',
     price: 49,
     annualPrice: 490,
+    workers: 15,
     description: 'Best for growing teams',
     popular: true,
     features: [
@@ -87,9 +92,11 @@ const pricingPlans = [
     name: 'Elite',
     price: 79,
     annualPrice: 790,
+    workers: 30,
     description: 'For established crews',
     features: [
       'Everything in Pro, plus:',
+      'Dispatch Board + Route Optimization',
       'Multiple admin users',
       'Advanced reporting + analytics',
       'Photo verification (clock-in selfies)',
@@ -351,7 +358,14 @@ export default function Home() {
                       ✓
                     </div>
                     <div>
-                      <h4 className="text-white font-extrabold text-[1.0625rem] mb-1.5">{feature.title}</h4>
+                      <h4 className="text-white font-extrabold text-[1.0625rem] mb-1.5">
+                        {feature.title}
+                        {feature.badge && (
+                          <span className="ml-2 bg-white/20 text-white/90 text-[0.625rem] font-bold px-2 py-0.5 rounded-full align-middle">
+                            {feature.badge}
+                          </span>
+                        )}
+                      </h4>
                       <p className="text-white/65 text-[0.9375rem] leading-relaxed">{feature.description}</p>
                     </div>
                   </li>
@@ -408,8 +422,13 @@ export default function Home() {
               <Link
                 key={index}
                 href={card.href}
-                className="bg-white rounded-[20px] p-6 text-center border-2 border-gray-200 hover:border-[#f5a623] hover:-translate-y-1 hover:shadow-lg transition-all no-underline group"
+                className="bg-white rounded-[20px] p-6 text-center border-2 border-gray-200 hover:border-[#f5a623] hover:-translate-y-1 hover:shadow-lg transition-all no-underline group relative"
               >
+                {card.badge && (
+                  <span className="absolute top-3 right-3 bg-[#1a1a2e] text-white text-[0.625rem] font-bold px-2 py-1 rounded-full">
+                    {card.badge}
+                  </span>
+                )}
                 <div className="text-[2.5rem] mb-3">{card.icon}</div>
                 <h3 className="text-[1.125rem] font-extrabold text-[#1a1a2e] mb-2">{card.name}</h3>
                 <p className="text-[0.875rem] text-[#8e8e9f] leading-relaxed mb-3">{card.description}</p>
@@ -482,7 +501,8 @@ export default function Home() {
                 )}
 
                 <div className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{plan.name}</div>
-                <p className="text-[0.9375rem] text-[#8e8e9f] mb-7">{plan.description}</p>
+                <p className="text-[0.9375rem] text-[#8e8e9f] mb-2">{plan.description}</p>
+                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">Up to {plan.workers} workers</p>
 
                 <div className="mb-7">
                   <span className="text-[3.25rem] font-extrabold text-[#1a1a2e] leading-none">
