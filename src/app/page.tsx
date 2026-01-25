@@ -42,7 +42,7 @@ const featureTabs = [
 const demoCards = [
   { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
   { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds with live preview', href: '/demo/quoting' },
-  { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/scheduling' },
+  { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/booking' },
   { icon: '🤖', name: 'AI Chatbot', description: '24/7 lead capture that never misses a customer', href: '/demo/chatbot' },
   { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews with SMS follow-ups', href: '/demo/reviews' },
   { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/worker' },
