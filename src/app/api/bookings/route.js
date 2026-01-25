@@ -1,5 +1,67 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import Twilio from 'twilio';
+
+// Lazy initialization for Twilio
+let twilioClient = null;
+
+function getTwilioClient() {
+  if (!twilioClient) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (accountSid && authToken) {
+      twilioClient = Twilio(accountSid, authToken);
+    }
+  }
+  return twilioClient;
+}
+
+// Format phone to E.164
+function formatPhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  return phone.startsWith('+') ? phone : `+${digits}`;
+}
+
+// Send SMS (gracefully fails if Twilio not configured)
+async function sendConfirmationSMS({ to, customerName, serviceName, date, time, companyName }) {
+  try {
+    const client = getTwilioClient();
+    const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+
+    if (!client || !fromNumber) {
+      console.log('Twilio not configured - skipping SMS');
+      return { sent: false, reason: 'not_configured' };
+    }
+
+    // Format date for display
+    const dateObj = new Date(date + 'T00:00:00');
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+
+    // Format time for display
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    const formattedTime = `${displayHour}:${minutes} ${ampm}`;
+
+    const message = await client.messages.create({
+      body: `Hi ${customerName}! Your ${serviceName} appointment with ${companyName} is confirmed for ${formattedDate} at ${formattedTime}. We'll see you then!`,
+      to: formatPhone(to),
+      from: fromNumber,
+    });
+
+    return { sent: true, messageId: message.sid };
+  } catch (error) {
+    console.error('SMS send error:', error);
+    return { sent: false, error: error.message };
+  }
+}
 
 // Lazy initialization for Supabase
 let supabaseInstance = null;
@@ -186,6 +248,27 @@ export async function POST(request) {
         status: 'won', // Already converted to a booking
       });
 
+    // Get company name for SMS
+    let companyName = 'Our team';
+    const { data: company } = await supabase
+      .from('companies')
+      .select('name')
+      .eq('id', companyId)
+      .single();
+    if (company?.name) {
+      companyName = company.name;
+    }
+
+    // Send confirmation SMS (non-blocking)
+    const smsResult = await sendConfirmationSMS({
+      to: customerPhone,
+      customerName,
+      serviceName,
+      date: scheduledDate,
+      time: scheduledTimeStart,
+      companyName,
+    });
+
     return NextResponse.json({
       success: true,
       booking: {
@@ -195,6 +278,7 @@ export async function POST(request) {
         time: scheduledTimeStart,
         customer: customerName,
       },
+      smsStatus: smsResult.sent ? 'sent' : 'not_sent',
     });
 
   } catch (error) {
