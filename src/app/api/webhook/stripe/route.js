@@ -5,12 +5,25 @@ import { createClient } from '@supabase/supabase-js';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy initialization to avoid build-time errors when env vars aren't available
+let stripeInstance = null;
+function getStripe() {
+  if (!stripeInstance) {
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripeInstance;
+}
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+let supabaseInstance = null;
+function getSupabase() {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+  }
+  return supabaseInstance;
+}
 
 export async function POST(request) {
   const body = await request.text();
@@ -19,7 +32,7 @@ export async function POST(request) {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
@@ -70,14 +83,14 @@ async function handleCheckoutComplete(session) {
   const subscriptionId = session.subscription;
   const metadata = session.metadata;
 
-  const { data: existingUser } = await supabase
+  const { data: existingUser } = await getSupabase()
     .from('users')
     .select('id')
     .eq('email', customerEmail)
     .single();
 
   if (existingUser) {
-    await supabase
+    await getSupabase()
       .from('users')
       .update({
         stripe_customer_id: customerId,
@@ -89,7 +102,7 @@ async function handleCheckoutComplete(session) {
       })
       .eq('id', existingUser.id);
   } else {
-    await supabase
+    await getSupabase()
       .from('users')
       .insert({
         email: customerEmail,
@@ -104,7 +117,7 @@ async function handleCheckoutComplete(session) {
 }
 
 async function handleSubscriptionUpdate(subscription) {
-  await supabase
+  await getSupabase()
     .from('users')
     .update({
       subscription_status: subscription.status,
@@ -116,7 +129,7 @@ async function handleSubscriptionUpdate(subscription) {
 }
 
 async function handleSubscriptionCanceled(subscription) {
-  await supabase
+  await getSupabase()
     .from('users')
     .update({
       subscription_status: 'canceled',
@@ -126,7 +139,7 @@ async function handleSubscriptionCanceled(subscription) {
 }
 
 async function handlePaymentSucceeded(invoice) {
-  await supabase
+  await getSupabase()
     .from('payments')
     .insert({
       stripe_customer_id: invoice.customer,
@@ -139,7 +152,7 @@ async function handlePaymentSucceeded(invoice) {
 }
 
 async function handlePaymentFailed(invoice) {
-  await supabase
+  await getSupabase()
     .from('payments')
     .insert({
       stripe_customer_id: invoice.customer,
@@ -150,7 +163,7 @@ async function handlePaymentFailed(invoice) {
       created_at: new Date().toISOString()
     });
 
-  await supabase
+  await getSupabase()
     .from('users')
     .update({
       subscription_status: 'past_due',
