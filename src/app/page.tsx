@@ -291,6 +291,34 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      {/* ==================== HEADER/NAV ==================== */}
+      <header className="bg-[#0a1628] text-white">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-2xl">⚙️</span>
+            <span className="text-xl font-bold text-white hover:text-white">ToolTime Pro</span>
+          </Link>
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="#demos" className="text-white/80 hover:text-white transition-colors">Features</Link>
+            <Link href="/pricing" className="text-white/80 hover:text-white transition-colors">Pricing</Link>
+            <Link href="/dashboard" className="text-white/80 hover:text-white transition-colors">Dashboard</Link>
+            <Link href="/auth/login" className="text-white/80 hover:text-white transition-colors">Log In</Link>
+            <Link
+              href="/auth/signup"
+              className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              Get Started
+            </Link>
+          </nav>
+          {/* Mobile menu button */}
+          <button className="md:hidden text-white p-2">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
       {/* ==================== HERO SECTION ==================== */}
       <div className="bg-gradient-to-b from-[#0a1628] to-[#1a365d] text-white">
         <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20">

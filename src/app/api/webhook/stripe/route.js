@@ -6,23 +6,24 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Lazy initialization to avoid build-time errors when env vars aren't available
-let stripeInstance = null;
+let stripe;
+let supabase;
+
 function getStripe() {
-  if (!stripeInstance) {
-    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
-  return stripeInstance;
+  return stripe;
 }
 
-let supabaseInstance = null;
 function getSupabase() {
-  if (!supabaseInstance) {
-    supabaseInstance = createClient(
+  if (!supabase) {
+    supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
   }
-  return supabaseInstance;
+  return supabase;
 }
 
 export async function POST(request) {
