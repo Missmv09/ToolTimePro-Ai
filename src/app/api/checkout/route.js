@@ -1,7 +1,18 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy initialization to prevent build-time errors when env vars aren't available
+let stripeClient = null;
+
+function getStripe() {
+  if (!stripeClient) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not configured');
+    }
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripeClient;
+}
 
 const PRICE_IDS = {
   starter: {
@@ -109,6 +120,7 @@ export async function GET(request) {
       sessionConfig.mode = 'payment';
     }
 
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.create(sessionConfig);
     return NextResponse.redirect(session.url, 303);
 
