@@ -50,12 +50,12 @@ const demoCards = [
   { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
 ];
 
-// Pricing plans - premium pricing reflecting the value delivered
+// Pricing plans
 const pricingPlans = [
   {
     name: 'Starter',
-    price: 49,
-    annualPrice: 490,
+    price: 30,
+    annualPrice: 300,
     workers: 5,
     description: 'Perfect for solo operators',
     features: [
@@ -71,8 +71,8 @@ const pricingPlans = [
   },
   {
     name: 'Pro',
-    price: 99,
-    annualPrice: 990,
+    price: 49,
+    annualPrice: 490,
     workers: 15,
     description: 'Best for growing teams',
     popular: true,
@@ -90,8 +90,8 @@ const pricingPlans = [
   },
   {
     name: 'Elite',
-    price: 199,
-    annualPrice: 1990,
+    price: 79,
+    annualPrice: 790,
     workers: 30,
     description: 'For established crews',
     features: [
@@ -204,7 +204,7 @@ export default function Home() {
             {/* Stats */}
             <div className="flex gap-12 pt-8 border-t border-gray-200">
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$49</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$30</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">Starting at /month</div>
               </div>
               <div>
