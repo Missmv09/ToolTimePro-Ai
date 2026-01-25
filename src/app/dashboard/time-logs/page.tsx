@@ -3,175 +3,128 @@
 import { useState } from 'react';
 import {
   Search,
-  Calendar,
   Clock,
   User,
   Download,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle,
   XCircle,
   AlertCircle,
   DollarSign,
-  Filter,
+  RefreshCw,
+  MapPin,
 } from 'lucide-react';
-
-interface TimeEntry {
-  id: string;
-  worker: string;
-  workerAvatar: string;
-  date: string;
-  client: string;
-  service: string;
-  clockIn: string;
-  clockOut: string;
-  hours: number;
-  status: 'approved' | 'pending' | 'rejected';
-  notes?: string;
-}
-
-const mockTimeEntries: TimeEntry[] = [
-  {
-    id: '1',
-    worker: 'Mike Sanders',
-    workerAvatar: 'MS',
-    date: 'Today',
-    client: 'Johnson Residence',
-    service: 'Lawn Maintenance',
-    clockIn: '9:00 AM',
-    clockOut: '11:15 AM',
-    hours: 2.25,
-    status: 'approved',
-  },
-  {
-    id: '2',
-    worker: 'Carlos Rodriguez',
-    workerAvatar: 'CR',
-    date: 'Today',
-    client: 'Smith Pool Service',
-    service: 'Pool Cleaning',
-    clockIn: '11:30 AM',
-    clockOut: '12:45 PM',
-    hours: 1.25,
-    status: 'pending',
-    notes: 'Extra time for pump repair',
-  },
-  {
-    id: '3',
-    worker: 'Sarah Lee',
-    workerAvatar: 'SL',
-    date: 'Today',
-    client: 'Tech Office Park',
-    service: 'Window Cleaning',
-    clockIn: '1:00 PM',
-    clockOut: '',
-    hours: 0,
-    status: 'pending',
-    notes: 'Still on job',
-  },
-  {
-    id: '4',
-    worker: 'David Kim',
-    workerAvatar: 'DK',
-    date: 'Yesterday',
-    client: 'Maple Street Apts',
-    service: 'Pressure Washing',
-    clockIn: '8:00 AM',
-    clockOut: '12:30 PM',
-    hours: 4.5,
-    status: 'approved',
-  },
-  {
-    id: '5',
-    worker: 'Mike Sanders',
-    workerAvatar: 'MS',
-    date: 'Yesterday',
-    client: 'Wilson Family',
-    service: 'Landscaping',
-    clockIn: '1:00 PM',
-    clockOut: '5:00 PM',
-    hours: 4,
-    status: 'approved',
-  },
-  {
-    id: '6',
-    worker: 'Carlos Rodriguez',
-    workerAvatar: 'CR',
-    date: 'Yesterday',
-    client: 'Harbor View HOA',
-    service: 'Pool Maintenance',
-    clockIn: '2:00 PM',
-    clockOut: '4:30 PM',
-    hours: 2.5,
-    status: 'approved',
-  },
-  {
-    id: '7',
-    worker: 'Sarah Lee',
-    workerAvatar: 'SL',
-    date: 'Jan 17',
-    client: 'Downtown Cafe',
-    service: 'Window Cleaning',
-    clockIn: '7:00 AM',
-    clockOut: '9:15 AM',
-    hours: 2.25,
-    status: 'rejected',
-    notes: 'Time entry disputed - hours adjusted',
-  },
-  {
-    id: '8',
-    worker: 'David Kim',
-    workerAvatar: 'DK',
-    date: 'Jan 17',
-    client: 'Green Valley School',
-    service: 'Pressure Washing',
-    clockIn: '6:00 AM',
-    clockOut: '10:30 AM',
-    hours: 4.5,
-    status: 'approved',
-  },
-];
+import { useTimeLogs } from '@/hooks/useTimeLogs';
+import { useAuth } from '@/contexts/AuthContext';
 
 const statusConfig = {
-  approved: { label: 'Approved', color: 'badge-success', icon: CheckCircle },
-  pending: { label: 'Pending', color: 'badge-warning', icon: AlertCircle },
-  rejected: { label: 'Rejected', color: 'badge-danger', icon: XCircle },
+  active: { label: 'Active', color: 'badge-warning', icon: Clock },
+  completed: { label: 'Approved', color: 'badge-success', icon: CheckCircle },
+  edited: { label: 'Edited', color: 'badge-danger', icon: XCircle },
 };
 
-// Worker summary
-const workers = [
-  { name: 'Mike Sanders', avatar: 'MS', hoursThisWeek: 38.5, rate: 22 },
-  { name: 'Carlos Rodriguez', avatar: 'CR', hoursThisWeek: 32.25, rate: 20 },
-  { name: 'Sarah Lee', avatar: 'SL', hoursThisWeek: 28.75, rate: 24 },
-  { name: 'David Kim', avatar: 'DK', hoursThisWeek: 41, rate: 21 },
-];
+function formatTime(dateStr: string | null): string {
+  if (!dateStr) return '-';
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const entryDate = new Date(date);
+  entryDate.setHours(0, 0, 0, 0);
+
+  if (entryDate.getTime() === today.getTime()) return 'Today';
+  if (entryDate.getTime() === yesterday.getTime()) return 'Yesterday';
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function calculateHours(clockIn: string, clockOut: string | null): number {
+  if (!clockOut) return 0;
+  const start = new Date(clockIn).getTime();
+  const end = new Date(clockOut).getTime();
+  return (end - start) / (1000 * 60 * 60);
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+}
 
 export default function TimeLogsPage() {
+  const { company } = useAuth();
+  const { entries, workers, stats, isLoading, error, refetch, approveEntry, rejectEntry } = useTimeLogs();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [workerFilter, setWorkerFilter] = useState<string>('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const filteredEntries = mockTimeEntries.filter((entry) => {
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
+
+  const handleApprove = async (id: string) => {
+    await approveEntry(id);
+  };
+
+  const handleReject = async (id: string) => {
+    await rejectEntry(id);
+  };
+
+  const filteredEntries = entries.filter((entry) => {
+    const workerName = entry.user?.full_name || '';
+    const customerName = entry.job?.customer?.name || '';
+    const jobTitle = entry.job?.title || '';
     const matchesSearch =
-      entry.worker.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.service.toLowerCase().includes(searchQuery.toLowerCase());
+      workerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      jobTitle.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || entry.status === statusFilter;
-    const matchesWorker = workerFilter === 'all' || entry.worker === workerFilter;
+    const matchesWorker = workerFilter === 'all' || entry.user?.id === workerFilter;
     return matchesSearch && matchesStatus && matchesWorker;
   });
 
-  const totalHoursThisWeek = workers.reduce((sum, w) => sum + w.hoursThisWeek, 0);
-  const totalLaborCost = workers.reduce((sum, w) => sum + w.hoursThisWeek * w.rate, 0);
-  const pendingApprovals = mockTimeEntries.filter((e) => e.status === 'pending').length;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+            <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mt-2" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="card h-24 animate-pulse bg-gray-100" />
+          ))}
+        </div>
+        <div className="card h-64 animate-pulse bg-gray-100" />
+      </div>
+    );
+  }
 
-  const handleApprove = (id: string) => {
-    console.log('Approving entry:', id);
-  };
-
-  const handleReject = (id: string) => {
-    console.log('Rejecting entry:', id);
-  };
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-semibold text-navy-500 mb-2">Error Loading Time Logs</h2>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button onClick={handleRefresh} className="btn-primary">
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -181,10 +134,19 @@ export default function TimeLogsPage() {
           <h1 className="text-2xl font-bold text-navy-500">Time Logs</h1>
           <p className="text-gray-500">Track and approve worker time entries</p>
         </div>
-        <button className="btn-outline">
-          <Download size={18} className="mr-2" />
-          Export Report
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="btn-ghost"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <button className="btn-outline">
+            <Download size={18} className="mr-2" />
+            Export Report
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -195,7 +157,7 @@ export default function TimeLogsPage() {
               <Clock className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-navy-500">{totalHoursThisWeek.toFixed(1)}</p>
+              <p className="text-2xl font-bold text-navy-500">{stats.totalHoursThisWeek.toFixed(1)}</p>
               <p className="text-sm text-gray-500">Total Hours (Week)</p>
             </div>
           </div>
@@ -207,7 +169,7 @@ export default function TimeLogsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-navy-500">
-                ${totalLaborCost.toLocaleString()}
+                ${stats.totalLaborCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
               <p className="text-sm text-gray-500">Labor Cost (Week)</p>
             </div>
@@ -219,7 +181,7 @@ export default function TimeLogsPage() {
               <AlertCircle className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-navy-500">{pendingApprovals}</p>
+              <p className="text-2xl font-bold text-navy-500">{stats.pendingApprovals}</p>
               <p className="text-sm text-gray-500">Pending Approval</p>
             </div>
           </div>
@@ -230,7 +192,7 @@ export default function TimeLogsPage() {
               <User className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-navy-500">{workers.length}</p>
+              <p className="text-2xl font-bold text-navy-500">{stats.activeWorkers}</p>
               <p className="text-sm text-gray-500">Active Workers</p>
             </div>
           </div>
@@ -238,42 +200,46 @@ export default function TimeLogsPage() {
       </div>
 
       {/* Worker Hours Summary */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-navy-500 mb-4">Worker Hours This Week</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {workers.map((worker) => {
-            const isOvertime = worker.hoursThisWeek > 40;
-            return (
-              <div
-                key={worker.name}
-                className={`p-4 rounded-lg ${
-                  isOvertime ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-navy-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-medium text-navy-500">{worker.avatar}</span>
+      {workers.length > 0 && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-navy-500 mb-4">Worker Hours This Week</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {workers.map((worker) => {
+              const isOvertime = worker.hoursThisWeek > 40;
+              return (
+                <div
+                  key={worker.id}
+                  className={`p-4 rounded-lg ${
+                    isOvertime ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 bg-navy-100 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-medium text-navy-500">
+                        {getInitials(worker.name)}
+                      </span>
+                    </div>
+                    <span className="font-medium text-navy-500">{worker.name}</span>
                   </div>
-                  <span className="font-medium text-navy-500">{worker.name}</span>
-                </div>
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-navy-500">
-                      {worker.hoursThisWeek.toFixed(1)}
-                    </p>
-                    <p className="text-xs text-gray-500">hours</p>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-navy-500">
+                        {worker.hoursThisWeek.toFixed(1)}
+                      </p>
+                      <p className="text-xs text-gray-500">hours</p>
+                    </div>
+                    {isOvertime && (
+                      <span className="text-xs text-red-600 font-medium">
+                        +{(worker.hoursThisWeek - 40).toFixed(1)} OT
+                      </span>
+                    )}
                   </div>
-                  {isOvertime && (
-                    <span className="text-xs text-red-600 font-medium">
-                      +{(worker.hoursThisWeek - 40).toFixed(1)} OT
-                    </span>
-                  )}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Filters */}
       <div className="card">
@@ -295,13 +261,13 @@ export default function TimeLogsPage() {
           >
             <option value="all">All Workers</option>
             {workers.map((w) => (
-              <option key={w.name} value={w.name}>
+              <option key={w.id} value={w.id}>
                 {w.name}
               </option>
             ))}
           </select>
           <div className="flex gap-2">
-            {['all', 'pending', 'approved', 'rejected'].map((status) => (
+            {['all', 'active', 'completed', 'edited'].map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
@@ -311,7 +277,11 @@ export default function TimeLogsPage() {
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {status === 'all' ? 'All' : statusConfig[status as keyof typeof statusConfig].label}
+                {status === 'all'
+                  ? 'All'
+                  : status === 'active'
+                  ? 'Pending'
+                  : statusConfig[status as keyof typeof statusConfig]?.label || status}
               </button>
             ))}
           </div>
@@ -335,43 +305,50 @@ export default function TimeLogsPage() {
             </thead>
             <tbody>
               {filteredEntries.map((entry) => {
-                const status = statusConfig[entry.status];
+                const status = statusConfig[entry.status] || statusConfig.active;
                 const StatusIcon = status.icon;
+                const hours = calculateHours(entry.clock_in, entry.clock_out);
+                const isPending = entry.status === 'active' && entry.clock_out;
+
                 return (
                   <tr key={entry.id} className="hover:bg-gray-50">
                     <td className="table-cell">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-navy-100 rounded-full flex items-center justify-center">
                           <span className="text-xs font-medium text-navy-500">
-                            {entry.workerAvatar}
+                            {entry.user ? getInitials(entry.user.full_name) : '?'}
                           </span>
                         </div>
-                        <span className="font-medium text-navy-500">{entry.worker}</span>
+                        <span className="font-medium text-navy-500">
+                          {entry.user?.full_name || 'Unknown'}
+                        </span>
                       </div>
                     </td>
-                    <td className="table-cell">{entry.date}</td>
+                    <td className="table-cell">{formatDate(entry.clock_in)}</td>
                     <td className="table-cell">
                       <div>
-                        <p className="font-medium text-navy-500">{entry.client}</p>
-                        <p className="text-xs text-gray-500">{entry.service}</p>
+                        <p className="font-medium text-navy-500">
+                          {entry.job?.customer?.name || 'No Customer'}
+                        </p>
+                        <p className="text-xs text-gray-500">{entry.job?.title || 'No Job'}</p>
                       </div>
                     </td>
                     <td className="table-cell">
                       <span className="font-mono text-sm">
-                        {entry.clockIn} - {entry.clockOut || 'Active'}
+                        {formatTime(entry.clock_in)} - {entry.clock_out ? formatTime(entry.clock_out) : 'Active'}
                       </span>
                     </td>
                     <td className="table-cell font-medium">
-                      {entry.hours > 0 ? `${entry.hours.toFixed(2)} hrs` : '-'}
+                      {hours > 0 ? `${hours.toFixed(2)} hrs` : '-'}
                     </td>
                     <td className="table-cell">
                       <span className={`badge ${status.color} flex items-center gap-1 w-fit`}>
                         <StatusIcon size={12} />
-                        {status.label}
+                        {isPending ? 'Pending' : status.label}
                       </span>
                     </td>
                     <td className="table-cell">
-                      {entry.status === 'pending' && (
+                      {isPending && (
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleApprove(entry.id)}
@@ -402,7 +379,11 @@ export default function TimeLogsPage() {
         <div className="card text-center py-12">
           <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-600">No time entries found</h3>
-          <p className="text-gray-400 mt-1">Try adjusting your search or filters</p>
+          <p className="text-gray-400 mt-1">
+            {searchQuery || statusFilter !== 'all' || workerFilter !== 'all'
+              ? 'Try adjusting your search or filters'
+              : 'Time entries will appear here when workers clock in'}
+          </p>
         </div>
       )}
     </div>
