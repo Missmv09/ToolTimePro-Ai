@@ -13,50 +13,49 @@ const painPoints = [
   { icon: '⭐', title: 'Zero Reviews', description: 'Happy customers never leave reviews. Your competitor has 100+, you have 3.', solution: 'Automated review request system' },
 ];
 
-// Features data
+// Features data - ordered by key money makers first
 const features = [
+  { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. More reviews = more customers calling you.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: '24/7 AI Chatbot & Lead Capture', description: 'Never miss a lead. Our AI answers questions, captures contact info, and books appointments even at 2am on Sunday.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues. Full compliance tracking built-in.', highlight: true },
+  { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, AB5 compliance checklists. Protect yourself from costly lawsuits.', badge: '🛡️ Legal Protection', highlight: true },
+  { title: 'Dispatch Board — Real-Time Crew Tracking', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
+  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save on gas and fit more jobs in each day.', badge: 'Elite Only' },
   { title: 'Professional Website — Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.' },
-  { title: '24/7 AI Chatbot', description: 'Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.' },
-  { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature.' },
-  { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.' },
-  { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.' },
-  { title: 'HR Document Library', description: '10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.' },
-  { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.' },
-  { title: 'Admin Dashboard', description: 'See jobs, revenue, and crew status at a glance. Track performance and make smarter business decisions.' },
-  { title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
-  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
+  { title: 'Online Booking & Scheduling', description: 'Let customers book online 24/7. Smart calendar prevents double-bookings. Automatic reminders reduce no-shows.' },
+  { title: 'Invoicing & Payments', description: 'Send professional invoices. Accept credit cards with low fees. Get paid faster with automated payment reminders.' },
 ];
 
-// Feature tabs
+// Feature tabs - key money makers highlighted
 const featureTabs = [
-  { name: 'Website', icon: '🌐', href: '/demo/website' },
-  { name: 'Scheduling', icon: '📅', href: '/demo/scheduling' },
-  { name: 'Quoting', icon: '📝', href: '/demo/quoting' },
+  { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
+  { name: 'Reviews', icon: '⭐', href: '/dashboard', highlight: true },
+  { name: 'AI Chatbot', icon: '🤖', href: '/demo/website', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/worker' },
   { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
-  { name: 'Payments', icon: '💰', href: '/demo/invoicing' },
-  { name: 'Payroll', icon: '💰', href: '#', comingSoon: true },
+  { name: 'Dispatch', icon: '🗺️', href: '/demo/dispatch' },
+  { name: 'Website', icon: '🌐', href: '/demo/website' },
 ];
 
-// Demo cards
+// Demo cards - reordered by key money makers first, aligned with actual demo pages
 const demoCards = [
+  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/demo/quoting', badge: '💰 Top Revenue' },
+  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/dashboard', badge: '💰 Top Revenue' },
+  { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/website', badge: '💰 Top Revenue' },
+  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/worker', badge: 'Must Have' },
+  { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/dashboard/shield', badge: 'Legal Protection' },
+  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and route optimization', href: '/demo/dispatch', badge: 'Elite' },
   { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
-  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds with live preview', href: '/demo/quoting' },
-  { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/scheduling' },
-  { icon: '🤖', name: 'AI Chatbot', description: '24/7 lead capture that never misses a customer', href: '/demo/chatbot' },
-  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews with SMS follow-ups', href: '/demo/reviews' },
-  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/worker' },
   { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
-  { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/dashboard/shield' },
-  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and drag-and-drop scheduling', href: '/demo/dispatch', badge: 'Elite' },
 ];
 
-// Pricing plans
+// Pricing plans - premium pricing reflecting the value delivered
 const pricingPlans = [
   {
     name: 'Starter',
-    price: 30,
-    annualPrice: 300,
+    price: 49,
+    annualPrice: 490,
     workers: 5,
     description: 'Perfect for solo operators',
     features: [
@@ -72,16 +71,17 @@ const pricingPlans = [
   },
   {
     name: 'Pro',
-    price: 49,
-    annualPrice: 490,
+    price: 99,
+    annualPrice: 990,
     workers: 15,
     description: 'Best for growing teams',
     popular: true,
     features: [
       'Everything in Starter, plus:',
+      '💰 Smart Quoting with e-signatures',
+      '💰 Review Machine (auto 5-star requests)',
+      '💰 AI Chatbot & Lead Capture',
       'Worker App (GPS clock-in)',
-      'Smart quoting with e-signatures',
-      'Review Machine (auto 5-star requests)',
       'Break tracking + CA compliance alerts',
       'Team scheduling + dispatch',
       'Priority support',
@@ -90,13 +90,13 @@ const pricingPlans = [
   },
   {
     name: 'Elite',
-    price: 79,
-    annualPrice: 790,
+    price: 199,
+    annualPrice: 1990,
     workers: 30,
     description: 'For established crews',
     features: [
       'Everything in Pro, plus:',
-      'Dispatch Board + Route Optimization',
+      '🗺️ Dispatch Board + Route Optimization',
       'Multiple admin users',
       'Advanced reporting + analytics',
       'Photo verification (clock-in selfies)',
@@ -204,12 +204,12 @@ export default function Home() {
             {/* Stats */}
             <div className="flex gap-12 pt-8 border-t border-gray-200">
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$30</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$49</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">Starting at /month</div>
               </div>
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">10x</div>
-                <div className="text-sm text-[#8e8e9f] mt-1.5">Cheaper than competitors</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">3x</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">More jobs closed</div>
               </div>
               <div>
                 <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">0</div>
