@@ -664,7 +664,7 @@ export default function DispatchBoardPage() {
         {/* Right Panel - Job Queue */}
         <aside className="job-panel">
           <div className="panel-header">
-            <h2>Today's Jobs ({jobs.length})</h2>
+            <h2>Today&apos;s Jobs ({jobs.length})</h2>
           </div>
 
           {/* Unassigned Jobs */}

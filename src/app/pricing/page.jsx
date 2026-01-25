@@ -378,7 +378,7 @@ export default function PricingPage() {
           </div>
 
           <p className="upgrade-note">
-            💡 Standalone products can be upgraded to full plans anytime — we'll credit what you've paid!
+            💡 Standalone products can be upgraded to full plans anytime — we&apos;ll credit what you&apos;ve paid!
           </p>
         </section>
 
@@ -537,16 +537,16 @@ export default function PricingPage() {
               <p>Yes! Upgrade or downgrade anytime. Changes apply to your next billing cycle.</p>
             </div>
             <div className="faq-item">
-              <h4>What's included in the trial?</h4>
+              <h4>What&apos;s included in the trial?</h4>
               <p>Full access to your selected plan for 14 days. No credit card needed to start.</p>
             </div>
             <div className="faq-item">
               <h4>Do I need onboarding?</h4>
-              <p>It's optional but recommended. We'll set everything up so you can focus on your business.</p>
+              <p>It&apos;s optional but recommended. We&apos;ll set everything up so you can focus on your business.</p>
             </div>
             <div className="faq-item">
               <h4>What if I just need booking OR invoicing?</h4>
-              <p>Start with our $15/mo standalone options. Upgrade to a full plan anytime — we'll credit your payments.</p>
+              <p>Start with our $15/mo standalone options. Upgrade to a full plan anytime — we&apos;ll credit your payments.</p>
             </div>
           </div>
         </section>
