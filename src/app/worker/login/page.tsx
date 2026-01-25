@@ -1,16 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { HardHat, Phone, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
 
 export default function WorkerLoginPage() {
   const router = useRouter();
+  const { signIn, isAuthenticated, isLoading } = useWorkerAuth();
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.replace('/worker');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -27,19 +36,30 @@ export default function WorkerLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
+    setIsSubmitting(true);
 
-    // Simulate login - in production, this would call an API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const result = await signIn(phone, pin);
 
-    // Demo: Accept any phone + PIN 1234
-    if (pin === '1234') {
+    if (result.success) {
       router.push('/worker');
     } else {
-      setError('Invalid PIN. Try 1234 for demo.');
+      setError(result.error || 'Login failed');
     }
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-navy-gradient flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-gold-500 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <HardHat className="w-12 h-12 text-navy-500" />
+          </div>
+          <p className="text-white/70">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-navy-gradient flex flex-col">
@@ -110,10 +130,10 @@ export default function WorkerLoginPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isLoading || phone.length < 14 || pin.length < 4}
+            disabled={isSubmitting || phone.length < 14 || pin.length < 4}
             className="btn-secondary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="w-5 h-5 border-2 border-navy-500 border-t-transparent rounded-full animate-spin" />
                 Signing In...
@@ -130,7 +150,7 @@ export default function WorkerLoginPage() {
         {/* Demo Note */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 text-center">
-            <strong>Demo Mode:</strong> Enter any phone number and PIN <strong>1234</strong> to login.
+            <strong>Demo Mode:</strong> Enter a worker&apos;s phone number from your database and PIN <strong>1234</strong> to login.
           </p>
         </div>
 
