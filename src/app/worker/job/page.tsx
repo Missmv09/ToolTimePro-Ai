@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -15,7 +15,11 @@ import {
   Play,
   Square,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
+import type { Job, Customer, TimeEntry } from '@/types/database';
 
 interface ChecklistItem {
   id: string;
@@ -30,46 +34,104 @@ interface Photo {
   timestamp: Date;
 }
 
-const jobData = {
-  id: '2',
-  client: 'Smith Pool Service',
-  address: '456 Palm Ave, Beverly Hills, CA 90210',
-  service: 'Pool Cleaning & Chemical Balance',
-  time: '11:30 AM - 12:30 PM',
-  phone: '(555) 234-5678',
-  notes: 'Check pump filter. Customer reported cloudy water last week.',
-  checklist: [
-    { id: '1', text: 'Skim surface debris', completed: false, required: true },
-    { id: '2', text: 'Vacuum pool floor', completed: false, required: true },
-    { id: '3', text: 'Brush walls and tile', completed: false, required: true },
-    { id: '4', text: 'Check and clean pump basket', completed: false, required: true },
-    { id: '5', text: 'Test water chemistry', completed: false, required: true },
-    { id: '6', text: 'Add chemicals as needed', completed: false, required: true },
-    { id: '7', text: 'Check equipment operation', completed: false, required: false },
-    { id: '8', text: 'Take before/after photos', completed: false, required: true },
-  ],
+interface JobWithCustomer extends Job {
+  customer: Customer | null;
+}
+
+// Default checklist template - in production this could be fetched from services table
+const getDefaultChecklist = (jobTitle: string): ChecklistItem[] => {
+  return [
+    { id: '1', text: 'Arrive and check in with customer', completed: false, required: true },
+    { id: '2', text: 'Review job requirements', completed: false, required: true },
+    { id: '3', text: 'Complete primary service', completed: false, required: true },
+    { id: '4', text: 'Quality check', completed: false, required: true },
+    { id: '5', text: 'Clean up work area', completed: false, required: true },
+    { id: '6', text: 'Take completion photos', completed: false, required: true },
+    { id: '7', text: 'Get customer sign-off (if applicable)', completed: false, required: false },
+  ];
 };
 
 export default function JobDetailPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const jobId = searchParams.get('id');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { worker, company } = useWorkerAuth();
 
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(jobData.checklist);
+  const [job, setJob] = useState<JobWithCustomer | null>(null);
+  const [activeTimeEntry, setActiveTimeEntry] = useState<TimeEntry | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [isClockedIn, setIsClockedIn] = useState(false);
-  const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch job details
+  const fetchJob = useCallback(async () => {
+    if (!jobId || !company?.id) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Fetch job with customer details
+      const { data: jobData, error: jobError } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          customer:customers(*)
+        `)
+        .eq('id', jobId)
+        .eq('company_id', company.id)
+        .single();
+
+      if (jobError) throw jobError;
+
+      setJob(jobData as unknown as JobWithCustomer);
+      setChecklist(getDefaultChecklist(jobData.title));
+
+      // Check for active time entry
+      if (worker?.id) {
+        const { data: timeEntry } = await supabase
+          .from('time_entries')
+          .select('*')
+          .eq('job_id', jobId)
+          .eq('user_id', worker.id)
+          .is('clock_out', null)
+          .single();
+
+        if (timeEntry) {
+          setActiveTimeEntry(timeEntry as TimeEntry);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching job:', err);
+      setError('Failed to load job details');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [jobId, company?.id, worker?.id]);
 
   useEffect(() => {
+    fetchJob();
+  }, [fetchJob]);
+
+  // Timer effect
+  useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    if (isClockedIn && clockInTime) {
-      interval = setInterval(() => {
-        setElapsedTime(Math.floor((Date.now() - clockInTime.getTime()) / 1000));
-      }, 1000);
+    if (activeTimeEntry) {
+      const updateElapsed = () => {
+        const clockIn = new Date(activeTimeEntry.clock_in).getTime();
+        setElapsedTime(Math.floor((Date.now() - clockIn) / 1000));
+      };
+      updateElapsed();
+      interval = setInterval(updateElapsed, 1000);
     }
     return () => clearInterval(interval);
-  }, [isClockedIn, clockInTime]);
+  }, [activeTimeEntry]);
 
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
@@ -78,9 +140,60 @@ export default function JobDetailPage() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleClockIn = () => {
-    setIsClockedIn(true);
-    setClockInTime(new Date());
+  const handleClockIn = async () => {
+    if (!worker?.id || !company?.id || !jobId) return;
+
+    setIsSubmitting(true);
+    try {
+      // Get current location
+      let location = null;
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+          });
+          location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: new Date().toISOString(),
+          };
+        } catch {
+          console.log('Could not get location');
+        }
+      }
+
+      // Create time entry
+      const { data: timeEntry, error: insertError } = await supabase
+        .from('time_entries')
+        .insert({
+          company_id: company.id,
+          user_id: worker.id,
+          job_id: jobId,
+          clock_in: new Date().toISOString(),
+          clock_in_location: location,
+          status: 'active',
+          break_minutes: 0,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setActiveTimeEntry(timeEntry as TimeEntry);
+
+      // Update job status to in_progress
+      await supabase
+        .from('jobs')
+        .update({ status: 'in_progress' })
+        .eq('id', jobId);
+
+    } catch (err) {
+      console.error('Error clocking in:', err);
+      alert('Failed to clock in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClockOut = () => {
@@ -95,10 +208,55 @@ export default function JobDetailPage() {
     completeJob();
   };
 
-  const completeJob = () => {
-    setIsClockedIn(false);
-    setShowCompleteModal(false);
-    router.push('/worker');
+  const completeJob = async () => {
+    if (!activeTimeEntry || !jobId) return;
+
+    setIsSubmitting(true);
+    try {
+      // Get current location
+      let location = null;
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+          });
+          location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: new Date().toISOString(),
+          };
+        } catch {
+          console.log('Could not get location');
+        }
+      }
+
+      // Update time entry with clock out
+      const { error: updateError } = await supabase
+        .from('time_entries')
+        .update({
+          clock_out: new Date().toISOString(),
+          clock_out_location: location,
+          status: 'completed',
+        })
+        .eq('id', activeTimeEntry.id);
+
+      if (updateError) throw updateError;
+
+      // Update job status to completed
+      await supabase
+        .from('jobs')
+        .update({ status: 'completed' })
+        .eq('id', jobId);
+
+      setShowCompleteModal(false);
+      router.push('/worker');
+    } catch (err) {
+      console.error('Error completing job:', err);
+      alert('Failed to complete job. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleChecklist = (id: string) => {
@@ -129,8 +287,32 @@ export default function JobDetailPage() {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-gold-500" />
+      </div>
+    );
+  }
+
+  if (error || !job) {
+    return (
+      <div className="p-4 flex flex-col items-center justify-center py-12">
+        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-lg font-semibold text-navy-500 mb-2">
+          {error || 'Job not found'}
+        </h2>
+        <Link href="/worker" className="btn-secondary mt-4">
+          Back to Jobs
+        </Link>
+      </div>
+    );
+  }
+
   const completedCount = checklist.filter((item) => item.completed).length;
   const requiredComplete = checklist.filter((item) => item.required).every((item) => item.completed);
+  const isClockedIn = !!activeTimeEntry;
+  const fullAddress = [job.address, job.city, job.state, job.zip].filter(Boolean).join(', ');
 
   return (
     <div className="pb-6">
@@ -141,8 +323,8 @@ export default function JobDetailPage() {
             <ArrowLeft size={20} />
           </Link>
           <div className="flex-1">
-            <h1 className="font-bold">{jobData.client}</h1>
-            <p className="text-sm text-white/70">{jobData.service}</p>
+            <h1 className="font-bold">{job.customer?.name || 'Customer'}</h1>
+            <p className="text-sm text-white/70">{job.title}</p>
           </div>
         </div>
 
@@ -153,7 +335,7 @@ export default function JobDetailPage() {
               <p className="text-sm text-white/70 mb-1">Time on Job</p>
               <p className="text-3xl font-mono font-bold text-gold-500">{formatTime(elapsedTime)}</p>
               <p className="text-xs text-white/50 mt-1">
-                Started at {clockInTime?.toLocaleTimeString()}
+                Started at {new Date(activeTimeEntry!.clock_in).toLocaleTimeString()}
               </p>
             </div>
           ) : (
@@ -170,18 +352,32 @@ export default function JobDetailPage() {
         {!isClockedIn ? (
           <button
             onClick={handleClockIn}
-            className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors"
+            disabled={isSubmitting}
+            className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors disabled:opacity-50"
           >
-            <Play size={24} />
-            CLOCK IN
+            {isSubmitting ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              <>
+                <Play size={24} />
+                CLOCK IN
+              </>
+            )}
           </button>
         ) : (
           <button
             onClick={handleClockOut}
-            className="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors"
+            disabled={isSubmitting}
+            className="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors disabled:opacity-50"
           >
-            <Square size={24} />
-            CLOCK OUT & COMPLETE
+            {isSubmitting ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              <>
+                <Square size={24} />
+                CLOCK OUT & COMPLETE
+              </>
+            )}
           </button>
         )}
       </div>
@@ -193,38 +389,42 @@ export default function JobDetailPage() {
             <MapPin className="w-5 h-5 text-gold-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm text-gray-500">Address</p>
-              <p className="font-medium text-navy-500">{jobData.address}</p>
+              <p className="font-medium text-navy-500">{fullAddress || 'No address provided'}</p>
             </div>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(jobData.address)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 bg-navy-500 text-white rounded-lg"
-            >
-              <Navigation size={18} />
-            </a>
+            {fullAddress && (
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 bg-navy-500 text-white rounded-lg"
+              >
+                <Navigation size={18} />
+              </a>
+            )}
           </div>
 
-          <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
-            <Phone className="w-5 h-5 text-gold-500" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">Customer Phone</p>
-              <p className="font-medium text-navy-500">{jobData.phone}</p>
+          {job.customer?.phone && (
+            <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+              <Phone className="w-5 h-5 text-gold-500" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-500">Customer Phone</p>
+                <p className="font-medium text-navy-500">{job.customer.phone}</p>
+              </div>
+              <a href={`tel:${job.customer.phone}`} className="btn-outline text-sm py-1.5">
+                Call
+              </a>
             </div>
-            <a href={`tel:${jobData.phone}`} className="btn-outline text-sm py-1.5">
-              Call
-            </a>
-          </div>
+          )}
         </div>
 
         {/* Notes */}
-        {jobData.notes && (
+        {job.notes && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
             <div className="flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-yellow-800">Job Notes</p>
-                <p className="text-sm text-yellow-700 mt-1">{jobData.notes}</p>
+                <p className="text-sm text-yellow-700 mt-1">{job.notes}</p>
               </div>
             </div>
           </div>
@@ -352,8 +552,16 @@ export default function JobDetailPage() {
               >
                 Go Back
               </button>
-              <button onClick={completeJob} className="btn-secondary flex-1">
-                Complete Anyway
+              <button
+                onClick={completeJob}
+                disabled={isSubmitting}
+                className="btn-secondary flex-1"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : (
+                  'Complete Anyway'
+                )}
               </button>
             </div>
           </div>

@@ -1,110 +1,206 @@
 'use client';
 
-import { useState } from 'react';
-import { Clock, Calendar, ChevronLeft, ChevronRight, DollarSign } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Clock, Calendar, ChevronLeft, ChevronRight, DollarSign, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
+import type { TimeEntry, Job } from '@/types/database';
 
-interface TimeEntry {
-  id: string;
-  date: Date;
-  job: string;
-  client: string;
-  clockIn: string;
-  clockOut: string;
-  hours: number;
-  status: 'approved' | 'pending' | 'rejected';
+interface TimeEntryWithJob extends TimeEntry {
+  job: {
+    title: string;
+    customer: {
+      name: string;
+    } | null;
+  } | null;
 }
 
-// Mock time entries
-const generateTimeEntries = (): TimeEntry[] => {
-  const entries: TimeEntry[] = [];
-  const jobs = [
-    { job: 'Lawn Maintenance', client: 'Johnson Residence' },
-    { job: 'Pool Cleaning', client: 'Smith Pool Service' },
-    { job: 'Window Cleaning', client: 'Tech Office Park' },
-    { job: 'Pressure Washing', client: 'Maple Street Apts' },
-    { job: 'Landscaping', client: 'Wilson Family' },
-  ];
+interface GroupedEntry {
+  date: Date;
+  entries: TimeEntryWithJob[];
+  totalHours: number;
+}
 
-  const now = new Date();
-  for (let i = 0; i < 14; i++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
+function formatTimeRange(clockIn: string, clockOut: string | null): string {
+  const inTime = new Date(clockIn).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 
-    // Skip weekends
-    if (date.getDay() === 0 || date.getDay() === 6) continue;
-
-    // Random 2-4 entries per day
-    const entriesPerDay = Math.floor(Math.random() * 3) + 2;
-    let currentHour = 8;
-
-    for (let j = 0; j < entriesPerDay; j++) {
-      const hours = Math.floor(Math.random() * 2) + 1 + Math.random();
-      const jobInfo = jobs[Math.floor(Math.random() * jobs.length)];
-
-      entries.push({
-        id: `${date.toISOString()}-${j}`,
-        date: new Date(date),
-        job: jobInfo.job,
-        client: jobInfo.client,
-        clockIn: `${currentHour}:${Math.random() > 0.5 ? '00' : '30'} AM`,
-        clockOut: `${currentHour + Math.floor(hours)}:${Math.random() > 0.5 ? '00' : '30'} ${currentHour + hours >= 12 ? 'PM' : 'AM'}`,
-        hours: Math.round(hours * 10) / 10,
-        status: i < 7 ? (Math.random() > 0.1 ? 'approved' : 'pending') : 'approved',
-      });
-
-      currentHour += Math.floor(hours) + 1;
-      if (currentHour >= 17) break;
-    }
+  if (!clockOut) {
+    return `${inTime} - Active`;
   }
 
-  return entries;
-};
+  const outTime = new Date(clockOut).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 
-const timeEntries = generateTimeEntries();
+  return `${inTime} - ${outTime}`;
+}
+
+function calculateHours(clockIn: string, clockOut: string | null, breakMinutes: number): number {
+  const inTime = new Date(clockIn).getTime();
+  const outTime = clockOut ? new Date(clockOut).getTime() : Date.now();
+  const totalMinutes = (outTime - inTime) / (1000 * 60) - breakMinutes;
+  return Math.max(0, totalMinutes / 60);
+}
 
 export default function WorkerTimePage() {
+  const { worker, company } = useWorkerAuth();
   const [selectedWeek, setSelectedWeek] = useState(0);
+  const [timeEntries, setTimeEntries] = useState<TimeEntryWithJob[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const getWeekDates = (offset: number) => {
     const now = new Date();
     const dayOfWeek = now.getDay();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - dayOfWeek - offset * 7);
+    startOfWeek.setHours(0, 0, 0, 0);
 
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
 
     return { start: startOfWeek, end: endOfWeek };
   };
 
+  const fetchTimeEntries = useCallback(async () => {
+    if (!worker?.id || !company?.id) return;
+
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('time_entries')
+        .select(`
+          *,
+          job:jobs(
+            title,
+            customer:customers(name)
+          )
+        `)
+        .eq('user_id', worker.id)
+        .eq('company_id', company.id)
+        .order('clock_in', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setTimeEntries((data as unknown as TimeEntryWithJob[]) || []);
+    } catch (err) {
+      console.error('Error fetching time entries:', err);
+      setError('Failed to load time entries');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [worker?.id, company?.id]);
+
+  useEffect(() => {
+    fetchTimeEntries();
+  }, [fetchTimeEntries]);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!worker?.id) return;
+
+    const subscription = supabase
+      .channel('worker-time-entries')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_entries',
+          filter: `user_id=eq.${worker.id}`,
+        },
+        () => {
+          fetchTimeEntries();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [worker?.id, fetchTimeEntries]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchTimeEntries();
+    setIsRefreshing(false);
+  };
+
   const { start, end } = getWeekDates(selectedWeek);
 
+  // Filter entries for selected week
   const weekEntries = timeEntries.filter((entry) => {
-    const entryDate = new Date(entry.date);
+    const entryDate = new Date(entry.clock_in);
     return entryDate >= start && entryDate <= end;
   });
 
-  const totalHours = weekEntries.reduce((sum, entry) => sum + entry.hours, 0);
+  // Calculate week totals
+  const totalHours = weekEntries.reduce((sum, entry) => {
+    return sum + calculateHours(entry.clock_in, entry.clock_out, entry.break_minutes);
+  }, 0);
   const regularHours = Math.min(totalHours, 40);
   const overtimeHours = Math.max(totalHours - 40, 0);
 
   // Group by date
-  const entriesByDate = weekEntries.reduce(
-    (acc, entry) => {
-      const dateKey = entry.date.toDateString();
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(entry);
-      return acc;
-    },
-    {} as Record<string, TimeEntry[]>
-  );
+  const entriesByDate: GroupedEntry[] = [];
+  const dateMap = new Map<string, TimeEntryWithJob[]>();
+
+  weekEntries.forEach((entry) => {
+    const dateKey = new Date(entry.clock_in).toDateString();
+    if (!dateMap.has(dateKey)) {
+      dateMap.set(dateKey, []);
+    }
+    dateMap.get(dateKey)!.push(entry);
+  });
+
+  dateMap.forEach((entries, dateKey) => {
+    const totalHours = entries.reduce((sum, entry) => {
+      return sum + calculateHours(entry.clock_in, entry.clock_out, entry.break_minutes);
+    }, 0);
+    entriesByDate.push({
+      date: new Date(dateKey),
+      entries,
+      totalHours,
+    });
+  });
+
+  // Sort by date descending
+  entriesByDate.sort((a, b) => b.date.getTime() - a.date.getTime());
 
   const formatDateRange = (start: Date, end: Date) => {
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-gold-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 flex flex-col items-center justify-center py-12">
+        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-lg font-semibold text-navy-500 mb-2">Error Loading Time Entries</h2>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button onClick={handleRefresh} className="btn-secondary">
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
@@ -121,13 +217,22 @@ export default function WorkerTimePage() {
             <p className="text-sm text-gray-500">Week of</p>
             <p className="font-semibold text-navy-500">{formatDateRange(start, end)}</p>
           </div>
-          <button
-            onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
-            disabled={selectedWeek === 0}
-            className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-30"
-          >
-            <ChevronRight size={20} className="text-gray-600" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 hover:bg-gray-100 rounded-lg"
+            >
+              <RefreshCw className={`w-5 h-5 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
+              disabled={selectedWeek === 0}
+              className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-30"
+            >
+              <ChevronRight size={20} className="text-gray-600" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -151,67 +256,75 @@ export default function WorkerTimePage() {
       </div>
 
       {/* Time Entries by Date */}
-      {Object.entries(entriesByDate)
-        .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-        .map(([dateStr, entries]) => {
-          const date = new Date(dateStr);
-          const dayTotal = entries.reduce((sum, e) => sum + e.hours, 0);
-
-          return (
-            <div key={dateStr} className="card">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="font-semibold text-navy-500">
-                    {date.toLocaleDateString('en-US', { weekday: 'long' })}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-navy-500">{dayTotal.toFixed(1)} hrs</p>
-                  <p className="text-xs text-gray-500">{entries.length} jobs</p>
-                </div>
+      {entriesByDate.map((group) => {
+        return (
+          <div key={group.date.toISOString()} className="card">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="font-semibold text-navy-500">
+                  {group.date.toLocaleDateString('en-US', { weekday: 'long' })}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {group.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
               </div>
+              <div className="text-right">
+                <p className="font-bold text-navy-500">{group.totalHours.toFixed(1)} hrs</p>
+                <p className="text-xs text-gray-500">{group.entries.length} entries</p>
+              </div>
+            </div>
 
-              <div className="space-y-2">
-                {entries.map((entry) => (
+            <div className="space-y-2">
+              {group.entries.map((entry) => {
+                const hours = calculateHours(entry.clock_in, entry.clock_out, entry.break_minutes);
+                const isActive = !entry.clock_out;
+
+                return (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className={`flex items-center justify-between p-3 rounded-lg ${
+                      isActive ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+                    }`}
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-navy-500 text-sm">{entry.client}</p>
-                      <p className="text-xs text-gray-500">{entry.job}</p>
+                      <p className="font-medium text-navy-500 text-sm">
+                        {entry.job?.customer?.name || 'Unknown Customer'}
+                      </p>
+                      <p className="text-xs text-gray-500">{entry.job?.title || 'No job assigned'}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-navy-500">
-                        {entry.clockIn} - {entry.clockOut}
+                        {formatTimeRange(entry.clock_in, entry.clock_out)}
                       </p>
-                      <p className="text-xs text-gray-500">{entry.hours} hrs</p>
+                      <p className="text-xs text-gray-500">{hours.toFixed(1)} hrs</p>
                     </div>
                     <div className="ml-3">
-                      {entry.status === 'approved' && (
-                        <span className="badge-success text-xs">Approved</span>
-                      )}
-                      {entry.status === 'pending' && (
-                        <span className="badge-warning text-xs">Pending</span>
-                      )}
-                      {entry.status === 'rejected' && (
-                        <span className="badge-danger text-xs">Rejected</span>
+                      {isActive ? (
+                        <span className="badge bg-green-100 text-green-700 text-xs flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                          Active
+                        </span>
+                      ) : entry.status === 'completed' ? (
+                        <span className="badge-success text-xs">Completed</span>
+                      ) : (
+                        <span className="badge-warning text-xs">Edited</span>
                       )}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          );
-        })}
+          </div>
+        );
+      })}
 
-      {Object.keys(entriesByDate).length === 0 && (
+      {entriesByDate.length === 0 && (
         <div className="card text-center py-12">
           <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">No time entries for this week</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Clock in to a job to start tracking time
+          </p>
         </div>
       )}
     </div>

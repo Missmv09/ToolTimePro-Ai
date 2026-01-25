@@ -1,66 +1,73 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Loader2, AlertCircle } from 'lucide-react';
+import type { Quote, Company, Customer } from '@/types/database';
 
-// Demo quote data (in real app, fetched from Supabase by ID)
+interface QuoteLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+interface QuoteWithDetails extends Quote {
+  company: Company | null;
+  customer: Customer | null;
+  quote_line_items?: QuoteLineItem[];
+}
+
+// Demo quote data as fallback
 const demoQuote = {
-  id: 'QT-2024-001',
+  id: 'demo',
+  quote_number: 'QT-2024-001',
   status: 'sent' as const,
-  createdAt: '2024-01-15',
-  validUntil: '2024-02-15',
+  created_at: '2024-01-15',
+  valid_until: '2024-02-15',
   company: {
+    id: 'demo-company',
     name: 'Green Valley Landscaping',
     phone: '(555) 123-4567',
     email: 'info@greenvalley.com',
-    logo: null,
-    address: '456 Business Ave, Sacramento, CA 95814',
+    logo_url: null,
+    address: '456 Business Ave',
+    city: 'Sacramento',
+    state: 'CA',
+    zip: '95814',
   },
   customer: {
+    id: 'demo-customer',
     name: 'John Smith',
     phone: '(555) 987-6543',
     email: 'john@email.com',
-    address: '123 Oak Street, San Jose, CA 95123',
+    address: '123 Oak Street',
+    city: 'San Jose',
+    state: 'CA',
+    zip: '95123',
   },
   items: [
-    { description: 'Front yard lawn mowing (1/4 acre)', quantity: 1, unit: 'each', price: 45, total: 45 },
-    { description: 'Hedge trimming - front yard', quantity: 1, unit: 'each', price: 65, total: 65 },
-    { description: 'Edge trimming along walkway & driveway', quantity: 1, unit: 'each', price: 25, total: 25 },
-    { description: 'Gutter cleaning', quantity: 1, unit: 'each', price: 95, total: 95 },
-    { description: 'Yard debris cleanup & haul away', quantity: 1, unit: 'each', price: 50, total: 50 },
-  ],
-  hasOptions: true,
-  options: [
-    {
-      name: 'Good',
-      description: 'Essential maintenance',
-      items: ['Lawn mowing', 'Edge trimming'],
-      total: 70,
-    },
-    {
-      name: 'Better',
-      description: 'Recommended package',
-      items: ['Lawn mowing', 'Edge trimming', 'Hedge trimming', 'Cleanup'],
-      total: 185,
-    },
-    {
-      name: 'Best',
-      description: 'Complete service',
-      items: ['All services including gutter cleaning'],
-      total: 280,
-    },
+    { id: '1', description: 'Front yard lawn mowing (1/4 acre)', quantity: 1, unit_price: 45, total: 45 },
+    { id: '2', description: 'Hedge trimming - front yard', quantity: 1, unit_price: 65, total: 65 },
+    { id: '3', description: 'Edge trimming along walkway & driveway', quantity: 1, unit_price: 25, total: 25 },
+    { id: '4', description: 'Gutter cleaning', quantity: 1, unit_price: 95, total: 95 },
+    { id: '5', description: 'Yard debris cleanup & haul away', quantity: 1, unit_price: 50, total: 50 },
   ],
   subtotal: 280,
-  taxRate: 8.25,
-  taxAmount: 23.10,
-  discount: 0,
+  tax_rate: 8.25,
+  tax_amount: 23.10,
+  discount_amount: 0,
   total: 303.10,
   notes: 'Work will be completed within 1-2 business days of approval. All debris will be hauled away. Please ensure gate access is available.',
-  terms: 'Payment due upon completion. We accept cash, check, and all major credit cards.',
 };
 
 export default function CustomerQuoteView({ params }: { params: { id: string } }) {
-  const [quote] = useState(demoQuote);
-  const [selectedOption, setSelectedOption] = useState<number | null>(quote.hasOptions ? 1 : null); // Default to "Better"
+  const [quote, setQuote] = useState<QuoteWithDetails | null>(null);
+  const [items, setItems] = useState<QuoteLineItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [showSignature, setShowSignature] = useState(false);
   const [signature, setSignature] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -71,6 +78,90 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+
+  // Fetch quote from Supabase
+  const fetchQuote = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Check for demo quote
+      if (params.id === 'demo' || params.id === 'QT-2024-001') {
+        setQuote(demoQuote as unknown as QuoteWithDetails);
+        setItems(demoQuote.items);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch quote with company and customer details
+      const { data, error: fetchError } = await supabase
+        .from('quotes')
+        .select(`
+          *,
+          company:companies(*),
+          customer:customers(*)
+        `)
+        .eq('id', params.id)
+        .single();
+
+      if (fetchError) {
+        // Try by quote_number
+        const { data: byNumber, error: numberError } = await supabase
+          .from('quotes')
+          .select(`
+            *,
+            company:companies(*),
+            customer:customers(*)
+          `)
+          .eq('quote_number', params.id)
+          .single();
+
+        if (numberError) throw fetchError;
+
+        setQuote(byNumber as unknown as QuoteWithDetails);
+
+        // Fetch line items
+        const { data: lineItems } = await supabase
+          .from('quote_line_items')
+          .select('*')
+          .eq('quote_id', byNumber.id)
+          .order('created_at', { ascending: true });
+
+        setItems((lineItems as QuoteLineItem[]) || []);
+      } else {
+        setQuote(data as unknown as QuoteWithDetails);
+
+        // Fetch line items
+        const { data: lineItems } = await supabase
+          .from('quote_line_items')
+          .select('*')
+          .eq('quote_id', data.id)
+          .order('created_at', { ascending: true });
+
+        setItems((lineItems as QuoteLineItem[]) || []);
+
+        // Mark as viewed if not already
+        if (data.status === 'sent') {
+          await supabase
+            .from('quotes')
+            .update({
+              status: 'viewed',
+              viewed_at: new Date().toISOString()
+            })
+            .eq('id', data.id);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching quote:', err);
+      setError('Quote not found');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchQuote();
+  }, [fetchQuote]);
 
   // Initialize canvas for signature
   useEffect(() => {
@@ -140,58 +231,78 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     }
   };
 
-  // Calculate total based on selected option
-  const getSelectedTotal = () => {
-    if (quote.hasOptions && selectedOption !== null) {
-      return quote.options[selectedOption].total;
-    }
-    return quote.total;
-  };
-
-  const getSelectedTax = () => {
-    const subtotal = quote.hasOptions && selectedOption !== null
-      ? quote.options[selectedOption].total
-      : quote.subtotal;
-    return subtotal * (quote.taxRate / 100);
-  };
-
-  const getFinalTotal = () => {
-    const subtotal = getSelectedTotal();
-    const tax = getSelectedTax();
-    return subtotal + tax - quote.discount;
-  };
-
   // Approve quote
-  const approveQuote = () => {
+  const approveQuote = async () => {
     if (!signature) {
       setShowSignature(true);
       return;
     }
 
+    if (!quote) return;
+
     setIsProcessing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsProcessing(false);
+
+    try {
+      // Update quote in database (skip for demo)
+      if (quote.id !== 'demo' && quote.id !== 'QT-2024-001') {
+        const { error: updateError } = await supabase
+          .from('quotes')
+          .update({
+            status: 'approved',
+            approved_at: new Date().toISOString(),
+            signature_url: signature,
+          })
+          .eq('id', quote.id);
+
+        if (updateError) throw updateError;
+      }
+
       setQuoteStatus('approved');
-    }, 1500);
+    } catch (err) {
+      console.error('Error approving quote:', err);
+      alert('Failed to approve quote. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Reject quote
-  const rejectQuote = () => {
+  const rejectQuote = async () => {
     if (!showRejectReason) {
       setShowRejectReason(true);
       return;
     }
 
+    if (!quote) return;
+
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+
+    try {
+      // Update quote in database (skip for demo)
+      if (quote.id !== 'demo' && quote.id !== 'QT-2024-001') {
+        const { error: updateError } = await supabase
+          .from('quotes')
+          .update({
+            status: 'rejected',
+            notes: quote.notes ? `${quote.notes}\n\nRejection reason: ${rejectReason}` : `Rejection reason: ${rejectReason}`,
+          })
+          .eq('id', quote.id);
+
+        if (updateError) throw updateError;
+      }
+
       setQuoteStatus('rejected');
-    }, 1000);
+    } catch (err) {
+      console.error('Error rejecting quote:', err);
+      alert('Failed to decline quote. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Format date
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -199,8 +310,34 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-gold-500" />
+      </div>
+    );
+  }
+
+  if (error || !quote) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+        <h1 className="text-2xl font-bold text-navy-500 mb-2">Quote Not Found</h1>
+        <p className="text-gray-600 text-center">
+          The quote you&apos;re looking for doesn&apos;t exist or has expired.
+        </p>
+      </div>
+    );
+  }
+
   // Check if quote is expired
-  const isExpired = new Date(quote.validUntil) < new Date();
+  const isExpired = quote.valid_until ? new Date(quote.valid_until) < new Date() : false;
+  const companyAddress = [quote.company?.address, quote.company?.city, quote.company?.state, quote.company?.zip]
+    .filter(Boolean)
+    .join(', ');
+  const customerAddress = [quote.customer?.address, quote.customer?.city, quote.customer?.state, quote.customer?.zip]
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -209,15 +346,15 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              {quote.company.logo ? (
-                <img src={quote.company.logo} alt={quote.company.name} className="h-12" />
+              {quote.company?.logo_url ? (
+                <img src={quote.company.logo_url} alt={quote.company.name} className="h-12" />
               ) : (
-                <h1 className="text-2xl font-bold text-navy-500">{quote.company.name}</h1>
+                <h1 className="text-2xl font-bold text-navy-500">{quote.company?.name || 'Company'}</h1>
               )}
-              <p className="text-sm text-gray-500 mt-1">{quote.company.phone}</p>
+              <p className="text-sm text-gray-500 mt-1">{quote.company?.phone}</p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-500">Quote #{quote.id}</div>
+              <div className="text-sm text-gray-500">Quote #{quote.quote_number || quote.id.slice(0, 8)}</div>
               <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-1 ${
                 quoteStatus === 'approved'
                   ? 'bg-green-100 text-green-700'
@@ -271,62 +408,20 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <div className="text-sm text-gray-500 mb-1">Prepared for</div>
-                <div className="font-semibold text-navy-500">{quote.customer.name}</div>
-                <div className="text-sm text-gray-600">{quote.customer.address}</div>
+                <div className="font-semibold text-navy-500">{quote.customer?.name || 'Customer'}</div>
+                <div className="text-sm text-gray-600">{customerAddress}</div>
               </div>
               <div className="md:text-right">
                 <div className="text-sm text-gray-500 mb-1">Quote Date</div>
-                <div className="font-medium text-navy-500">{formatDate(quote.createdAt)}</div>
+                <div className="font-medium text-navy-500">{formatDate(quote.created_at)}</div>
                 <div className="text-sm text-gray-500 mt-2">Valid Until</div>
                 <div className={`font-medium ${isExpired ? 'text-red-500' : 'text-navy-500'}`}>
-                  {formatDate(quote.validUntil)}
+                  {formatDate(quote.valid_until)}
                   {isExpired && ' (Expired)'}
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Good/Better/Best Options */}
-          {quote.hasOptions && quoteStatus === 'viewing' && !isExpired && (
-            <div className="p-6 bg-gray-50 border-b border-gray-100">
-              <h3 className="font-semibold text-navy-500 mb-4">Choose Your Package</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                {quote.options.map((option, index) => (
-                  <button
-                    key={option.name}
-                    onClick={() => setSelectedOption(index)}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
-                      selectedOption === index
-                        ? 'border-gold-500 bg-white shadow-md'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg">
-                        {index === 0 ? '⭐' : index === 1 ? '⭐⭐' : '⭐⭐⭐'}
-                      </span>
-                      {index === 1 && (
-                        <span className="text-xs bg-gold-500 text-navy-900 px-2 py-0.5 rounded-full font-medium">
-                          Popular
-                        </span>
-                      )}
-                    </div>
-                    <div className="font-bold text-navy-500">{option.name}</div>
-                    <div className="text-sm text-gray-500 mb-2">{option.description}</div>
-                    <div className="text-2xl font-bold text-navy-500">${option.total}</div>
-                    <ul className="mt-2 space-y-1">
-                      {option.items.map((item, i) => (
-                        <li key={i} className="text-xs text-gray-500 flex items-start gap-1">
-                          <span className="text-gold-500">✓</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Line Items */}
           <div className="p-6">
@@ -342,14 +437,21 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                   </tr>
                 </thead>
                 <tbody>
-                  {quote.items.map((item, index) => (
-                    <tr key={index} className="border-b border-gray-100">
+                  {items.map((item) => (
+                    <tr key={item.id} className="border-b border-gray-100">
                       <td className="py-3 text-navy-500">{item.description}</td>
                       <td className="py-3 text-center text-gray-600">{item.quantity}</td>
-                      <td className="py-3 text-right text-gray-600">${item.price.toFixed(2)}</td>
-                      <td className="py-3 text-right font-medium text-navy-500">${item.total.toFixed(2)}</td>
+                      <td className="py-3 text-right text-gray-600">${(item.unit_price || 0).toFixed(2)}</td>
+                      <td className="py-3 text-right font-medium text-navy-500">${(item.total || 0).toFixed(2)}</td>
                     </tr>
                   ))}
+                  {items.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-4 text-center text-gray-500">
+                        No line items
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -360,21 +462,21 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                 <div className="w-64 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Subtotal</span>
-                    <span className="text-navy-500">${getSelectedTotal().toFixed(2)}</span>
+                    <span className="text-navy-500">${(quote.subtotal || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Tax ({quote.taxRate}%)</span>
-                    <span className="text-navy-500">${getSelectedTax().toFixed(2)}</span>
+                    <span className="text-gray-500">Tax ({quote.tax_rate || 0}%)</span>
+                    <span className="text-navy-500">${(quote.tax_amount || 0).toFixed(2)}</span>
                   </div>
-                  {quote.discount > 0 && (
+                  {(quote.discount_amount || 0) > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
                       <span>Discount</span>
-                      <span>-${quote.discount.toFixed(2)}</span>
+                      <span>-${(quote.discount_amount || 0).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xl font-bold pt-2 border-t border-gray-200">
                     <span className="text-navy-500">Total</span>
-                    <span className="text-gold-600">${getFinalTotal().toFixed(2)}</span>
+                    <span className="text-gold-600">${(quote.total || 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -388,13 +490,6 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                 <div className="text-sm font-medium text-gray-700 mb-1">Notes</div>
                 <div className="text-sm text-gray-600">{quote.notes}</div>
               </div>
-            </div>
-          )}
-
-          {/* Terms */}
-          {quote.terms && (
-            <div className="px-6 pb-6">
-              <div className="text-xs text-gray-500">{quote.terms}</div>
             </div>
           )}
         </div>
@@ -524,7 +619,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                   </>
                 ) : signature ? (
                   <>
-                    ✓ Approve Quote (${getFinalTotal().toFixed(2)})
+                    ✓ Approve Quote (${(quote.total || 0).toFixed(2)})
                   </>
                 ) : (
                   <>
@@ -543,8 +638,8 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-500">
                 Questions? Call us at{' '}
-                <a href={`tel:${quote.company.phone}`} className="text-gold-600 font-medium">
-                  {quote.company.phone}
+                <a href={`tel:${quote.company?.phone}`} className="text-gold-600 font-medium">
+                  {quote.company?.phone}
                 </a>
               </p>
             </div>
@@ -558,10 +653,10 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             <h3 className="font-semibold text-gray-700 mb-2">This quote has expired</h3>
             <p className="text-gray-500 mb-4">Please contact us for an updated quote.</p>
             <a
-              href={`tel:${quote.company.phone}`}
+              href={`tel:${quote.company?.phone}`}
               className="inline-block px-6 py-3 bg-gold-500 text-navy-900 rounded-lg font-semibold hover:bg-gold-600 transition-colors"
             >
-              Call {quote.company.phone}
+              Call {quote.company?.phone}
             </a>
           </div>
         )}
