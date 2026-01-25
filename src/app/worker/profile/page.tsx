@@ -14,9 +14,27 @@ import {
   DollarSign,
   Calendar,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
-import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
 import { supabase } from '@/lib/supabase';
+
+interface WorkerData {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  hourly_rate: number | null;
+  is_active: boolean;
+  created_at: string;
+  company_id: string;
+}
+
+interface CompanyData {
+  id: string;
+  name: string;
+  phone: string | null;
+}
 
 interface WorkerStats {
   ytdHours: number;
@@ -26,19 +44,57 @@ interface WorkerStats {
 
 export default function WorkerProfilePage() {
   const router = useRouter();
-  const { worker, company, signOut, isLoading: authLoading } = useWorkerAuth();
+  const [worker, setWorker] = useState<WorkerData | null>(null);
+  const [company, setCompany] = useState<CompanyData | null>(null);
   const [notifications, setNotifications] = useState(true);
   const [stats, setStats] = useState<WorkerStats>({
     ytdHours: 0,
     ytdEarnings: 0,
     thisWeekHours: 0,
   });
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  // Initialize auth and fetch data
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/worker/login');
+        return;
+      }
+
+      // Fetch worker data
+      const { data: userData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (userData) {
+        setWorker(userData as WorkerData);
+
+        // Fetch company data
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('id, name, phone')
+          .eq('id', userData.company_id)
+          .single();
+
+        if (companyData) {
+          setCompany(companyData as CompanyData);
+        }
+      }
+
+      setIsLoading(false);
+    };
+    init();
+  }, [router]);
 
   // Fetch worker stats
   useEffect(() => {
     const fetchStats = async () => {
-      if (!worker?.id || !company?.id) return;
+      if (!worker?.id || !worker?.company_id) return;
 
       setIsLoadingStats(true);
 
@@ -70,7 +126,7 @@ export default function WorkerProfilePage() {
           .not('clock_out', 'is', null);
 
         // Calculate hours
-        const calculateHours = (entries: any[]) => {
+        const calculateHours = (entries: { clock_in: string; clock_out: string; break_minutes: number }[]) => {
           return entries?.reduce((total, entry) => {
             const clockIn = new Date(entry.clock_in).getTime();
             const clockOut = new Date(entry.clock_out).getTime();
@@ -97,20 +153,20 @@ export default function WorkerProfilePage() {
     };
 
     fetchStats();
-  }, [worker?.id, company?.id, worker?.hourly_rate]);
+  }, [worker?.id, worker?.company_id, worker?.hourly_rate]);
 
   const handleLogout = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     router.push('/worker/login');
   };
 
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="p-4 space-y-4">
-        <div className="card h-40 animate-pulse bg-gray-100" />
+        <div className="bg-white rounded-xl shadow-sm h-40 animate-pulse bg-gray-100" />
         <div className="grid grid-cols-2 gap-3">
-          <div className="card h-24 animate-pulse bg-gray-100" />
-          <div className="card h-24 animate-pulse bg-gray-100" />
+          <div className="bg-white rounded-xl shadow-sm h-24 animate-pulse bg-gray-100" />
+          <div className="bg-white rounded-xl shadow-sm h-24 animate-pulse bg-gray-100" />
         </div>
       </div>
     );
@@ -120,9 +176,9 @@ export default function WorkerProfilePage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-navy-500 mb-2">Not Authenticated</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">Not Authenticated</h2>
         <p className="text-gray-600 mb-4">Please log in to view your profile</p>
-        <button onClick={() => router.push('/worker/login')} className="btn-secondary">
+        <button onClick={() => router.push('/worker/login')} className="px-4 py-2 bg-gray-200 rounded-lg">
           Go to Login
         </button>
       </div>
@@ -136,18 +192,18 @@ export default function WorkerProfilePage() {
   });
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-4">
       {/* Profile Header */}
-      <div className="card text-center">
-        <div className="w-20 h-20 bg-navy-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl font-bold text-navy-500">
+      <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+        <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl font-bold text-blue-600">
             {worker.full_name
               .split(' ')
               .map((n) => n[0])
               .join('')}
           </span>
         </div>
-        <h1 className="text-xl font-bold text-navy-500">{worker.full_name}</h1>
+        <h1 className="text-xl font-bold text-gray-900">{worker.full_name}</h1>
         <p className="text-gray-500 capitalize">{worker.role}</p>
         <div className="flex items-center justify-center gap-2 mt-2">
           <Shield className="w-4 h-4 text-green-500" />
@@ -159,21 +215,21 @@ export default function WorkerProfilePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-5 h-5 text-gold-500" />
+            <Clock className="w-5 h-5 text-yellow-500" />
             <span className="text-sm text-gray-500">This Week</span>
           </div>
           {isLoadingStats ? (
             <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
           ) : (
-            <p className="text-2xl font-bold text-navy-500">
+            <p className="text-2xl font-bold text-gray-900">
               {stats.thisWeekHours.toFixed(1)}
               <span className="text-sm font-normal text-gray-500 ml-1">hrs</span>
             </p>
           )}
         </div>
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-green-500" />
             <span className="text-sm text-gray-500">YTD Earnings</span>
@@ -181,7 +237,7 @@ export default function WorkerProfilePage() {
           {isLoadingStats ? (
             <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
           ) : (
-            <p className="text-2xl font-bold text-navy-500">
+            <p className="text-2xl font-bold text-gray-900">
               ${stats.ytdEarnings.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
           )}
@@ -189,8 +245,8 @@ export default function WorkerProfilePage() {
       </div>
 
       {/* Contact Info */}
-      <div className="card">
-        <h2 className="font-semibold text-navy-500 mb-4">Contact Information</h2>
+      <div className="bg-white rounded-xl shadow-sm p-4">
+        <h2 className="font-semibold text-gray-900 mb-4">Contact Information</h2>
         <div className="space-y-4">
           {worker.phone && (
             <div className="flex items-center gap-3">
@@ -199,7 +255,7 @@ export default function WorkerProfilePage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Phone</p>
-                <p className="font-medium text-navy-500">{worker.phone}</p>
+                <p className="font-medium text-gray-900">{worker.phone}</p>
               </div>
             </div>
           )}
@@ -209,7 +265,7 @@ export default function WorkerProfilePage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium text-navy-500">{worker.email}</p>
+              <p className="font-medium text-gray-900">{worker.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -218,7 +274,7 @@ export default function WorkerProfilePage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Start Date</p>
-              <p className="font-medium text-navy-500">{startDate}</p>
+              <p className="font-medium text-gray-900">{startDate}</p>
             </div>
           </div>
           {worker.hourly_rate && (
@@ -228,7 +284,7 @@ export default function WorkerProfilePage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Hourly Rate</p>
-                <p className="font-medium text-navy-500">${worker.hourly_rate.toFixed(2)}/hr</p>
+                <p className="font-medium text-gray-900">${worker.hourly_rate.toFixed(2)}/hr</p>
               </div>
             </div>
           )}
@@ -237,16 +293,16 @@ export default function WorkerProfilePage() {
 
       {/* Company Info */}
       {company && (
-        <div className="card">
-          <h2 className="font-semibold text-navy-500 mb-4">Company</h2>
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <h2 className="font-semibold text-gray-900 mb-4">Company</h2>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-navy-100 rounded-lg flex items-center justify-center">
-              <span className="text-lg font-bold text-navy-500">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span className="text-lg font-bold text-blue-600">
                 {company.name.charAt(0)}
               </span>
             </div>
             <div>
-              <p className="font-medium text-navy-500">{company.name}</p>
+              <p className="font-medium text-gray-900">{company.name}</p>
               {company.phone && (
                 <a href={`tel:${company.phone}`} className="text-sm text-blue-600">
                   {company.phone}
@@ -258,17 +314,17 @@ export default function WorkerProfilePage() {
       )}
 
       {/* Settings */}
-      <div className="card">
-        <h2 className="font-semibold text-navy-500 mb-4">Settings</h2>
+      <div className="bg-white rounded-xl shadow-sm p-4">
+        <h2 className="font-semibold text-gray-900 mb-4">Settings</h2>
         <div className="space-y-2">
           <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-navy-500">Push Notifications</span>
+              <span className="font-medium text-gray-900">Push Notifications</span>
             </div>
             <div
               className={`w-12 h-6 rounded-full p-1 transition-colors ${
-                notifications ? 'bg-gold-500' : 'bg-gray-300'
+                notifications ? 'bg-yellow-500' : 'bg-gray-300'
               }`}
               onClick={(e) => {
                 e.stopPropagation();
@@ -286,7 +342,7 @@ export default function WorkerProfilePage() {
           <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-navy-500">Edit Profile</span>
+              <span className="font-medium text-gray-900">Edit Profile</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
@@ -294,7 +350,7 @@ export default function WorkerProfilePage() {
           <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-navy-500">Change PIN</span>
+              <span className="font-medium text-gray-900">Change PIN</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>

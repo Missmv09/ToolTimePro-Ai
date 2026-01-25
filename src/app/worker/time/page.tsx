@@ -1,24 +1,37 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Clock, Calendar, ChevronLeft, ChevronRight, DollarSign, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
-import type { TimeEntry, Job } from '@/types/database';
 
-interface TimeEntryWithJob extends TimeEntry {
-  job: {
-    title: string;
-    customer: {
-      name: string;
-    } | null;
-  } | null;
+interface Customer {
+  name: string;
+}
+
+interface Job {
+  title: string;
+  customer: Customer | Customer[] | null;
+}
+
+interface TimeEntry {
+  id: string;
+  clock_in: string;
+  clock_out: string | null;
+  break_minutes: number;
+  status: string;
+  job: Job | Job[] | null;
 }
 
 interface GroupedEntry {
   date: Date;
-  entries: TimeEntryWithJob[];
+  entries: TimeEntry[];
   totalHours: number;
+}
+
+interface WorkerData {
+  id: string;
+  company_id: string;
 }
 
 function formatTimeRange(clockIn: string, clockOut: string | null): string {
@@ -49,12 +62,49 @@ function calculateHours(clockIn: string, clockOut: string | null, breakMinutes: 
 }
 
 export default function WorkerTimePage() {
-  const { worker, company } = useWorkerAuth();
+  const router = useRouter();
+  const [worker, setWorker] = useState<WorkerData | null>(null);
   const [selectedWeek, setSelectedWeek] = useState(0);
-  const [timeEntries, setTimeEntries] = useState<TimeEntryWithJob[]>([]);
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Helper to get job data from potentially array result
+  const getJob = (job: TimeEntry['job']): Job | null => {
+    if (!job) return null;
+    if (Array.isArray(job)) return job[0] || null;
+    return job;
+  };
+
+  // Helper to get customer name from potentially array result
+  const getCustomerName = (customer: Customer | Customer[] | null): string => {
+    if (!customer) return 'Unknown Customer';
+    if (Array.isArray(customer)) return customer[0]?.name || 'Unknown Customer';
+    return customer.name || 'Unknown Customer';
+  };
+
+  // Initialize auth
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/worker/login');
+        return;
+      }
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, company_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userData) {
+        setWorker(userData);
+      }
+    };
+    init();
+  }, [router]);
 
   const getWeekDates = (offset: number) => {
     const now = new Date();
@@ -71,7 +121,7 @@ export default function WorkerTimePage() {
   };
 
   const fetchTimeEntries = useCallback(async () => {
-    if (!worker?.id || !company?.id) return;
+    if (!worker?.id || !worker?.company_id) return;
 
     setError(null);
 
@@ -86,23 +136,25 @@ export default function WorkerTimePage() {
           )
         `)
         .eq('user_id', worker.id)
-        .eq('company_id', company.id)
+        .eq('company_id', worker.company_id)
         .order('clock_in', { ascending: false });
 
       if (fetchError) throw fetchError;
 
-      setTimeEntries((data as unknown as TimeEntryWithJob[]) || []);
+      setTimeEntries((data as unknown as TimeEntry[]) || []);
     } catch (err) {
       console.error('Error fetching time entries:', err);
       setError('Failed to load time entries');
     } finally {
       setIsLoading(false);
     }
-  }, [worker?.id, company?.id]);
+  }, [worker?.id, worker?.company_id]);
 
   useEffect(() => {
-    fetchTimeEntries();
-  }, [fetchTimeEntries]);
+    if (worker) {
+      fetchTimeEntries();
+    }
+  }, [worker, fetchTimeEntries]);
 
   // Real-time subscription
   useEffect(() => {
@@ -152,7 +204,7 @@ export default function WorkerTimePage() {
 
   // Group by date
   const entriesByDate: GroupedEntry[] = [];
-  const dateMap = new Map<string, TimeEntryWithJob[]>();
+  const dateMap = new Map<string, TimeEntry[]>();
 
   weekEntries.forEach((entry) => {
     const dateKey = new Date(entry.clock_in).toDateString();
@@ -181,10 +233,10 @@ export default function WorkerTimePage() {
     return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
   };
 
-  if (isLoading) {
+  if (isLoading || !worker) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-gold-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -193,9 +245,9 @@ export default function WorkerTimePage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-navy-500 mb-2">Error Loading Time Entries</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Time Entries</h2>
         <p className="text-gray-600 mb-4">{error}</p>
-        <button onClick={handleRefresh} className="btn-secondary">
+        <button onClick={handleRefresh} className="px-4 py-2 bg-gray-200 rounded-lg">
           Try Again
         </button>
       </div>
@@ -203,9 +255,9 @@ export default function WorkerTimePage() {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-4">
       {/* Week Selector */}
-      <div className="card">
+      <div className="bg-white rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setSelectedWeek(selectedWeek + 1)}
@@ -215,7 +267,7 @@ export default function WorkerTimePage() {
           </button>
           <div className="text-center">
             <p className="text-sm text-gray-500">Week of</p>
-            <p className="font-semibold text-navy-500">{formatDateRange(start, end)}</p>
+            <p className="font-semibold text-gray-900">{formatDateRange(start, end)}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -238,19 +290,19 @@ export default function WorkerTimePage() {
 
       {/* Hours Summary */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="card text-center">
-          <Clock className="w-6 h-6 text-navy-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-navy-500">{totalHours.toFixed(1)}</p>
+        <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+          <Clock className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-gray-900">{totalHours.toFixed(1)}</p>
           <p className="text-xs text-gray-500">Total Hours</p>
         </div>
-        <div className="card text-center">
+        <div className="bg-white rounded-xl shadow-sm p-4 text-center">
           <Calendar className="w-6 h-6 text-green-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-green-600">{regularHours.toFixed(1)}</p>
           <p className="text-xs text-gray-500">Regular</p>
         </div>
-        <div className="card text-center">
-          <DollarSign className="w-6 h-6 text-gold-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gold-600">{overtimeHours.toFixed(1)}</p>
+        <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+          <DollarSign className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-yellow-600">{overtimeHours.toFixed(1)}</p>
           <p className="text-xs text-gray-500">Overtime</p>
         </div>
       </div>
@@ -258,10 +310,10 @@ export default function WorkerTimePage() {
       {/* Time Entries by Date */}
       {entriesByDate.map((group) => {
         return (
-          <div key={group.date.toISOString()} className="card">
+          <div key={group.date.toISOString()} className="bg-white rounded-xl shadow-sm p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="font-semibold text-navy-500">
+                <p className="font-semibold text-gray-900">
                   {group.date.toLocaleDateString('en-US', { weekday: 'long' })}
                 </p>
                 <p className="text-sm text-gray-500">
@@ -269,7 +321,7 @@ export default function WorkerTimePage() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-navy-500">{group.totalHours.toFixed(1)} hrs</p>
+                <p className="font-bold text-gray-900">{group.totalHours.toFixed(1)} hrs</p>
                 <p className="text-xs text-gray-500">{group.entries.length} entries</p>
               </div>
             </div>
@@ -278,6 +330,8 @@ export default function WorkerTimePage() {
               {group.entries.map((entry) => {
                 const hours = calculateHours(entry.clock_in, entry.clock_out, entry.break_minutes);
                 const isActive = !entry.clock_out;
+                const job = getJob(entry.job);
+                const customerName = job ? getCustomerName(job.customer) : 'Unknown Customer';
 
                 return (
                   <div
@@ -287,27 +341,27 @@ export default function WorkerTimePage() {
                     }`}
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-navy-500 text-sm">
-                        {entry.job?.customer?.name || 'Unknown Customer'}
+                      <p className="font-medium text-gray-900 text-sm">
+                        {customerName}
                       </p>
-                      <p className="text-xs text-gray-500">{entry.job?.title || 'No job assigned'}</p>
+                      <p className="text-xs text-gray-500">{job?.title || 'No job assigned'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-navy-500">
+                      <p className="text-sm font-medium text-gray-900">
                         {formatTimeRange(entry.clock_in, entry.clock_out)}
                       </p>
                       <p className="text-xs text-gray-500">{hours.toFixed(1)} hrs</p>
                     </div>
                     <div className="ml-3">
                       {isActive ? (
-                        <span className="badge bg-green-100 text-green-700 text-xs flex items-center gap-1">
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full flex items-center gap-1">
                           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                           Active
                         </span>
                       ) : entry.status === 'completed' ? (
-                        <span className="badge-success text-xs">Completed</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Completed</span>
                       ) : (
-                        <span className="badge-warning text-xs">Edited</span>
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Edited</span>
                       )}
                     </div>
                   </div>
@@ -319,7 +373,7 @@ export default function WorkerTimePage() {
       })}
 
       {entriesByDate.length === 0 && (
-        <div className="card text-center py-12">
+        <div className="bg-white rounded-xl shadow-sm p-4 text-center py-12">
           <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">No time entries for this week</p>
           <p className="text-sm text-gray-400 mt-1">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -18,8 +18,6 @@ import {
   Loader2,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
-import type { Job, Customer, TimeEntry } from '@/types/database';
 
 interface ChecklistItem {
   id: string;
@@ -34,11 +32,36 @@ interface Photo {
   timestamp: Date;
 }
 
-interface JobWithCustomer extends Job {
-  customer: Customer | null;
+interface Customer {
+  id: string;
+  name: string;
+  phone: string | null;
 }
 
-// Default checklist template - in production this could be fetched from services table
+interface Job {
+  id: string;
+  title: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  notes: string | null;
+  status: string;
+  customer: Customer | Customer[] | null;
+}
+
+interface TimeEntry {
+  id: string;
+  clock_in: string;
+  clock_out: string | null;
+}
+
+interface WorkerData {
+  id: string;
+  company_id: string;
+}
+
+// Default checklist template
 const getDefaultChecklist = (jobTitle: string): ChecklistItem[] => {
   return [
     { id: '1', text: 'Arrive and check in with customer', completed: false, required: true },
@@ -51,14 +74,14 @@ const getDefaultChecklist = (jobTitle: string): ChecklistItem[] => {
   ];
 };
 
-export default function JobDetailPage() {
+function JobDetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const jobId = searchParams.get('id');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { worker, company } = useWorkerAuth();
 
-  const [job, setJob] = useState<JobWithCustomer | null>(null);
+  const [worker, setWorker] = useState<WorkerData | null>(null);
+  const [job, setJob] = useState<Job | null>(null);
   const [activeTimeEntry, setActiveTimeEntry] = useState<TimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,9 +92,38 @@ export default function JobDetailPage() {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Helper to get customer data from potentially array result
+  const getCustomer = (customer: Job['customer']): Customer | null => {
+    if (!customer) return null;
+    if (Array.isArray(customer)) return customer[0] || null;
+    return customer;
+  };
+
+  // Initialize auth and fetch worker data
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/worker/login');
+        return;
+      }
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, company_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userData) {
+        setWorker(userData);
+      }
+    };
+    init();
+  }, [router]);
+
   // Fetch job details
   const fetchJob = useCallback(async () => {
-    if (!jobId || !company?.id) return;
+    if (!jobId || !worker?.company_id) return;
 
     setIsLoading(true);
     setError(null);
@@ -82,30 +134,28 @@ export default function JobDetailPage() {
         .from('jobs')
         .select(`
           *,
-          customer:customers(*)
+          customer:customers(id, name, phone)
         `)
         .eq('id', jobId)
-        .eq('company_id', company.id)
+        .eq('company_id', worker.company_id)
         .single();
 
       if (jobError) throw jobError;
 
-      setJob(jobData as unknown as JobWithCustomer);
+      setJob(jobData as Job);
       setChecklist(getDefaultChecklist(jobData.title));
 
       // Check for active time entry
-      if (worker?.id) {
-        const { data: timeEntry } = await supabase
-          .from('time_entries')
-          .select('*')
-          .eq('job_id', jobId)
-          .eq('user_id', worker.id)
-          .is('clock_out', null)
-          .single();
+      const { data: timeEntry } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('user_id', worker.id)
+        .is('clock_out', null)
+        .single();
 
-        if (timeEntry) {
-          setActiveTimeEntry(timeEntry as TimeEntry);
-        }
+      if (timeEntry) {
+        setActiveTimeEntry(timeEntry as TimeEntry);
       }
     } catch (err) {
       console.error('Error fetching job:', err);
@@ -113,11 +163,13 @@ export default function JobDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [jobId, company?.id, worker?.id]);
+  }, [jobId, worker?.company_id, worker?.id]);
 
   useEffect(() => {
-    fetchJob();
-  }, [fetchJob]);
+    if (worker) {
+      fetchJob();
+    }
+  }, [worker, fetchJob]);
 
   // Timer effect
   useEffect(() => {
@@ -141,7 +193,7 @@ export default function JobDetailPage() {
   };
 
   const handleClockIn = async () => {
-    if (!worker?.id || !company?.id || !jobId) return;
+    if (!worker?.id || !worker?.company_id || !jobId) return;
 
     setIsSubmitting(true);
     try {
@@ -167,7 +219,7 @@ export default function JobDetailPage() {
       const { data: timeEntry, error: insertError } = await supabase
         .from('time_entries')
         .insert({
-          company_id: company.id,
+          company_id: worker.company_id,
           user_id: worker.id,
           job_id: jobId,
           clock_in: new Date().toISOString(),
@@ -250,7 +302,7 @@ export default function JobDetailPage() {
         .eq('id', jobId);
 
       setShowCompleteModal(false);
-      router.push('/worker');
+      router.push('/worker/job');
     } catch (err) {
       console.error('Error completing job:', err);
       alert('Failed to complete job. Please try again.');
@@ -287,10 +339,10 @@ export default function JobDetailPage() {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
-  if (isLoading) {
+  if (isLoading || !worker) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-gold-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -299,16 +351,17 @@ export default function JobDetailPage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-navy-500 mb-2">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">
           {error || 'Job not found'}
         </h2>
-        <Link href="/worker" className="btn-secondary mt-4">
+        <Link href="/worker/job" className="mt-4 px-4 py-2 bg-gray-200 rounded-lg">
           Back to Jobs
         </Link>
       </div>
     );
   }
 
+  const customer = getCustomer(job.customer);
   const completedCount = checklist.filter((item) => item.completed).length;
   const requiredComplete = checklist.filter((item) => item.required).every((item) => item.completed);
   const isClockedIn = !!activeTimeEntry;
@@ -317,13 +370,13 @@ export default function JobDetailPage() {
   return (
     <div className="pb-6">
       {/* Header */}
-      <div className="bg-navy-500 text-white p-4">
+      <div className="bg-blue-600 text-white p-4">
         <div className="flex items-center gap-3 mb-4">
-          <Link href="/worker" className="p-2 -ml-2 hover:bg-white/10 rounded-lg">
+          <Link href="/worker/job" className="p-2 -ml-2 hover:bg-white/10 rounded-lg">
             <ArrowLeft size={20} />
           </Link>
           <div className="flex-1">
-            <h1 className="font-bold">{job.customer?.name || 'Customer'}</h1>
+            <h1 className="font-bold">{customer?.name || 'Customer'}</h1>
             <p className="text-sm text-white/70">{job.title}</p>
           </div>
         </div>
@@ -333,7 +386,7 @@ export default function JobDetailPage() {
           {isClockedIn ? (
             <div className="text-center">
               <p className="text-sm text-white/70 mb-1">Time on Job</p>
-              <p className="text-3xl font-mono font-bold text-gold-500">{formatTime(elapsedTime)}</p>
+              <p className="text-3xl font-mono font-bold text-yellow-400">{formatTime(elapsedTime)}</p>
               <p className="text-xs text-white/50 mt-1">
                 Started at {new Date(activeTimeEntry!.clock_in).toLocaleTimeString()}
               </p>
@@ -384,33 +437,33 @@ export default function JobDetailPage() {
 
       <div className="px-4 space-y-4">
         {/* Location & Contact */}
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-start gap-3 mb-4">
-            <MapPin className="w-5 h-5 text-gold-500 flex-shrink-0 mt-0.5" />
+            <MapPin className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm text-gray-500">Address</p>
-              <p className="font-medium text-navy-500">{fullAddress || 'No address provided'}</p>
+              <p className="font-medium text-gray-900">{fullAddress || 'No address provided'}</p>
             </div>
             {fullAddress && (
               <a
                 href={`https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 bg-navy-500 text-white rounded-lg"
+                className="p-2 bg-blue-600 text-white rounded-lg"
               >
                 <Navigation size={18} />
               </a>
             )}
           </div>
 
-          {job.customer?.phone && (
+          {customer?.phone && (
             <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
-              <Phone className="w-5 h-5 text-gold-500" />
+              <Phone className="w-5 h-5 text-yellow-500" />
               <div className="flex-1">
                 <p className="text-sm text-gray-500">Customer Phone</p>
-                <p className="font-medium text-navy-500">{job.customer.phone}</p>
+                <p className="font-medium text-gray-900">{customer.phone}</p>
               </div>
-              <a href={`tel:${job.customer.phone}`} className="btn-outline text-sm py-1.5">
+              <a href={`tel:${customer.phone}`} className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
                 Call
               </a>
             </div>
@@ -431,10 +484,10 @@ export default function JobDetailPage() {
         )}
 
         {/* Checklist */}
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-navy-500">Job Checklist</h2>
-            <span className="badge-gold">
+            <h2 className="font-semibold text-gray-900">Job Checklist</h2>
+            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
               {completedCount}/{checklist.length}
             </span>
           </div>
@@ -455,7 +508,7 @@ export default function JobDetailPage() {
                 )}
                 <span
                   className={`flex-1 ${
-                    item.completed ? 'text-green-700 line-through' : 'text-navy-500'
+                    item.completed ? 'text-green-700 line-through' : 'text-gray-900'
                   }`}
                 >
                   {item.text}
@@ -471,10 +524,10 @@ export default function JobDetailPage() {
         </div>
 
         {/* Photo Upload */}
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-navy-500">Job Photos</h2>
-            <span className="badge-info">{photos.length} photos</span>
+            <h2 className="font-semibold text-gray-900">Job Photos</h2>
+            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{photos.length} photos</span>
           </div>
 
           {photos.length > 0 && (
@@ -509,7 +562,7 @@ export default function JobDetailPage() {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-gold-500 hover:text-gold-600 transition-colors"
+            className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-yellow-500 hover:text-yellow-600 transition-colors"
           >
             <Camera size={24} />
             <span className="text-sm font-medium">Take Photo or Upload</span>
@@ -521,7 +574,7 @@ export default function JobDetailPage() {
       {showCompleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end z-50">
           <div className="bg-white w-full rounded-t-2xl p-6">
-            <h3 className="text-lg font-bold text-navy-500 mb-4">Cannot Complete Job Yet</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Cannot Complete Job Yet</h3>
 
             {!requiredComplete && (
               <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg mb-3">
@@ -548,14 +601,14 @@ export default function JobDetailPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowCompleteModal(false)}
-                className="btn-outline flex-1"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl font-medium"
               >
                 Go Back
               </button>
               <button
                 onClick={completeJob}
                 disabled={isSubmitting}
-                className="btn-secondary flex-1"
+                className="flex-1 px-4 py-3 bg-gray-800 text-white rounded-xl font-medium disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-5 h-5 animate-spin mx-auto" />
@@ -568,5 +621,17 @@ export default function JobDetailPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function JobDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    }>
+      <JobDetailContent />
+    </Suspense>
   );
 }

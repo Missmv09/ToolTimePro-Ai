@@ -1,164 +1,115 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { HardHat, Phone, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 export default function WorkerLoginPage() {
-  const router = useRouter();
-  const { signIn, isAuthenticated, isLoading } = useWorkerAuth();
-  const [phone, setPhone] = useState('');
-  const [pin, setPin] = useState('');
-  const [showPin, setShowPin] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      router.replace('/worker');
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (authError) {
+      setError(authError.message)
+      setLoading(false)
+      return
     }
-  }, [isAuthenticated, isLoading, router]);
 
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 3) return numbers;
-    if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
-    return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
-  };
+    // Verify user exists in database
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role, company_id, full_name')
+      .eq('id', data.user?.id)
+      .single()
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhone(e.target.value);
-    setPhone(formatted);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    const result = await signIn(phone, pin);
-
-    if (result.success) {
-      router.push('/worker');
-    } else {
-      setError(result.error || 'Login failed');
+    if (!userData) {
+      setError('Account not found. Contact your employer.')
+      await supabase.auth.signOut()
+      setLoading(false)
+      return
     }
-    setIsSubmitting(false);
-  };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-navy-gradient flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-20 h-20 bg-gold-500 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <HardHat className="w-12 h-12 text-navy-500" />
-          </div>
-          <p className="text-white/70">Loading...</p>
-        </div>
-      </div>
-    );
+    // Workers and admins/owners can access worker app
+    router.push('/worker/timeclock')
+    router.refresh()
   }
 
   return (
-    <div className="min-h-screen bg-navy-gradient flex flex-col">
-      {/* Header */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="w-20 h-20 bg-gold-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-          <HardHat className="w-12 h-12 text-navy-500" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-600 to-blue-800 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-white">ToolTime Pro</h1>
+          <p className="text-blue-200 mt-2">Worker Portal</p>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">ToolTime Pro</h1>
-        <p className="text-white/60 text-center">Worker App</p>
-      </div>
 
-      {/* Login Form */}
-      <div className="bg-white rounded-t-3xl p-6 pt-8">
-        <h2 className="text-xl font-bold text-navy-500 mb-6">Sign In</h2>
+        {/* Login Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <h2 className="text-xl font-semibold text-gray-900 text-center mb-6">
+            Sign In
+          </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Phone Input */}
-          <div>
-            <label className="input-label">Phone Number</label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="tel"
-                value={phone}
-                onChange={handlePhoneChange}
-                placeholder="(555) 123-4567"
-                className="input pl-10"
-                maxLength={14}
-                required
-              />
-            </div>
-          </div>
-
-          {/* PIN Input */}
-          <div>
-            <label className="input-label">4-Digit PIN</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type={showPin ? 'text' : 'password'}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="Enter PIN"
-                className="input pl-10 pr-10"
-                maxLength={4}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPin(!showPin)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting || phone.length < 14 || pin.length < 4}
-            className="btn-secondary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-5 h-5 border-2 border-navy-500 border-t-transparent rounded-full animate-spin" />
-                Signing In...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                Sign In
-                <ArrowRight size={20} />
-              </span>
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
             )}
-          </button>
-        </form>
 
-        {/* Demo Note */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 text-center">
-            <strong>Demo Mode:</strong> Enter a worker&apos;s phone number from your database and PIN <strong>1234</strong> to login.
-          </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                placeholder="you@company.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-blue-600 text-white text-lg font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Need help? Contact your supervisor or admin.
+        <p className="text-center text-blue-200 text-sm mt-6">
+          Need an account? Ask your employer to add you.
         </p>
       </div>
     </div>
-  );
+  )
 }
