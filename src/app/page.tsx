@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState } from 'react';
+import Logo from '@/components/Logo';
 
 type Language = 'en' | 'es';
 
@@ -175,11 +175,8 @@ export default function Home() {
       {/* Navigation */}
       <nav className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2.5 text-[#1a1a2e] font-extrabold text-xl no-underline">
-            <div className="w-[42px] h-[42px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-xl shadow-[0_4px_12px_rgba(245,166,35,0.3)]">
-              🛠
-            </div>
-            <span>ToolTime Pro</span>
+          <Link href="/" className="no-underline">
+            <Logo variant="dark" />
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
@@ -691,11 +688,8 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-2.5 text-white font-extrabold text-xl mb-4 no-underline">
-                <div className="w-[42px] h-[42px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-xl">
-                  🛠
-                </div>
-                <span>ToolTime Pro</span>
+              <Link href="/" className="inline-block mb-4 no-underline">
+                <Logo variant="white" />
               </Link>
               <p className="text-white/50 text-[0.9375rem] leading-relaxed max-w-[300px]">
                 The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.
