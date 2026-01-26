@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Calculator, GitBranch, CheckSquare, FileText, ArrowRight, Shield, Sparkles } from 'lucide-react';
-import Logo from '@/components/Logo';
 
 type Language = 'en' | 'es';
 
@@ -150,8 +150,15 @@ export default function FreeToolsPage() {
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="no-underline">
-            <Logo variant="dark" />
+          <Link href="/">
+            <Image
+              src="/images/logo-horizontal.png"
+              alt="ToolTime Pro"
+              width={180}
+              height={40}
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
@@ -345,7 +352,13 @@ export default function FreeToolsPage() {
       <footer className="bg-[#1a1a2e] text-white py-8">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <div className="flex justify-center mb-4">
-            <Logo variant="white" />
+            <Image
+              src="/images/logo-horizontal-white.png"
+              alt="ToolTime Pro"
+              width={180}
+              height={40}
+              className="h-10 w-auto"
+            />
           </div>
           <p className="text-gray-400 text-sm">
             © 2026 ToolTime Pro. All rights reserved.
