@@ -2,7 +2,6 @@
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -14,11 +13,11 @@ import {
   Menu,
   X,
   ChevronRight,
-  HardHat,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import Logo from '@/components/Logo';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -81,15 +80,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           }`}
         >
           {/* Logo */}
-          <div className="h-16 flex items-center px-6 border-b border-gray-200">
+          <div className="h-16 flex items-center px-4 border-b border-gray-200">
             <Link href="/dashboard">
-              <Image
-                src="/images/logo-horizontal.png"
-                alt="ToolTime Pro"
-                width={160}
-                height={36}
-                priority
-              />
+              <Logo variant="dark" />
             </Link>
           </div>
 
