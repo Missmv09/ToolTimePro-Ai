@@ -7,62 +7,60 @@ interface LogoProps {
 
 export default function Logo({ variant = 'dark', className = '' }: LogoProps) {
   const primaryColor = variant === 'dark' ? '#1a1a2e' : '#ffffff';
-  const secondaryColor = variant === 'dark' ? '#ffffff' : '#1a1a2e';
+  const holeColor = variant === 'dark' ? '#ffffff' : '#1a1a2e';
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      {/* Logo Icon */}
+      {/* Logo Icon - Cloud with Gears Inside */}
       <svg
-        width="40"
-        height="40"
-        viewBox="0 0 50 50"
+        width="44"
+        height="44"
+        viewBox="0 0 60 60"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Cloud base */}
+        {/* Cloud shape containing gears */}
         <path
-          d="M8 32C4 32 1 29 1 25C1 21.5 3.5 18.5 7 18C7 17.7 7 17.3 7 17C7 11 12 6 18 6C22.5 6 26.5 8.8 28 13C29 12.5 30 12 31.5 12C36 12 39.5 15.5 39.5 20C39.5 20.3 39.5 20.7 39.4 21"
-          stroke={primaryColor}
-          strokeWidth="2"
+          d="M12 45C6 45 2 40 2 35C2 30 5 26 10 25C10 24 10 23 10 22C10 14 16 8 24 8C30 8 35 12 37 18C38.5 17 40.5 16 43 16C50 16 55 21 55 28C55 35 50 40 43 40H12Z"
           fill={primaryColor}
         />
 
-        {/* Pixel squares */}
-        <rect x="36" y="5" width="4" height="4" fill={primaryColor} />
-        <rect x="42" y="8" width="3" height="3" fill={primaryColor} />
-        <rect x="39" y="2" width="3" height="3" fill={primaryColor} />
-        <rect x="45" y="4" width="2" height="2" fill={primaryColor} />
-        <rect x="38" y="12" width="2" height="2" fill={primaryColor} />
+        {/* Pixel squares (digital effect) - top right */}
+        <rect x="46" y="6" width="5" height="5" fill={primaryColor} />
+        <rect x="53" y="10" width="4" height="4" fill={primaryColor} />
+        <rect x="50" y="2" width="3" height="3" fill={primaryColor} />
+        <rect x="56" y="5" width="2" height="2" fill={primaryColor} />
+        <rect x="48" y="13" width="3" height="3" fill={primaryColor} />
 
-        {/* Large Gear */}
-        <circle cx="20" cy="28" r="11" fill={primaryColor} />
-        <circle cx="20" cy="28" r="4" fill={secondaryColor} />
-        {/* Gear teeth - large */}
-        <rect x="18" y="14" width="4" height="5" fill={primaryColor} />
-        <rect x="18" y="37" width="4" height="5" fill={primaryColor} />
-        <rect x="6" y="26" width="5" height="4" fill={primaryColor} />
-        <rect x="29" y="26" width="5" height="4" fill={primaryColor} />
-        <rect x="9" y="18" width="4" height="4" fill={primaryColor} />
-        <rect x="27" y="34" width="4" height="4" fill={primaryColor} />
-        <rect x="27" y="18" width="4" height="4" fill={primaryColor} />
-        <rect x="9" y="34" width="4" height="4" fill={primaryColor} />
+        {/* Large Gear - inside cloud */}
+        <circle cx="24" cy="30" r="12" fill={primaryColor} />
+        <circle cx="24" cy="30" r="5" fill={holeColor} />
+        {/* Large gear teeth */}
+        <rect x="22" y="15" width="4" height="5" fill={primaryColor} />
+        <rect x="22" y="40" width="4" height="5" fill={primaryColor} />
+        <rect x="9" y="28" width="5" height="4" fill={primaryColor} />
+        <rect x="34" y="28" width="5" height="4" fill={primaryColor} />
+        <rect x="12" y="19" width="4" height="4" fill={primaryColor} />
+        <rect x="32" y="37" width="4" height="4" fill={primaryColor} />
+        <rect x="32" y="19" width="4" height="4" fill={primaryColor} />
+        <rect x="12" y="37" width="4" height="4" fill={primaryColor} />
 
-        {/* Small Gear */}
-        <circle cx="34" cy="38" r="8" fill={primaryColor} />
-        <circle cx="34" cy="38" r="3" fill={secondaryColor} />
-        {/* Gear teeth - small */}
-        <rect x="32" y="28" width="3" height="4" fill={primaryColor} />
-        <rect x="32" y="44" width="3" height="4" fill={primaryColor} />
-        <rect x="24" y="36" width="4" height="3" fill={primaryColor} />
-        <rect x="40" y="36" width="4" height="3" fill={primaryColor} />
+        {/* Small Gear - inside cloud, interlocking */}
+        <circle cx="40" cy="36" r="8" fill={primaryColor} />
+        <circle cx="40" cy="36" r="3.5" fill={holeColor} />
+        {/* Small gear teeth */}
+        <rect x="38" y="26" width="3" height="4" fill={primaryColor} />
+        <rect x="38" y="44" width="3" height="4" fill={primaryColor} />
+        <rect x="30" y="34" width="4" height="3" fill={primaryColor} />
+        <rect x="46" y="34" width="4" height="3" fill={primaryColor} />
       </svg>
 
       {/* Text */}
       <span
-        className="font-bold text-xl tracking-tight whitespace-nowrap"
+        className="text-xl tracking-tight whitespace-nowrap"
         style={{ color: primaryColor }}
       >
-        ToolTime <span className="font-normal">Pro</span>
+        <span className="font-bold">ToolTime</span> <span className="font-normal">Pro</span>
       </span>
     </div>
   );
