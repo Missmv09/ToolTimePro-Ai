@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="h-16 flex items-center px-4 border-b border-gray-200">
             <Link href="/dashboard">
               <Image
-                src="/logo- 01262026.png"
+                src="/logo-01262026.png"
                 alt="ToolTime Pro"
                 width={160}
                 height={36}

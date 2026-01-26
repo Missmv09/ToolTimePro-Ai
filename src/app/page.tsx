@@ -203,7 +203,7 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo- 01262026.png"
+              src="/logo-01262026.png"
               alt="ToolTime Pro"
               width={180}
               height={40}
@@ -723,7 +723,7 @@ export default function Home() {
             <div className="md:col-span-2">
               <Link href="/" className="inline-block mb-4">
                 <Image
-                  src="/logo-horizontal-white 01262026.png"
+                  src="/logo-horizontal-white-01262026.png"
                   alt="ToolTime Pro"
                   width={180}
                   height={40}
