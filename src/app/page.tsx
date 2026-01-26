@@ -136,6 +136,19 @@ export default function Home() {
       stat1: 'Starting at /month',
       stat2: 'Cheaper than competitors',
       stat3: 'Tech skills required',
+      // Dashboard preview
+      todaysOverview: "Today's Overview",
+      jobsToday: 'Jobs Today',
+      revenue: 'Revenue',
+      activeCrew: 'Active Crew',
+      newLeads: 'New Leads',
+      upcomingJobs: 'Upcoming Jobs',
+      lawnCare: 'Lawn care',
+      landscaping: 'Landscaping',
+      poolService: 'Pool service',
+      active: 'Active',
+      next: 'Next',
+      later: 'Later',
     },
     es: {
       promo: 'Tiempo Limitado: Obtén 2 meses gratis en planes anuales.',
@@ -155,6 +168,19 @@ export default function Home() {
       stat1: 'Desde /mes',
       stat2: 'Más barato que la competencia',
       stat3: 'Habilidades técnicas requeridas',
+      // Dashboard preview
+      todaysOverview: 'Resumen de Hoy',
+      jobsToday: 'Trabajos Hoy',
+      revenue: 'Ingresos',
+      activeCrew: 'Equipo Activo',
+      newLeads: 'Nuevos Clientes',
+      upcomingJobs: 'Próximos Trabajos',
+      lawnCare: 'Jardinería',
+      landscaping: 'Paisajismo',
+      poolService: 'Servicio de piscina',
+      active: 'Activo',
+      next: 'Siguiente',
+      later: 'Después',
     },
   };
 
@@ -338,35 +364,35 @@ export default function Home() {
             <div className="bg-white rounded-[20px] p-5 shadow-[0_24px_60px_rgba(26,26,46,0.16)] transform perspective-[1000px] hover:rotate-y-[-2deg] transition-transform duration-500 max-w-[420px]">
               <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 text-white min-h-[380px]">
                 <div className="flex justify-between items-center mb-6">
-                  <div className="text-[1.125rem] font-bold">📊 Today&apos;s Overview</div>
-                  <div className="text-[0.8125rem] opacity-70 font-mono">Jan 19, 2026</div>
+                  <div className="text-[1.125rem] font-bold">📊 {text.todaysOverview}</div>
+                  <div className="text-[0.8125rem] opacity-70 font-mono">{language === 'es' ? '25 Ene, 2026' : 'Jan 25, 2026'}</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-5">
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Jobs Today</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.jobsToday}</div>
                     <div className="text-[1.375rem] font-extrabold">8</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Revenue</div>
-                    <div className="text-[1.375rem] font-extrabold"><span className="opacity-60">$</span>2,450</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.revenue}</div>
+                    <div className="text-[1.375rem] font-extrabold text-[#00c853]"><span className="opacity-60">$</span>2,450</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Active Crew</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.activeCrew}</div>
                     <div className="text-[1.375rem] font-extrabold">5</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">New Leads</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.newLeads}</div>
                     <div className="text-[1.375rem] font-extrabold">12</div>
                   </div>
                 </div>
 
                 <div className="bg-white/5 rounded-[10px] p-3.5">
-                  <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">Upcoming Jobs</div>
+                  <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">{text.upcomingJobs}</div>
                   {[
-                    { name: '🏠 Martinez Residence', type: 'Lawn care', time: '9:00 AM', status: 'Active', statusColor: 'bg-[#00c853]' },
-                    { name: '🏢 Oak Valley HOA', type: 'Landscaping', time: '11:30 AM', status: 'Next', statusColor: 'bg-[#f5a623]' },
-                    { name: '🏊 Thompson Pool', type: 'Pool service', time: '2:00 PM', status: 'Later', statusColor: 'bg-[#f5a623]' },
+                    { name: '🏠 Martinez Residence', type: text.lawnCare, time: '9:00 AM', status: text.active, statusColor: 'bg-[#00c853]' },
+                    { name: '🏢 Oak Valley HOA', type: text.landscaping, time: '11:30 AM', status: text.next, statusColor: 'bg-[#f5a623]' },
+                    { name: '🏊 Thompson Pool', type: text.poolService, time: '2:00 PM', status: text.later, statusColor: 'bg-[#f5a623]' },
                   ].map((job, i) => (
                     <div key={i} className={`flex justify-between items-center py-2.5 ${i < 2 ? 'border-b border-white/10' : ''}`}>
                       <div>
