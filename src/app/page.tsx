@@ -539,7 +539,7 @@ export default function Home() {
                   <span className="text-[#8e8e9f]">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                 </div>
 
-                <ul className="space-y-0 mb-8">
+                <ul className="space-y-0 mb-6">
                   {plan.features.map((feature, fIndex) => (
                     <li key={fIndex} className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#1a1a2e] border-b border-gray-100 last:border-0">
                       <span className="text-[#00c853] font-bold min-w-[20px]">✓</span>
@@ -559,6 +559,33 @@ export default function Home() {
                     </li>
                   )}
                 </ul>
+
+                {/* Optional Add-ons */}
+                <div className="border-t border-gray-200 pt-4 mb-6">
+                  <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">Optional Add-ons:</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">Keep Me Legal</span>
+                      <span className="text-[#8e8e9f] ml-auto">$29/mo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">AI Chatbot</span>
+                      <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">Extra Website Page</span>
+                      <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">Website Builder</span>
+                      <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
+                    </label>
+                  </div>
+                </div>
 
                 <Link
                   href={`/auth/signup?plan=${plan.name.toLowerCase()}&billing=${billingPeriod}`}
@@ -602,27 +629,6 @@ export default function Home() {
             <p className="text-center text-[0.875rem] text-[#8e8e9f] mt-6">
               💡 Upgrade to a full plan anytime — we&apos;ll credit what you&apos;ve paid!
             </p>
-          </div>
-
-          {/* Power Add-Ons */}
-          <div className="mt-12">
-            <div className="text-center mb-8">
-              <h3 className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">Power Add-Ons</h3>
-              <p className="text-[#8e8e9f]">Supercharge any plan with these extras.</p>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {pricingAddOns.map((addon, index) => (
-                <div
-                  key={index}
-                  className={`bg-white rounded-xl p-5 border-2 ${addon.highlight ? 'border-[#f5a623]' : 'border-gray-200'}`}
-                >
-                  <span className="text-[1.5rem] block mb-2">{addon.icon}</span>
-                  <h4 className="text-[1rem] font-bold text-[#1a1a2e] mb-1">{addon.name}</h4>
-                  <p className="text-[#f5a623] font-bold mb-1">+${addon.price}/mo</p>
-                  <p className="text-[0.8125rem] text-[#8e8e9f]">{addon.description}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Full Pricing Page Link */}
