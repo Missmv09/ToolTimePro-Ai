@@ -152,7 +152,7 @@ export default function FreeToolsPage() {
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/images/logo-horizontal.png"
+              src="/logo- 01262026.png"
               alt="ToolTime Pro"
               width={180}
               height={40}
@@ -353,7 +353,7 @@ export default function FreeToolsPage() {
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <div className="flex justify-center mb-4">
             <Image
-              src="/images/logo-horizontal-white.png"
+              src="/logo-horizontal-white 01262026.png"
               alt="ToolTime Pro"
               width={180}
               height={40}
