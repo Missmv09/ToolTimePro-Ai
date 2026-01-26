@@ -34,8 +34,8 @@ const featureTabs = [
   { name: 'Website', icon: '🌐', href: '/demo/website' },
   { name: 'Scheduling', icon: '📅', href: '/demo/scheduling' },
   { name: 'Quoting', icon: '📝', href: '/demo/quoting' },
-  { name: 'Worker App', icon: '👷', href: '/worker' },
-  { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
+  { name: 'Worker App', icon: '👷', href: '/demo/worker' },
+  { name: 'Compliance & HR', icon: '🛡️', href: '/demo/shield' },
   { name: 'Payments', icon: '💰', href: '/demo/invoicing' },
   { name: 'Payroll', icon: '💰', href: '#', comingSoon: true },
 ];
@@ -47,9 +47,9 @@ const demoCards = [
   { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/booking' },
   { icon: '🤖', name: 'AI Chatbot', description: '24/7 lead capture that never misses a customer', href: '/demo/chatbot' },
   { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews with SMS follow-ups', href: '/demo/reviews' },
-  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/worker' },
-  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
-  { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/dashboard/shield' },
+  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/demo/worker' },
+  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/demo/dashboard' },
+  { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/demo/shield' },
   { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and drag-and-drop scheduling', href: '/demo/dispatch', badge: 'Elite' },
 ];
 
