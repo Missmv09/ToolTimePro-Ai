@@ -25,6 +25,7 @@ export interface Database {
           logo_url: string | null
           plan: string
           stripe_customer_id: string | null
+          booking_settings: Json | null
           created_at: string
           updated_at: string
         }
@@ -40,6 +41,7 @@ export interface Database {
           logo_url?: string | null
           plan?: string
           stripe_customer_id?: string | null
+          booking_settings?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -55,6 +57,7 @@ export interface Database {
           logo_url?: string | null
           plan?: string
           stripe_customer_id?: string | null
+          booking_settings?: Json | null
           created_at?: string
           updated_at?: string
         }
