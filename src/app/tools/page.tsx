@@ -150,14 +150,11 @@ export default function FreeToolsPage() {
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center no-underline">
-            <Image
-              src="/images/logo-horizontal.png"
-              alt="ToolTime Pro"
-              width={180}
-              height={40}
-              priority
-            />
+          <Link href="/" className="flex items-center gap-2.5 text-[#1a1a2e] font-extrabold text-xl no-underline">
+            <div className="w-[42px] h-[42px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-xl shadow-[0_4px_12px_rgba(245,166,35,0.3)]">
+              🛠
+            </div>
+            <span>ToolTime Pro</span>
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
@@ -350,13 +347,11 @@ export default function FreeToolsPage() {
       {/* Footer */}
       <footer className="bg-[#1a1a2e] text-white py-8">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <div className="flex justify-center mb-4">
-            <Image
-              src="/images/logo-horizontal-white.png"
-              alt="ToolTime Pro"
-              width={180}
-              height={40}
-            />
+          <div className="flex items-center justify-center gap-2.5 mb-4">
+            <div className="w-8 h-8 bg-[#f5a623] rounded-lg flex items-center justify-center">
+              🛠
+            </div>
+            <span className="font-bold">ToolTime Pro</span>
           </div>
           <p className="text-gray-400 text-sm">
             © 2026 ToolTime Pro. All rights reserved.
