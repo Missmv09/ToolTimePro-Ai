@@ -23,13 +23,50 @@ interface BookingData {
 
 type BookingStep = 'service' | 'datetime' | 'info' | 'confirm' | 'success';
 
-// Generate time slots (9 AM to 5 PM in 30-min increments)
-function generateTimeSlots(): string[] {
+// Generate time slots based on business hours and slot duration
+interface BusinessHours {
+  [key: string]: { open: string; close: string; enabled: boolean }
+}
+
+function generateTimeSlots(
+  selectedDate: string,
+  businessHours: BusinessHours | null,
+  slotDuration: number = 30
+): string[] {
   const slots: string[] = [];
-  for (let hour = 9; hour < 17; hour++) {
-    slots.push(`${hour.toString().padStart(2, '0')}:00`);
-    slots.push(`${hour.toString().padStart(2, '0')}:30`);
+
+  // Get day of week for the selected date
+  const date = new Date(selectedDate + 'T00:00:00');
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const dayOfWeek = days[date.getDay()];
+
+  // Default hours if no settings
+  let startHour = 9;
+  let startMinute = 0;
+  let endHour = 17;
+  let endMinute = 0;
+
+  if (businessHours && businessHours[dayOfWeek] && businessHours[dayOfWeek].enabled) {
+    const dayHours = businessHours[dayOfWeek];
+    const [openH, openM] = dayHours.open.split(':').map(Number);
+    const [closeH, closeM] = dayHours.close.split(':').map(Number);
+    startHour = openH;
+    startMinute = openM || 0;
+    endHour = closeH;
+    endMinute = closeM || 0;
   }
+
+  // Generate slots
+  let currentMinutes = startHour * 60 + startMinute;
+  const endMinutes = endHour * 60 + endMinute;
+
+  while (currentMinutes < endMinutes) {
+    const hour = Math.floor(currentMinutes / 60);
+    const minute = currentMinutes % 60;
+    slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+    currentMinutes += slotDuration;
+  }
+
   return slots;
 }
 
@@ -53,17 +90,32 @@ function formatDate(dateStr: string): string {
   });
 }
 
-// Get next 14 days
-function getAvailableDates(): string[] {
+// Get available dates based on days ahead and business hours
+function getAvailableDates(
+  daysAhead: number = 14,
+  businessHours: BusinessHours | null = null
+): string[] {
   const dates: string[] = [];
   const today = new Date();
-  for (let i = 1; i <= 14; i++) {
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+  for (let i = 1; i <= daysAhead; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
-    // Skip Sundays
-    if (date.getDay() !== 0) {
-      dates.push(date.toISOString().split('T')[0]);
+
+    const dayOfWeek = days[date.getDay()];
+
+    // Check if this day is enabled in business hours
+    if (businessHours && businessHours[dayOfWeek]) {
+      if (!businessHours[dayOfWeek].enabled) {
+        continue; // Skip disabled days
+      }
+    } else {
+      // Default: skip Sundays if no settings
+      if (date.getDay() === 0) continue;
     }
+
+    dates.push(date.toISOString().split('T')[0]);
   }
   return dates;
 }
@@ -93,8 +145,21 @@ export default function BookingPage() {
     notes: '',
   });
 
-  const timeSlots = generateTimeSlots();
-  const availableDates = getAvailableDates();
+  // Get booking settings from company or use defaults
+  const bookingSettings = company?.booking_settings as {
+    days_ahead?: number;
+    slot_duration?: number;
+    business_hours?: BusinessHours;
+  } | null;
+
+  const daysAhead = bookingSettings?.days_ahead || 14;
+  const slotDuration = bookingSettings?.slot_duration || 30;
+  const businessHours = bookingSettings?.business_hours || null;
+
+  const availableDates = getAvailableDates(daysAhead, businessHours);
+  const timeSlots = booking.date
+    ? generateTimeSlots(booking.date, businessHours, slotDuration)
+    : [];
 
   // Fetch company and services
   useEffect(() => {
