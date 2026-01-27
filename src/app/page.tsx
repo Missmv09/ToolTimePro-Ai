@@ -505,19 +505,12 @@ export default function Home() {
                 key={index}
                 href={tab.href}
                 className={`px-6 py-3.5 rounded-full font-semibold text-[0.9375rem] transition-all no-underline ${
-                  tab.comingSoon
-                    ? 'bg-white/10 text-white/60 border border-white/10'
-                    : index === 0
-                      ? 'bg-[#f5a623] text-[#1a1a2e] border border-[#f5a623]'
-                      : 'bg-white/10 text-white/80 border border-white/10 hover:bg-white/15 hover:text-white'
+                  index === 0
+                    ? 'bg-[#f5a623] text-[#1a1a2e] border border-[#f5a623]'
+                    : 'bg-white/10 text-white/80 border border-white/10 hover:bg-white/15 hover:text-white'
                 }`}
               >
                 {tab.icon} {tab.name}
-                {tab.comingSoon && (
-                  <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded-[10px] text-[0.625rem] font-bold ml-1.5 align-middle">
-                    COMING SOON
-                  </span>
-                )}
               </Link>
             ))}
           </div>
