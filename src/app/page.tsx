@@ -20,7 +20,7 @@ const painPoints = [
 const features = [
   { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. More reviews = more customers calling you.', badge: '💰 Top Revenue Driver', highlight: true },
-  { title: '24/7 AI Chatbot & Lead Capture', description: 'Never miss a lead. Our AI answers questions, captures contact info, and books appointments even at 2am on Sunday.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: '24/7 ToolTime Assistant & Lead Capture', description: 'Never miss a lead. Our AI answers questions, captures contact info, and books appointments even at 2am on Sunday.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues. Full compliance tracking built-in.', highlight: true },
   { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, AB5 compliance checklists. Protect yourself from costly lawsuits.', badge: '🛡️ Legal Protection', highlight: true },
   { title: 'Dispatch Board — Real-Time Crew Tracking', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
@@ -34,7 +34,7 @@ const features = [
 const featureTabs = [
   { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/dashboard', highlight: true },
-  { name: 'AI Chatbot', icon: '🤖', href: '/demo/website', highlight: true },
+  { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/website', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/worker' },
   { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
   { name: 'Dispatch', icon: '🗺️', href: '/demo/dispatch' },
@@ -83,7 +83,7 @@ const pricingPlans = [
       'Everything in Starter, plus:',
       '💰 Smart Quoting with e-signatures',
       '💰 Review Machine (auto 5-star requests)',
-      '💰 AI Chatbot & Lead Capture',
+      '💰 ToolTime Assistant & Lead Capture',
       'Worker App (GPS clock-in)',
       'Break tracking + CA compliance alerts',
       'Team scheduling + dispatch',
@@ -135,7 +135,7 @@ const standalonePlans = [
 // Add-ons
 const pricingAddOns = [
   { id: 'website_builder', name: 'Website Builder', price: 10, icon: '🌐', description: 'Custom landing page built for you' },
-  { id: 'ai_chatbot', name: 'AI Chatbot', price: 19, icon: '💬', description: '24/7 lead capture while you sleep' },
+  { id: 'ai_chatbot', name: 'ToolTime Assistant', price: 19, icon: '💬', description: '24/7 lead capture while you sleep' },
   { id: 'keep_me_legal', name: 'Keep Me Legal', price: 29, icon: '🛡️', description: 'Compliance monitoring & alerts', highlight: true },
   { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
 ];
@@ -710,7 +710,7 @@ export default function Home() {
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">AI Chatbot</span>
+                      <span className="text-[#5c5c70]">ToolTime Assistant</span>
                       <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">

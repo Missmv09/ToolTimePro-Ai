@@ -150,7 +150,7 @@ const ADDONS = [
   },
   {
     id: 'ai_chatbot',
-    name: 'AI Chatbot',
+    name: 'ToolTime Assistant',
     monthlyPrice: 19,
     icon: '💬',
     description: '24/7 lead capture while you sleep',
