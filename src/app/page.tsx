@@ -5,111 +5,213 @@ import { useState } from 'react';
 
 type Language = 'en' | 'es';
 
-// Pain points data
-const painPoints = [
-  { icon: '📵', title: 'No Website = Invisible', description: "Customers can't find you online. You're losing jobs to competitors who show up on Google.", solution: 'Done-for-you branded website' },
-  { icon: '📞', title: 'Missed Calls = Lost Money', description: "You're on a job, phone rings, you miss it. That lead goes to someone who answered.", solution: 'AI auto-responder + missed call texts' },
-  { icon: '📅', title: 'Scheduling Chaos', description: 'Double-bookings, forgotten appointments, confused crews. Your calendar is a disaster.', solution: 'Smart scheduler + customer booking' },
-  { icon: '👷', title: 'Worker Time Tracking', description: 'No idea when crew clocked in, where they are, or if they took their breaks.', solution: 'Worker app with GPS clock-in' },
-  { icon: '⚖️', title: 'Legal Landmines', description: 'Final pay rules, worker classification, compliance headaches. One mistake = lawsuit.', solution: 'ToolTime Shield compliance toolkit' },
-  { icon: '⭐', title: 'Zero Reviews', description: 'Happy customers never leave reviews. Your competitor has 100+, you have 3.', solution: 'Automated review request system' },
-];
+// Bilingual data
+const painPointsData = {
+  en: [
+    { icon: '📵', title: 'No Website = Invisible', description: "Customers can't find you online. You're losing jobs to competitors who show up on Google.", solution: 'Done-for-you branded website' },
+    { icon: '📞', title: 'Missed Calls = Lost Money', description: "You're on a job, phone rings, you miss it. That lead goes to someone who answered.", solution: 'AI auto-responder + missed call texts' },
+    { icon: '📅', title: 'Scheduling Chaos', description: 'Double-bookings, forgotten appointments, confused crews. Your calendar is a disaster.', solution: 'Smart scheduler + customer booking' },
+    { icon: '👷', title: 'Worker Time Tracking', description: 'No idea when crew clocked in, where they are, or if they took their breaks.', solution: 'Worker app with GPS clock-in' },
+    { icon: '⚖️', title: 'Legal Landmines', description: 'Final pay rules, worker classification, compliance headaches. One mistake = lawsuit.', solution: 'ToolTime Shield compliance toolkit' },
+    { icon: '⭐', title: 'Zero Reviews', description: 'Happy customers never leave reviews. Your competitor has 100+, you have 3.', solution: 'Automated review request system' },
+  ],
+  es: [
+    { icon: '📵', title: 'Sin Sitio Web = Invisible', description: 'Los clientes no te encuentran en línea. Estás perdiendo trabajos con competidores que aparecen en Google.', solution: 'Sitio web profesional hecho para ti' },
+    { icon: '📞', title: 'Llamadas Perdidas = Dinero Perdido', description: 'Estás en un trabajo, suena el teléfono, no contestas. Ese cliente se va con quien sí contestó.', solution: 'Auto-respuesta IA + textos de llamadas perdidas' },
+    { icon: '📅', title: 'Caos de Horarios', description: 'Citas dobles, citas olvidadas, equipos confundidos. Tu calendario es un desastre.', solution: 'Programador inteligente + reservas en línea' },
+    { icon: '👷', title: 'Control de Tiempo de Trabajadores', description: 'No sabes cuándo llegó tu equipo, dónde están, o si tomaron sus descansos.', solution: 'App de trabajador con GPS' },
+    { icon: '⚖️', title: 'Problemas Legales', description: 'Reglas de pago final, clasificación de trabajadores, dolores de cabeza de cumplimiento. Un error = demanda.', solution: 'ToolTime Shield - herramientas de cumplimiento' },
+    { icon: '⭐', title: 'Cero Reseñas', description: 'Los clientes felices nunca dejan reseñas. Tu competidor tiene 100+, tú tienes 3.', solution: 'Sistema automático de solicitud de reseñas' },
+  ],
+};
 
-// Features data
-const features = [
-  { title: 'Professional Website — Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.' },
-  { title: '24/7 AI Chatbot', description: 'Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.' },
-  { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature.' },
-  { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.' },
-  { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.' },
-  { title: 'HR Document Library', description: '10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.' },
-  { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.' },
-  { title: 'Admin Dashboard', description: 'See jobs, revenue, and crew status at a glance. Track performance and make smarter business decisions.' },
-  { title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
-  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
-];
+const featuresData = {
+  en: [
+    { title: 'Professional Website — Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.' },
+    { title: '24/7 AI Chatbot', description: 'Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.' },
+    { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature.' },
+    { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.' },
+    { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.' },
+    { title: 'HR Document Library', description: '10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.' },
+    { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.' },
+    { title: 'Admin Dashboard', description: 'See jobs, revenue, and crew status at a glance. Track performance and make smarter business decisions.' },
+    { title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
+    { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
+  ],
+  es: [
+    { title: 'Sitio Web Profesional — Hecho Para Ti', description: 'Creamos tu sitio con tu marca. Optimizado para móvil, rápido, diseñado para convertir visitantes en clientes.' },
+    { title: 'Chatbot IA 24/7', description: 'Nunca pierdas un cliente. Nuestra IA responde preguntas y captura información incluso a las 2am del domingo.' },
+    { title: 'Cotizaciones Inteligentes — Gana Más Trabajos', description: 'Crea cotizaciones profesionales en segundos. Por voz, foto o manual. Clientes aprueban con firma electrónica.' },
+    { title: 'App de Trabajador con GPS', description: 'Tu equipo ve sus trabajos, registra entrada/salida con ubicación, sube fotos y reporta problemas.' },
+    { title: 'ToolTime Shield — Protección Legal', description: 'Quiz de clasificación de trabajadores, calculadora de pago final, listas de cumplimiento CA. Protégete de demandas.' },
+    { title: 'Biblioteca de Documentos HR', description: '10+ plantillas: cartas de oferta, listas de terminación, enlaces I-9 y más. Todo cumple con CA.' },
+    { title: 'Máquina de Reseñas — Obtén Más 5 Estrellas', description: 'Solicita reseñas automáticamente por SMS después de trabajos. Genera respuestas IA. Construye tu reputación.' },
+    { title: 'Panel de Administración', description: 'Ve trabajos, ingresos y estado del equipo de un vistazo. Rastrea rendimiento y toma mejores decisiones.' },
+    { title: 'Tablero de Despacho', description: 'Ve todos tus equipos en un mapa en tiempo real. Asigna trabajos arrastrando. Envía alertas de "voy tarde" automáticamente.', badge: 'Solo Elite' },
+    { title: 'Optimización de Rutas', description: 'Planifica automáticamente las rutas más eficientes para tus equipos. Ahorra gasolina y haz más trabajos por día.', badge: 'Solo Elite' },
+  ],
+};
 
-// Feature tabs
-const featureTabs = [
-  { name: 'Website', icon: '🌐', href: '/demo/website' },
-  { name: 'Scheduling', icon: '📅', href: '/demo/scheduling' },
-  { name: 'Quoting', icon: '📝', href: '/demo/quoting' },
-  { name: 'Worker App', icon: '👷', href: '/worker' },
-  { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
-  { name: 'Payments', icon: '💰', href: '/demo/invoicing' },
-  { name: 'Payroll', icon: '💰', href: '#', comingSoon: true },
-];
+const featureTabsData = {
+  en: [
+    { name: 'Website', icon: '🌐', href: '/demo/website' },
+    { name: 'Scheduling', icon: '📅', href: '/demo/scheduling' },
+    { name: 'Quoting', icon: '📝', href: '/demo/quoting' },
+    { name: 'Worker App', icon: '👷', href: '/worker' },
+    { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
+    { name: 'Payments', icon: '💰', href: '/demo/invoicing' },
+    { name: 'Payroll', icon: '💰', href: '#', comingSoon: true },
+  ],
+  es: [
+    { name: 'Sitio Web', icon: '🌐', href: '/demo/website' },
+    { name: 'Programación', icon: '📅', href: '/demo/scheduling' },
+    { name: 'Cotizaciones', icon: '📝', href: '/demo/quoting' },
+    { name: 'App Trabajador', icon: '👷', href: '/worker' },
+    { name: 'Cumplimiento y RH', icon: '🛡️', href: '/dashboard/shield' },
+    { name: 'Pagos', icon: '💰', href: '/demo/invoicing' },
+    { name: 'Nómina', icon: '💰', href: '#', comingSoon: true },
+  ],
+};
 
-// Demo cards
-const demoCards = [
-  { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
-  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds with live preview', href: '/demo/quoting' },
-  { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/booking' },
-  { icon: '🤖', name: 'AI Chatbot', description: '24/7 lead capture that never misses a customer', href: '/demo/chatbot' },
-  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews with SMS follow-ups', href: '/demo/reviews' },
-  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/worker' },
-  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
-  { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/dashboard/shield' },
-  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and drag-and-drop scheduling', href: '/demo/dispatch', badge: 'Elite' },
-];
+const demoCardsData = {
+  en: [
+    { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
+    { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds with live preview', href: '/demo/quoting' },
+    { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/booking' },
+    { icon: '🤖', name: 'AI Chatbot', description: '24/7 lead capture that never misses a customer', href: '/demo/chatbot' },
+    { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews with SMS follow-ups', href: '/demo/reviews' },
+    { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/worker' },
+    { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
+    { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/dashboard/shield' },
+    { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and drag-and-drop scheduling', href: '/demo/dispatch', badge: 'Elite' },
+  ],
+  es: [
+    { icon: '🌐', name: 'Constructor de Sitio Web', description: 'Ve un ejemplo del sitio que construiríamos para tu negocio', href: '/demo/website' },
+    { icon: '📝', name: 'Cotizaciones Inteligentes', description: 'Crea cotizaciones profesionales en segundos con vista previa', href: '/demo/quoting' },
+    { icon: '📅', name: 'Reservas en Línea', description: 'Deja que clientes reserven en línea + maneja tu calendario', href: '/demo/booking' },
+    { icon: '🤖', name: 'Chatbot IA', description: 'Captura clientes 24/7 sin perder ninguno', href: '/demo/chatbot' },
+    { icon: '⭐', name: 'Máquina de Reseñas', description: 'Automatiza reseñas de 5 estrellas con seguimiento SMS', href: '/demo/reviews' },
+    { icon: '👷', name: 'App de Trabajador', description: 'Registro GPS, detalles de trabajo y seguimiento de cumplimiento', href: '/worker' },
+    { icon: '📊', name: 'Panel de Admin', description: 'Ve trabajos, ingresos, estado del equipo de un vistazo', href: '/dashboard' },
+    { icon: '🛡️', name: 'ToolTime Shield', description: 'Clasificación de trabajadores, calculadora de pago final, docs RH', href: '/dashboard/shield' },
+    { icon: '🗺️', name: 'Tablero de Despacho', description: 'Seguimiento de equipos en tiempo real y programación drag-and-drop', href: '/demo/dispatch', badge: 'Elite' },
+  ],
+};
 
-// Pricing plans
-const pricingPlans = [
-  {
-    name: 'Starter',
-    price: 30,
-    annualPrice: 300,
-    workers: 5,
-    description: 'Perfect for solo operators',
-    features: [
-      'Professional website (built for you)',
-      'Online booking page',
-      'Basic scheduling',
-      'Invoicing + card payments',
-      'ToolTime Shield (compliance tools)',
-      'HR document library (10+ templates)',
-      'Email support',
-    ],
-    hrFeature: 'ToolTime Shield included',
-  },
-  {
-    name: 'Pro',
-    price: 49,
-    annualPrice: 490,
-    workers: 15,
-    description: 'Best for growing teams',
-    popular: true,
-    features: [
-      'Everything in Starter, plus:',
-      'Worker App (GPS clock-in)',
-      'Smart quoting with e-signatures',
-      'Review Machine (auto 5-star requests)',
-      'Break tracking + CA compliance alerts',
-      'Team scheduling + dispatch',
-      'Priority support',
-    ],
-    hrFeature: 'Full compliance toolkit',
-  },
-  {
-    name: 'Elite',
-    price: 79,
-    annualPrice: 790,
-    workers: 30,
-    description: 'For established crews',
-    features: [
-      'Everything in Pro, plus:',
-      'Dispatch Board + Route Optimization',
-      'Multiple admin users',
-      'Advanced reporting + analytics',
-      'Photo verification (clock-in selfies)',
-      'Compliance dashboard',
-      'Dedicated account manager',
-      'Phone support',
-    ],
-    hrFeature: 'HR On-Demand access',
-    payrollFeature: 'Payroll (coming soon)',
-  },
-];
+const pricingPlansData = {
+  en: [
+    {
+      name: 'Starter',
+      price: 30,
+      annualPrice: 300,
+      workers: 5,
+      description: 'Perfect for solo operators',
+      features: [
+        'Professional website (built for you)',
+        'Online booking page',
+        'Basic scheduling',
+        'Invoicing + card payments',
+        'ToolTime Shield (compliance tools)',
+        'HR document library (10+ templates)',
+        'Email support',
+      ],
+      hrFeature: 'ToolTime Shield included',
+    },
+    {
+      name: 'Pro',
+      price: 49,
+      annualPrice: 490,
+      workers: 15,
+      description: 'Best for growing teams',
+      popular: true,
+      features: [
+        'Everything in Starter, plus:',
+        'Worker App (GPS clock-in)',
+        'Smart quoting with e-signatures',
+        'Review Machine (auto 5-star requests)',
+        'Break tracking + CA compliance alerts',
+        'Team scheduling + dispatch',
+        'Priority support',
+      ],
+      hrFeature: 'Full compliance toolkit',
+    },
+    {
+      name: 'Elite',
+      price: 79,
+      annualPrice: 790,
+      workers: 30,
+      description: 'For established crews',
+      features: [
+        'Everything in Pro, plus:',
+        'Dispatch Board + Route Optimization',
+        'Multiple admin users',
+        'Advanced reporting + analytics',
+        'Photo verification (clock-in selfies)',
+        'Compliance dashboard',
+        'Dedicated account manager',
+        'Phone support',
+      ],
+      hrFeature: 'HR On-Demand access',
+      payrollFeature: 'Payroll (coming soon)',
+    },
+  ],
+  es: [
+    {
+      name: 'Inicial',
+      price: 30,
+      annualPrice: 300,
+      workers: 5,
+      description: 'Perfecto para operadores solos',
+      features: [
+        'Sitio web profesional (hecho para ti)',
+        'Página de reservas en línea',
+        'Programación básica',
+        'Facturación + pagos con tarjeta',
+        'ToolTime Shield (herramientas de cumplimiento)',
+        'Biblioteca de documentos RH (10+ plantillas)',
+        'Soporte por email',
+      ],
+      hrFeature: 'ToolTime Shield incluido',
+    },
+    {
+      name: 'Pro',
+      price: 49,
+      annualPrice: 490,
+      workers: 15,
+      description: 'Mejor para equipos en crecimiento',
+      popular: true,
+      features: [
+        'Todo en Inicial, más:',
+        'App de Trabajador (registro GPS)',
+        'Cotizaciones inteligentes con firma electrónica',
+        'Máquina de Reseñas (solicitudes automáticas)',
+        'Seguimiento de descansos + alertas de cumplimiento CA',
+        'Programación de equipo + despacho',
+        'Soporte prioritario',
+      ],
+      hrFeature: 'Kit completo de cumplimiento',
+    },
+    {
+      name: 'Elite',
+      price: 79,
+      annualPrice: 790,
+      workers: 30,
+      description: 'Para equipos establecidos',
+      features: [
+        'Todo en Pro, más:',
+        'Tablero de Despacho + Optimización de Rutas',
+        'Múltiples usuarios admin',
+        'Reportes avanzados + análisis',
+        'Verificación con foto (selfies de entrada)',
+        'Panel de cumplimiento',
+        'Gerente de cuenta dedicado',
+        'Soporte telefónico',
+      ],
+      hrFeature: 'Acceso a RH On-Demand',
+      payrollFeature: 'Nómina (próximamente)',
+    },
+  ],
+};
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -149,6 +251,36 @@ export default function Home() {
       active: 'Active',
       next: 'Next',
       later: 'Later',
+      // Pain Points Section
+      soundFamiliar: 'Sound Familiar?',
+      problemsTitle: 'These Problems Cost You Money',
+      problemsSubtitle: "You're great at your trade. But running the business side? That's where things fall apart.",
+      // Features Section
+      featuresBadge: 'Everything You Need',
+      featuresTitle1: 'One Platform.',
+      featuresTitle2: 'Zero Headaches.',
+      featuresSubtitle: 'Website, scheduling, worker management, HR & compliance — all in one place.',
+      finally: 'Finally.',
+      comingSoon: 'Coming Soon',
+      // Demos Section
+      demosBadge: 'Try Before You Buy',
+      demosTitle: 'See It In Action',
+      demosSubtitle: 'No signup required. Click any demo to explore the features.',
+      noSignup: 'No signup required',
+      // Pricing Section
+      pricingBadge: 'Simple Pricing',
+      pricingTitle: 'One Price. Everything Included.',
+      pricingSubtitle: 'No hidden fees. No per-user charges. Just simple, transparent pricing.',
+      monthly: 'Monthly',
+      annual: 'Annual',
+      save2Months: 'Save 2 months',
+      perMonth: '/month',
+      upToWorkers: 'Up to {n} workers',
+      mostPopular: 'Most Popular',
+      // Footer
+      footerCta: 'Ready to run your business like a pro?',
+      footerCtaSubtitle: 'Join thousands of service pros who switched to ToolTime Pro.',
+      copyright: '© 2026 ToolTime Pro. All rights reserved.',
     },
     es: {
       promo: 'Tiempo Limitado: Obtén 2 meses gratis en planes anuales.',
@@ -181,10 +313,45 @@ export default function Home() {
       active: 'Activo',
       next: 'Siguiente',
       later: 'Después',
+      // Pain Points Section
+      soundFamiliar: '¿Te Suena Familiar?',
+      problemsTitle: 'Estos Problemas Te Cuestan Dinero',
+      problemsSubtitle: 'Eres excelente en tu oficio. ¿Pero manejar el lado del negocio? Ahí es donde todo se complica.',
+      // Features Section
+      featuresBadge: 'Todo Lo Que Necesitas',
+      featuresTitle1: 'Una Plataforma.',
+      featuresTitle2: 'Cero Dolores de Cabeza.',
+      featuresSubtitle: 'Sitio web, programación, gestión de trabajadores, RH y cumplimiento — todo en un solo lugar.',
+      finally: 'Por fin.',
+      comingSoon: 'Próximamente',
+      // Demos Section
+      demosBadge: 'Prueba Antes de Comprar',
+      demosTitle: 'Míralo en Acción',
+      demosSubtitle: 'No necesitas registrarte. Haz clic en cualquier demo para explorar las funciones.',
+      noSignup: 'Sin registro',
+      // Pricing Section
+      pricingBadge: 'Precios Simples',
+      pricingTitle: 'Un Precio. Todo Incluido.',
+      pricingSubtitle: 'Sin cargos ocultos. Sin cobros por usuario. Solo precios simples y transparentes.',
+      monthly: 'Mensual',
+      annual: 'Anual',
+      save2Months: 'Ahorra 2 meses',
+      perMonth: '/mes',
+      upToWorkers: 'Hasta {n} trabajadores',
+      mostPopular: 'Más Popular',
+      // Footer
+      footerCta: '¿Listo para manejar tu negocio como un profesional?',
+      footerCtaSubtitle: 'Únete a miles de profesionales de servicio que cambiaron a ToolTime Pro.',
+      copyright: '© 2026 ToolTime Pro. Todos los derechos reservados.',
     },
   };
 
   const text = t[language];
+  const painPoints = painPointsData[language];
+  const features = featuresData[language];
+  const featureTabs = featureTabsData[language];
+  const demoCards = demoCardsData[language];
+  const pricingPlans = pricingPlansData[language];
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
@@ -416,13 +583,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
-              Sound Familiar?
+              {text.soundFamiliar}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
-              These Problems Cost You Money
+              {text.problemsTitle}
             </h2>
             <p className="text-[1.0625rem] text-[#5c5c70]">
-              You&apos;re great at your trade. But running the business side? That&apos;s where things fall apart.
+              {text.problemsSubtitle}
             </p>
           </div>
 
@@ -455,13 +622,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
-              Everything You Need
+              {text.featuresBadge}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
-              One Platform. Zero Headaches.
+              {text.featuresTitle1} <span className="text-[#f5a623]">{text.featuresTitle2}</span>
             </h2>
             <p className="text-[1.0625rem] text-white/70">
-              Website, scheduling, worker management, HR & compliance — all in one place. Finally.
+              {text.featuresSubtitle} <span className="text-[#f5a623]">{text.finally}</span>
             </p>
           </div>
 
@@ -548,13 +715,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
-              See It In Action
+              {text.demosBadge}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
-              Try Our Interactive Demos
+              {text.demosTitle}
             </h2>
             <p className="text-[1.0625rem] text-[#5c5c70]">
-              Click any feature below to see exactly how ToolTime Pro works. No signup required.
+              {text.demosSubtitle}
             </p>
           </div>
 
@@ -573,7 +740,7 @@ export default function Home() {
                 <div className="text-[2.5rem] mb-3">{card.icon}</div>
                 <h3 className="text-[1.125rem] font-extrabold text-[#1a1a2e] mb-2">{card.name}</h3>
                 <p className="text-[0.875rem] text-[#8e8e9f] leading-relaxed mb-3">{card.description}</p>
-                <span className="text-[#f5a623] font-semibold text-[0.875rem] group-hover:underline">Try Demo →</span>
+                <span className="text-[#f5a623] font-semibold text-[0.875rem] group-hover:underline">{language === 'es' ? 'Ver Demo →' : 'Try Demo →'}</span>
               </Link>
             ))}
           </div>
@@ -585,13 +752,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-12">
             <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
-              Simple Pricing
+              {text.pricingBadge}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
-              Plans That Grow With You
+              {text.pricingTitle}
             </h2>
             <p className="text-[1.0625rem] text-[#5c5c70]">
-              No hidden fees. No contracts. Cancel anytime.
+              {text.pricingSubtitle}
             </p>
           </div>
 
@@ -606,7 +773,7 @@ export default function Home() {
                     : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
                 }`}
               >
-                Monthly
+                {text.monthly}
               </button>
               <button
                 onClick={() => setBillingPeriod('annual')}
@@ -616,9 +783,9 @@ export default function Home() {
                     : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
                 }`}
               >
-                Annual
+                {text.annual}
                 <span className="bg-[#00c853] text-white px-2.5 py-1 rounded-full text-[0.6875rem] font-bold">
-                  Save 17%
+                  {text.save2Months}
                 </span>
               </button>
             </div>
@@ -637,13 +804,13 @@ export default function Home() {
               >
                 {plan.popular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#f5a623] text-[#1a1a2e] px-5 py-2 rounded-full text-[0.75rem] font-extrabold whitespace-nowrap">
-                    Most Popular
+                    {text.mostPopular}
                   </div>
                 )}
 
                 <div className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{plan.name}</div>
                 <p className="text-[0.9375rem] text-[#8e8e9f] mb-2">{plan.description}</p>
-                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">Up to {plan.workers} workers</p>
+                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">{text.upToWorkers.replace('{n}', String(plan.workers))}</p>
 
                 <div className="mb-7">
                   <span className="text-[3.25rem] font-extrabold text-[#1a1a2e] leading-none">
@@ -681,10 +848,10 @@ export default function Home() {
                       : 'bg-[#1a1a2e] text-white hover:bg-[#2d2d44]'
                   }`}
                 >
-                  Start Free Trial
+                  {text.startTrial}
                 </Link>
                 <p className="text-center text-[0.8125rem] text-[#8e8e9f] mt-3">
-                  14-day free trial • No credit card required
+                  {language === 'es' ? 'Prueba gratis de 14 días • Sin tarjeta de crédito' : '14-day free trial • No credit card required'}
                 </p>
               </div>
             ))}
@@ -697,16 +864,16 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,166,35,0.1)_0%,transparent_60%)]" />
         <div className="max-w-[640px] mx-auto relative z-10">
           <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
-            Ready to Run Your Business Like a Pro?
+            {text.footerCta}
           </h2>
           <p className="text-[1.125rem] text-white/70 mb-9">
-            Join hundreds of service businesses using ToolTime Pro to save time, stay compliant, and get more customers.
+            {text.footerCtaSubtitle}
           </p>
           <Link
             href="/auth/signup"
             className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] transition-all no-underline"
           >
-            Get Started Free →
+            {text.cta1} →
           </Link>
         </div>
       </section>
@@ -723,28 +890,31 @@ export default function Home() {
                 <span>ToolTime Pro</span>
               </Link>
               <p className="text-white/50 text-[0.9375rem] leading-relaxed max-w-[300px]">
-                The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.
+                {language === 'es'
+                  ? 'La plataforma todo-en-uno para negocios de servicio. Sitio web, programación, app de trabajador, RH y cumplimiento — nosotros lo configuramos, tú manejas tu negocio.'
+                  : 'The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.'}
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-5">Product</h4>
+              <h4 className="font-bold text-white mb-5">{language === 'es' ? 'Producto' : 'Product'}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="#features" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Features</Link>
-                <Link href="#pricing" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
+                <Link href="#features" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">{text.features}</Link>
+                <Link href="#pricing" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">{text.pricing}</Link>
                 <Link href="#demos" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
+                <Link href="/tools" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">{text.freeTools}</Link>
               </div>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-5">Company</h4>
+              <h4 className="font-bold text-white mb-5">{language === 'es' ? 'Empresa' : 'Company'}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/auth/login" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Login</Link>
-                <Link href="/auth/signup" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+                <Link href="/auth/login" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">{language === 'es' ? 'Iniciar Sesión' : 'Login'}</Link>
+                <Link href="/auth/signup" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">{language === 'es' ? 'Registrarse' : 'Sign Up'}</Link>
+                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">{language === 'es' ? 'Contacto' : 'Contact'}</a>
               </div>
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 text-center text-white/40 text-[0.875rem]">
-            © 2026 ToolTime Pro. All rights reserved.
+            {text.copyright}
           </div>
         </div>
       </footer>
