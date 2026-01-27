@@ -4,6 +4,103 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 // ============================================
+// TRANSLATIONS
+// ============================================
+
+const translations = {
+  en: {
+    heroTitle: 'Simple Pricing. Powerful Tools.',
+    heroSubtitle: 'Start with what you need. Add more as you grow. No contracts.',
+    monthly: 'Monthly',
+    annual: 'Annual',
+    save17: 'Save ~17%',
+    choosePlan: 'Choose Your Plan',
+    mostPopular: 'Most Popular',
+    selectPlan: 'Select Plan',
+    selected: '✓ Selected',
+    justNeedOne: 'Just Need One Thing?',
+    justNeedOneDesc: 'Not ready for a full plan? Start with just what you need.',
+    upgradeNote: "💡 Standalone products can be upgraded to full plans anytime — we'll credit what you've paid!",
+    powerAddons: 'Power Add-Ons',
+    powerAddonsDesc: 'Supercharge any plan with these extras.',
+    needExtraWorkers: 'Need Extra Workers?',
+    extraWorkersDesc: 'Add more team members at $2/user/month',
+    optionalOnboarding: 'Optional Onboarding Services',
+    optionalOnboardingDesc: 'Get help setting up. One-time fee.',
+    recommended: 'Recommended',
+    oneTime: 'one-time',
+    yourSelection: 'Your Selection',
+    monthlyTotal: 'Monthly Total',
+    billedYear: 'Billed ${amount}/year',
+    startTrial: 'Start 14-Day Free Trial →',
+    noCreditCard: 'No credit card required',
+    needDispatch: 'Need the Dispatch Board?',
+    dispatchDesc: 'Real-time crew tracking, drag-and-drop scheduling, and route optimization. Available exclusively in Elite.',
+    getElite: 'Get Elite →',
+    commonQuestions: 'Common Questions',
+    faq1q: 'Can I switch plans later?',
+    faq1a: 'Yes! Upgrade or downgrade anytime. Changes apply to your next billing cycle.',
+    faq2q: "What's included in the trial?",
+    faq2a: 'Full access to your selected plan for 14 days. No credit card needed to start.',
+    faq3q: 'Do I need onboarding?',
+    faq3a: "It's optional but recommended. We'll set everything up so you can focus on your business.",
+    faq4q: 'What if I just need booking OR invoicing?',
+    faq4a: "Start with our $15/mo standalone options. Upgrade to a full plan anytime — we'll credit your payments.",
+    footerText: '© 2026 ToolTime Pro. Built for California contractors.',
+    features: 'Features',
+    pricing: 'Pricing',
+    login: 'Login',
+    plan: 'Plan',
+    extraWorkers: 'Extra Workers',
+  },
+  es: {
+    heroTitle: 'Precios Simples. Herramientas Poderosas.',
+    heroSubtitle: 'Empieza con lo que necesitas. Agrega más mientras creces. Sin contratos.',
+    monthly: 'Mensual',
+    annual: 'Anual',
+    save17: 'Ahorra ~17%',
+    choosePlan: 'Elige Tu Plan',
+    mostPopular: 'Más Popular',
+    selectPlan: 'Seleccionar Plan',
+    selected: '✓ Seleccionado',
+    justNeedOne: '¿Solo Necesitas Una Cosa?',
+    justNeedOneDesc: '¿No estás listo para un plan completo? Empieza con lo que necesitas.',
+    upgradeNote: '💡 Los productos independientes se pueden actualizar a planes completos en cualquier momento — ¡te acreditamos lo que hayas pagado!',
+    powerAddons: 'Complementos Poderosos',
+    powerAddonsDesc: 'Potencia cualquier plan con estos extras.',
+    needExtraWorkers: '¿Necesitas Más Trabajadores?',
+    extraWorkersDesc: 'Agrega más miembros del equipo a $2/usuario/mes',
+    optionalOnboarding: 'Servicios de Configuración Opcionales',
+    optionalOnboardingDesc: 'Obtén ayuda para configurar. Pago único.',
+    recommended: 'Recomendado',
+    oneTime: 'pago único',
+    yourSelection: 'Tu Selección',
+    monthlyTotal: 'Total Mensual',
+    billedYear: 'Facturado ${amount}/año',
+    startTrial: 'Iniciar Prueba Gratis de 14 Días →',
+    noCreditCard: 'Sin tarjeta de crédito',
+    needDispatch: '¿Necesitas el Tablero de Despacho?',
+    dispatchDesc: 'Seguimiento de equipos en tiempo real, programación drag-and-drop y optimización de rutas. Disponible exclusivamente en Elite.',
+    getElite: 'Obtener Elite →',
+    commonQuestions: 'Preguntas Frecuentes',
+    faq1q: '¿Puedo cambiar de plan después?',
+    faq1a: '¡Sí! Actualiza o degrada en cualquier momento. Los cambios aplican a tu próximo ciclo de facturación.',
+    faq2q: '¿Qué incluye la prueba?',
+    faq2a: 'Acceso completo a tu plan seleccionado por 14 días. No se necesita tarjeta de crédito para empezar.',
+    faq3q: '¿Necesito el servicio de configuración?',
+    faq3a: 'Es opcional pero recomendado. Configuramos todo para que puedas enfocarte en tu negocio.',
+    faq4q: '¿Qué si solo necesito reservas O facturación?',
+    faq4a: 'Empieza con nuestras opciones independientes de $15/mes. Actualiza a un plan completo cuando quieras — te acreditamos tus pagos.',
+    footerText: '© 2026 ToolTime Pro. Hecho para contratistas de California.',
+    features: 'Funciones',
+    pricing: 'Precios',
+    login: 'Iniciar Sesión',
+    plan: 'Plan',
+    extraWorkers: 'Trabajadores Extra',
+  },
+};
+
+// ============================================
 // STRIPE PRICE IDS - ALL FROM YOUR ACTUAL STRIPE
 // ============================================
 
@@ -56,141 +153,281 @@ const PRICE_IDS = {
 // PRICING DATA
 // ============================================
 
-const TIERS = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    monthlyPrice: 30,
-    annualPrice: 300,
-    description: 'For solo operators getting organized',
-    workers: 'Up to 5 workers',
-    features: [
-      'Online scheduling & booking',
-      'Smart quoting & invoicing',
-      'GPS clock-in',
-      'Federal compliance (ToolTime Shield)',
-      '1-page website',
-      'Spanish language support',
-      'Chat & email support',
-    ],
-    notIncluded: ['Worker App', 'Time Tracking', 'SMS Notifications', 'Dispatch Board'],
-    popular: false,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    monthlyPrice: 49,
-    annualPrice: 490,
-    description: 'For growing teams who need more tools',
-    workers: 'Up to 15 workers',
-    features: [
-      'Everything in Starter, plus:',
-      'Worker App with GPS',
-      'Time Tracking & Breaks',
-      'California state compliance rules',
-      '3-page website',
-      'SMS notifications',
-      'Review automation',
-      'Phone support',
-    ],
-    notIncluded: ['Dispatch Board', 'Route Optimization'],
-    popular: true,
-  },
-  {
-    id: 'elite',
-    name: 'Elite',
-    monthlyPrice: 79,
-    annualPrice: 790,
-    description: 'Full operations suite for serious businesses',
-    workers: 'Up to 30 workers',
-    features: [
-      'Everything in Pro, plus:',
-      '🗺️ Dispatch Board',
-      'Multi-tech management',
-      'Route optimization',
-      'Local/city compliance rules',
-      '5-page website',
-      'Compliance alerts',
-      'Priority support',
-    ],
-    notIncluded: [],
-    popular: false,
-    highlight: 'dispatch',
-  },
-];
+const TIERS_DATA = {
+  en: [
+    {
+      id: 'starter',
+      name: 'Starter',
+      monthlyPrice: 30,
+      annualPrice: 300,
+      description: 'For solo operators getting organized',
+      workers: 'Up to 5 workers',
+      features: [
+        'Online scheduling & booking',
+        'Smart quoting & invoicing',
+        'GPS clock-in',
+        'Federal compliance (ToolTime Shield)',
+        '1-page website',
+        'Spanish language support',
+        'Chat & email support',
+      ],
+      notIncluded: ['Worker App', 'Time Tracking', 'SMS Notifications', 'Dispatch Board'],
+      popular: false,
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      monthlyPrice: 49,
+      annualPrice: 490,
+      description: 'For growing teams who need more tools',
+      workers: 'Up to 15 workers',
+      features: [
+        'Everything in Starter, plus:',
+        'Worker App with GPS',
+        'Time Tracking & Breaks',
+        'California state compliance rules',
+        '3-page website',
+        'SMS notifications',
+        'Review automation',
+        'Phone support',
+      ],
+      notIncluded: ['Dispatch Board', 'Route Optimization'],
+      popular: true,
+    },
+    {
+      id: 'elite',
+      name: 'Elite',
+      monthlyPrice: 79,
+      annualPrice: 790,
+      description: 'Full operations suite for serious businesses',
+      workers: 'Up to 30 workers',
+      features: [
+        'Everything in Pro, plus:',
+        '🗺️ Dispatch Board',
+        'Multi-tech management',
+        'Route optimization',
+        'Local/city compliance rules',
+        '5-page website',
+        'Compliance alerts',
+        'Priority support',
+      ],
+      notIncluded: [],
+      popular: false,
+      highlight: 'dispatch',
+    },
+  ],
+  es: [
+    {
+      id: 'starter',
+      name: 'Inicial',
+      monthlyPrice: 30,
+      annualPrice: 300,
+      description: 'Para operadores solos organizándose',
+      workers: 'Hasta 5 trabajadores',
+      features: [
+        'Programación y reservas en línea',
+        'Cotizaciones y facturación inteligentes',
+        'Registro GPS',
+        'Cumplimiento federal (ToolTime Shield)',
+        'Sitio web de 1 página',
+        'Soporte en español',
+        'Soporte por chat y email',
+      ],
+      notIncluded: ['App de Trabajador', 'Control de Tiempo', 'Notificaciones SMS', 'Tablero de Despacho'],
+      popular: false,
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      monthlyPrice: 49,
+      annualPrice: 490,
+      description: 'Para equipos en crecimiento que necesitan más herramientas',
+      workers: 'Hasta 15 trabajadores',
+      features: [
+        'Todo en Inicial, más:',
+        'App de Trabajador con GPS',
+        'Control de Tiempo y Descansos',
+        'Reglas de cumplimiento de California',
+        'Sitio web de 3 páginas',
+        'Notificaciones SMS',
+        'Automatización de reseñas',
+        'Soporte telefónico',
+      ],
+      notIncluded: ['Tablero de Despacho', 'Optimización de Rutas'],
+      popular: true,
+    },
+    {
+      id: 'elite',
+      name: 'Elite',
+      monthlyPrice: 79,
+      annualPrice: 790,
+      description: 'Suite completa de operaciones para negocios serios',
+      workers: 'Hasta 30 trabajadores',
+      features: [
+        'Todo en Pro, más:',
+        '🗺️ Tablero de Despacho',
+        'Gestión multi-técnico',
+        'Optimización de rutas',
+        'Reglas de cumplimiento local/ciudad',
+        'Sitio web de 5 páginas',
+        'Alertas de cumplimiento',
+        'Soporte prioritario',
+      ],
+      notIncluded: [],
+      popular: false,
+      highlight: 'dispatch',
+    },
+  ],
+};
 
-const STANDALONE = [
-  {
-    id: 'booking_only',
-    name: 'Booking Only',
-    monthlyPrice: 15,
-    annualPrice: 150,
-    icon: '📅',
-    description: 'Just need online booking? Start here.',
-  },
-  {
-    id: 'invoicing_only',
-    name: 'Invoicing Only',
-    monthlyPrice: 15,
-    annualPrice: 150,
-    icon: '🧾',
-    description: 'Just need to send invoices? This is for you.',
-  },
-];
+const STANDALONE_DATA = {
+  en: [
+    {
+      id: 'booking_only',
+      name: 'Booking Only',
+      monthlyPrice: 15,
+      annualPrice: 150,
+      icon: '📅',
+      description: 'Just need online booking? Start here.',
+    },
+    {
+      id: 'invoicing_only',
+      name: 'Invoicing Only',
+      monthlyPrice: 15,
+      annualPrice: 150,
+      icon: '🧾',
+      description: 'Just need to send invoices? This is for you.',
+    },
+  ],
+  es: [
+    {
+      id: 'booking_only',
+      name: 'Solo Reservas',
+      monthlyPrice: 15,
+      annualPrice: 150,
+      icon: '📅',
+      description: '¿Solo necesitas reservas en línea? Empieza aquí.',
+    },
+    {
+      id: 'invoicing_only',
+      name: 'Solo Facturación',
+      monthlyPrice: 15,
+      annualPrice: 150,
+      icon: '🧾',
+      description: '¿Solo necesitas enviar facturas? Esto es para ti.',
+    },
+  ],
+};
 
-const ADDONS = [
-  {
-    id: 'website_builder',
-    name: 'Website Builder',
-    monthlyPrice: 10,
-    icon: '🌐',
-    description: 'Custom landing page built for you',
-    hasAnnual: true,
-  },
-  {
-    id: 'ai_chatbot',
-    name: 'AI Chatbot',
-    monthlyPrice: 19,
-    icon: '💬',
-    description: '24/7 lead capture while you sleep',
-    hasAnnual: false,
-  },
-  {
-    id: 'keep_me_legal',
-    name: 'Keep Me Legal',
-    monthlyPrice: 29,
-    icon: '🛡️',
-    description: 'Compliance monitoring & alerts',
-    hasAnnual: false,
-    highlight: true,
-  },
-  {
-    id: 'extra_page',
-    name: 'Extra Website Page',
-    monthlyPrice: 10,
-    icon: '📄',
-    description: 'Add more pages to your site',
-    hasAnnual: false,
-  },
-];
+const ADDONS_DATA = {
+  en: [
+    {
+      id: 'website_builder',
+      name: 'Website Builder',
+      monthlyPrice: 10,
+      icon: '🌐',
+      description: 'Custom landing page built for you',
+      hasAnnual: true,
+    },
+    {
+      id: 'ai_chatbot',
+      name: 'AI Chatbot',
+      monthlyPrice: 19,
+      icon: '💬',
+      description: '24/7 lead capture while you sleep',
+      hasAnnual: false,
+    },
+    {
+      id: 'keep_me_legal',
+      name: 'Keep Me Legal',
+      monthlyPrice: 29,
+      icon: '🛡️',
+      description: 'Compliance monitoring & alerts',
+      hasAnnual: false,
+      highlight: true,
+    },
+    {
+      id: 'extra_page',
+      name: 'Extra Website Page',
+      monthlyPrice: 10,
+      icon: '📄',
+      description: 'Add more pages to your site',
+      hasAnnual: false,
+    },
+  ],
+  es: [
+    {
+      id: 'website_builder',
+      name: 'Constructor de Sitio Web',
+      monthlyPrice: 10,
+      icon: '🌐',
+      description: 'Página de aterrizaje personalizada hecha para ti',
+      hasAnnual: true,
+    },
+    {
+      id: 'ai_chatbot',
+      name: 'Chatbot IA',
+      monthlyPrice: 19,
+      icon: '💬',
+      description: 'Captura de clientes 24/7 mientras duermes',
+      hasAnnual: false,
+    },
+    {
+      id: 'keep_me_legal',
+      name: 'Mantenme Legal',
+      monthlyPrice: 29,
+      icon: '🛡️',
+      description: 'Monitoreo de cumplimiento y alertas',
+      hasAnnual: false,
+      highlight: true,
+    },
+    {
+      id: 'extra_page',
+      name: 'Página Extra de Sitio Web',
+      monthlyPrice: 10,
+      icon: '📄',
+      description: 'Agrega más páginas a tu sitio',
+      hasAnnual: false,
+    },
+  ],
+};
 
-const ONBOARDING = [
-  {
-    id: 'assisted_onboarding',
-    name: 'Assisted Onboarding',
-    price: 149,
-    description: 'We help you set up your account',
-    features: ['Account setup assistance', 'Import your customer list', '30-min training call'],
-  },
-  {
-    id: 'white_glove',
-    name: 'White Glove Setup',
-    price: 349,
-    description: 'We do everything for you',
-    features: ['Full done-for-you setup', 'Website design & copy', 'Import all data', '1-hour training', '30-day priority support'],
-    recommended: true,
-  },
-];
+const ONBOARDING_DATA = {
+  en: [
+    {
+      id: 'assisted_onboarding',
+      name: 'Assisted Onboarding',
+      price: 149,
+      description: 'We help you set up your account',
+      features: ['Account setup assistance', 'Import your customer list', '30-min training call'],
+    },
+    {
+      id: 'white_glove',
+      name: 'White Glove Setup',
+      price: 349,
+      description: 'We do everything for you',
+      features: ['Full done-for-you setup', 'Website design & copy', 'Import all data', '1-hour training', '30-day priority support'],
+      recommended: true,
+    },
+  ],
+  es: [
+    {
+      id: 'assisted_onboarding',
+      name: 'Configuración Asistida',
+      price: 149,
+      description: 'Te ayudamos a configurar tu cuenta',
+      features: ['Asistencia en configuración de cuenta', 'Importar tu lista de clientes', 'Llamada de entrenamiento de 30 min'],
+    },
+    {
+      id: 'white_glove',
+      name: 'Configuración Premium',
+      price: 349,
+      description: 'Hacemos todo por ti',
+      features: ['Configuración completa hecha para ti', 'Diseño y contenido del sitio web', 'Importar todos los datos', 'Entrenamiento de 1 hora', 'Soporte prioritario por 30 días'],
+      recommended: true,
+    },
+  ],
+};
 
 // ============================================
 // COMPONENT
@@ -203,6 +440,13 @@ export default function PricingPage() {
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [extraWorkers, setExtraWorkers] = useState(0);
+  const [language, setLanguage] = useState('en');
+
+  const t = translations[language];
+  const TIERS = TIERS_DATA[language];
+  const STANDALONE = STANDALONE_DATA[language];
+  const ADDONS = ADDONS_DATA[language];
+  const ONBOARDING = ONBOARDING_DATA[language];
 
   const toggleAddon = (addonId) => {
     setSelectedAddons((prev) =>
@@ -277,19 +521,34 @@ export default function PricingPage() {
       <nav className="nav">
         <Link href="/" className="logo">🛠️ ToolTime Pro</Link>
         <div className="nav-links">
-          <Link href="/#features">Features</Link>
-          <Link href="/pricing" className="active">Pricing</Link>
-          <Link href="/auth/login" className="btn-login">Login</Link>
+          <Link href="/#features">{t.features}</Link>
+          <Link href="/pricing" className="active">{t.pricing}</Link>
+          {/* Language Switcher */}
+          <div className="lang-toggle">
+            <button
+              onClick={() => setLanguage('en')}
+              className={language === 'en' ? 'active' : ''}
+            >
+              🇺🇸
+            </button>
+            <button
+              onClick={() => setLanguage('es')}
+              className={language === 'es' ? 'active' : ''}
+            >
+              🇪🇸
+            </button>
+          </div>
+          <Link href="/auth/login" className="btn-login">{t.login}</Link>
         </div>
       </nav>
 
       {/* Hero */}
       <header className="hero">
-        <h1>Simple Pricing. Powerful Tools.</h1>
-        <p>Start with what you need. Add more as you grow. No contracts.</p>
+        <h1>{t.heroTitle}</h1>
+        <p>{t.heroSubtitle}</p>
 
         <div className="billing-toggle">
-          <span className={!isAnnual ? 'active' : ''}>Monthly</span>
+          <span className={!isAnnual ? 'active' : ''}>{t.monthly}</span>
           <button
             className={`toggle ${isAnnual ? 'on' : ''}`}
             onClick={() => setIsAnnual(!isAnnual)}
@@ -297,7 +556,7 @@ export default function PricingPage() {
             <span className="toggle-knob" />
           </button>
           <span className={isAnnual ? 'active' : ''}>
-            Annual <span className="save-badge">Save ~17%</span>
+            {t.annual} <span className="save-badge">{t.save17}</span>
           </span>
         </div>
       </header>
@@ -305,7 +564,7 @@ export default function PricingPage() {
       <main className="main">
         {/* Main Tiers */}
         <section className="section">
-          <h2>Choose Your Plan</h2>
+          <h2>{t.choosePlan}</h2>
           <div className="tiers-grid">
             {TIERS.map((tier) => (
               <div
@@ -313,7 +572,7 @@ export default function PricingPage() {
                 className={`tier-card ${selectedTier === tier.id ? 'selected' : ''} ${tier.popular ? 'popular' : ''}`}
                 onClick={() => selectTier(tier.id)}
               >
-                {tier.popular && <span className="popular-badge">Most Popular</span>}
+                {tier.popular && <span className="popular-badge">{t.mostPopular}</span>}
 
                 <h3>{tier.name}</h3>
                 <p className="tier-desc">{tier.description}</p>
@@ -345,7 +604,7 @@ export default function PricingPage() {
                 </ul>
 
                 <button className={`select-btn ${selectedTier === tier.id ? 'selected' : ''}`}>
-                  {selectedTier === tier.id ? '✓ Selected' : 'Select Plan'}
+                  {selectedTier === tier.id ? t.selected : t.selectPlan}
                 </button>
               </div>
             ))}
@@ -354,8 +613,8 @@ export default function PricingPage() {
 
         {/* Just Need One Thing */}
         <section className="section standalone-section">
-          <h2>Just Need One Thing?</h2>
-          <p className="section-desc">Not ready for a full plan? Start with just what you need.</p>
+          <h2>{t.justNeedOne}</h2>
+          <p className="section-desc">{t.justNeedOneDesc}</p>
 
           <div className="standalone-grid">
             {STANDALONE.map((item) => (
@@ -378,14 +637,14 @@ export default function PricingPage() {
           </div>
 
           <p className="upgrade-note">
-            💡 Standalone products can be upgraded to full plans anytime — we&apos;ll credit what you&apos;ve paid!
+            {t.upgradeNote}
           </p>
         </section>
 
         {/* Add-ons */}
         <section className="section">
-          <h2>Power Add-Ons</h2>
-          <p className="section-desc">Supercharge any plan with these extras.</p>
+          <h2>{t.powerAddons}</h2>
+          <p className="section-desc">{t.powerAddonsDesc}</p>
 
           <div className="addons-grid">
             {ADDONS.map((addon) => (
@@ -409,8 +668,8 @@ export default function PricingPage() {
 
           {(selectedTier || selectedStandalone) && (
             <div className="extra-workers">
-              <h4>Need Extra Workers?</h4>
-              <p>Add more team members at $2/user/month</p>
+              <h4>{t.needExtraWorkers}</h4>
+              <p>{t.extraWorkersDesc}</p>
               <div className="workers-control">
                 <button onClick={() => setExtraWorkers(Math.max(0, extraWorkers - 1))} disabled={extraWorkers === 0}>−</button>
                 <span className="workers-count">{extraWorkers}</span>
@@ -423,8 +682,8 @@ export default function PricingPage() {
 
         {/* Onboarding */}
         <section className="section">
-          <h2>Optional Onboarding Services</h2>
-          <p className="section-desc">Get help setting up. One-time fee.</p>
+          <h2>{t.optionalOnboarding}</h2>
+          <p className="section-desc">{t.optionalOnboardingDesc}</p>
 
           <div className="onboarding-grid">
             {ONBOARDING.map((option) => (
@@ -433,9 +692,9 @@ export default function PricingPage() {
                 className={`onboarding-card ${selectedOnboarding === option.id ? 'selected' : ''} ${option.recommended ? 'recommended' : ''}`}
                 onClick={() => setSelectedOnboarding(selectedOnboarding === option.id ? null : option.id)}
               >
-                {option.recommended && <span className="recommended-badge">Recommended</span>}
+                {option.recommended && <span className="recommended-badge">{t.recommended}</span>}
                 <h4>{option.name}</h4>
-                <p className="onboarding-price">${option.price} <span>one-time</span></p>
+                <p className="onboarding-price">${option.price} <span>{t.oneTime}</span></p>
                 <p className="onboarding-desc">{option.description}</p>
                 <ul className="onboarding-features">
                   {option.features.map((f, i) => (
@@ -454,13 +713,13 @@ export default function PricingPage() {
         {hasSelection && (
           <section className="summary-section">
             <div className="summary-card">
-              <h3>Your Selection</h3>
+              <h3>{t.yourSelection}</h3>
 
               <div className="summary-items">
                 {selectedTier && (
                   <div className="summary-line main">
-                    <span>{TIERS.find(t => t.id === selectedTier)?.name} Plan</span>
-                    <span>${isAnnual ? Math.round(TIERS.find(t => t.id === selectedTier)?.annualPrice / 12) : TIERS.find(t => t.id === selectedTier)?.monthlyPrice}/mo</span>
+                    <span>{TIERS.find(tier => tier.id === selectedTier)?.name} {t.plan}</span>
+                    <span>${isAnnual ? Math.round(TIERS.find(tier => tier.id === selectedTier)?.annualPrice / 12) : TIERS.find(tier => tier.id === selectedTier)?.monthlyPrice}/mo</span>
                   </div>
                 )}
                 {selectedStandalone && (
@@ -482,7 +741,7 @@ export default function PricingPage() {
 
                 {extraWorkers > 0 && (
                   <div className="summary-line">
-                    <span>👷 {extraWorkers} Extra Workers</span>
+                    <span>👷 {extraWorkers} {t.extraWorkers}</span>
                     <span>+${extraWorkers * 2}/mo</span>
                   </div>
                 )}
@@ -491,25 +750,25 @@ export default function PricingPage() {
               <div className="summary-divider" />
 
               <div className="summary-total">
-                <span>Monthly Total</span>
+                <span>{t.monthlyTotal}</span>
                 <span className="total-amount">${displayPrice}<span>/mo</span></span>
               </div>
 
               {isAnnual && (
-                <p className="annual-total">Billed ${totals.annual}/year</p>
+                <p className="annual-total">{t.billedYear.replace('${amount}', totals.annual)}</p>
               )}
 
               {selectedOnboarding && (
                 <div className="summary-onboarding">
                   <span>+ {ONBOARDING.find(o => o.id === selectedOnboarding)?.name}</span>
-                  <span>${onboardingPrice} one-time</span>
+                  <span>${onboardingPrice} {t.oneTime}</span>
                 </div>
               )}
 
               <button className="cta-btn" onClick={handleCheckout}>
-                Start 14-Day Free Trial →
+                {t.startTrial}
               </button>
-              <p className="cta-note">No credit card required</p>
+              <p className="cta-note">{t.noCreditCard}</p>
             </div>
           </section>
         )}
@@ -519,34 +778,34 @@ export default function PricingPage() {
           <div className="dispatch-content">
             <span className="dispatch-icon">🗺️</span>
             <div>
-              <h3>Need the Dispatch Board?</h3>
-              <p>Real-time crew tracking, drag-and-drop scheduling, and route optimization. Available exclusively in Elite.</p>
+              <h3>{t.needDispatch}</h3>
+              <p>{t.dispatchDesc}</p>
             </div>
             <button onClick={() => selectTier('elite')} className="dispatch-btn">
-              Get Elite →
+              {t.getElite}
             </button>
           </div>
         </section>
 
         {/* FAQ */}
         <section className="section faq-section">
-          <h2>Common Questions</h2>
+          <h2>{t.commonQuestions}</h2>
           <div className="faq-grid">
             <div className="faq-item">
-              <h4>Can I switch plans later?</h4>
-              <p>Yes! Upgrade or downgrade anytime. Changes apply to your next billing cycle.</p>
+              <h4>{t.faq1q}</h4>
+              <p>{t.faq1a}</p>
             </div>
             <div className="faq-item">
-              <h4>What&apos;s included in the trial?</h4>
-              <p>Full access to your selected plan for 14 days. No credit card needed to start.</p>
+              <h4>{t.faq2q}</h4>
+              <p>{t.faq2a}</p>
             </div>
             <div className="faq-item">
-              <h4>Do I need onboarding?</h4>
-              <p>It&apos;s optional but recommended. We&apos;ll set everything up so you can focus on your business.</p>
+              <h4>{t.faq3q}</h4>
+              <p>{t.faq3a}</p>
             </div>
             <div className="faq-item">
-              <h4>What if I just need booking OR invoicing?</h4>
-              <p>Start with our $15/mo standalone options. Upgrade to a full plan anytime — we&apos;ll credit your payments.</p>
+              <h4>{t.faq4q}</h4>
+              <p>{t.faq4a}</p>
             </div>
           </div>
         </section>
@@ -554,7 +813,7 @@ export default function PricingPage() {
 
       {/* Footer */}
       <footer className="footer">
-        <p>© 2026 ToolTime Pro. Built for California contractors.</p>
+        <p>{t.footerText}</p>
         <div className="footer-links">
           <Link href="/terms">Terms</Link>
           <Link href="/privacy">Privacy</Link>
@@ -605,6 +864,28 @@ export default function PricingPage() {
           border: 2px solid var(--gold);
           padding: 0.5rem 1rem;
           border-radius: 6px;
+        }
+        .lang-toggle {
+          display: flex;
+          border: 1px solid rgba(255,255,255,0.3);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+        .lang-toggle button {
+          background: transparent;
+          border: none;
+          color: rgba(255,255,255,0.7);
+          padding: 0.4rem 0.6rem;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.2s;
+        }
+        .lang-toggle button:hover {
+          background: rgba(255,255,255,0.1);
+        }
+        .lang-toggle button.active {
+          background: var(--gold);
+          color: var(--navy);
         }
         .hero {
           background: linear-gradient(135deg, var(--navy), var(--navy-light));

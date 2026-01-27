@@ -3,6 +3,127 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 
+type Language = 'en' | 'es';
+
+const translations = {
+  en: {
+    emergency: 'Emergency?',
+    emergencyDesc: 'For life-threatening emergencies, call 911 immediately',
+    call911: 'Call 911',
+    report: 'Report',
+    myReports: 'My Reports',
+    safetyInfo: 'Safety Info',
+    reportSafetyIssue: 'Report a Safety Issue',
+    reportDesc: 'Report injuries, hazards, near misses, or equipment problems.',
+    emergencyContacts: 'Emergency Contacts',
+    reportsSubmitted: 'reports submitted',
+    noIncidents: 'No incidents reported',
+    greatJob: 'Great job staying safe!',
+    dailySafetyReminders: 'Daily Safety Reminders',
+    tip1: 'Wear appropriate PPE for the job',
+    tip2: 'Stay hydrated, especially in hot weather',
+    tip3: 'Use proper lifting techniques',
+    tip4: 'Report hazards immediately',
+    tip5: 'Take required breaks',
+    californiaRequirements: 'California Requirements',
+    caReq1: 'Heat Illness Prevention Plan required',
+    caReq2: 'Access to water and shade',
+    caReq3: 'Rest breaks in cool areas when hot',
+    caReq4: 'Injury & Illness Prevention Program (IIPP)',
+    ifInjured: "If You're Injured",
+    injury1: 'Get medical attention if needed',
+    injury2: 'Report injury to supervisor immediately',
+    injury3: 'Fill out incident report (use Report tab)',
+    injury4: "You have the right to workers' compensation",
+    reportSafetyIssueModal: 'Report Safety Issue',
+    whatType: 'What type of issue are you reporting?',
+    howSerious: 'How serious is this issue?',
+    continue: 'Continue',
+    back: 'Back',
+    briefTitle: 'Brief Title',
+    location: 'Location',
+    description: 'Description',
+    titlePlaceholder: 'e.g., Broken ladder, Slippery floor',
+    locationPlaceholder: 'e.g., 123 Main St backyard, Warehouse B',
+    descPlaceholder: 'What happened? What did you see? Any injuries?',
+    noteSubmit: 'Your report will be sent to your supervisor. For emergencies, call 911 first.',
+    submitting: 'Submitting...',
+    submitReport: 'Submit Report',
+    enterTitle: 'Please enter a title for the incident',
+    errorSubmitting: 'Error submitting report: ',
+    // Incident types
+    injury: 'Injury',
+    nearMiss: 'Near Miss',
+    hazard: 'Hazard',
+    equipment: 'Equipment Issue',
+    vehicle: 'Vehicle Incident',
+    other: 'Other',
+    // Severity
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    critical: 'Critical',
+  },
+  es: {
+    emergency: '¿Emergencia?',
+    emergencyDesc: 'Para emergencias que amenazan la vida, llame al 911 inmediatamente',
+    call911: 'Llamar 911',
+    report: 'Reportar',
+    myReports: 'Mis Reportes',
+    safetyInfo: 'Info Seguridad',
+    reportSafetyIssue: 'Reportar un Problema de Seguridad',
+    reportDesc: 'Reporta lesiones, peligros, casi accidentes o problemas de equipo.',
+    emergencyContacts: 'Contactos de Emergencia',
+    reportsSubmitted: 'reportes enviados',
+    noIncidents: 'No hay incidentes reportados',
+    greatJob: '¡Excelente trabajo manteniéndote seguro!',
+    dailySafetyReminders: 'Recordatorios de Seguridad Diarios',
+    tip1: 'Usa el EPP apropiado para el trabajo',
+    tip2: 'Mantente hidratado, especialmente en clima caliente',
+    tip3: 'Usa técnicas apropiadas de levantamiento',
+    tip4: 'Reporta peligros inmediatamente',
+    tip5: 'Toma los descansos requeridos',
+    californiaRequirements: 'Requisitos de California',
+    caReq1: 'Plan de Prevención de Enfermedades por Calor requerido',
+    caReq2: 'Acceso a agua y sombra',
+    caReq3: 'Descansos en áreas frescas cuando hace calor',
+    caReq4: 'Programa de Prevención de Lesiones y Enfermedades (IIPP)',
+    ifInjured: 'Si Te Lesionas',
+    injury1: 'Obtén atención médica si es necesario',
+    injury2: 'Reporta la lesión a tu supervisor inmediatamente',
+    injury3: 'Llena el reporte de incidentes (usa la pestaña Reportar)',
+    injury4: 'Tienes derecho a compensación laboral',
+    reportSafetyIssueModal: 'Reportar Problema de Seguridad',
+    whatType: '¿Qué tipo de problema estás reportando?',
+    howSerious: '¿Qué tan serio es este problema?',
+    continue: 'Continuar',
+    back: 'Atrás',
+    briefTitle: 'Título Breve',
+    location: 'Ubicación',
+    description: 'Descripción',
+    titlePlaceholder: 'ej., Escalera rota, Piso resbaloso',
+    locationPlaceholder: 'ej., 123 Calle Main patio trasero, Bodega B',
+    descPlaceholder: '¿Qué pasó? ¿Qué viste? ¿Alguna lesión?',
+    noteSubmit: 'Tu reporte será enviado a tu supervisor. Para emergencias, llama al 911 primero.',
+    submitting: 'Enviando...',
+    submitReport: 'Enviar Reporte',
+    enterTitle: 'Por favor ingresa un título para el incidente',
+    errorSubmitting: 'Error al enviar reporte: ',
+    // Incident types
+    injury: 'Lesión',
+    nearMiss: 'Casi Accidente',
+    hazard: 'Peligro',
+    equipment: 'Problema de Equipo',
+    vehicle: 'Incidente Vehicular',
+    other: 'Otro',
+    // Severity
+    low: 'Bajo',
+    medium: 'Medio',
+    high: 'Alto',
+    critical: 'Crítico',
+  },
+};
+
 interface Incident {
   id: string
   incident_type: string
@@ -20,6 +141,22 @@ interface EmergencyContact {
   role: string
   phone: string
 }
+
+const getIncidentTypes = (t: typeof translations['en']) => [
+  { value: 'injury', label: t.injury, icon: '🤕' },
+  { value: 'near_miss', label: t.nearMiss, icon: '⚠️' },
+  { value: 'hazard', label: t.hazard, icon: '🚧' },
+  { value: 'equipment', label: t.equipment, icon: '🔧' },
+  { value: 'vehicle', label: t.vehicle, icon: '🚗' },
+  { value: 'other', label: t.other, icon: '📋' },
+];
+
+const getSeverityLevels = (t: typeof translations['en']) => [
+  { value: 'low', label: t.low, color: 'bg-green-100 text-green-700' },
+  { value: 'medium', label: t.medium, color: 'bg-yellow-100 text-yellow-700' },
+  { value: 'high', label: t.high, color: 'bg-orange-100 text-orange-700' },
+  { value: 'critical', label: t.critical, color: 'bg-red-100 text-red-700' },
+];
 
 const INCIDENT_TYPES = [
   { value: 'injury', label: 'Injury', icon: '🤕' },
@@ -45,6 +182,11 @@ export default function WorkerSafetyPage() {
   const [loading, setLoading] = useState(true)
   const [showReportModal, setShowReportModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'report' | 'history' | 'info'>('report')
+  const [language, setLanguage] = useState<Language>('en')
+
+  const t = translations[language]
+  const incidentTypes = getIncidentTypes(t)
+  const severityLevels = getSeverityLevels(t)
 
   const fetchIncidents = useCallback(async (cId: string, uId: string) => {
     const { data } = await supabase
@@ -117,24 +259,46 @@ export default function WorkerSafetyPage() {
 
   return (
     <div className="max-w-md mx-auto p-4">
+      {/* Language Toggle */}
+      <div className="flex justify-end mb-4">
+        <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <button
+            onClick={() => setLanguage('en')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+              language === 'en' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage('es')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+              language === 'es' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            ES
+          </button>
+        </div>
+      </div>
+
       {/* Emergency Banner */}
       <div className="bg-red-600 text-white rounded-xl p-4 mb-4">
-        <p className="font-bold text-lg mb-1">🚨 Emergency?</p>
-        <p className="text-red-100 text-sm mb-3">For life-threatening emergencies, call 911 immediately</p>
+        <p className="font-bold text-lg mb-1">🚨 {t.emergency}</p>
+        <p className="text-red-100 text-sm mb-3">{t.emergencyDesc}</p>
         <a
           href="tel:911"
           className="inline-block bg-white text-red-600 font-bold px-6 py-2 rounded-lg"
         >
-          Call 911
+          {t.call911}
         </a>
       </div>
 
       {/* Tabs */}
       <div className="flex bg-white rounded-xl p-1 mb-4 shadow-sm">
         {[
-          { key: 'report', label: 'Report', icon: '📝' },
-          { key: 'history', label: 'My Reports', icon: '📋' },
-          { key: 'info', label: 'Safety Info', icon: 'ℹ️' },
+          { key: 'report', label: t.report, icon: '📝' },
+          { key: 'history', label: t.myReports, icon: '📋' },
+          { key: 'info', label: t.safetyInfo, icon: 'ℹ️' },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -154,13 +318,13 @@ export default function WorkerSafetyPage() {
       {activeTab === 'report' && (
         <div className="space-y-4">
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Report a Safety Issue</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">{t.reportSafetyIssue}</h2>
             <p className="text-sm text-gray-500 mb-4">
-              Report injuries, hazards, near misses, or equipment problems.
+              {t.reportDesc}
             </p>
 
             <div className="grid grid-cols-2 gap-3">
-              {INCIDENT_TYPES.map((type) => (
+              {incidentTypes.map((type) => (
                 <button
                   key={type.value}
                   onClick={() => setShowReportModal(true)}
@@ -175,7 +339,7 @@ export default function WorkerSafetyPage() {
 
           {/* Quick Emergency Contacts */}
           <div className="bg-white rounded-xl p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-3">Emergency Contacts</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">{t.emergencyContacts}</h3>
             <div className="space-y-2">
               {emergencyContacts.map((contact, index) => (
                 <a
@@ -199,15 +363,15 @@ export default function WorkerSafetyPage() {
       {activeTab === 'history' && (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="p-4 border-b">
-            <h2 className="font-semibold text-gray-900">My Reports</h2>
-            <p className="text-sm text-gray-500">{incidents.length} reports submitted</p>
+            <h2 className="font-semibold text-gray-900">{t.myReports}</h2>
+            <p className="text-sm text-gray-500">{incidents.length} {t.reportsSubmitted}</p>
           </div>
 
           {incidents.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <p className="text-4xl mb-2">✅</p>
-              <p>No incidents reported</p>
-              <p className="text-sm">Great job staying safe!</p>
+              <p>{t.noIncidents}</p>
+              <p className="text-sm">{t.greatJob}</p>
             </div>
           ) : (
             <div className="divide-y">
@@ -249,50 +413,50 @@ export default function WorkerSafetyPage() {
         <div className="space-y-4">
           {/* Safety Tips */}
           <div className="bg-white rounded-xl p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-3">Daily Safety Reminders</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">{t.dailySafetyReminders}</h3>
             <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start gap-2">
                 <span className="text-green-500">✓</span>
-                Wear appropriate PPE for the job
+                {t.tip1}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-500">✓</span>
-                Stay hydrated, especially in hot weather
+                {t.tip2}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-500">✓</span>
-                Use proper lifting techniques
+                {t.tip3}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-500">✓</span>
-                Report hazards immediately
+                {t.tip4}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-500">✓</span>
-                Take required breaks
+                {t.tip5}
               </li>
             </ul>
           </div>
 
           {/* California Requirements */}
           <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-            <h3 className="font-semibold text-yellow-800 mb-2">🏛️ California Requirements</h3>
+            <h3 className="font-semibold text-yellow-800 mb-2">🏛️ {t.californiaRequirements}</h3>
             <ul className="space-y-2 text-sm text-yellow-700">
-              <li>• Heat Illness Prevention Plan required</li>
-              <li>• Access to water and shade</li>
-              <li>• Rest breaks in cool areas when hot</li>
-              <li>• Injury & Illness Prevention Program (IIPP)</li>
+              <li>• {t.caReq1}</li>
+              <li>• {t.caReq2}</li>
+              <li>• {t.caReq3}</li>
+              <li>• {t.caReq4}</li>
             </ul>
           </div>
 
           {/* Workers Comp Info */}
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-2">💼 If You&apos;re Injured</h3>
+            <h3 className="font-semibold text-blue-800 mb-2">💼 {t.ifInjured}</h3>
             <ol className="space-y-2 text-sm text-blue-700 list-decimal list-inside">
-              <li>Get medical attention if needed</li>
-              <li>Report injury to supervisor immediately</li>
-              <li>Fill out incident report (use Report tab)</li>
-              <li>You have the right to workers&apos; compensation</li>
+              <li>{t.injury1}</li>
+              <li>{t.injury2}</li>
+              <li>{t.injury3}</li>
+              <li>{t.injury4}</li>
             </ol>
           </div>
         </div>
@@ -303,6 +467,7 @@ export default function WorkerSafetyPage() {
         <ReportIncidentModal
           companyId={companyId}
           userId={userId}
+          language={language}
           onClose={() => setShowReportModal(false)}
           onSave={() => {
             setShowReportModal(false)
@@ -314,12 +479,17 @@ export default function WorkerSafetyPage() {
   )
 }
 
-function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
+function ReportIncidentModal({ companyId, userId, language, onClose, onSave }: {
   companyId: string
   userId: string
+  language: Language
   onClose: () => void
   onSave: () => void
 }) {
+  const t = translations[language]
+  const incidentTypes = getIncidentTypes(t)
+  const severityLevels = getSeverityLevels(t)
+
   const [formData, setFormData] = useState({
     incident_type: 'hazard',
     severity: 'medium',
@@ -332,7 +502,7 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
 
   const handleSubmit = async () => {
     if (!formData.title) {
-      alert('Please enter a title for the incident')
+      alert(t.enterTitle)
       return
     }
 
@@ -351,7 +521,7 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
     })
 
     if (error) {
-      alert('Error submitting report: ' + error.message)
+      alert(t.errorSubmitting + error.message)
       setSaving(false)
       return
     }
@@ -364,7 +534,7 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Report Safety Issue</h2>
+          <h2 className="text-lg font-semibold">{t.reportSafetyIssueModal}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             ✕
           </button>
@@ -372,10 +542,10 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
 
         {step === 'type' && (
           <div className="p-4">
-            <p className="text-sm text-gray-500 mb-4">What type of issue are you reporting?</p>
+            <p className="text-sm text-gray-500 mb-4">{t.whatType}</p>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
-              {INCIDENT_TYPES.map((type) => (
+              {incidentTypes.map((type) => (
                 <button
                   key={type.value}
                   onClick={() => setFormData({ ...formData, incident_type: type.value })}
@@ -391,10 +561,10 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
               ))}
             </div>
 
-            <p className="text-sm text-gray-500 mb-3">How serious is this issue?</p>
+            <p className="text-sm text-gray-500 mb-3">{t.howSerious}</p>
 
             <div className="flex gap-2 mb-6">
-              {SEVERITY_LEVELS.map((level) => (
+              {severityLevels.map((level) => (
                 <button
                   key={level.value}
                   onClick={() => setFormData({ ...formData, severity: level.value })}
@@ -413,7 +583,7 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
               onClick={() => setStep('details')}
               className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700"
             >
-              Continue
+              {t.continue}
             </button>
           </div>
         )}
@@ -424,51 +594,51 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
               onClick={() => setStep('type')}
               className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-1 text-sm"
             >
-              ← Back
+              ← {t.back}
             </button>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Brief Title *
+                  {t.briefTitle} *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Broken ladder, Slippery floor"
+                  placeholder={t.titlePlaceholder}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
+                  {t.location}
                 </label>
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 123 Main St backyard, Warehouse B"
+                  placeholder={t.locationPlaceholder}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t.description}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
                   className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
-                  placeholder="What happened? What did you see? Any injuries?"
+                  placeholder={t.descPlaceholder}
                 />
               </div>
 
               <div className="bg-yellow-50 rounded-xl p-3 text-sm text-yellow-800">
-                <strong>Note:</strong> Your report will be sent to your supervisor. For emergencies, call 911 first.
+                <strong>Note:</strong> {t.noteSubmit}
               </div>
 
               <button
@@ -476,7 +646,7 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
                 disabled={saving || !formData.title}
                 className="w-full py-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 disabled:opacity-50"
               >
-                {saving ? 'Submitting...' : '🚨 Submit Report'}
+                {saving ? t.submitting : `🚨 ${t.submitReport}`}
               </button>
             </div>
           </div>

@@ -3,6 +3,51 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+type Language = 'en' | 'es';
+
+const translations = {
+  en: {
+    clockedIn: 'Clocked In',
+    clockedOut: 'Clocked Out',
+    onMealBreak: 'On Meal Break',
+    onRestBreak: 'On Rest Break',
+    since: 'Since',
+    pleaseWait: 'Please wait...',
+    clockIn: 'CLOCK IN',
+    clockOut: 'CLOCK OUT',
+    endBreak: 'END BREAK',
+    mealBreak: 'Meal Break',
+    restBreak: 'Rest Break',
+    gpsEnabled: 'GPS location enabled',
+    gettingLocation: 'Getting location...',
+    locationDenied: 'Location access denied. Clock in/out will work without GPS.',
+    californiaBreakRules: 'California Break Rules',
+    rule1: '30-min meal break before 5th hour',
+    rule2: '10-min rest break per 4 hours worked',
+    rule3: 'Second meal break if working 10+ hours',
+  },
+  es: {
+    clockedIn: 'Fichado',
+    clockedOut: 'No Fichado',
+    onMealBreak: 'En Descanso de Comida',
+    onRestBreak: 'En Descanso',
+    since: 'Desde',
+    pleaseWait: 'Por favor espera...',
+    clockIn: 'FICHAR ENTRADA',
+    clockOut: 'FICHAR SALIDA',
+    endBreak: 'TERMINAR DESCANSO',
+    mealBreak: 'Descanso Comida',
+    restBreak: 'Descanso Corto',
+    gpsEnabled: 'Ubicación GPS activada',
+    gettingLocation: 'Obteniendo ubicación...',
+    locationDenied: 'Acceso a ubicación denegado. Fichar funcionará sin GPS.',
+    californiaBreakRules: 'Reglas de Descanso de California',
+    rule1: 'Descanso de 30 min antes de la 5ta hora',
+    rule2: 'Descanso de 10 min por cada 4 horas trabajadas',
+    rule3: 'Segundo descanso de comida si trabajas 10+ horas',
+  },
+};
+
 interface TimeEntry {
   id: string
   clock_in: string
@@ -29,6 +74,9 @@ export default function TimeclockPage() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [language, setLanguage] = useState<Language>('en')
+
+  const t = translations[language]
 
   // Update clock every second
   useEffect(() => {
@@ -221,10 +269,32 @@ export default function TimeclockPage() {
 
   return (
     <div className="max-w-md mx-auto">
+      {/* Language Toggle */}
+      <div className="flex justify-end mb-4">
+        <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <button
+            onClick={() => setLanguage('en')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+              language === 'en' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage('es')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+              language === 'es' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            ES
+          </button>
+        </div>
+      </div>
+
       {/* Current Time Display */}
       <div className="bg-white rounded-2xl shadow-sm p-6 text-center mb-4">
         <p className="text-sm text-gray-500 mb-1">
-          {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
         <p className="text-4xl font-bold text-gray-900 font-mono">
           {formatTime(currentTime)}
@@ -239,14 +309,14 @@ export default function TimeclockPage() {
       }`}>
         <div className="text-center">
           <p className="text-lg font-semibold mb-2">
-            {isOnBreak ? `On ${activeBreak.break_type === 'meal' ? 'Meal' : 'Rest'} Break` :
-             isClockedIn ? 'Clocked In' : 'Clocked Out'}
+            {isOnBreak ? (activeBreak.break_type === 'meal' ? t.onMealBreak : t.onRestBreak) :
+             isClockedIn ? t.clockedIn : t.clockedOut}
           </p>
 
           {isClockedIn && (
             <>
               <p className="text-sm text-gray-600">
-                Since {new Date(currentEntry.clock_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                {t.since} {new Date(currentEntry.clock_in).toLocaleTimeString(language === 'es' ? 'es-ES' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
               </p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {formatDuration(currentEntry.clock_in)}
@@ -269,7 +339,7 @@ export default function TimeclockPage() {
           disabled={actionLoading}
           className="w-full py-6 bg-green-600 text-white text-2xl font-bold rounded-2xl hover:bg-green-700 disabled:opacity-50 transition-colors shadow-lg"
         >
-          {actionLoading ? 'Please wait...' : '▶ CLOCK IN'}
+          {actionLoading ? t.pleaseWait : `▶ ${t.clockIn}`}
         </button>
       ) : isOnBreak ? (
         <button
@@ -277,7 +347,7 @@ export default function TimeclockPage() {
           disabled={actionLoading}
           className="w-full py-6 bg-blue-600 text-white text-2xl font-bold rounded-2xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-lg"
         >
-          {actionLoading ? 'Please wait...' : '✓ END BREAK'}
+          {actionLoading ? t.pleaseWait : `✓ ${t.endBreak}`}
         </button>
       ) : (
         <div className="space-y-3">
@@ -286,7 +356,7 @@ export default function TimeclockPage() {
             disabled={actionLoading}
             className="w-full py-6 bg-red-600 text-white text-2xl font-bold rounded-2xl hover:bg-red-700 disabled:opacity-50 transition-colors shadow-lg"
           >
-            {actionLoading ? 'Please wait...' : '⏹ CLOCK OUT'}
+            {actionLoading ? t.pleaseWait : `⏹ ${t.clockOut}`}
           </button>
 
           {/* Break Buttons */}
@@ -296,14 +366,14 @@ export default function TimeclockPage() {
               disabled={actionLoading}
               className="py-4 bg-yellow-500 text-white font-semibold rounded-xl hover:bg-yellow-600 disabled:opacity-50 transition-colors"
             >
-              🍽️ Meal Break
+              🍽️ {t.mealBreak}
             </button>
             <button
               onClick={() => startBreak('rest')}
               disabled={actionLoading}
               className="py-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 disabled:opacity-50 transition-colors"
             >
-              ☕ Rest Break
+              ☕ {t.restBreak}
             </button>
           </div>
         </div>
@@ -312,21 +382,21 @@ export default function TimeclockPage() {
       {/* Location Status */}
       <div className="mt-4 text-center">
         {location ? (
-          <p className="text-sm text-green-600">📍 GPS location enabled</p>
+          <p className="text-sm text-green-600">📍 {t.gpsEnabled}</p>
         ) : locationError ? (
-          <p className="text-sm text-yellow-600">⚠️ {locationError}</p>
+          <p className="text-sm text-yellow-600">⚠️ {t.locationDenied}</p>
         ) : (
-          <p className="text-sm text-gray-500">📍 Getting location...</p>
+          <p className="text-sm text-gray-500">📍 {t.gettingLocation}</p>
         )}
       </div>
 
       {/* California Break Rules Notice */}
       <div className="mt-6 bg-blue-50 rounded-xl p-4">
-        <p className="text-sm font-semibold text-blue-800 mb-2">California Break Rules</p>
+        <p className="text-sm font-semibold text-blue-800 mb-2">{t.californiaBreakRules}</p>
         <ul className="text-xs text-blue-700 space-y-1">
-          <li>• 30-min meal break before 5th hour</li>
-          <li>• 10-min rest break per 4 hours worked</li>
-          <li>• Second meal break if working 10+ hours</li>
+          <li>• {t.rule1}</li>
+          <li>• {t.rule2}</li>
+          <li>• {t.rule3}</li>
         </ul>
       </div>
     </div>

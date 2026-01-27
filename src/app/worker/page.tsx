@@ -15,6 +15,45 @@ import {
 import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
 import { useWorkerJobs } from '@/hooks/useWorkerJobs';
 
+type Language = 'en' | 'es';
+
+const translations = {
+  en: {
+    todaysJobs: "Today's Jobs",
+    completed: 'Completed',
+    currentlyWorking: 'Currently Working',
+    jobInProgress: 'Job In Progress',
+    viewJobDetails: 'View Job Details',
+    unknownCustomer: 'Unknown Customer',
+    noJobsScheduled: 'No jobs scheduled',
+    noJobsAssigned: 'You have no jobs assigned for today',
+    errorLoadingJobs: 'Error Loading Jobs',
+    tryAgain: 'Try Again',
+    // Status labels
+    upcoming: 'Upcoming',
+    inProgress: 'In Progress',
+    completedStatus: 'Completed',
+    cancelled: 'Cancelled',
+  },
+  es: {
+    todaysJobs: 'Trabajos de Hoy',
+    completed: 'Completados',
+    currentlyWorking: 'Trabajando Actualmente',
+    jobInProgress: 'Trabajo en Progreso',
+    viewJobDetails: 'Ver Detalles del Trabajo',
+    unknownCustomer: 'Cliente Desconocido',
+    noJobsScheduled: 'Sin trabajos programados',
+    noJobsAssigned: 'No tienes trabajos asignados para hoy',
+    errorLoadingJobs: 'Error al Cargar Trabajos',
+    tryAgain: 'Intentar de Nuevo',
+    // Status labels
+    upcoming: 'Próximo',
+    inProgress: 'En Progreso',
+    completedStatus: 'Completado',
+    cancelled: 'Cancelado',
+  },
+};
+
 const statusColors = {
   scheduled: 'bg-blue-100 text-blue-700',
   in_progress: 'bg-yellow-100 text-yellow-700',
@@ -22,12 +61,12 @@ const statusColors = {
   cancelled: 'bg-gray-100 text-gray-500',
 };
 
-const statusLabels = {
-  scheduled: 'Upcoming',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-};
+const getStatusLabels = (t: typeof translations['en']) => ({
+  scheduled: t.upcoming,
+  in_progress: t.inProgress,
+  completed: t.completedStatus,
+  cancelled: t.cancelled,
+});
 
 function formatTime(timeStr: string | null): string {
   if (!timeStr) return '';
@@ -45,8 +84,12 @@ export default function WorkerJobsPage() {
     company?.id || null
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [language, setLanguage] = useState<Language>('en');
 
-  const today = new Date().toLocaleDateString('en-US', {
+  const t = translations[language];
+  const statusLabels = getStatusLabels(t);
+
+  const today = new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -79,10 +122,10 @@ export default function WorkerJobsPage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-navy-500 mb-2">Error Loading Jobs</h2>
+        <h2 className="text-lg font-semibold text-navy-500 mb-2">{t.errorLoadingJobs}</h2>
         <p className="text-gray-600 mb-4 text-center">{error}</p>
         <button onClick={handleRefresh} className="btn-secondary">
-          Try Again
+          {t.tryAgain}
         </button>
       </div>
     );
@@ -90,10 +133,32 @@ export default function WorkerJobsPage() {
 
   return (
     <div className="p-4 space-y-4">
+      {/* Language Toggle */}
+      <div className="flex justify-end">
+        <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <button
+            onClick={() => setLanguage('en')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+              language === 'en' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage('es')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+              language === 'es' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            ES
+          </button>
+        </div>
+      </div>
+
       {/* Date Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-navy-500">Today&apos;s Jobs</h1>
+          <h1 className="text-xl font-bold text-navy-500">{t.todaysJobs}</h1>
           <p className="text-sm text-gray-500 flex items-center gap-1">
             <Calendar size={14} />
             {today}
@@ -111,7 +176,7 @@ export default function WorkerJobsPage() {
             <p className="text-2xl font-bold text-navy-500">
               {completedCount}/{todaysJobs.length}
             </p>
-            <p className="text-xs text-gray-500">Completed</p>
+            <p className="text-xs text-gray-500">{t.completed}</p>
           </div>
         </div>
       </div>
@@ -121,14 +186,14 @@ export default function WorkerJobsPage() {
         <div className="bg-gold-50 border-2 border-gold-500 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 bg-gold-500 rounded-full animate-pulse" />
-            <span className="text-sm font-medium text-gold-700">Currently Working</span>
+            <span className="text-sm font-medium text-gold-700">{t.currentlyWorking}</span>
           </div>
           <h3 className="font-bold text-navy-500">
-            {inProgressJob.customer?.name || 'Job In Progress'}
+            {inProgressJob.customer?.name || t.jobInProgress}
           </h3>
           <p className="text-sm text-gray-600">{inProgressJob.title}</p>
           <Link href={`/worker/job?id=${inProgressJob.id}`} className="btn-secondary mt-3 w-full text-center">
-            View Job Details
+            {t.viewJobDetails}
           </Link>
         </div>
       )}
@@ -146,10 +211,10 @@ export default function WorkerJobsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-navy-500">
-                      {job.customer?.name || 'Unknown Customer'}
+                      {job.customer?.name || t.unknownCustomer}
                     </h3>
                     <span className={`badge text-xs ${statusColors[job.status]}`}>
-                      {statusLabels[job.status]}
+                      {statusLabels[job.status as keyof typeof statusLabels]}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600">{job.title}</p>
@@ -176,7 +241,7 @@ export default function WorkerJobsPage() {
               {job.status === 'completed' && (
                 <div className="flex items-center gap-1 mt-3 text-green-600 text-sm">
                   <CheckCircle size={16} />
-                  <span>Completed</span>
+                  <span>{t.completedStatus}</span>
                 </div>
               )}
 
@@ -192,8 +257,8 @@ export default function WorkerJobsPage() {
       ) : (
         <div className="card text-center py-12">
           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600">No jobs scheduled</h3>
-          <p className="text-gray-400 mt-1">You have no jobs assigned for today</p>
+          <h3 className="text-lg font-medium text-gray-600">{t.noJobsScheduled}</h3>
+          <p className="text-gray-400 mt-1">{t.noJobsAssigned}</p>
         </div>
       )}
 
