@@ -276,7 +276,7 @@ export default function PricingPage() {
     <div className="pricing-page">
       {/* Navigation */}
       <nav className="nav">
-        <Link href="/"><Image src="/logo-horizontal-white-01262026.png" alt="ToolTime Pro" width={150} height={34} className="logo-img" /></Link>
+        <Link href="/"><Image src="/logo-01262026.png" alt="ToolTime Pro" width={150} height={34} className="logo-img" /></Link>
         <div className="nav-links">
           <Link href="/#features">Features</Link>
           <Link href="/pricing" className="active">Pricing</Link>
