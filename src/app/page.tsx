@@ -16,42 +16,41 @@ const painPoints = [
   { icon: '⭐', title: 'Zero Reviews', description: 'Happy customers never leave reviews. Your competitor has 100+, you have 3.', solution: 'Automated review request system' },
 ];
 
-// Features data
+// Features data - ordered by key money makers first
 const features = [
+  { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. More reviews = more customers calling you.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: '24/7 AI Chatbot & Lead Capture', description: 'Never miss a lead. Our AI answers questions, captures contact info, and books appointments even at 2am on Sunday.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues. Full compliance tracking built-in.', highlight: true },
+  { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, AB5 compliance checklists. Protect yourself from costly lawsuits.', badge: '🛡️ Legal Protection', highlight: true },
+  { title: 'Dispatch Board — Real-Time Crew Tracking', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
+  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save on gas and fit more jobs in each day.', badge: 'Elite Only' },
   { title: 'Professional Website — Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.' },
-  { title: '24/7 AI Chatbot', description: 'Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.' },
-  { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature.' },
-  { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.' },
-  { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.' },
-  { title: 'HR Document Library', description: '10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.' },
-  { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.' },
-  { title: 'Admin Dashboard', description: 'See jobs, revenue, and crew status at a glance. Track performance and make smarter business decisions.' },
-  { title: 'Dispatch Board', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
-  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save gas money and fit more jobs in each day.', badge: 'Elite Only' },
+  { title: 'Online Booking & Scheduling', description: 'Let customers book online 24/7. Smart calendar prevents double-bookings. Automatic reminders reduce no-shows.' },
+  { title: 'Invoicing & Payments', description: 'Send professional invoices. Accept credit cards with low fees. Get paid faster with automated payment reminders.' },
 ];
 
-// Feature tabs
+// Feature tabs - key money makers highlighted
 const featureTabs = [
+  { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
+  { name: 'Reviews', icon: '⭐', href: '/dashboard', highlight: true },
+  { name: 'AI Chatbot', icon: '🤖', href: '/demo/website', highlight: true },
+  { name: 'Worker App', icon: '👷', href: '/worker' },
+  { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
+  { name: 'Dispatch', icon: '🗺️', href: '/demo/dispatch' },
   { name: 'Website', icon: '🌐', href: '/demo/website' },
-  { name: 'Scheduling', icon: '📅', href: '/demo/scheduling' },
-  { name: 'Quoting', icon: '📝', href: '/demo/quoting' },
-  { name: 'Worker App', icon: '👷', href: '/demo/worker' },
-  { name: 'Compliance & HR', icon: '🛡️', href: '/demo/shield' },
-  { name: 'Payments', icon: '💰', href: '/demo/invoicing' },
-  { name: 'Payroll', icon: '💰', href: '#', comingSoon: true },
 ];
 
-// Demo cards
+// Demo cards - reordered by key money makers first, aligned with actual demo pages
 const demoCards = [
+  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/demo/quoting', badge: '💰 Top Revenue' },
+  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/dashboard', badge: '💰 Top Revenue' },
+  { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/website', badge: '💰 Top Revenue' },
+  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/worker', badge: 'Must Have' },
+  { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/dashboard/shield', badge: 'Legal Protection' },
+  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and route optimization', href: '/demo/dispatch', badge: 'Elite' },
   { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
-  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds with live preview', href: '/demo/quoting' },
-  { icon: '📅', name: 'Online Booking', description: 'Let customers book online + manage your calendar', href: '/demo/booking' },
-  { icon: '🤖', name: 'AI Chatbot', description: '24/7 lead capture that never misses a customer', href: '/demo/chatbot' },
-  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews with SMS follow-ups', href: '/demo/reviews' },
-  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, job details, and compliance tracking', href: '/demo/worker' },
-  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/demo/dashboard' },
-  { icon: '🛡️', name: 'ToolTime Shield', description: 'Worker classification, final pay calculator, HR docs', href: '/demo/shield' },
-  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and drag-and-drop scheduling', href: '/demo/dispatch', badge: 'Elite' },
+  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
 ];
 
 // Pricing plans
@@ -82,9 +81,10 @@ const pricingPlans = [
     popular: true,
     features: [
       'Everything in Starter, plus:',
+      '💰 Smart Quoting with e-signatures',
+      '💰 Review Machine (auto 5-star requests)',
+      '💰 AI Chatbot & Lead Capture',
       'Worker App (GPS clock-in)',
-      'Smart quoting with e-signatures',
-      'Review Machine (auto 5-star requests)',
       'Break tracking + CA compliance alerts',
       'Team scheduling + dispatch',
       'Priority support',
@@ -99,7 +99,7 @@ const pricingPlans = [
     description: 'For established crews',
     features: [
       'Everything in Pro, plus:',
-      'Dispatch Board + Route Optimization',
+      '🗺️ Dispatch Board + Route Optimization',
       'Multiple admin users',
       'Advanced reporting + analytics',
       'Photo verification (clock-in selfies)',
@@ -110,6 +110,34 @@ const pricingPlans = [
     hrFeature: 'HR On-Demand access',
     payrollFeature: 'Payroll (coming soon)',
   },
+];
+
+// Standalone plans - just need one thing
+const standalonePlans = [
+  {
+    id: 'booking_only',
+    name: 'Booking Only',
+    price: 15,
+    annualPrice: 150,
+    icon: '📅',
+    description: 'Just need online booking? Start here.',
+  },
+  {
+    id: 'invoicing_only',
+    name: 'Invoicing Only',
+    price: 15,
+    annualPrice: 150,
+    icon: '🧾',
+    description: 'Just need to send invoices? This is for you.',
+  },
+];
+
+// Add-ons
+const pricingAddOns = [
+  { id: 'website_builder', name: 'Website Builder', price: 10, icon: '🌐', description: 'Custom landing page built for you' },
+  { id: 'ai_chatbot', name: 'AI Chatbot', price: 19, icon: '💬', description: '24/7 lead capture while you sleep' },
+  { id: 'keep_me_legal', name: 'Keep Me Legal', price: 29, icon: '🛡️', description: 'Compliance monitoring & alerts', highlight: true },
+  { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
 ];
 
 export default function Home() {
@@ -354,8 +382,8 @@ export default function Home() {
                 <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat1}</div>
               </div>
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">10x</div>
-                <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat2}</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">3x</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">More jobs closed</div>
               </div>
               <div>
                 <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">0</div>
@@ -477,19 +505,12 @@ export default function Home() {
                 key={index}
                 href={tab.href}
                 className={`px-6 py-3.5 rounded-full font-semibold text-[0.9375rem] transition-all no-underline ${
-                  tab.comingSoon
-                    ? 'bg-white/10 text-white/60 border border-white/10'
-                    : index === 0
-                      ? 'bg-[#f5a623] text-[#1a1a2e] border border-[#f5a623]'
-                      : 'bg-white/10 text-white/80 border border-white/10 hover:bg-white/15 hover:text-white'
+                  index === 0
+                    ? 'bg-[#f5a623] text-[#1a1a2e] border border-[#f5a623]'
+                    : 'bg-white/10 text-white/80 border border-white/10 hover:bg-white/15 hover:text-white'
                 }`}
               >
                 {tab.icon} {tab.name}
-                {tab.comingSoon && (
-                  <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded-[10px] text-[0.625rem] font-bold ml-1.5 align-middle">
-                    COMING SOON
-                  </span>
-                )}
               </Link>
             ))}
           </div>
@@ -657,7 +678,7 @@ export default function Home() {
                   <span className="text-[#8e8e9f]">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                 </div>
 
-                <ul className="space-y-0 mb-8">
+                <ul className="space-y-0 mb-6">
                   {plan.features.map((feature, fIndex) => (
                     <li key={fIndex} className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#1a1a2e] border-b border-gray-100 last:border-0">
                       <span className="text-[#00c853] font-bold min-w-[20px]">✓</span>
@@ -678,6 +699,33 @@ export default function Home() {
                   )}
                 </ul>
 
+                {/* Optional Add-ons */}
+                <div className="border-t border-gray-200 pt-4 mb-6">
+                  <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">Optional Add-ons:</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">Keep Me Legal</span>
+                      <span className="text-[#8e8e9f] ml-auto">$29/mo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">AI Chatbot</span>
+                      <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">Extra Website Page</span>
+                      <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">Website Builder</span>
+                      <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
+                    </label>
+                  </div>
+                </div>
+
                 <Link
                   href={`/auth/signup?plan=${plan.name.toLowerCase()}&billing=${billingPeriod}`}
                   className={`block w-full py-4 rounded-xl font-bold text-center transition-all no-underline ${
@@ -693,6 +741,43 @@ export default function Home() {
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* Just Need One Thing - Standalone Options */}
+          <div className="mt-16 bg-white rounded-[20px] p-10 border-2 border-gray-200">
+            <div className="text-center mb-8">
+              <h3 className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">Just Need One Thing?</h3>
+              <p className="text-[#8e8e9f]">Not ready for a full plan? Start with just what you need.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-6 max-w-[500px] mx-auto">
+              {standalonePlans.map((plan, index) => (
+                <Link
+                  key={index}
+                  href={`/auth/signup?plan=${plan.id}&billing=${billingPeriod}`}
+                  className="border-2 border-gray-200 rounded-xl p-6 text-center hover:border-[#f5a623] transition-all no-underline group"
+                >
+                  <span className="text-[2.5rem] block mb-2">{plan.icon}</span>
+                  <h4 className="text-[1.125rem] font-bold text-[#1a1a2e] mb-1">{plan.name}</h4>
+                  <p className="text-[1.25rem] font-bold text-[#f5a623] mb-2">
+                    ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}/{billingPeriod === 'monthly' ? 'mo' : 'yr'}
+                  </p>
+                  <p className="text-[0.875rem] text-[#8e8e9f]">{plan.description}</p>
+                </Link>
+              ))}
+            </div>
+            <p className="text-center text-[0.875rem] text-[#8e8e9f] mt-6">
+              💡 Upgrade to a full plan anytime — we&apos;ll credit what you&apos;ve paid!
+            </p>
+          </div>
+
+          {/* Full Pricing Page Link */}
+          <div className="text-center mt-10">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 text-[#1a1a2e] font-semibold hover:text-[#f5a623] transition-colors no-underline"
+            >
+              See full pricing details & customize your plan →
+            </Link>
           </div>
         </div>
       </section>
