@@ -10,6 +10,7 @@ export interface InvoiceWithDetails extends Invoice {
     id: string;
     name: string;
     email: string | null;
+    phone: string | null;
   } | null;
   job: {
     id: string;
@@ -66,7 +67,7 @@ export function useInvoices(): UseInvoicesReturn {
         .from('invoices')
         .select(`
           *,
-          customer:customers(id, name, email),
+          customer:customers(id, name, email, phone),
           job:jobs(id, title)
         `)
         .eq('company_id', company.id)
@@ -185,6 +186,31 @@ export function useInvoices(): UseInvoicesReturn {
 
       if (updateError) {
         return { error: updateError };
+      }
+
+      // Send SMS notification if customer has phone number
+      const invoice = invoices.find((i) => i.id === id);
+      if (invoice?.customer?.phone && company?.id) {
+        const invoiceLink = `${window.location.origin}/invoice/${id}`;
+        try {
+          await fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: invoice.customer.phone,
+              template: 'invoice_sent',
+              data: {
+                customerName: invoice.customer.name || 'Customer',
+                companyName: company.name || 'Our team',
+                invoiceLink,
+              },
+              companyId: company.id,
+            }),
+          });
+        } catch {
+          // SMS is optional - don't fail if it fails
+          console.log('SMS notification skipped or failed for invoice:', id);
+        }
       }
 
       await fetchInvoices();

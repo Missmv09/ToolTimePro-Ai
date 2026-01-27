@@ -202,6 +202,38 @@ export function useDispatch(): UseDispatchReturn {
 
       if (assignError) throw assignError;
 
+      // Send SMS notification to worker
+      const job = jobs.find((j) => j.id === jobId);
+      const worker = workers.find((w) => w.id === workerId);
+      if (worker?.phone && job && company?.id) {
+        const timeDisplay = job.scheduled_time_start
+          ? new Date(`2000-01-01T${job.scheduled_time_start}`).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+            })
+          : 'TBD';
+        try {
+          await fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: worker.phone,
+              template: 'worker_assignment',
+              data: {
+                workerName: worker.full_name.split(' ')[0] || 'Team member',
+                customerName: job.customer?.name || 'Customer',
+                address: job.address || 'See app for details',
+                time: timeDisplay,
+              },
+              companyId: company.id,
+            }),
+          });
+        } catch {
+          // SMS is optional - don't fail if it fails
+          console.log('SMS notification skipped or failed for worker:', workerId);
+        }
+      }
+
       await fetchData();
       return { error: null };
     } catch (err) {
