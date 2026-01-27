@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // ============================================
 // STRIPE PRICE IDS - ALL FROM YOUR ACTUAL STRIPE
@@ -244,8 +245,8 @@ export default function PricingPage() {
       }
     });
 
-    monthly += extraWorkers * 2;
-    annual += extraWorkers * 2 * 12;
+    monthly += extraWorkers * 7;
+    annual += extraWorkers * 7 * 12;
 
     return { monthly, annual };
   };
@@ -275,7 +276,7 @@ export default function PricingPage() {
     <div className="pricing-page">
       {/* Navigation */}
       <nav className="nav">
-        <Link href="/" className="logo">🛠️ ToolTime Pro</Link>
+        <Link href="/"><Image src="/logo-01262026.png" alt="ToolTime Pro" width={150} height={34} className="logo-img" /></Link>
         <div className="nav-links">
           <Link href="/#features">Features</Link>
           <Link href="/pricing" className="active">Pricing</Link>
@@ -329,7 +330,7 @@ export default function PricingPage() {
                 )}
 
                 <p className="workers-info">👷 {tier.workers}</p>
-                <p className="workers-extra">+$2/user/mo for additional</p>
+                <p className="workers-extra">+$7/user/mo for additional</p>
 
                 <ul className="features">
                   {tier.features.map((f, i) => (
@@ -410,13 +411,13 @@ export default function PricingPage() {
           {(selectedTier || selectedStandalone) && (
             <div className="extra-workers">
               <h4>Need Extra Workers?</h4>
-              <p>Add more team members at $2/user/month</p>
+              <p>Add more team members at $7/user/month</p>
               <div className="workers-control">
                 <button onClick={() => setExtraWorkers(Math.max(0, extraWorkers - 1))} disabled={extraWorkers === 0}>−</button>
                 <span className="workers-count">{extraWorkers}</span>
                 <button onClick={() => setExtraWorkers(extraWorkers + 1)}>+</button>
               </div>
-              {extraWorkers > 0 && <p className="workers-cost">+${extraWorkers * 2}/mo</p>}
+              {extraWorkers > 0 && <p className="workers-cost">+${extraWorkers * 7}/mo</p>}
             </div>
           )}
         </section>
@@ -483,7 +484,7 @@ export default function PricingPage() {
                 {extraWorkers > 0 && (
                   <div className="summary-line">
                     <span>👷 {extraWorkers} Extra Workers</span>
-                    <span>+${extraWorkers * 2}/mo</span>
+                    <span>+${extraWorkers * 7}/mo</span>
                   </div>
                 )}
               </div>
