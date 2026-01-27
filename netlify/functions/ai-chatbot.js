@@ -1,4 +1,4 @@
-// Netlify Function for AI Chatbot conversations
+// Netlify Function for ToolTime Assistant conversations
 // Uses OpenAI to power real conversations for service businesses
 // Includes in-chat booking flow for seamless appointment scheduling
 

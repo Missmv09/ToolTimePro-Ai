@@ -34,7 +34,7 @@ export default function ChatbotDemoPage() {
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-4xl">🤖</span>
-            <h1 className="text-3xl font-bold">AI Chatbot Demo</h1>
+            <h1 className="text-3xl font-bold">ToolTime Assistant Demo</h1>
           </div>
           <p className="text-white/80">See how our 24/7 AI assistant captures leads while you sleep</p>
         </div>
@@ -87,7 +87,7 @@ export default function ChatbotDemoPage() {
                 href="/auth/register"
                 className="inline-block px-8 py-4 bg-[#f5a623] hover:bg-[#e09000] text-[#1a1a2e] font-bold rounded-lg transition-colors text-lg"
               >
-                Get Your AI Chatbot →
+                Get Your ToolTime Assistant →
               </Link>
               <p className="text-sm text-gray-500 mt-3">Included free with all ToolTime Pro plans</p>
             </div>
