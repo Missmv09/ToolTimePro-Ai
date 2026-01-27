@@ -55,6 +55,12 @@ const TEMPLATES = {
   worker_assignment: (data) =>
     `Hi ${data.workerName}! New job assigned: ${data.customerName} at ${data.address}, ${data.time}. Check the app for details.`,
 
+  quote_sent: (data) =>
+    `Hi ${data.customerName}, your quote from ${data.companyName} is ready! View it here: ${data.quoteLink}`,
+
+  invoice_sent: (data) =>
+    `Hi ${data.customerName}, your invoice from ${data.companyName} is ready. Pay here: ${data.invoiceLink}`,
+
   custom: (data) => data.message,
 };
 
