@@ -25,6 +25,7 @@ export interface Database {
           logo_url: string | null
           plan: string
           stripe_customer_id: string | null
+          booking_settings: Json | null
           created_at: string
           updated_at: string
         }
@@ -40,6 +41,7 @@ export interface Database {
           logo_url?: string | null
           plan?: string
           stripe_customer_id?: string | null
+          booking_settings?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -55,6 +57,7 @@ export interface Database {
           logo_url?: string | null
           plan?: string
           stripe_customer_id?: string | null
+          booking_settings?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -645,6 +648,56 @@ export interface Database {
           created_at?: string
         }
       }
+      review_requests: {
+        Row: {
+          id: string
+          company_id: string | null
+          job_id: string | null
+          customer_id: string | null
+          customer_name: string
+          customer_phone: string | null
+          customer_email: string | null
+          review_link: string | null
+          status: 'pending' | 'sent' | 'clicked' | 'reviewed'
+          channel: 'sms' | 'email'
+          sent_at: string | null
+          clicked_at: string | null
+          reviewed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id?: string | null
+          job_id?: string | null
+          customer_id?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          customer_email?: string | null
+          review_link?: string | null
+          status?: 'pending' | 'sent' | 'clicked' | 'reviewed'
+          channel?: 'sms' | 'email'
+          sent_at?: string | null
+          clicked_at?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string | null
+          job_id?: string | null
+          customer_id?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          customer_email?: string | null
+          review_link?: string | null
+          status?: 'pending' | 'sent' | 'clicked' | 'reviewed'
+          channel?: 'sms' | 'email'
+          sent_at?: string | null
+          clicked_at?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }
@@ -662,6 +715,7 @@ export type Quote = Database['public']['Tables']['quotes']['Row']
 export type Invoice = Database['public']['Tables']['invoices']['Row']
 export type Incident = Database['public']['Tables']['incidents']['Row']
 export type ComplianceAlert = Database['public']['Tables']['compliance_alerts']['Row']
+export type ReviewRequest = Database['public']['Tables']['review_requests']['Row']
 
 // Insert types
 export type CompanyInsert = Database['public']['Tables']['companies']['Insert']
@@ -676,6 +730,7 @@ export type QuoteInsert = Database['public']['Tables']['quotes']['Insert']
 export type InvoiceInsert = Database['public']['Tables']['invoices']['Insert']
 export type IncidentInsert = Database['public']['Tables']['incidents']['Insert']
 export type ComplianceAlertInsert = Database['public']['Tables']['compliance_alerts']['Insert']
+export type ReviewRequestInsert = Database['public']['Tables']['review_requests']['Insert']
 
 // Update types
 export type CompanyUpdate = Database['public']['Tables']['companies']['Update']
@@ -690,6 +745,7 @@ export type QuoteUpdate = Database['public']['Tables']['quotes']['Update']
 export type InvoiceUpdate = Database['public']['Tables']['invoices']['Update']
 export type IncidentUpdate = Database['public']['Tables']['incidents']['Update']
 export type ComplianceAlertUpdate = Database['public']['Tables']['compliance_alerts']['Update']
+export type ReviewRequestUpdate = Database['public']['Tables']['review_requests']['Update']
 
 // Location type for GPS tracking
 export interface GeoLocation {

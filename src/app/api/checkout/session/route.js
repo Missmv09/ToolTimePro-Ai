@@ -1,7 +1,18 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy initialization to prevent build-time errors when env vars aren't available
+let stripeClient = null;
+
+function getStripe() {
+  if (!stripeClient) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not configured');
+    }
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripeClient;
+}
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -15,6 +26,7 @@ export async function GET(request) {
   }
 
   try {
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     return NextResponse.json({

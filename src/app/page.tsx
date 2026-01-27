@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
+
+type Language = 'en' | 'es';
 
 // Pain points data
 const painPoints = [
@@ -140,29 +143,158 @@ const pricingAddOns = [
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const [language, setLanguage] = useState<Language>('en');
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+
+  const t = {
+    en: {
+      promo: 'Limited Time: Get 2 months free on annual plans.',
+      startTrial: 'Start Free Trial',
+      features: 'Features',
+      industries: 'Industries',
+      pricing: 'Pricing',
+      resources: 'Resources',
+      freeTools: 'Free Tools',
+      getStarted: 'Get Started',
+      badge: 'Built for Service Pros',
+      heroTitle1: 'Run Your Business',
+      heroTitle2: 'Like a Pro',
+      heroSubtitle: "We set it up. You run your business. It's that simple.",
+      cta1: 'Get Started Free',
+      cta2: 'See How It Works',
+      stat1: 'Starting at /month',
+      stat2: 'Cheaper than competitors',
+      stat3: 'Tech skills required',
+      // Dashboard preview
+      todaysOverview: "Today's Overview",
+      jobsToday: 'Jobs Today',
+      revenue: 'Revenue',
+      activeCrew: 'Active Crew',
+      newLeads: 'New Leads',
+      upcomingJobs: 'Upcoming Jobs',
+      lawnCare: 'Lawn care',
+      landscaping: 'Landscaping',
+      poolService: 'Pool service',
+      active: 'Active',
+      next: 'Next',
+      later: 'Later',
+    },
+    es: {
+      promo: 'Tiempo Limitado: Obtén 2 meses gratis en planes anuales.',
+      startTrial: 'Prueba Gratis',
+      features: 'Funciones',
+      industries: 'Industrias',
+      pricing: 'Precios',
+      resources: 'Recursos',
+      freeTools: 'Herramientas Gratis',
+      getStarted: 'Comenzar',
+      badge: 'Hecho para Profesionales',
+      heroTitle1: 'Administra Tu Negocio',
+      heroTitle2: 'Como un Pro',
+      heroSubtitle: 'Nosotros lo configuramos. Tú manejas tu negocio. Así de simple.',
+      cta1: 'Empieza Gratis',
+      cta2: 'Ver Cómo Funciona',
+      stat1: 'Desde /mes',
+      stat2: 'Más barato que la competencia',
+      stat3: 'Habilidades técnicas requeridas',
+      // Dashboard preview
+      todaysOverview: 'Resumen de Hoy',
+      jobsToday: 'Trabajos Hoy',
+      revenue: 'Ingresos',
+      activeCrew: 'Equipo Activo',
+      newLeads: 'Nuevos Clientes',
+      upcomingJobs: 'Próximos Trabajos',
+      lawnCare: 'Jardinería',
+      landscaping: 'Paisajismo',
+      poolService: 'Servicio de piscina',
+      active: 'Activo',
+      next: 'Siguiente',
+      later: 'Después',
+    },
+  };
+
+  const text = t[language];
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
+      {/* Promo Banner */}
+      <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
+        <span className="mr-2">🚀</span>
+        {text.promo}
+        <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
+          {text.startTrial}
+        </Link>
+      </div>
+
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2.5 text-[#1a1a2e] font-extrabold text-xl no-underline">
-            <div className="w-[42px] h-[42px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-xl shadow-[0_4px_12px_rgba(245,166,35,0.3)]">
-              🛠
-            </div>
-            <span>ToolTime Pro</span>
+          <Link href="/">
+            <Image
+              src="/logo-01262026.png"
+              alt="ToolTime Pro"
+              width={180}
+              height={40}
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
 
-          <div className={`hidden md:flex items-center gap-9 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">Features</Link>
-            <Link href="#demos" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">Demos</Link>
-            <Link href="#hr" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">🛡️ HR & Compliance</Link>
-            <Link href="#pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">Pricing</Link>
+          <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
+            <div className="relative">
+              <button className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
+                {text.industries} <span className="text-xs">▼</span>
+              </button>
+            </div>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">{text.pricing}</Link>
+            <div className="relative">
+              <button
+                onClick={() => setResourcesOpen(!resourcesOpen)}
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+              >
+                {text.resources} <span className="text-xs">▼</span>
+              </button>
+              {resourcesOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <Link href="/tools" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🧰 {text.freeTools}
+                  </Link>
+                  <Link href="#demos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🎮 Demos
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Language Switcher */}
+            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                  language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                🇺🇸
+              </button>
+              <button
+                onClick={() => setLanguage('es')}
+                className={`px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                  language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                🇪🇸
+              </button>
+            </div>
+
+            <span className="text-[#5c5c70] text-sm flex items-center gap-1">
+              📞 1-888-555-0123
+            </span>
             <Link
               href="/auth/signup"
-              className="bg-[#1a1a2e] text-white px-6 py-3 rounded-xl font-medium text-[0.9375rem] shadow-[0_4px_12px_rgba(26,26,46,0.08)] hover:bg-[#2d2d44] hover:-translate-y-0.5 transition-all no-underline"
+              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-sm shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
             >
-              Get Started
+              {text.startTrial}
             </Link>
           </div>
 
@@ -177,17 +309,31 @@ export default function Home() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
-            <Link href="#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Features</Link>
+            <Link href="#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{text.features}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">🧰 {text.freeTools}</Link>
             <Link href="#demos" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Demos</Link>
-            <Link href="#hr" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">🛡️ HR & Compliance</Link>
-            <Link href="#pricing" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Pricing</Link>
-            <Link href="/auth/signup" className="bg-[#1a1a2e] text-white px-6 py-3 rounded-xl font-medium text-center no-underline">Get Started</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{text.pricing}</Link>
+            <div className="flex gap-2 pt-2 border-t border-gray-100">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium ${language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
+              >
+                🇺🇸 English
+              </button>
+              <button
+                onClick={() => setLanguage('es')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium ${language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
+              >
+                🇪🇸 Español
+              </button>
+            </div>
+            <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-center no-underline">{text.startTrial}</Link>
           </div>
         )}
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-[140px] pb-[100px] bg-white relative overflow-hidden">
+      <section className="pt-[100px] pb-[100px] bg-white relative overflow-hidden">
         {/* Background diagonal */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] hidden lg:block" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)' }} />
         <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(245,166,35,0.12)_0%,transparent_70%)]" />
@@ -197,20 +343,20 @@ export default function Home() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-[#fef3d6] px-[18px] py-2.5 rounded-full text-sm font-bold text-[#1a1a2e] mb-6 border border-[rgba(245,166,35,0.3)]">
               <span className="w-2 h-2 bg-[#00c853] rounded-full animate-pulse" />
-              Built for Service Pros
+              {text.badge}
             </div>
 
             {/* Headline */}
             <h1 className="text-[clamp(2.5rem,5.5vw,4rem)] font-extrabold text-[#1a1a2e] leading-[1.15] tracking-tight mb-6">
-              Run Your Business<br />
+              {text.heroTitle1}<br />
               <span className="text-[#f5a623] relative">
-                Like a Pro
+                {text.heroTitle2}
                 <span className="absolute bottom-1 left-0 right-0 h-2 bg-[#f5a623] opacity-30 -z-10 rounded" />
               </span>
             </h1>
 
             <p className="text-[1.1875rem] text-[#5c5c70] mb-9 max-w-[480px] leading-relaxed">
-              We set it up. You run your business. It&apos;s that simple.
+              {text.heroSubtitle}
             </p>
 
             {/* CTAs */}
@@ -219,13 +365,13 @@ export default function Home() {
                 href="/auth/signup"
                 className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(245,166,35,0.4)] transition-all no-underline"
               >
-                Get Started Free →
+                {text.cta1} →
               </Link>
               <Link
                 href="#features"
                 className="inline-flex items-center gap-2 px-10 py-5 bg-white text-[#1a1a2e] border-2 border-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] hover:bg-[#1a1a2e] hover:text-white transition-all no-underline"
               >
-                See How It Works
+                {text.cta2}
               </Link>
             </div>
 
@@ -233,7 +379,7 @@ export default function Home() {
             <div className="flex gap-12 pt-8 border-t border-gray-200">
               <div>
                 <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$30</div>
-                <div className="text-sm text-[#8e8e9f] mt-1.5">Starting at /month</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat1}</div>
               </div>
               <div>
                 <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">3x</div>
@@ -241,7 +387,7 @@ export default function Home() {
               </div>
               <div>
                 <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">0</div>
-                <div className="text-sm text-[#8e8e9f] mt-1.5">Tech skills required</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat3}</div>
               </div>
             </div>
           </div>
@@ -251,35 +397,35 @@ export default function Home() {
             <div className="bg-white rounded-[20px] p-5 shadow-[0_24px_60px_rgba(26,26,46,0.16)] transform perspective-[1000px] hover:rotate-y-[-2deg] transition-transform duration-500 max-w-[420px]">
               <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 text-white min-h-[380px]">
                 <div className="flex justify-between items-center mb-6">
-                  <div className="text-[1.125rem] font-bold">📊 Today&apos;s Overview</div>
-                  <div className="text-[0.8125rem] opacity-70 font-mono">Jan 19, 2026</div>
+                  <div className="text-[1.125rem] font-bold">📊 {text.todaysOverview}</div>
+                  <div className="text-[0.8125rem] opacity-70 font-mono">{language === 'es' ? '25 Ene, 2026' : 'Jan 25, 2026'}</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-5">
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Jobs Today</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.jobsToday}</div>
                     <div className="text-[1.375rem] font-extrabold">8</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Revenue</div>
-                    <div className="text-[1.375rem] font-extrabold"><span className="opacity-60">$</span>2,450</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.revenue}</div>
+                    <div className="text-[1.375rem] font-extrabold text-[#00c853]"><span className="opacity-60">$</span>2,450</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">Active Crew</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.activeCrew}</div>
                     <div className="text-[1.375rem] font-extrabold">5</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">New Leads</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.newLeads}</div>
                     <div className="text-[1.375rem] font-extrabold">12</div>
                   </div>
                 </div>
 
                 <div className="bg-white/5 rounded-[10px] p-3.5">
-                  <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">Upcoming Jobs</div>
+                  <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">{text.upcomingJobs}</div>
                   {[
-                    { name: '🏠 Martinez Residence', type: 'Lawn care', time: '9:00 AM', status: 'Active', statusColor: 'bg-[#00c853]' },
-                    { name: '🏢 Oak Valley HOA', type: 'Landscaping', time: '11:30 AM', status: 'Next', statusColor: 'bg-[#f5a623]' },
-                    { name: '🏊 Thompson Pool', type: 'Pool service', time: '2:00 PM', status: 'Later', statusColor: 'bg-[#f5a623]' },
+                    { name: '🏠 Martinez Residence', type: text.lawnCare, time: '9:00 AM', status: text.active, statusColor: 'bg-[#00c853]' },
+                    { name: '🏢 Oak Valley HOA', type: text.landscaping, time: '11:30 AM', status: text.next, statusColor: 'bg-[#f5a623]' },
+                    { name: '🏊 Thompson Pool', type: text.poolService, time: '2:00 PM', status: text.later, statusColor: 'bg-[#f5a623]' },
                   ].map((job, i) => (
                     <div key={i} className={`flex justify-between items-center py-2.5 ${i < 2 ? 'border-b border-white/10' : ''}`}>
                       <div>
@@ -667,11 +813,14 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-2.5 text-white font-extrabold text-xl mb-4 no-underline">
-                <div className="w-[42px] h-[42px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-xl">
-                  🛠
-                </div>
-                <span>ToolTime Pro</span>
+              <Link href="/" className="inline-block mb-4">
+                <Image
+                  src="/logo-horizontal-white-01262026.png"
+                  alt="ToolTime Pro"
+                  width={180}
+                  height={40}
+                  className="h-10 w-auto"
+                />
               </Link>
               <p className="text-white/50 text-[0.9375rem] leading-relaxed max-w-[300px]">
                 The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.

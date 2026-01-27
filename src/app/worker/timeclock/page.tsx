@@ -1,997 +1,334 @@
-'use client';
+'use client'
 
-import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import {
-  Clock,
-  MapPin,
-  Camera,
-  Coffee,
-  UtensilsCrossed,
-  Play,
-  Square,
-  AlertTriangle,
-  CheckCircle,
-  ChevronRight,
-  HardHat,
-  ArrowLeft,
-  Loader2,
-  X,
-  AlertCircle,
-  Timer,
-  Bell,
-  Send,
-} from 'lucide-react';
-import { useTimeClock, AttestationData } from '@/hooks/useTimeClock';
-import { useAuth } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
-// Format hours to H:MM
-function formatHours(hours: number): string {
-  const h = Math.floor(hours);
-  const m = Math.floor((hours - h) * 60);
-  return `${h}:${m.toString().padStart(2, '0')}`;
+interface TimeEntry {
+  id: string
+  clock_in: string
+  clock_out: string | null
+  clock_in_location: { lat: number; lng: number } | null
+  clock_out_location: { lat: number; lng: number } | null
+  total_hours: number | null
+  notes: string
 }
 
-// Format time to 12-hour
-function formatTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
+interface ActiveBreak {
+  id: string
+  break_start: string
+  break_type: 'meal' | 'rest'
 }
 
-// Late reasons for tardiness policy compliance
-const LATE_REASONS = [
-  { id: 'traffic', label: 'Traffic/Road conditions' },
-  { id: 'emergency', label: 'Personal emergency' },
-  { id: 'vehicle', label: 'Vehicle issues' },
-  { id: 'notified', label: 'Notified manager in advance' },
-  { id: 'other', label: 'Other' },
-];
+export default function TimeclockPage() {
+  const [userId, setUserId] = useState<string | null>(null)
+  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [currentEntry, setCurrentEntry] = useState<TimeEntry | null>(null)
+  const [activeBreak, setActiveBreak] = useState<ActiveBreak | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationError, setLocationError] = useState<string | null>(null)
 
-// Delay options for running late
-const DELAY_OPTIONS = [
-  { minutes: 15, label: '15 minutes' },
-  { minutes: 30, label: '30 minutes' },
-  { minutes: 60, label: '1 hour' },
-];
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
-export default function TimeClockPage() {
-  const { dbUser, company } = useAuth();
-  const {
-    isLoading,
-    error,
-    currentEntry,
-    todaysBreaks,
-    hoursWorked,
-    isOnBreak,
-    currentBreak,
-    clockIn,
-    clockOut,
-    startBreak,
-    endBreak,
-    waiveMealBreak,
-    checkCompliance,
-  } = useTimeClock();
-
-  const [showCamera, setShowCamera] = useState(false);
-  const [photoData, setPhotoData] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showAttestation, setShowAttestation] = useState(false);
-  const [locationStatus, setLocationStatus] = useState<'pending' | 'granted' | 'denied'>('pending');
-
-  // Late clock-in state
-  const [showLateModal, setShowLateModal] = useState(false);
-  const [minutesLate, setMinutesLate] = useState(0);
-  const [selectedLateReason, setSelectedLateReason] = useState<string | null>(null);
-  const [pendingPhotoData, setPendingPhotoData] = useState<string | null>(null);
-
-  // Running late notification state
-  const [showRunningLateModal, setShowRunningLateModal] = useState(false);
-  const [selectedDelay, setSelectedDelay] = useState<number | null>(null);
-  const [delayReason, setDelayReason] = useState('');
-
-  // Scheduled start time (default 8:00 AM for demo)
-  const [scheduledStartTime] = useState(() => {
-    const now = new Date();
-    now.setHours(8, 0, 0, 0);
-    return now;
-  });
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-
-  // Check location permission on mount
+  // Get location
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.permissions?.query({ name: 'geolocation' }).then((result) => {
-        setLocationStatus(result.state === 'granted' ? 'granted' : 'pending');
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+        },
+        () => {
+          setLocationError('Location access denied. Clock in/out will work without GPS.')
+        }
+      )
     }
-  }, []);
+  }, [])
 
-  // Get compliance alerts
-  const complianceAlerts = checkCompliance();
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-  // Start camera for photo capture
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setShowCamera(true);
-    } catch (err) {
-      console.error('Camera error:', err);
-      // Continue without camera
-      handleClockAction(null);
-    }
-  };
+      setUserId(user.id)
 
-  // Capture photo
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      if (context) {
-        canvasRef.current.width = videoRef.current.videoWidth;
-        canvasRef.current.height = videoRef.current.videoHeight;
-        context.drawImage(videoRef.current, 0, 0);
-        const data = canvasRef.current.toDataURL('image/jpeg', 0.7);
-        setPhotoData(data);
-        stopCamera();
-        handleClockAction(data);
+      const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
+
+      if (userData) {
+        setCompanyId(userData.company_id)
+        fetchCurrentEntry(user.id)
       }
     }
-  };
+    init()
+  }, [])
 
-  // Stop camera
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    setShowCamera(false);
-  };
+  const fetchCurrentEntry = async (uId: string) => {
+    // Get today's open time entry (no clock_out)
+    const today = new Date().toISOString().split('T')[0]
 
-  // Check if clocking in late
-  const checkIfLate = (): number => {
-    const now = new Date();
-    const diffMs = now.getTime() - scheduledStartTime.getTime();
-    const diffMinutes = Math.floor(diffMs / 60000);
-    return diffMinutes > 5 ? diffMinutes : 0;
-  };
+    const { data: entry } = await supabase
+      .from('time_entries')
+      .select('*')
+      .eq('user_id', uId)
+      .is('clock_out', null)
+      .gte('clock_in', today)
+      .order('clock_in', { ascending: false })
+      .limit(1)
+      .single()
 
-  // Handle clock in/out action
-  const handleClockAction = async (photo: string | null) => {
-    if (!currentEntry) {
-      // Check if late (more than 5 minutes past scheduled time)
-      const lateMinutes = checkIfLate();
-      if (lateMinutes > 0) {
-        setMinutesLate(lateMinutes);
-        setPendingPhotoData(photo);
-        setShowLateModal(true);
-        return;
+    if (entry) {
+      setCurrentEntry(entry)
+
+      // Check for active break
+      const { data: breakData } = await supabase
+        .from('breaks')
+        .select('*')
+        .eq('time_entry_id', entry.id)
+        .is('break_end', null)
+        .single()
+
+      if (breakData) {
+        setActiveBreak(breakData)
       }
     }
 
-    await performClockIn(photo);
-  };
-
-  // Perform the actual clock in
-  const performClockIn = async (photo: string | null) => {
-    setIsProcessing(true);
-
-    if (!currentEntry) {
-      // Clock In
-      const result = await clockIn(undefined, photo || undefined);
-      if (!result.success) {
-        alert(result.error);
-      }
-    }
-
-    setIsProcessing(false);
-    setPhotoData(null);
-    setPendingPhotoData(null);
-  };
-
-  // Confirm late clock-in with reason
-  const confirmLateClockIn = async () => {
-    if (!selectedLateReason) return;
-
-    setShowLateModal(false);
-    // Log the late reason (in production, save to database)
-    console.log('Late clock-in recorded:', {
-      minutesLate,
-      reason: selectedLateReason,
-      timestamp: new Date().toISOString(),
-    });
-
-    await performClockIn(pendingPhotoData);
-    setSelectedLateReason(null);
-    setMinutesLate(0);
-  };
-
-  // Notify manager about running late
-  const notifyManagerRunningLate = () => {
-    if (!selectedDelay) return;
-
-    // In production: Send notification to manager via backend
-    console.log('Running late notification:', {
-      delay: selectedDelay,
-      reason: delayReason,
-      timestamp: new Date().toISOString(),
-    });
-
-    setShowRunningLateModal(false);
-    setSelectedDelay(null);
-    setDelayReason('');
-
-    // Show confirmation
-    alert(`Manager notified! You're running ${selectedDelay} minutes late.`);
-  };
-
-  // Handle clock out with attestation
-  const handleClockOut = () => {
-    setShowAttestation(true);
-  };
-
-  // Handle break action
-  const handleBreakAction = async (type: 'meal' | 'rest') => {
-    setIsProcessing(true);
-    if (isOnBreak) {
-      await endBreak();
-    } else {
-      await startBreak(type);
-    }
-    setIsProcessing(false);
-  };
-
-  // Handle waive meal break
-  const handleWaiveMealBreak = async () => {
-    setIsProcessing(true);
-    await waiveMealBreak();
-    setIsProcessing(false);
-  };
-
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-navy-gradient flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 text-gold-500 animate-spin mx-auto mb-4" />
-            <p className="text-white">Loading time clock...</p>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
+    setLoading(false)
   }
 
+  const clockIn = async () => {
+    if (!userId || !companyId) return
+    setActionLoading(true)
+
+    const { data, error } = await supabase
+      .from('time_entries')
+      .insert({
+        user_id: userId,
+        company_id: companyId,
+        clock_in: new Date().toISOString(),
+        clock_in_location: location,
+      })
+      .select()
+      .single()
+
+    if (!error && data) {
+      setCurrentEntry(data)
+    }
+    setActionLoading(false)
+  }
+
+  const clockOut = async () => {
+    if (!currentEntry) return
+    setActionLoading(true)
+
+    const clockOutTime = new Date()
+    const clockInTime = new Date(currentEntry.clock_in)
+    const totalHours = (clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60)
+
+    await supabase
+      .from('time_entries')
+      .update({
+        clock_out: clockOutTime.toISOString(),
+        clock_out_location: location,
+        total_hours: Math.round(totalHours * 100) / 100,
+      })
+      .eq('id', currentEntry.id)
+
+    setCurrentEntry(null)
+    setActiveBreak(null)
+    setActionLoading(false)
+  }
+
+  const startBreak = async (type: 'meal' | 'rest') => {
+    if (!currentEntry) return
+    setActionLoading(true)
+
+    const { data } = await supabase
+      .from('breaks')
+      .insert({
+        time_entry_id: currentEntry.id,
+        break_type: type,
+        break_start: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (data) {
+      setActiveBreak(data)
+    }
+    setActionLoading(false)
+  }
+
+  const endBreak = async () => {
+    if (!activeBreak) return
+    setActionLoading(true)
+
+    const breakStart = new Date(activeBreak.break_start)
+    const breakEnd = new Date()
+    const duration = Math.round((breakEnd.getTime() - breakStart.getTime()) / (1000 * 60))
+
+    await supabase
+      .from('breaks')
+      .update({
+        break_end: breakEnd.toISOString(),
+        duration_minutes: duration,
+      })
+      .eq('id', activeBreak.id)
+
+    setActiveBreak(null)
+    setActionLoading(false)
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    })
+  }
+
+  const formatDuration = (start: string) => {
+    const startTime = new Date(start)
+    const now = new Date()
+    const diff = now.getTime() - startTime.getTime()
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    return `${hours}h ${minutes}m`
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  const isClockedIn = !!currentEntry
+  const isOnBreak = !!activeBreak
+
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-navy-gradient">
-        {/* Header */}
-        <div className="p-4 flex items-center justify-between">
-          <Link href="/dashboard" className="text-white/80 hover:text-white flex items-center gap-2">
-            <ArrowLeft size={20} />
-            Back
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center">
-              <HardHat className="w-5 h-5 text-navy-500" />
-            </div>
-            <span className="font-bold text-white">Time Clock</span>
-          </div>
-          <div className="w-16" /> {/* Spacer for centering */}
+    <div className="max-w-md mx-auto">
+      {/* Current Time Display */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 text-center mb-4">
+        <p className="text-sm text-gray-500 mb-1">
+          {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </p>
+        <p className="text-4xl font-bold text-gray-900 font-mono">
+          {formatTime(currentTime)}
+        </p>
+      </div>
+
+      {/* Status Card */}
+      <div className={`rounded-2xl shadow-sm p-6 mb-4 ${
+        isOnBreak ? 'bg-yellow-50 border-2 border-yellow-300' :
+        isClockedIn ? 'bg-green-50 border-2 border-green-300' :
+        'bg-gray-50 border-2 border-gray-200'
+      }`}>
+        <div className="text-center">
+          <p className="text-lg font-semibold mb-2">
+            {isOnBreak ? `On ${activeBreak.break_type === 'meal' ? 'Meal' : 'Rest'} Break` :
+             isClockedIn ? 'Clocked In' : 'Clocked Out'}
+          </p>
+
+          {isClockedIn && (
+            <>
+              <p className="text-sm text-gray-600">
+                Since {new Date(currentEntry.clock_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {formatDuration(currentEntry.clock_in)}
+              </p>
+            </>
+          )}
+
+          {isOnBreak && (
+            <p className="text-2xl font-bold text-yellow-700 mt-2">
+              {formatDuration(activeBreak.break_start)}
+            </p>
+          )}
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="px-4 pb-8">
-          {/* User Info */}
-          <div className="text-center mb-6">
-            <p className="text-white/60 text-sm">{company?.name}</p>
-            <p className="text-white text-xl font-semibold">{dbUser?.full_name}</p>
-          </div>
+      {/* Main Action Button */}
+      {!isClockedIn ? (
+        <button
+          onClick={clockIn}
+          disabled={actionLoading}
+          className="w-full py-6 bg-green-600 text-white text-2xl font-bold rounded-2xl hover:bg-green-700 disabled:opacity-50 transition-colors shadow-lg"
+        >
+          {actionLoading ? 'Please wait...' : '▶ CLOCK IN'}
+        </button>
+      ) : isOnBreak ? (
+        <button
+          onClick={endBreak}
+          disabled={actionLoading}
+          className="w-full py-6 bg-blue-600 text-white text-2xl font-bold rounded-2xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-lg"
+        >
+          {actionLoading ? 'Please wait...' : '✓ END BREAK'}
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <button
+            onClick={clockOut}
+            disabled={actionLoading}
+            className="w-full py-6 bg-red-600 text-white text-2xl font-bold rounded-2xl hover:bg-red-700 disabled:opacity-50 transition-colors shadow-lg"
+          >
+            {actionLoading ? 'Please wait...' : '⏹ CLOCK OUT'}
+          </button>
 
-          {/* Time Display */}
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-6 mb-6">
-            <div className="text-center">
-              <p className="text-white/60 text-sm mb-2">
-                {currentEntry ? 'Hours Worked Today' : 'Current Time'}
-              </p>
-              <p className="text-5xl font-bold text-white font-mono">
-                {currentEntry
-                  ? formatHours(hoursWorked)
-                  : new Date().toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true,
-                    })}
-              </p>
-              {currentEntry && (
-                <p className="text-white/60 text-sm mt-2">
-                  Clocked in at {formatTime(currentEntry.clock_in)}
-                </p>
-              )}
-            </div>
-
-            {/* Location Status */}
-            <div className="flex items-center justify-center gap-2 mt-4 text-sm">
-              <MapPin className="w-4 h-4 text-gold-500" />
-              <span className="text-white/60">
-                {locationStatus === 'granted'
-                  ? 'Location enabled'
-                  : 'Location will be requested'}
-              </span>
-            </div>
-          </div>
-
-          {/* Compliance Alerts */}
-          {complianceAlerts.length > 0 && (
-            <div className="space-y-3 mb-6">
-              {complianceAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={`p-4 rounded-xl flex items-start gap-3 ${
-                    alert.severity === 'violation'
-                      ? 'bg-red-500/20 border border-red-500/30'
-                      : alert.severity === 'warning'
-                      ? 'bg-amber-500/20 border border-amber-500/30'
-                      : 'bg-blue-500/20 border border-blue-500/30'
-                  }`}
-                >
-                  {alert.severity === 'violation' ? (
-                    <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                  ) : alert.severity === 'warning' ? (
-                    <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                  ) : (
-                    <Timer className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white">{alert.title}</p>
-                    <p className="text-sm text-white/70">{alert.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Main Clock Button */}
-          <div className="flex justify-center mb-6">
-            {!currentEntry ? (
-              <button
-                onClick={() => startCamera()}
-                disabled={isProcessing}
-                className="w-40 h-40 rounded-full bg-green-500 hover:bg-green-400 active:bg-green-600 transition-all flex flex-col items-center justify-center shadow-xl disabled:opacity-50"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-12 h-12 text-white animate-spin" />
-                ) : (
-                  <>
-                    <Play className="w-12 h-12 text-white mb-1" />
-                    <span className="text-white font-bold text-lg">CLOCK IN</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={handleClockOut}
-                disabled={isProcessing || isOnBreak}
-                className="w-40 h-40 rounded-full bg-red-500 hover:bg-red-400 active:bg-red-600 transition-all flex flex-col items-center justify-center shadow-xl disabled:opacity-50 disabled:bg-gray-500"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-12 h-12 text-white animate-spin" />
-                ) : (
-                  <>
-                    <Square className="w-12 h-12 text-white mb-1" />
-                    <span className="text-white font-bold text-lg">CLOCK OUT</span>
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-
-          {/* Break Buttons (only show when clocked in) */}
-          {currentEntry && (
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <button
-                onClick={() => handleBreakAction('meal')}
-                disabled={isProcessing}
-                className={`p-4 rounded-xl flex items-center gap-3 transition-all ${
-                  isOnBreak && currentBreak?.break_type === 'meal'
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                <UtensilsCrossed className="w-6 h-6" />
-                <div className="text-left">
-                  <p className="font-semibold">
-                    {isOnBreak && currentBreak?.break_type === 'meal'
-                      ? 'End Meal Break'
-                      : 'Meal Break'}
-                  </p>
-                  <p className="text-xs opacity-70">30 min unpaid</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleBreakAction('rest')}
-                disabled={isProcessing}
-                className={`p-4 rounded-xl flex items-center gap-3 transition-all ${
-                  isOnBreak && currentBreak?.break_type === 'rest'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                <Coffee className="w-6 h-6" />
-                <div className="text-left">
-                  <p className="font-semibold">
-                    {isOnBreak && currentBreak?.break_type === 'rest'
-                      ? 'End Rest Break'
-                      : 'Rest Break'}
-                  </p>
-                  <p className="text-xs opacity-70">10 min paid</p>
-                </div>
-              </button>
-            </div>
-          )}
-
-          {/* Waive Meal Break Option (only show if under 6 hours and no meal break taken) */}
-          {currentEntry &&
-            hoursWorked < 6 &&
-            hoursWorked >= 4 &&
-            !todaysBreaks.some((b) => b.break_type === 'meal') && (
-              <button
-                onClick={handleWaiveMealBreak}
-                disabled={isProcessing}
-                className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all mb-6"
-              >
-                <p className="text-sm">Waive Meal Break (shifts &le; 6 hours)</p>
-              </button>
-            )}
-
-          {/* Today's Breaks */}
-          {todaysBreaks.length > 0 && (
-            <div className="bg-white/10 backdrop-blur rounded-xl p-4 mb-6">
-              <h3 className="text-white/60 text-sm mb-3">Today&apos;s Breaks</h3>
-              <div className="space-y-2">
-                {todaysBreaks.map((brk) => (
-                  <div
-                    key={brk.id}
-                    className="flex items-center justify-between text-white/80 text-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      {brk.break_type === 'meal' ? (
-                        <UtensilsCrossed className="w-4 h-4" />
-                      ) : (
-                        <Coffee className="w-4 h-4" />
-                      )}
-                      <span className="capitalize">{brk.break_type}</span>
-                      {brk.waived && (
-                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded">Waived</span>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <span>{formatTime(brk.break_start)}</span>
-                      {brk.break_end && (
-                        <>
-                          <span className="mx-1">-</span>
-                          <span>{formatTime(brk.break_end)}</span>
-                        </>
-                      )}
-                      {!brk.break_end && !brk.waived && (
-                        <span className="text-green-400 ml-2">In Progress</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Error Display */}
-          {error && (
-            <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Running Late Button (show when not clocked in) */}
-          {!currentEntry && (
+          {/* Break Buttons */}
+          <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => setShowRunningLateModal(true)}
-              className="w-full p-4 mt-4 rounded-xl border-2 border-amber-500/50 bg-amber-500/10 text-amber-400 font-semibold flex items-center justify-center gap-3 hover:bg-amber-500/20 transition-colors"
+              onClick={() => startBreak('meal')}
+              disabled={actionLoading}
+              className="py-4 bg-yellow-500 text-white font-semibold rounded-xl hover:bg-yellow-600 disabled:opacity-50 transition-colors"
             >
-              <Bell className="w-5 h-5" />
-              Running Late? Notify Manager
+              🍽️ Meal Break
             </button>
-          )}
+            <button
+              onClick={() => startBreak('rest')}
+              disabled={actionLoading}
+              className="py-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 disabled:opacity-50 transition-colors"
+            >
+              ☕ Rest Break
+            </button>
+          </div>
         </div>
+      )}
 
-        {/* Camera Modal */}
-        {showCamera && (
-          <div className="fixed inset-0 bg-black z-50 flex flex-col">
-            <div className="flex items-center justify-between p-4">
-              <button onClick={stopCamera} className="text-white">
-                <X size={24} />
-              </button>
-              <span className="text-white font-semibold">Take a Selfie</span>
-              <div className="w-6" />
-            </div>
-            <div className="flex-1 flex items-center justify-center">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="max-w-full max-h-full object-contain"
-              />
-            </div>
-            <div className="p-6 flex justify-center">
-              <button
-                onClick={capturePhoto}
-                className="w-20 h-20 rounded-full bg-white flex items-center justify-center"
-              >
-                <Camera className="w-8 h-8 text-navy-500" />
-              </button>
-            </div>
-            <canvas ref={canvasRef} className="hidden" />
-          </div>
-        )}
-
-        {/* Attestation Modal */}
-        {showAttestation && (
-          <AttestationModal
-            hoursWorked={hoursWorked}
-            todaysBreaks={todaysBreaks}
-            onComplete={async (attestation) => {
-              setShowAttestation(false);
-              setIsProcessing(true);
-              const result = await clockOut(attestation);
-              if (!result.success) {
-                alert(result.error);
-              }
-              setIsProcessing(false);
-            }}
-            onCancel={() => setShowAttestation(false)}
-          />
-        )}
-
-        {/* Late Clock-In Modal */}
-        {showLateModal && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-navy-600 rounded-2xl p-6 w-full max-w-md border border-white/10">
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={() => {
-                    setShowLateModal(false);
-                    setSelectedLateReason(null);
-                    setPendingPhotoData(null);
-                  }}
-                  className="text-white/50 hover:text-white"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-4">
-                  <Clock className="w-16 h-16 mx-auto text-amber-400" />
-                </div>
-                <h2 className="text-xl font-bold text-white mb-2">Late Clock-In</h2>
-                <p className="text-white/70">
-                  You&apos;re clocking in {minutesLate} minutes late
-                </p>
-              </div>
-
-              {/* Tardiness Policy Reminder */}
-              <div className="bg-amber-500/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
-                <p className="text-sm text-white/90">
-                  <strong className="text-amber-400">Reminder:</strong> Being on time helps our
-                  team deliver great service. Please notify your manager at least 1 hour before
-                  your shift when possible.
-                </p>
-              </div>
-
-              {/* Reason Selection */}
-              <div className="space-y-3 mb-6">
-                {LATE_REASONS.map((reason) => (
-                  <button
-                    key={reason.id}
-                    onClick={() => setSelectedLateReason(reason.id)}
-                    className={`w-full p-4 rounded-xl flex items-center gap-3 border transition-all ${
-                      selectedLateReason === reason.id
-                        ? 'bg-gold-500/20 border-gold-500 text-white'
-                        : 'bg-white/5 border-white/10 text-white/80 hover:border-white/30'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedLateReason === reason.id
-                          ? 'border-gold-500'
-                          : 'border-white/30'
-                      }`}
-                    >
-                      {selectedLateReason === reason.id && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-gold-500" />
-                      )}
-                    </div>
-                    <span>{reason.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={confirmLateClockIn}
-                disabled={!selectedLateReason}
-                className="w-full py-4 bg-gold-500 text-navy-500 font-bold rounded-xl hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Clock In ({minutesLate} min late)
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Running Late Modal */}
-        {showRunningLateModal && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-navy-600 rounded-2xl p-6 w-full max-w-md border border-white/10">
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={() => {
-                    setShowRunningLateModal(false);
-                    setSelectedDelay(null);
-                    setDelayReason('');
-                  }}
-                  className="text-white/50 hover:text-white"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-4">
-                  <Bell className="w-16 h-16 mx-auto text-amber-400" />
-                </div>
-                <h2 className="text-xl font-bold text-white mb-2">Running Late?</h2>
-                <p className="text-white/70">Let your manager know right away</p>
-              </div>
-
-              {/* Delay Selection */}
-              <p className="text-white/60 text-sm mb-3">How late will you be?</p>
-              <div className="space-y-3 mb-4">
-                {DELAY_OPTIONS.map((option) => (
-                  <button
-                    key={option.minutes}
-                    onClick={() => setSelectedDelay(option.minutes)}
-                    className={`w-full p-4 rounded-xl flex items-center gap-3 border transition-all ${
-                      selectedDelay === option.minutes
-                        ? 'bg-gold-500/20 border-gold-500 text-white'
-                        : 'bg-white/5 border-white/10 text-white/80 hover:border-white/30'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedDelay === option.minutes
-                          ? 'border-gold-500'
-                          : 'border-white/30'
-                      }`}
-                    >
-                      {selectedDelay === option.minutes && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-gold-500" />
-                      )}
-                    </div>
-                    <span>{option.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Optional Reason */}
-              <textarea
-                value={delayReason}
-                onChange={(e) => setDelayReason(e.target.value)}
-                placeholder="Reason (optional)"
-                className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 resize-none mb-6"
-                rows={2}
-              />
-
-              <button
-                onClick={notifyManagerRunningLate}
-                disabled={!selectedDelay}
-                className="w-full py-4 bg-gold-500 text-navy-500 font-bold rounded-xl hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <Send className="w-5 h-5" />
-                Notify Manager
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowRunningLateModal(false);
-                  setSelectedDelay(null);
-                  setDelayReason('');
-                }}
-                className="w-full py-3 mt-3 text-white/50 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+      {/* Location Status */}
+      <div className="mt-4 text-center">
+        {location ? (
+          <p className="text-sm text-green-600">📍 GPS location enabled</p>
+        ) : locationError ? (
+          <p className="text-sm text-yellow-600">⚠️ {locationError}</p>
+        ) : (
+          <p className="text-sm text-gray-500">📍 Getting location...</p>
         )}
       </div>
-    </ProtectedRoute>
-  );
-}
 
-// Attestation Modal Component
-interface AttestationModalProps {
-  hoursWorked: number;
-  todaysBreaks: import('@/types/database').Break[];
-  onComplete: (attestation: AttestationData) => void;
-  onCancel: () => void;
-}
-
-function AttestationModal({ hoursWorked, todaysBreaks, onComplete, onCancel }: AttestationModalProps) {
-  const [step, setStep] = useState(1);
-  const [missedMealBreak, setMissedMealBreak] = useState(false);
-  const [missedMealReason, setMissedMealReason] = useState('');
-  const [missedRestBreak, setMissedRestBreak] = useState(false);
-  const [missedRestReason, setMissedRestReason] = useState('');
-  const [signature, setSignature] = useState('');
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isDrawing = useRef(false);
-
-  // Check if breaks were taken
-  const mealBreakTaken = todaysBreaks.some(
-    (b) => b.break_type === 'meal' && (b.break_end || b.waived)
-  );
-  const restBreaksTaken = todaysBreaks.filter(
-    (b) => b.break_type === 'rest' && b.break_end
-  ).length;
-  const restBreaksRequired = Math.floor(hoursWorked / 4);
-
-  // Initialize signature canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas && step === 2) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#1a365d';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-      }
-    }
-  }, [step]);
-
-  // Drawing handlers
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    isDrawing.current = true;
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (ctx && canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-      const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-    }
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (ctx && canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-      const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
-      ctx.lineTo(x, y);
-      ctx.stroke();
-    }
-  };
-
-  const stopDrawing = () => {
-    isDrawing.current = false;
-  };
-
-  const clearSignature = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (ctx && canvas) {
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    setSignature('');
-  };
-
-  const saveSignature = () => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const data = canvas.toDataURL('image/png');
-      setSignature(data);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!signature) {
-      saveSignature();
-    }
-    onComplete({
-      missedMealBreak,
-      missedMealReason: missedMealBreak ? missedMealReason : undefined,
-      missedRestBreak,
-      missedRestReason: missedRestBreak ? missedRestReason : undefined,
-      signature: signature || canvasRef.current?.toDataURL('image/png') || '',
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-navy-500">Clock Out Attestation</h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
-            <X size={24} />
-          </button>
-        </div>
-
-        {step === 1 && (
-          <div className="space-y-6">
-            <p className="text-gray-600">
-              Please confirm your breaks for today. This is required by California labor law.
-            </p>
-
-            {/* Meal Break Question */}
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-start gap-3">
-                <UtensilsCrossed className="w-5 h-5 text-amber-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-navy-500">30-Minute Meal Break</p>
-                  {mealBreakTaken ? (
-                    <div className="flex items-center gap-2 mt-2 text-green-600">
-                      <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">Meal break taken</span>
-                    </div>
-                  ) : hoursWorked >= 5 ? (
-                    <div className="mt-3">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={missedMealBreak}
-                          onChange={(e) => setMissedMealBreak(e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300"
-                        />
-                        <span className="text-sm text-gray-700">
-                          I was unable to take my meal break
-                        </span>
-                      </label>
-                      {missedMealBreak && (
-                        <textarea
-                          value={missedMealReason}
-                          onChange={(e) => setMissedMealReason(e.target.value)}
-                          placeholder="Please explain why..."
-                          className="w-full mt-2 p-2 border rounded-lg text-sm"
-                          rows={2}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Not required for shifts under 5 hours
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Rest Break Question */}
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-start gap-3">
-                <Coffee className="w-5 h-5 text-blue-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-navy-500">10-Minute Rest Breaks</p>
-                  {restBreaksTaken >= restBreaksRequired ? (
-                    <div className="flex items-center gap-2 mt-2 text-green-600">
-                      <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">
-                        {restBreaksTaken} of {restBreaksRequired} rest breaks taken
-                      </span>
-                    </div>
-                  ) : restBreaksRequired > 0 ? (
-                    <div className="mt-3">
-                      <p className="text-sm text-amber-600 mb-2">
-                        {restBreaksTaken} of {restBreaksRequired} rest breaks taken
-                      </p>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={missedRestBreak}
-                          onChange={(e) => setMissedRestBreak(e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300"
-                        />
-                        <span className="text-sm text-gray-700">
-                          I was unable to take all rest breaks
-                        </span>
-                      </label>
-                      {missedRestBreak && (
-                        <textarea
-                          value={missedRestReason}
-                          onChange={(e) => setMissedRestReason(e.target.value)}
-                          placeholder="Please explain why..."
-                          className="w-full mt-2 p-2 border rounded-lg text-sm"
-                          rows={2}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Not required for shifts under 4 hours
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setStep(2)}
-              className="btn-primary w-full flex items-center justify-center gap-2"
-            >
-              Continue to Signature
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4">
-            <p className="text-gray-600 text-sm">
-              By signing below, I confirm that the break information above is accurate and that I
-              have been provided the opportunity to take all required breaks.
-            </p>
-
-            <div className="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden">
-              <canvas
-                ref={canvasRef}
-                width={400}
-                height={150}
-                className="w-full touch-none cursor-crosshair"
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
-              />
-            </div>
-
-            <div className="flex justify-between">
-              <button onClick={clearSignature} className="text-sm text-gray-500 hover:text-gray-700">
-                Clear Signature
-              </button>
-              <button onClick={() => setStep(1)} className="text-sm text-navy-500 hover:underline">
-                Back
-              </button>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              className="btn-secondary w-full flex items-center justify-center gap-2"
-            >
-              <CheckCircle size={18} />
-              Confirm & Clock Out
-            </button>
-          </div>
-        )}
+      {/* California Break Rules Notice */}
+      <div className="mt-6 bg-blue-50 rounded-xl p-4">
+        <p className="text-sm font-semibold text-blue-800 mb-2">California Break Rules</p>
+        <ul className="text-xs text-blue-700 space-y-1">
+          <li>• 30-min meal break before 5th hour</li>
+          <li>• 10-min rest break per 4 hours worked</li>
+          <li>• Second meal break if working 10+ hours</li>
+        </ul>
       </div>
     </div>
-  );
+  )
 }

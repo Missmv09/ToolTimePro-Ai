@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -13,7 +14,6 @@ import {
   Menu,
   X,
   ChevronRight,
-  HardHat,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -80,11 +80,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           }`}
         >
           {/* Logo */}
-          <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-200">
-            <div className="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center">
-              <HardHat className="w-5 h-5 text-navy-500" />
-            </div>
-            <span className="font-bold text-xl text-navy-500">ToolTime Pro</span>
+          <div className="h-16 flex items-center px-4 border-b border-gray-200">
+            <Link href="/dashboard">
+              <Image
+                src="/logo-01262026.png"
+                alt="ToolTime Pro"
+                width={160}
+                height={36}
+                className="h-9 w-auto"
+                priority
+              />
+            </Link>
           </div>
 
           {/* Company Name */}
