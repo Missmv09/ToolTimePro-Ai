@@ -36,10 +36,10 @@ const features = [
 const featureTabs = [
   { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
   { name: 'AI Receptionist', icon: '📞', href: '/demo/phone-receptionist', highlight: true },
-  { name: 'Reviews', icon: '⭐', href: '/dashboard', highlight: true },
+  { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
   { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
-  { name: 'Worker App', icon: '👷', href: '/worker' },
-  { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
+  { name: 'Worker App', icon: '👷', href: '/demo/worker' },
+  { name: 'Compliance & HR', icon: '🛡️', href: '/demo/shield' },
   { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
   { name: 'Dispatch', icon: '📋', href: '/demo/dispatch' },
   { name: 'QuickBooks', icon: '📗', href: '/demo/quickbooks' },
@@ -50,15 +50,15 @@ const featureTabs = [
 const demoCards = [
   { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/demo/quoting', badge: '💰 Top Revenue' },
   { icon: '📞', name: 'AI Phone Receptionist', description: 'Never miss a call. AI answers 24/7, captures leads, books jobs', href: '/demo/phone-receptionist', badge: '💰 Top Revenue' },
-  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/dashboard', badge: '💰 Top Revenue' },
+  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/demo/reviews', badge: '💰 Top Revenue' },
   { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/chatbot', badge: '💰 Top Revenue' },
-  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/worker', badge: 'Must Have' },
-  { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/dashboard/shield', badge: 'Legal Protection' },
+  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/demo/worker', badge: 'Must Have' },
+  { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/demo/shield', badge: 'Legal Protection' },
   { icon: '🗺️', name: 'Route Optimization', description: 'Save gas and fit more jobs into every day', href: '/demo/route-optimization', badge: 'Elite' },
   { icon: '📋', name: 'Dispatch Board', description: 'Real-time crew tracking and job assignment', href: '/demo/dispatch', badge: 'Elite' },
   { icon: '📗', name: 'QuickBooks Sync', description: 'Auto-sync invoices, payments, and customers', href: '/demo/quickbooks' },
   { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
-  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
+  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/demo/dashboard' },
 ];
 
 // Pricing plans
