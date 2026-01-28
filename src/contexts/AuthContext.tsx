@@ -5,6 +5,9 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User as DbUser, Company } from '@/types/database';
 
+// Timeout for auth initialization to prevent infinite loading
+const AUTH_TIMEOUT_MS = 10000;
+
 interface AuthContextType {
   user: User | null;
   dbUser: DbUser | null;
@@ -74,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mountedRef.current = true;
+    const abortController = new AbortController();
 
     // If Supabase isn't configured, skip auth entirely
     if (!isSupabaseConfigured) {
@@ -84,9 +88,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initializeAuth = async () => {
       try {
+        // Set up timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          if (mountedRef.current) {
+            console.warn('Auth loading timeout reached, proceeding without session');
+            setIsLoading(false);
+            abortController.abort();
+          }
+        }, AUTH_TIMEOUT_MS);
+
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
 
-        if (!mountedRef.current) return;
+        clearTimeout(timeoutId);
+
+        if (!mountedRef.current || abortController.signal.aborted) return;
 
         if (error) {
           console.error('Error getting session:', error);
@@ -106,6 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLoading(false);
         }
       } catch (error) {
+        // Ignore abort errors - they're expected when timeout triggers
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
         console.error('Error initializing auth:', error);
         if (mountedRef.current) {
           setAuthError(error instanceof Error ? error.message : 'Authentication error');
@@ -138,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mountedRef.current = false;
+      abortController.abort();
       subscription.unsubscribe();
     };
   }, []);
