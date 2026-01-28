@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { User as DbUser, Company } from '@/types/database';
@@ -11,6 +11,7 @@ interface AuthContextType {
   company: Company | null;
   session: Session | null;
   isLoading: boolean;
+  authError: string | null;
   signUp: (email: string, password: string, fullName: string, companyName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -19,12 +20,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Maximum time to wait for auth initialization (10 seconds)
+const AUTH_TIMEOUT_MS = 10000;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [dbUser, setDbUser] = useState<DbUser | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  const initCompleteRef = useRef(false);
 
   // Fetch user profile and company data
   const fetchUserData = async (userId: string) => {
@@ -35,6 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('id', userId)
         .single();
+
+      if (!mountedRef.current) return;
 
       if (userError && userError.code !== 'PGRST116') {
         console.error('Error fetching user:', userError);
@@ -52,9 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('id', userData.company_id)
             .single();
 
+          if (!mountedRef.current) return;
+
           if (companyError) {
             console.error('Error fetching company:', companyError);
-          } else {
+          } else if (companyData) {
             setCompany(companyData as Company);
           }
         }
@@ -65,20 +76,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    mountedRef.current = true;
+    initCompleteRef.current = false;
+
+    // Safety timeout - ensure loading completes within AUTH_TIMEOUT_MS
+    const safetyTimeout = setTimeout(() => {
+      if (!initCompleteRef.current && mountedRef.current) {
+        console.warn('Auth initialization timeout reached, proceeding without auth');
+        setIsLoading(false);
+        setAuthError('Authentication timed out. Please refresh or try logging in again.');
+      }
+    }, AUTH_TIMEOUT_MS);
+
     // Get initial session
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+
+        if (!mountedRef.current) return;
+
+        if (error) {
+          console.error('Error getting session:', error);
+          setAuthError(error.message);
+          setIsLoading(false);
+          initCompleteRef.current = true;
+          return;
+        }
+
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
 
         if (initialSession?.user) {
           await fetchUserData(initialSession.user.id);
         }
+
+        if (mountedRef.current) {
+          setIsLoading(false);
+          initCompleteRef.current = true;
+        }
       } catch (error) {
         console.error('Error initializing auth:', error);
-      } finally {
-        setIsLoading(false);
+        if (mountedRef.current) {
+          setAuthError(error instanceof Error ? error.message : 'Authentication error');
+          setIsLoading(false);
+          initCompleteRef.current = true;
+        }
       }
     };
 
@@ -87,8 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        if (!mountedRef.current) return;
+
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
+        setAuthError(null);
 
         if (currentSession?.user) {
           await fetchUserData(currentSession.user.id);
@@ -98,10 +143,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         setIsLoading(false);
+        initCompleteRef.current = true;
       }
     );
 
     return () => {
+      mountedRef.current = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -220,6 +268,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     company,
     session,
     isLoading,
+    authError,
     signUp,
     signIn,
     signOut,
