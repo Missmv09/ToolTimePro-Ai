@@ -119,6 +119,7 @@ export interface Database {
           zip: string | null
           notes: string | null
           source: string | null
+          qbo_id: string | null
           created_at: string
           updated_at: string
         }
@@ -134,6 +135,7 @@ export interface Database {
           zip?: string | null
           notes?: string | null
           source?: string | null
+          qbo_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -149,6 +151,7 @@ export interface Database {
           zip?: string | null
           notes?: string | null
           source?: string | null
+          qbo_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -509,6 +512,7 @@ export interface Database {
           paid_at: string | null
           stripe_invoice_id: string | null
           stripe_payment_intent_id: string | null
+          qbo_id: string | null
           notes: string | null
           created_at: string
           updated_at: string
@@ -532,6 +536,7 @@ export interface Database {
           paid_at?: string | null
           stripe_invoice_id?: string | null
           stripe_payment_intent_id?: string | null
+          qbo_id?: string | null
           notes?: string | null
           created_at?: string
           updated_at?: string
@@ -555,6 +560,7 @@ export interface Database {
           paid_at?: string | null
           stripe_invoice_id?: string | null
           stripe_payment_intent_id?: string | null
+          qbo_id?: string | null
           notes?: string | null
           created_at?: string
           updated_at?: string
@@ -701,6 +707,79 @@ export interface Database {
           created_at?: string
         }
       }
+      qbo_connections: {
+        Row: {
+          id: string
+          user_id: string
+          qbo_realm_id: string
+          access_token: string
+          refresh_token: string
+          token_expires_at: string
+          connected_at: string
+          last_sync_at: string | null
+          sync_status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          qbo_realm_id: string
+          access_token: string
+          refresh_token: string
+          token_expires_at: string
+          connected_at?: string
+          last_sync_at?: string | null
+          sync_status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          qbo_realm_id?: string
+          access_token?: string
+          refresh_token?: string
+          token_expires_at?: string
+          connected_at?: string
+          last_sync_at?: string | null
+          sync_status?: string
+          created_at?: string
+        }
+      }
+      qbo_sync_log: {
+        Row: {
+          id: string
+          user_id: string
+          sync_type: string
+          direction: string
+          record_id: string | null
+          qbo_id: string | null
+          status: string
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sync_type: string
+          direction: string
+          record_id?: string | null
+          qbo_id?: string | null
+          status: string
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sync_type?: string
+          direction?: string
+          record_id?: string | null
+          qbo_id?: string | null
+          status?: string
+          error_message?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }
@@ -719,6 +798,8 @@ export type Invoice = Database['public']['Tables']['invoices']['Row']
 export type Incident = Database['public']['Tables']['incidents']['Row']
 export type ComplianceAlert = Database['public']['Tables']['compliance_alerts']['Row']
 export type ReviewRequest = Database['public']['Tables']['review_requests']['Row']
+export type QBOConnection = Database['public']['Tables']['qbo_connections']['Row']
+export type QBOSyncLog = Database['public']['Tables']['qbo_sync_log']['Row']
 
 // Insert types
 export type CompanyInsert = Database['public']['Tables']['companies']['Insert']
@@ -734,6 +815,8 @@ export type InvoiceInsert = Database['public']['Tables']['invoices']['Insert']
 export type IncidentInsert = Database['public']['Tables']['incidents']['Insert']
 export type ComplianceAlertInsert = Database['public']['Tables']['compliance_alerts']['Insert']
 export type ReviewRequestInsert = Database['public']['Tables']['review_requests']['Insert']
+export type QBOConnectionInsert = Database['public']['Tables']['qbo_connections']['Insert']
+export type QBOSyncLogInsert = Database['public']['Tables']['qbo_sync_log']['Insert']
 
 // Update types
 export type CompanyUpdate = Database['public']['Tables']['companies']['Update']
@@ -749,6 +832,8 @@ export type InvoiceUpdate = Database['public']['Tables']['invoices']['Update']
 export type IncidentUpdate = Database['public']['Tables']['incidents']['Update']
 export type ComplianceAlertUpdate = Database['public']['Tables']['compliance_alerts']['Update']
 export type ReviewRequestUpdate = Database['public']['Tables']['review_requests']['Update']
+export type QBOConnectionUpdate = Database['public']['Tables']['qbo_connections']['Update']
+export type QBOSyncLogUpdate = Database['public']['Tables']['qbo_sync_log']['Update']
 
 // Location type for GPS tracking
 export interface GeoLocation {
