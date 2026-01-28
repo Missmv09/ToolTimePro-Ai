@@ -276,7 +276,7 @@ export default function PricingPage() {
     <div className="pricing-page">
       {/* Navigation */}
       <nav className="nav">
-        <Link href="/"><Image src="/logo-horizontal-white-01262026.png" alt="ToolTime Pro" width={150} height={34} className="logo-img" /></Link>
+        <Link href="/"><Image src="/logo-horizontal-white-01262026.png" alt="ToolTime Pro" width={180} height={40} className="logo-img" /></Link>
         <div className="nav-links">
           <Link href="/#features">Features</Link>
           <Link href="/pricing" className="active">Pricing</Link>
@@ -616,9 +616,11 @@ export default function PricingPage() {
         .hero h1 {
           font-size: 2.5rem;
           margin: 0 0 0.5rem;
+          color: #ffffff;
+          font-weight: 800;
         }
         .hero > p {
-          opacity: 0.9;
+          color: rgba(255, 255, 255, 0.95);
           margin: 0 0 2rem;
           font-size: 1.1rem;
         }
