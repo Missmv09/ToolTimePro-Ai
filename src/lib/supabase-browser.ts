@@ -2,7 +2,22 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 let supabaseClient: SupabaseClient | null = null
 
+// SECURITY: Check if a key is a service_role key (should NEVER be used in browser)
+function isServiceRoleKey(key: string): boolean {
+  if (!key) return false
+  try {
+    const parts = key.split('.')
+    if (parts.length !== 3) return false
+    const payload = JSON.parse(atob(parts[1]))
+    return payload.role === 'service_role'
+  } catch {
+    return false
+  }
+}
+
 // Browser-safe Supabase client that doesn't throw if env vars are missing
+// IMPORTANT: This must use NEXT_PUBLIC_SUPABASE_ANON_KEY (the public/anon key)
+// NEVER use SUPABASE_SERVICE_ROLE_KEY in browser code
 export function getSupabaseBrowser(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient
 
@@ -11,6 +26,15 @@ export function getSupabaseBrowser(): SupabaseClient | null {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('Supabase environment variables not configured')
+    return null
+  }
+
+  // SECURITY CHECK: Prevent accidental use of service_role key in browser
+  if (isServiceRoleKey(supabaseAnonKey)) {
+    console.error(
+      'SECURITY ERROR: Service role key detected! ' +
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY must be the anon/public key, NOT the service_role key.'
+    )
     return null
   }
 
