@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
 
 interface BusinessHours {
   [key: string]: { open: string; close: string; enabled: boolean }
@@ -54,9 +55,10 @@ const DEFAULT_BOOKING_SETTINGS: BookingSettings = {
 
 export default function SettingsPage() {
   const [company, setCompany] = useState<Company | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'company' | 'booking'>('company')
+  const [activeTab, setActiveTab] = useState<'company' | 'booking' | 'integrations'>('company')
 
   // Company info form
   const [companyForm, setCompanyForm] = useState({
@@ -82,6 +84,8 @@ export default function SettingsPage() {
         router.push('/auth/login')
         return
       }
+
+      setUserId(user.id)
 
       const { data: userData } = await supabase
         .from('users')
@@ -215,6 +219,16 @@ export default function SettingsPage() {
           }`}
         >
           Online Booking
+        </button>
+        <button
+          onClick={() => setActiveTab('integrations')}
+          className={`px-4 py-2 font-medium border-b-2 -mb-px ${
+            activeTab === 'integrations'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-gray-500 border-transparent hover:text-gray-700'
+          }`}
+        >
+          Integrations
         </button>
       </div>
 
@@ -476,6 +490,27 @@ export default function SettingsPage() {
                 {saving ? 'Saving...' : 'Save Booking Settings'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Integrations Tab */}
+      {activeTab === 'integrations' && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Accounting</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Connect your accounting software to automatically sync customers and invoices.
+            </p>
+          </div>
+
+          {userId && <QuickBooksConnect userId={userId} />}
+
+          {/* Future integrations placeholder */}
+          <div className="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6 text-center">
+            <p className="text-gray-500 text-sm">
+              More integrations coming soon: Xero, FreshBooks, and more.
+            </p>
           </div>
         </div>
       )}
