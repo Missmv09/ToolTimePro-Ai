@@ -1,9 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
+
+const DASHBOARD_TIMEOUT_MS = 10000
 
 interface DashboardStats {
   todayJobs: number
@@ -42,9 +45,10 @@ export default function DashboardPage() {
   const [recentLeads, setRecentLeads] = useState<RecentLead[]>([])
   const [todayJobs, setTodayJobs] = useState<TodayJob[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
   const [companyId, setCompanyId] = useState<string | null>(null)
   const router = useRouter()
+  const { user, dbUser, isLoading: authLoading, isConfigured } = useAuth()
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     const fetchDashboardDataLocal = async (companyId: string) => {
@@ -125,40 +129,89 @@ export default function DashboardPage() {
         monthRevenue,
       })
 
-      setRecentLeads(recentLeadsResult.data || [])
-      setTodayJobs(todayJobsListResult.data || [])
-      setLoading(false)
-    }
-
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
-
-      setUser(user)
-
-      // Get user's company
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-      if (userData?.company_id) {
-        setCompanyId(userData.company_id)
-        fetchDashboardDataLocal(userData.company_id)
-      } else {
+      if (mountedRef.current) {
+        setRecentLeads(recentLeadsResult.data || [])
+        setTodayJobs(todayJobsListResult.data || [])
         setLoading(false)
       }
     }
 
-    getUser()
-  }, [router])
+    mountedRef.current = true
 
-  if (loading) {
+    // Set timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (mountedRef.current && loading) {
+        console.warn('Dashboard loading timeout reached')
+        setLoading(false)
+      }
+    }, DASHBOARD_TIMEOUT_MS)
+
+    // If Supabase isn't configured, show empty dashboard
+    if (!isConfigured) {
+      setLoading(false)
+      clearTimeout(timeoutId)
+      return
+    }
+
+    // Wait for auth to finish loading
+    if (authLoading) {
+      return () => {
+        mountedRef.current = false
+        clearTimeout(timeoutId)
+      }
+    }
+
+    // If no user after auth loading, redirect to login
+    if (!user) {
+      router.push('/auth/login')
+      clearTimeout(timeoutId)
+      return
+    }
+
+    // Use company_id from AuthContext's dbUser if available
+    const userCompanyId = dbUser?.company_id
+
+    if (userCompanyId) {
+      setCompanyId(userCompanyId)
+      fetchDashboardDataLocal(userCompanyId).catch((error) => {
+        console.error('Error fetching dashboard data:', error)
+        if (mountedRef.current) {
+          setLoading(false)
+        }
+      })
+    } else {
+      // Fallback: fetch company_id from database
+      const fetchCompanyId = async () => {
+        try {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', user.id)
+            .single()
+
+          if (mountedRef.current && userData?.company_id) {
+            setCompanyId(userData.company_id)
+            await fetchDashboardDataLocal(userData.company_id)
+          } else if (mountedRef.current) {
+            setLoading(false)
+          }
+        } catch (error) {
+          console.error('Error fetching company:', error)
+          if (mountedRef.current) {
+            setLoading(false)
+          }
+        }
+      }
+      fetchCompanyId()
+    }
+
+    return () => {
+      mountedRef.current = false
+      clearTimeout(timeoutId)
+    }
+  }, [router, user, dbUser, authLoading, isConfigured, loading])
+
+  if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

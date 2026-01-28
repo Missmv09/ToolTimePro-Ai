@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mountedRef.current = true;
-    const abortController = new AbortController();
+    let timeoutId: NodeJS.Timeout;
 
     // If Supabase isn't configured, skip auth entirely
     if (!isSupabaseConfigured) {
@@ -87,25 +87,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const initializeAuth = async () => {
-      try {
-        // Set up timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-          if (mountedRef.current) {
-            console.warn('Auth loading timeout reached, proceeding without session');
-            setIsLoading(false);
-            abortController.abort();
-          }
-        }, AUTH_TIMEOUT_MS);
+      // Set up timeout to prevent infinite loading - this covers the ENTIRE auth flow
+      timeoutId = setTimeout(() => {
+        if (mountedRef.current && isLoading) {
+          console.warn('Auth loading timeout reached, proceeding without session');
+          setIsLoading(false);
+        }
+      }, AUTH_TIMEOUT_MS);
 
+      try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
 
-        clearTimeout(timeoutId);
-
-        if (!mountedRef.current || abortController.signal.aborted) return;
+        if (!mountedRef.current) return;
 
         if (error) {
           console.error('Error getting session:', error);
           setAuthError(error.message);
+          clearTimeout(timeoutId);
           setIsLoading(false);
           return;
         }
@@ -118,16 +116,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (mountedRef.current) {
+          clearTimeout(timeoutId);
           setIsLoading(false);
         }
       } catch (error) {
-        // Ignore abort errors - they're expected when timeout triggers
-        if (error instanceof Error && error.name === 'AbortError') {
-          return;
-        }
         console.error('Error initializing auth:', error);
         if (mountedRef.current) {
           setAuthError(error instanceof Error ? error.message : 'Authentication error');
+          clearTimeout(timeoutId);
           setIsLoading(false);
         }
       }
@@ -145,7 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthError(null);
 
         if (currentSession?.user) {
-          await fetchUserData(currentSession.user.id);
+          // Don't await - let it run in background to avoid blocking
+          fetchUserData(currentSession.user.id).catch(console.error);
         } else {
           setDbUser(null);
           setCompany(null);
@@ -157,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mountedRef.current = false;
-      abortController.abort();
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
