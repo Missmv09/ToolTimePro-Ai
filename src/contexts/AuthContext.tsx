@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User as DbUser, Company } from '@/types/database';
 
 interface AuthContextType {
@@ -12,6 +12,7 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   authError: string | null;
+  isConfigured: boolean;
   signUp: (email: string, password: string, fullName: string, companyName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -19,9 +20,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Maximum time to wait for auth initialization (10 seconds)
-const AUTH_TIMEOUT_MS = 10000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -31,12 +29,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const mountedRef = useRef(true);
-  const initCompleteRef = useRef(false);
 
   // Fetch user profile and company data
   const fetchUserData = async (userId: string) => {
+    if (!isSupabaseConfigured) return;
+
     try {
-      // Fetch user profile
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -53,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userData) {
         setDbUser(userData as DbUser);
 
-        // Fetch company data
         if (userData.company_id) {
           const { data: companyData, error: companyError } = await supabase
             .from('companies')
@@ -77,18 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mountedRef.current = true;
-    initCompleteRef.current = false;
 
-    // Safety timeout - ensure loading completes within AUTH_TIMEOUT_MS
-    const safetyTimeout = setTimeout(() => {
-      if (!initCompleteRef.current && mountedRef.current) {
-        console.warn('Auth initialization timeout reached, proceeding without auth');
-        setIsLoading(false);
-        setAuthError('Authentication timed out. Please refresh or try logging in again.');
-      }
-    }, AUTH_TIMEOUT_MS);
+    // If Supabase isn't configured, skip auth entirely
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured - running without authentication');
+      setIsLoading(false);
+      return;
+    }
 
-    // Get initial session
     const initializeAuth = async () => {
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
@@ -99,7 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error('Error getting session:', error);
           setAuthError(error.message);
           setIsLoading(false);
-          initCompleteRef.current = true;
           return;
         }
 
@@ -112,14 +104,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (mountedRef.current) {
           setIsLoading(false);
-          initCompleteRef.current = true;
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mountedRef.current) {
           setAuthError(error instanceof Error ? error.message : 'Authentication error');
           setIsLoading(false);
-          initCompleteRef.current = true;
         }
       }
     };
@@ -143,13 +133,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         setIsLoading(false);
-        initCompleteRef.current = true;
       }
     );
 
     return () => {
       mountedRef.current = false;
-      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -160,8 +148,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fullName: string,
     companyName: string
   ): Promise<{ error: Error | null }> => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Authentication is not configured') };
+    }
+
     try {
-      // 1. Sign up the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -180,7 +171,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Failed to create user') };
       }
 
-      // 2. Create the company
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .insert({
@@ -195,7 +185,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: companyError };
       }
 
-      // 3. Create the user profile with owner role
       const { error: userError } = await supabase
         .from('users')
         .insert({
@@ -222,6 +211,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string
   ): Promise<{ error: Error | null }> => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Authentication is not configured') };
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -239,6 +232,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!isSupabaseConfigured) return;
+
     await supabase.auth.signOut();
     setUser(null);
     setDbUser(null);
@@ -247,6 +242,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string): Promise<{ error: Error | null }> => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Authentication is not configured') };
+    }
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
@@ -269,6 +268,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     isLoading,
     authError,
+    isConfigured: isSupabaseConfigured,
     signUp,
     signIn,
     signOut,

@@ -37,7 +37,7 @@ const featureTabs = [
   { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
   { name: 'AI Receptionist', icon: '📞', href: '/demo/phone-receptionist', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/dashboard', highlight: true },
-  { name: 'AI Chatbot', icon: '🤖', href: '/demo/chatbot', highlight: true },
+  { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/worker' },
   { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
   { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
