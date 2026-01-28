@@ -1,21 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
+import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
 
-interface BusinessHours {
-  [key: string]: { open: string; close: string; enabled: boolean }
-}
-
-interface BookingSettings {
-  days_ahead: number
-  slot_duration: number
-  business_hours: BusinessHours
-}
-
-interface Company {
-  id: string
+interface CompanyForm {
   name: string
   email: string
   phone: string
@@ -24,42 +15,22 @@ interface Company {
   state: string
   zip: string
   website: string
-  logo_url: string | null
-  booking_settings: BookingSettings | null
-}
-
-const DAYS = [
-  { key: 'sunday', label: 'Sunday' },
-  { key: 'monday', label: 'Monday' },
-  { key: 'tuesday', label: 'Tuesday' },
-  { key: 'wednesday', label: 'Wednesday' },
-  { key: 'thursday', label: 'Thursday' },
-  { key: 'friday', label: 'Friday' },
-  { key: 'saturday', label: 'Saturday' },
-]
-
-const DEFAULT_BOOKING_SETTINGS: BookingSettings = {
-  days_ahead: 14,
-  slot_duration: 30,
-  business_hours: {
-    sunday: { open: '09:00', close: '17:00', enabled: false },
-    monday: { open: '09:00', close: '17:00', enabled: true },
-    tuesday: { open: '09:00', close: '17:00', enabled: true },
-    wednesday: { open: '09:00', close: '17:00', enabled: true },
-    thursday: { open: '09:00', close: '17:00', enabled: true },
-    friday: { open: '09:00', close: '17:00', enabled: true },
-    saturday: { open: '09:00', close: '13:00', enabled: false },
-  },
 }
 
 export default function SettingsPage() {
-  const [company, setCompany] = useState<Company | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, dbUser, company, isLoading } = useAuth()
+  const searchParams = useSearchParams()
+  const [activeTab, setActiveTab] = useState<'account' | 'integrations' | 'subscription'>('account')
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'company' | 'booking'>('company')
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [qboConnected, setQboConnected] = useState(false)
+  const [qboConnectionInfo, setQboConnectionInfo] = useState<{
+    lastSyncAt: string | null
+    syncStatus: string
+  } | null>(null)
 
   // Company info form
-  const [companyForm, setCompanyForm] = useState({
+  const [companyForm, setCompanyForm] = useState<CompanyForm>({
     name: '',
     email: '',
     phone: '',
@@ -70,121 +41,120 @@ export default function SettingsPage() {
     website: '',
   })
 
-  // Booking settings form
-  const [bookingSettings, setBookingSettings] = useState<BookingSettings>(DEFAULT_BOOKING_SETTINGS)
-
-  const router = useRouter()
-
+  // Initialize form when company data loads
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
+    if (company) {
+      setCompanyForm({
+        name: company.name || '',
+        email: company.email || '',
+        phone: company.phone || '',
+        address: company.address || '',
+        city: company.city || '',
+        state: company.state || '',
+        zip: company.zip || '',
+        website: company.website || '',
+      })
+    }
+  }, [company])
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
+  // Check for QBO connection status
+  useEffect(() => {
+    const checkQboConnection = async () => {
+      if (!user) return
 
-      if (userData?.company_id) {
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', userData.company_id)
+      try {
+        const { data, error } = await supabase
+          .from('qbo_connections')
+          .select('last_sync_at, sync_status')
+          .eq('user_id', user.id)
           .single()
 
-        if (companyData) {
-          setCompany(companyData)
-          setCompanyForm({
-            name: companyData.name || '',
-            email: companyData.email || '',
-            phone: companyData.phone || '',
-            address: companyData.address || '',
-            city: companyData.city || '',
-            state: companyData.state || '',
-            zip: companyData.zip || '',
-            website: companyData.website || '',
+        if (data && !error) {
+          setQboConnected(true)
+          setQboConnectionInfo({
+            lastSyncAt: data.last_sync_at,
+            syncStatus: data.sync_status,
           })
-
-          if (companyData.booking_settings) {
-            setBookingSettings({
-              ...DEFAULT_BOOKING_SETTINGS,
-              ...companyData.booking_settings,
-            })
-          }
         }
+      } catch {
+        // No connection found, that's fine
       }
-      setLoading(false)
     }
-    init()
-  }, [router])
+
+    checkQboConnection()
+  }, [user])
+
+  // Check for QBO callback success
+  useEffect(() => {
+    const qboStatus = searchParams.get('qbo')
+    if (qboStatus === 'connected') {
+      setQboConnected(true)
+      setSaveMessage({ type: 'success', text: 'QuickBooks connected successfully!' })
+      setTimeout(() => setSaveMessage(null), 5000)
+    } else if (qboStatus === 'error') {
+      setSaveMessage({ type: 'error', text: 'Failed to connect QuickBooks. Please try again.' })
+      setTimeout(() => setSaveMessage(null), 5000)
+    }
+  }, [searchParams])
 
   const saveCompanyInfo = async () => {
     if (!company) return
     setSaving(true)
+    setSaveMessage(null)
 
-    const { error } = await supabase
-      .from('companies')
-      .update({
-        name: companyForm.name,
-        email: companyForm.email,
-        phone: companyForm.phone,
-        address: companyForm.address,
-        city: companyForm.city,
-        state: companyForm.state,
-        zip: companyForm.zip,
-        website: companyForm.website,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', company.id)
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({
+          name: companyForm.name,
+          email: companyForm.email,
+          phone: companyForm.phone,
+          address: companyForm.address,
+          city: companyForm.city,
+          state: companyForm.state,
+          zip: companyForm.zip,
+          website: companyForm.website,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', company.id)
 
-    if (error) {
-      alert('Error saving: ' + error.message)
-    } else {
-      alert('Company info saved!')
+      if (error) {
+        setSaveMessage({ type: 'error', text: 'Error saving: ' + error.message })
+      } else {
+        setSaveMessage({ type: 'success', text: 'Company info saved!' })
+        setTimeout(() => setSaveMessage(null), 3000)
+      }
+    } catch (err) {
+      setSaveMessage({ type: 'error', text: 'An unexpected error occurred' })
     }
+
     setSaving(false)
   }
 
-  const saveBookingSettings = async () => {
-    if (!company) return
-    setSaving(true)
+  const handleQboDisconnect = async () => {
+    if (!confirm('Are you sure you want to disconnect QuickBooks?')) return
 
-    const { error } = await supabase
-      .from('companies')
-      .update({
-        booking_settings: bookingSettings,
-        updated_at: new Date().toISOString(),
+    try {
+      const response = await fetch('/api/quickbooks/disconnect', {
+        method: 'POST',
       })
-      .eq('id', company.id)
 
-    if (error) {
-      alert('Error saving: ' + error.message)
-    } else {
-      alert('Booking settings saved!')
+      if (response.ok) {
+        setQboConnected(false)
+        setQboConnectionInfo(null)
+        setSaveMessage({ type: 'success', text: 'QuickBooks disconnected' })
+        setTimeout(() => setSaveMessage(null), 3000)
+      } else {
+        throw new Error('Failed to disconnect')
+      }
+    } catch {
+      setSaveMessage({ type: 'error', text: 'Failed to disconnect QuickBooks' })
     }
-    setSaving(false)
   }
 
-  const updateBusinessHours = (day: string, field: 'open' | 'close' | 'enabled', value: string | boolean) => {
-    setBookingSettings({
-      ...bookingSettings,
-      business_hours: {
-        ...bookingSettings.business_hours,
-        [day]: {
-          ...bookingSettings.business_hours[day],
-          [field]: value,
-        },
-      },
-    })
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
@@ -194,288 +164,308 @@ export default function SettingsPage() {
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
 
+      {/* Save Message */}
+      {saveMessage && (
+        <div
+          className={`mb-4 p-4 rounded-lg ${
+            saveMessage.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {saveMessage.text}
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b">
         <button
-          onClick={() => setActiveTab('company')}
-          className={`px-4 py-2 font-medium border-b-2 -mb-px ${
-            activeTab === 'company'
+          onClick={() => setActiveTab('account')}
+          className={`px-4 py-2 font-medium border-b-2 -mb-px transition-colors ${
+            activeTab === 'account'
               ? 'text-blue-600 border-blue-600'
               : 'text-gray-500 border-transparent hover:text-gray-700'
           }`}
         >
-          Company Info
+          Account
         </button>
         <button
-          onClick={() => setActiveTab('booking')}
-          className={`px-4 py-2 font-medium border-b-2 -mb-px ${
-            activeTab === 'booking'
+          onClick={() => setActiveTab('integrations')}
+          className={`px-4 py-2 font-medium border-b-2 -mb-px transition-colors ${
+            activeTab === 'integrations'
               ? 'text-blue-600 border-blue-600'
               : 'text-gray-500 border-transparent hover:text-gray-700'
           }`}
         >
-          Online Booking
+          Integrations
+        </button>
+        <button
+          onClick={() => setActiveTab('subscription')}
+          className={`px-4 py-2 font-medium border-b-2 -mb-px transition-colors ${
+            activeTab === 'subscription'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-gray-500 border-transparent hover:text-gray-700'
+          }`}
+        >
+          Subscription
         </button>
       </div>
 
-      {/* Company Info Tab */}
-      {activeTab === 'company' && (
-        <div className="bg-white rounded-xl border p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Company Information</h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Name *
-              </label>
-              <input
-                type="text"
-                value={companyForm.name}
-                onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
+      {/* Account Tab */}
+      {activeTab === 'account' && (
+        <div className="space-y-6">
+          {/* User Info (read-only) */}
+          <div className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Account</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={companyForm.email}
-                  onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium text-gray-500 mb-1">Name</label>
+                <p className="text-gray-900">{dbUser?.full_name || 'Not set'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  value={companyForm.phone}
-                  onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Street Address
-              </label>
-              <input
-                type="text"
-                value={companyForm.address}
-                onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  City
-                </label>
-                <input
-                  type="text"
-                  value={companyForm.city}
-                  onChange={(e) => setCompanyForm({ ...companyForm, city: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium text-gray-500 mb-1">Email</label>
+                <p className="text-gray-900">{user?.email || 'Not set'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  State
-                </label>
-                <input
-                  type="text"
-                  value={companyForm.state}
-                  onChange={(e) => setCompanyForm({ ...companyForm, state: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="CA"
-                  maxLength={2}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ZIP
-                </label>
-                <input
-                  type="text"
-                  value={companyForm.zip}
-                  onChange={(e) => setCompanyForm({ ...companyForm, zip: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium text-gray-500 mb-1">Role</label>
+                <p className="text-gray-900 capitalize">{dbUser?.role || 'User'}</p>
               </div>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Website
-              </label>
-              <input
-                type="url"
-                value={companyForm.website}
-                onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="https://yourcompany.com"
-              />
-            </div>
+          {/* Company Info (editable) */}
+          <div className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h2>
 
-            <div className="pt-4">
-              <button
-                onClick={saveCompanyInfo}
-                disabled={saving}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Save Company Info'}
-              </button>
-            </div>
+            {!company ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No company associated with your account.</p>
+                <p className="text-sm mt-2">Please contact support if this is an error.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Business Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.name}
+                    onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Business Email
+                    </label>
+                    <input
+                      type="email"
+                      value={companyForm.email}
+                      onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input
+                      type="tel"
+                      value={companyForm.phone}
+                      onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Street Address
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.address}
+                    onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input
+                      type="text"
+                      value={companyForm.city}
+                      onChange={(e) => setCompanyForm({ ...companyForm, city: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <input
+                      type="text"
+                      value={companyForm.state}
+                      onChange={(e) => setCompanyForm({ ...companyForm, state: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="CA"
+                      maxLength={2}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                    <input
+                      type="text"
+                      value={companyForm.zip}
+                      onChange={(e) => setCompanyForm({ ...companyForm, zip: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                  <input
+                    type="url"
+                    value={companyForm.website}
+                    onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://yourcompany.com"
+                  />
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={saveCompanyInfo}
+                    disabled={saving}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Booking Settings Tab */}
-      {activeTab === 'booking' && (
+      {/* Integrations Tab */}
+      {activeTab === 'integrations' && (
         <div className="space-y-6">
-          {/* Booking Link */}
-          {company && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-blue-800 mb-1">Your Booking Page</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 bg-white px-3 py-2 rounded border text-sm">
-                  {typeof window !== 'undefined' ? window.location.origin : ''}/book/{company.id}
-                </code>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/book/${company.id}`)
-                    alert('Link copied!')
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                >
-                  Copy
-                </button>
-                <a
-                  href={`/book/${company.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 text-sm"
-                >
-                  Preview
-                </a>
+          <div className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Connected Services</h2>
+            <p className="text-gray-600 mb-6">
+              Connect your favorite tools to sync data and streamline your workflow.
+            </p>
+
+            {/* QuickBooks Integration */}
+            <QuickBooksConnect
+              isConnected={qboConnected}
+              lastSyncAt={qboConnectionInfo?.lastSyncAt}
+              syncStatus={qboConnectionInfo?.syncStatus}
+              onDisconnect={handleQboDisconnect}
+            />
+          </div>
+
+          {/* Future Integrations Placeholder */}
+          <div className="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6">
+            <h3 className="text-lg font-medium text-gray-700 mb-2">More Integrations Coming Soon</h3>
+            <p className="text-gray-500 text-sm">
+              We&apos;re working on integrations with Stripe, Square, Google Calendar, and more.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Tab */}
+      {activeTab === 'subscription' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscription</h2>
+
+            <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-600 font-medium">Current Plan</p>
+                  <p className="text-2xl font-bold text-blue-700">Professional</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-blue-600">Monthly</p>
+                  <p className="text-2xl font-bold text-blue-700">$49/mo</p>
+                </div>
               </div>
             </div>
-          )}
 
-          {/* General Booking Settings */}
-          <div className="bg-white rounded-xl border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Booking Options</h2>
-
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Days Available for Booking
-                </label>
-                <select
-                  value={bookingSettings.days_ahead}
-                  onChange={(e) => setBookingSettings({ ...bookingSettings, days_ahead: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={7}>1 week ahead</option>
-                  <option value={14}>2 weeks ahead</option>
-                  <option value={21}>3 weeks ahead</option>
-                  <option value={30}>1 month ahead</option>
-                  <option value={60}>2 months ahead</option>
-                  <option value={90}>3 months ahead</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  How far in advance customers can book
-                </p>
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Unlimited jobs and invoices</span>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Time Slot Duration
-                </label>
-                <select
-                  value={bookingSettings.slot_duration}
-                  onChange={(e) => setBookingSettings({ ...bookingSettings, slot_duration: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={15}>15 minutes</option>
-                  <option value={30}>30 minutes</option>
-                  <option value={45}>45 minutes</option>
-                  <option value={60}>1 hour</option>
-                  <option value={90}>1.5 hours</option>
-                  <option value={120}>2 hours</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Duration of each booking slot
-                </p>
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>CA Compliance tools</span>
               </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>QuickBooks integration</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Priority support</span>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                onClick={() => alert('Billing portal coming soon!')}
+              >
+                Manage Billing
+              </button>
+              <button
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={() => alert('Plan comparison coming soon!')}
+              >
+                View Plans
+              </button>
             </div>
           </div>
 
-          {/* Business Hours */}
-          <div className="bg-white rounded-xl border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Business Hours</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Set the hours when customers can book appointments. Disabled days won&apos;t show on the booking page.
+          <div className="bg-gray-50 rounded-xl border p-6">
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Need Help?</h3>
+            <p className="text-gray-500 text-sm mb-4">
+              Contact our support team for billing questions or to cancel your subscription.
             </p>
-
-            <div className="space-y-3">
-              {DAYS.map((day) => (
-                <div key={day.key} className="flex items-center gap-4 py-2 border-b last:border-0">
-                  <div className="w-32">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={bookingSettings.business_hours[day.key]?.enabled || false}
-                        onChange={(e) => updateBusinessHours(day.key, 'enabled', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                      <span className={`text-sm font-medium ${
-                        bookingSettings.business_hours[day.key]?.enabled ? 'text-gray-900' : 'text-gray-400'
-                      }`}>
-                        {day.label}
-                      </span>
-                    </label>
-                  </div>
-
-                  {bookingSettings.business_hours[day.key]?.enabled ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="time"
-                        value={bookingSettings.business_hours[day.key]?.open || '09:00'}
-                        onChange={(e) => updateBusinessHours(day.key, 'open', e.target.value)}
-                        className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                      <span className="text-gray-500">to</span>
-                      <input
-                        type="time"
-                        value={bookingSettings.business_hours[day.key]?.close || '17:00'}
-                        onChange={(e) => updateBusinessHours(day.key, 'close', e.target.value)}
-                        className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-400 italic">Closed</span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-6">
-              <button
-                onClick={saveBookingSettings}
-                disabled={saving}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Save Booking Settings'}
-              </button>
-            </div>
+            <a
+              href="mailto:support@tooltimepro.com"
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              support@tooltimepro.com
+            </a>
           </div>
         </div>
       )}

@@ -22,6 +22,7 @@ export interface Database {
           city: string | null
           state: string | null
           zip: string | null
+          website: string | null
           logo_url: string | null
           plan: string
           stripe_customer_id: string | null
@@ -38,6 +39,7 @@ export interface Database {
           city?: string | null
           state?: string | null
           zip?: string | null
+          website?: string | null
           logo_url?: string | null
           plan?: string
           stripe_customer_id?: string | null
@@ -54,6 +56,7 @@ export interface Database {
           city?: string | null
           state?: string | null
           zip?: string | null
+          website?: string | null
           logo_url?: string | null
           plan?: string
           stripe_customer_id?: string | null
