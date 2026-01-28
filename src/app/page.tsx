@@ -34,7 +34,7 @@ const features = [
 const featureTabs = [
   { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/dashboard', highlight: true },
-  { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/website', highlight: true },
+  { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/worker' },
   { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
   { name: 'Dispatch', icon: '🗺️', href: '/demo/dispatch' },
@@ -45,7 +45,7 @@ const featureTabs = [
 const demoCards = [
   { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/demo/quoting', badge: '💰 Top Revenue' },
   { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/dashboard', badge: '💰 Top Revenue' },
-  { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/website', badge: '💰 Top Revenue' },
+  { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/chatbot', badge: '💰 Top Revenue' },
   { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/worker', badge: 'Must Have' },
   { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/dashboard/shield', badge: 'Legal Protection' },
   { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and route optimization', href: '/demo/dispatch', badge: 'Elite' },
