@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -12,9 +12,23 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, dbUser, isLoading } = useAuth();
   const router = useRouter();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  // Safety timeout - if loading takes more than 5 seconds, show content anyway
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Auth loading timeout reached');
+        setLoadingTimeout(true);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    // Only redirect if we're sure auth has finished and there's no user
+    if (!isLoading && !user && !loadingTimeout) {
       router.push('/auth/login');
     }
 
@@ -28,9 +42,10 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         router.push('/dashboard');
       }
     }
-  }, [user, dbUser, isLoading, router, requiredRole]);
+  }, [user, dbUser, isLoading, router, requiredRole, loadingTimeout]);
 
-  if (isLoading) {
+  // Show loading only if actually loading AND timeout hasn't been reached
+  if (isLoading && !loadingTimeout) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -41,7 +56,13 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     );
   }
 
-  if (!user) {
+  // If timeout reached but no user, redirect to login
+  if (loadingTimeout && !user) {
+    router.push('/auth/login');
+    return null;
+  }
+
+  if (!user && !loadingTimeout) {
     return null;
   }
 
