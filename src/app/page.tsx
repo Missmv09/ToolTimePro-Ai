@@ -19,12 +19,14 @@ const painPoints = [
 // Features data - ordered by key money makers first
 const features = [
   { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: 'AI Phone Receptionist', description: 'Never miss a call. Our AI answers 24/7, captures lead info, books appointments, and handles emergencies professionally.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. More reviews = more customers calling you.', badge: '💰 Top Revenue Driver', highlight: true },
-  { title: '24/7 ToolTime Assistant & Lead Capture', description: 'Never miss a lead. Our AI answers questions, captures contact info, and books appointments even at 2am on Sunday.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: '24/7 ToolTime Assistant & Lead Capture', description: 'Never miss a lead. Our AI chatbot answers questions, captures contact info, and books appointments even at 2am.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues. Full compliance tracking built-in.', highlight: true },
   { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, AB5 compliance checklists. Protect yourself from costly lawsuits.', badge: '🛡️ Legal Protection', highlight: true },
   { title: 'Dispatch Board — Real-Time Crew Tracking', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
   { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save on gas and fit more jobs in each day.', badge: 'Elite Only' },
+  { title: 'QuickBooks Sync', description: 'Two-way sync with QuickBooks Online. Invoices, payments, and customers sync automatically. No double entry.' },
   { title: 'Professional Website — Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.' },
   { title: 'Online Booking & Scheduling', description: 'Let customers book online 24/7. Smart calendar prevents double-bookings. Automatic reminders reduce no-shows.' },
   { title: 'Invoicing & Payments', description: 'Send professional invoices. Accept credit cards with low fees. Get paid faster with automated payment reminders.' },
@@ -33,22 +35,28 @@ const features = [
 // Feature tabs - key money makers highlighted
 const featureTabs = [
   { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
+  { name: 'AI Receptionist', icon: '📞', href: '/demo/phone-receptionist', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/dashboard', highlight: true },
   { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/worker' },
   { name: 'Compliance & HR', icon: '🛡️', href: '/dashboard/shield' },
-  { name: 'Dispatch', icon: '🗺️', href: '/demo/dispatch' },
+  { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
+  { name: 'Dispatch', icon: '📋', href: '/demo/dispatch' },
+  { name: 'QuickBooks', icon: '📗', href: '/demo/quickbooks' },
   { name: 'Website', icon: '🌐', href: '/demo/website' },
 ];
 
 // Demo cards - reordered by key money makers first, aligned with actual demo pages
 const demoCards = [
   { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/demo/quoting', badge: '💰 Top Revenue' },
+  { icon: '📞', name: 'AI Phone Receptionist', description: 'Never miss a call. AI answers 24/7, captures leads, books jobs', href: '/demo/phone-receptionist', badge: '💰 Top Revenue' },
   { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/dashboard', badge: '💰 Top Revenue' },
   { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/chatbot', badge: '💰 Top Revenue' },
   { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/worker', badge: 'Must Have' },
   { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/dashboard/shield', badge: 'Legal Protection' },
-  { icon: '🗺️', name: 'Dispatch Board', description: 'Real-time crew tracking and route optimization', href: '/demo/dispatch', badge: 'Elite' },
+  { icon: '🗺️', name: 'Route Optimization', description: 'Save gas and fit more jobs into every day', href: '/demo/route-optimization', badge: 'Elite' },
+  { icon: '📋', name: 'Dispatch Board', description: 'Real-time crew tracking and job assignment', href: '/demo/dispatch', badge: 'Elite' },
+  { icon: '📗', name: 'QuickBooks Sync', description: 'Auto-sync invoices, payments, and customers', href: '/demo/quickbooks' },
   { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
   { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/dashboard' },
 ];
