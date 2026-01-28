@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -17,8 +17,8 @@ interface CompanyForm {
   website: string
 }
 
-export default function SettingsPage() {
-  const { user, dbUser, company, isLoading } = useAuth()
+function SettingsContent() {
+  const { user, dbUser, company } = useAuth()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<'account' | 'integrations' | 'subscription'>('account')
   const [saving, setSaving] = useState(false)
@@ -124,7 +124,7 @@ export default function SettingsPage() {
         setSaveMessage({ type: 'success', text: 'Company info saved!' })
         setTimeout(() => setSaveMessage(null), 3000)
       }
-    } catch (err) {
+    } catch {
       setSaveMessage({ type: 'error', text: 'An unexpected error occurred' })
     }
 
@@ -152,16 +152,8 @@ export default function SettingsPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
 
       {/* Save Message */}
@@ -470,5 +462,35 @@ export default function SettingsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+// Loading fallback for Suspense
+function SettingsLoading() {
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-6"></div>
+      <div className="flex gap-2 mb-6 border-b pb-2">
+        <div className="h-10 w-24 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-10 w-28 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-10 w-28 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+      <div className="bg-white rounded-xl border p-6">
+        <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
+        <div className="space-y-4">
+          <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
+          <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
+          <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<SettingsLoading />}>
+      <SettingsContent />
+    </Suspense>
   )
 }
