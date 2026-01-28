@@ -116,6 +116,8 @@ export interface Database {
           zip: string | null
           notes: string | null
           source: string | null
+          qbo_id: string | null
+          qbo_synced_at: string | null
           created_at: string
           updated_at: string
         }
@@ -131,6 +133,8 @@ export interface Database {
           zip?: string | null
           notes?: string | null
           source?: string | null
+          qbo_id?: string | null
+          qbo_synced_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -146,6 +150,8 @@ export interface Database {
           zip?: string | null
           notes?: string | null
           source?: string | null
+          qbo_id?: string | null
+          qbo_synced_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -507,6 +513,8 @@ export interface Database {
           stripe_invoice_id: string | null
           stripe_payment_intent_id: string | null
           notes: string | null
+          qbo_id: string | null
+          qbo_synced_at: string | null
           created_at: string
           updated_at: string
         }
@@ -530,6 +538,8 @@ export interface Database {
           stripe_invoice_id?: string | null
           stripe_payment_intent_id?: string | null
           notes?: string | null
+          qbo_id?: string | null
+          qbo_synced_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -553,6 +563,8 @@ export interface Database {
           stripe_invoice_id?: string | null
           stripe_payment_intent_id?: string | null
           notes?: string | null
+          qbo_id?: string | null
+          qbo_synced_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -698,6 +710,82 @@ export interface Database {
           created_at?: string
         }
       }
+      qbo_connections: {
+        Row: {
+          id: string
+          user_id: string
+          qbo_realm_id: string
+          access_token: string
+          refresh_token: string
+          token_expires_at: string
+          connected_at: string
+          last_sync_at: string | null
+          sync_status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          qbo_realm_id: string
+          access_token: string
+          refresh_token: string
+          token_expires_at: string
+          connected_at?: string
+          last_sync_at?: string | null
+          sync_status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          qbo_realm_id?: string
+          access_token?: string
+          refresh_token?: string
+          token_expires_at?: string
+          connected_at?: string
+          last_sync_at?: string | null
+          sync_status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      qbo_sync_log: {
+        Row: {
+          id: string
+          user_id: string
+          sync_type: string
+          direction: string
+          record_id: string | null
+          qbo_id: string | null
+          status: string
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sync_type: string
+          direction: string
+          record_id?: string | null
+          qbo_id?: string | null
+          status: string
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sync_type?: string
+          direction?: string
+          record_id?: string | null
+          qbo_id?: string | null
+          status?: string
+          error_message?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }
@@ -755,3 +843,11 @@ export interface GeoLocation {
   accuracy?: number
   timestamp?: string
 }
+
+// QuickBooks types
+export type QBOConnection = Database['public']['Tables']['qbo_connections']['Row']
+export type QBOConnectionInsert = Database['public']['Tables']['qbo_connections']['Insert']
+export type QBOConnectionUpdate = Database['public']['Tables']['qbo_connections']['Update']
+export type QBOSyncLog = Database['public']['Tables']['qbo_sync_log']['Row']
+export type QBOSyncLogInsert = Database['public']['Tables']['qbo_sync_log']['Insert']
+export type QBOSyncLogUpdate = Database['public']['Tables']['qbo_sync_log']['Update']

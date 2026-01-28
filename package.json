@@ -15,6 +15,7 @@
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
+    "intuit-oauth": "^4.2.2",
     "lucide-react": "^0.321.0",
     "next": "^14.2.35",
     "next-auth": "^4.24.7",
