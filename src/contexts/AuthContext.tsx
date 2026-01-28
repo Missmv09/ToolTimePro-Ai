@@ -6,7 +6,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User as DbUser, Company } from '@/types/database';
 
 // Timeout for auth initialization to prevent infinite loading
-const AUTH_TIMEOUT_MS = 10000;
+const AUTH_TIMEOUT_MS = 5000;
 
 interface AuthContextType {
   user: User | null;
@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const mountedRef = useRef(true);
+  const initCompleteRef = useRef(false);
 
   // Fetch user profile and company data
   const fetchUserData = async (userId: string) => {
@@ -77,52 +78,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mountedRef.current = true;
-    let timeoutId: NodeJS.Timeout;
+    initCompleteRef.current = false;
 
     // If Supabase isn't configured, skip auth entirely
     if (!isSupabaseConfigured) {
       console.warn('Supabase not configured - running without authentication');
       setIsLoading(false);
+      initCompleteRef.current = true;
       return;
     }
 
-    const initializeAuth = async () => {
-      // Set up timeout to prevent infinite loading - this covers the ENTIRE auth flow
-      timeoutId = setTimeout(() => {
-        if (mountedRef.current && isLoading) {
-          console.warn('Auth loading timeout reached, proceeding without session');
-          setIsLoading(false);
-        }
-      }, AUTH_TIMEOUT_MS);
+    // Set up timeout FIRST - this will force loading to stop no matter what
+    const timeoutId = setTimeout(() => {
+      if (mountedRef.current && !initCompleteRef.current) {
+        console.warn('Auth loading timeout reached, proceeding without session');
+        initCompleteRef.current = true;
+        setIsLoading(false);
+      }
+    }, AUTH_TIMEOUT_MS);
 
+    const initializeAuth = async () => {
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
 
-        if (!mountedRef.current) return;
+        // Check if we've already timed out or unmounted
+        if (!mountedRef.current || initCompleteRef.current) {
+          return;
+        }
 
         if (error) {
           console.error('Error getting session:', error);
           setAuthError(error.message);
-          clearTimeout(timeoutId);
-          setIsLoading(false);
-          return;
+        } else {
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+
+          if (initialSession?.user) {
+            // Fetch user data but don't block on it
+            fetchUserData(initialSession.user.id).catch(console.error);
+          }
         }
 
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-
-        if (initialSession?.user) {
-          await fetchUserData(initialSession.user.id);
-        }
-
+        // Mark as complete and stop loading
+        initCompleteRef.current = true;
+        clearTimeout(timeoutId);
         if (mountedRef.current) {
-          clearTimeout(timeoutId);
           setIsLoading(false);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        if (mountedRef.current) {
+        if (mountedRef.current && !initCompleteRef.current) {
           setAuthError(error instanceof Error ? error.message : 'Authentication error');
+          initCompleteRef.current = true;
           clearTimeout(timeoutId);
           setIsLoading(false);
         }
@@ -148,7 +155,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setCompany(null);
         }
 
-        setIsLoading(false);
+        // Only set loading false if init is already complete
+        if (initCompleteRef.current) {
+          setIsLoading(false);
+        }
       }
     );
 
