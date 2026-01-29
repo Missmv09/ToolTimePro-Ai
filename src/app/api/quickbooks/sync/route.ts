@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { createSupabaseServerClient, createSupabaseAdminClient } from '@/lib/supabase-server'
 
 // QuickBooks API configuration
 const QUICKBOOKS_CLIENT_ID = process.env.QUICKBOOKS_CLIENT_ID || ''
@@ -113,29 +113,9 @@ async function fetchQBOData(
 
 export async function POST() {
   try {
-    // Get Supabase configuration
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    // Get current user using SSR client
+    const userSupabase = await createSupabaseServerClient()
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 500 }
-      )
-    }
-
-    // Get current user using cookie-based auth (same as connect route)
-    const cookieStore = await cookies()
-    const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          cookie: cookieStore.toString(),
-        },
-      },
-    })
-
-    // Get current user
     const { data: { user }, error: userError } = await userSupabase.auth.getUser()
 
     if (userError || !user) {
@@ -146,9 +126,13 @@ export async function POST() {
     }
 
     // Create admin client for database operations that need elevated permissions
-    const supabase = supabaseServiceKey
-      ? createClient(supabaseUrl, supabaseServiceKey)
-      : userSupabase
+    let supabase: SupabaseClient
+    try {
+      supabase = createSupabaseAdminClient()
+    } catch {
+      // Fall back to user client if admin client not available
+      supabase = userSupabase
+    }
 
     // Get user's QBO connection
     const { data: connection, error: connectionError } = await supabase

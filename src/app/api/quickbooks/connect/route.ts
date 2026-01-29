@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 // QuickBooks OAuth configuration
 const QUICKBOOKS_CLIENT_ID = process.env.QUICKBOOKS_CLIENT_ID || ''
@@ -23,28 +22,17 @@ export async function GET() {
       )
     }
 
-    // Get the current user from Supabase
-    const cookieStore = await cookies()
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.redirect(
-        new URL('/dashboard/settings?qbo=error&reason=db_not_configured', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          cookie: cookieStore.toString(),
-        },
-      },
-    })
+    // Get the current user from Supabase using SSR client
+    const supabase = await createSupabaseServerClient()
 
     const {
       data: { user },
+      error: userError,
     } = await supabase.auth.getUser()
+
+    if (userError) {
+      console.error('Error getting user:', userError)
+    }
 
     if (!user) {
       return NextResponse.redirect(
