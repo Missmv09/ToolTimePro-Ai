@@ -271,6 +271,9 @@ export default function Home() {
                   <Link href="#demos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
                     🎮 Demos
                   </Link>
+                  <Link href="/compare/jobber" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    ⚖️ Compare vs Jobber
+                  </Link>
                 </div>
               )}
             </div>
@@ -833,6 +836,7 @@ export default function Home() {
                 <Link href="#features" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Features</Link>
                 <Link href="#pricing" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
                 <Link href="#demos" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
+                <Link href="/compare/jobber" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Compare vs Jobber</Link>
               </div>
             </div>
             <div>
