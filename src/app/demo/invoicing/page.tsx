@@ -291,7 +291,7 @@ export default function InvoicingDemoPage() {
               Get Started Free
             </Link>
             <Link
-              href="/demo/quoting"
+              href="/dashboard/smart-quote"
               className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white/10 transition-colors no-underline"
             >
               See Quoting Demo →

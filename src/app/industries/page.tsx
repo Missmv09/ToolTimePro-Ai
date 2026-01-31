@@ -283,7 +283,7 @@ export default function IndustriesPage() {
               Try It Free — 14 Days
             </Link>
             <Link
-              href="/demo/quoting"
+              href="/dashboard/smart-quote"
               className="px-8 py-4 bg-white text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
             >
               See How Quoting Works

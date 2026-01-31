@@ -44,6 +44,7 @@ function QuotesContent() {
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
+  const [showNewQuoteDropdown, setShowNewQuoteDropdown] = useState(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -223,15 +224,50 @@ function QuotesContent() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Quotes</h1>
-        <button
-          onClick={() => {
-            setEditingQuote(null)
-            setShowModal(true)
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          + New Quote
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowNewQuoteDropdown(!showNewQuoteDropdown)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            + New Quote
+            <svg className={`w-4 h-4 transition-transform ${showNewQuoteDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {showNewQuoteDropdown && (
+            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+              <Link
+                href="/dashboard/smart-quote"
+                className="block px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100"
+                onClick={() => setShowNewQuoteDropdown(false)}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📝</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">Smart Quote</div>
+                    <div className="text-xs text-gray-500">AI-powered with voice, photo & tiered pricing</div>
+                  </div>
+                </div>
+              </Link>
+              <button
+                onClick={() => {
+                  setEditingQuote(null)
+                  setShowModal(true)
+                  setShowNewQuoteDropdown(false)
+                }}
+                className="block w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">⚡</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">Quick Quote</div>
+                    <div className="text-xs text-gray-500">Simple manual entry for fast quotes</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
