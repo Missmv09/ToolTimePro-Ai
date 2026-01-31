@@ -40,7 +40,7 @@ const featureTabs = [
   { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
   { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/demo/worker' },
-  { name: 'Compliance & HR', icon: '🛡️', href: '/demo/shield' },
+  { name: 'Legal Protection', icon: '🛡️', href: '/demo/shield' },
   { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
   { name: 'Dispatch', icon: '📋', href: '/demo/dispatch' },
   { name: 'QuickBooks', icon: '📗', href: '/demo/quickbooks' },
@@ -155,6 +155,7 @@ export default function Home() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [language, setLanguage] = useState<Language>('en');
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [industriesOpen, setIndustriesOpen] = useState(false);
 
   const t = {
     en: {
@@ -251,29 +252,101 @@ export default function Home() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="/jenny" className="text-[#f5a623] font-semibold text-[0.9375rem] hover:text-[#e6991a] transition-colors no-underline flex items-center gap-1">
+            <Link href="/jenny" className="text-[#f5a623] font-semibold text-base hover:text-[#e6991a] transition-colors no-underline flex items-center gap-1">
               🎧 Jenny AI
             </Link>
-            <Link href="#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
             <div className="relative">
-              <button className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
+              <button
+                onClick={() => setIndustriesOpen(!industriesOpen)}
+                className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+              >
                 {text.industries} <span className="text-xs">▼</span>
               </button>
+              {industriesOpen && (
+                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50 max-h-[70vh] overflow-y-auto">
+                  <Link href="/industries/landscaping" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🌳 Landscaping
+                  </Link>
+                  <Link href="/industries/lawn-care" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🌱 Lawn Care
+                  </Link>
+                  <Link href="/industries/pool-service" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🏊 Pool Service
+                  </Link>
+                  <Link href="/industries/plumbing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🔧 Plumbing
+                  </Link>
+                  <Link href="/industries/electrical" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    ⚡ Electrical
+                  </Link>
+                  <Link href="/industries/hvac" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    ❄️ HVAC
+                  </Link>
+                  <Link href="/industries/painting" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🎨 Painting
+                  </Link>
+                  <Link href="/industries/cleaning" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🧹 Cleaning
+                  </Link>
+                  <Link href="/industries/roofing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🏠 Roofing
+                  </Link>
+                  <Link href="/industries/pest-control" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🐜 Pest Control
+                  </Link>
+                  <Link href="/industries/auto-detailing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🚗 Auto Detailing
+                  </Link>
+                  <Link href="/industries/pressure-washing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    💦 Pressure Washing
+                  </Link>
+                  <Link href="/industries/flooring" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🪵 Flooring
+                  </Link>
+                  <Link href="/industries/handyman" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🛠️ Handyman
+                  </Link>
+                  <Link href="/industries/tree-service" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🌲 Tree Service
+                  </Link>
+                  <Link href="/industries/moving" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    📦 Moving
+                  </Link>
+                  <Link href="/industries/junk-removal" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🗑️ Junk Removal
+                  </Link>
+                  <Link href="/industries/appliance-repair" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🔌 Appliance Repair
+                  </Link>
+                  <Link href="/industries/garage-door" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🚪 Garage Door
+                  </Link>
+                  <Link href="/industries/window-cleaning" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🪟 Window Cleaning
+                  </Link>
+                  <div className="border-t border-gray-100 mt-2 pt-2">
+                    <Link href="/industries" className="block px-4 py-2 text-base text-[#f5a623] font-semibold hover:bg-gray-50 no-underline">
+                      View All Industries →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">{text.pricing}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.pricing}</Link>
             <div className="relative">
               <button
                 onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {text.resources} <span className="text-xs">▼</span>
               </button>
               {resourcesOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
-                  <Link href="/tools" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/tools" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🧰 {text.freeTools}
                   </Link>
-                  <Link href="#demos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="#demos" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🎮 Demos
                   </Link>
                   <Link href="/compare/jobber" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
@@ -287,7 +360,7 @@ export default function Home() {
             <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setLanguage('en')}
-                className={`px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                className={`px-3 py-2 text-base font-medium transition-colors ${
                   language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -295,7 +368,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setLanguage('es')}
-                className={`px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                className={`px-3 py-2 text-base font-medium transition-colors ${
                   language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -303,12 +376,18 @@ export default function Home() {
               </button>
             </div>
 
-            <span className="text-[#5c5c70] text-sm flex items-center gap-1">
+            <span className="text-[#5c5c70] text-base flex items-center gap-1">
               📞 1-888-555-0123
             </span>
             <Link
+              href="/auth/login"
+              className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline"
+            >
+              Login
+            </Link>
+            <Link
               href="/auth/signup"
-              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-sm shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
+              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
             >
               {text.startTrial}
             </Link>
@@ -325,26 +404,27 @@ export default function Home() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
-            <Link href="/jenny" className="text-[#f5a623] font-semibold hover:text-[#e6991a] no-underline flex items-center gap-2">🎧 Jenny AI</Link>
-            <Link href="#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{text.features}</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">🧰 {text.freeTools}</Link>
-            <Link href="#demos" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Demos</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{text.pricing}</Link>
+            <Link href="/jenny" className="text-[#f5a623] font-semibold text-lg hover:text-[#e6991a] no-underline flex items-center gap-2">🎧 Jenny AI</Link>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{text.features}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">🧰 {text.freeTools}</Link>
+            <Link href="#demos" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">Demos</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{text.pricing}</Link>
             <div className="flex gap-2 pt-2 border-t border-gray-100">
               <button
                 onClick={() => setLanguage('en')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
+                className={`flex-1 py-2 rounded-lg text-base font-medium ${language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
               >
                 🇺🇸 English
               </button>
               <button
                 onClick={() => setLanguage('es')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
+                className={`flex-1 py-2 rounded-lg text-base font-medium ${language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
               >
                 🇪🇸 Español
               </button>
             </div>
-            <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-center no-underline">{text.startTrial}</Link>
+            <Link href="/auth/login" className="text-[#1a1a2e] font-medium text-lg text-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 no-underline">Login</Link>
+            <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-lg text-center no-underline">{text.startTrial}</Link>
           </div>
         )}
       </nav>
@@ -832,30 +912,30 @@ export default function Home() {
                   className="h-10 w-auto"
                 />
               </Link>
-              <p className="text-white/50 text-[0.9375rem] leading-relaxed max-w-[300px]">
+              <p className="text-white/50 text-base leading-relaxed max-w-[300px]">
                 The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-5">Product</h4>
+              <h4 className="font-bold text-white text-lg mb-5">Product</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/jenny" className="text-[#f5a623] text-[0.9375rem] hover:text-[#e6991a] transition-colors no-underline font-semibold">🎧 Jenny AI</Link>
-                <Link href="#features" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Features</Link>
-                <Link href="#pricing" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
-                <Link href="#demos" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
-                <Link href="/compare/jobber" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Compare vs Jobber</Link>
+                <Link href="/jenny" className="text-[#f5a623] text-base hover:text-[#e6991a] transition-colors no-underline font-semibold">🎧 Jenny AI</Link>
+                <Link href="#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Features</Link>
+                <Link href="#pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
+                <Link href="#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
+                <Link href="/compare/jobber" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Compare vs Jobber</Link>
               </div>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-5">Company</h4>
+              <h4 className="font-bold text-white text-lg mb-5">Company</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/auth/login" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Login</Link>
-                <Link href="/auth/signup" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Login</Link>
+                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
+                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
               </div>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-[0.875rem]">
+          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-base">
             <div>© 2026 ToolTime Pro. All rights reserved.</div>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5 text-white/50">
