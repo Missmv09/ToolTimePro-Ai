@@ -855,8 +855,15 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-8 text-center text-white/40 text-[0.875rem]">
-            © 2026 ToolTime Pro. All rights reserved.
+          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-[0.875rem]">
+            <div>© 2026 ToolTime Pro. All rights reserved.</div>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5 text-white/50">
+                <span className="text-[#f5a623]">★</span> Women-Owned Business
+              </span>
+              <span className="text-white/30">|</span>
+              <span>Built in California</span>
+            </div>
           </div>
         </div>
       </footer>

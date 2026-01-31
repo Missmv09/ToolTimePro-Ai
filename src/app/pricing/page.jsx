@@ -9,18 +9,21 @@ import Image from 'next/image';
 // ============================================
 
 const PRICE_IDS = {
-  // Base Tiers
+  // Base Tiers - UPDATE THESE IN STRIPE WITH NEW PRICES
+  // Starter: $29/mo, $290/yr (was $30/mo, $300/yr)
+  // Pro: $59/mo, $590/yr (was $49/mo, $490/yr)
+  // Elite: $99/mo, $990/yr (was $79/mo, $790/yr)
   starter: {
-    monthly: 'price_1Sszh2IHDYuF9ge1wsfpRNgy',
-    annual: 'price_1SszomIHDYuF9ge1i71Vrn8t',
+    monthly: 'price_1Sszh2IHDYuF9ge1wsfpRNgy', // TODO: Update to $29/mo in Stripe
+    annual: 'price_1SszomIHDYuF9ge1i71Vrn8t',  // TODO: Update to $290/yr in Stripe
   },
   pro: {
-    monthly: 'price_1Sszh1IHDYuF9ge1sa2DjGn7',
-    annual: 'price_1SszomIHDYuF9ge1qWIV422P',
+    monthly: 'price_1Sszh1IHDYuF9ge1sa2DjGn7', // TODO: Update to $59/mo in Stripe
+    annual: 'price_1SszomIHDYuF9ge1qWIV422P',  // TODO: Update to $590/yr in Stripe
   },
   elite: {
-    monthly: 'price_1SszgzIHDYuF9ge1JA7CcQo7',
-    annual: 'price_1SszolIHDYuF9ge143xTS5E7',
+    monthly: 'price_1SszgzIHDYuF9ge1JA7CcQo7', // TODO: Update to $99/mo in Stripe
+    annual: 'price_1SszolIHDYuF9ge143xTS5E7',  // TODO: Update to $990/yr in Stripe
   },
   // Standalone Lite
   booking_only: {
@@ -31,13 +34,20 @@ const PRICE_IDS = {
     monthly: 'price_1StH3WIHDYuF9ge1nAXWNpkc',
     annual: 'price_1StH3pIHDYuF9ge1CEgkwTvx',
   },
-  // Add-ons
+  // Jenny Add-ons - CREATE THESE IN STRIPE
+  jenny: {
+    monthly: 'price_JENNY_MONTHLY_TODO', // TODO: Create $49/mo price in Stripe
+  },
+  jenny_unlimited: {
+    monthly: 'price_JENNY_UNLIMITED_MONTHLY_TODO', // TODO: Create $99/mo price in Stripe
+  },
+  // Other Add-ons
   website_builder: {
     monthly: 'price_1StH4XIHDYuF9ge1Noqho85C',
     annual: 'price_1StH4iIHDYuF9ge1OsTIAIAq',
   },
   ai_chatbot: {
-    monthly: 'price_1Sszh0IHDYuF9ge1XYGFnXah',
+    monthly: 'price_1Sszh0IHDYuF9ge1XYGFnXah', // Can remove - replaced by Jenny
   },
   keep_me_legal: {
     monthly: 'price_1Sszh0IHDYuF9ge1gAIKMReh',
@@ -635,7 +645,12 @@ export default function PricingPage() {
 
       {/* Footer */}
       <footer className="footer">
-        <p>© 2026 ToolTime Pro. Built for California contractors.</p>
+        <div className="footer-top">
+          <p>© 2026 ToolTime Pro. Built for California contractors.</p>
+          <div className="footer-badge">
+            <span className="women-owned">★ Women-Owned Business</span>
+          </div>
+        </div>
         <div className="footer-links">
           <Link href="/terms">Terms</Link>
           <Link href="/privacy">Privacy</Link>
@@ -1419,14 +1434,31 @@ export default function PricingPage() {
           color: white;
           padding: 2rem;
           display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+        }
+        .footer-top {
+          display: flex;
           justify-content: space-between;
           align-items: center;
+          width: 100%;
           flex-wrap: wrap;
           gap: 1rem;
         }
         .footer p {
           margin: 0;
           opacity: 0.8;
+        }
+        .footer-badge {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+        .women-owned {
+          color: var(--gold);
+          font-size: 0.85rem;
+          font-weight: 500;
         }
         .footer-links {
           display: flex;

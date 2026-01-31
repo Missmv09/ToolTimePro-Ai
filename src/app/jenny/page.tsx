@@ -497,6 +497,9 @@ export default function JennyPage() {
             <Link href="/compare/jobber" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Compare vs Jobber</Link>
             <Link href="/auth/signup" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Sign Up</Link>
           </div>
+          <div className="mt-6 text-[#f5a623] text-sm">
+            ★ Proudly Women-Owned Business
+          </div>
         </div>
       </footer>
     </div>
