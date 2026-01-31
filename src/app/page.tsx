@@ -35,7 +35,7 @@ const features = [
 // Feature tabs - key money makers highlighted
 const featureTabs = [
   { name: 'Jenny AI', icon: '🎧', href: '/jenny', highlight: true },
-  { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
+  { name: 'Smart Quoting', icon: '📝', href: '/dashboard/smart-quote', highlight: true },
   { name: 'AI Receptionist', icon: '📞', href: '/demo/phone-receptionist', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
   { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
@@ -50,7 +50,7 @@ const featureTabs = [
 // Demo cards - reordered by key money makers first, aligned with actual demo pages
 const demoCards = [
   { icon: '🎧', name: 'Jenny AI', description: 'Meet Jenny — your AI that answers calls, writes quotes, and handles reviews 24/7', href: '/jenny', badge: '🌟 NEW' },
-  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/demo/quoting', badge: '💰 Top Revenue' },
+  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/dashboard/smart-quote', badge: '💰 Top Revenue' },
   { icon: '📞', name: 'AI Phone Receptionist', description: 'Never miss a call. AI answers 24/7, captures leads, books jobs', href: '/demo/phone-receptionist', badge: '💰 Top Revenue' },
   { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/demo/reviews', badge: '💰 Top Revenue' },
   { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/chatbot', badge: '💰 Top Revenue' },

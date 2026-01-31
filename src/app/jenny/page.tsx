@@ -36,7 +36,7 @@ const jennyFeatures = [
       'E-signature ready quotes',
     ],
     stats: { value: '3x', label: 'Faster Quotes' },
-    demoLink: '/demo/quoting',
+    demoLink: '/dashboard/smart-quote',
     color: 'from-blue-500 to-indigo-600',
   },
   {
