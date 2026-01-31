@@ -61,27 +61,28 @@ const TIERS = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 30,
-    annualPrice: 300,
+    monthlyPrice: 29,
+    annualPrice: 290,
     description: 'For solo operators getting organized',
     workers: 'Up to 5 workers',
     features: [
       'Online scheduling & booking',
       'Smart quoting & invoicing',
       'GPS clock-in',
+      'AI-powered quotes & reviews',
       'Federal compliance (ToolTime Shield)',
       '1-page website',
       'Spanish language support',
       'Chat & email support',
     ],
-    notIncluded: ['Worker App', 'Time Tracking', 'SMS Notifications', 'Dispatch Board'],
+    notIncluded: ['Worker App', 'Time Tracking', 'Jenny AI Phone', 'Dispatch Board'],
     popular: false,
   },
   {
     id: 'pro',
     name: 'Pro',
-    monthlyPrice: 49,
-    annualPrice: 490,
+    monthlyPrice: 59,
+    annualPrice: 590,
     description: 'For growing teams who need more tools',
     workers: 'Up to 15 workers',
     features: [
@@ -94,14 +95,14 @@ const TIERS = [
       'Review automation',
       'Phone support',
     ],
-    notIncluded: ['Dispatch Board', 'Route Optimization'],
+    notIncluded: ['Jenny AI Phone', 'Dispatch Board', 'Route Optimization'],
     popular: true,
   },
   {
     id: 'elite',
     name: 'Elite',
-    monthlyPrice: 79,
-    annualPrice: 790,
+    monthlyPrice: 99,
+    annualPrice: 990,
     description: 'Full operations suite for serious businesses',
     workers: 'Up to 30 workers',
     features: [
@@ -114,7 +115,7 @@ const TIERS = [
       'Compliance alerts',
       'Priority support',
     ],
-    notIncluded: [],
+    notIncluded: ['Jenny AI Phone'],
     popular: false,
     highlight: 'dispatch',
   },
@@ -141,6 +142,25 @@ const STANDALONE = [
 
 const ADDONS = [
   {
+    id: 'jenny',
+    name: 'Jenny',
+    monthlyPrice: 49,
+    icon: '🎧',
+    description: 'AI phone receptionist — 100 calls/mo',
+    hasAnnual: false,
+    highlight: true,
+    isJenny: true,
+  },
+  {
+    id: 'jenny_unlimited',
+    name: 'Jenny Unlimited',
+    monthlyPrice: 99,
+    icon: '🎧',
+    description: 'Unlimited AI calls + priority support',
+    hasAnnual: false,
+    isJenny: true,
+  },
+  {
     id: 'website_builder',
     name: 'Website Builder',
     monthlyPrice: 10,
@@ -149,21 +169,12 @@ const ADDONS = [
     hasAnnual: true,
   },
   {
-    id: 'ai_chatbot',
-    name: 'ToolTime Assistant',
-    monthlyPrice: 19,
-    icon: '💬',
-    description: '24/7 lead capture while you sleep',
-    hasAnnual: false,
-  },
-  {
     id: 'keep_me_legal',
     name: 'Keep Me Legal',
     monthlyPrice: 29,
     icon: '🛡️',
     description: 'Compliance monitoring & alerts',
     hasAnnual: false,
-    highlight: true,
   },
   {
     id: 'extra_page',
@@ -383,13 +394,82 @@ export default function PricingPage() {
           </p>
         </section>
 
-        {/* Add-ons */}
+        {/* Jenny Add-on */}
+        <section className="section jenny-section">
+          <div className="jenny-banner">
+            <div className="jenny-banner-content">
+              <div className="jenny-avatar">🎧</div>
+              <div className="jenny-info">
+                <h2>Add Jenny — Your AI Phone Receptionist</h2>
+                <p>Jenny answers calls 24/7, captures leads, books appointments, and handles emergencies. Works with any plan.</p>
+                <div className="jenny-compare">
+                  <span className="jenny-price">From <strong>$49/mo</strong></span>
+                  <span className="jenny-vs">Jobber charges $349/mo for this</span>
+                </div>
+              </div>
+              <Link href="/jenny" className="jenny-learn-more">Learn More →</Link>
+            </div>
+          </div>
+
+          <div className="jenny-tiers">
+            <div
+              className={`jenny-tier ${selectedAddons.includes('jenny') ? 'selected' : ''}`}
+              onClick={() => {
+                if (selectedAddons.includes('jenny_unlimited')) {
+                  setSelectedAddons(prev => prev.filter(id => id !== 'jenny_unlimited'));
+                }
+                toggleAddon('jenny');
+              }}
+            >
+              <div className="jenny-tier-header">
+                <h4>Jenny</h4>
+                <span className="jenny-tier-price">+$49/mo</span>
+              </div>
+              <ul>
+                <li>✓ 100 calls/month included</li>
+                <li>✓ 24/7 AI phone answering</li>
+                <li>✓ Lead capture & booking</li>
+                <li>✓ SMS follow-ups</li>
+                <li>✓ English & Spanish</li>
+              </ul>
+              <div className="jenny-tier-check">{selectedAddons.includes('jenny') ? '☑' : '☐'}</div>
+            </div>
+
+            <div
+              className={`jenny-tier recommended ${selectedAddons.includes('jenny_unlimited') ? 'selected' : ''}`}
+              onClick={() => {
+                if (selectedAddons.includes('jenny')) {
+                  setSelectedAddons(prev => prev.filter(id => id !== 'jenny'));
+                }
+                toggleAddon('jenny_unlimited');
+              }}
+            >
+              <span className="best-value-badge">Best Value</span>
+              <div className="jenny-tier-header">
+                <h4>Jenny Unlimited</h4>
+                <span className="jenny-tier-price">+$99/mo</span>
+              </div>
+              <ul>
+                <li>✓ <strong>Unlimited calls</strong></li>
+                <li>✓ 24/7 AI phone answering</li>
+                <li>✓ Lead capture & booking</li>
+                <li>✓ SMS follow-ups</li>
+                <li>✓ English & Spanish</li>
+                <li>✓ Priority support</li>
+                <li>✓ Custom greeting</li>
+              </ul>
+              <div className="jenny-tier-check">{selectedAddons.includes('jenny_unlimited') ? '☑' : '☐'}</div>
+            </div>
+          </div>
+        </section>
+
+        {/* Other Add-ons */}
         <section className="section">
-          <h2>Power Add-Ons</h2>
+          <h2>Other Add-Ons</h2>
           <p className="section-desc">Supercharge any plan with these extras.</p>
 
           <div className="addons-grid">
-            {ADDONS.map((addon) => (
+            {ADDONS.filter(addon => !addon.isJenny).map((addon) => (
               <div
                 key={addon.id}
                 className={`addon-card ${selectedAddons.includes(addon.id) ? 'selected' : ''} ${addon.highlight ? 'highlight' : ''}`}
@@ -1170,6 +1250,149 @@ export default function PricingPage() {
           font-weight: 700;
           cursor: pointer;
           white-space: nowrap;
+        }
+        .jenny-section {
+          background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+          margin: 2rem -1rem;
+          padding: 2rem;
+          border-radius: 16px;
+        }
+        .jenny-banner {
+          margin-bottom: 1.5rem;
+        }
+        .jenny-banner-content {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          flex-wrap: wrap;
+        }
+        .jenny-avatar {
+          font-size: 4rem;
+          background: var(--gold);
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .jenny-info {
+          flex: 1;
+          min-width: 250px;
+        }
+        .jenny-info h2 {
+          color: white;
+          margin: 0 0 0.5rem;
+          font-size: 1.5rem;
+          text-align: left;
+        }
+        .jenny-info p {
+          color: rgba(255,255,255,0.8);
+          margin: 0 0 0.75rem;
+          font-size: 0.95rem;
+        }
+        .jenny-compare {
+          display: flex;
+          gap: 1.5rem;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+        .jenny-price {
+          color: var(--gold);
+          font-size: 1.1rem;
+        }
+        .jenny-price strong {
+          font-size: 1.4rem;
+        }
+        .jenny-vs {
+          color: rgba(255,255,255,0.5);
+          font-size: 0.85rem;
+          text-decoration: line-through;
+        }
+        .jenny-learn-more {
+          background: transparent;
+          border: 2px solid var(--gold);
+          color: var(--gold);
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          font-weight: 600;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: all 0.2s;
+        }
+        .jenny-learn-more:hover {
+          background: var(--gold);
+          color: var(--navy);
+        }
+        .jenny-tiers {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1rem;
+          max-width: 700px;
+          margin: 0 auto;
+        }
+        .jenny-tier {
+          background: white;
+          border-radius: 12px;
+          padding: 1.5rem;
+          cursor: pointer;
+          position: relative;
+          border: 3px solid transparent;
+          transition: all 0.2s;
+        }
+        .jenny-tier:hover {
+          transform: translateY(-2px);
+        }
+        .jenny-tier.selected {
+          border-color: var(--gold);
+        }
+        .jenny-tier.recommended {
+          border-color: var(--gold);
+        }
+        .best-value-badge {
+          position: absolute;
+          top: -12px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: var(--gold);
+          color: var(--navy);
+          padding: 0.25rem 1rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+        .jenny-tier-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+        .jenny-tier-header h4 {
+          margin: 0;
+          color: var(--navy);
+          font-size: 1.25rem;
+        }
+        .jenny-tier-price {
+          color: var(--gold);
+          font-weight: 700;
+          font-size: 1.25rem;
+        }
+        .jenny-tier ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .jenny-tier li {
+          padding: 0.3rem 0;
+          font-size: 0.9rem;
+          color: #444;
+        }
+        .jenny-tier-check {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          font-size: 1.5rem;
+          color: var(--gold);
         }
         .faq-grid {
           display: grid;

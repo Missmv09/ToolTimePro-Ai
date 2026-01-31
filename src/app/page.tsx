@@ -395,7 +395,7 @@ export default function Home() {
             {/* Stats */}
             <div className="flex gap-12 pt-8 border-t border-gray-200">
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$30</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$29</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat1}</div>
               </div>
               <div>

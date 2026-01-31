@@ -161,10 +161,10 @@ export default function JennyPage() {
 
               <div className="flex flex-wrap gap-4">
                 <Link
-                  href="/auth/signup?plan=pro"
+                  href="/pricing"
                   className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#f5a623]/25 no-underline"
                 >
-                  Get Jenny for $49/mo →
+                  Add Jenny for $49/mo →
                 </Link>
                 <Link
                   href="#features"
@@ -175,7 +175,7 @@ export default function JennyPage() {
               </div>
 
               <p className="text-white/50 text-sm mt-6">
-                Included with Pro Plan • 14-day free trial • No credit card required
+                Works with any plan • 14-day free trial • Jobber charges $349/mo for this
               </p>
             </div>
 
@@ -223,11 +223,11 @@ export default function JennyPage() {
             </div>
             <div>
               <div className="text-4xl font-bold text-[#00c853]">$49</div>
-              <div className="text-gray-500 mt-1">Per Month (All Included)</div>
+              <div className="text-gray-500 mt-1">Per Month Add-on</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#1a1a2e]">0</div>
-              <div className="text-gray-500 mt-1">Extra Fees</div>
+              <div className="text-4xl font-bold text-[#1a1a2e]">7x</div>
+              <div className="text-gray-500 mt-1">Cheaper Than Jobber</div>
             </div>
           </div>
         </div>
@@ -373,7 +373,7 @@ export default function JennyPage() {
                   <th className="text-center p-4 font-semibold">
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-[#f5a623]">Jenny</span>
-                      <span className="text-xs bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded-full">$49/mo</span>
+                      <span className="text-xs bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded-full">+$49/mo</span>
                     </div>
                   </th>
                   <th className="text-center p-4 font-semibold">Jobber</th>
@@ -445,26 +445,39 @@ export default function JennyPage() {
             Ready to Meet Jenny?
           </h2>
           <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-            Start your 14-day free trial today. No credit card required.
-            See why hundreds of service businesses trust Jenny to run their operations.
+            Add Jenny to any ToolTime Pro plan for just $49/mo.
+            Jobber charges $349/mo for this. You save $300+ every month.
           </p>
+
+          <div className="bg-white/10 rounded-2xl p-6 mb-8 max-w-md mx-auto">
+            <div className="text-white/60 text-sm mb-2">Example: Pro Plan + Jenny</div>
+            <div className="flex items-baseline justify-center gap-2">
+              <span className="text-white text-lg">$59</span>
+              <span className="text-white/50">+</span>
+              <span className="text-[#f5a623] text-lg">$49</span>
+              <span className="text-white/50">=</span>
+              <span className="text-[#f5a623] text-4xl font-bold">$108</span>
+              <span className="text-white/60">/mo</span>
+            </div>
+            <div className="text-white/40 text-sm mt-2">Jobber equivalent: $598/mo</div>
+          </div>
 
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Link
-              href="/auth/signup?plan=pro"
+              href="/pricing"
               className="bg-[#f5a623] text-[#1a1a2e] px-10 py-5 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#f5a623]/25 no-underline"
             >
-              Start Free Trial →
+              Add Jenny to Your Plan →
             </Link>
             <Link
-              href="/pricing"
+              href="/auth/signup"
               className="border-2 border-white/30 text-white px-10 py-5 rounded-xl font-bold hover:bg-white/10 transition-colors no-underline"
             >
-              View Pricing
+              Start Free Trial
             </Link>
           </div>
 
-          <div className="flex justify-center gap-8 text-white/50 text-sm">
+          <div className="flex justify-center gap-8 text-white/50 text-sm flex-wrap">
             <span>✓ 14-day free trial</span>
             <span>✓ No credit card required</span>
             <span>✓ Cancel anytime</span>
