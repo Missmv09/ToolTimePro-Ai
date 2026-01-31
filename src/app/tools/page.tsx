@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calculator, GitBranch, CheckSquare, FileText, ArrowRight, Shield, Sparkles } from 'lucide-react';
 
 type Language = 'en' | 'es';
@@ -134,7 +134,19 @@ const tools = [
 export default function FreeToolsPage() {
   const [language, setLanguage] = useState<Language>('en');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [industriesOpen, setIndustriesOpen] = useState(false);
   const t = translations[language];
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setResourcesOpen(false);
+      setIndustriesOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
@@ -165,18 +177,53 @@ export default function FreeToolsPage() {
             <Link href="/#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">
               {t.features}
             </Link>
-            <div className="relative group">
-              <button className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); setIndustriesOpen(!industriesOpen); setResourcesOpen(false); }}
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+              >
                 {t.industries} <span className="text-xs">▼</span>
               </button>
+              {industriesOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <Link href="/#landscaping" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    Landscaping
+                  </Link>
+                  <Link href="/#pool-service" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    Pool Service
+                  </Link>
+                  <Link href="/#cleaning" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    Cleaning
+                  </Link>
+                  <Link href="/#hvac" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    HVAC
+                  </Link>
+                </div>
+              )}
             </div>
             <Link href="/pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">
               {t.pricing}
             </Link>
-            <div className="relative group">
-              <button className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); setResourcesOpen(!resourcesOpen); setIndustriesOpen(false); }}
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+              >
                 {t.resources} <span className="text-xs">▼</span>
               </button>
+              {resourcesOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <Link href="/tools" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    Free Tools
+                  </Link>
+                  <Link href="/#demos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    Demos
+                  </Link>
+                  <Link href="/compare/jobber" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    Compare vs Jobber
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Language Switcher */}
@@ -220,9 +267,15 @@ export default function FreeToolsPage() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4 z-50">
             <Link href="/#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{t.features}</Link>
             <Link href="/pricing" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{t.pricing}</Link>
+            <div className="border-t border-gray-100 pt-2">
+              <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">{t.resources}</p>
+              <Link href="/tools" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Free Tools</Link>
+              <Link href="/#demos" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Demos</Link>
+              <Link href="/compare/jobber" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Compare vs Jobber</Link>
+            </div>
             <div className="flex gap-2 pt-2 border-t border-gray-100">
               <button
                 onClick={() => setLanguage('en')}
@@ -246,7 +299,7 @@ export default function FreeToolsPage() {
 
       {/* Hero Section */}
       <section className="pt-16 pb-12 bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-20 left-20 w-64 h-64 bg-[#f5a623] rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
         </div>
