@@ -150,7 +150,7 @@ export default function FreeToolsPage() {
       </div>
 
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <nav className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
