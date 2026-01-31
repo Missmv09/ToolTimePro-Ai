@@ -328,12 +328,14 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
     customer_id: invoice?.customer_id || '',
     notes: invoice?.notes || '',
     due_date: invoice?.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tax_rate: invoice?.tax ? ((invoice.tax / (invoice.subtotal || 1)) * 100).toFixed(2) : '0',
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     invoice?.items?.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })) ||
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
   const [saving, setSaving] = useState(false)
+  const [customerError, setCustomerError] = useState<string | null>(null)
 
   const addItem = () => setItems([...items, { description: '', quantity: 1, unit_price: 0 }])
   const removeItem = (index: number) => setItems(items.filter((_, i) => i !== index))
@@ -344,16 +346,24 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
   }
 
   const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
-  const tax = subtotal * 0.0875
+  const taxRate = parseFloat(formData.tax_rate) || 0
+  const tax = subtotal * (taxRate / 100)
   const total = subtotal + tax
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate customer is selected
+    if (!formData.customer_id) {
+      setCustomerError('Please select a customer')
+      return
+    }
+
     setSaving(true)
 
     const invoiceData = {
       company_id: companyId,
-      customer_id: formData.customer_id || null,
+      customer_id: formData.customer_id,
       notes: formData.notes,
       due_date: formData.due_date,
       subtotal,
@@ -398,17 +408,22 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
               <select
                 value={formData.customer_id}
-                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setFormData({ ...formData, customer_id: e.target.value })
+                  setCustomerError(null)
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${customerError ? 'border-red-500' : ''}`}
+                required
               >
                 <option value="">Select customer...</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+              {customerError && <p className="text-red-500 text-xs mt-1">{customerError}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
@@ -468,8 +483,20 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
               <span className="text-gray-600">Subtotal</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Tax (8.75%)</span>
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600">Tax Rate</span>
+                <input
+                  type="number"
+                  value={formData.tax_rate}
+                  onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
+                  className="w-16 px-2 py-1 border rounded text-sm text-right"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                />
+                <span className="text-gray-600">%</span>
+              </div>
               <span>${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg">

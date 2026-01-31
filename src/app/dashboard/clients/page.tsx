@@ -236,6 +236,27 @@ export default function ClientsPage() {
   )
 }
 
+// Validation helpers
+const formatPhoneNumber = (value: string): string => {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length === 0) return ''
+  if (digits.length <= 3) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+}
+
+const isValidEmail = (email: string): boolean => {
+  if (!email) return true // Empty is valid (optional field)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+const isValidPhone = (phone: string): boolean => {
+  if (!phone) return true // Empty is valid (optional field)
+  const digits = phone.replace(/\D/g, '')
+  return digits.length === 10
+}
+
 function CustomerModal({ customer, companyId, onClose, onSave }: {
   customer: Customer | null
   companyId: string
@@ -248,14 +269,49 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
     phone: customer?.phone || '',
     address: customer?.address || '',
     city: customer?.city || '',
-    state: customer?.state || 'CA',
+    state: customer?.state || '',
     zip: customer?.zip || '',
     notes: customer?.notes || '',
   })
   const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<{ email?: string; phone?: string }>({})
+
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhoneNumber(value)
+    setFormData({ ...formData, phone: formatted })
+    if (formatted && !isValidPhone(formatted)) {
+      setErrors({ ...errors, phone: 'Please enter a valid 10-digit phone number' })
+    } else {
+      setErrors({ ...errors, phone: undefined })
+    }
+  }
+
+  const handleEmailChange = (value: string) => {
+    setFormData({ ...formData, email: value })
+    if (value && !isValidEmail(value)) {
+      setErrors({ ...errors, email: 'Please enter a valid email address' })
+    } else {
+      setErrors({ ...errors, email: undefined })
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate before submitting
+    const newErrors: { email?: string; phone?: string } = {}
+    if (formData.email && !isValidEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
     setSaving(true)
 
     const data = { ...formData, company_id: companyId }
@@ -293,18 +349,22 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => handleEmailChange(e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : ''}`}
+                placeholder="email@example.com"
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               <input
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-500' : ''}`}
+                placeholder="(555) 123-4567"
               />
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
             </div>
           </div>
 
