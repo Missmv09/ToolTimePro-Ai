@@ -169,7 +169,7 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
-                onClick={() => { setIndustriesOpen(!industriesOpen); setResourcesOpen(false); }}
+                onClick={() => setIndustriesOpen(!industriesOpen)}
                 className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {t.industries} <span className="text-xs">▼</span>
@@ -196,7 +196,7 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
-                onClick={() => { setResourcesOpen(!resourcesOpen); setIndustriesOpen(false); }}
+                onClick={() => setResourcesOpen(!resourcesOpen)}
                 className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {t.resources} <span className="text-xs">▼</span>
