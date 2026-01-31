@@ -1,5 +1,9 @@
 # ToolTime Pro - Product Roadmap
 
+> **REMINDER: February 14, 2026** - Review this roadmap and begin planning Phase 1 feature development (Material Calculators, Square Footage Pricing). Prioritize based on customer feedback and business goals.
+
+---
+
 ## Current Features (Shipped)
 
 ### Core Platform
@@ -86,4 +90,5 @@ When deciding what to build next, consider:
 | Date | Update |
 |------|--------|
 | 2026-01-31 | Initial roadmap created. Documented industry-specific features as future releases. |
+| 2026-01-31 | Added reminder for Feb 14, 2026 to review roadmap and begin Phase 1 planning. |
 
