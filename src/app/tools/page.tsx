@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Calculator, GitBranch, CheckSquare, FileText, ArrowRight, Shield, Sparkles } from 'lucide-react';
 
 type Language = 'en' | 'es';
@@ -138,16 +138,6 @@ export default function FreeToolsPage() {
   const [industriesOpen, setIndustriesOpen] = useState(false);
   const t = translations[language];
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setResourcesOpen(false);
-      setIndustriesOpen(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Promo Banner */}
@@ -179,9 +169,8 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setIndustriesOpen(!industriesOpen); setResourcesOpen(false); }}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1 cursor-pointer"
+                onClick={() => { setIndustriesOpen(!industriesOpen); setResourcesOpen(false); }}
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {t.industries} <span className="text-xs">▼</span>
               </button>
@@ -207,9 +196,8 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setResourcesOpen(!resourcesOpen); setIndustriesOpen(false); }}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1 cursor-pointer"
+                onClick={() => { setResourcesOpen(!resourcesOpen); setIndustriesOpen(false); }}
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {t.resources} <span className="text-xs">▼</span>
               </button>
