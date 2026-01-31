@@ -23,7 +23,7 @@ http://localhost:3000/demo/dashboard    - Dashboard preview
 http://localhost:3000/demo/dispatch     - Real-time dispatch map
 http://localhost:3000/demo/scheduling   - Job scheduling
 http://localhost:3000/demo/invoicing    - Invoice management
-http://localhost:3000/demo/quoting      - Quote creation
+http://localhost:3000/dashboard/smart-quote - Smart Quote creation (DB-connected)
 http://localhost:3000/demo/booking      - Customer booking widget
 http://localhost:3000/demo/reviews      - Review request system
 http://localhost:3000/demo/shield       - Compliance tracking
