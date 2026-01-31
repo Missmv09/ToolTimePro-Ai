@@ -179,8 +179,9 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); setIndustriesOpen(!industriesOpen); setResourcesOpen(false); }}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 {t.industries} <span className="text-xs">▼</span>
               </button>
@@ -206,8 +207,9 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); setResourcesOpen(!resourcesOpen); setIndustriesOpen(false); }}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 {t.resources} <span className="text-xs">▼</span>
               </button>
