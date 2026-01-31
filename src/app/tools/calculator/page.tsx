@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, Calculator, AlertTriangle, DollarSign, Clock, Info } from 'lucide-react';
 
 type Language = 'en' | 'es';
@@ -135,10 +136,21 @@ export default function CalculatorPage() {
       <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-[1000px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/tools" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">{t.backToTools}</span>
-            </Link>
+            <div className="flex items-center gap-6">
+              <Link href="/">
+                <Image
+                  src="/logo-01262026.png"
+                  alt="ToolTime Pro"
+                  width={140}
+                  height={32}
+                  className="h-8 w-auto"
+                />
+              </Link>
+              <Link href="/tools" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+                <span className="text-sm font-medium">{t.backToTools}</span>
+              </Link>
+            </div>
 
             {/* Language Switcher */}
             <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
