@@ -249,26 +249,26 @@ export default function Home() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
             <div className="relative">
-              <button className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
+              <button className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
                 {text.industries} <span className="text-xs">▼</span>
               </button>
             </div>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">{text.pricing}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.pricing}</Link>
             <div className="relative">
               <button
                 onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {text.resources} <span className="text-xs">▼</span>
               </button>
               {resourcesOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
-                  <Link href="/tools" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/tools" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🧰 {text.freeTools}
                   </Link>
-                  <Link href="#demos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="#demos" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🎮 Demos
                   </Link>
                   <Link href="/compare/jobber" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
@@ -282,7 +282,7 @@ export default function Home() {
             <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setLanguage('en')}
-                className={`px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                className={`px-3 py-2 text-base font-medium transition-colors ${
                   language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -290,7 +290,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setLanguage('es')}
-                className={`px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                className={`px-3 py-2 text-base font-medium transition-colors ${
                   language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -298,18 +298,18 @@ export default function Home() {
               </button>
             </div>
 
-            <span className="text-[#5c5c70] text-sm flex items-center gap-1">
+            <span className="text-[#5c5c70] text-base flex items-center gap-1">
               📞 1-888-555-0123
             </span>
             <Link
               href="/auth/login"
-              className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline"
+              className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline"
             >
               Login
             </Link>
             <Link
               href="/auth/signup"
-              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-sm shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
+              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
             >
               {text.startTrial}
             </Link>
@@ -326,26 +326,26 @@ export default function Home() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
-            <Link href="#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{text.features}</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">🧰 {text.freeTools}</Link>
-            <Link href="#demos" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Demos</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{text.pricing}</Link>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{text.features}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">🧰 {text.freeTools}</Link>
+            <Link href="#demos" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">Demos</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{text.pricing}</Link>
             <div className="flex gap-2 pt-2 border-t border-gray-100">
               <button
                 onClick={() => setLanguage('en')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
+                className={`flex-1 py-2 rounded-lg text-base font-medium ${language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
               >
                 🇺🇸 English
               </button>
               <button
                 onClick={() => setLanguage('es')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
+                className={`flex-1 py-2 rounded-lg text-base font-medium ${language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
               >
                 🇪🇸 Español
               </button>
             </div>
-            <Link href="/auth/login" className="text-[#1a1a2e] font-medium text-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 no-underline">Login</Link>
-            <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-center no-underline">{text.startTrial}</Link>
+            <Link href="/auth/login" className="text-[#1a1a2e] font-medium text-lg text-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 no-underline">Login</Link>
+            <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-lg text-center no-underline">{text.startTrial}</Link>
           </div>
         )}
       </nav>
@@ -833,29 +833,26 @@ export default function Home() {
                   className="h-10 w-auto"
                 />
               </Link>
-              <p className="text-white/50 text-[0.9375rem] leading-relaxed max-w-[300px]">
+              <p className="text-white/50 text-base leading-relaxed max-w-[300px]">
                 The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-5">Product</h4>
+              <h4 className="font-bold text-white text-lg mb-5">Product</h4>
               <div className="flex flex-col gap-3">
-                <Link href="#features" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Features</Link>
-                <Link href="#pricing" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
-                <Link href="#demos" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
-                <Link href="/compare/jobber" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Compare vs Jobber</Link>
+
               </div>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-5">Company</h4>
+              <h4 className="font-bold text-white text-lg mb-5">Company</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/auth/login" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Login</Link>
-                <Link href="/auth/signup" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Login</Link>
+                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
+                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
               </div>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-8 text-center text-white/40 text-[0.875rem]">
+          <div className="border-t border-white/10 pt-8 text-center text-white/40 text-base">
             © 2026 ToolTime Pro. All rights reserved.
           </div>
         </div>
