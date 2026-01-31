@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 // Types
 interface LineItem {
@@ -17,9 +19,9 @@ interface LineItem {
 interface Customer {
   id: string;
   name: string;
-  phone: string;
-  email: string;
-  address: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
 }
 
 interface QuoteOption {
@@ -41,13 +43,6 @@ const quickAddServices = [
   { icon: '💡', name: 'Electrical', price: 95, unit: 'hour' as const },
 ];
 
-// Demo customers
-const demoCustomers: Customer[] = [
-  { id: '1', name: 'John Smith', phone: '(555) 123-4567', email: 'john@email.com', address: '123 Oak Street, San Jose, CA 95123' },
-  { id: '2', name: 'Maria Garcia', phone: '(555) 234-5678', email: 'maria@email.com', address: '456 Pine Ave, Sacramento, CA 95814' },
-  { id: '3', name: 'David Chen', phone: '(555) 345-6789', email: 'david@email.com', address: '789 Elm Blvd, Los Angeles, CA 90001' },
-];
-
 // AI market rate suggestions (mock data)
 const marketRates: Record<string, { min: number; max: number }> = {
   'lawn': { min: 35, max: 75 },
@@ -65,6 +60,13 @@ const marketRates: Record<string, { min: number; max: number }> = {
 };
 
 export default function SmartQuotingPage() {
+  const router = useRouter();
+
+  // Company and auth state
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
+
   // Quote mode state
   const [quoteMode, setQuoteMode] = useState<'manual' | 'voice' | 'photo'>('manual');
 
@@ -116,6 +118,38 @@ export default function SmartQuotingPage() {
 
   // Generate unique ID
   const generateId = () => Math.random().toString(36).substring(2, 9);
+
+  // Fetch company ID and customers on mount
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userData?.company_id) {
+        setCompanyId(userData.company_id);
+
+        // Fetch customers
+        const { data: customersData } = await supabase
+          .from('customers')
+          .select('id, name, phone, email, address')
+          .eq('company_id', userData.company_id)
+          .order('name');
+
+        setCustomers(customersData || []);
+      }
+      setIsLoadingCustomers(false);
+    };
+    init();
+  }, [router]);
 
   // Voice quote functions
   const startVoiceRecording = () => {
@@ -361,24 +395,199 @@ export default function SmartQuotingPage() {
     setShowAiSuggestion(item.id);
   };
 
-  // Customer search filter
-  const filteredCustomers = demoCustomers.filter(c =>
+  // Customer search filter - use real customers from Supabase
+  const filteredCustomers = customers.filter(c =>
     c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-    c.phone.includes(customerSearch) ||
-    c.email.toLowerCase().includes(customerSearch.toLowerCase())
+    (c.phone && c.phone.includes(customerSearch)) ||
+    (c.email && c.email.toLowerCase().includes(customerSearch.toLowerCase()))
   );
 
   // Send quote
   const [sendMethod, setSendMethod] = useState<'sms' | 'email' | 'both'>('both');
   const [isSending, setIsSending] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [quoteSent, setQuoteSent] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const sendQuote = () => {
+  // Save quote to Supabase (as draft)
+  const saveQuote = async (asDraft: boolean = true) => {
+    if (!companyId) {
+      setSaveError('Please log in to save quotes');
+      return null;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      // First, find or create customer
+      let customerId: string | null = selectedCustomer?.id || null;
+
+      if (!customerId && newCustomer.name) {
+        // Check if customer already exists by phone or email
+        let existingCustomer = null;
+
+        if (newCustomer.phone) {
+          const { data } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('company_id', companyId)
+            .eq('phone', newCustomer.phone)
+            .single();
+          existingCustomer = data;
+        }
+
+        if (!existingCustomer && newCustomer.email) {
+          const { data } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('company_id', companyId)
+            .eq('email', newCustomer.email)
+            .single();
+          existingCustomer = data;
+        }
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          // Create new customer
+          const { data: newCustomerData, error: customerError } = await supabase
+            .from('customers')
+            .insert({
+              company_id: companyId,
+              name: newCustomer.name,
+              phone: newCustomer.phone || null,
+              email: newCustomer.email || null,
+              address: newCustomer.address || null,
+            })
+            .select()
+            .single();
+
+          if (customerError) {
+            console.error('Error creating customer:', customerError);
+            setSaveError('Failed to create customer');
+            setIsSaving(false);
+            return null;
+          }
+          customerId = newCustomerData.id;
+        }
+      }
+
+      // Calculate valid_until date
+      const validUntil = new Date();
+      validUntil.setDate(validUntil.getDate() + validDays);
+
+      // Create the quote
+      const { data: quoteData, error: quoteError } = await supabase
+        .from('quotes')
+        .insert({
+          company_id: companyId,
+          customer_id: customerId,
+          subtotal: subtotal,
+          tax: taxAmount,
+          total: grandTotal,
+          notes: notes,
+          status: asDraft ? 'draft' : 'sent',
+          valid_until: validUntil.toISOString().split('T')[0],
+          sent_at: asDraft ? null : new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (quoteError) {
+        console.error('Error creating quote:', quoteError);
+        setSaveError('Failed to create quote');
+        setIsSaving(false);
+        return null;
+      }
+
+      // Create quote items
+      if (lineItems.length > 0) {
+        const quoteItems = lineItems
+          .filter(item => item.description)
+          .map((item, index) => ({
+            quote_id: quoteData.id,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.price,
+            total: item.total,
+            sort_order: index,
+          }));
+
+        if (quoteItems.length > 0) {
+          const { error: itemsError } = await supabase
+            .from('quote_items')
+            .insert(quoteItems);
+
+          if (itemsError) {
+            console.error('Error creating quote items:', itemsError);
+            // Don't fail entirely if items fail, quote is already created
+          }
+        }
+      }
+
+      setIsSaving(false);
+      return quoteData;
+    } catch (err) {
+      console.error('Error saving quote:', err);
+      setSaveError('Failed to save quote');
+      setIsSaving(false);
+      return null;
+    }
+  };
+
+  // Save as draft and redirect to dashboard
+  const saveDraft = async () => {
+    const quote = await saveQuote(true);
+    if (quote) {
+      router.push('/dashboard/quotes');
+    }
+  };
+
+  // Send quote (save and mark as sent)
+  const sendQuote = async () => {
     setIsSending(true);
-    setTimeout(() => {
+    const quote = await saveQuote(false);
+
+    if (quote) {
+      // Optionally send SMS/Email notification
+      if (selectedCustomer?.phone || newCustomer.phone) {
+        try {
+          const phone = selectedCustomer?.phone || newCustomer.phone;
+          const customerName = selectedCustomer?.name || newCustomer.name;
+          const quoteLink = `${window.location.origin}/quote/${quote.id}`;
+
+          if (sendMethod === 'sms' || sendMethod === 'both') {
+            await fetch('/api/sms', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: phone,
+                template: 'quote_sent',
+                data: {
+                  customerName: customerName || 'Customer',
+                  quoteLink,
+                },
+                companyId: companyId,
+              }),
+            });
+          }
+        } catch {
+          // SMS is optional - don't fail if it fails
+          console.log('SMS notification skipped or failed');
+        }
+      }
+
       setIsSending(false);
       setQuoteSent(true);
-    }, 1500);
+
+      // Redirect to dashboard after a brief delay
+      setTimeout(() => {
+        router.push('/dashboard/quotes');
+      }, 1500);
+    } else {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -588,9 +797,9 @@ export default function SmartQuotingPage() {
                           setSelectedCustomer(customer);
                           setNewCustomer({
                             name: customer.name,
-                            phone: customer.phone,
-                            email: customer.email,
-                            address: customer.address,
+                            phone: customer.phone || '',
+                            email: customer.email || '',
+                            address: customer.address || '',
                           });
                           setCustomerSearch('');
                           setShowCustomerDropdown(false);
@@ -598,7 +807,7 @@ export default function SmartQuotingPage() {
                         className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-0"
                       >
                         <div className="font-medium text-navy-500">{customer.name}</div>
-                        <div className="text-sm text-gray-500">{customer.phone} • {customer.address}</div>
+                        <div className="text-sm text-gray-500">{customer.phone || 'No phone'} • {customer.address || 'No address'}</div>
                       </button>
                     ))}
                     {filteredCustomers.length === 0 && (
@@ -971,28 +1180,29 @@ export default function SmartQuotingPage() {
                   </div>
                 </div>
 
+                {/* Error display */}
+                {saveError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+                    <div className="text-sm text-red-600">{saveError}</div>
+                  </div>
+                )}
+
                 {quoteSent ? (
                   <div className="p-4 bg-green-50 rounded-lg text-center">
                     <div className="text-4xl mb-2">✅</div>
-                    <div className="font-medium text-green-700">Quote Sent!</div>
-                    <div className="text-sm text-green-600">Customer will receive it shortly</div>
-                    <button
-                      onClick={() => setQuoteSent(false)}
-                      className="mt-3 text-sm text-green-600 hover:text-green-700 underline"
-                    >
-                      Send again
-                    </button>
+                    <div className="font-medium text-green-700">Quote Saved & Sent!</div>
+                    <div className="text-sm text-green-600">Redirecting to dashboard...</div>
                   </div>
                 ) : (
                   <button
                     onClick={sendQuote}
-                    disabled={isSending || lineItems.length === 0 || !newCustomer.name || !newCustomer.phone}
+                    disabled={isSending || isSaving || lineItems.length === 0 || !newCustomer.name || !newCustomer.phone}
                     className="w-full py-3 bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSending ? (
                       <>
                         <div className="animate-spin w-5 h-5 border-2 border-navy-900 border-t-transparent rounded-full"></div>
-                        Sending...
+                        Saving & Sending...
                       </>
                     ) : (
                       <>
@@ -1004,12 +1214,26 @@ export default function SmartQuotingPage() {
                 )}
 
                 <div className="flex gap-2">
-                  <button className="flex-1 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition-colors">
-                    💾 Save Draft
+                  <button
+                    onClick={saveDraft}
+                    disabled={isSaving || isSending || lineItems.length === 0 || !newCustomer.name}
+                    className="flex-1 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                  >
+                    {isSaving && !isSending ? (
+                      <>
+                        <div className="animate-spin w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>💾 Save Draft</>
+                    )}
                   </button>
-                  <button className="flex-1 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition-colors">
-                    👁️ Preview
-                  </button>
+                  <Link
+                    href="/dashboard/quotes"
+                    className="flex-1 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition-colors text-center"
+                  >
+                    Cancel
+                  </Link>
                 </div>
               </div>
             </div>
