@@ -153,6 +153,7 @@ export default function Home() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [language, setLanguage] = useState<Language>('en');
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [industriesOpen, setIndustriesOpen] = useState(false);
 
   const t = {
     en: {
@@ -251,9 +252,37 @@ export default function Home() {
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
             <Link href="#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
             <div className="relative">
-              <button className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
+              <button
+                onClick={() => setIndustriesOpen(!industriesOpen)}
+                className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+              >
                 {text.industries} <span className="text-xs">▼</span>
               </button>
+              {industriesOpen && (
+                <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <Link href="/industries/landscaping" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🏢 Landscaping
+                  </Link>
+                  <Link href="/industries/lawn-care" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🌱 Lawn Care
+                  </Link>
+                  <Link href="/industries/pool-service" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🏊 Pool Service
+                  </Link>
+                  <Link href="/industries/painting" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🎨 Painting
+                  </Link>
+                  <Link href="/industries/cleaning" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🧹 Cleaning
+                  </Link>
+                  <Link href="/industries/handyman" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🔧 Handyman
+                  </Link>
+                  <Link href="/industries/plumbing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    🔩 Plumbing
+                  </Link>
+                </div>
+              )}
             </div>
             <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.pricing}</Link>
             <div className="relative">
