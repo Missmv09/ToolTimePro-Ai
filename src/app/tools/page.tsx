@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calculator, GitBranch, CheckSquare, FileText, ArrowRight, Shield, Sparkles } from 'lucide-react';
 
 type Language = 'en' | 'es';
@@ -138,6 +138,16 @@ export default function FreeToolsPage() {
   const [industriesOpen, setIndustriesOpen] = useState(false);
   const t = translations[language];
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setResourcesOpen(false);
+      setIndustriesOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Promo Banner */}
@@ -169,7 +179,7 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
-                onClick={() => { setIndustriesOpen(!industriesOpen); setResourcesOpen(false); }}
+                onClick={(e) => { e.stopPropagation(); setIndustriesOpen(!industriesOpen); setResourcesOpen(false); }}
                 className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {t.industries} <span className="text-xs">▼</span>
@@ -196,7 +206,7 @@ export default function FreeToolsPage() {
             </Link>
             <div className="relative">
               <button
-                onClick={() => { setResourcesOpen(!resourcesOpen); setIndustriesOpen(false); }}
+                onClick={(e) => { e.stopPropagation(); setResourcesOpen(!resourcesOpen); setIndustriesOpen(false); }}
                 className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
                 {t.resources} <span className="text-xs">▼</span>
@@ -289,7 +299,7 @@ export default function FreeToolsPage() {
 
       {/* Hero Section */}
       <section className="pt-16 pb-12 bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-20 left-20 w-64 h-64 bg-[#f5a623] rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
         </div>
