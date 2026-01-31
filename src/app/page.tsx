@@ -357,10 +357,10 @@ export default function Home() {
             </div>
 
             {/* Language Switcher */}
-            <div className="flex items-center border border-gray-200 rounded-lg overflow-visible">
+            <div className="flex items-center border border-gray-200 rounded-lg">
               <button
                 onClick={() => setLanguage('en')}
-                className={`px-4 py-2 text-sm font-medium transition-colors rounded-l-lg ${
+                className={`min-w-[40px] px-3 py-2 text-sm font-medium transition-colors rounded-l-lg ${
                   language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -368,7 +368,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setLanguage('es')}
-                className={`px-4 py-2 text-sm font-medium transition-colors rounded-r-lg border-l border-gray-200 ${
+                className={`min-w-[40px] px-3 py-2 text-sm font-medium transition-colors rounded-r-lg border-l border-gray-200 ${
                   language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
