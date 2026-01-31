@@ -37,7 +37,7 @@ const navItems = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { dbUser, company, signOut } = useAuth();
+  const { user, dbUser, company, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -45,15 +45,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     router.push('/auth/login');
   };
 
-  // Get user initials
-  const getInitials = (name: string | undefined) => {
-    if (!name) return '??';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  // Get user initials from name or email
+  const getInitials = (name: string | undefined, email: string | undefined) => {
+    if (name) {
+      return name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    if (email) {
+      return email.slice(0, 2).toUpperCase();
+    }
+    return '??';
+  };
+
+  // Get display name (full name or email)
+  const getDisplayName = () => {
+    if (dbUser?.full_name) return dbUser.full_name;
+    if (user?.email) return user.email;
+    return 'User';
   };
 
   // Format role for display
@@ -127,12 +139,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-navy-100 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-navy-500">
-                  {getInitials(dbUser?.full_name)}
+                  {getInitials(dbUser?.full_name, user?.email)}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-navy-500 truncate">
-                  {dbUser?.full_name || 'Loading...'}
+                  {getDisplayName()}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
                   {formatRole(dbUser?.role)}
