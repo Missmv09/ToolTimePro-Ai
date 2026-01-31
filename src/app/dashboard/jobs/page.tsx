@@ -298,6 +298,24 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
     assigned_worker_id: job?.assigned_users?.[0]?.user?.id || '',
   })
   const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<{ address?: string; scheduled_date?: string; scheduled_time_start?: string }>({})
+
+  const validateForm = (): boolean => {
+    const newErrors: { address?: string; scheduled_date?: string; scheduled_time_start?: string } = {}
+
+    if (!formData.address.trim()) {
+      newErrors.address = 'Service address is required'
+    }
+    if (!formData.scheduled_date) {
+      newErrors.scheduled_date = 'Scheduled date is required'
+    }
+    if (!formData.scheduled_time_start) {
+      newErrors.scheduled_time_start = 'Start time is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   // Auto-fill address when customer is selected
   const handleCustomerChange = async (customerId: string) => {
@@ -323,6 +341,11 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setSaving(true)
 
     const jobData = {
@@ -331,8 +354,8 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
       customer_id: formData.customer_id || null,
       address: formData.address,
       city: formData.city,
-      scheduled_date: formData.scheduled_date || null,
-      scheduled_time_start: formData.scheduled_time_start || null,
+      scheduled_date: formData.scheduled_date,
+      scheduled_time_start: formData.scheduled_time_start,
       scheduled_time_end: formData.scheduled_time_end || null,
       priority: formData.priority,
       price: formData.price ? Number(formData.price) : null,
@@ -398,24 +421,35 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Service Address *</label>
             <input
               type="text"
+              required
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => {
+                setFormData({ ...formData, address: e.target.value })
+                if (errors.address) setErrors({ ...errors, address: undefined })
+              }}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.address ? 'border-red-500' : ''}`}
+              placeholder="123 Main St"
             />
+            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
               <input
                 type="date"
+                required
                 value={formData.scheduled_date}
-                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setFormData({ ...formData, scheduled_date: e.target.value })
+                  if (errors.scheduled_date) setErrors({ ...errors, scheduled_date: undefined })
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.scheduled_date ? 'border-red-500' : ''}`}
               />
+              {errors.scheduled_date && <p className="text-red-500 text-xs mt-1">{errors.scheduled_date}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Assign To</label>
@@ -434,13 +468,18 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
               <input
                 type="time"
+                required
                 value={formData.scheduled_time_start}
-                onChange={(e) => setFormData({ ...formData, scheduled_time_start: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setFormData({ ...formData, scheduled_time_start: e.target.value })
+                  if (errors.scheduled_time_start) setErrors({ ...errors, scheduled_time_start: undefined })
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.scheduled_time_start ? 'border-red-500' : ''}`}
               />
+              {errors.scheduled_time_start && <p className="text-red-500 text-xs mt-1">{errors.scheduled_time_start}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
