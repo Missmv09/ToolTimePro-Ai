@@ -83,7 +83,7 @@ export default function ShieldPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">ToolTime Shield</h1>
-            <p className="text-white/70">California Labor Law Compliance Tools</p>
+            <p className="text-white/70">Legal Protection Tools</p>
           </div>
         </div>
         <p className="text-white/80 max-w-2xl">
