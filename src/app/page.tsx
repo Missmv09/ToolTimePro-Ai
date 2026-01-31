@@ -34,6 +34,7 @@ const features = [
 
 // Feature tabs - key money makers highlighted
 const featureTabs = [
+  { name: 'Jenny AI', icon: '🎧', href: '/jenny', highlight: true },
   { name: 'Smart Quoting', icon: '📝', href: '/demo/quoting', highlight: true },
   { name: 'AI Receptionist', icon: '📞', href: '/demo/phone-receptionist', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
@@ -48,6 +49,7 @@ const featureTabs = [
 
 // Demo cards - reordered by key money makers first, aligned with actual demo pages
 const demoCards = [
+  { icon: '🎧', name: 'Jenny AI', description: 'Meet Jenny — your AI that answers calls, writes quotes, and handles reviews 24/7', href: '/jenny', badge: '🌟 NEW' },
   { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/demo/quoting', badge: '💰 Top Revenue' },
   { icon: '📞', name: 'AI Phone Receptionist', description: 'Never miss a call. AI answers 24/7, captures leads, books jobs', href: '/demo/phone-receptionist', badge: '💰 Top Revenue' },
   { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/demo/reviews', badge: '💰 Top Revenue' },
@@ -249,6 +251,9 @@ export default function Home() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
+            <Link href="/jenny" className="text-[#f5a623] font-semibold text-[0.9375rem] hover:text-[#e6991a] transition-colors no-underline flex items-center gap-1">
+              🎧 Jenny AI
+            </Link>
             <Link href="#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
             <div className="relative">
               <button className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1">
@@ -320,6 +325,7 @@ export default function Home() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
+            <Link href="/jenny" className="text-[#f5a623] font-semibold hover:text-[#e6991a] no-underline flex items-center gap-2">🎧 Jenny AI</Link>
             <Link href="#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{text.features}</Link>
             <Link href="/tools" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">🧰 {text.freeTools}</Link>
             <Link href="#demos" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">Demos</Link>
@@ -833,6 +839,7 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-white mb-5">Product</h4>
               <div className="flex flex-col gap-3">
+                <Link href="/jenny" className="text-[#f5a623] text-[0.9375rem] hover:text-[#e6991a] transition-colors no-underline font-semibold">🎧 Jenny AI</Link>
                 <Link href="#features" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Features</Link>
                 <Link href="#pricing" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
                 <Link href="#demos" className="text-white/50 text-[0.9375rem] hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
