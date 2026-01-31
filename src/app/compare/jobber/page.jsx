@@ -44,9 +44,9 @@ export default function CompareJobber() {
                 Industries <span className="text-xs">▼</span>
               </button>
               {industriesOpen && (
-                <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50 max-h-[70vh] overflow-y-auto">
                   <Link href="/industries/landscaping" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
-                    🏢 Landscaping
+                    🌳 Landscaping
                   </Link>
                   <Link href="/industries/lawn-care" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
                     🌱 Lawn Care
@@ -54,17 +54,56 @@ export default function CompareJobber() {
                   <Link href="/industries/pool-service" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
                     🏊 Pool Service
                   </Link>
+                  <Link href="/industries/plumbing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🔧 Plumbing
+                  </Link>
+                  <Link href="/industries/electrical" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    ⚡ Electrical
+                  </Link>
+                  <Link href="/industries/hvac" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    ❄️ HVAC
+                  </Link>
                   <Link href="/industries/painting" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
                     🎨 Painting
                   </Link>
                   <Link href="/industries/cleaning" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
                     🧹 Cleaning
                   </Link>
-                  <Link href="/industries/handyman" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
-                    🔧 Handyman
+                  <Link href="/industries/roofing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🏠 Roofing
                   </Link>
-                  <Link href="/industries/plumbing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
-                    🔩 Plumbing
+                  <Link href="/industries/pest-control" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🐜 Pest Control
+                  </Link>
+                  <Link href="/industries/auto-detailing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🚗 Auto Detailing
+                  </Link>
+                  <Link href="/industries/pressure-washing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    💦 Pressure Washing
+                  </Link>
+                  <Link href="/industries/flooring" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🪵 Flooring
+                  </Link>
+                  <Link href="/industries/handyman" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🛠️ Handyman
+                  </Link>
+                  <Link href="/industries/tree-service" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🌲 Tree Service
+                  </Link>
+                  <Link href="/industries/moving" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    📦 Moving
+                  </Link>
+                  <Link href="/industries/junk-removal" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🗑️ Junk Removal
+                  </Link>
+                  <Link href="/industries/appliance-repair" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🔌 Appliance Repair
+                  </Link>
+                  <Link href="/industries/garage-door" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🚪 Garage Door
+                  </Link>
+                  <Link href="/industries/window-cleaning" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    🪟 Window Cleaning
                   </Link>
                 </div>
               )}
