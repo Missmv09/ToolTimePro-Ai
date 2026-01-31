@@ -302,6 +302,12 @@ export default function Home() {
               📞 1-888-555-0123
             </span>
             <Link
+              href="/auth/login"
+              className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline"
+            >
+              Login
+            </Link>
+            <Link
               href="/auth/signup"
               className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-sm shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
             >
@@ -338,6 +344,7 @@ export default function Home() {
                 🇪🇸 Español
               </button>
             </div>
+            <Link href="/auth/login" className="text-[#1a1a2e] font-medium text-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 no-underline">Login</Link>
             <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-center no-underline">{text.startTrial}</Link>
           </div>
         )}
