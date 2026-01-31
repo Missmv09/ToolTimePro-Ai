@@ -39,7 +39,7 @@ const featureTabs = [
   { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
   { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/demo/worker' },
-  { name: 'Compliance & HR', icon: '🛡️', href: '/demo/shield' },
+  { name: 'Legal Protection', icon: '🛡️', href: '/demo/shield' },
   { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
   { name: 'Dispatch', icon: '📋', href: '/demo/dispatch' },
   { name: 'QuickBooks', icon: '📗', href: '/demo/quickbooks' },
