@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
 
 const DASHBOARD_TIMEOUT_MS = 10000
 
@@ -46,6 +47,11 @@ export default function DashboardPage() {
   const [todayJobs, setTodayJobs] = useState<TodayJob[]>([])
   const [loading, setLoading] = useState(true)
   const [companyId, setCompanyId] = useState<string | null>(null)
+  const [qboConnected, setQboConnected] = useState(false)
+  const [qboConnectionInfo, setQboConnectionInfo] = useState<{
+    lastSyncAt: string | null
+    syncStatus: string
+  } | null>(null)
   const router = useRouter()
   const { user, dbUser, isLoading: authLoading, isConfigured } = useAuth()
   const mountedRef = useRef(true)
@@ -211,6 +217,50 @@ export default function DashboardPage() {
     }
   }, [router, user, dbUser, authLoading, isConfigured, loading])
 
+  // Check for QBO connection status
+  useEffect(() => {
+    const checkQboConnection = async () => {
+      if (!user || !isSupabaseConfigured) return
+
+      try {
+        const { data, error } = await supabase
+          .from('qbo_connections')
+          .select('last_sync_at, sync_status')
+          .eq('user_id', user.id)
+          .single()
+
+        if (data && !error) {
+          setQboConnected(true)
+          setQboConnectionInfo({
+            lastSyncAt: data.last_sync_at,
+            syncStatus: data.sync_status,
+          })
+        }
+      } catch {
+        // No connection found, that's fine
+      }
+    }
+
+    checkQboConnection()
+  }, [user])
+
+  const handleQboDisconnect = async () => {
+    if (!confirm('Are you sure you want to disconnect QuickBooks?')) return
+
+    try {
+      const response = await fetch('/api/quickbooks/disconnect', {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        setQboConnected(false)
+        setQboConnectionInfo(null)
+      }
+    } catch {
+      console.error('Failed to disconnect QuickBooks')
+    }
+  }
+
   if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -337,6 +387,22 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* QuickBooks Integration Card */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">QuickBooks Integration</h2>
+          <Link href="/dashboard/settings" className="text-blue-600 hover:text-blue-700 text-sm">
+            All integrations →
+          </Link>
+        </div>
+        <QuickBooksConnect
+          isConnected={qboConnected}
+          lastSyncAt={qboConnectionInfo?.lastSyncAt}
+          syncStatus={qboConnectionInfo?.syncStatus}
+          onDisconnect={handleQboDisconnect}
+        />
       </div>
     </div>
   )
