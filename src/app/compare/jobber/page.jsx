@@ -105,6 +105,11 @@ export default function CompareJobber() {
                   <Link href="/industries/window-cleaning" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
                     🪟 Window Cleaning
                   </Link>
+                  <div className="border-t border-gray-100 mt-2 pt-2">
+                    <Link href="/industries" className="block px-4 py-2 text-sm text-[#f5a623] font-semibold hover:bg-gray-50 no-underline">
+                      View All Industries →
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
