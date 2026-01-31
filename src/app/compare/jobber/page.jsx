@@ -19,8 +19,8 @@ const translations = {
     heroTitle: 'ToolTime Pro vs Jobber',
     heroSubtitle: 'See why contractors are switching to ToolTime Pro — the same powerful features at a fraction of the price.',
     seeFullComparison: 'See Full Comparison',
-    averageSavings: 'Average Savings',
-    perExtraUser: 'Per Extra User (vs $29)',
+    typicalSavings: 'Typical Savings',
+    perExtraUser: 'Per Extra User',
     moreUsersPerPlan: 'More Users Per Plan',
     freeTrial: 'Free Trial',
     pricingComparison: 'Pricing Comparison',
@@ -37,7 +37,7 @@ const translations = {
     userOnly: 'user only',
     perUserPerMo: '/user/mo',
     perMo: '/mo',
-    savingsCallout: 'A 10-person team saves over $3,000/year',
+    savingsCallout: 'Growing teams typically save $2,000-3,000+ per year',
     savingsCalloutSuffix: 'switching from Jobber to ToolTime Pro',
     featureComparison: 'Feature Comparison',
     featureComparisonSubtitle: "Both platforms offer core field service features. Here's where they differ.",
@@ -50,6 +50,12 @@ const translations = {
     smsNotifications: 'SMS Quote & Invoice Notifications',
     teamScheduling: 'Team Scheduling & Dispatch',
     complianceTools: 'Compliance Tools (ToolTime Shield)',
+    smartQuoting: 'Smart Quoting (Voice, Photo & AI Pricing)',
+    goodBetterBest: 'Good/Better/Best Quote Tiers',
+    available: 'Available',
+    premiumPlansOnly: 'Premium plans only',
+    midTierPlus: 'Mid-tier+',
+    topTierOnly: 'Top-tier only',
     included: 'Included',
     notAvailable: 'Not available',
     toolTimeAssistant: 'ToolTime Assistant (24/7 AI Lead Capture)',
@@ -63,23 +69,26 @@ const translations = {
     routeOptimization: 'Route Optimization',
     quickbooksSync: 'QuickBooks Sync',
     whyContractorsSwitch: 'Why Contractors Switch to ToolTime Pro',
+    smartQuotingWithAI: 'Smart Quoting with AI',
+    smartQuotingWithAIDesc: 'Quote jobs by voice or photo. AI suggests pricing and creates Good/Better/Best options automatically.',
     save50_77: 'Save 50-77% on Software',
     save50_77Desc: 'Get the same core features at a fraction of the price. No hidden fees, no surprise charges.',
     smsBuiltIn: 'SMS Built Into Every Plan',
-    smsBuiltInDesc: 'Send quotes and invoices via text message — included in all plans, not locked behind $199+ tiers.',
+    smsBuiltInDesc: 'Send quotes and invoices via text message — included in all plans, not locked behind premium tiers.',
     affordableTeamGrowth: 'Affordable Team Growth',
-    affordableTeamGrowthDesc: "Add team members for just $7/user vs Jobber's $29/user. Scale without breaking the bank.",
+    affordableTeamGrowthDesc: "Add team members for just $7/user — typically 75% less than competitors. Scale without breaking the bank.",
     complianceIncluded: 'Compliance Tools Included',
-    complianceIncludedDesc: "ToolTime Shield keeps you audit-ready with safety checklists and compliance docs — Jobber doesn't offer this.",
+    complianceIncludedDesc: "ToolTime Shield keeps you audit-ready with safety checklists and compliance docs — most competitors don't offer this.",
     toolTimeAssistantTitle: 'ToolTime Assistant',
-    toolTimeAssistantDesc: '24/7 AI-powered lead capture for just $19/mo. Jobber charges $349+/mo for similar functionality.',
+    toolTimeAssistantDesc: '24/7 AI-powered lead capture for just $19/mo — available as an affordable add-on, not locked to expensive plans.',
     builtForGrowingTeams: 'Built for Growing Teams',
-    builtForGrowingTeamsDesc: "Our $79 plan includes 30 users. Jobber's $349 plan only includes 15. Do the math.",
+    builtForGrowingTeamsDesc: "Our plans include more users at every tier. Get 2x the team capacity at half the price.",
     realWorldCost: 'Real-World Cost Comparison',
     realWorldCostSubtitle: 'See how much you could save based on your team size.',
     soloContractor: 'Solo Contractor',
     fivePersonTeam: '5-Person Team + Add-ons',
     fifteenPersonTeam: '15-Person Team + All Features',
+    typicalCompetitor: 'Typical competitor',
     savePerYear: 'Save',
     perYear: '/year',
     faq: 'Frequently Asked Questions',
@@ -122,8 +131,8 @@ const translations = {
     heroTitle: 'ToolTime Pro vs Jobber',
     heroSubtitle: 'Descubra por qué los contratistas están cambiando a ToolTime Pro — las mismas funciones potentes a una fracción del precio.',
     seeFullComparison: 'Ver Comparación Completa',
-    averageSavings: 'Ahorro Promedio',
-    perExtraUser: 'Por Usuario Extra (vs $29)',
+    typicalSavings: 'Ahorro Típico',
+    perExtraUser: 'Por Usuario Extra',
     moreUsersPerPlan: 'Más Usuarios Por Plan',
     freeTrial: 'Prueba Gratis',
     pricingComparison: 'Comparación de Precios',
@@ -140,7 +149,7 @@ const translations = {
     userOnly: 'solo 1 usuario',
     perUserPerMo: '/usuario/mes',
     perMo: '/mes',
-    savingsCallout: 'Un equipo de 10 personas ahorra más de $3,000/año',
+    savingsCallout: 'Los equipos en crecimiento típicamente ahorran $2,000-3,000+ por año',
     savingsCalloutSuffix: 'al cambiar de Jobber a ToolTime Pro',
     featureComparison: 'Comparación de Funciones',
     featureComparisonSubtitle: 'Ambas plataformas ofrecen funciones básicas. Aquí es donde difieren.',
@@ -153,6 +162,12 @@ const translations = {
     smsNotifications: 'Notificaciones SMS de Cotizaciones y Facturas',
     teamScheduling: 'Programación y Despacho de Equipo',
     complianceTools: 'Herramientas de Cumplimiento (ToolTime Shield)',
+    smartQuoting: 'Cotización Inteligente (Voz, Foto e IA)',
+    goodBetterBest: 'Niveles de Cotización Bueno/Mejor/Óptimo',
+    available: 'Disponible',
+    premiumPlansOnly: 'Solo planes premium',
+    midTierPlus: 'Nivel medio+',
+    topTierOnly: 'Solo nivel superior',
     included: 'Incluido',
     notAvailable: 'No disponible',
     toolTimeAssistant: 'Asistente ToolTime (Captura de Clientes 24/7)',
@@ -166,23 +181,26 @@ const translations = {
     routeOptimization: 'Optimización de Rutas',
     quickbooksSync: 'Sincronización con QuickBooks',
     whyContractorsSwitch: 'Por Qué los Contratistas Eligen ToolTime Pro',
+    smartQuotingWithAI: 'Cotización Inteligente con IA',
+    smartQuotingWithAIDesc: 'Cotice trabajos por voz o foto. La IA sugiere precios y crea opciones Bueno/Mejor/Óptimo automáticamente.',
     save50_77: 'Ahorre 50-77% en Software',
     save50_77Desc: 'Obtenga las mismas funciones a una fracción del precio. Sin cargos ocultos, sin sorpresas.',
     smsBuiltIn: 'SMS Incluido en Todos los Planes',
-    smsBuiltInDesc: 'Envíe cotizaciones y facturas por mensaje de texto — incluido en todos los planes, no bloqueado detrás de planes de $199+.',
+    smsBuiltInDesc: 'Envíe cotizaciones y facturas por mensaje de texto — incluido en todos los planes, no bloqueado detrás de planes premium.',
     affordableTeamGrowth: 'Crecimiento de Equipo Accesible',
-    affordableTeamGrowthDesc: 'Agregue miembros al equipo por solo $7/usuario vs $29/usuario de Jobber. Escale sin quebrar el banco.',
+    affordableTeamGrowthDesc: 'Agregue miembros al equipo por solo $7/usuario — típicamente 75% menos que la competencia. Escale sin quebrar el banco.',
     complianceIncluded: 'Herramientas de Cumplimiento Incluidas',
-    complianceIncludedDesc: 'ToolTime Shield lo mantiene listo para auditorías con listas de seguridad y documentos de cumplimiento — Jobber no ofrece esto.',
+    complianceIncludedDesc: 'ToolTime Shield lo mantiene listo para auditorías con listas de seguridad y documentos de cumplimiento — la mayoría de competidores no ofrecen esto.',
     toolTimeAssistantTitle: 'Asistente ToolTime',
-    toolTimeAssistantDesc: 'Captura de clientes con IA 24/7 por solo $19/mes. Jobber cobra $349+/mes por funcionalidad similar.',
+    toolTimeAssistantDesc: 'Captura de clientes con IA 24/7 por solo $19/mes — disponible como complemento accesible, no bloqueado en planes costosos.',
     builtForGrowingTeams: 'Diseñado para Equipos en Crecimiento',
-    builtForGrowingTeamsDesc: 'Nuestro plan de $79 incluye 30 usuarios. El plan de $349 de Jobber solo incluye 15. Haga los cálculos.',
+    builtForGrowingTeamsDesc: 'Nuestros planes incluyen más usuarios en cada nivel. Obtenga 2x la capacidad del equipo a mitad de precio.',
     realWorldCost: 'Comparación de Costos Reales',
     realWorldCostSubtitle: 'Vea cuánto podría ahorrar según el tamaño de su equipo.',
     soloContractor: 'Contratista Independiente',
     fivePersonTeam: 'Equipo de 5 + Complementos',
     fifteenPersonTeam: 'Equipo de 15 + Todas las Funciones',
+    typicalCompetitor: 'Competidor típico',
     savePerYear: 'Ahorre',
     perYear: '/año',
     faq: 'Preguntas Frecuentes',
@@ -411,8 +429,8 @@ export default function CompareJobber() {
       <section className="bg-[#f8f9fa] border-b py-8 px-4">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
-            <p className="text-3xl font-bold text-[#1a2e44]">77%</p>
-            <p className="text-gray-600 text-sm">{t.averageSavings}</p>
+            <p className="text-3xl font-bold text-[#1a2e44]">50-77%</p>
+            <p className="text-gray-600 text-sm">{t.typicalSavings}</p>
           </div>
           <div>
             <p className="text-3xl font-bold text-[#1a2e44]">$7</p>
@@ -451,7 +469,7 @@ export default function CompareJobber() {
                       <span>ToolTime Pro</span>
                     </div>
                   </th>
-                  <th className="p-4 bg-gray-200 font-semibold text-gray-700 rounded-tr-lg">Jobber</th>
+                  <th className="p-4 bg-gray-200 font-semibold text-gray-700 rounded-tr-lg">Jobber*</th>
                 </tr>
               </thead>
               <tbody>
@@ -463,7 +481,7 @@ export default function CompareJobber() {
                     <p className="text-sm text-gray-600 mt-1">{t.upToUsers} 2 {t.users}</p>
                   </td>
                   <td className="p-4 text-center bg-gray-50">
-                    <span className="text-2xl font-bold text-gray-700">$39-69</span>
+                    <span className="text-2xl font-bold text-gray-700">$40-70</span>
                     <span className="text-gray-500">{t.perMo}</span>
                     <p className="text-sm text-gray-600 mt-1">1 {t.userOnly}</p>
                   </td>
@@ -476,7 +494,7 @@ export default function CompareJobber() {
                     <p className="text-sm text-gray-600 mt-1">{t.upToUsers} 15 {t.users}</p>
                   </td>
                   <td className="p-4 text-center bg-gray-50">
-                    <span className="text-2xl font-bold text-gray-700">$169</span>
+                    <span className="text-2xl font-bold text-gray-700">$150-200</span>
                     <span className="text-gray-500">{t.perMo}</span>
                     <p className="text-sm text-gray-600 mt-1">{t.upToUsers} 5 {t.users}</p>
                   </td>
@@ -489,7 +507,7 @@ export default function CompareJobber() {
                     <p className="text-sm text-gray-600 mt-1">{t.upToUsers} 30 {t.users}</p>
                   </td>
                   <td className="p-4 text-center bg-gray-50">
-                    <span className="text-2xl font-bold text-gray-700">$349</span>
+                    <span className="text-2xl font-bold text-gray-700">$300-400</span>
                     <span className="text-gray-500">{t.perMo}</span>
                     <p className="text-sm text-gray-600 mt-1">{t.upToUsers} 15 {t.users}</p>
                   </td>
@@ -501,7 +519,7 @@ export default function CompareJobber() {
                     <span className="text-gray-500">{t.perUserPerMo}</span>
                   </td>
                   <td className="p-4 text-center bg-gray-50">
-                    <span className="text-2xl font-bold text-gray-700">$29</span>
+                    <span className="text-2xl font-bold text-gray-700">$25-35</span>
                     <span className="text-gray-500">{t.perUserPerMo}</span>
                   </td>
                 </tr>
@@ -511,7 +529,7 @@ export default function CompareJobber() {
                     <span className="text-lg font-semibold text-green-600">{t.customPricing}</span>
                   </td>
                   <td className="p-4 text-center bg-gray-50">
-                    <span className="text-2xl font-bold text-gray-700">$599</span>
+                    <span className="text-2xl font-bold text-gray-700">$500+</span>
                     <span className="text-gray-500">{t.perMo}</span>
                   </td>
                 </tr>
@@ -545,7 +563,7 @@ export default function CompareJobber() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left p-4 font-semibold text-[#1a2e44]">{t.feature}</th>
                   <th className="p-4 font-semibold text-[#1a2e44] text-center w-48">ToolTime Pro</th>
-                  <th className="p-4 font-semibold text-gray-500 text-center w-48">Jobber</th>
+                  <th className="p-4 font-semibold text-gray-500 text-center w-48">Jobber*</th>
                 </tr>
               </thead>
               <tbody>
@@ -572,12 +590,12 @@ export default function CompareJobber() {
                 <tr className="border-b border-gray-100 bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.smsNotifications}</td>
                   <td className="p-4 text-center text-green-600 font-medium">✅ {t.allPlans}</td>
-                  <td className="p-4 text-center text-gray-500">⚠️ $199+{t.perMo} {language === 'es' ? 'planes' : 'plans'}</td>
+                  <td className="p-4 text-center text-gray-500">⚠️ {t.premiumPlansOnly}</td>
                 </tr>
                 <tr className="border-b border-gray-100 bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.teamScheduling}</td>
                   <td className="p-4 text-center text-green-600 font-medium">✅ Pro ($49)</td>
-                  <td className="p-4 text-center text-gray-500">⚠️ $169+{t.perMo} {language === 'es' ? 'planes' : 'plans'}</td>
+                  <td className="p-4 text-center text-gray-500">⚠️ {t.midTierPlus}</td>
                 </tr>
                 <tr className="border-b border-gray-100 bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.complianceTools}</td>
@@ -585,14 +603,24 @@ export default function CompareJobber() {
                   <td className="p-4 text-center text-gray-500">❌ {t.notAvailable}</td>
                 </tr>
                 <tr className="border-b border-gray-100 bg-green-50">
+                  <td className="p-4 font-medium text-gray-800">{t.smartQuoting}</td>
+                  <td className="p-4 text-center text-green-600 font-medium">✅ {t.allPlans}</td>
+                  <td className="p-4 text-center text-gray-500">❌ {t.notAvailable}</td>
+                </tr>
+                <tr className="border-b border-gray-100 bg-green-50">
+                  <td className="p-4 font-medium text-gray-800">{t.goodBetterBest}</td>
+                  <td className="p-4 text-center text-green-600 font-medium">✅ {t.allPlans}</td>
+                  <td className="p-4 text-center text-gray-500">✅ {t.available}</td>
+                </tr>
+                <tr className="border-b border-gray-100 bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.toolTimeAssistant}</td>
                   <td className="p-4 text-center text-green-600 font-medium">✅ $19{t.perMo} {t.addOn}</td>
-                  <td className="p-4 text-center text-gray-500">⚠️ $349+{t.perMo} {language === 'es' ? 'planes' : 'plans'}</td>
+                  <td className="p-4 text-center text-gray-500">⚠️ {t.premiumPlansOnly}</td>
                 </tr>
                 <tr className="border-b border-gray-100 bg-white">
                   <td className="p-4 font-medium text-gray-800">{t.aiPhoneReceptionist}</td>
                   <td className="p-4 text-center text-gray-700">🔜 {t.comingSoon}</td>
-                  <td className="p-4 text-center text-gray-500">✅ $349+{t.perMo} {language === 'es' ? 'planes' : 'plans'}</td>
+                  <td className="p-4 text-center text-gray-500">✅ {language === 'es' ? 'Planes premium' : 'Premium plans'}</td>
                 </tr>
                 <tr className="border-b border-gray-100 bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.workerMobileApp}</td>
@@ -602,17 +630,17 @@ export default function CompareJobber() {
                 <tr className="border-b border-gray-100 bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.websiteBuilder}</td>
                   <td className="p-4 text-center text-green-600 font-medium">✅ $15{t.perMo} {t.addOn}</td>
-                  <td className="p-4 text-center text-gray-500">⚠️ $599{t.perMo} {t.planOnly}</td>
+                  <td className="p-4 text-center text-gray-500">⚠️ {t.topTierOnly}</td>
                 </tr>
                 <tr className="border-b border-gray-100 bg-white">
                   <td className="p-4 font-medium text-gray-800">{t.routeOptimization}</td>
                   <td className="p-4 text-center text-gray-700">🔜 {t.comingSoon}</td>
-                  <td className="p-4 text-center text-gray-500">✅ $199+{t.perMo} {language === 'es' ? 'planes' : 'plans'}</td>
+                  <td className="p-4 text-center text-gray-500">✅ {t.midTierPlus}</td>
                 </tr>
                 <tr className="bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.quickbooksSync}</td>
                   <td className="p-4 text-center text-green-600 font-medium">✅ $12{t.perMo} {t.addOn}</td>
-                  <td className="p-4 text-center text-gray-500">⚠️ $169+{t.perMo} {language === 'es' ? 'planes' : 'plans'}</td>
+                  <td className="p-4 text-center text-gray-500">⚠️ {t.midTierPlus}</td>
                 </tr>
               </tbody>
             </table>
@@ -628,6 +656,11 @@ export default function CompareJobber() {
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+              <div className="text-4xl mb-4">🎤</div>
+              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.smartQuotingWithAI}</h3>
+              <p className="text-gray-600">{t.smartQuotingWithAIDesc}</p>
+            </div>
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">💰</div>
               <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.save50_77}</h3>
@@ -681,12 +714,12 @@ export default function CompareJobber() {
                   <span className="text-green-400 font-bold">$30{t.perMo}</span>
                 </p>
                 <p>
-                  <span className="text-gray-400">Jobber:</span>{' '}
-                  <span className="text-gray-300">$69{t.perMo}</span>
+                  <span className="text-gray-400">{t.typicalCompetitor}:</span>{' '}
+                  <span className="text-gray-300">$50-70{t.perMo}</span>
                 </p>
               </div>
               <div className="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg">
-                {t.savePerYear} $468{t.perYear}
+                {t.savePerYear} $240-480{t.perYear}
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur rounded-xl p-6 text-center">
@@ -697,12 +730,12 @@ export default function CompareJobber() {
                   <span className="text-green-400 font-bold">$83{t.perMo}</span>
                 </p>
                 <p>
-                  <span className="text-gray-400">Jobber:</span>{' '}
-                  <span className="text-gray-300">$169{t.perMo}</span>
+                  <span className="text-gray-400">{t.typicalCompetitor}:</span>{' '}
+                  <span className="text-gray-300">$150-200{t.perMo}</span>
                 </p>
               </div>
               <div className="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg">
-                {t.savePerYear} $1,032{t.perYear}
+                {t.savePerYear} $800-1,400{t.perYear}
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur rounded-xl p-6 text-center">
@@ -713,12 +746,12 @@ export default function CompareJobber() {
                   <span className="text-green-400 font-bold">$152{t.perMo}</span>
                 </p>
                 <p>
-                  <span className="text-gray-400">Jobber:</span>{' '}
-                  <span className="text-gray-300">$349+{t.perMo}</span>
+                  <span className="text-gray-400">{t.typicalCompetitor}:</span>{' '}
+                  <span className="text-gray-300">$350-500{t.perMo}</span>
                 </p>
               </div>
               <div className="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg">
-                {t.savePerYear} $2,364+{t.perYear}
+                {t.savePerYear} $2,400-4,200{t.perYear}
               </div>
             </div>
           </div>
@@ -790,6 +823,19 @@ export default function CompareJobber() {
         </div>
       </section>
 
+      {/* Disclaimer */}
+      <section className="py-8 px-4 bg-gray-100 border-t">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-sm text-gray-500">
+            *{language === 'es' ? 'Precios y funciones de competidores basados en información pública disponible a enero de 2026. Los precios pueden variar y están sujetos a cambios. Visite' : 'Competitor pricing and features based on publicly available information as of January 2026. Pricing may vary and is subject to change. Visit'}{' '}
+            <a href="https://getjobber.com/pricing" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+              {language === 'es' ? 'el sitio web de Jobber' : "Jobber's website"}
+            </a>{' '}
+            {language === 'es' ? 'para sus precios actuales. Esta comparación se proporciona solo con fines informativos.' : 'for their current pricing. This comparison is provided for informational purposes only.'}
+          </p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-[#12121f] text-white py-20 px-6">
         <div className="max-w-[1200px] mx-auto">
@@ -843,7 +889,8 @@ export default function CompareJobber() {
             "author": {
               "@type": "Organization",
               "name": "ToolTime Pro"
-            }
+            },
+            "dateModified": "2026-01-30"
           })
         }}
       />
