@@ -252,7 +252,7 @@ export default function Home() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="/jenny" className="text-[#f5a623] font-semibold text-base hover:text-[#e6991a] transition-colors no-underline flex items-center gap-1">
+            <Link href="/jenny" className="ml-6 text-[#f5a623] font-semibold text-base hover:text-[#e6991a] transition-colors no-underline flex items-center gap-1">
               🎧 Jenny AI
             </Link>
             <Link href="#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
@@ -376,20 +376,20 @@ export default function Home() {
               </button>
             </div>
 
-            <span className="text-[#5c5c70] text-base flex items-center gap-1">
-              📞 1-888-555-0123
-            </span>
-            <Link
-              href="/auth/login"
-              className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline"
-            >
-              Login
-            </Link>
+            <a href="tel:1-888-555-0123" className="text-[#5c5c70] text-base flex items-center gap-2 whitespace-nowrap hover:text-[#1a1a2e] transition-colors no-underline">
+              📞 <span>1-888-555-0123</span>
+            </a>
             <Link
               href="/auth/signup"
-              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
+              className="bg-[#f97316] text-white px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(249,115,22,0.3)] hover:bg-[#ea580c] hover:-translate-y-0.5 transition-all no-underline"
             >
               {text.startTrial}
+            </Link>
+            <Link
+              href="/auth/login"
+              className="text-[#374151] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline ml-1"
+            >
+              Login
             </Link>
           </div>
 
@@ -423,8 +423,8 @@ export default function Home() {
                 🇪🇸 Español
               </button>
             </div>
-            <Link href="/auth/login" className="text-[#1a1a2e] font-medium text-lg text-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 no-underline">Login</Link>
-            <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-lg text-center no-underline">{text.startTrial}</Link>
+            <Link href="/auth/signup" className="bg-[#f97316] text-white px-6 py-3 rounded-xl font-semibold text-lg text-center no-underline">{text.startTrial}</Link>
+            <Link href="/auth/login" className="text-[#374151] font-medium text-lg text-center py-3 hover:text-[#1a1a2e] no-underline">Login</Link>
           </div>
         )}
       </nav>
