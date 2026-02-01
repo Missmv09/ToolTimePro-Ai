@@ -4,7 +4,83 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Phone, Mail, DollarSign, Briefcase, AlertCircle, FileText } from 'lucide-react'
+import {
+  Phone,
+  Mail,
+  DollarSign,
+  Briefcase,
+  Plus,
+  X,
+  AlertTriangle,
+  Accessibility,
+  Heart,
+  Palmtree,
+  ThermometerSun,
+  FileText,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Edit2,
+  User
+} from 'lucide-react'
+
+// Note types with colors matching the navy/gold design system
+const NOTE_TYPES = [
+  {
+    value: 'injury',
+    label: 'Injury',
+    icon: AlertTriangle,
+    color: 'bg-red-100 text-red-700 border-red-200',
+    badgeColor: 'bg-red-500'
+  },
+  {
+    value: 'ada',
+    label: 'ADA Accommodation',
+    icon: Accessibility,
+    color: 'bg-purple-100 text-purple-700 border-purple-200',
+    badgeColor: 'bg-purple-500'
+  },
+  {
+    value: 'fmla',
+    label: 'FMLA',
+    icon: Heart,
+    color: 'bg-orange-100 text-orange-700 border-orange-200',
+    badgeColor: 'bg-orange-500'
+  },
+  {
+    value: 'vacation',
+    label: 'Vacation',
+    icon: Palmtree,
+    color: 'bg-blue-100 text-blue-700 border-blue-200',
+    badgeColor: 'bg-blue-500'
+  },
+  {
+    value: 'sick',
+    label: 'Sick Leave',
+    icon: ThermometerSun,
+    color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    badgeColor: 'bg-yellow-500'
+  },
+] as const
+
+type NoteType = typeof NOTE_TYPES[number]['value']
+
+interface WorkerNote {
+  id: string
+  company_id: string
+  worker_id: string
+  created_by: string | null
+  note_type: NoteType
+  title: string
+  content: string
+  start_date: string | null
+  end_date: string | null
+  is_active: boolean
+  is_confidential: boolean
+  created_at: string
+  updated_at: string
+  creator?: { full_name: string } | null
+}
 
 interface TeamMember {
   id: string
@@ -18,37 +94,35 @@ interface TeamMember {
   notes: string | null
   created_at: string
   job_assignments?: { job_id: string }[]
+  worker_notes?: WorkerNote[]
 }
-
-// HR status tags that can appear in notes
-const HR_TAGS = [
-  { label: 'Injured', color: 'bg-red-100 text-red-700' },
-  { label: 'ADA', color: 'bg-purple-100 text-purple-700' },
-  { label: 'FMLA', color: 'bg-orange-100 text-orange-700' },
-  { label: 'Vacation', color: 'bg-blue-100 text-blue-700' },
-  { label: 'Sick', color: 'bg-yellow-100 text-yellow-700' },
-]
 
 type UserRole = 'owner' | 'admin' | 'worker'
 
 const ROLE_OPTIONS: { value: UserRole; label: string; color: string }[] = [
-  { value: 'owner', label: 'Owner', color: 'bg-purple-100 text-purple-700' },
-  { value: 'admin', label: 'Admin', color: 'bg-blue-100 text-blue-700' },
+  { value: 'owner', label: 'Owner', color: 'bg-navy-100 text-navy-700' },
+  { value: 'admin', label: 'Admin', color: 'bg-gold-100 text-gold-700' },
   { value: 'worker', label: 'Field Worker', color: 'bg-green-100 text-green-700' },
 ]
 
 export default function TeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [workerNotes, setWorkerNotes] = useState<WorkerNote[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState<string>('all')
-  const [showModal, setShowModal] = useState(false)
+  const [showMemberModal, setShowMemberModal] = useState(false)
+  const [showNoteModal, setShowNoteModal] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+  const [selectedWorkerForNote, setSelectedWorkerForNote] = useState<TeamMember | null>(null)
+  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
 
   const router = useRouter()
   const { user, dbUser, isLoading: authLoading } = useAuth()
 
   const companyId = dbUser?.company_id || null
+  const userRole = dbUser?.role || 'worker'
+  const canManageNotes = userRole === 'owner' || userRole === 'admin'
 
   useEffect(() => {
     if (authLoading) return
@@ -60,6 +134,7 @@ export default function TeamPage() {
 
     if (companyId) {
       fetchTeamMembers(companyId)
+      fetchWorkerNotes(companyId)
     } else {
       setLoading(false)
     }
@@ -81,6 +156,31 @@ export default function TeamPage() {
       setTeamMembers(data || [])
     }
     setLoading(false)
+  }
+
+  const fetchWorkerNotes = async (companyId: string) => {
+    const { data, error } = await supabase
+      .from('worker_notes')
+      .select(`
+        *,
+        creator:users!worker_notes_created_by_fkey(full_name)
+      `)
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching worker notes:', error)
+    } else {
+      setWorkerNotes(data || [])
+    }
+  }
+
+  const getNotesForWorker = (workerId: string) => {
+    return workerNotes.filter(note => note.worker_id === workerId)
+  }
+
+  const getActiveNotesForWorker = (workerId: string) => {
+    return workerNotes.filter(note => note.worker_id === workerId && note.is_active)
   }
 
   const filteredMembers = teamMembers.filter(member => {
@@ -112,43 +212,60 @@ export default function TeamPage() {
     }
   }
 
+  const toggleExpanded = (memberId: string) => {
+    setExpandedMembers(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(memberId)) {
+        newSet.delete(memberId)
+      } else {
+        newSet.add(memberId)
+      }
+      return newSet
+    })
+  }
+
   const getRoleInfo = (role: string) => {
     return ROLE_OPTIONS.find(r => r.value === role) || { label: role, color: 'bg-gray-100 text-gray-700' }
   }
 
-  // Detect HR tags in notes
-  const getHRTags = (notes: string | null) => {
-    if (!notes) return []
-    const foundTags: typeof HR_TAGS = []
-    const notesLower = notes.toLowerCase()
-    HR_TAGS.forEach(tag => {
-      if (notesLower.includes(tag.label.toLowerCase())) {
-        foundTags.push(tag)
-      }
+  const getNoteTypeInfo = (type: NoteType) => {
+    return NOTE_TYPES.find(t => t.value === type) || NOTE_TYPES[0]
+  }
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return null
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     })
-    return foundTags
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-navy-500"></div>
       </div>
     )
   }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Team</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-navy-500">Team Management</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage your team members and HR notes</p>
+        </div>
         <button
           onClick={() => {
             setEditingMember(null)
-            setShowModal(true)
+            setShowMemberModal(true)
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
         >
-          + Add Team Member
+          <Plus size={18} />
+          Add Team Member
         </button>
       </div>
 
@@ -159,12 +276,12 @@ export default function TeamPage() {
           placeholder="Search by name, email, or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
         />
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
         >
           <option value="all">All Roles</option>
           {ROLE_OPTIONS.map(role => (
@@ -173,188 +290,260 @@ export default function TeamPage() {
         </select>
       </div>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
           <p className="text-sm text-gray-500">Total Team Members</p>
-          <p className="text-2xl font-bold">{teamMembers.length}</p>
+          <p className="text-2xl font-bold text-navy-500">{teamMembers.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
           <p className="text-sm text-gray-500">Active Members</p>
           <p className="text-2xl font-bold text-green-600">{activeMembers.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
           <p className="text-sm text-gray-500">Field Workers</p>
-          <p className="text-2xl font-bold">
+          <p className="text-2xl font-bold text-navy-500">
             {teamMembers.filter(m => m.role === 'worker').length}
           </p>
         </div>
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
           <p className="text-sm text-gray-500">Avg Hourly Rate</p>
-          <p className="text-2xl font-bold">${avgHourlyRate.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-gold-500">${avgHourlyRate.toFixed(2)}</p>
         </div>
       </div>
 
-      {/* Team Members List */}
+      {/* Team Members Cards */}
       {filteredMembers.length === 0 ? (
-        <div className="bg-white rounded-xl border p-12 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-card">
+          <User size={48} className="mx-auto text-gray-300 mb-4" />
           <p className="text-gray-500">No team members found. Add your first team member to get started.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Team Member
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hourly Rate
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Jobs
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Notes / HR Status
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredMembers.map((member) => {
-                const roleInfo = getRoleInfo(member.role)
-                return (
-                  <tr key={member.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-blue-700">
-                            {member.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{member.full_name}</p>
-                          <p className="text-sm text-gray-500">{member.email}</p>
-                        </div>
+        <div className="space-y-4">
+          {filteredMembers.map((member) => {
+            const roleInfo = getRoleInfo(member.role)
+            const activeNotes = getActiveNotesForWorker(member.id)
+            const allNotes = getNotesForWorker(member.id)
+            const isExpanded = expandedMembers.has(member.id)
+
+            return (
+              <div
+                key={member.id}
+                className="bg-white rounded-xl border border-gray-200 shadow-card hover:shadow-card-hover transition-shadow"
+              >
+                {/* Main Card Content */}
+                <div className="p-5">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    {/* Left: Avatar and Info */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-navy-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-semibold text-navy-500">
+                          {member.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                        </span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        {member.phone && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Phone size={14} />
-                            <a href={`tel:${member.phone}`} className="hover:text-blue-600">
-                              {member.phone}
-                            </a>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Mail size={14} />
-                          <a href={`mailto:${member.email}`} className="hover:text-blue-600">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-navy-500">{member.full_name}</h3>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleInfo.color}`}>
+                            {roleInfo.label}
+                          </span>
+                          {!member.is_active && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-600">
+                          <a href={`mailto:${member.email}`} className="flex items-center gap-1 hover:text-navy-500">
+                            <Mail size={14} />
                             {member.email}
                           </a>
+                          {member.phone && (
+                            <a href={`tel:${member.phone}`} className="flex items-center gap-1 hover:text-navy-500">
+                              <Phone size={14} />
+                              {member.phone}
+                            </a>
+                          )}
+                          {member.hourly_rate && (
+                            <span className="flex items-center gap-1">
+                              <DollarSign size={14} />
+                              {member.hourly_rate.toFixed(2)}/hr
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Briefcase size={14} />
+                            {member.job_assignments?.length || 0} jobs
+                          </span>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleInfo.color}`}>
-                        {roleInfo.label}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {member.hourly_rate ? (
-                        <div className="flex items-center gap-1 text-gray-900">
-                          <DollarSign size={14} />
-                          {member.hourly_rate.toFixed(2)}/hr
+                    </div>
+
+                    {/* Right: Active Notes Badges & Actions */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {/* Active Note Type Badges */}
+                      {activeNotes.length > 0 && (
+                        <div className="flex gap-1 flex-wrap">
+                          {[...new Set(activeNotes.map(n => n.note_type))].map(type => {
+                            const typeInfo = getNoteTypeInfo(type)
+                            const Icon = typeInfo.icon
+                            return (
+                              <span
+                                key={type}
+                                className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${typeInfo.color}`}
+                                title={typeInfo.label}
+                              >
+                                <Icon size={12} />
+                                {typeInfo.label}
+                              </span>
+                            )
+                          })}
                         </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
                       )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <Briefcase size={14} />
-                        {member.job_assignments?.length || 0}
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        {canManageNotes && (
+                          <button
+                            onClick={() => {
+                              setSelectedWorkerForNote(member)
+                              setShowNoteModal(true)
+                            }}
+                            className="px-3 py-1.5 text-sm border border-gold-500 text-gold-600 rounded-lg hover:bg-gold-50 flex items-center gap-1 transition-colors"
+                          >
+                            <FileText size={14} />
+                            Add Note
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setEditingMember(member)
+                            setShowMemberModal(true)
+                          }}
+                          className="px-3 py-1.5 text-sm border border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 flex items-center gap-1 transition-colors"
+                        >
+                          <Edit2 size={14} />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => toggleMemberStatus(member)}
+                          className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                            member.is_active
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                        >
+                          {member.is_active ? 'Active' : 'Inactive'}
+                        </button>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="max-w-xs">
-                        {(() => {
-                          const hrTags = getHRTags(member.notes)
-                          return (
-                            <>
-                              {hrTags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-1">
-                                  {hrTags.map(tag => (
-                                    <span key={tag.label} className={`px-2 py-0.5 rounded-full text-xs font-medium ${tag.color}`}>
-                                      {tag.label}
-                                    </span>
-                                  ))}
+                    </div>
+                  </div>
+
+                  {/* Notes Preview / Expand Button */}
+                  {allNotes.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <button
+                        onClick={() => toggleExpanded(member.id)}
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-navy-500 transition-colors"
+                      >
+                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        {isExpanded ? 'Hide' : 'Show'} {allNotes.length} HR Note{allNotes.length !== 1 ? 's' : ''}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Expanded Notes Section */}
+                {isExpanded && allNotes.length > 0 && (
+                  <div className="border-t border-gray-100 bg-gray-50 p-5">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">HR Notes & Records</h4>
+                    <div className="space-y-3">
+                      {allNotes.map(note => {
+                        const typeInfo = getNoteTypeInfo(note.note_type)
+                        const Icon = typeInfo.icon
+                        return (
+                          <div
+                            key={note.id}
+                            className={`bg-white p-4 rounded-lg border ${note.is_active ? 'border-gray-200' : 'border-gray-100 opacity-60'}`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3">
+                                <div className={`p-2 rounded-lg ${typeInfo.color}`}>
+                                  <Icon size={16} />
                                 </div>
-                              )}
-                              {member.notes ? (
-                                <p className="text-sm text-gray-600 truncate" title={member.notes}>
-                                  {member.notes.length > 40 ? member.notes.slice(0, 40) + '...' : member.notes}
-                                </p>
-                              ) : (
-                                <span className="text-gray-400 text-sm">-</span>
-                              )}
-                            </>
-                          )
-                        })()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => toggleMemberStatus(member)}
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          member.is_active
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {member.is_active ? 'Active' : 'Inactive'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => {
-                          setEditingMember(member)
-                          setShowModal(true)
-                        }}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h5 className="font-medium text-navy-500">{note.title}</h5>
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${typeInfo.color}`}>
+                                      {typeInfo.label}
+                                    </span>
+                                    {!note.is_active && (
+                                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                                        Inactive
+                                      </span>
+                                    )}
+                                    {note.is_confidential && (
+                                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">
+                                        Confidential
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-gray-600 mt-1">{note.content}</p>
+                                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                    {(note.start_date || note.end_date) && (
+                                      <span className="flex items-center gap-1">
+                                        <Calendar size={12} />
+                                        {note.start_date && formatDate(note.start_date)}
+                                        {note.start_date && note.end_date && ' - '}
+                                        {note.end_date && formatDate(note.end_date)}
+                                      </span>
+                                    )}
+                                    <span>
+                                      Created {formatDate(note.created_at)}
+                                      {note.creator && ` by ${note.creator.full_name}`}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {/* Add/Edit Modal */}
-      {showModal && (
+      {/* Add/Edit Team Member Modal */}
+      {showMemberModal && (
         <TeamMemberModal
           member={editingMember}
           companyId={companyId!}
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowMemberModal(false)}
           onSave={() => {
-            setShowModal(false)
+            setShowMemberModal(false)
             if (companyId) fetchTeamMembers(companyId)
+          }}
+        />
+      )}
+
+      {/* Add Note Modal */}
+      {showNoteModal && selectedWorkerForNote && (
+        <AddNoteModal
+          worker={selectedWorkerForNote}
+          companyId={companyId!}
+          createdBy={dbUser?.id || null}
+          onClose={() => {
+            setShowNoteModal(false)
+            setSelectedWorkerForNote(null)
+          }}
+          onSave={() => {
+            setShowNoteModal(false)
+            setSelectedWorkerForNote(null)
+            if (companyId) fetchWorkerNotes(companyId)
           }}
         />
       )}
@@ -383,6 +572,7 @@ const isValidPhone = (phone: string): boolean => {
   return digits.length === 10
 }
 
+// Team Member Modal Component
 function TeamMemberModal({ member, companyId, onClose, onSave }: {
   member: TeamMember | null
   companyId: string
@@ -444,7 +634,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
     setErrors({})
 
     if (member) {
-      // Update existing member - only update editable fields
+      // Update existing member
       const updateData = {
         full_name: formData.full_name,
         phone: formData.phone || null,
@@ -466,11 +656,10 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         return
       }
     } else {
-      // For new team members, we need to create auth user first
-      // This is a simplified version - in production you'd want to send an invite email
+      // Create new team member
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: formData.email,
-        password: 'TempPassword123!', // Temporary password - user should reset
+        password: 'TempPassword123!',
         email_confirm: true,
         user_metadata: {
           full_name: formData.full_name,
@@ -489,15 +678,12 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
       }
 
       if (authError) {
-        // If admin API fails, try regular signup (will require email confirmation)
         console.error('Admin create failed, trying signup:', authError)
-
-        // Fallback: Just create the user record if they already exist in auth
         const { error: insertError } = await supabase
           .from('users')
           .insert({
             ...newUserData,
-            id: crypto.randomUUID(), // This won't work without auth user
+            id: crypto.randomUUID(),
           })
 
         if (insertError) {
@@ -507,7 +693,6 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
           return
         }
       } else if (authData.user) {
-        // Create user profile
         const { error: insertError } = await supabase
           .from('users')
           .insert({
@@ -529,10 +714,15 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">
-          {member ? 'Edit Team Member' : 'Add New Team Member'}
-        </h2>
+      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto shadow-dropdown">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-navy-500">
+            {member ? 'Edit Team Member' : 'Add New Team Member'}
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -542,7 +732,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
               required
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.full_name ? 'border-red-500' : ''}`}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.full_name ? 'border-red-500' : 'border-gray-200'}`}
               placeholder="John Smith"
             />
             {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name}</p>}
@@ -556,9 +746,9 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
                 required
                 value={formData.email}
                 onChange={(e) => handleEmailChange(e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : ''}`}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
                 placeholder="john@company.com"
-                disabled={!!member} // Can't change email for existing users
+                disabled={!!member}
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
@@ -568,7 +758,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-500' : ''}`}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}
                 placeholder="(555) 123-4567"
               />
               {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
@@ -581,7 +771,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
               <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               >
                 {ROLE_OPTIONS.map(role => (
                   <option key={role.value} value={role.value}>{role.label}</option>
@@ -596,7 +786,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
                 min="0"
                 value={formData.hourly_rate}
                 onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 placeholder="25.00"
               />
             </div>
@@ -608,7 +798,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
               id="is_active"
               checked={formData.is_active}
               onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-navy-500 border-gray-300 rounded focus:ring-navy-500"
             />
             <label htmlFor="is_active" className="text-sm text-gray-700">
               Active (can be assigned to jobs)
@@ -617,42 +807,21 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes / HR Status
+              General Notes
             </label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               rows={3}
-              placeholder="Add notes about injuries, ADA accommodations, FMLA, vacation, sick time, etc."
+              placeholder="General notes about this team member..."
             />
-            <div className="mt-2 flex flex-wrap gap-1">
-              <span className="text-xs text-gray-500">Quick tags:</span>
-              {HR_TAGS.map(tag => (
-                <button
-                  key={tag.label}
-                  type="button"
-                  onClick={() => {
-                    const currentNotes = formData.notes
-                    if (!currentNotes.toLowerCase().includes(tag.label.toLowerCase())) {
-                      setFormData({
-                        ...formData,
-                        notes: currentNotes ? `${currentNotes}\n${tag.label}: ` : `${tag.label}: `
-                      })
-                    }
-                  }}
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${tag.color} hover:opacity-80`}
-                >
-                  + {tag.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {!member && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> New team members will receive a temporary password and should reset it on first login at <code className="bg-yellow-100 px-1 rounded">/worker/login</code>
+            <div className="bg-gold-50 border border-gold-200 rounded-lg p-3">
+              <p className="text-sm text-gold-800">
+                <strong>Note:</strong> New team members will receive a temporary password and should reset it on first login.
               </p>
             </div>
           )}
@@ -661,16 +830,227 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-navy-500 text-white rounded-lg hover:bg-navy-600 disabled:opacity-50 transition-colors"
             >
               {saving ? 'Saving...' : member ? 'Update Member' : 'Add Member'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Add Note Modal Component
+function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
+  worker: TeamMember
+  companyId: string
+  createdBy: string | null
+  onClose: () => void
+  onSave: () => void
+}) {
+  const [formData, setFormData] = useState({
+    note_type: 'injury' as NoteType,
+    title: '',
+    content: '',
+    start_date: '',
+    end_date: '',
+    is_active: true,
+    is_confidential: false,
+  })
+  const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<{ title?: string; content?: string }>({})
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const newErrors: { title?: string; content?: string } = {}
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required'
+    }
+    if (!formData.content.trim()) {
+      newErrors.content = 'Content is required'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setSaving(true)
+    setErrors({})
+
+    const noteData = {
+      company_id: companyId,
+      worker_id: worker.id,
+      created_by: createdBy,
+      note_type: formData.note_type,
+      title: formData.title.trim(),
+      content: formData.content.trim(),
+      start_date: formData.start_date || null,
+      end_date: formData.end_date || null,
+      is_active: formData.is_active,
+      is_confidential: formData.is_confidential,
+    }
+
+    const { error } = await supabase
+      .from('worker_notes')
+      .insert(noteData)
+
+    if (error) {
+      console.error('Error creating note:', error)
+      alert(`Error creating note: ${error.message}`)
+      setSaving(false)
+      return
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  const selectedTypeInfo = NOTE_TYPES.find(t => t.value === formData.note_type) || NOTE_TYPES[0]
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto shadow-dropdown">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-navy-500">Add HR Note</h2>
+            <p className="text-sm text-gray-500 mt-1">for {worker.full_name}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Note Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Note Type *</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {NOTE_TYPES.map(type => {
+                const Icon = type.icon
+                const isSelected = formData.note_type === type.value
+                return (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, note_type: type.value })}
+                    className={`p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition-all ${
+                      isSelected
+                        ? `${type.color} border-current`
+                        : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    }`}
+                  >
+                    <Icon size={20} />
+                    <span className="text-xs font-medium">{type.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <input
+              type="text"
+              required
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.title ? 'border-red-500' : 'border-gray-200'}`}
+              placeholder={`e.g., ${selectedTypeInfo.label} - ${new Date().toLocaleDateString()}`}
+            />
+            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+          </div>
+
+          {/* Content */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Details *</label>
+            <textarea
+              required
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.content ? 'border-red-500' : 'border-gray-200'}`}
+              rows={4}
+              placeholder="Describe the details of this note..."
+            />
+            {errors.content && <p className="text-red-500 text-xs mt-1">{errors.content}</p>}
+          </div>
+
+          {/* Date Range */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <input
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <input
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Checkboxes */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_active"
+                checked={formData.is_active}
+                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                className="w-4 h-4 text-navy-500 border-gray-300 rounded focus:ring-navy-500"
+              />
+              <label htmlFor="is_active" className="text-sm text-gray-700">
+                Active (shown on worker card)
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_confidential"
+                checked={formData.is_confidential}
+                onChange={(e) => setFormData({ ...formData, is_confidential: e.target.checked })}
+                className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
+              />
+              <label htmlFor="is_confidential" className="text-sm text-gray-700">
+                Confidential (restricted visibility)
+              </label>
+            </div>
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 disabled:opacity-50 transition-colors"
+            >
+              {saving ? 'Saving...' : 'Add Note'}
             </button>
           </div>
         </form>
