@@ -1,19 +1,58 @@
 # ToolTime Pro - Test Environment Access
 
 > **Last Updated:** January 31, 2026
-> **Status:** Demo mode available; Full auth requires Supabase setup
+> **Status:** ✅ FULLY CONFIGURED - Test accounts ready!
 
 ---
 
-## Current State Assessment
+## Test Credentials
+
+### ADMIN ACCESS (Owner)
+```
+URL:      http://localhost:3000/auth/login
+Email:    missmv@gmail.com
+Password: [your existing password]
+Role:     Owner (full access)
+Name:     Maria Valencia Powell
+```
+
+### WORKER ACCESS
+```
+URL:      http://localhost:3000/auth/login
+Email:    worker@greenscene.test
+Password: TestWorker123!
+Role:     Worker (limited access)
+Name:     Carlos Rodriguez
+```
+
+### CUSTOMER-FACING PAGES (No Login)
+```
+Booking:  http://localhost:3000/demo/booking
+Quotes:   http://localhost:3000/p/quote/[quote-id]
+Invoices: http://localhost:3000/p/invoice/[invoice-id]
+```
+
+---
+
+## Current State
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Supabase Database | NOT CONFIGURED | No .env.local file found |
-| Seed Data | NOT RUN | Requires Supabase first |
-| Production Deployment | UNKNOWN | tooltimepro.com returns 403 |
-| Demo Mode | WORKING | 14 demo pages with mock data |
-| Local Development | READY | `npm run dev` works |
+| Supabase Database | ✅ CONFIGURED | Connected to bqcymeefaizydfogaxcp |
+| Seed Data | ✅ LOADED | 5 customers, 3 jobs, 2 quotes, etc. |
+| Admin Account | ✅ READY | missmv@gmail.com (owner) |
+| Worker Account | ✅ READY | worker@greenscene.test |
+| Demo Mode | ✅ WORKING | 14 demo pages with mock data |
+
+---
+
+## Quick Start
+
+```bash
+cd ToolTimePro-Ai
+npm run dev
+# Open http://localhost:3000/auth/login
+```
 
 ---
 
