@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Phone, Mail, DollarSign, Briefcase } from 'lucide-react'
+import { Phone, Mail, DollarSign, Briefcase, AlertCircle, FileText } from 'lucide-react'
 
 interface TeamMember {
   id: string
@@ -15,9 +15,19 @@ interface TeamMember {
   hourly_rate: number | null
   is_active: boolean
   avatar_url: string | null
+  notes: string | null
   created_at: string
   job_assignments?: { job_id: string }[]
 }
+
+// HR status tags that can appear in notes
+const HR_TAGS = [
+  { label: 'Injured', color: 'bg-red-100 text-red-700' },
+  { label: 'ADA', color: 'bg-purple-100 text-purple-700' },
+  { label: 'FMLA', color: 'bg-orange-100 text-orange-700' },
+  { label: 'Vacation', color: 'bg-blue-100 text-blue-700' },
+  { label: 'Sick', color: 'bg-yellow-100 text-yellow-700' },
+]
 
 type UserRole = 'owner' | 'admin' | 'worker'
 
@@ -96,6 +106,7 @@ export default function TeamPage() {
 
     if (error) {
       console.error('Error updating status:', error)
+      alert(`Error updating status: ${error.message}`)
     } else if (companyId) {
       fetchTeamMembers(companyId)
     }
@@ -103,6 +114,19 @@ export default function TeamPage() {
 
   const getRoleInfo = (role: string) => {
     return ROLE_OPTIONS.find(r => r.value === role) || { label: role, color: 'bg-gray-100 text-gray-700' }
+  }
+
+  // Detect HR tags in notes
+  const getHRTags = (notes: string | null) => {
+    if (!notes) return []
+    const foundTags: typeof HR_TAGS = []
+    const notesLower = notes.toLowerCase()
+    HR_TAGS.forEach(tag => {
+      if (notesLower.includes(tag.label.toLowerCase())) {
+        foundTags.push(tag)
+      }
+    })
+    return foundTags
   }
 
   if (loading) {
@@ -197,6 +221,9 @@ export default function TeamPage() {
                   Jobs
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Notes / HR Status
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -259,6 +286,33 @@ export default function TeamPage() {
                       <div className="flex items-center gap-1 text-gray-600">
                         <Briefcase size={14} />
                         {member.job_assignments?.length || 0}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="max-w-xs">
+                        {(() => {
+                          const hrTags = getHRTags(member.notes)
+                          return (
+                            <>
+                              {hrTags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-1">
+                                  {hrTags.map(tag => (
+                                    <span key={tag.label} className={`px-2 py-0.5 rounded-full text-xs font-medium ${tag.color}`}>
+                                      {tag.label}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              {member.notes ? (
+                                <p className="text-sm text-gray-600 truncate" title={member.notes}>
+                                  {member.notes.length > 40 ? member.notes.slice(0, 40) + '...' : member.notes}
+                                </p>
+                              ) : (
+                                <span className="text-gray-400 text-sm">-</span>
+                              )}
+                            </>
+                          )
+                        })()}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -342,6 +396,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
     role: member?.role || 'worker',
     hourly_rate: member?.hourly_rate?.toString() || '',
     is_active: member?.is_active ?? true,
+    notes: member?.notes || '',
   })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; phone?: string; full_name?: string }>({})
@@ -386,26 +441,27 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
     }
 
     setSaving(true)
-
-    const data = {
-      full_name: formData.full_name,
-      email: formData.email,
-      phone: formData.phone || null,
-      role: formData.role,
-      hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-      is_active: formData.is_active,
-      company_id: companyId,
-    }
+    setErrors({})
 
     if (member) {
-      // Update existing member
+      // Update existing member - only update editable fields
+      const updateData = {
+        full_name: formData.full_name,
+        phone: formData.phone || null,
+        role: formData.role,
+        hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+        is_active: formData.is_active,
+        notes: formData.notes || null,
+      }
+
       const { error } = await supabase
         .from('users')
-        .update(data)
+        .update(updateData)
         .eq('id', member.id)
 
       if (error) {
         console.error('Error updating team member:', error)
+        alert(`Error updating team member: ${error.message}`)
         setSaving(false)
         return
       }
@@ -421,6 +477,17 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         },
       })
 
+      const newUserData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone || null,
+        role: formData.role,
+        hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+        is_active: formData.is_active,
+        notes: formData.notes || null,
+        company_id: companyId,
+      }
+
       if (authError) {
         // If admin API fails, try regular signup (will require email confirmation)
         console.error('Admin create failed, trying signup:', authError)
@@ -429,7 +496,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         const { error: insertError } = await supabase
           .from('users')
           .insert({
-            ...data,
+            ...newUserData,
             id: crypto.randomUUID(), // This won't work without auth user
           })
 
@@ -444,7 +511,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         const { error: insertError } = await supabase
           .from('users')
           .insert({
-            ...data,
+            ...newUserData,
             id: authData.user.id,
           })
 
@@ -546,6 +613,40 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
             <label htmlFor="is_active" className="text-sm text-gray-700">
               Active (can be assigned to jobs)
             </label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Notes / HR Status
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              rows={3}
+              placeholder="Add notes about injuries, ADA accommodations, FMLA, vacation, sick time, etc."
+            />
+            <div className="mt-2 flex flex-wrap gap-1">
+              <span className="text-xs text-gray-500">Quick tags:</span>
+              {HR_TAGS.map(tag => (
+                <button
+                  key={tag.label}
+                  type="button"
+                  onClick={() => {
+                    const currentNotes = formData.notes
+                    if (!currentNotes.toLowerCase().includes(tag.label.toLowerCase())) {
+                      setFormData({
+                        ...formData,
+                        notes: currentNotes ? `${currentNotes}\n${tag.label}: ` : `${tag.label}: `
+                      })
+                    }
+                  }}
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${tag.color} hover:opacity-80`}
+                >
+                  + {tag.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {!member && (
