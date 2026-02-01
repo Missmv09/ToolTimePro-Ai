@@ -23,7 +23,11 @@ import {
   Edit2,
   User,
   Archive,
-  RotateCcw
+  RotateCcw,
+  Award,
+  AlertCircle,
+  Clock,
+  CheckCircle
 } from 'lucide-react'
 
 // Note types with colors matching the navy/gold design system
@@ -86,6 +90,35 @@ interface WorkerNote {
   creator?: { full_name: string } | null
 }
 
+interface WorkerCertification {
+  id: string
+  company_id: string
+  worker_id: string
+  created_by: string | null
+  cert_type: string
+  cert_name: string
+  issuing_authority: string | null
+  cert_number: string | null
+  issue_date: string | null
+  expiration_date: string | null
+  is_verified: boolean
+  is_active: boolean
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Common certification types for construction/trades
+const CERT_TYPES = [
+  { value: 'osha', label: 'OSHA', examples: 'OSHA 10, OSHA 30' },
+  { value: 'license', label: 'License', examples: 'Contractor, Electrical, Plumbing' },
+  { value: 'equipment', label: 'Equipment', examples: 'Forklift, Crane, Scaffold' },
+  { value: 'safety', label: 'Safety', examples: 'CPR, First Aid, Fall Protection' },
+  { value: 'trade', label: 'Trade Cert', examples: 'Journeyman, Master, NATE' },
+  { value: 'driver', label: 'Driver', examples: "Driver's License, CDL" },
+  { value: 'other', label: 'Other', examples: 'Custom certifications' },
+] as const
+
 interface TeamMember {
   id: string
   full_name: string
@@ -112,14 +145,18 @@ const ROLE_OPTIONS: { value: UserRole; label: string; color: string }[] = [
 export default function TeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [workerNotes, setWorkerNotes] = useState<WorkerNote[]>([])
+  const [workerCerts, setWorkerCerts] = useState<WorkerCertification[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState<string>('all')
   const [showMemberModal, setShowMemberModal] = useState(false)
   const [showNoteModal, setShowNoteModal] = useState(false)
+  const [showCertModal, setShowCertModal] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
   const [editingNote, setEditingNote] = useState<WorkerNote | null>(null)
+  const [editingCert, setEditingCert] = useState<WorkerCertification | null>(null)
   const [selectedWorkerForNote, setSelectedWorkerForNote] = useState<TeamMember | null>(null)
+  const [selectedWorkerForCert, setSelectedWorkerForCert] = useState<TeamMember | null>(null)
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
 
   const router = useRouter()
@@ -140,6 +177,7 @@ export default function TeamPage() {
     if (companyId) {
       fetchTeamMembers(companyId)
       fetchWorkerNotes(companyId)
+      fetchWorkerCerts(companyId)
     } else {
       setLoading(false)
     }
@@ -180,12 +218,51 @@ export default function TeamPage() {
     }
   }
 
+  const fetchWorkerCerts = async (companyId: string) => {
+    const { data, error } = await supabase
+      .from('worker_certifications')
+      .select('*')
+      .eq('company_id', companyId)
+      .eq('is_active', true)
+      .order('expiration_date', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching worker certifications:', error)
+    } else {
+      setWorkerCerts(data || [])
+    }
+  }
+
   const getNotesForWorker = (workerId: string) => {
     return workerNotes.filter(note => note.worker_id === workerId)
   }
 
   const getActiveNotesForWorker = (workerId: string) => {
     return workerNotes.filter(note => note.worker_id === workerId && note.is_active)
+  }
+
+  const getCertsForWorker = (workerId: string) => {
+    return workerCerts.filter(cert => cert.worker_id === workerId)
+  }
+
+  const getCertStatus = (cert: WorkerCertification) => {
+    if (!cert.expiration_date) return 'valid'
+    const today = new Date()
+    const expDate = new Date(cert.expiration_date)
+    const daysUntilExpiry = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysUntilExpiry < 0) return 'expired'
+    if (daysUntilExpiry <= 30) return 'expiring-soon'
+    if (daysUntilExpiry <= 90) return 'expiring'
+    return 'valid'
+  }
+
+  const getExpiringCertsCount = (workerId: string) => {
+    const certs = getCertsForWorker(workerId)
+    return certs.filter(cert => {
+      const status = getCertStatus(cert)
+      return status === 'expired' || status === 'expiring-soon'
+    }).length
   }
 
   const filteredMembers = teamMembers.filter(member => {
@@ -329,6 +406,8 @@ export default function TeamPage() {
             const roleInfo = getRoleInfo(member.role)
             const activeNotes = getActiveNotesForWorker(member.id)
             const allNotes = getNotesForWorker(member.id)
+            const allCerts = getCertsForWorker(member.id)
+            const expiringCertsCount = getExpiringCertsCount(member.id)
             const isExpanded = expandedMembers.has(member.id)
 
             return (
@@ -405,19 +484,47 @@ export default function TeamPage() {
                         </div>
                       )}
 
+                      {/* Certification Badges */}
+                      {allCerts.length > 0 && (
+                        <div className="flex gap-1 flex-wrap">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 bg-navy-100 text-navy-700">
+                            <Award size={12} />
+                            {allCerts.length} Cert{allCerts.length !== 1 ? 's' : ''}
+                          </span>
+                          {expiringCertsCount > 0 && (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 bg-red-100 text-red-700">
+                              <AlertCircle size={12} />
+                              {expiringCertsCount} Expiring
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       {/* Actions */}
                       <div className="flex items-center gap-2">
                         {canManageNotes && (
-                          <button
-                            onClick={() => {
-                              setSelectedWorkerForNote(member)
-                              setShowNoteModal(true)
-                            }}
-                            className="px-3 py-1.5 text-sm border border-gold-500 text-gold-600 rounded-lg hover:bg-gold-50 flex items-center gap-1 transition-colors"
-                          >
-                            <FileText size={14} />
-                            Add Note
-                          </button>
+                          <>
+                            <button
+                              onClick={() => {
+                                setSelectedWorkerForNote(member)
+                                setShowNoteModal(true)
+                              }}
+                              className="px-3 py-1.5 text-sm border border-gold-500 text-gold-600 rounded-lg hover:bg-gold-50 flex items-center gap-1 transition-colors"
+                            >
+                              <FileText size={14} />
+                              Note
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedWorkerForCert(member)
+                                setShowCertModal(true)
+                              }}
+                              className="px-3 py-1.5 text-sm border border-navy-500 text-navy-600 rounded-lg hover:bg-navy-50 flex items-center gap-1 transition-colors"
+                            >
+                              <Award size={14} />
+                              Cert
+                            </button>
+                          </>
                         )}
                         <button
                           onClick={() => {
@@ -443,15 +550,17 @@ export default function TeamPage() {
                     </div>
                   </div>
 
-                  {/* Notes Preview / Expand Button */}
-                  {allNotes.length > 0 && (
+                  {/* Notes & Certs Expand Button */}
+                  {(allNotes.length > 0 || allCerts.length > 0) && (
                     <div className="mt-4 pt-4 border-t border-gray-100">
                       <button
                         onClick={() => toggleExpanded(member.id)}
                         className="flex items-center gap-2 text-sm text-gray-600 hover:text-navy-500 transition-colors"
                       >
                         {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        {isExpanded ? 'Hide' : 'Show'} {allNotes.length} HR Note{allNotes.length !== 1 ? 's' : ''}
+                        {isExpanded ? 'Hide' : 'Show'} Details
+                        {allNotes.length > 0 && <span className="text-gray-400">({allNotes.length} notes)</span>}
+                        {allCerts.length > 0 && <span className="text-gray-400">({allCerts.length} certs)</span>}
                       </button>
                     </div>
                   )}
@@ -552,6 +661,73 @@ export default function TeamPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Expanded Certifications Section */}
+                {isExpanded && allCerts.length > 0 && (
+                  <div className={`border-t border-gray-100 bg-gray-50 p-5 ${allNotes.length > 0 ? 'pt-0' : ''}`}>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Certifications & Licenses</h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {allCerts.map(cert => {
+                        const status = getCertStatus(cert)
+                        const statusStyles = {
+                          'valid': 'border-green-200 bg-green-50',
+                          'expiring': 'border-yellow-200 bg-yellow-50',
+                          'expiring-soon': 'border-orange-200 bg-orange-50',
+                          'expired': 'border-red-200 bg-red-50',
+                        }
+                        const statusIcons = {
+                          'valid': <CheckCircle size={14} className="text-green-600" />,
+                          'expiring': <Clock size={14} className="text-yellow-600" />,
+                          'expiring-soon': <AlertCircle size={14} className="text-orange-600" />,
+                          'expired': <AlertTriangle size={14} className="text-red-600" />,
+                        }
+                        return (
+                          <div
+                            key={cert.id}
+                            className={`bg-white p-3 rounded-lg border ${statusStyles[status]}`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <Award size={14} className="text-navy-500" />
+                                  <h5 className="font-medium text-navy-500 text-sm">{cert.cert_name}</h5>
+                                  {statusIcons[status]}
+                                </div>
+                                {cert.issuing_authority && (
+                                  <p className="text-xs text-gray-500 mt-1">{cert.issuing_authority}</p>
+                                )}
+                                {cert.cert_number && (
+                                  <p className="text-xs text-gray-400 mt-0.5">#{cert.cert_number}</p>
+                                )}
+                                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                  {cert.expiration_date && (
+                                    <span className={status === 'expired' ? 'text-red-600 font-medium' : ''}>
+                                      Expires: {formatDate(cert.expiration_date)}
+                                    </span>
+                                  )}
+                                  {cert.is_verified && (
+                                    <span className="text-green-600 flex items-center gap-1">
+                                      <CheckCircle size={10} /> Verified
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {canManageNotes && (
+                                <button
+                                  onClick={() => setEditingCert(cert)}
+                                  className="p-1.5 text-gray-400 hover:text-navy-500 hover:bg-navy-50 rounded transition-colors"
+                                  title="Edit certification"
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -597,6 +773,40 @@ export default function TeamPage() {
           onSave={() => {
             setEditingNote(null)
             if (companyId) fetchWorkerNotes(companyId)
+          }}
+        />
+      )}
+
+      {/* Add Certification Modal */}
+      {showCertModal && selectedWorkerForCert && (
+        <CertificationModal
+          cert={null}
+          worker={selectedWorkerForCert}
+          companyId={companyId!}
+          createdBy={dbUser?.id || null}
+          onClose={() => {
+            setShowCertModal(false)
+            setSelectedWorkerForCert(null)
+          }}
+          onSave={() => {
+            setShowCertModal(false)
+            setSelectedWorkerForCert(null)
+            if (companyId) fetchWorkerCerts(companyId)
+          }}
+        />
+      )}
+
+      {/* Edit Certification Modal */}
+      {editingCert && (
+        <CertificationModal
+          cert={editingCert}
+          worker={null}
+          companyId={companyId!}
+          createdBy={dbUser?.id || null}
+          onClose={() => setEditingCert(null)}
+          onSave={() => {
+            setEditingCert(null)
+            if (companyId) fetchWorkerCerts(companyId)
           }}
         />
       )}
@@ -1443,6 +1653,227 @@ function EditNoteModal({ note, onClose, onSave }: {
               className="flex-1 px-4 py-2 bg-navy-500 text-white rounded-lg hover:bg-navy-600 disabled:opacity-50 transition-colors"
             >
               {saving ? 'Saving...' : 'Update Note'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Certification Modal Component (Add/Edit)
+function CertificationModal({ cert, worker, companyId, createdBy, onClose, onSave }: {
+  cert: WorkerCertification | null
+  worker: TeamMember | null
+  companyId: string
+  createdBy: string | null
+  onClose: () => void
+  onSave: () => void
+}) {
+  const isEditing = !!cert
+  const workerId = cert?.worker_id || worker?.id || ''
+  const workerName = worker?.full_name || ''
+
+  const [formData, setFormData] = useState({
+    cert_type: cert?.cert_type || 'license',
+    cert_name: cert?.cert_name || '',
+    issuing_authority: cert?.issuing_authority || '',
+    cert_number: cert?.cert_number || '',
+    issue_date: cert?.issue_date || '',
+    expiration_date: cert?.expiration_date || '',
+    is_verified: cert?.is_verified || false,
+    notes: cert?.notes || '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<{ cert_name?: string }>({})
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!formData.cert_name.trim()) {
+      setErrors({ cert_name: 'Certification name is required' })
+      return
+    }
+
+    setSaving(true)
+    setErrors({})
+
+    const certData = {
+      company_id: companyId,
+      worker_id: workerId,
+      created_by: createdBy,
+      cert_type: formData.cert_type,
+      cert_name: formData.cert_name.trim(),
+      issuing_authority: formData.issuing_authority.trim() || null,
+      cert_number: formData.cert_number.trim() || null,
+      issue_date: formData.issue_date || null,
+      expiration_date: formData.expiration_date || null,
+      is_verified: formData.is_verified,
+      notes: formData.notes.trim() || null,
+    }
+
+    if (isEditing && cert) {
+      const { error } = await supabase
+        .from('worker_certifications')
+        .update(certData)
+        .eq('id', cert.id)
+
+      if (error) {
+        console.error('Error updating certification:', error)
+        alert(`Error updating certification: ${error.message}`)
+        setSaving(false)
+        return
+      }
+    } else {
+      const { error } = await supabase
+        .from('worker_certifications')
+        .insert(certData)
+
+      if (error) {
+        console.error('Error creating certification:', error)
+        alert(`Error creating certification: ${error.message}`)
+        setSaving(false)
+        return
+      }
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto shadow-dropdown">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-navy-500">
+              {isEditing ? 'Edit Certification' : 'Add Certification'}
+            </h2>
+            {workerName && <p className="text-sm text-gray-500 mt-1">for {workerName}</p>}
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Cert Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              value={formData.cert_type}
+              onChange={(e) => setFormData({ ...formData, cert_type: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+            >
+              {CERT_TYPES.map(type => (
+                <option key={type.value} value={type.value}>
+                  {type.label} - {type.examples}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Cert Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Certification Name *</label>
+            <input
+              type="text"
+              required
+              value={formData.cert_name}
+              onChange={(e) => setFormData({ ...formData, cert_name: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.cert_name ? 'border-red-500' : 'border-gray-200'}`}
+              placeholder="e.g., OSHA 30, Forklift Operator, CDL Class A"
+            />
+            {errors.cert_name && <p className="text-red-500 text-xs mt-1">{errors.cert_name}</p>}
+          </div>
+
+          {/* Issuing Authority & Cert Number */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Authority</label>
+              <input
+                type="text"
+                value={formData.issuing_authority}
+                onChange={(e) => setFormData({ ...formData, issuing_authority: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                placeholder="e.g., OSHA, State of CA"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cert/License #</label>
+              <input
+                type="text"
+                value={formData.cert_number}
+                onChange={(e) => setFormData({ ...formData, cert_number: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                placeholder="Certificate number"
+              />
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+              <input
+                type="date"
+                value={formData.issue_date}
+                onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Expiration Date</label>
+              <input
+                type="date"
+                value={formData.expiration_date}
+                onChange={(e) => setFormData({ ...formData, expiration_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Verified checkbox */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="is_verified"
+              checked={formData.is_verified}
+              onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
+              className="w-4 h-4 text-green-500 border-gray-300 rounded focus:ring-green-500"
+            />
+            <label htmlFor="is_verified" className="text-sm text-gray-700">
+              Verified (documentation confirmed)
+            </label>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              rows={2}
+              placeholder="Additional notes..."
+            />
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-navy-500 text-white rounded-lg hover:bg-navy-600 disabled:opacity-50 transition-colors"
+            >
+              {saving ? 'Saving...' : isEditing ? 'Update Cert' : 'Add Cert'}
             </button>
           </div>
         </form>
