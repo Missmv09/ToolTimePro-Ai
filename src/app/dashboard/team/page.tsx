@@ -21,7 +21,9 @@ import {
   ChevronDown,
   ChevronUp,
   Edit2,
-  User
+  User,
+  Archive,
+  RotateCcw
 } from 'lucide-react'
 
 // Note types with colors matching the navy/gold design system
@@ -116,6 +118,7 @@ export default function TeamPage() {
   const [showMemberModal, setShowMemberModal] = useState(false)
   const [showNoteModal, setShowNoteModal] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+  const [editingNote, setEditingNote] = useState<WorkerNote | null>(null)
   const [selectedWorkerForNote, setSelectedWorkerForNote] = useState<TeamMember | null>(null)
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
 
@@ -472,7 +475,7 @@ export default function TeamPage() {
                                 <div className={`p-2 rounded-lg ${typeInfo.color}`}>
                                   <Icon size={16} />
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <h5 className="font-medium text-navy-500">{note.title}</h5>
                                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${typeInfo.color}`}>
@@ -480,7 +483,7 @@ export default function TeamPage() {
                                     </span>
                                     {!note.is_active && (
                                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                                        Inactive
+                                        Archived
                                       </span>
                                     )}
                                     {note.is_confidential && (
@@ -513,6 +516,35 @@ export default function TeamPage() {
                                   </div>
                                 </div>
                               </div>
+                              {/* Edit/Archive Actions */}
+                              {canManageNotes && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <button
+                                    onClick={() => setEditingNote(note)}
+                                    className="p-1.5 text-gray-400 hover:text-navy-500 hover:bg-navy-50 rounded transition-colors"
+                                    title="Edit note"
+                                  >
+                                    <Edit2 size={14} />
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      const { error } = await supabase
+                                        .from('worker_notes')
+                                        .update({ is_active: !note.is_active })
+                                        .eq('id', note.id)
+                                      if (!error && companyId) fetchWorkerNotes(companyId)
+                                    }}
+                                    className={`p-1.5 rounded transition-colors ${
+                                      note.is_active
+                                        ? 'text-gray-400 hover:text-orange-500 hover:bg-orange-50'
+                                        : 'text-green-500 hover:text-green-600 hover:bg-green-50'
+                                    }`}
+                                    title={note.is_active ? 'Archive note' : 'Restore note'}
+                                  >
+                                    {note.is_active ? <Archive size={14} /> : <RotateCcw size={14} />}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )
@@ -552,6 +584,18 @@ export default function TeamPage() {
           onSave={() => {
             setShowNoteModal(false)
             setSelectedWorkerForNote(null)
+            if (companyId) fetchWorkerNotes(companyId)
+          }}
+        />
+      )}
+
+      {/* Edit Note Modal */}
+      {editingNote && (
+        <EditNoteModal
+          note={editingNote}
+          onClose={() => setEditingNote(null)}
+          onSave={() => {
+            setEditingNote(null)
             if (companyId) fetchWorkerNotes(companyId)
           }}
         />
@@ -1124,6 +1168,281 @@ function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
               className="flex-1 px-4 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 disabled:opacity-50 transition-colors"
             >
               {saving ? 'Saving...' : 'Add Note'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Edit Note Modal Component
+function EditNoteModal({ note, onClose, onSave }: {
+  note: WorkerNote
+  onClose: () => void
+  onSave: () => void
+}) {
+  const [formData, setFormData] = useState({
+    note_type: note.note_type,
+    title: note.title,
+    content: note.content,
+    start_date: note.start_date || '',
+    end_date: note.end_date || '',
+    expected_return_date: note.expected_return_date || '',
+    actual_return_date: note.actual_return_date || '',
+    is_active: note.is_active,
+    is_confidential: note.is_confidential,
+  })
+
+  // Note types that require return dates (not sick/time off)
+  const requiresReturnDates = !['sick', 'vacation'].includes(formData.note_type)
+  const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<{ content?: string; start_date?: string; expected_return_date?: string }>({})
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const newErrors: { content?: string; start_date?: string; expected_return_date?: string } = {}
+
+    if (!formData.content.trim()) {
+      newErrors.content = 'Details are required'
+    }
+
+    // Require dates for injury, ada, fmla
+    if (requiresReturnDates) {
+      if (!formData.start_date) {
+        newErrors.start_date = 'Start date is required'
+      }
+      if (!formData.expected_return_date) {
+        newErrors.expected_return_date = 'Expected return date is required'
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setSaving(true)
+    setErrors({})
+
+    const selectedType = NOTE_TYPES.find(t => t.value === formData.note_type)
+    const autoTitle = formData.title.trim() || `${selectedType?.label || 'Note'} - ${new Date().toLocaleDateString()}`
+
+    const updateData = {
+      note_type: formData.note_type,
+      title: autoTitle,
+      content: formData.content.trim(),
+      start_date: formData.start_date || null,
+      end_date: requiresReturnDates ? null : (formData.end_date || null),
+      expected_return_date: requiresReturnDates ? (formData.expected_return_date || null) : null,
+      actual_return_date: requiresReturnDates ? (formData.actual_return_date || null) : null,
+      is_active: formData.is_active,
+      is_confidential: formData.is_confidential,
+    }
+
+    const { error } = await supabase
+      .from('worker_notes')
+      .update(updateData)
+      .eq('id', note.id)
+
+    if (error) {
+      console.error('Error updating note:', error)
+      alert(`Error updating note: ${error.message}`)
+      setSaving(false)
+      return
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  const selectedTypeInfo = NOTE_TYPES.find(t => t.value === formData.note_type) || NOTE_TYPES[0]
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto shadow-dropdown">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-navy-500">Edit HR Note</h2>
+            <p className="text-sm text-gray-500 mt-1">Update note details</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Note Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Note Type *</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {NOTE_TYPES.map(type => {
+                const Icon = type.icon
+                const isSelected = formData.note_type === type.value
+                return (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, note_type: type.value })}
+                    className={`p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition-all ${
+                      isSelected
+                        ? `${type.color} border-current`
+                        : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    }`}
+                  >
+                    <Icon size={20} />
+                    <span className="text-xs font-medium">{type.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Title (Optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              placeholder={`Auto: ${selectedTypeInfo.label} - ${new Date().toLocaleDateString()}`}
+            />
+          </div>
+
+          {/* Content */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Details *</label>
+            <textarea
+              required
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.content ? 'border-red-500' : 'border-gray-200'}`}
+              rows={4}
+              placeholder="Describe the details of this note..."
+            />
+            {errors.content && <p className="text-red-500 text-xs mt-1">{errors.content}</p>}
+          </div>
+
+          {/* Date Fields - Different based on note type */}
+          {requiresReturnDates ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.start_date ? 'border-red-500' : 'border-gray-200'}`}
+                  />
+                  {errors.start_date && <p className="text-red-500 text-xs mt-1">{errors.start_date}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Expected Return Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.expected_return_date}
+                    onChange={(e) => setFormData({ ...formData, expected_return_date: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.expected_return_date ? 'border-red-500' : 'border-gray-200'}`}
+                  />
+                  {errors.expected_return_date && <p className="text-red-500 text-xs mt-1">{errors.expected_return_date}</p>}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Actual Return Date <span className="text-gray-400 font-normal">(fill when they return)</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.actual_return_date}
+                  onChange={(e) => setFormData({ ...formData, actual_return_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Status Checkboxes */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="edit_is_active"
+                checked={formData.is_active}
+                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                className="w-4 h-4 text-navy-500 border-gray-300 rounded focus:ring-navy-500"
+              />
+              <label htmlFor="edit_is_active" className="text-sm text-gray-700">
+                Active (shown on worker card)
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="edit_is_confidential"
+                checked={formData.is_confidential}
+                onChange={(e) => setFormData({ ...formData, is_confidential: e.target.checked })}
+                className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
+              />
+              <label htmlFor="edit_is_confidential" className="text-sm text-gray-700">
+                Confidential (restricted visibility)
+              </label>
+            </div>
+          </div>
+
+          {/* Compliance Notice */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Changes are logged for compliance. Notes cannot be deleted, only archived.
+            </p>
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-navy-500 text-white rounded-lg hover:bg-navy-600 disabled:opacity-50 transition-colors"
+            >
+              {saving ? 'Saving...' : 'Update Note'}
             </button>
           </div>
         </form>
