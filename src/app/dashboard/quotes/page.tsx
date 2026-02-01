@@ -436,6 +436,7 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
     customer_id: quote?.customer_id || '',
     notes: quote?.notes || '',
     valid_until: quote?.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tax_rate: quote?.tax && quote?.subtotal ? ((quote.tax / quote.subtotal) * 100).toFixed(2) : '0',
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     quote?.items?.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })) ||
@@ -459,7 +460,8 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
-    const tax = subtotal * 0.0875 // CA sales tax estimate
+    const taxRate = parseFloat(formData.tax_rate) || 0
+    const tax = subtotal * (taxRate / 100)
     const total = subtotal + tax
     return { subtotal, tax, total }
   }
@@ -599,8 +601,20 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
               <span className="text-gray-600">Subtotal</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Tax (8.75%)</span>
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600">Tax Rate (%)</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={formData.tax_rate}
+                  onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
+                  className="w-20 px-2 py-1 border rounded text-right"
+                  placeholder="0"
+                />
+              </div>
               <span>${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg">
