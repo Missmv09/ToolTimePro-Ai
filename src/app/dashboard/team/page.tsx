@@ -665,17 +665,38 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         return
       }
     } else {
-      // Create new team member
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Create new team member using signUp (works from client-side)
+      const tempPassword = 'TempPassword123!'
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
-        password: 'TempPassword123!',
-        email_confirm: true,
-        user_metadata: {
-          full_name: formData.full_name,
+        password: tempPassword,
+        options: {
+          data: {
+            full_name: formData.full_name,
+          },
         },
       })
 
+      if (authError) {
+        console.error('Error creating auth user:', authError)
+        if (authError.message.includes('already registered')) {
+          alert('A user with this email already exists. Please use a different email address.')
+        } else {
+          alert(`Unable to create team member: ${authError.message}`)
+        }
+        setSaving(false)
+        return
+      }
+
+      if (!authData.user) {
+        console.error('No user returned from signUp')
+        alert('Unable to create team member. Please try again.')
+        setSaving(false)
+        return
+      }
+
       const newUserData = {
+        id: authData.user.id,
         full_name: formData.full_name,
         email: formData.email,
         phone: formData.phone || null,
@@ -686,34 +707,15 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         company_id: companyId,
       }
 
-      if (authError) {
-        console.error('Admin create failed, trying signup:', authError)
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({
-            ...newUserData,
-            id: crypto.randomUUID(),
-          })
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert(newUserData)
 
-        if (insertError) {
-          console.error('Error creating team member:', insertError)
-          alert('Unable to create team member. They may need to sign up first at /worker/login')
-          setSaving(false)
-          return
-        }
-      } else if (authData.user) {
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({
-            ...newUserData,
-            id: authData.user.id,
-          })
-
-        if (insertError) {
-          console.error('Error creating user profile:', insertError)
-          setSaving(false)
-          return
-        }
+      if (insertError) {
+        console.error('Error creating user profile:', insertError)
+        alert(`Error creating team member profile: ${insertError.message}`)
+        setSaving(false)
+        return
       }
     }
 
