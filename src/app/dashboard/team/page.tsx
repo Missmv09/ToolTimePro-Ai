@@ -873,9 +873,6 @@ function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
 
     const newErrors: { title?: string; content?: string } = {}
 
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required'
-    }
     if (!formData.content.trim()) {
       newErrors.content = 'Content is required'
     }
@@ -888,12 +885,16 @@ function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
     setSaving(true)
     setErrors({})
 
+    // Auto-generate title from note type if not provided
+    const selectedType = NOTE_TYPES.find(t => t.value === formData.note_type)
+    const autoTitle = formData.title.trim() || `${selectedType?.label || 'Note'} - ${new Date().toLocaleDateString()}`
+
     const noteData = {
       company_id: companyId,
       worker_id: worker.id,
       created_by: createdBy,
       note_type: formData.note_type,
-      title: formData.title.trim(),
+      title: autoTitle,
       content: formData.content.trim(),
       start_date: formData.start_date || null,
       end_date: formData.end_date || null,
@@ -958,18 +959,18 @@ function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
             </div>
           </div>
 
-          {/* Title */}
+          {/* Title (Optional) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
             <input
               type="text"
-              required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.title ? 'border-red-500' : 'border-gray-200'}`}
-              placeholder={`e.g., ${selectedTypeInfo.label} - ${new Date().toLocaleDateString()}`}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              placeholder={`Auto: ${selectedTypeInfo.label} - ${new Date().toLocaleDateString()}`}
             />
-            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
           </div>
 
           {/* Content */}
