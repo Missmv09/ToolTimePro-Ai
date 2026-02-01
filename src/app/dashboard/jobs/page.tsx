@@ -19,14 +19,25 @@ interface Job {
   status: string
   priority: string
   price: number
+  quote_id: string | null
   customer: { id: string; name: string } | null
   assigned_users: { user: { id: string; full_name: string } }[]
+}
+
+interface Quote {
+  id: string
+  quote_number: string
+  title: string
+  total: number
+  customer_id: string
+  customer: { id: string; name: string; address: string; city: string; state: string; zip: string } | null
 }
 
 function JobsContent() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([])
   const [workers, setWorkers] = useState<{ id: string; full_name: string }[]>([])
+  const [quotes, setQuotes] = useState<Quote[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
@@ -55,6 +66,7 @@ function JobsContent() {
       fetchJobs(companyId)
       fetchCustomers(companyId)
       fetchWorkers(companyId)
+      fetchQuotes(companyId)
     } else {
       // No company_id yet, stop loading to avoid infinite loop
       setLoading(false)
@@ -106,6 +118,16 @@ function JobsContent() {
       .eq('company_id', companyId)
       .eq('is_active', true)
     setWorkers(data || [])
+  }
+
+  const fetchQuotes = async (companyId: string) => {
+    const { data } = await supabase
+      .from('quotes')
+      .select('id, quote_number, title, total, customer_id, customer:customers(id, name, address, city, state, zip)')
+      .eq('company_id', companyId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+    setQuotes(data || [])
   }
 
   useEffect(() => {
@@ -266,6 +288,7 @@ function JobsContent() {
           companyId={companyId!}
           customers={customers}
           workers={workers}
+          quotes={quotes}
           onClose={() => setShowModal(false)}
           onSave={() => {
             setShowModal(false)
@@ -277,11 +300,12 @@ function JobsContent() {
   )
 }
 
-function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
+function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave }: {
   job: Job | null
   companyId: string
   customers: { id: string; name: string }[]
   workers: { id: string; full_name: string }[]
+  quotes: Quote[]
   onClose: () => void
   onSave: () => void
 }) {
@@ -289,6 +313,7 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
     title: job?.title || '',
     description: job?.description || '',
     customer_id: job?.customer?.id || '',
+    quote_id: job?.quote_id || '',
     address: job?.address || '',
     city: job?.city || '',
     state: job?.state || '',
@@ -318,6 +343,29 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  // Auto-fill fields when quote is selected
+  const handleQuoteChange = (quoteId: string) => {
+    if (!quoteId) {
+      setFormData({ ...formData, quote_id: '' })
+      return
+    }
+
+    const quote = quotes.find(q => q.id === quoteId)
+    if (quote) {
+      setFormData(prev => ({
+        ...prev,
+        quote_id: quoteId,
+        title: quote.title || prev.title,
+        price: quote.total?.toString() || prev.price,
+        customer_id: quote.customer_id || prev.customer_id,
+        address: quote.customer?.address || prev.address,
+        city: quote.customer?.city || prev.city,
+        state: quote.customer?.state || prev.state,
+        zip: quote.customer?.zip || prev.zip,
+      }))
+    }
   }
 
   // Auto-fill address when customer is selected
@@ -357,6 +405,7 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
       title: formData.title,
       description: formData.description,
       customer_id: formData.customer_id || null,
+      quote_id: formData.quote_id || null,
       address: formData.address,
       city: formData.city,
       state: formData.state,
@@ -365,7 +414,7 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
       scheduled_time_start: formData.scheduled_time_start,
       scheduled_time_end: formData.scheduled_time_end || null,
       priority: formData.priority,
-      price: formData.price ? Number(formData.price) : null,
+      total_amount: formData.price ? Number(formData.price) : null,
       company_id: companyId,
       status: job?.status || 'scheduled',
     }
@@ -426,6 +475,26 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
               ))}
             </select>
           </div>
+
+          {quotes.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                From Quote <span className="text-gray-400 font-normal">(auto-fills price)</span>
+              </label>
+              <select
+                value={formData.quote_id}
+                onChange={(e) => handleQuoteChange(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">No quote linked</option>
+                {quotes.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.quote_number} - {q.customer?.name || 'Unknown'} - ${q.total?.toLocaleString()}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
@@ -548,12 +617,14 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price ($) {formData.quote_id && <span className="text-green-600 font-normal">(from quote)</span>}
+              </label>
               <input
                 type="number"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${formData.quote_id ? 'bg-green-50' : ''}`}
                 placeholder="0.00"
               />
             </div>

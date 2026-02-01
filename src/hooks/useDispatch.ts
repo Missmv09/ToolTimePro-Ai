@@ -195,12 +195,20 @@ export function useDispatch(): UseDispatchReturn {
   // Assign worker to job
   const assignJob = async (jobId: string, workerId: string) => {
     try {
-      const { error: assignError } = await supabase.from('job_assignments').insert({
+      const { data, error: assignError } = await supabase.from('job_assignments').insert({
         job_id: jobId,
         user_id: workerId,
-      });
+      }).select();
 
-      if (assignError) throw assignError;
+      if (assignError) {
+        console.error('Job assignment error:', assignError);
+        throw assignError;
+      }
+
+      // Check if insert actually succeeded (RLS may silently fail)
+      if (!data || data.length === 0) {
+        throw new Error('Assignment failed - please check database permissions');
+      }
 
       // Send SMS notification to worker
       const job = jobs.find((j) => j.id === jobId);
