@@ -395,9 +395,25 @@ ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE review_requests ENABLE ROW LEVEL SECURITY;
 
--- Users can only see their own company's data
-CREATE POLICY "Users see own company" ON users
-    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+-- Users can read their own row (prevents circular RLS dependency)
+CREATE POLICY "Users can read own profile" ON users
+    FOR SELECT USING (id = auth.uid());
+
+-- Users can see other users in their company (uses EXISTS to avoid circular dependency)
+CREATE POLICY "Users see own company members" ON users
+    FOR SELECT USING (
+        company_id IN (
+            SELECT u.company_id FROM users u WHERE u.id = auth.uid()
+        )
+    );
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile" ON users
+    FOR UPDATE USING (id = auth.uid());
+
+-- Users can insert their own profile (during signup)
+CREATE POLICY "Users can insert own profile" ON users
+    FOR INSERT WITH CHECK (id = auth.uid());
 
 CREATE POLICY "Customers belong to company" ON customers
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));

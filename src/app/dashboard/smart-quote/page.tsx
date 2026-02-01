@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Types
 interface LineItem {
@@ -61,9 +62,10 @@ const marketRates: Record<string, { min: number; max: number }> = {
 
 export default function SmartQuotingPage() {
   const router = useRouter();
+  const { user, dbUser, isLoading: authLoading } = useAuth();
 
-  // Company and auth state
-  const [companyId, setCompanyId] = useState<string | null>(null);
+  // Company and auth state - get from AuthContext
+  const companyId = dbUser?.company_id || null;
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
 
@@ -119,37 +121,35 @@ export default function SmartQuotingPage() {
   // Generate unique ID
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
-  // Fetch company ID and customers on mount
+  // Fetch customers once we have company_id from AuthContext
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
+    // Wait for auth to finish loading
+    if (authLoading) return;
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login');
+      return;
+    }
 
-      if (userData?.company_id) {
-        setCompanyId(userData.company_id);
-
-        // Fetch customers
+    // Fetch customers once we have a company_id
+    if (companyId) {
+      const fetchCustomers = async () => {
         const { data: customersData } = await supabase
           .from('customers')
           .select('id, name, phone, email, address')
-          .eq('company_id', userData.company_id)
+          .eq('company_id', companyId)
           .order('name');
 
         setCustomers(customersData || []);
-      }
+        setIsLoadingCustomers(false);
+      };
+      fetchCustomers();
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
       setIsLoadingCustomers(false);
-    };
-    init();
-  }, [router]);
+    }
+  }, [authLoading, user, companyId, router]);
 
   // Voice quote functions
   const startVoiceRecording = () => {

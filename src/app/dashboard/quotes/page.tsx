@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface QuoteItem {
   id: string
@@ -40,7 +41,6 @@ function QuotesContent() {
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [customers, setCustomers] = useState<{ id: string; name: string; email: string }[]>([])
   const [loading, setLoading] = useState(true)
-  const [companyId, setCompanyId] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
@@ -49,29 +49,30 @@ function QuotesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
+  const { user, dbUser, isLoading: authLoading } = useAuth()
+
+  // Get company_id from AuthContext
+  const companyId = dbUser?.company_id || null
 
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
+    // Wait for auth to finish loading
+    if (authLoading) return
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-      if (userData?.company_id) {
-        setCompanyId(userData.company_id)
-        fetchQuotes(userData.company_id)
-        fetchCustomers(userData.company_id)
-      }
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
     }
-    init()
-  }, [router])
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchQuotes(companyId)
+      fetchCustomers(companyId)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router])
 
   const fetchQuotes = async (compId: string) => {
     let query = supabase

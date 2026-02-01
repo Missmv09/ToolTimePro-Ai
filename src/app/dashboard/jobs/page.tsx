@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Job {
   id: string
@@ -25,7 +26,6 @@ function JobsContent() {
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([])
   const [workers, setWorkers] = useState<{ id: string; full_name: string }[]>([])
   const [loading, setLoading] = useState(true)
-  const [companyId, setCompanyId] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
@@ -33,32 +33,31 @@ function JobsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
+  const { user, dbUser, isLoading: authLoading } = useAuth()
+
+  // Get company_id from AuthContext
+  const companyId = dbUser?.company_id || null
 
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
+    // Wait for auth to finish loading
+    if (authLoading) return
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-      if (userData?.company_id) {
-        setCompanyId(userData.company_id)
-        fetchJobs(userData.company_id)
-        fetchCustomers(userData.company_id)
-        fetchWorkers(userData.company_id)
-      } else {
-        setLoading(false)
-      }
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
     }
-    init()
-  }, [router])
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchJobs(companyId)
+      fetchCustomers(companyId)
+      fetchWorkers(companyId)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router])
 
   const fetchJobs = async (companyId: string) => {
     let query = supabase

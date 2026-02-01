@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Invoice {
   id: string
@@ -24,35 +25,35 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [customers, setCustomers] = useState<{ id: string; name: string; email: string }[]>([])
   const [loading, setLoading] = useState(true)
-  const [companyId, setCompanyId] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
 
   const router = useRouter()
+  const { user, dbUser, isLoading: authLoading } = useAuth()
+
+  // Get company_id from AuthContext
+  const companyId = dbUser?.company_id || null
 
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
+    // Wait for auth to finish loading
+    if (authLoading) return
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-      if (userData?.company_id) {
-        setCompanyId(userData.company_id)
-        fetchInvoices(userData.company_id)
-        fetchCustomers(userData.company_id)
-      }
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
     }
-    init()
-  }, [router])
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchInvoices(companyId)
+      fetchCustomers(companyId)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router])
 
   const fetchInvoices = async (compId: string) => {
     let query = supabase
