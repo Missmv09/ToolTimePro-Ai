@@ -11,6 +11,8 @@ interface Job {
   description: string
   address: string
   city: string
+  state: string
+  zip: string
   scheduled_date: string
   scheduled_time_start: string
   scheduled_time_end: string
@@ -289,6 +291,8 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
     customer_id: job?.customer?.id || '',
     address: job?.address || '',
     city: job?.city || '',
+    state: job?.state || '',
+    zip: job?.zip || '',
     scheduled_date: job?.scheduled_date || '',
     scheduled_time_start: job?.scheduled_time_start || '',
     scheduled_time_end: job?.scheduled_time_end || '',
@@ -323,7 +327,7 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
     if (customerId) {
       const { data: customer } = await supabase
         .from('customers')
-        .select('address, city')
+        .select('address, city, state, zip')
         .eq('id', customerId)
         .single()
 
@@ -333,6 +337,8 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
           customer_id: customerId,
           address: customer.address || prev.address,
           city: customer.city || prev.city,
+          state: customer.state || prev.state,
+          zip: customer.zip || prev.zip,
         }))
       }
     }
@@ -353,6 +359,8 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
       customer_id: formData.customer_id || null,
       address: formData.address,
       city: formData.city,
+      state: formData.state,
+      zip: formData.zip,
       scheduled_date: formData.scheduled_date,
       scheduled_time_start: formData.scheduled_time_start,
       scheduled_time_end: formData.scheduled_time_end || null,
@@ -420,7 +428,7 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Service Address *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
             <input
               type="text"
               required
@@ -433,6 +441,40 @@ function JobModal({ job, companyId, customers, workers, onClose, onSave }: {
               placeholder="123 Main St"
             />
             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+          </div>
+
+          <div className="grid grid-cols-4 gap-4">
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <input
+                type="text"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="City"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <input
+                type="text"
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="CA"
+                maxLength={2}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+              <input
+                type="text"
+                value={formData.zip}
+                onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="12345"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
