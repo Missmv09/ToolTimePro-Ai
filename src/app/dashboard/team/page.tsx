@@ -95,6 +95,7 @@ interface TeamMember {
   avatar_url: string | null
   notes: string | null
   created_at: string
+  last_login_at: string | null
   job_assignments?: { job_id: string }[]
   worker_notes?: WorkerNote[]
 }
@@ -352,6 +353,11 @@ export default function TeamPage() {
                           {!member.is_active && (
                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
                               Inactive
+                            </span>
+                          )}
+                          {member.is_active && !member.last_login_at && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                              Pending Activation
                             </span>
                           )}
                         </div>

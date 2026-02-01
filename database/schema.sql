@@ -36,6 +36,7 @@ CREATE TABLE users (
     hourly_rate DECIMAL(10,2),
     is_active BOOLEAN DEFAULT true,
     avatar_url TEXT,
+    last_login_at TIMESTAMP WITH TIME ZONE, -- NULL means never logged in (pending activation)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
