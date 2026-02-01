@@ -415,6 +415,17 @@ CREATE POLICY "Users can update own profile" ON users
 CREATE POLICY "Users can insert own profile" ON users
     FOR INSERT WITH CHECK (id = auth.uid());
 
+-- Admins and owners can create new team members in their company
+CREATE POLICY "Admins can insert team members" ON users
+    FOR INSERT WITH CHECK (
+        company_id IN (
+            SELECT u.company_id
+            FROM users u
+            WHERE u.id = auth.uid()
+            AND u.role IN ('admin', 'owner')
+        )
+    );
+
 CREATE POLICY "Customers belong to company" ON customers
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
