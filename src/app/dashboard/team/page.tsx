@@ -687,6 +687,8 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         console.error('Error creating auth user:', authError)
         if (authError.message.includes('already registered')) {
           alert('A user with this email already exists. Please use a different email address.')
+        } else if (authError.message.toLowerCase().includes('rate limit')) {
+          alert('Rate limit reached. Please wait 1-2 minutes and try again.')
         } else {
           alert(`Unable to create team member: ${authError.message}`)
         }
