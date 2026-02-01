@@ -40,10 +40,18 @@ interface AiUpsell {
   value?: string;
 }
 
+interface AiTier {
+  name: string;
+  description: string;
+  services: string[];
+  multiplier: number;
+  extras?: string[];
+}
+
 interface AiTiers {
-  good: { name: string; description: string; services: string[]; multiplier: number };
-  better: { name: string; description: string; services: string[]; multiplier: number; extras: string[] };
-  best: { name: string; description: string; services: string[]; multiplier: number; extras: string[] };
+  good: AiTier;
+  better: AiTier;
+  best: AiTier;
 }
 
 // Quick add services
