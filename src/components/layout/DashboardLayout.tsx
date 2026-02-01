@@ -7,9 +7,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
+  UserCircle,
   ClipboardList,
   Clock,
   FileText,
+  Receipt,
   Shield,
   Menu,
   X,
@@ -28,8 +30,10 @@ interface DashboardLayoutProps {
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
+  { href: '/dashboard/customers', label: 'Customers', icon: UserCircle },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
   { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
+  { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
   { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
   { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
   { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
