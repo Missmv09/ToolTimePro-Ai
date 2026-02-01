@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Service {
   id: string
@@ -17,7 +18,6 @@ interface Service {
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
-  const [companyId, setCompanyId] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [saving, setSaving] = useState(false)
@@ -30,28 +30,29 @@ export default function ServicesPage() {
   })
 
   const router = useRouter()
+  const { user, dbUser, isLoading: authLoading } = useAuth()
+
+  // Get company_id from AuthContext
+  const companyId = dbUser?.company_id || null
 
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
+    // Wait for auth to finish loading
+    if (authLoading) return
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-      if (userData?.company_id) {
-        setCompanyId(userData.company_id)
-        fetchServices(userData.company_id)
-      }
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
     }
-    init()
-  }, [router])
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchServices(companyId)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router])
 
   const fetchServices = async (companyId: string) => {
     const { data, error } = await supabase
