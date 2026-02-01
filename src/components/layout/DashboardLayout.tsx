@@ -16,6 +16,7 @@ import {
   ChevronRight,
   LogOut,
   Settings,
+  Quote,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -28,6 +29,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
+  { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
   { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
   { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
   { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
