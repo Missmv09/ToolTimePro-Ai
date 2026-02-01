@@ -96,6 +96,7 @@ export default function TeamPage() {
 
     if (error) {
       console.error('Error updating status:', error)
+      alert(`Error updating status: ${error.message}`)
     } else if (companyId) {
       fetchTeamMembers(companyId)
     }
@@ -386,26 +387,26 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
     }
 
     setSaving(true)
-
-    const data = {
-      full_name: formData.full_name,
-      email: formData.email,
-      phone: formData.phone || null,
-      role: formData.role,
-      hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-      is_active: formData.is_active,
-      company_id: companyId,
-    }
+    setErrors({})
 
     if (member) {
-      // Update existing member
+      // Update existing member - only update editable fields
+      const updateData = {
+        full_name: formData.full_name,
+        phone: formData.phone || null,
+        role: formData.role,
+        hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+        is_active: formData.is_active,
+      }
+
       const { error } = await supabase
         .from('users')
-        .update(data)
+        .update(updateData)
         .eq('id', member.id)
 
       if (error) {
         console.error('Error updating team member:', error)
+        alert(`Error updating team member: ${error.message}`)
         setSaving(false)
         return
       }
