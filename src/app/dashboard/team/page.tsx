@@ -49,7 +49,7 @@ const NOTE_TYPES = [
   },
   {
     value: 'vacation',
-    label: 'Vacation',
+    label: 'Time Off',
     icon: Palmtree,
     color: 'bg-blue-100 text-blue-700 border-blue-200',
     badgeColor: 'bg-blue-500'
@@ -75,6 +75,8 @@ interface WorkerNote {
   content: string
   start_date: string | null
   end_date: string | null
+  expected_return_date: string | null
+  actual_return_date: string | null
   is_active: boolean
   is_confidential: boolean
   created_at: string
@@ -488,14 +490,21 @@ export default function TeamPage() {
                                     )}
                                   </div>
                                   <p className="text-sm text-gray-600 mt-1">{note.content}</p>
-                                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                                    {(note.start_date || note.end_date) && (
+                                  <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-gray-500">
+                                    {note.start_date && (
                                       <span className="flex items-center gap-1">
                                         <Calendar size={12} />
-                                        {note.start_date && formatDate(note.start_date)}
-                                        {note.start_date && note.end_date && ' - '}
-                                        {note.end_date && formatDate(note.end_date)}
+                                        Started: {formatDate(note.start_date)}
                                       </span>
+                                    )}
+                                    {note.expected_return_date && (
+                                      <span>Expected Return: {formatDate(note.expected_return_date)}</span>
+                                    )}
+                                    {note.actual_return_date && (
+                                      <span className="text-green-600">Returned: {formatDate(note.actual_return_date)}</span>
+                                    )}
+                                    {note.end_date && !note.expected_return_date && (
+                                      <span>End: {formatDate(note.end_date)}</span>
                                     )}
                                     <span>
                                       Created {formatDate(note.created_at)}
@@ -862,19 +871,34 @@ function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
     content: '',
     start_date: '',
     end_date: '',
+    expected_return_date: '',
+    actual_return_date: '',
     is_active: true,
     is_confidential: false,
   })
+
+  // Note types that require return dates (not sick/time off)
+  const requiresReturnDates = !['sick', 'vacation'].includes(formData.note_type)
   const [saving, setSaving] = useState(false)
-  const [errors, setErrors] = useState<{ title?: string; content?: string }>({})
+  const [errors, setErrors] = useState<{ content?: string; start_date?: string; expected_return_date?: string }>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const newErrors: { title?: string; content?: string } = {}
+    const newErrors: { content?: string; start_date?: string; expected_return_date?: string } = {}
 
     if (!formData.content.trim()) {
-      newErrors.content = 'Content is required'
+      newErrors.content = 'Details are required'
+    }
+
+    // Require dates for injury, ada, fmla
+    if (requiresReturnDates) {
+      if (!formData.start_date) {
+        newErrors.start_date = 'Start date is required'
+      }
+      if (!formData.expected_return_date) {
+        newErrors.expected_return_date = 'Expected return date is required'
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -897,7 +921,9 @@ function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
       title: autoTitle,
       content: formData.content.trim(),
       start_date: formData.start_date || null,
-      end_date: formData.end_date || null,
+      end_date: requiresReturnDates ? null : (formData.end_date || null),
+      expected_return_date: requiresReturnDates ? (formData.expected_return_date || null) : null,
+      actual_return_date: requiresReturnDates ? (formData.actual_return_date || null) : null,
       is_active: formData.is_active,
       is_confidential: formData.is_confidential,
     }
@@ -987,27 +1013,73 @@ function AddNoteModal({ worker, companyId, createdBy, onClose, onSave }: {
             {errors.content && <p className="text-red-500 text-xs mt-1">{errors.content}</p>}
           </div>
 
-          {/* Date Range */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-              <input
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-              />
+          {/* Date Fields - Different based on note type */}
+          {requiresReturnDates ? (
+            // Injury, ADA, FMLA: Start Date, Expected Return, Actual Return
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.start_date ? 'border-red-500' : 'border-gray-200'}`}
+                  />
+                  {errors.start_date && <p className="text-red-500 text-xs mt-1">{errors.start_date}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Expected Return Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.expected_return_date}
+                    onChange={(e) => setFormData({ ...formData, expected_return_date: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.expected_return_date ? 'border-red-500' : 'border-gray-200'}`}
+                  />
+                  {errors.expected_return_date && <p className="text-red-500 text-xs mt-1">{errors.expected_return_date}</p>}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Actual Return Date <span className="text-gray-400 font-normal">(fill when they return)</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.actual_return_date}
+                  onChange={(e) => setFormData({ ...formData, actual_return_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-              <input
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-              />
+          ) : (
+            // Sick, Time Off: Optional start/end dates
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Checkboxes */}
           <div className="space-y-2">

@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS worker_notes (
     content TEXT NOT NULL,
     start_date DATE,
     end_date DATE,
+    expected_return_date DATE,
+    actual_return_date DATE,
     is_active BOOLEAN DEFAULT true,
     is_confidential BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
