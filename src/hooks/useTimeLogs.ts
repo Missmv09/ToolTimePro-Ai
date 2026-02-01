@@ -60,7 +60,10 @@ export function useTimeLogs(): UseTimeLogsReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTimeLogs = useCallback(async () => {
-    if (!company?.id) return;
+    if (!company?.id) {
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
