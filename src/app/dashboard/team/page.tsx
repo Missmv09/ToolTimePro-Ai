@@ -125,6 +125,7 @@ export default function TeamPage() {
 
   const companyId = dbUser?.company_id || null
   const userRole = dbUser?.role || 'worker'
+  const canManageTeam = userRole === 'owner' || userRole === 'admin'
   const canManageNotes = userRole === 'owner' || userRole === 'admin'
 
   useEffect(() => {
@@ -260,16 +261,18 @@ export default function TeamPage() {
           <h1 className="text-2xl font-bold text-navy-500">Team Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage your team members and HR notes</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingMember(null)
-            setShowMemberModal(true)
-          }}
-          className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
-        >
-          <Plus size={18} />
-          Add Team Member
-        </button>
+        {canManageTeam && (
+          <button
+            onClick={() => {
+              setEditingMember(null)
+              setShowMemberModal(true)
+            }}
+            className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
+          >
+            <Plus size={18} />
+            Add Team Member
+          </button>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -422,26 +425,30 @@ export default function TeamPage() {
                             Add Note
                           </button>
                         )}
-                        <button
-                          onClick={() => {
-                            setEditingMember(member)
-                            setShowMemberModal(true)
-                          }}
-                          className="px-3 py-1.5 text-sm border border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 flex items-center gap-1 transition-colors"
-                        >
-                          <Edit2 size={14} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => toggleMemberStatus(member)}
-                          className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                            member.is_active
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                          }`}
-                        >
-                          {member.is_active ? 'Active' : 'Inactive'}
-                        </button>
+                        {canManageTeam && (
+                          <button
+                            onClick={() => {
+                              setEditingMember(member)
+                              setShowMemberModal(true)
+                            }}
+                            className="px-3 py-1.5 text-sm border border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 flex items-center gap-1 transition-colors"
+                          >
+                            <Edit2 size={14} />
+                            Edit
+                          </button>
+                        )}
+                        {canManageTeam && (
+                          <button
+                            onClick={() => toggleMemberStatus(member)}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                              member.is_active
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            }`}
+                          >
+                            {member.is_active ? 'Active' : 'Inactive'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
