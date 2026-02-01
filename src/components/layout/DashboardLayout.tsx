@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
+  UsersRound,
   UserCircle,
   ClipboardList,
   Clock,
@@ -30,6 +31,7 @@ interface DashboardLayoutProps {
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
+  { href: '/dashboard/team', label: 'Team', icon: UsersRound },
   { href: '/dashboard/customers', label: 'Customers', icon: UserCircle },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
   { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
