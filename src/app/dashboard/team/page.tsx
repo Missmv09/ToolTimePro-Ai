@@ -477,6 +477,17 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         },
       })
 
+      const newUserData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone || null,
+        role: formData.role,
+        hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+        is_active: formData.is_active,
+        notes: formData.notes || null,
+        company_id: companyId,
+      }
+
       if (authError) {
         // If admin API fails, try regular signup (will require email confirmation)
         console.error('Admin create failed, trying signup:', authError)
@@ -485,7 +496,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         const { error: insertError } = await supabase
           .from('users')
           .insert({
-            ...data,
+            ...newUserData,
             id: crypto.randomUUID(), // This won't work without auth user
           })
 
@@ -500,7 +511,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         const { error: insertError } = await supabase
           .from('users')
           .insert({
-            ...data,
+            ...newUserData,
             id: authData.user.id,
           })
 
