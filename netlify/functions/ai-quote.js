@@ -106,6 +106,12 @@ Also generate Good/Better/Best pricing tiers with specific differences:
 
     userPrompt += `
 
+CRITICAL PRICING RULE:
+- The "price" field must ALWAYS be the PER-UNIT price, NOT the total
+- Example: For 2500 sqft of painting at $3/sqft, use quantity: 2500, price: 3 (NOT price: 7500)
+- Example: For 5 hours of labor at $50/hour, use quantity: 5, price: 50 (NOT price: 250)
+- The total is calculated as: quantity × price
+
 Return a JSON object with this exact format:
 {
   "services": [
@@ -114,8 +120,8 @@ Return a JSON object with this exact format:
       "description": "Detailed description of the service",
       "quantity": 1,
       "unit": "each|hour|sqft|linear_ft|cubic_yard",
-      "price": 123,
-      "marketRange": { "min": 100, "max": 150 },
+      "price": 50,
+      "marketRange": { "min": 45, "max": 60 },
       "reason": "Brief pricing justification"
     }
   ],

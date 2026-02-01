@@ -62,6 +62,12 @@ When analyzing photos, consider:
 
 Identify ALL visible work that could be done and provide specific line items with pricing.
 
+CRITICAL PRICING RULE:
+- The "price" field must ALWAYS be the PER-UNIT price, NOT the total
+- Example: For 500 sqft of lawn at $0.05/sqft, use quantity: 500, price: 0.05 (NOT price: 25)
+- Example: For 3 hours of labor at $45/hour, use quantity: 3, price: 45 (NOT price: 135)
+- The total is calculated as: quantity × price
+
 Return a JSON object with this exact format:
 {
   "analysis": {
@@ -75,7 +81,7 @@ Return a JSON object with this exact format:
       "description": "Specific description based on what you see",
       "quantity": 1,
       "unit": "each|hour|sqft|linear_ft",
-      "price": 123,
+      "price": 45,
       "reason": "Why this service is needed and pricing justification"
     }
   ],
