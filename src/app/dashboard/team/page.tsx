@@ -130,6 +130,7 @@ interface TeamMember {
   avatar_url: string | null
   notes: string | null
   created_at: string
+  last_login_at: string | null
   job_assignments?: { job_id: string }[]
   worker_notes?: WorkerNote[]
 }
@@ -164,6 +165,7 @@ export default function TeamPage() {
 
   const companyId = dbUser?.company_id || null
   const userRole = dbUser?.role || 'worker'
+  const canManageTeam = userRole === 'owner' || userRole === 'admin'
   const canManageNotes = userRole === 'owner' || userRole === 'admin'
 
   useEffect(() => {
@@ -339,16 +341,18 @@ export default function TeamPage() {
           <h1 className="text-2xl font-bold text-navy-500">Team Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage your team members and HR notes</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingMember(null)
-            setShowMemberModal(true)
-          }}
-          className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
-        >
-          <Plus size={18} />
-          Add Team Member
-        </button>
+        {canManageTeam && (
+          <button
+            onClick={() => {
+              setEditingMember(null)
+              setShowMemberModal(true)
+            }}
+            className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
+          >
+            <Plus size={18} />
+            Add Team Member
+          </button>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -434,6 +438,11 @@ export default function TeamPage() {
                           {!member.is_active && (
                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
                               Inactive
+                            </span>
+                          )}
+                          {member.is_active && !member.last_login_at && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                              Pending Activation
                             </span>
                           )}
                         </div>
@@ -526,26 +535,30 @@ export default function TeamPage() {
                             </button>
                           </>
                         )}
-                        <button
-                          onClick={() => {
-                            setEditingMember(member)
-                            setShowMemberModal(true)
-                          }}
-                          className="px-3 py-1.5 text-sm border border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 flex items-center gap-1 transition-colors"
-                        >
-                          <Edit2 size={14} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => toggleMemberStatus(member)}
-                          className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                            member.is_active
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                          }`}
-                        >
-                          {member.is_active ? 'Active' : 'Inactive'}
-                        </button>
+                        {canManageTeam && (
+                          <button
+                            onClick={() => {
+                              setEditingMember(member)
+                              setShowMemberModal(true)
+                            }}
+                            className="px-3 py-1.5 text-sm border border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 flex items-center gap-1 transition-colors"
+                          >
+                            <Edit2 size={14} />
+                            Edit
+                          </button>
+                        )}
+                        {canManageTeam && (
+                          <button
+                            onClick={() => toggleMemberStatus(member)}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                              member.is_active
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            }`}
+                          >
+                            {member.is_active ? 'Active' : 'Inactive'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -935,6 +948,8 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         console.error('Error creating auth user:', authError)
         if (authError.message.includes('already registered')) {
           alert('A user with this email already exists. Please use a different email address.')
+        } else if (authError.message.toLowerCase().includes('rate limit')) {
+          alert('Rate limit reached. Please wait 1-2 minutes and try again.')
         } else {
           alert(`Unable to create team member: ${authError.message}`)
         }

@@ -41,6 +41,12 @@ export default function WorkerLoginPage() {
       return
     }
 
+    // Update last_login_at timestamp
+    await supabase
+      .from('users')
+      .update({ last_login_at: new Date().toISOString() })
+      .eq('id', data.user?.id)
+
     // Workers and admins/owners can access worker app
     router.push('/worker/timeclock')
     router.refresh()
