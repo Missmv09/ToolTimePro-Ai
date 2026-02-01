@@ -1,5 +1,5 @@
 // Netlify Function for AI-powered quote suggestions
-// Analyzes job descriptions and suggests services with pricing
+// Analyzes job descriptions, voice transcripts, and generates tiered pricing
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -23,9 +23,16 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { jobDescription, businessType } = JSON.parse(event.body);
+    const {
+      jobDescription,
+      businessType,
+      inputType = 'text', // 'text', 'voice', or 'description'
+      generateTiers = false,
+      customerAddress = '',
+      existingItems = []
+    } = JSON.parse(event.body);
 
-    if (!jobDescription || jobDescription.trim().length < 10) {
+    if (!jobDescription || jobDescription.trim().length < 5) {
       return {
         statusCode: 400,
         headers,
@@ -33,46 +40,125 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Build the prompt for service suggestions
+    // Build context-aware system prompt
     const systemPrompt = `You are an expert estimator for a ${businessType || 'landscaping/lawn care'} business.
-Your job is to analyze customer job descriptions and suggest specific services with fair market pricing.
+You excel at understanding customer requests (whether typed, spoken, or described) and creating accurate, competitive quotes.
 
-Available standard services (use these when applicable):
-- Lawn Mowing: $45-85 depending on yard size
-- Hedge Trimming: $65-150 depending on quantity
-- Leaf Cleanup: $85-200 depending on area
-- Mulch Installation: $120-300 depending on beds
-- Sprinkler Check: $55-100 depending on zones
-- Tree Trimming: $150-500 depending on size
-- Yard Cleanup: $100-250 general cleanup
-- Fertilization: $60-120 per application
-- Aeration: $80-150 per lawn
-- Weed Control: $50-100 per treatment
+Your expertise includes analyzing:
+- Lawn care (mowing, edging, fertilization, aeration, overseeding, dethatching)
+- Tree and shrub services (trimming, shaping, removal, stump grinding, planting)
+- Landscape maintenance (mulching, bed cleanup, leaf removal, seasonal prep)
+- Hardscaping (patios, walkways, retaining walls, drainage)
+- Irrigation (sprinkler repair, winterization, new installations)
+- Specialty services (pool service, gutter cleaning, pressure washing, window cleaning)
+- Pest and weed control
+- Snow removal (if seasonal)
 
-Guidelines:
-1. Break down the job into individual line items
-2. Price each item based on the description details
-3. Include labor if it's a larger job
-4. Be reasonable with pricing - don't overcharge
-5. If the description mentions specific measurements or quantities, factor those in
-6. Add a small contingency line item for larger jobs`;
+Pricing Guidelines (2024 market rates):
+- Lawn Mowing: $35-100 based on lot size (1/4 acre = $45, 1/2 acre = $65, 1 acre = $95)
+- Edging/Trimming: $15-35 add-on
+- Hedge Trimming: $3-6 per linear foot, minimum $65
+- Tree Trimming: $75-500 per tree based on size and complexity
+- Mulch Installation: $75-125 per cubic yard installed
+- Leaf Cleanup: $150-400 based on property size
+- Gutter Cleaning: $100-250 based on linear feet
+- Pressure Washing: $0.15-0.40 per sq ft
+- Aeration: $0.02-0.04 per sq ft, minimum $80
+- Fertilization: $0.01-0.02 per sq ft, minimum $60
 
-    const userPrompt = `Analyze this job request and suggest services with pricing:
+IMPORTANT:
+- When processing voice transcripts, interpret natural speech patterns and extract the intended services
+- Always include quantity and unit where appropriate
+- Factor in complexity, access difficulty, and property size when mentioned
+- Be thorough but fair with pricing`;
+
+    // Different prompts based on input type
+    let userPrompt;
+
+    if (inputType === 'voice') {
+      userPrompt = `The following is a VOICE TRANSCRIPT from a contractor describing a job.
+Natural speech may include filler words, corrections, or informal descriptions.
+Extract all services mentioned and create professional line items with accurate pricing.
+
+Voice Transcript:
+"${jobDescription}"
+
+${customerAddress ? `Customer Location: ${customerAddress}` : ''}
+${existingItems.length > 0 ? `\nExisting quote items to consider: ${JSON.stringify(existingItems)}` : ''}`;
+    } else {
+      userPrompt = `Analyze this job request and create a detailed quote:
 
 "${jobDescription}"
+
+${customerAddress ? `Customer Location: ${customerAddress}` : ''}
+${existingItems.length > 0 ? `\nExisting quote items: ${JSON.stringify(existingItems)}` : ''}`;
+    }
+
+    // Add tier generation if requested
+    if (generateTiers) {
+      userPrompt += `
+
+Also generate Good/Better/Best pricing tiers with specific differences:
+- Good: Essential services only, basic execution
+- Better: Standard service with added value (recommended tier)
+- Best: Premium service with extras, priority scheduling, and comprehensive coverage`;
+    }
+
+    userPrompt += `
 
 Return a JSON object with this exact format:
 {
   "services": [
-    {"name": "Service Name", "price": 123, "reason": "Brief reason for this price"}
+    {
+      "name": "Service Name",
+      "description": "Detailed description of the service",
+      "quantity": 1,
+      "unit": "each|hour|sqft|linear_ft|cubic_yard",
+      "price": 123,
+      "marketRange": { "min": 100, "max": 150 },
+      "reason": "Brief pricing justification"
+    }
   ],
+  "upsells": [
+    {
+      "name": "Additional Service",
+      "description": "Why they might want this",
+      "price": 100,
+      "value": "Benefit to customer"
+    }
+  ],
+  ${generateTiers ? `"tiers": {
+    "good": {
+      "name": "Essential",
+      "description": "Basic service package",
+      "services": ["list of service names included"],
+      "multiplier": 1.0,
+      "savings": null
+    },
+    "better": {
+      "name": "Standard",
+      "description": "Recommended package with added value",
+      "services": ["list of service names included"],
+      "multiplier": 1.35,
+      "extras": ["Additional services included"]
+    },
+    "best": {
+      "name": "Premium",
+      "description": "Comprehensive full-service package",
+      "services": ["list of service names included"],
+      "multiplier": 1.7,
+      "extras": ["Premium additions"]
+    }
+  },` : ''}
   "estimatedHours": 2.5,
-  "notes": "Any important notes for the quote"
+  "difficulty": "easy|moderate|challenging",
+  "notes": "Professional notes about the job",
+  "warnings": ["Any concerns or things to verify with customer"]
 }
 
 Return ONLY the JSON, no other text.`;
 
-    // Call OpenAI
+    // Call OpenAI with GPT-4o for better understanding
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -80,13 +166,13 @@ Return ONLY the JSON, no other text.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 500,
-        temperature: 0.7,
+        max_tokens: 2000,
+        temperature: 0.5,
       }),
     });
 
@@ -119,15 +205,29 @@ Return ONLY the JSON, no other text.`;
 
     // Validate the response structure
     if (!result.services || !Array.isArray(result.services)) {
-      throw new Error('Invalid response structure');
+      result.services = [];
     }
 
-    // Ensure prices are numbers
+    // Ensure services have required fields
     result.services = result.services.map(s => ({
-      name: String(s.name),
+      name: String(s.name || 'Service'),
+      description: String(s.description || s.name || ''),
+      quantity: parseFloat(s.quantity) || 1,
+      unit: ['each', 'hour', 'sqft', 'linear_ft', 'cubic_yard'].includes(s.unit) ? s.unit : 'each',
       price: parseFloat(s.price) || 0,
+      marketRange: s.marketRange || null,
       reason: s.reason || ''
     }));
+
+    // Ensure upsells exist
+    if (!result.upsells || !Array.isArray(result.upsells)) {
+      result.upsells = [];
+    }
+
+    // Ensure warnings exist
+    if (!result.warnings || !Array.isArray(result.warnings)) {
+      result.warnings = [];
+    }
 
     return {
       statusCode: 200,

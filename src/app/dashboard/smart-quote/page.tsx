@@ -11,10 +11,11 @@ interface LineItem {
   id: string;
   description: string;
   quantity: number;
-  unit: 'each' | 'hour' | 'sqft' | 'linear_ft';
+  unit: 'each' | 'hour' | 'sqft' | 'linear_ft' | 'cubic_yard';
   price: number;
   total: number;
   aiSuggestion?: { min: number; max: number };
+  aiReason?: string;
 }
 
 interface Customer {
@@ -32,6 +33,19 @@ interface QuoteOption {
   total: number;
 }
 
+interface AiUpsell {
+  name: string;
+  description: string;
+  price: number;
+  value?: string;
+}
+
+interface AiTiers {
+  good: { name: string; description: string; services: string[]; multiplier: number };
+  better: { name: string; description: string; services: string[]; multiplier: number; extras: string[] };
+  best: { name: string; description: string; services: string[]; multiplier: number; extras: string[] };
+}
+
 // Quick add services
 const quickAddServices = [
   { icon: '🌿', name: 'Lawn Care', price: 45, unit: 'each' as const },
@@ -44,22 +58,6 @@ const quickAddServices = [
   { icon: '💡', name: 'Electrical', price: 95, unit: 'hour' as const },
 ];
 
-// AI market rate suggestions (mock data)
-const marketRates: Record<string, { min: number; max: number }> = {
-  'lawn': { min: 35, max: 75 },
-  'mow': { min: 35, max: 75 },
-  'tree': { min: 100, max: 300 },
-  'trim': { min: 50, max: 150 },
-  'hedge': { min: 40, max: 100 },
-  'cleanup': { min: 50, max: 120 },
-  'gutter': { min: 75, max: 200 },
-  'pool': { min: 80, max: 150 },
-  'paint': { min: 2, max: 5 },
-  'repair': { min: 75, max: 150 },
-  'electrical': { min: 85, max: 175 },
-  'plumbing': { min: 90, max: 180 },
-};
-
 export default function SmartQuotingPage() {
   const router = useRouter();
   const { user, dbUser, isLoading: authLoading } = useAuth();
@@ -69,8 +67,8 @@ export default function SmartQuotingPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
 
-  // Quote mode state
-  const [quoteMode, setQuoteMode] = useState<'manual' | 'voice' | 'photo'>('manual');
+  // Quote mode state - added 'describe' for AI description input
+  const [quoteMode, setQuoteMode] = useState<'manual' | 'voice' | 'photo' | 'describe'>('manual');
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -80,7 +78,24 @@ export default function SmartQuotingPage() {
   // Photo state
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
+  const [photoAnalysis, setPhotoAnalysis] = useState<{ propertySize?: string; condition?: string; challenges?: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // AI Description mode state
+  const [jobDescription, setJobDescription] = useState('');
+  const [isProcessingDescription, setIsProcessingDescription] = useState(false);
+
+  // AI Upsells state
+  const [aiUpsells, setAiUpsells] = useState<AiUpsell[]>([]);
+  const [showUpsells, setShowUpsells] = useState(false);
+
+  // AI Tiers state
+  const [aiTiers, setAiTiers] = useState<AiTiers | null>(null);
+  const [isGeneratingTiers, setIsGeneratingTiers] = useState(false);
+
+  // AI warnings/notes
+  const [aiNotes, setAiNotes] = useState<string>('');
+  const [aiWarnings, setAiWarnings] = useState<string[]>([]);
 
   // Customer state
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -204,98 +219,136 @@ export default function SmartQuotingPage() {
     }
   };
 
-  const processVoiceToLineItems = (transcript: string) => {
+  // Process voice transcript with real AI
+  const processVoiceToLineItems = async (transcript: string) => {
     setIsProcessingVoice(true);
 
-    // Simulate AI processing delay
-    setTimeout(() => {
-      const words = transcript.toLowerCase();
-      const newItems: LineItem[] = [];
+    try {
+      const response = await fetch('/.netlify/functions/ai-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobDescription: transcript,
+          inputType: 'voice',
+          businessType: 'landscaping/lawn care',
+          customerAddress: newCustomer.address || '',
+          generateTiers: false,
+        }),
+      });
 
-      // Parse common services from transcript
-      if (words.includes('lawn') || words.includes('mow')) {
-        newItems.push({
-          id: generateId(),
-          description: 'Lawn mowing service',
-          quantity: 1,
-          unit: 'each',
-          price: 45,
-          total: 45,
-          aiSuggestion: marketRates['lawn'],
-        });
-      }
-      if (words.includes('hedge') || words.includes('bush')) {
-        newItems.push({
-          id: generateId(),
-          description: 'Hedge trimming',
-          quantity: 1,
-          unit: 'each',
-          price: 65,
-          total: 65,
-          aiSuggestion: marketRates['hedge'],
-        });
-      }
-      if (words.includes('gutter')) {
-        newItems.push({
-          id: generateId(),
-          description: 'Gutter cleaning',
-          quantity: 1,
-          unit: 'each',
-          price: 95,
-          total: 95,
-          aiSuggestion: marketRates['gutter'],
-        });
-      }
-      if (words.includes('tree')) {
-        newItems.push({
-          id: generateId(),
-          description: 'Tree trimming',
-          quantity: 1,
-          unit: 'each',
-          price: 120,
-          total: 120,
-          aiSuggestion: marketRates['tree'],
-        });
-      }
-      if (words.includes('cleanup') || words.includes('clean up')) {
-        newItems.push({
-          id: generateId(),
-          description: 'Yard cleanup',
-          quantity: 1,
-          unit: 'each',
-          price: 65,
-          total: 65,
-          aiSuggestion: marketRates['cleanup'],
-        });
-      }
-      if (words.includes('pool')) {
-        newItems.push({
-          id: generateId(),
-          description: 'Pool service',
-          quantity: 1,
-          unit: 'each',
-          price: 95,
-          total: 95,
-          aiSuggestion: marketRates['pool'],
-        });
+      if (!response.ok) {
+        throw new Error('AI service error');
       }
 
-      // If no items parsed, add a generic one
-      if (newItems.length === 0) {
-        newItems.push({
-          id: generateId(),
-          description: transcript.slice(0, 100),
-          quantity: 1,
-          unit: 'each',
-          price: 0,
-          total: 0,
-        });
+      const data = await response.json();
+
+      // Convert AI services to line items
+      const newItems: LineItem[] = (data.services || []).map((service: any) => ({
+        id: generateId(),
+        description: service.description || service.name,
+        quantity: service.quantity || 1,
+        unit: service.unit || 'each',
+        price: service.price || 0,
+        total: (service.quantity || 1) * (service.price || 0),
+        aiSuggestion: service.marketRange || null,
+        aiReason: service.reason || '',
+      }));
+
+      if (newItems.length > 0) {
+        setLineItems(prev => [...prev, ...newItems]);
       }
 
-      setLineItems(prev => [...prev, ...newItems]);
+      // Store upsells
+      if (data.upsells && data.upsells.length > 0) {
+        setAiUpsells(data.upsells);
+        setShowUpsells(true);
+      }
+
+      // Store AI notes and warnings
+      if (data.notes) setAiNotes(data.notes);
+      if (data.warnings) setAiWarnings(data.warnings);
+
+    } catch (error) {
+      console.error('Error processing voice with AI:', error);
+      // Fallback: add the transcript as a manual item
+      setLineItems(prev => [...prev, {
+        id: generateId(),
+        description: transcript.slice(0, 100),
+        quantity: 1,
+        unit: 'each',
+        price: 0,
+        total: 0,
+      }]);
+    } finally {
       setIsProcessingVoice(false);
       setQuoteMode('manual');
-    }, 1500);
+    }
+  };
+
+  // Process job description with AI
+  const processDescriptionWithAI = async () => {
+    if (!jobDescription.trim()) return;
+
+    setIsProcessingDescription(true);
+
+    try {
+      const response = await fetch('/.netlify/functions/ai-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobDescription: jobDescription,
+          inputType: 'text',
+          businessType: 'landscaping/lawn care',
+          customerAddress: newCustomer.address || '',
+          generateTiers: showMultipleOptions,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI service error');
+      }
+
+      const data = await response.json();
+
+      // Convert AI services to line items
+      const newItems: LineItem[] = (data.services || []).map((service: any) => ({
+        id: generateId(),
+        description: service.description || service.name,
+        quantity: service.quantity || 1,
+        unit: service.unit || 'each',
+        price: service.price || 0,
+        total: (service.quantity || 1) * (service.price || 0),
+        aiSuggestion: service.marketRange || null,
+        aiReason: service.reason || '',
+      }));
+
+      if (newItems.length > 0) {
+        setLineItems(prev => [...prev, ...newItems]);
+      }
+
+      // Store upsells
+      if (data.upsells && data.upsells.length > 0) {
+        setAiUpsells(data.upsells);
+        setShowUpsells(true);
+      }
+
+      // Store tiers if generated
+      if (data.tiers) {
+        setAiTiers(data.tiers);
+      }
+
+      // Store AI notes and warnings
+      if (data.notes) setAiNotes(data.notes);
+      if (data.warnings) setAiWarnings(data.warnings);
+
+      setJobDescription('');
+      setQuoteMode('manual');
+
+    } catch (error) {
+      console.error('Error processing description with AI:', error);
+    } finally {
+      setIsProcessingDescription(false);
+    }
   };
 
   // Photo quote functions
@@ -304,53 +357,73 @@ export default function SmartQuotingPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        analyzePhoto();
+        const base64 = reader.result as string;
+        setPhotoPreview(base64);
+        analyzePhotoWithAI(base64);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const analyzePhoto = () => {
+  // Real AI photo analysis using OpenAI Vision
+  const analyzePhotoWithAI = async (imageBase64: string) => {
     setIsAnalyzingPhoto(true);
+    setPhotoAnalysis(null);
 
-    // Simulate AI analysis
-    setTimeout(() => {
-      // Demo: Add some suggested items based on "AI analysis"
-      const suggestedItems: LineItem[] = [
-        {
-          id: generateId(),
-          description: 'Front yard lawn mowing (approx. 1/4 acre)',
-          quantity: 1,
-          unit: 'each',
-          price: 45,
-          total: 45,
-          aiSuggestion: { min: 35, max: 55 },
-        },
-        {
-          id: generateId(),
-          description: 'Edge trimming along walkway',
-          quantity: 1,
-          unit: 'each',
-          price: 25,
-          total: 25,
-          aiSuggestion: { min: 20, max: 35 },
-        },
-        {
-          id: generateId(),
-          description: 'Hedge trimming (estimated 30 linear ft)',
-          quantity: 30,
-          unit: 'linear_ft',
-          price: 3,
-          total: 90,
-          aiSuggestion: { min: 2, max: 4 },
-        },
-      ];
+    try {
+      const response = await fetch('/.netlify/functions/ai-photo-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: imageBase64,
+          businessType: 'landscaping/lawn care',
+        }),
+      });
 
-      setLineItems(prev => [...prev, ...suggestedItems]);
+      if (!response.ok) {
+        throw new Error('AI vision service error');
+      }
+
+      const data = await response.json();
+
+      // Store analysis details
+      if (data.analysis) {
+        setPhotoAnalysis(data.analysis);
+      }
+
+      // Convert AI services to line items
+      const newItems: LineItem[] = (data.services || []).map((service: any) => ({
+        id: generateId(),
+        description: service.description || service.name,
+        quantity: service.quantity || 1,
+        unit: service.unit || 'each',
+        price: service.price || 0,
+        total: (service.quantity || 1) * (service.price || 0),
+        aiSuggestion: service.marketRange || null,
+        aiReason: service.reason || '',
+      }));
+
+      if (newItems.length > 0) {
+        setLineItems(prev => [...prev, ...newItems]);
+      }
+
+      // Store upsells
+      if (data.upsells && data.upsells.length > 0) {
+        setAiUpsells(data.upsells);
+        setShowUpsells(true);
+      }
+
+      // Store AI notes
+      if (data.notes) setAiNotes(data.notes);
+
+    } catch (error) {
+      console.error('Error analyzing photo with AI:', error);
+      // Show error to user
+      setAiWarnings(['Photo analysis failed. Please try again or enter items manually.']);
+    } finally {
       setIsAnalyzingPhoto(false);
       setQuoteMode('manual');
-    }, 2500);
+    }
   };
 
   // Line item functions
@@ -381,18 +454,96 @@ export default function SmartQuotingPage() {
     setLineItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const getAiSuggestion = (item: LineItem) => {
-    const words = item.description.toLowerCase().split(' ');
-    for (const word of words) {
-      if (marketRates[word]) {
-        updateLineItem(item.id, { aiSuggestion: marketRates[word] });
-        setShowAiSuggestion(item.id);
-        return;
-      }
-    }
-    // Default suggestion if no match
-    updateLineItem(item.id, { aiSuggestion: { min: item.price * 0.8, max: item.price * 1.3 } });
+  // Get AI price suggestion for a specific item
+  const getAiSuggestion = async (item: LineItem) => {
     setShowAiSuggestion(item.id);
+
+    try {
+      const response = await fetch('/.netlify/functions/ai-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobDescription: `Price check for: ${item.description}, quantity: ${item.quantity} ${item.unit}`,
+          inputType: 'text',
+          businessType: 'landscaping/lawn care',
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.services && data.services.length > 0) {
+          const suggestion = data.services[0];
+          updateLineItem(item.id, {
+            aiSuggestion: suggestion.marketRange || { min: suggestion.price * 0.85, max: suggestion.price * 1.15 },
+            aiReason: suggestion.reason || '',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error getting AI suggestion:', error);
+      // Fallback suggestion
+      updateLineItem(item.id, { aiSuggestion: { min: item.price * 0.8, max: item.price * 1.3 } });
+    }
+  };
+
+  // Generate AI-powered Good/Better/Best tiers
+  const generateAiTiers = async () => {
+    if (lineItems.length === 0) return;
+
+    setIsGeneratingTiers(true);
+
+    try {
+      // Build description from current line items
+      const itemsDescription = lineItems.map(item =>
+        `${item.description} (${item.quantity} ${item.unit} @ $${item.price})`
+      ).join(', ');
+
+      const response = await fetch('/.netlify/functions/ai-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobDescription: `Generate pricing tiers for these services: ${itemsDescription}`,
+          inputType: 'text',
+          businessType: 'landscaping/lawn care',
+          customerAddress: newCustomer.address || '',
+          generateTiers: true,
+          existingItems: lineItems.map(i => ({ name: i.description, price: i.price })),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.tiers) {
+          setAiTiers(data.tiers);
+        }
+        if (data.upsells && data.upsells.length > 0) {
+          setAiUpsells(prev => [...prev, ...data.upsells.filter(
+            (u: AiUpsell) => !prev.some(p => p.name === u.name)
+          )]);
+          setShowUpsells(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error generating AI tiers:', error);
+    } finally {
+      setIsGeneratingTiers(false);
+    }
+  };
+
+  // Add upsell to line items
+  const addUpsellToQuote = (upsell: AiUpsell) => {
+    const newItem: LineItem = {
+      id: generateId(),
+      description: upsell.name,
+      quantity: 1,
+      unit: 'each',
+      price: upsell.price,
+      total: upsell.price,
+      aiReason: upsell.description,
+    };
+    setLineItems(prev => [...prev, newItem]);
+    // Remove from upsells
+    setAiUpsells(prev => prev.filter(u => u.name !== upsell.name));
   };
 
   // Customer search filter - use real customers from Supabase
@@ -610,7 +761,21 @@ export default function SmartQuotingPage() {
         {/* Quote Mode Selection */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-navy-500 mb-4">How would you like to create this quote?</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* AI Describe */}
+            <button
+              onClick={() => setQuoteMode('describe')}
+              className={`p-6 rounded-xl border-2 transition-all text-center ${
+                quoteMode === 'describe'
+                  ? 'border-gold-500 bg-gold-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="text-4xl mb-2">🤖</div>
+              <div className="font-semibold text-navy-500">AI Describe</div>
+              <div className="text-sm text-gray-500 mt-1">Type job details</div>
+            </button>
+
             {/* Voice Quote */}
             <button
               onClick={() => setQuoteMode('voice')}
@@ -636,7 +801,7 @@ export default function SmartQuotingPage() {
             >
               <div className="text-4xl mb-2">📸</div>
               <div className="font-semibold text-navy-500">Photo Quote</div>
-              <div className="text-sm text-gray-500 mt-1">AI analyzes the job</div>
+              <div className="text-sm text-gray-500 mt-1">AI Vision analysis</div>
             </button>
 
             {/* Manual Quote */}
@@ -653,6 +818,48 @@ export default function SmartQuotingPage() {
               <div className="text-sm text-gray-500 mt-1">Traditional form</div>
             </button>
           </div>
+
+          {/* AI Describe Mode UI */}
+          {quoteMode === 'describe' && (
+            <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🤖</span>
+                <h3 className="font-semibold text-navy-500">AI Quote Generator</h3>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">GPT-4 Powered</span>
+              </div>
+              <p className="text-gray-600 mb-4 text-sm">
+                Describe the job in your own words. Our AI will analyze it and suggest line items with competitive pricing.
+              </p>
+              <textarea
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Example: Customer has a half-acre lot with overgrown grass about 8 inches tall. They need regular mowing, the hedges along the front walkway trimmed (about 40 feet), and fall leaf cleanup for the whole yard. There are also 2 medium oak trees that need some dead branches removed..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[120px] text-sm"
+              />
+              <div className="flex items-center gap-3 mt-4">
+                <button
+                  onClick={processDescriptionWithAI}
+                  disabled={isProcessingDescription || !jobDescription.trim()}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isProcessingDescription ? (
+                    <>
+                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                      AI is analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <span>✨</span>
+                      Generate Quote with AI
+                    </>
+                  )}
+                </button>
+                <span className="text-sm text-gray-500">
+                  {jobDescription.length > 0 && `${jobDescription.split(' ').length} words`}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Voice Recording UI */}
           {quoteMode === 'voice' && (
@@ -705,12 +912,17 @@ export default function SmartQuotingPage() {
 
           {/* Photo Upload UI */}
           {quoteMode === 'photo' && (
-            <div className="mt-6 p-6 bg-navy-50 rounded-xl">
+            <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">📸</span>
+                <h3 className="font-semibold text-navy-500">AI Vision Analysis</h3>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">GPT-4 Vision</span>
+              </div>
               <div className="text-center">
                 {!photoPreview && !isAnalyzingPhoto && (
                   <>
                     <p className="text-gray-600 mb-4">
-                      Take a photo of the job site and our AI will suggest line items and pricing.
+                      Take a photo of the job site. Our AI Vision will analyze the property and suggest accurate line items with competitive pricing.
                     </p>
                     <input
                       type="file"
@@ -722,25 +934,72 @@ export default function SmartQuotingPage() {
                     />
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-20 h-20 bg-gold-500 hover:bg-gold-600 rounded-full flex items-center justify-center mx-auto transition-colors"
+                      className="w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-full flex items-center justify-center mx-auto transition-all shadow-lg"
                     >
-                      <span className="text-4xl">📸</span>
+                      <span className="text-5xl">📸</span>
                     </button>
-                    <p className="text-sm text-gray-500 mt-2">Tap to take photo or upload</p>
+                    <p className="text-sm text-gray-500 mt-3">Tap to take photo or upload from gallery</p>
                   </>
                 )}
 
                 {isAnalyzingPhoto && (
                   <div className="flex flex-col items-center">
                     {photoPreview && (
-                      <img src={photoPreview} alt="Job site" className="w-48 h-48 object-cover rounded-lg mb-4" />
+                      <img src={photoPreview} alt="Job site" className="w-64 h-48 object-cover rounded-lg mb-4 shadow-md" />
                     )}
-                    <div className="animate-spin w-12 h-12 border-4 border-gold-500 border-t-transparent rounded-full mb-4"></div>
-                    <p className="text-gray-600">AI is analyzing the photo...</p>
-                    <p className="text-sm text-gray-500 mt-1">Identifying scope and suggesting prices</p>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                      <div className="text-left">
+                        <p className="text-gray-700 font-medium">AI Vision analyzing photo...</p>
+                        <p className="text-sm text-gray-500">Identifying services, estimating quantities, calculating prices</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* AI Analysis Results (shown after photo analysis) */}
+          {photoAnalysis && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <h4 className="font-medium text-navy-500 mb-2 flex items-center gap-2">
+                <span>🔍</span> AI Property Analysis
+              </h4>
+              <div className="grid md:grid-cols-3 gap-3 text-sm">
+                {photoAnalysis.propertySize && (
+                  <div className="bg-white p-3 rounded-lg">
+                    <div className="text-gray-500 text-xs">Property Size</div>
+                    <div className="font-medium text-navy-500">{photoAnalysis.propertySize}</div>
+                  </div>
+                )}
+                {photoAnalysis.condition && (
+                  <div className="bg-white p-3 rounded-lg">
+                    <div className="text-gray-500 text-xs">Current Condition</div>
+                    <div className="font-medium text-navy-500">{photoAnalysis.condition}</div>
+                  </div>
+                )}
+                {photoAnalysis.challenges && photoAnalysis.challenges.length > 0 && (
+                  <div className="bg-white p-3 rounded-lg">
+                    <div className="text-gray-500 text-xs">Considerations</div>
+                    <div className="font-medium text-navy-500">{photoAnalysis.challenges.join(', ')}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* AI Warnings */}
+          {aiWarnings.length > 0 && (
+            <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <h4 className="font-medium text-amber-700 mb-2 flex items-center gap-2">
+                <span>⚠️</span> AI Notes
+              </h4>
+              <ul className="text-sm text-amber-800 space-y-1">
+                {aiWarnings.map((warning, idx) => (
+                  <li key={idx}>• {warning}</li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
@@ -868,7 +1127,23 @@ export default function SmartQuotingPage() {
 
             {/* Line Items Section */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-navy-500 mb-4">Line Items</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-navy-500">Line Items</h2>
+                {lineItems.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      // Optimize all prices with AI
+                      for (const item of lineItems) {
+                        await getAiSuggestion(item);
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-sm rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
+                  >
+                    <span>🤖</span>
+                    <span>AI Optimize Prices</span>
+                  </button>
+                )}
+              </div>
 
               {/* Quick Add Buttons */}
               <div className="flex flex-wrap gap-2 mb-6">
@@ -942,6 +1217,7 @@ export default function SmartQuotingPage() {
                               <option value="hour">hour</option>
                               <option value="sqft">sq ft</option>
                               <option value="linear_ft">linear ft</option>
+                              <option value="cubic_yard">cubic yd</option>
                             </select>
                           </td>
                           <td className="py-2 px-2">
@@ -960,7 +1236,7 @@ export default function SmartQuotingPage() {
                           <td className="py-2 px-2 text-right font-medium text-navy-500">
                             ${item.total.toFixed(2)}
                           </td>
-                          <td className="py-2 px-2 text-center">
+                          <td className="py-2 px-2 text-center relative">
                             <button
                               onClick={() => getAiSuggestion(item)}
                               className="p-1 hover:bg-gold-100 rounded transition-colors"
@@ -969,32 +1245,68 @@ export default function SmartQuotingPage() {
                               💡
                             </button>
                             {showAiSuggestion === item.id && item.aiSuggestion && (
-                              <div className="absolute z-10 mt-1 p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-left text-sm w-64">
-                                <div className="font-medium text-navy-500 mb-1">AI Price Suggestion</div>
-                                <div className="text-gray-600">
-                                  Market rate: ${item.aiSuggestion.min} - ${item.aiSuggestion.max}
+                              <div className="absolute z-20 right-0 mt-1 p-4 bg-white border border-gray-200 rounded-lg shadow-xl text-left text-sm w-72">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-lg">🤖</span>
+                                  <div className="font-medium text-navy-500">AI Price Analysis</div>
                                 </div>
-                                <div className={`mt-1 ${
+                                <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                                  <div className="text-xs text-gray-500 mb-1">Market Rate Range</div>
+                                  <div className="text-lg font-bold text-navy-500">
+                                    ${item.aiSuggestion.min} - ${item.aiSuggestion.max}
+                                  </div>
+                                </div>
+                                <div className={`p-2 rounded-lg mb-2 ${
                                   item.price >= item.aiSuggestion.min && item.price <= item.aiSuggestion.max
-                                    ? 'text-green-600'
+                                    ? 'bg-green-50 text-green-700'
                                     : item.price < item.aiSuggestion.min
-                                    ? 'text-amber-600'
-                                    : 'text-red-600'
+                                    ? 'bg-amber-50 text-amber-700'
+                                    : 'bg-red-50 text-red-700'
                                 }`}>
-                                  Your price: ${item.price} {
-                                    item.price >= item.aiSuggestion.min && item.price <= item.aiSuggestion.max
-                                      ? '✓ Competitive'
+                                  <div className="font-medium">
+                                    Your price: ${item.price}
+                                    {item.price >= item.aiSuggestion.min && item.price <= item.aiSuggestion.max
+                                      ? ' ✓ Competitive'
                                       : item.price < item.aiSuggestion.min
-                                      ? '⚠️ Below market'
-                                      : '⚠️ Above market'
-                                  }
+                                      ? ' ⚠️ Below market'
+                                      : ' ⚠️ Above market'}
+                                  </div>
                                 </div>
-                                <button
-                                  onClick={() => setShowAiSuggestion(null)}
-                                  className="mt-2 text-xs text-gray-500 hover:text-gray-700"
-                                >
-                                  Close
-                                </button>
+                                {item.aiReason && (
+                                  <div className="text-xs text-gray-600 mb-2 italic">
+                                    &quot;{item.aiReason}&quot;
+                                  </div>
+                                )}
+                                <div className="flex gap-2">
+                                  {item.price < item.aiSuggestion.min && (
+                                    <button
+                                      onClick={() => {
+                                        updateLineItem(item.id, { price: item.aiSuggestion!.min });
+                                        setShowAiSuggestion(null);
+                                      }}
+                                      className="flex-1 px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors"
+                                    >
+                                      Use ${item.aiSuggestion.min}
+                                    </button>
+                                  )}
+                                  {item.price > item.aiSuggestion.max && (
+                                    <button
+                                      onClick={() => {
+                                        updateLineItem(item.id, { price: item.aiSuggestion!.max });
+                                        setShowAiSuggestion(null);
+                                      }}
+                                      className="flex-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs rounded transition-colors"
+                                    >
+                                      Use ${item.aiSuggestion.max}
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setShowAiSuggestion(null)}
+                                    className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded"
+                                  >
+                                    Close
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </td>
@@ -1021,6 +1333,66 @@ export default function SmartQuotingPage() {
               </button>
             </div>
 
+            {/* AI Upsells Section */}
+            {aiUpsells.length > 0 && showUpsells && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-sm p-6 border border-green-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">💰</span>
+                    <h2 className="text-lg font-semibold text-navy-500">AI Suggested Upsells</h2>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Increase Revenue</span>
+                  </div>
+                  <button
+                    onClick={() => setShowUpsells(false)}
+                    className="text-gray-400 hover:text-gray-600 text-sm"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Based on the services above, these additions could add value for the customer:
+                </p>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {aiUpsells.map((upsell, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white p-4 rounded-lg border border-green-100 flex items-start justify-between"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-navy-500">{upsell.name}</div>
+                        <div className="text-sm text-gray-500 mt-1">{upsell.description}</div>
+                        {upsell.value && (
+                          <div className="text-xs text-green-600 mt-1">✓ {upsell.value}</div>
+                        )}
+                      </div>
+                      <div className="text-right ml-4">
+                        <div className="font-bold text-green-600">${upsell.price}</div>
+                        <button
+                          onClick={() => addUpsellToQuote(upsell)}
+                          className="mt-2 px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-full transition-colors"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* AI Notes */}
+            {aiNotes && (
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-start gap-2">
+                  <span className="text-xl">💡</span>
+                  <div>
+                    <div className="font-medium text-navy-500 text-sm">AI Recommendation</div>
+                    <p className="text-sm text-gray-600 mt-1">{aiNotes}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Good/Better/Best Toggle */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between">
@@ -1028,43 +1400,120 @@ export default function SmartQuotingPage() {
                   <h2 className="text-lg font-semibold text-navy-500">Good / Better / Best Options</h2>
                   <p className="text-sm text-gray-500">Offer multiple pricing tiers to win more jobs</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showMultipleOptions}
-                    onChange={(e) => setShowMultipleOptions(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gold-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-500"></div>
-                </label>
+                <div className="flex items-center gap-3">
+                  {lineItems.length > 0 && !aiTiers && (
+                    <button
+                      onClick={generateAiTiers}
+                      disabled={isGeneratingTiers}
+                      className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-sm rounded-full transition-colors flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {isGeneratingTiers ? (
+                        <>
+                          <div className="animate-spin w-3 h-3 border-2 border-purple-700 border-t-transparent rounded-full"></div>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <span>🤖</span> AI Generate Tiers
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showMultipleOptions}
+                      onChange={(e) => setShowMultipleOptions(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gold-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-500"></div>
+                  </label>
+                </div>
               </div>
 
               {showMultipleOptions && (
-                <div className="mt-6 grid md:grid-cols-3 gap-4">
-                  {['Good', 'Better', 'Best'].map((tier, index) => (
-                    <div
-                      key={tier}
-                      className={`p-4 rounded-xl border-2 ${
-                        index === 1 ? 'border-gold-500 bg-gold-50' : 'border-gray-200'
-                      }`}
-                    >
-                      <div className="text-center mb-3">
-                        <div className="text-2xl mb-1">
-                          {index === 0 ? '⭐' : index === 1 ? '⭐⭐' : '⭐⭐⭐'}
-                        </div>
-                        <div className="font-bold text-navy-500">{tier}</div>
-                        <div className="text-sm text-gray-500">
-                          {index === 0 ? 'Basic service' : index === 1 ? 'Standard + extras' : 'Premium full service'}
-                        </div>
-                      </div>
-                      <div className="text-center text-2xl font-bold text-navy-500">
-                        ${(subtotal * (1 + index * 0.35)).toFixed(0)}
-                      </div>
-                      <p className="text-xs text-gray-500 text-center mt-2">
-                        {index === 0 ? 'Essential items only' : index === 1 ? 'Recommended' : 'Everything included'}
-                      </p>
+                <div className="mt-6">
+                  {aiTiers ? (
+                    // AI-generated tiers
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {(['good', 'better', 'best'] as const).map((tierKey, index) => {
+                        const tier = aiTiers[tierKey];
+                        const multiplier = tier.multiplier || (1 + index * 0.35);
+                        return (
+                          <div
+                            key={tierKey}
+                            className={`p-4 rounded-xl border-2 ${
+                              index === 1 ? 'border-gold-500 bg-gold-50 ring-2 ring-gold-200' : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="text-center mb-3">
+                              <div className="text-2xl mb-1">
+                                {index === 0 ? '⭐' : index === 1 ? '⭐⭐' : '⭐⭐⭐'}
+                              </div>
+                              <div className="font-bold text-navy-500">{tier.name || tierKey}</div>
+                              <div className="text-sm text-gray-500">{tier.description}</div>
+                            </div>
+                            <div className="text-center text-2xl font-bold text-navy-500">
+                              ${(subtotal * multiplier).toFixed(0)}
+                            </div>
+                            {index === 1 && (
+                              <div className="text-center">
+                                <span className="text-xs bg-gold-200 text-gold-800 px-2 py-0.5 rounded-full">Recommended</span>
+                              </div>
+                            )}
+                            {tier.extras && tier.extras.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="text-xs text-gray-500 mb-1">Includes:</div>
+                                <ul className="text-xs text-gray-600 space-y-1">
+                                  {tier.extras.slice(0, 3).map((extra, i) => (
+                                    <li key={i} className="flex items-start gap-1">
+                                      <span className="text-green-500">✓</span>
+                                      <span>{extra}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
+                  ) : (
+                    // Default tiers (simple multiplier)
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {['Good', 'Better', 'Best'].map((tier, index) => (
+                        <div
+                          key={tier}
+                          className={`p-4 rounded-xl border-2 ${
+                            index === 1 ? 'border-gold-500 bg-gold-50' : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="text-center mb-3">
+                            <div className="text-2xl mb-1">
+                              {index === 0 ? '⭐' : index === 1 ? '⭐⭐' : '⭐⭐⭐'}
+                            </div>
+                            <div className="font-bold text-navy-500">{tier}</div>
+                            <div className="text-sm text-gray-500">
+                              {index === 0 ? 'Basic service' : index === 1 ? 'Standard + extras' : 'Premium full service'}
+                            </div>
+                          </div>
+                          <div className="text-center text-2xl font-bold text-navy-500">
+                            ${(subtotal * (1 + index * 0.35)).toFixed(0)}
+                          </div>
+                          <p className="text-xs text-gray-500 text-center mt-2">
+                            {index === 0 ? 'Essential items only' : index === 1 ? 'Recommended' : 'Everything included'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {aiTiers && (
+                    <div className="mt-3 text-center">
+                      <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                        🤖 AI-optimized pricing tiers
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
