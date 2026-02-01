@@ -68,6 +68,8 @@ function QuotesContent() {
         setCompanyId(userData.company_id)
         fetchQuotes(userData.company_id)
         fetchCustomers(userData.company_id)
+      } else {
+        setLoading(false)
       }
     }
     init()

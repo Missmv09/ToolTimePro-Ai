@@ -49,6 +49,8 @@ export default function InvoicesPage() {
         setCompanyId(userData.company_id)
         fetchInvoices(userData.company_id)
         fetchCustomers(userData.company_id)
+      } else {
+        setLoading(false)
       }
     }
     init()

@@ -43,6 +43,8 @@ export default function SchedulePage() {
       if (userData?.company_id) {
         setCompanyId(userData.company_id)
         fetchJobs(userData.company_id, selectedDate)
+      } else {
+        setLoading(false)
       }
     }
     init()
