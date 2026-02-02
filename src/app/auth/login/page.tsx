@@ -17,17 +17,27 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+      } else {
+        router.push('/dashboard')
+        router.refresh()
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
+      if (message === 'Failed to fetch') {
+        setError('Unable to connect. Please check your internet connection and try again.')
+      } else {
+        setError(message)
+      }
       setLoading(false)
-    } else {
-      router.push('/dashboard')
-      router.refresh()
     }
   }
 

@@ -16,40 +16,50 @@ export default function WorkerLoginPage() {
     setLoading(true)
     setError(null)
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (authError) {
-      setError(authError.message)
+      if (authError) {
+        setError(authError.message)
+        setLoading(false)
+        return
+      }
+
+      // Verify user exists in database
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role, company_id, full_name')
+        .eq('id', data.user?.id)
+        .single()
+
+      if (!userData) {
+        setError('Account not found. Contact your employer.')
+        await supabase.auth.signOut()
+        setLoading(false)
+        return
+      }
+
+      // Update last_login_at timestamp
+      await supabase
+        .from('users')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', data.user?.id)
+
+      // Workers and admins/owners can access worker app
+      router.push('/worker/timeclock')
+      router.refresh()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
+      if (message === 'Failed to fetch') {
+        setError('Unable to connect. Please check your internet connection and try again.')
+      } else {
+        setError(message)
+      }
       setLoading(false)
-      return
     }
-
-    // Verify user exists in database
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role, company_id, full_name')
-      .eq('id', data.user?.id)
-      .single()
-
-    if (!userData) {
-      setError('Account not found. Contact your employer.')
-      await supabase.auth.signOut()
-      setLoading(false)
-      return
-    }
-
-    // Update last_login_at timestamp
-    await supabase
-      .from('users')
-      .update({ last_login_at: new Date().toISOString() })
-      .eq('id', data.user?.id)
-
-    // Workers and admins/owners can access worker app
-    router.push('/worker/timeclock')
-    router.refresh()
   }
 
   return (

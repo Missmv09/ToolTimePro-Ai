@@ -33,60 +33,70 @@ export default function SignupPage() {
       return
     }
 
-    // Sign up the user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          company_name: companyName,
-        },
-      },
-    })
-
-    if (authError) {
-      setError(authError.message)
-      setLoading(false)
-      return
-    }
-
-    if (authData.user) {
-      // Create company record
-      const { data: company, error: companyError } = await supabase
-        .from('companies')
-        .insert({
-          name: companyName,
-          email: email,
-        })
-        .select()
-        .single()
-
-      if (companyError) {
-        console.error('Error creating company:', companyError)
-      }
-
-      // Create user profile linked to company
-      if (company) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            email: email,
+    try {
+      // Sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
             full_name: fullName,
-            company_id: company.id,
-            role: 'owner',
-          })
+            company_name: companyName,
+          },
+        },
+      })
 
-        if (profileError) {
-          console.error('Error creating user profile:', profileError)
-        }
+      if (authError) {
+        setError(authError.message)
+        setLoading(false)
+        return
       }
 
-      setSuccess(true)
-    }
+      if (authData.user) {
+        // Create company record
+        const { data: company, error: companyError } = await supabase
+          .from('companies')
+          .insert({
+            name: companyName,
+            email: email,
+          })
+          .select()
+          .single()
 
-    setLoading(false)
+        if (companyError) {
+          console.error('Error creating company:', companyError)
+        }
+
+        // Create user profile linked to company
+        if (company) {
+          const { error: profileError } = await supabase
+            .from('users')
+            .insert({
+              id: authData.user.id,
+              email: email,
+              full_name: fullName,
+              company_id: company.id,
+              role: 'owner',
+            })
+
+          if (profileError) {
+            console.error('Error creating user profile:', profileError)
+          }
+        }
+
+        setSuccess(true)
+      }
+
+      setLoading(false)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
+      if (message === 'Failed to fetch') {
+        setError('Unable to connect. Please check your internet connection and try again.')
+      } else {
+        setError(message)
+      }
+      setLoading(false)
+    }
   }
 
   if (success) {
