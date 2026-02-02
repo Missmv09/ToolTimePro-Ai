@@ -6,16 +6,6 @@ import { useState } from 'react';
 
 type Language = 'en' | 'es';
 
-// Pain points data
-const painPoints = [
-  { icon: '📵', title: 'No Website = Invisible', description: "Customers can't find you online. You're losing jobs to competitors who show up on Google.", solution: 'Done-for-you branded website' },
-  { icon: '📞', title: 'Missed Calls = Lost Money', description: "You're on a job, phone rings, you miss it. That lead goes to someone who answered.", solution: 'AI auto-responder + missed call texts' },
-  { icon: '📅', title: 'Scheduling Chaos', description: 'Double-bookings, forgotten appointments, confused crews. Your calendar is a disaster.', solution: 'Smart scheduler + customer booking' },
-  { icon: '👷', title: 'Worker Time Tracking', description: 'No idea when crew clocked in, where they are, or if they took their breaks.', solution: 'Worker app with GPS clock-in' },
-  { icon: '⚖️', title: 'Legal Landmines', description: 'Final pay rules, worker classification, compliance headaches. One mistake = lawsuit.', solution: 'ToolTime Shield compliance toolkit' },
-  { icon: '⭐', title: 'Zero Reviews', description: 'Happy customers never leave reviews. Your competitor has 100+, you have 3.', solution: 'Automated review request system' },
-];
-
 // Features data - ordered by key money makers first
 const features = [
   { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
