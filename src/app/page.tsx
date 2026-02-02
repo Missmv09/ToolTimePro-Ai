@@ -538,13 +538,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
-              Everything You Need
+              Sound Familiar?
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
               One Platform. Zero Headaches.
             </h2>
             <p className="text-[1.0625rem] text-white/70">
-              Website, scheduling, worker management, HR & compliance — all in one place. Finally.
+              Missed calls, scheduling chaos, compliance risks — they cost you real money. ToolTime Pro puts website, scheduling, worker management, HR & compliance all in one place. Finally.
             </p>
           </div>
 
