@@ -30,7 +30,7 @@ interface Quote {
   title: string
   total: number
   customer_id: string
-  customer: { id: string; name: string; address: string; city: string; state: string; zip: string } | null
+  customer: { id: string; name: string; address: string; city: string; state: string; zip: string }[] | null
 }
 
 function JobsContent() {
@@ -354,16 +354,17 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
 
     const quote = quotes.find(q => q.id === quoteId)
     if (quote) {
+      const customer = quote.customer?.[0] // Supabase returns array for joins
       setFormData(prev => ({
         ...prev,
         quote_id: quoteId,
         title: quote.title || prev.title,
         price: quote.total?.toString() || prev.price,
         customer_id: quote.customer_id || prev.customer_id,
-        address: quote.customer?.address || prev.address,
-        city: quote.customer?.city || prev.city,
-        state: quote.customer?.state || prev.state,
-        zip: quote.customer?.zip || prev.zip,
+        address: customer?.address || prev.address,
+        city: customer?.city || prev.city,
+        state: customer?.state || prev.state,
+        zip: customer?.zip || prev.zip,
       }))
     }
   }
@@ -489,7 +490,7 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
                 <option value="">No quote linked</option>
                 {quotes.map((q) => (
                   <option key={q.id} value={q.id}>
-                    {q.quote_number} - {q.customer?.name || 'Unknown'} - ${q.total?.toLocaleString()}
+                    {q.quote_number} - {q.customer?.[0]?.name || 'Unknown'} - ${q.total?.toLocaleString()}
                   </option>
                 ))}
               </select>
