@@ -128,7 +128,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mountedRef.current && !initCompleteRef.current) {
-          setAuthError(error instanceof Error ? error.message : 'Authentication error');
+          const message = error instanceof Error ? error.message : 'Authentication error';
+          if (message === 'Failed to fetch') {
+            setAuthError('Unable to connect. Please check your internet connection and try again.');
+          } else {
+            setAuthError(message);
+          }
           initCompleteRef.current = true;
           clearTimeout(timeoutId);
           setIsLoading(false);
