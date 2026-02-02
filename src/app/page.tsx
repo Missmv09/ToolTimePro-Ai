@@ -455,7 +455,7 @@ export default function Home() {
                 {text.cta1} →
               </Link>
               <Link
-                href="#features"
+                href="#demos"
                 className="inline-flex items-center gap-2 px-10 py-5 bg-white text-[#1a1a2e] border-2 border-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] hover:bg-[#1a1a2e] hover:text-white transition-all no-underline"
               >
                 {text.cta2}
