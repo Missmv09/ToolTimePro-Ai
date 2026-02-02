@@ -541,43 +541,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pain Points Section */}
-      <section className="py-[100px] bg-[#fafafa]">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="text-center max-w-[640px] mx-auto mb-16">
-            <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
-              Sound Familiar?
-            </span>
-            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
-              These Problems Cost You Money
-            </h2>
-            <p className="text-[1.0625rem] text-[#5c5c70]">
-              You&apos;re great at your trade. But running the business side? That&apos;s where things fall apart.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {painPoints.map((point, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl p-8 border border-gray-200 relative overflow-hidden group hover:-translate-y-1.5 hover:shadow-lg hover:border-transparent transition-all"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#ff5252] group-hover:bg-[#00c853] transition-colors" />
-                <div className="w-[52px] h-[52px] bg-[#ffebee] group-hover:bg-[#e8f5e9] rounded-xl flex items-center justify-center text-2xl mb-5 transition-colors">
-                  {point.icon}
-                </div>
-                <h3 className="text-[1.125rem] font-extrabold text-[#1a1a2e] mb-2.5">{point.title}</h3>
-                <p className="text-[0.9375rem] text-[#5c5c70] mb-5 leading-relaxed">{point.description}</p>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[#00c853]">
-                  <span className="w-5 h-5 bg-[#00c853] text-white rounded-full flex items-center justify-center text-[0.6875rem]">✓</span>
-                  {point.solution}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section id="features" className="py-[100px] bg-[#1a1a2e] text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(245,166,35,0.1)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.08)_0%,transparent_50%)]" />
