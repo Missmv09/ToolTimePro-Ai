@@ -11,7 +11,7 @@ const features = [
   { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'AI Phone Receptionist', description: 'Never miss a call. Our AI answers 24/7, captures lead info, books appointments, and handles emergencies professionally.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Review Machine — Get More 5-Star Reviews', description: 'Automatically request reviews via SMS after jobs. Generate AI responses to reviews. More reviews = more customers calling you.', badge: '💰 Top Revenue Driver', highlight: true },
-  { title: '24/7 ToolTime Assistant & Lead Capture', description: 'Never miss a lead. Our AI chatbot answers questions, captures contact info, and books appointments even at 2am.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: '24/7 Jenny Lite & Lead Capture', description: 'Never miss a lead. Our AI chatbot answers questions, captures contact info, and books appointments even at 2am.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues. Full compliance tracking built-in.', highlight: true },
   { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, AB5 compliance checklists. Protect yourself from costly lawsuits.', badge: '🛡️ Legal Protection', highlight: true },
   { title: 'Dispatch Board — Real-Time Crew Tracking', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
@@ -28,7 +28,7 @@ const featureTabs = [
   { name: 'Smart Quoting', icon: '📝', href: '/dashboard/smart-quote', highlight: true },
   { name: 'AI Receptionist', icon: '📞', href: '/demo/phone-receptionist', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
-  { name: 'ToolTime Assistant', icon: '🤖', href: '/demo/chatbot', highlight: true },
+  { name: 'Jenny Lite', icon: '🤖', href: '/demo/chatbot', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/demo/worker' },
   { name: 'Legal Protection', icon: '🛡️', href: '/demo/shield' },
   { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
@@ -59,8 +59,8 @@ const pricingPlans = [
     name: 'Starter',
     price: 30,
     annualPrice: 300,
-    workers: 5,
-    description: 'Perfect for solo operators',
+    workers: 'Owner + 2',
+    description: 'For small teams',
     features: [
       'Professional website (built for you)',
       'Online booking page',
@@ -74,16 +74,15 @@ const pricingPlans = [
   },
   {
     name: 'Pro',
-    price: 49,
-    annualPrice: 490,
+    price: 59,
+    annualPrice: 590,
     workers: 15,
-    description: 'Best for growing teams',
+    description: 'For growing teams who need more tools',
     popular: true,
     features: [
       'Everything in Starter, plus:',
-      '💰 Smart Quoting with e-signatures',
-      '💰 Review Machine (auto 5-star requests)',
-      '💰 ToolTime Assistant & Lead Capture',
+      'Smart Quoting with e-signatures',
+      'Review Machine (auto 5-star requests)',
       'Worker App (GPS clock-in)',
       'Break tracking + CA compliance alerts',
       'Team scheduling + dispatch',
@@ -93,13 +92,13 @@ const pricingPlans = [
   },
   {
     name: 'Elite',
-    price: 79,
-    annualPrice: 790,
-    workers: 30,
-    description: 'For established crews',
+    price: 99,
+    annualPrice: 990,
+    workers: 20,
+    description: 'Full operations suite for serious businesses',
     features: [
       'Everything in Pro, plus:',
-      '🗺️ Dispatch Board + Route Optimization',
+      'Dispatch Board + Route Optimization',
       'Multiple admin users',
       'Advanced reporting + analytics',
       'Photo verification (clock-in selfies)',
@@ -134,9 +133,9 @@ const standalonePlans = [
 
 // Add-ons
 const pricingAddOns = [
+  { id: 'jenny_lite', name: 'Jenny Lite', price: 19, icon: '💬', description: 'Website chat & lead capture 24/7', highlight: true },
   { id: 'website_builder', name: 'Website Builder', price: 10, icon: '🌐', description: 'Custom landing page built for you' },
-  { id: 'ai_chatbot', name: 'ToolTime Assistant', price: 19, icon: '💬', description: '24/7 lead capture while you sleep' },
-  { id: 'keep_me_legal', name: 'Keep Me Legal', price: 29, icon: '🛡️', description: 'Compliance monitoring & alerts', highlight: true },
+  { id: 'keep_me_legal', name: 'Keep Me Legal', price: 19, icon: '🛡️', description: 'Compliance monitoring & alerts' },
   { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
 ];
 
@@ -465,7 +464,7 @@ export default function Home() {
             {/* Stats */}
             <div className="flex gap-12 pt-8 border-t border-gray-200">
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$29</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$30</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat1}</div>
               </div>
               <div>
@@ -719,7 +718,7 @@ export default function Home() {
 
                 <div className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{plan.name}</div>
                 <p className="text-[0.9375rem] text-[#8e8e9f] mb-2">{plan.description}</p>
-                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">Up to {plan.workers} workers</p>
+                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">{typeof plan.workers === 'number' ? `Up to ${plan.workers} workers` : plan.workers} workers</p>
 
                 <div className="mb-7">
                   <span className="text-[3.25rem] font-extrabold text-[#1a1a2e] leading-none">
@@ -755,22 +754,22 @@ export default function Home() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Keep Me Legal</span>
-                      <span className="text-[#8e8e9f] ml-auto">$29/mo</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
-                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">ToolTime Assistant</span>
+                      <span className="text-[#5c5c70]">Jenny Lite</span>
                       <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Extra Website Page</span>
-                      <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
+                      <span className="text-[#5c5c70]">Keep Me Legal</span>
+                      <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
                       <span className="text-[#5c5c70]">Website Builder</span>
+                      <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                      <span className="text-[#5c5c70]">Extra Website Page</span>
                       <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
                     </label>
                   </div>
