@@ -5,62 +5,71 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 // ============================================
-// STRIPE PRICE IDS - ALL FROM YOUR ACTUAL STRIPE
+// STRIPE PRICE IDS - Using environment variables
 // ============================================
 
 const PRICE_IDS = {
-  // Base Tiers - UPDATE THESE IN STRIPE WITH NEW PRICES
-  // Starter: $29/mo, $290/yr (was $30/mo, $300/yr)
-  // Pro: $59/mo, $590/yr (was $49/mo, $490/yr)
-  // Elite: $99/mo, $990/yr (was $79/mo, $790/yr)
+  // Base Tiers
+  // Starter: $30/mo, $300/yr - Owner + 2 workers
+  // Pro: $59/mo, $590/yr - Up to 15 workers
+  // Elite: $99/mo, $990/yr - Up to 20 workers
   starter: {
-    monthly: 'price_1Sszh2IHDYuF9ge1wsfpRNgy', // TODO: Update to $29/mo in Stripe
-    annual: 'price_1SszomIHDYuF9ge1i71Vrn8t',  // TODO: Update to $290/yr in Stripe
+    monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY,
+    annual: process.env.STRIPE_PRICE_STARTER_ANNUAL,
   },
   pro: {
-    monthly: 'price_1Sszh1IHDYuF9ge1sa2DjGn7', // TODO: Update to $59/mo in Stripe
-    annual: 'price_1SszomIHDYuF9ge1qWIV422P',  // TODO: Update to $590/yr in Stripe
+    monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
+    annual: process.env.STRIPE_PRICE_PRO_ANNUAL,
   },
   elite: {
-    monthly: 'price_1SszgzIHDYuF9ge1JA7CcQo7', // TODO: Update to $99/mo in Stripe
-    annual: 'price_1SszolIHDYuF9ge143xTS5E7',  // TODO: Update to $990/yr in Stripe
+    monthly: process.env.STRIPE_PRICE_ELITE_MONTHLY,
+    annual: process.env.STRIPE_PRICE_ELITE_ANNUAL,
   },
   // Standalone Lite
   booking_only: {
-    monthly: 'price_1StH2cIHDYuF9ge1h81OPRBX',
-    annual: 'price_1StH2tIHDYuF9ge1YIiXgVf5',
+    monthly: process.env.STRIPE_PRICE_BOOKING_ONLY_MONTHLY,
+    annual: process.env.STRIPE_PRICE_BOOKING_ONLY_ANNUAL,
   },
   invoicing_only: {
-    monthly: 'price_1StH3WIHDYuF9ge1nAXWNpkc',
-    annual: 'price_1StH3pIHDYuF9ge1CEgkwTvx',
+    monthly: process.env.STRIPE_PRICE_INVOICING_ONLY_MONTHLY,
+    annual: process.env.STRIPE_PRICE_INVOICING_ONLY_ANNUAL,
   },
-  // Jenny Add-ons - CREATE THESE IN STRIPE
-  jenny: {
-    monthly: 'price_JENNY_MONTHLY_TODO', // TODO: Create $49/mo price in Stripe
+  // Jenny AI - Three Tiers
+  jenny_lite: {
+    monthly: process.env.STRIPE_PRICE_JENNY_LITE_MONTHLY,
+    annual: process.env.STRIPE_PRICE_JENNY_LITE_ANNUAL,
   },
-  jenny_unlimited: {
-    monthly: 'price_JENNY_UNLIMITED_MONTHLY_TODO', // TODO: Create $99/mo price in Stripe
+  jenny_pro: {
+    monthly: process.env.STRIPE_PRICE_JENNY_PRO_MONTHLY,
+    annual: process.env.STRIPE_PRICE_JENNY_PRO_ANNUAL,
+  },
+  jenny_exec_admin: {
+    monthly: process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_MONTHLY,
+    annual: process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_ANNUAL,
   },
   // Other Add-ons
   website_builder: {
-    monthly: 'price_1StH4XIHDYuF9ge1Noqho85C',
-    annual: 'price_1StH4iIHDYuF9ge1OsTIAIAq',
-  },
-  ai_chatbot: {
-    monthly: 'price_1Sszh0IHDYuF9ge1XYGFnXah', // Can remove - replaced by Jenny
+    monthly: process.env.STRIPE_PRICE_WEBSITE_BUILDER_MONTHLY,
+    annual: process.env.STRIPE_PRICE_WEBSITE_BUILDER_ANNUAL,
   },
   keep_me_legal: {
-    monthly: 'price_1Sszh0IHDYuF9ge1gAIKMReh',
+    monthly: process.env.STRIPE_PRICE_KEEP_ME_LEGAL_MONTHLY,
+    annual: process.env.STRIPE_PRICE_KEEP_ME_LEGAL_ANNUAL,
   },
   extra_page: {
-    monthly: 'price_1Sszh0IHDYuF9ge1Mhm0zoxl',
+    monthly: process.env.STRIPE_PRICE_EXTRA_PAGE_MONTHLY,
+    annual: process.env.STRIPE_PRICE_EXTRA_PAGE_ANNUAL,
   },
   extra_worker: {
-    monthly: 'price_1St0PdIHDYuF9ge1QBfP015G',
+    monthly: process.env.STRIPE_PRICE_EXTRA_WORKER,
+  },
+  quickbooks_sync: {
+    monthly: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_MONTHLY,
+    annual: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_ANNUAL,
   },
   // Onboarding
-  assisted_onboarding: 'price_1Sszh1IHDYuF9ge1Vg3o4EJA',
-  white_glove: 'price_1Sszh1IHDYuF9ge1Rvjgf1QX',
+  assisted_onboarding: process.env.STRIPE_PRICE_ASSISTED_ONBOARDING,
+  white_glove: process.env.STRIPE_PRICE_WHITE_GLOVE,
 };
 
 // ============================================
@@ -71,10 +80,10 @@ const TIERS = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 29,
-    annualPrice: 290,
-    description: 'For solo operators getting organized',
-    workers: 'Up to 5 workers',
+    monthlyPrice: 30,
+    annualPrice: 300,
+    description: 'For small teams',
+    workers: 'Owner + 2 workers',
     features: [
       'Online scheduling & booking',
       'Smart quoting & invoicing',
@@ -85,7 +94,7 @@ const TIERS = [
       'Spanish language support',
       'Chat & email support',
     ],
-    notIncluded: ['Worker App', 'Time Tracking', 'Jenny AI Phone', 'Dispatch Board'],
+    notIncluded: ['Worker App', 'Time Tracking', 'Jenny AI', 'Dispatch Board'],
     popular: false,
   },
   {
@@ -105,7 +114,7 @@ const TIERS = [
       'Review automation',
       'Phone support',
     ],
-    notIncluded: ['Jenny AI Phone', 'Dispatch Board', 'Route Optimization'],
+    notIncluded: ['Jenny AI', 'Dispatch Board', 'Route Optimization'],
     popular: true,
   },
   {
@@ -114,10 +123,10 @@ const TIERS = [
     monthlyPrice: 99,
     annualPrice: 990,
     description: 'Full operations suite for serious businesses',
-    workers: 'Up to 30 workers',
+    workers: 'Up to 20 workers',
     features: [
       'Everything in Pro, plus:',
-      '🗺️ Dispatch Board',
+      'Dispatch Board',
       'Multi-tech management',
       'Route optimization',
       'Local/city compliance rules',
@@ -125,7 +134,7 @@ const TIERS = [
       'Compliance alerts',
       'Priority support',
     ],
-    notIncluded: ['Jenny AI Phone'],
+    notIncluded: ['Jenny AI'],
     popular: false,
     highlight: 'dispatch',
   },
@@ -152,47 +161,74 @@ const STANDALONE = [
 
 const ADDONS = [
   {
-    id: 'jenny',
-    name: 'Jenny',
-    monthlyPrice: 49,
-    icon: '🎧',
-    description: 'AI phone receptionist — 100 calls/mo',
-    hasAnnual: false,
-    highlight: true,
+    id: 'jenny_lite',
+    name: 'Jenny Lite',
+    monthlyPrice: 19,
+    annualPrice: 190,
+    icon: '💬',
+    description: 'Website chat, lead capture, bilingual',
+    hasAnnual: true,
     isJenny: true,
+    isCustomerFacing: true,
   },
   {
-    id: 'jenny_unlimited',
-    name: 'Jenny Unlimited',
-    monthlyPrice: 99,
-    icon: '🎧',
-    description: 'Unlimited AI calls + priority support',
-    hasAnnual: false,
+    id: 'jenny_pro',
+    name: 'Jenny Pro',
+    monthlyPrice: 49,
+    annualPrice: 490,
+    icon: '📞',
+    description: 'Phone, SMS, direct booking, bilingual voice',
+    hasAnnual: true,
+    highlight: true,
     isJenny: true,
+    isCustomerFacing: true,
+  },
+  {
+    id: 'jenny_exec_admin',
+    name: 'Jenny Exec Admin',
+    monthlyPrice: 79,
+    annualPrice: 790,
+    icon: '📊',
+    description: 'Compliance advisor, HR, business insights',
+    hasAnnual: true,
+    isJenny: true,
+    isOwnerFacing: true,
   },
   {
     id: 'website_builder',
     name: 'Website Builder',
     monthlyPrice: 10,
+    annualPrice: 100,
     icon: '🌐',
     description: 'Custom landing page built for you',
     hasAnnual: true,
   },
   {
-    id: 'keep_me_legal',
-    name: 'Keep Me Legal',
-    monthlyPrice: 29,
-    icon: '🛡️',
-    description: 'Compliance monitoring & alerts',
-    hasAnnual: false,
-  },
-  {
     id: 'extra_page',
     name: 'Extra Website Page',
     monthlyPrice: 10,
+    annualPrice: 100,
     icon: '📄',
     description: 'Add more pages to your site',
-    hasAnnual: false,
+    hasAnnual: true,
+  },
+  {
+    id: 'keep_me_legal',
+    name: 'Keep Me Legal',
+    monthlyPrice: 19,
+    annualPrice: 190,
+    icon: '🛡️',
+    description: 'Compliance monitoring & alerts',
+    hasAnnual: true,
+  },
+  {
+    id: 'quickbooks_sync',
+    name: 'QuickBooks Sync',
+    monthlyPrice: 12,
+    annualPrice: 120,
+    icon: '📗',
+    description: 'Two-way sync with QuickBooks Online',
+    hasAnnual: true,
   },
 ];
 
@@ -262,7 +298,7 @@ export default function PricingPage() {
       const addon = ADDONS.find((a) => a.id === addonId);
       if (addon) {
         monthly += addon.monthlyPrice;
-        annual += addon.hasAnnual ? addon.monthlyPrice * 10 : addon.monthlyPrice * 12;
+        annual += addon.annualPrice || addon.monthlyPrice * 12;
       }
     });
 
@@ -404,16 +440,16 @@ export default function PricingPage() {
           </p>
         </section>
 
-        {/* Jenny Add-on */}
+        {/* Jenny AI Add-on */}
         <section className="section jenny-section">
           <div className="jenny-banner">
             <div className="jenny-banner-content">
               <div className="jenny-avatar">🎧</div>
               <div className="jenny-info">
-                <h2>Add Jenny — Your AI Phone Receptionist</h2>
-                <p>Jenny answers calls 24/7, captures leads, books appointments, and handles emergencies. Works with any plan.</p>
+                <h2>Add Jenny AI — Your Business Assistant</h2>
+                <p>Jenny handles calls, chat, SMS, and keeps you compliant 24/7. Choose the tier that fits your needs.</p>
                 <div className="jenny-compare">
-                  <span className="jenny-price">From <strong>$49/mo</strong></span>
+                  <span className="jenny-price">From <strong>$19/mo</strong></span>
                   <span className="jenny-vs">Jobber charges $349/mo for this</span>
                 </div>
               </div>
@@ -421,54 +457,83 @@ export default function PricingPage() {
             </div>
           </div>
 
+          <div className="jenny-section-label">
+            <span className="section-label-badge">Customer-Facing</span>
+          </div>
+
           <div className="jenny-tiers">
             <div
-              className={`jenny-tier ${selectedAddons.includes('jenny') ? 'selected' : ''}`}
+              className={`jenny-tier ${selectedAddons.includes('jenny_lite') ? 'selected' : ''}`}
               onClick={() => {
-                if (selectedAddons.includes('jenny_unlimited')) {
-                  setSelectedAddons(prev => prev.filter(id => id !== 'jenny_unlimited'));
+                if (selectedAddons.includes('jenny_pro')) {
+                  setSelectedAddons(prev => prev.filter(id => id !== 'jenny_pro'));
                 }
-                toggleAddon('jenny');
+                toggleAddon('jenny_lite');
               }}
             >
               <div className="jenny-tier-header">
-                <h4>Jenny</h4>
-                <span className="jenny-tier-price">+$49/mo</span>
+                <h4>Jenny Lite</h4>
+                <span className="jenny-tier-price">+${isAnnual ? '16' : '19'}/mo</span>
               </div>
               <ul>
-                <li>✓ 100 calls/month included</li>
-                <li>✓ 24/7 AI phone answering</li>
-                <li>✓ Lead capture & booking</li>
-                <li>✓ SMS follow-ups</li>
+                <li>✓ Website chat widget</li>
+                <li>✓ Lead capture & notifications</li>
+                <li>✓ FAQ answering</li>
                 <li>✓ English & Spanish</li>
               </ul>
-              <div className="jenny-tier-check">{selectedAddons.includes('jenny') ? '☑' : '☐'}</div>
+              {isAnnual && <p className="jenny-annual-note">Billed $190/year</p>}
+              <div className="jenny-tier-check">{selectedAddons.includes('jenny_lite') ? '☑' : '☐'}</div>
             </div>
 
             <div
-              className={`jenny-tier recommended ${selectedAddons.includes('jenny_unlimited') ? 'selected' : ''}`}
+              className={`jenny-tier recommended ${selectedAddons.includes('jenny_pro') ? 'selected' : ''}`}
               onClick={() => {
-                if (selectedAddons.includes('jenny')) {
-                  setSelectedAddons(prev => prev.filter(id => id !== 'jenny'));
+                if (selectedAddons.includes('jenny_lite')) {
+                  setSelectedAddons(prev => prev.filter(id => id !== 'jenny_lite'));
                 }
-                toggleAddon('jenny_unlimited');
+                toggleAddon('jenny_pro');
               }}
             >
-              <span className="best-value-badge">Best Value</span>
+              <span className="best-value-badge">Most Popular</span>
               <div className="jenny-tier-header">
-                <h4>Jenny Unlimited</h4>
-                <span className="jenny-tier-price">+$99/mo</span>
+                <h4>Jenny Pro</h4>
+                <span className="jenny-tier-price">+${isAnnual ? '41' : '49'}/mo</span>
               </div>
               <ul>
-                <li>✓ <strong>Unlimited calls</strong></li>
-                <li>✓ 24/7 AI phone answering</li>
-                <li>✓ Lead capture & booking</li>
-                <li>✓ SMS follow-ups</li>
-                <li>✓ English & Spanish</li>
-                <li>✓ Priority support</li>
-                <li>✓ Custom greeting</li>
+                <li>✓ Everything in Lite, plus:</li>
+                <li>✓ <strong>AI phone answering 24/7</strong></li>
+                <li>✓ SMS conversations</li>
+                <li>✓ Direct booking into calendar</li>
+                <li>✓ Bilingual voice support</li>
+                <li>✓ Emergency escalation</li>
               </ul>
-              <div className="jenny-tier-check">{selectedAddons.includes('jenny_unlimited') ? '☑' : '☐'}</div>
+              {isAnnual && <p className="jenny-annual-note">Billed $490/year</p>}
+              <div className="jenny-tier-check">{selectedAddons.includes('jenny_pro') ? '☑' : '☐'}</div>
+            </div>
+          </div>
+
+          <div className="jenny-section-label owner-facing">
+            <span className="section-label-badge">Owner-Facing</span>
+          </div>
+
+          <div className="jenny-tiers single">
+            <div
+              className={`jenny-tier exec ${selectedAddons.includes('jenny_exec_admin') ? 'selected' : ''}`}
+              onClick={() => toggleAddon('jenny_exec_admin')}
+            >
+              <div className="jenny-tier-header">
+                <h4>Jenny Exec Admin</h4>
+                <span className="jenny-tier-price">+${isAnnual ? '66' : '79'}/mo</span>
+              </div>
+              <ul>
+                <li>✓ Compliance advisor & alerts</li>
+                <li>✓ HR guidance & document help</li>
+                <li>✓ Business insights & reports</li>
+                <li>✓ California labor law expertise</li>
+                <li>✓ For owners only (not shown to workers)</li>
+              </ul>
+              {isAnnual && <p className="jenny-annual-note">Billed $790/year</p>}
+              <div className="jenny-tier-check">{selectedAddons.includes('jenny_exec_admin') ? '☑' : '☐'}</div>
             </div>
           </div>
         </section>
@@ -1408,6 +1473,36 @@ export default function PricingPage() {
           right: 1rem;
           font-size: 1.5rem;
           color: var(--gold);
+        }
+        .jenny-section-label {
+          text-align: center;
+          margin: 2rem 0 1rem;
+        }
+        .jenny-section-label.owner-facing {
+          margin-top: 2.5rem;
+          padding-top: 2rem;
+          border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .section-label-badge {
+          background: rgba(255,255,255,0.2);
+          color: white;
+          padding: 0.4rem 1rem;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .jenny-tiers.single {
+          max-width: 400px;
+        }
+        .jenny-tier.exec {
+          background: linear-gradient(135deg, #f8f8ff, #fff);
+        }
+        .jenny-annual-note {
+          font-size: 0.75rem;
+          color: #888;
+          margin: 0.5rem 0 0;
         }
         .faq-grid {
           display: grid;

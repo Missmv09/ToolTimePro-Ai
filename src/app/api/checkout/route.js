@@ -15,44 +15,64 @@ function getStripe() {
 }
 
 const PRICE_IDS = {
+  // Base Tiers
   starter: {
-    monthly: 'price_1Sszh2IHDYuF9ge1wsfpRNgy',
-    annual: 'price_1SszomIHDYuF9ge1i71Vrn8t',
+    monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY,
+    annual: process.env.STRIPE_PRICE_STARTER_ANNUAL,
   },
   pro: {
-    monthly: 'price_1Sszh1IHDYuF9ge1sa2DjGn7',
-    annual: 'price_1SszomIHDYuF9ge1qWIV422P',
+    monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
+    annual: process.env.STRIPE_PRICE_PRO_ANNUAL,
   },
   elite: {
-    monthly: 'price_1SszgzIHDYuF9ge1JA7CcQo7',
-    annual: 'price_1SszolIHDYuF9ge143xTS5E7',
+    monthly: process.env.STRIPE_PRICE_ELITE_MONTHLY,
+    annual: process.env.STRIPE_PRICE_ELITE_ANNUAL,
   },
+  // Standalone
   booking_only: {
-    monthly: 'price_1StH2cIHDYuF9ge1h81OPRBX',
-    annual: 'price_1StH2tIHDYuF9ge1YIiXgVf5',
+    monthly: process.env.STRIPE_PRICE_BOOKING_ONLY_MONTHLY,
+    annual: process.env.STRIPE_PRICE_BOOKING_ONLY_ANNUAL,
   },
   invoicing_only: {
-    monthly: 'price_1StH3WIHDYuF9ge1nAXWNpkc',
-    annual: 'price_1StH3pIHDYuF9ge1CEgkwTvx',
+    monthly: process.env.STRIPE_PRICE_INVOICING_ONLY_MONTHLY,
+    annual: process.env.STRIPE_PRICE_INVOICING_ONLY_ANNUAL,
   },
+  // Jenny AI Tiers
+  jenny_lite: {
+    monthly: process.env.STRIPE_PRICE_JENNY_LITE_MONTHLY,
+    annual: process.env.STRIPE_PRICE_JENNY_LITE_ANNUAL,
+  },
+  jenny_pro: {
+    monthly: process.env.STRIPE_PRICE_JENNY_PRO_MONTHLY,
+    annual: process.env.STRIPE_PRICE_JENNY_PRO_ANNUAL,
+  },
+  jenny_exec_admin: {
+    monthly: process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_MONTHLY,
+    annual: process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_ANNUAL,
+  },
+  // Other Add-ons
   website_builder: {
-    monthly: 'price_1StH4XIHDYuF9ge1Noqho85C',
-    annual: 'price_1StH4iIHDYuF9ge1OsTIAIAq',
-  },
-  ai_chatbot: {
-    monthly: 'price_1Sszh0IHDYuF9ge1XYGFnXah',
+    monthly: process.env.STRIPE_PRICE_WEBSITE_BUILDER_MONTHLY,
+    annual: process.env.STRIPE_PRICE_WEBSITE_BUILDER_ANNUAL,
   },
   keep_me_legal: {
-    monthly: 'price_1Sszh0IHDYuF9ge1gAIKMReh',
+    monthly: process.env.STRIPE_PRICE_KEEP_ME_LEGAL_MONTHLY,
+    annual: process.env.STRIPE_PRICE_KEEP_ME_LEGAL_ANNUAL,
   },
   extra_page: {
-    monthly: 'price_1Sszh0IHDYuF9ge1Mhm0zoxl',
+    monthly: process.env.STRIPE_PRICE_EXTRA_PAGE_MONTHLY,
+    annual: process.env.STRIPE_PRICE_EXTRA_PAGE_ANNUAL,
   },
   extra_worker: {
-    monthly: 'price_1St0PdIHDYuF9ge1QBfP015G',
+    monthly: process.env.STRIPE_PRICE_EXTRA_WORKER,
   },
-  assisted_onboarding: 'price_1Sszh1IHDYuF9ge1Vg3o4EJA',
-  white_glove: 'price_1Sszh1IHDYuF9ge1Rvjgf1QX',
+  quickbooks_sync: {
+    monthly: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_MONTHLY,
+    annual: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_ANNUAL,
+  },
+  // Onboarding
+  assisted_onboarding: process.env.STRIPE_PRICE_ASSISTED_ONBOARDING,
+  white_glove: process.env.STRIPE_PRICE_WHITE_GLOVE,
 };
 
 export async function GET(request) {

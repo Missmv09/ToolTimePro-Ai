@@ -8,7 +8,7 @@ type Language = 'en' | 'es';
 const translations = {
   en: {
     backToHome: '← Back to Home',
-    title: 'ToolTime Assistant Demo',
+    title: 'Jenny Lite Demo',
     subtitle: 'See how our 24/7 AI assistant captures leads while you sleep',
     neverMiss: 'Never Miss Another Lead',
     neverMissDesc: "Your AI chatbot works around the clock to answer questions, capture leads, and book appointments — even when you're off the clock.",
@@ -24,7 +24,7 @@ const translations = {
     alwaysOnline: 'Always Online',
     responseTime: 'Response Time',
     moreLeads: 'More Leads',
-    getCTA: 'Get Your ToolTime Assistant →',
+    getCTA: 'Get Your Jenny Lite →',
     includedFree: 'Included free with all ToolTime Pro plans',
     onlineNow: 'Online now',
     typeMessage: 'Type a message...',
