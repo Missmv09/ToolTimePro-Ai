@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Eye, Check } from 'lucide-react';
 import TemplatePreview from './TemplatePreview';
@@ -10,11 +10,7 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
   const [loading, setLoading] = useState(true);
   const [previewTemplate, setPreviewTemplate] = useState(null);
 
-  useEffect(() => {
-    fetchTemplates();
-  }, [wizardData.trade]);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     setLoading(true);
     const tradeFilter = [wizardData.trade, 'general'].filter(Boolean);
 
@@ -31,7 +27,11 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
       setTemplates(data || []);
     }
     setLoading(false);
-  };
+  }, [wizardData.trade]);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
 
   const handleSelect = (template) => {
     setWizardData((prev) => ({
