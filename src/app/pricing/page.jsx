@@ -197,8 +197,8 @@ const ADDONS = [
   {
     id: 'website_builder',
     name: 'Website Builder',
-    monthlyPrice: 10,
-    annualPrice: 100,
+    monthlyPrice: 15,
+    annualPrice: 150,
     icon: '🌐',
     description: 'Custom landing page built for you',
     hasAnnual: true,
