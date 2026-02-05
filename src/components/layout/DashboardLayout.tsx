@@ -14,6 +14,7 @@ import {
   FileText,
   Receipt,
   Shield,
+  Globe,
   Menu,
   X,
   ChevronRight,
@@ -39,6 +40,7 @@ const navItems = [
   { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
   { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
   { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
+  { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
