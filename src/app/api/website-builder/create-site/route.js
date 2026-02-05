@@ -1,0 +1,224 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { registerDomain, setDNSRecords } from '@/lib/namecom';
+
+let supabaseInstance = null;
+
+function getSupabase() {
+  if (!supabaseInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase environment variables not configured');
+    }
+    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabaseInstance;
+}
+
+function generateSlug(businessName) {
+  return businessName
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .substring(0, 60);
+}
+
+export async function POST(request) {
+  try {
+    const supabase = getSupabase();
+
+    // Auth check
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    // Get user profile for company_id
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('company_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!dbUser?.company_id) {
+      return NextResponse.json({ error: 'No company found for user' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const {
+      trade, templateId, businessName, tagline, phone, email,
+      serviceArea, services, licenseNumber, yearsInBusiness,
+      selectedDomain, colors, enabledSections, heroImage, galleryImages,
+    } = body;
+
+    // Validation
+    if (!businessName || !phone || !services?.length) {
+      return NextResponse.json({ error: 'Missing required fields: businessName, phone, services' }, { status: 400 });
+    }
+    if (!selectedDomain?.domainName) {
+      return NextResponse.json({ error: 'Domain selection is required' }, { status: 400 });
+    }
+
+    // Check for existing site
+    const { data: existingSite } = await supabase
+      .from('website_sites')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (existingSite) {
+      return NextResponse.json({ error: 'You already have a website. Edit it from your dashboard.' }, { status: 409 });
+    }
+
+    // Create slug
+    const slug = generateSlug(businessName) + '-' + Date.now().toString(36);
+
+    // Insert site record
+    const { data: site, error: insertError } = await supabase
+      .from('website_sites')
+      .insert({
+        company_id: dbUser.company_id,
+        user_id: user.id,
+        template_id: templateId || null,
+        slug,
+        business_name: businessName,
+        business_phone: phone,
+        business_email: email || user.email,
+        business_address: serviceArea || '',
+        site_content: {
+          trade,
+          tagline: tagline || '',
+          serviceArea: serviceArea || '',
+          services: services || [],
+          licenseNumber: licenseNumber || '',
+          yearsInBusiness: yearsInBusiness || '',
+          colors: colors || {},
+          enabledSections: enabledSections || [],
+          heroImage: heroImage || null,
+          galleryImages: galleryImages || [],
+        },
+        status: 'building',
+        custom_domain: selectedDomain.domainName,
+        domain_status: 'pending',
+        wizard_step: 6,
+        wizard_completed: true,
+      })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      console.error('[Create Site] DB insert error:', insertError);
+      return NextResponse.json({ error: 'Failed to create site record' }, { status: 500 });
+    }
+
+    // Domain registration (synchronous — fast operations)
+    const cleanDomain = selectedDomain.domainName.toLowerCase().trim();
+
+    // Log attempt
+    await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'pending');
+
+    // Get company info for contacts
+    const { data: company } = await supabase
+      .from('companies')
+      .select('name, email, phone, address, city, state, zip')
+      .eq('id', dbUser.company_id)
+      .single();
+
+    const contacts = {
+      firstName: user.user_metadata?.first_name || 'ToolTime',
+      lastName: user.user_metadata?.last_name || 'Pro Customer',
+      companyName: company?.name || businessName,
+      address1: company?.address || '',
+      city: company?.city || '',
+      state: company?.state || 'CA',
+      zip: company?.zip || '',
+      phone: company?.phone || phone,
+      email: user.email || company?.email || email,
+    };
+
+    try {
+      const regResult = await registerDomain(cleanDomain, contacts);
+
+      if (regResult.success) {
+        await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'success', {
+          expireDate: regResult.expireDate,
+        });
+
+        // Set DNS records
+        try {
+          const dnsResult = await setDNSRecords(cleanDomain);
+          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update',
+            dnsResult.success ? 'success' : 'failed', { records: dnsResult.records });
+
+          // Update site with domain info
+          await supabase
+            .from('website_sites')
+            .update({
+              domain_status: dnsResult.success ? 'active' : 'pending',
+              domain_registered_at: new Date().toISOString(),
+              domain_expires_at: regResult.expireDate || null,
+              domain_auto_renew: true,
+              status: 'building',
+            })
+            .eq('id', site.id);
+        } catch (dnsError) {
+          console.error('[Create Site] DNS error:', dnsError.message);
+          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update', 'failed', null, { error: dnsError.message });
+        }
+      } else {
+        await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: regResult.error });
+      }
+    } catch (domainError) {
+      console.error('[Create Site] Domain registration error:', domainError.message);
+      await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: domainError.message });
+    }
+
+    // Simulate async build progress — update to 'live' after a short delay
+    // In production, this would be a background job or edge function
+    setTimeout(async () => {
+      try {
+        await getSupabase()
+          .from('website_sites')
+          .update({ status: 'live', published_at: new Date().toISOString() })
+          .eq('id', site.id);
+      } catch (err) {
+        console.error('[Create Site] Failed to set live status:', err.message);
+      }
+    }, 15000);
+
+    return NextResponse.json({
+      success: true,
+      siteId: site.id,
+      status: 'building',
+      domain: cleanDomain,
+      message: 'Your website is being built! You\'ll be notified when it\'s live.',
+    });
+  } catch (error) {
+    console.error('[Create Site API] Error:', error);
+    return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
+  }
+}
+
+async function logDomainAction(supabase, siteId, userId, companyId, domainName, action, status, responseData = null, errorData = null) {
+  try {
+    await supabase.from('website_domain_log').insert({
+      site_id: siteId,
+      user_id: userId,
+      company_id: companyId,
+      domain_name: domainName,
+      action,
+      status,
+      response_data: responseData,
+      error_message: errorData ? JSON.stringify(errorData) : null,
+    });
+  } catch (logError) {
+    console.error('[Domain Log] Failed:', logError.message);
+  }
+}

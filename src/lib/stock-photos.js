@@ -1,0 +1,182 @@
+/**
+ * TOOLTIME PRO — Curated Stock Photos by Trade
+ * Unsplash free embed URLs (hotlinking with attribution).
+ * Each trade has hero images (landscape) and gallery images (mixed).
+ */
+
+const stockPhotos = {
+  painter: {
+    hero: [
+      { id: 'ph-p1', url: 'https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?w=1200&h=600&fit=crop', alt: 'Professional painter rolling wall', credit: 'Unsplash' },
+      { id: 'ph-p2', url: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=1200&h=600&fit=crop', alt: 'Fresh interior paint job', credit: 'Unsplash' },
+      { id: 'ph-p3', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&h=600&fit=crop', alt: 'Color swatches and brushes', credit: 'Unsplash' },
+      { id: 'ph-p4', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&h=600&fit=crop', alt: 'Beautiful painted living room', credit: 'Unsplash' },
+      { id: 'ph-p5', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=600&fit=crop', alt: 'Modern painted bedroom', credit: 'Unsplash' },
+      { id: 'ph-p6', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&h=600&fit=crop', alt: 'Kitchen with fresh paint', credit: 'Unsplash' },
+    ],
+    gallery: [
+      { id: 'pg-p1', url: 'https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?w=600&h=400&fit=crop', alt: 'Interior painting work', credit: 'Unsplash' },
+      { id: 'pg-p2', url: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&h=400&fit=crop', alt: 'Wall painting close-up', credit: 'Unsplash' },
+      { id: 'pg-p3', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop', alt: 'Color selection tools', credit: 'Unsplash' },
+      { id: 'pg-p4', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=400&fit=crop', alt: 'Painted living room', credit: 'Unsplash' },
+      { id: 'pg-p5', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop', alt: 'Painted bedroom', credit: 'Unsplash' },
+      { id: 'pg-p6', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop', alt: 'Kitchen painting', credit: 'Unsplash' },
+      { id: 'pg-p7', url: 'https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=600&h=400&fit=crop', alt: 'Paint rollers and supplies', credit: 'Unsplash' },
+      { id: 'pg-p8', url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop', alt: 'Paint cans and brushes', credit: 'Unsplash' },
+      { id: 'pg-p9', url: 'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=600&h=400&fit=crop', alt: 'Modern interior design', credit: 'Unsplash' },
+      { id: 'pg-p10', url: 'https://images.unsplash.com/photo-1560440021-33f9b867899d?w=600&h=400&fit=crop', alt: 'Exterior house painting', credit: 'Unsplash' },
+      { id: 'pg-p11', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop', alt: 'Beautiful home exterior', credit: 'Unsplash' },
+      { id: 'pg-p12', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop', alt: 'Finished home project', credit: 'Unsplash' },
+    ],
+  },
+  landscaper: {
+    hero: [
+      { id: 'ph-l1', url: 'https://images.unsplash.com/photo-1558904541-efa843a96f01?w=1200&h=600&fit=crop', alt: 'Beautiful manicured lawn', credit: 'Unsplash' },
+      { id: 'ph-l2', url: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=600&fit=crop', alt: 'Garden landscape design', credit: 'Unsplash' },
+      { id: 'ph-l3', url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=600&fit=crop', alt: 'Lush green garden', credit: 'Unsplash' },
+      { id: 'ph-l4', url: 'https://images.unsplash.com/photo-1598902108854-d1446a060cb6?w=1200&h=600&fit=crop', alt: 'Professional landscaping', credit: 'Unsplash' },
+      { id: 'ph-l5', url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&h=600&fit=crop', alt: 'Backyard landscape', credit: 'Unsplash' },
+      { id: 'ph-l6', url: 'https://images.unsplash.com/photo-1564429238961-bf8ae32d1e68?w=1200&h=600&fit=crop', alt: 'Garden path design', credit: 'Unsplash' },
+    ],
+    gallery: [
+      { id: 'pg-l1', url: 'https://images.unsplash.com/photo-1558904541-efa843a96f01?w=600&h=400&fit=crop', alt: 'Manicured lawn', credit: 'Unsplash' },
+      { id: 'pg-l2', url: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&h=400&fit=crop', alt: 'Garden design', credit: 'Unsplash' },
+      { id: 'pg-l3', url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&h=400&fit=crop', alt: 'Green garden', credit: 'Unsplash' },
+      { id: 'pg-l4', url: 'https://images.unsplash.com/photo-1598902108854-d1446a060cb6?w=600&h=400&fit=crop', alt: 'Landscaping work', credit: 'Unsplash' },
+      { id: 'pg-l5', url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop', alt: 'Backyard design', credit: 'Unsplash' },
+      { id: 'pg-l6', url: 'https://images.unsplash.com/photo-1564429238961-bf8ae32d1e68?w=600&h=400&fit=crop', alt: 'Garden pathway', credit: 'Unsplash' },
+      { id: 'pg-l7', url: 'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=600&h=400&fit=crop', alt: 'Tree trimming', credit: 'Unsplash' },
+      { id: 'pg-l8', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop', alt: 'House with landscape', credit: 'Unsplash' },
+      { id: 'pg-l9', url: 'https://images.unsplash.com/photo-1605117882932-f9e32ef0b7ad?w=600&h=400&fit=crop', alt: 'Hardscape patio', credit: 'Unsplash' },
+      { id: 'pg-l10', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop', alt: 'Home exterior', credit: 'Unsplash' },
+      { id: 'pg-l11', url: 'https://images.unsplash.com/photo-1560749003-f4b1e17e2dff?w=600&h=400&fit=crop', alt: 'Flower bed design', credit: 'Unsplash' },
+      { id: 'pg-l12', url: 'https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5?w=600&h=400&fit=crop', alt: 'Irrigation system', credit: 'Unsplash' },
+    ],
+  },
+  pool: {
+    hero: [
+      { id: 'ph-po1', url: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=1200&h=600&fit=crop', alt: 'Crystal clear swimming pool', credit: 'Unsplash' },
+      { id: 'ph-po2', url: 'https://images.unsplash.com/photo-1572331165267-854da2b021b1?w=1200&h=600&fit=crop', alt: 'Luxury pool design', credit: 'Unsplash' },
+      { id: 'ph-po3', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=600&fit=crop', alt: 'Backyard pool area', credit: 'Unsplash' },
+      { id: 'ph-po4', url: 'https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?w=1200&h=600&fit=crop', alt: 'Pool maintenance', credit: 'Unsplash' },
+      { id: 'ph-po5', url: 'https://images.unsplash.com/photo-1519449556851-5720b33024e7?w=1200&h=600&fit=crop', alt: 'Resort-style pool', credit: 'Unsplash' },
+      { id: 'ph-po6', url: 'https://images.unsplash.com/photo-1562778612-e1e0cda9915c?w=1200&h=600&fit=crop', alt: 'Pool with landscaping', credit: 'Unsplash' },
+    ],
+    gallery: [
+      { id: 'pg-po1', url: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=600&h=400&fit=crop', alt: 'Clean pool water', credit: 'Unsplash' },
+      { id: 'pg-po2', url: 'https://images.unsplash.com/photo-1572331165267-854da2b021b1?w=600&h=400&fit=crop', alt: 'Pool design', credit: 'Unsplash' },
+      { id: 'pg-po3', url: 'https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?w=600&h=400&fit=crop', alt: 'Pool service', credit: 'Unsplash' },
+      { id: 'pg-po4', url: 'https://images.unsplash.com/photo-1519449556851-5720b33024e7?w=600&h=400&fit=crop', alt: 'Pool at sunset', credit: 'Unsplash' },
+      { id: 'pg-po5', url: 'https://images.unsplash.com/photo-1562778612-e1e0cda9915c?w=600&h=400&fit=crop', alt: 'Pool landscaping', credit: 'Unsplash' },
+      { id: 'pg-po6', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop', alt: 'Backyard pool', credit: 'Unsplash' },
+      { id: 'pg-po7', url: 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&h=400&fit=crop', alt: 'Pool equipment', credit: 'Unsplash' },
+      { id: 'pg-po8', url: 'https://images.unsplash.com/photo-1601918774946-25832a4be0d6?w=600&h=400&fit=crop', alt: 'Modern pool', credit: 'Unsplash' },
+      { id: 'pg-po9', url: 'https://images.unsplash.com/photo-1564429238961-bf8ae32d1e68?w=600&h=400&fit=crop', alt: 'Pool area', credit: 'Unsplash' },
+      { id: 'pg-po10', url: 'https://images.unsplash.com/photo-1598902108854-d1446a060cb6?w=600&h=400&fit=crop', alt: 'Pool patio', credit: 'Unsplash' },
+      { id: 'pg-po11', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop', alt: 'Pool home', credit: 'Unsplash' },
+      { id: 'pg-po12', url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop', alt: 'Resort pool', credit: 'Unsplash' },
+    ],
+  },
+  cleaner: {
+    hero: [
+      { id: 'ph-c1', url: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&h=600&fit=crop', alt: 'Professional cleaning service', credit: 'Unsplash' },
+      { id: 'ph-c2', url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=1200&h=600&fit=crop', alt: 'Clean modern home', credit: 'Unsplash' },
+      { id: 'ph-c3', url: 'https://images.unsplash.com/photo-1527515545081-5db817172677?w=1200&h=600&fit=crop', alt: 'Spotless kitchen', credit: 'Unsplash' },
+      { id: 'ph-c4', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&h=600&fit=crop', alt: 'Clean kitchen space', credit: 'Unsplash' },
+      { id: 'ph-c5', url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&h=600&fit=crop', alt: 'Cleaning supplies', credit: 'Unsplash' },
+      { id: 'ph-c6', url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&h=600&fit=crop', alt: 'Clean living space', credit: 'Unsplash' },
+    ],
+    gallery: [
+      { id: 'pg-c1', url: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&h=400&fit=crop', alt: 'Cleaning service', credit: 'Unsplash' },
+      { id: 'pg-c2', url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&h=400&fit=crop', alt: 'Clean home', credit: 'Unsplash' },
+      { id: 'pg-c3', url: 'https://images.unsplash.com/photo-1527515545081-5db817172677?w=600&h=400&fit=crop', alt: 'Clean kitchen', credit: 'Unsplash' },
+      { id: 'pg-c4', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop', alt: 'Kitchen cleaning', credit: 'Unsplash' },
+      { id: 'pg-c5', url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop', alt: 'Cleaning tools', credit: 'Unsplash' },
+      { id: 'pg-c6', url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop', alt: 'Clean living room', credit: 'Unsplash' },
+      { id: 'pg-c7', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop', alt: 'Clean house exterior', credit: 'Unsplash' },
+      { id: 'pg-c8', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop', alt: 'Clean bedroom', credit: 'Unsplash' },
+      { id: 'pg-c9', url: 'https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&h=400&fit=crop', alt: 'Clean bathroom', credit: 'Unsplash' },
+      { id: 'pg-c10', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop', alt: 'Clean home', credit: 'Unsplash' },
+      { id: 'pg-c11', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=400&fit=crop', alt: 'Tidy room', credit: 'Unsplash' },
+      { id: 'pg-c12', url: 'https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=600&h=400&fit=crop', alt: 'Organized space', credit: 'Unsplash' },
+    ],
+  },
+  handyman: {
+    hero: [
+      { id: 'ph-h1', url: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=1200&h=600&fit=crop', alt: 'Handyman tools on workbench', credit: 'Unsplash' },
+      { id: 'ph-h2', url: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=1200&h=600&fit=crop', alt: 'Home repair work', credit: 'Unsplash' },
+      { id: 'ph-h3', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&h=600&fit=crop', alt: 'Professional tools', credit: 'Unsplash' },
+      { id: 'ph-h4', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=600&fit=crop', alt: 'Home improvement', credit: 'Unsplash' },
+      { id: 'ph-h5', url: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=1200&h=600&fit=crop', alt: 'Workshop tools', credit: 'Unsplash' },
+      { id: 'ph-h6', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&h=600&fit=crop', alt: 'Home interior', credit: 'Unsplash' },
+    ],
+    gallery: [
+      { id: 'pg-h1', url: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=600&h=400&fit=crop', alt: 'Tools and workbench', credit: 'Unsplash' },
+      { id: 'pg-h2', url: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=600&h=400&fit=crop', alt: 'Home repair', credit: 'Unsplash' },
+      { id: 'pg-h3', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop', alt: 'Professional tools', credit: 'Unsplash' },
+      { id: 'pg-h4', url: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=600&h=400&fit=crop', alt: 'Workshop', credit: 'Unsplash' },
+      { id: 'pg-h5', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop', alt: 'Finished project', credit: 'Unsplash' },
+      { id: 'pg-h6', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=400&fit=crop', alt: 'Home interior', credit: 'Unsplash' },
+      { id: 'pg-h7', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop', alt: 'Kitchen work', credit: 'Unsplash' },
+      { id: 'pg-h8', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop', alt: 'Bedroom project', credit: 'Unsplash' },
+      { id: 'pg-h9', url: 'https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&h=400&fit=crop', alt: 'Bathroom renovation', credit: 'Unsplash' },
+      { id: 'pg-h10', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop', alt: 'Home exterior', credit: 'Unsplash' },
+      { id: 'pg-h11', url: 'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=600&h=400&fit=crop', alt: 'Interior design', credit: 'Unsplash' },
+      { id: 'pg-h12', url: 'https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=600&h=400&fit=crop', alt: 'Paint and tools', credit: 'Unsplash' },
+    ],
+  },
+  roofer: {
+    hero: [
+      { id: 'ph-r1', url: 'https://images.unsplash.com/photo-1632759145351-1d592a0c04b7?w=1200&h=600&fit=crop', alt: 'Roof installation work', credit: 'Unsplash' },
+      { id: 'ph-r2', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=600&fit=crop', alt: 'Beautiful home with new roof', credit: 'Unsplash' },
+      { id: 'ph-r3', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=600&fit=crop', alt: 'Residential roof', credit: 'Unsplash' },
+      { id: 'ph-r4', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&h=600&fit=crop', alt: 'Roofing materials', credit: 'Unsplash' },
+      { id: 'ph-r5', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&h=600&fit=crop', alt: 'Home with quality roof', credit: 'Unsplash' },
+      { id: 'ph-r6', url: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=1200&h=600&fit=crop', alt: 'Construction tools', credit: 'Unsplash' },
+    ],
+    gallery: [
+      { id: 'pg-r1', url: 'https://images.unsplash.com/photo-1632759145351-1d592a0c04b7?w=600&h=400&fit=crop', alt: 'Roof installation', credit: 'Unsplash' },
+      { id: 'pg-r2', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop', alt: 'Home exterior', credit: 'Unsplash' },
+      { id: 'pg-r3', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop', alt: 'Roof detail', credit: 'Unsplash' },
+      { id: 'pg-r4', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop', alt: 'Materials', credit: 'Unsplash' },
+      { id: 'pg-r5', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=400&fit=crop', alt: 'Home with roof', credit: 'Unsplash' },
+      { id: 'pg-r6', url: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=600&h=400&fit=crop', alt: 'Tools', credit: 'Unsplash' },
+      { id: 'pg-r7', url: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=600&h=400&fit=crop', alt: 'Work tools', credit: 'Unsplash' },
+      { id: 'pg-r8', url: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=600&h=400&fit=crop', alt: 'Repair work', credit: 'Unsplash' },
+      { id: 'pg-r9', url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop', alt: 'Completed home', credit: 'Unsplash' },
+      { id: 'pg-r10', url: 'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=600&h=400&fit=crop', alt: 'Interior finish', credit: 'Unsplash' },
+      { id: 'pg-r11', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop', alt: 'Home room', credit: 'Unsplash' },
+      { id: 'pg-r12', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop', alt: 'Kitchen project', credit: 'Unsplash' },
+    ],
+  },
+  general: {
+    hero: [
+      { id: 'ph-g1', url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&h=600&fit=crop', alt: 'Construction site', credit: 'Unsplash' },
+      { id: 'ph-g2', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=600&fit=crop', alt: 'Completed home project', credit: 'Unsplash' },
+      { id: 'ph-g3', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&h=600&fit=crop', alt: 'Interior renovation', credit: 'Unsplash' },
+      { id: 'ph-g4', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=600&fit=crop', alt: 'Finished home', credit: 'Unsplash' },
+      { id: 'ph-g5', url: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=1200&h=600&fit=crop', alt: 'Construction work', credit: 'Unsplash' },
+      { id: 'ph-g6', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&h=600&fit=crop', alt: 'Kitchen remodel', credit: 'Unsplash' },
+    ],
+    gallery: [
+      { id: 'pg-g1', url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop', alt: 'Construction', credit: 'Unsplash' },
+      { id: 'pg-g2', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop', alt: 'Home project', credit: 'Unsplash' },
+      { id: 'pg-g3', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=400&fit=crop', alt: 'Interior work', credit: 'Unsplash' },
+      { id: 'pg-g4', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop', alt: 'Exterior finish', credit: 'Unsplash' },
+      { id: 'pg-g5', url: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=600&h=400&fit=crop', alt: 'Build work', credit: 'Unsplash' },
+      { id: 'pg-g6', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop', alt: 'Kitchen', credit: 'Unsplash' },
+      { id: 'pg-g7', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop', alt: 'Bedroom remodel', credit: 'Unsplash' },
+      { id: 'pg-g8', url: 'https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&h=400&fit=crop', alt: 'Bathroom remodel', credit: 'Unsplash' },
+      { id: 'pg-g9', url: 'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=600&h=400&fit=crop', alt: 'Living space', credit: 'Unsplash' },
+      { id: 'pg-g10', url: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=600&h=400&fit=crop', alt: 'Workshop', credit: 'Unsplash' },
+      { id: 'pg-g11', url: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=600&h=400&fit=crop', alt: 'Tool bench', credit: 'Unsplash' },
+      { id: 'pg-g12', url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop', alt: 'Completed project', credit: 'Unsplash' },
+    ],
+  },
+};
+
+export function getStockPhotos(trade) {
+  return stockPhotos[trade] || stockPhotos.general;
+}
+
+export default stockPhotos;
