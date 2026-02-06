@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
@@ -17,8 +17,19 @@ interface CompanyForm {
   website: string
 }
 
+// Plan display configuration mapping plan IDs to human-readable names and prices
+const PLAN_CONFIG: Record<string, { name: string; price: string; period: string }> = {
+  starter: { name: 'Starter', price: '$30', period: 'Monthly' },
+  pro: { name: 'Pro', price: '$59', period: 'Monthly' },
+  elite: { name: 'Elite', price: '$99', period: 'Monthly' },
+  booking_only: { name: 'Booking Only', price: '$15', period: 'Monthly' },
+  invoicing_only: { name: 'Invoicing Only', price: '$15', period: 'Monthly' },
+  free_trial: { name: 'Free Trial', price: '$0', period: '' },
+}
+
 function SettingsContent() {
   const { user, dbUser, company } = useAuth()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<'account' | 'integrations' | 'subscription'>('account')
   const [saving, setSaving] = useState(false)
@@ -370,23 +381,40 @@ function SettingsContent() {
       )}
 
       {/* Subscription Tab */}
-      {activeTab === 'subscription' && (
+      {activeTab === 'subscription' && (() => {
+        const planKey = company?.plan || 'free_trial'
+        const planInfo = PLAN_CONFIG[planKey] || { name: planKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), price: '--', period: '' }
+        const isFreeTrial = planKey === 'free_trial' || !company?.plan
+
+        return (
         <div className="space-y-6">
           <div className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscription</h2>
 
-            <div className="bg-blue-50 rounded-lg p-4 mb-6">
+            <div className={`${isFreeTrial ? 'bg-amber-50' : 'bg-blue-50'} rounded-lg p-4 mb-6`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-blue-600 font-medium">Current Plan</p>
-                  <p className="text-2xl font-bold text-blue-700">Professional</p>
+                  <p className={`text-sm ${isFreeTrial ? 'text-amber-600' : 'text-blue-600'} font-medium`}>Current Plan</p>
+                  <p className={`text-2xl font-bold ${isFreeTrial ? 'text-amber-700' : 'text-blue-700'}`}>{planInfo.name}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-blue-600">Monthly</p>
-                  <p className="text-2xl font-bold text-blue-700">$49/mo</p>
+                  {planInfo.period && (
+                    <p className={`text-sm ${isFreeTrial ? 'text-amber-600' : 'text-blue-600'}`}>{planInfo.period}</p>
+                  )}
+                  <p className={`text-2xl font-bold ${isFreeTrial ? 'text-amber-700' : 'text-blue-700'}`}>
+                    {isFreeTrial ? 'No charge' : `${planInfo.price}/mo`}
+                  </p>
                 </div>
               </div>
             </div>
+
+            {isFreeTrial && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <p className="text-amber-800 text-sm font-medium">
+                  You are currently on the Free Trial. Choose a plan to unlock all features.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-3 mb-6">
               <div className="flex items-center gap-2 text-gray-600">
@@ -434,13 +462,13 @@ function SettingsContent() {
             <div className="flex gap-4">
               <button
                 className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                onClick={() => alert('Billing portal coming soon!')}
+                onClick={() => router.push('/pricing')}
               >
                 Manage Billing
               </button>
               <button
                 className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                onClick={() => alert('Plan comparison coming soon!')}
+                onClick={() => router.push('/pricing')}
               >
                 View Plans
               </button>
@@ -460,7 +488,8 @@ function SettingsContent() {
             </a>
           </div>
         </div>
-      )}
+        )
+      })()}
     </div>
   )
 }

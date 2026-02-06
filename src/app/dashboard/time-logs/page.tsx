@@ -81,6 +81,43 @@ export default function TimeLogsPage() {
     await rejectEntry(id);
   };
 
+  const handleExportCSV = () => {
+    const escapeCSV = (value: string) => {
+      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    const headers = ['Worker', 'Date', 'Job', 'Clock In', 'Clock Out', 'Hours', 'Status'];
+    const rows = filteredEntries.map((entry) => {
+      const hours = calculateHours(entry.clock_in, entry.clock_out);
+      const status = entry.status === 'active' && entry.clock_out
+        ? 'Pending'
+        : statusConfig[entry.status]?.label || entry.status;
+      return [
+        escapeCSV(entry.user?.full_name || 'Unknown'),
+        escapeCSV(formatDate(entry.clock_in)),
+        escapeCSV(`${entry.job?.customer?.name || 'No Customer'} - ${entry.job?.title || 'No Job'}`),
+        escapeCSV(formatTime(entry.clock_in)),
+        escapeCSV(entry.clock_out ? formatTime(entry.clock_out) : 'Active'),
+        hours > 0 ? hours.toFixed(2) : '0',
+        escapeCSV(status),
+      ].join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'time-logs-export.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const filteredEntries = entries.filter((entry) => {
     const workerName = entry.user?.full_name || '';
     const customerName = entry.job?.customer?.name || '';
@@ -142,7 +179,7 @@ export default function TimeLogsPage() {
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
-          <button className="btn-outline">
+          <button onClick={handleExportCSV} className="btn-outline">
             <Download size={18} className="mr-2" />
             Export Report
           </button>

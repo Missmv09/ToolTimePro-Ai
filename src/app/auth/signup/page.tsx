@@ -65,6 +65,9 @@ export default function SignupPage() {
 
         if (companyError) {
           console.error('Error creating company:', companyError)
+          setError('Account created but company setup failed. Please contact support.')
+          setLoading(false)
+          return
         }
 
         // Create user profile linked to company
@@ -81,6 +84,9 @@ export default function SignupPage() {
 
           if (profileError) {
             console.error('Error creating user profile:', profileError)
+            setError('Account created but profile setup failed. Please contact support.')
+            setLoading(false)
+            return
           }
         }
 

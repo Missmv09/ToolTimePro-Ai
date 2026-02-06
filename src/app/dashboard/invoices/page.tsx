@@ -9,7 +9,7 @@ interface Invoice {
   id: string
   invoice_number: string
   customer_id: string
-  customer: { id: string; name: string; email: string } | null
+  customer: { id: string; name: string; email: string; phone?: string } | null
   status: string
   subtotal: number
   tax: number
@@ -60,7 +60,7 @@ export default function InvoicesPage() {
       .from('invoices')
       .select(`
         *,
-        customer:customers(id, name, email),
+        customer:customers(id, name, email, phone),
         items:invoice_items(*)
       `)
       .eq('company_id', compId)
@@ -96,17 +96,27 @@ export default function InvoicesPage() {
   }, [filter, companyId])
 
   const updateInvoiceStatus = async (invoiceId: string, newStatus: string) => {
-    const updates: { status: string; updated_at: string; paid_at?: string } = {
-      status: newStatus,
-      updated_at: new Date().toISOString()
-    }
+    try {
+      const updates: { status: string; updated_at: string; paid_at?: string } = {
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      }
 
-    if (newStatus === 'paid') {
-      updates.paid_at = new Date().toISOString()
-    }
+      if (newStatus === 'paid') {
+        updates.paid_at = new Date().toISOString()
+      }
 
-    await supabase.from('invoices').update(updates).eq('id', invoiceId)
-    if (companyId) fetchInvoices(companyId)
+      const { error } = await supabase.from('invoices').update(updates).eq('id', invoiceId)
+      if (error) {
+        console.error('Error updating invoice status:', error)
+        alert(`Failed to update invoice status: ${error.message}`)
+        return
+      }
+      if (companyId) fetchInvoices(companyId)
+    } catch (err) {
+      console.error('Unexpected error updating invoice status:', err)
+      alert('An unexpected error occurred while updating the invoice status.')
+    }
   }
 
   const markAsPaid = async (invoice: Invoice) => {
@@ -124,8 +134,71 @@ export default function InvoicesPage() {
   }
 
   const sendReminder = async (invoice: Invoice) => {
-    // TODO: Integrate with email service
-    alert(`Reminder would be sent to ${invoice.customer?.email}`)
+    const phone = invoice.customer?.phone
+    if (!phone) {
+      alert(`Cannot send reminder: no phone number on file for ${invoice.customer?.name || 'this customer'}. Please add a phone number in the customer record.`)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: phone,
+          customMessage: `Hi ${invoice.customer?.name}, this is a friendly reminder that invoice ${invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`} for $${invoice.total.toLocaleString()} is due${invoice.due_date ? ` on ${new Date(invoice.due_date).toLocaleDateString()}` : ''}. Please contact us if you have any questions.`,
+          companyId,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(`Failed to send reminder: ${data.error || 'Unknown error'}`)
+        return
+      }
+
+      alert(`Payment reminder sent successfully to ${invoice.customer?.name}.`)
+    } catch (err) {
+      console.error('Error sending reminder:', err)
+      alert('An unexpected error occurred while sending the reminder.')
+    }
+  }
+
+  const deleteInvoice = async (invoice: Invoice) => {
+    if (!confirm(`Are you sure you want to delete invoice ${invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`}? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      // Delete associated invoice items first
+      const { error: itemsError } = await supabase
+        .from('invoice_items')
+        .delete()
+        .eq('invoice_id', invoice.id)
+
+      if (itemsError) {
+        console.error('Error deleting invoice items:', itemsError)
+        alert(`Failed to delete invoice items: ${itemsError.message}`)
+        return
+      }
+
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', invoice.id)
+
+      if (error) {
+        console.error('Error deleting invoice:', error)
+        alert(`Failed to delete invoice: ${error.message}`)
+        return
+      }
+
+      if (companyId) fetchInvoices(companyId)
+    } catch (err) {
+      console.error('Unexpected error deleting invoice:', err)
+      alert('An unexpected error occurred while deleting the invoice.')
+    }
   }
 
   const statusColors: Record<string, string> = {
@@ -291,6 +364,12 @@ export default function InvoicesPage() {
                             )}
                           </>
                         )}
+                        <button
+                          onClick={() => deleteInvoice(invoice)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
