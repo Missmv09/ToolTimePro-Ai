@@ -59,14 +59,12 @@ export async function submitWebsiteLead(data: {
 
     if (error) {
       console.error('Error submitting lead:', error)
-      // Still return success to not lose the lead from user's perspective
-      return { success: true }
+      return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (err) {
     console.error('Error submitting lead:', err)
-    // Still return success to not lose the lead
-    return { success: true }
+    return { success: false, error: 'Failed to submit lead. Please try again.' }
   }
 }

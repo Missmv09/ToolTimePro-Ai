@@ -82,8 +82,16 @@ export default function CustomersPage() {
   const deleteCustomer = async (id: string) => {
     if (!confirm('Are you sure you want to delete this customer?')) return
 
-    await supabase.from('customers').delete().eq('id', id)
-    if (companyId) fetchCustomers(companyId)
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', id)
+      if (error) {
+        alert('Error deleting customer: ' + error.message)
+        return
+      }
+      if (companyId) fetchCustomers(companyId)
+    } catch (err) {
+      alert('Failed to delete customer. Please try again.')
+    }
   }
 
   if (loading) {
@@ -315,10 +323,26 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
 
     const data = { ...formData, company_id: companyId }
 
-    if (customer) {
-      await supabase.from('customers').update(data).eq('id', customer.id)
-    } else {
-      await supabase.from('customers').insert(data)
+    try {
+      if (customer) {
+        const { error } = await supabase.from('customers').update(data).eq('id', customer.id)
+        if (error) {
+          alert('Error updating customer: ' + error.message)
+          setSaving(false)
+          return
+        }
+      } else {
+        const { error } = await supabase.from('customers').insert(data)
+        if (error) {
+          alert('Error creating customer: ' + error.message)
+          setSaving(false)
+          return
+        }
+      }
+    } catch (err) {
+      alert('An unexpected error occurred. Please try again.')
+      setSaving(false)
+      return
     }
 
     setSaving(false)

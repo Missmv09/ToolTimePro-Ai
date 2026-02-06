@@ -143,7 +143,11 @@ function JobsContent() {
       updates.completed_at = new Date().toISOString()
     }
 
-    await supabase.from('jobs').update(updates).eq('id', jobId)
+    const { error } = await supabase.from('jobs').update(updates).eq('id', jobId)
+    if (error) {
+      alert('Failed to update job status. Please try again.')
+      return
+    }
     if (companyId) fetchJobs(companyId)
   }
 
@@ -402,47 +406,62 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
 
     setSaving(true)
 
-    const jobData = {
-      title: formData.title,
-      description: formData.description,
-      customer_id: formData.customer_id || null,
-      quote_id: formData.quote_id || null,
-      address: formData.address,
-      city: formData.city,
-      state: formData.state,
-      zip: formData.zip,
-      scheduled_date: formData.scheduled_date,
-      scheduled_time_start: formData.scheduled_time_start,
-      scheduled_time_end: formData.scheduled_time_end || null,
-      priority: formData.priority,
-      total_amount: formData.price ? Number(formData.price) : null,
-      company_id: companyId,
-      status: job?.status || 'scheduled',
+    try {
+      const jobData = {
+        title: formData.title,
+        description: formData.description,
+        customer_id: formData.customer_id || null,
+        quote_id: formData.quote_id || null,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip: formData.zip,
+        scheduled_date: formData.scheduled_date,
+        scheduled_time_start: formData.scheduled_time_start,
+        scheduled_time_end: formData.scheduled_time_end || null,
+        priority: formData.priority,
+        total_amount: formData.price ? Number(formData.price) : null,
+        company_id: companyId,
+        status: job?.status || 'scheduled',
+      }
+
+      let jobId = job?.id
+
+      if (job) {
+        const { error } = await supabase.from('jobs').update(jobData).eq('id', job.id)
+        if (error) {
+          alert('Failed to update job. Please try again.')
+          setSaving(false)
+          return
+        }
+      } else {
+        const { data, error } = await supabase.from('jobs').insert(jobData).select().single()
+        if (error) {
+          alert('Failed to create job. Please try again.')
+          setSaving(false)
+          return
+        }
+        jobId = data?.id
+      }
+
+      // Handle worker assignment
+      if (jobId && formData.assigned_worker_id) {
+        // Remove existing assignments
+        await supabase.from('job_assignments').delete().eq('job_id', jobId)
+
+        // Add new assignment
+        await supabase.from('job_assignments').insert({
+          job_id: jobId,
+          user_id: formData.assigned_worker_id,
+        })
+      }
+
+      setSaving(false)
+      onSave()
+    } catch {
+      alert('An unexpected error occurred. Please try again.')
+      setSaving(false)
     }
-
-    let jobId = job?.id
-
-    if (job) {
-      await supabase.from('jobs').update(jobData).eq('id', job.id)
-    } else {
-      const { data } = await supabase.from('jobs').insert(jobData).select().single()
-      jobId = data?.id
-    }
-
-    // Handle worker assignment
-    if (jobId && formData.assigned_worker_id) {
-      // Remove existing assignments
-      await supabase.from('job_assignments').delete().eq('job_id', jobId)
-
-      // Add new assignment
-      await supabase.from('job_assignments').insert({
-        job_id: jobId,
-        user_id: formData.assigned_worker_id,
-      })
-    }
-
-    setSaving(false)
-    onSave()
   }
 
   return (

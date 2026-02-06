@@ -70,6 +70,79 @@ export default function ComplianceDashboardPage() {
     setIsRefreshing(false);
   };
 
+  const downloadCsv = (filename: string, csvContent: string) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportAlerts = () => {
+    const header = 'ID,Title,Description,Severity,Worker,Date,Acknowledged';
+    const rows = alerts.map((alert) => {
+      const escapeCsv = (val: string) => `"${(val ?? '').replace(/"/g, '""')}"`;
+      return [
+        escapeCsv(alert.id),
+        escapeCsv(alert.title),
+        escapeCsv(alert.description ?? ''),
+        escapeCsv(alert.severity),
+        escapeCsv(alert.user?.full_name || 'Unknown'),
+        escapeCsv(new Date(alert.created_at).toLocaleString()),
+        alert.acknowledged ? 'Yes' : 'No',
+      ].join(',');
+    });
+    downloadCsv(`compliance-alerts-${dateRange}.csv`, [header, ...rows].join('\n'));
+  };
+
+  const handleGenerateReport = () => {
+    const reportDate = new Date().toLocaleString();
+    const header = 'Metric,Value';
+    const rows = [
+      `Report Generated,"${reportDate}"`,
+      `Date Range,"${dateRange}"`,
+      `Total Violations,${stats.totalViolations}`,
+      `Meal Break Violations,${stats.mealBreakViolations}`,
+      `Rest Break Violations,${stats.restBreakViolations}`,
+      `Overtime Alerts,${stats.overtimeAlerts}`,
+      `Double Time Alerts,${stats.doubleTimeAlerts}`,
+      `Unacknowledged Alerts,${stats.unacknowledgedCount}`,
+      `Total Alerts,${alerts.length}`,
+      `Total Time Entries,${timeEntries.length}`,
+      `Entries with Missed Meal Breaks,${timeEntries.filter((e) => e.missed_meal_break).length}`,
+      `Entries with Missed Rest Breaks,${timeEntries.filter((e) => e.missed_rest_break).length}`,
+      `Pending Attestations,${timeEntries.filter((e) => !e.attestation_completed).length}`,
+    ];
+    downloadCsv(`compliance-report-${dateRange}.csv`, [header, ...rows].join('\n'));
+  };
+
+  const handleExportAttestations = () => {
+    const header = 'Worker,Date,Hours,Meal Break,Rest Break,Attestation';
+    const rows = timeEntries.map((entry) => {
+      const escapeCsv = (val: string) => `"${(val ?? '').replace(/"/g, '""')}"`;
+      const mealStatus = entry.missed_meal_break
+        ? 'Missed'
+        : entry.hours_worked >= 5
+        ? 'Taken'
+        : 'N/A';
+      const restStatus = entry.missed_rest_break ? 'Missed' : 'OK';
+      const attestation = entry.attestation_completed ? 'Signed' : 'Pending';
+      return [
+        escapeCsv(entry.user?.full_name || 'Unknown'),
+        escapeCsv(new Date(entry.clock_in).toLocaleDateString()),
+        formatHours(entry.hours_worked),
+        mealStatus,
+        restStatus,
+        attestation,
+      ].join(',');
+    });
+    downloadCsv(`attestations-${dateRange}.csv`, [header, ...rows].join('\n'));
+  };
+
   // Get workers with most violations
   const violationsByWorker = alerts
     .filter((a) => a.severity === 'violation')
@@ -195,7 +268,10 @@ export default function ComplianceDashboardPage() {
                   </span>
                 )}
               </h2>
-              <button className="btn-ghost text-sm flex items-center gap-1">
+              <button
+                onClick={handleExportAlerts}
+                className="btn-ghost text-sm flex items-center gap-1"
+              >
                 <Download size={16} />
                 Export
               </button>
@@ -308,14 +384,20 @@ export default function ComplianceDashboardPage() {
                   </div>
                   <ChevronRight size={16} className="text-gray-400" />
                 </Link>
-                <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  onClick={handleGenerateReport}
+                  className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium">Generate Report</span>
                   </div>
                   <ChevronRight size={16} className="text-gray-400" />
                 </button>
-                <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  onClick={handleExportAttestations}
+                  className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
                   <div className="flex items-center gap-2">
                     <Download className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium">Export Attestations</span>

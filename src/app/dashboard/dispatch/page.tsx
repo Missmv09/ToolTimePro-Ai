@@ -33,19 +33,6 @@ const WORKER_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   offline: { label: 'Offline', color: '#BDBDBD' },
 };
 
-// Demo data for when no real data exists
-const DEMO_WORKERS: Worker[] = [
-  { id: '1', full_name: 'Miguel R.', email: '', phone: '(555) 123-4567', role: 'worker', avatar_url: null, is_active: true, status: 'on_site', currentJobId: 'J-1', location: { lat: 34.0522, lng: -118.2437 }, jobsToday: 3 },
-  { id: '2', full_name: 'Carlos M.', email: '', phone: '(555) 234-5678', role: 'worker', avatar_url: null, is_active: true, status: 'en_route', currentJobId: null, location: { lat: 34.0622, lng: -118.2537 }, jobsToday: 2 },
-  { id: '3', full_name: 'David L.', email: '', phone: '(555) 345-6789', role: 'worker', avatar_url: null, is_active: true, status: 'available', currentJobId: null, location: null, jobsToday: 1 },
-];
-
-const DEMO_JOBS: DispatchJob[] = [
-  { id: 'J-1', title: 'Lawn Mowing', customer_id: '1', customer: { name: 'Maria Santos', phone: '(555) 111-2222' }, address: '1234 Oak Street', city: 'Los Angeles', scheduled_date: new Date().toISOString().split('T')[0], scheduled_time_start: '09:00', scheduled_time_end: '10:30', status: 'in_progress', notes: 'Gate code: 1234', total_amount: 85, assignedWorkers: [{ id: '1', full_name: 'Miguel R.' }] },
-  { id: 'J-2', title: 'Hedge Trimming', customer_id: '2', customer: { name: 'Robert Chen', phone: '(555) 222-3333' }, address: '567 Pine Ave', city: 'Pasadena', scheduled_date: new Date().toISOString().split('T')[0], scheduled_time_start: '11:00', scheduled_time_end: '13:00', status: 'scheduled', notes: null, total_amount: 150, assignedWorkers: [{ id: '2', full_name: 'Carlos M.' }] },
-  { id: 'J-3', title: 'Full Yard Cleanup', customer_id: '3', customer: { name: 'Mike Thompson', phone: '(555) 333-4444' }, address: '234 Cedar Ln', city: 'Burbank', scheduled_date: new Date().toISOString().split('T')[0], scheduled_time_start: '14:00', scheduled_time_end: '17:00', status: 'scheduled', notes: 'Large property', total_amount: 275, assignedWorkers: [] },
-];
-
 function formatTime(timeStr: string | null): string {
   if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
@@ -62,12 +49,7 @@ function formatCurrency(amount: number | null): string {
 
 export default function DispatchBoardPage() {
   const { company } = useAuth();
-  const { workers: realWorkers, jobs: realJobs, isLoading, error, refetch, assignJob, updateJobStatus, sendRunningLate } = useDispatch();
-
-  // Use real data if available, otherwise demo
-  const workers = realWorkers.length > 0 ? realWorkers : DEMO_WORKERS;
-  const jobs = realJobs.length > 0 ? realJobs : DEMO_JOBS;
-  const isDemo = realWorkers.length === 0;
+  const { workers, jobs, isLoading, error, refetch, assignJob, unassignJob, updateJobStatus, sendRunningLate } = useDispatch();
 
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
   const [selectedJob, setSelectedJob] = useState<DispatchJob | null>(null);
@@ -89,50 +71,63 @@ export default function DispatchBoardPage() {
   };
 
   const handleAssignJob = async (jobId: string, workerId: string) => {
-    if (isDemo) {
-      showToast('Demo mode - assignment simulated');
-      setShowAssignModal(false);
-      return;
-    }
-
     setIsAssigning(true);
-    const { error } = await assignJob(jobId, workerId);
-    setIsAssigning(false);
+    try {
+      const { error: assignError } = await assignJob(jobId, workerId);
+      if (assignError) {
+        showToast(`Failed to assign job: ${assignError.message}`);
+      } else {
+        showToast(`Job assigned to ${workers.find((w) => w.id === workerId)?.full_name}`);
+        setShowAssignModal(false);
+        setSelectedJob(null);
+      }
+    } catch (err) {
+      showToast('An unexpected error occurred while assigning the job');
+      console.error('Assign job error:', err);
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
-    if (error) {
-      showToast('Failed to assign job');
-    } else {
-      showToast(`Job assigned to ${workers.find((w) => w.id === workerId)?.full_name}`);
-      setShowAssignModal(false);
-      setSelectedJob(null);
+  const handleUnassignJob = async (jobId: string, workerId: string) => {
+    try {
+      const { error: unassignError } = await unassignJob(jobId, workerId);
+      if (unassignError) {
+        showToast(`Failed to unassign worker: ${unassignError.message}`);
+      } else {
+        showToast('Worker unassigned from job');
+      }
+    } catch (err) {
+      showToast('An unexpected error occurred while unassigning the worker');
+      console.error('Unassign job error:', err);
     }
   };
 
   const handleStatusChange = async (jobId: string, newStatus: string) => {
-    if (isDemo) {
-      showToast(`Demo mode - status change simulated`);
-      return;
-    }
-
-    const { error } = await updateJobStatus(jobId, newStatus);
-    if (error) {
-      showToast('Failed to update status');
-    } else {
-      showToast(`Job marked as ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+    try {
+      const { error: statusError } = await updateJobStatus(jobId, newStatus);
+      if (statusError) {
+        showToast(`Failed to update status: ${statusError.message}`);
+      } else {
+        showToast(`Job marked as ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+      }
+    } catch (err) {
+      showToast('An unexpected error occurred while updating job status');
+      console.error('Status change error:', err);
     }
   };
 
   const handleSendRunningLate = async (jobId: string) => {
-    if (isDemo) {
-      showToast('Demo mode - SMS simulated');
-      return;
-    }
-
-    const result = await sendRunningLate(jobId);
-    if (result.success) {
-      showToast('Running late SMS sent');
-    } else {
-      showToast(result.error || 'Failed to send SMS');
+    try {
+      const result = await sendRunningLate(jobId);
+      if (result.success) {
+        showToast('Running late SMS sent');
+      } else {
+        showToast(result.error || 'Failed to send SMS');
+      }
+    } catch (err) {
+      showToast('An unexpected error occurred while sending the SMS');
+      console.error('Send running late error:', err);
     }
   };
 
@@ -158,7 +153,7 @@ export default function DispatchBoardPage() {
             </Link>
             <h1 className="text-xl font-bold">Dispatch Board</h1>
             <span className="bg-gradient-to-r from-[#f5a623] to-[#ffd380] text-[#1a1a2e] px-2 py-0.5 rounded-full text-xs font-bold">
-              {isDemo ? 'DEMO' : 'LIVE'}
+              LIVE
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -193,13 +188,6 @@ export default function DispatchBoardPage() {
         </div>
       )}
 
-      {/* Demo Banner */}
-      {isDemo && (
-        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2 text-yellow-800 text-sm text-center">
-          Showing demo data. Add workers and jobs to see your real dispatch board.
-        </div>
-      )}
-
       <div className="grid lg:grid-cols-12 gap-0 min-h-[calc(100vh-120px)]">
         {/* Crew Panel */}
         <aside className="lg:col-span-3 bg-white border-r border-gray-200 overflow-auto">
@@ -221,48 +209,58 @@ export default function DispatchBoardPage() {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
-            {workers.map((worker) => (
-              <div
-                key={worker.id}
-                onClick={() => setSelectedWorker(selectedWorker?.id === worker.id ? null : worker)}
-                className={`p-3 cursor-pointer hover:bg-gray-50 ${selectedWorker?.id === worker.id ? 'bg-[#fef3d6] border-l-4 border-[#f5a623]' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg border-2" style={{ borderColor: WORKER_STATUS_CONFIG[worker.status]?.color }}>
-                    <User className="w-5 h-5 text-gray-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-[#1a1a2e] truncate">{worker.full_name}</h4>
-                    <p className="text-xs text-gray-500">{worker.jobsToday} jobs today</p>
-                  </div>
-                  <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: WORKER_STATUS_CONFIG[worker.status]?.color + '20', color: WORKER_STATUS_CONFIG[worker.status]?.color }}
-                  >
-                    {WORKER_STATUS_CONFIG[worker.status]?.label}
-                  </span>
-                </div>
-                {selectedWorker?.id === worker.id && (
-                  <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
-                    {worker.phone && (
-                      <a href={`tel:${worker.phone}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
-                        <Phone className="w-4 h-4" /> {worker.phone}
-                      </a>
-                    )}
-                    <div className="flex gap-2">
-                      <button className="flex-1 py-1.5 bg-[#1a1a2e] text-white rounded text-sm font-medium">
-                        <Phone className="w-3 h-3 inline mr-1" /> Call
-                      </button>
-                      <button className="flex-1 py-1.5 bg-gray-100 text-[#1a1a2e] rounded text-sm font-medium">
-                        <MessageSquare className="w-3 h-3 inline mr-1" /> Message
-                      </button>
+          {workers.length === 0 ? (
+            <div className="p-6 text-center">
+              <User className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-500 mb-1">No active workers found.</p>
+              <Link href="/dashboard/team" className="text-sm text-[#f5a623] hover:underline font-medium">
+                Add team members in Settings
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {workers.map((worker) => (
+                <div
+                  key={worker.id}
+                  onClick={() => setSelectedWorker(selectedWorker?.id === worker.id ? null : worker)}
+                  className={`p-3 cursor-pointer hover:bg-gray-50 ${selectedWorker?.id === worker.id ? 'bg-[#fef3d6] border-l-4 border-[#f5a623]' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg border-2" style={{ borderColor: WORKER_STATUS_CONFIG[worker.status]?.color }}>
+                      <User className="w-5 h-5 text-gray-500" />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-[#1a1a2e] truncate">{worker.full_name}</h4>
+                      <p className="text-xs text-gray-500">{worker.jobsToday} jobs today</p>
+                    </div>
+                    <span
+                      className="text-xs font-medium px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: WORKER_STATUS_CONFIG[worker.status]?.color + '20', color: WORKER_STATUS_CONFIG[worker.status]?.color }}
+                    >
+                      {WORKER_STATUS_CONFIG[worker.status]?.label}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  {selectedWorker?.id === worker.id && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
+                      {worker.phone && (
+                        <a href={`tel:${worker.phone}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                          <Phone className="w-4 h-4" /> {worker.phone}
+                        </a>
+                      )}
+                      <div className="flex gap-2">
+                        <button className="flex-1 py-1.5 bg-[#1a1a2e] text-white rounded text-sm font-medium">
+                          <Phone className="w-3 h-3 inline mr-1" /> Call
+                        </button>
+                        <button className="flex-1 py-1.5 bg-gray-100 text-[#1a1a2e] rounded text-sm font-medium">
+                          <MessageSquare className="w-3 h-3 inline mr-1" /> Message
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </aside>
 
         {/* Main Content */}
@@ -303,6 +301,18 @@ export default function DispatchBoardPage() {
                   <MapPin className="w-6 h-6 text-red-500" />
                 </div>
               ))}
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+              <Clock className="w-12 h-12 text-gray-300 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-500 mb-1">No jobs scheduled for today.</h3>
+              <p className="text-sm text-gray-400 mb-4">Create jobs to start dispatching your crew.</p>
+              <Link
+                href="/dashboard/jobs"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-medium text-sm hover:bg-[#e6951a] transition-colors"
+              >
+                Go to Jobs <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -358,75 +368,87 @@ export default function DispatchBoardPage() {
             <h2 className="font-bold text-[#1a1a2e]">Today&apos;s Jobs ({jobs.length})</h2>
           </div>
 
-          {/* Unassigned Jobs */}
-          {unassignedJobs.length > 0 && (
-            <div className="p-3 bg-yellow-50 border-b border-yellow-200">
-              <h3 className="font-medium text-yellow-700 text-sm mb-2">
-                Unassigned ({unassignedJobs.length})
-              </h3>
-              <div className="space-y-2">
-                {unassignedJobs.map((job) => (
-                  <div
-                    key={job.id}
-                    onClick={() => {
-                      setSelectedJob(job);
-                      setShowAssignModal(true);
-                    }}
-                    className="bg-white rounded-lg p-3 border-l-4 border-yellow-500 cursor-pointer hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="text-xs font-bold text-gray-500">{job.id}</span>
-                      <span className="text-xs font-medium text-[#1a1a2e]">{formatTime(job.scheduled_time_start)}</span>
-                    </div>
-                    <h4 className="font-medium text-[#1a1a2e] text-sm">{job.customer?.name}</h4>
-                    <p className="text-xs text-gray-500">{job.title}</p>
-                    <button className="mt-2 w-full py-1 bg-[#f5a623] text-[#1a1a2e] rounded text-xs font-bold">
-                      + Assign
-                    </button>
-                  </div>
-                ))}
-              </div>
+          {jobs.length === 0 ? (
+            <div className="p-6 text-center">
+              <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-500 mb-1">No jobs scheduled for today.</p>
+              <Link href="/dashboard/jobs" className="text-sm text-[#f5a623] hover:underline font-medium">
+                Schedule a job
+              </Link>
             </div>
-          )}
-
-          {/* Assigned Jobs */}
-          <div className="p-3">
-            <h3 className="font-medium text-gray-500 text-sm mb-2">
-              Assigned ({assignedJobs.length})
-            </h3>
-            <div className="space-y-2">
-              {assignedJobs.map((job) => (
-                <div
-                  key={job.id}
-                  onClick={() => setSelectedJob(job)}
-                  className={`rounded-lg p-3 border cursor-pointer hover:shadow-md transition-shadow ${
-                    selectedJob?.id === job.id ? 'border-[#f5a623] bg-[#fef3d6]' : 'border-gray-200 bg-white'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-xs font-bold text-gray-500">{job.id}</span>
-                    <span
-                      className="text-xs font-medium px-1.5 py-0.5 rounded"
-                      style={{ backgroundColor: STATUS_CONFIG[job.status]?.bg, color: STATUS_CONFIG[job.status]?.color }}
-                    >
-                      {STATUS_CONFIG[job.status]?.label}
-                    </span>
-                  </div>
-                  <h4 className="font-medium text-[#1a1a2e] text-sm">{job.customer?.name}</h4>
-                  <p className="text-xs text-gray-500 mb-1">{job.title}</p>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">
-                      <Clock className="w-3 h-3 inline mr-1" />
-                      {formatTime(job.scheduled_time_start)}
-                    </span>
-                    <span className="text-[#f5a623] font-medium">
-                      {job.assignedWorkers.map((w) => w.full_name.split(' ')[0]).join(', ')}
-                    </span>
+          ) : (
+            <>
+              {/* Unassigned Jobs */}
+              {unassignedJobs.length > 0 && (
+                <div className="p-3 bg-yellow-50 border-b border-yellow-200">
+                  <h3 className="font-medium text-yellow-700 text-sm mb-2">
+                    Unassigned ({unassignedJobs.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {unassignedJobs.map((job) => (
+                      <div
+                        key={job.id}
+                        onClick={() => {
+                          setSelectedJob(job);
+                          setShowAssignModal(true);
+                        }}
+                        className="bg-white rounded-lg p-3 border-l-4 border-yellow-500 cursor-pointer hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-xs font-bold text-gray-500">{job.id}</span>
+                          <span className="text-xs font-medium text-[#1a1a2e]">{formatTime(job.scheduled_time_start)}</span>
+                        </div>
+                        <h4 className="font-medium text-[#1a1a2e] text-sm">{job.customer?.name}</h4>
+                        <p className="text-xs text-gray-500">{job.title}</p>
+                        <button className="mt-2 w-full py-1 bg-[#f5a623] text-[#1a1a2e] rounded text-xs font-bold">
+                          + Assign
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              )}
+
+              {/* Assigned Jobs */}
+              <div className="p-3">
+                <h3 className="font-medium text-gray-500 text-sm mb-2">
+                  Assigned ({assignedJobs.length})
+                </h3>
+                <div className="space-y-2">
+                  {assignedJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      onClick={() => setSelectedJob(job)}
+                      className={`rounded-lg p-3 border cursor-pointer hover:shadow-md transition-shadow ${
+                        selectedJob?.id === job.id ? 'border-[#f5a623] bg-[#fef3d6]' : 'border-gray-200 bg-white'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-xs font-bold text-gray-500">{job.id}</span>
+                        <span
+                          className="text-xs font-medium px-1.5 py-0.5 rounded"
+                          style={{ backgroundColor: STATUS_CONFIG[job.status]?.bg, color: STATUS_CONFIG[job.status]?.color }}
+                        >
+                          {STATUS_CONFIG[job.status]?.label}
+                        </span>
+                      </div>
+                      <h4 className="font-medium text-[#1a1a2e] text-sm">{job.customer?.name}</h4>
+                      <p className="text-xs text-gray-500 mb-1">{job.title}</p>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">
+                          <Clock className="w-3 h-3 inline mr-1" />
+                          {formatTime(job.scheduled_time_start)}
+                        </span>
+                        <span className="text-[#f5a623] font-medium">
+                          {job.assignedWorkers.map((w) => w.full_name.split(' ')[0]).join(', ')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </aside>
       </div>
 

@@ -30,6 +30,38 @@ import {
   CheckCircle
 } from 'lucide-react'
 
+// Generate a random secure temporary password
+function generateTempPassword(length = 12): string {
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const lower = 'abcdefghijklmnopqrstuvwxyz'
+  const digits = '0123456789'
+  const special = '!@#$%&*'
+  const all = upper + lower + digits + special
+
+  const randomValues = new Uint32Array(length)
+  crypto.getRandomValues(randomValues)
+
+  // Guarantee at least one of each required character type
+  const password: string[] = [
+    upper[randomValues[0] % upper.length],
+    lower[randomValues[1] % lower.length],
+    digits[randomValues[2] % digits.length],
+    special[randomValues[3] % special.length],
+  ]
+
+  for (let i = 4; i < length; i++) {
+    password.push(all[randomValues[i] % all.length])
+  }
+
+  // Shuffle the password array using Fisher-Yates
+  for (let i = password.length - 1; i > 0; i--) {
+    const j = randomValues[i] % (i + 1)
+    ;[password[i], password[j]] = [password[j], password[i]]
+  }
+
+  return password.join('')
+}
+
 // Note types with colors matching the navy/gold design system
 const NOTE_TYPES = [
   {
@@ -933,7 +965,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
       }
     } else {
       // Create new team member using signUp (works from client-side)
-      const tempPassword = 'TempPassword123!'
+      const tempPassword = generateTempPassword()
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: tempPassword,
@@ -986,6 +1018,16 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         setSaving(false)
         return
       }
+
+      setSaving(false)
+      alert(
+        `Team member created successfully!\n\n` +
+        `Temporary password for ${formData.email}:\n${tempPassword}\n\n` +
+        `Please share this password securely with the team member.\n` +
+        `They should change it on their first login.`
+      )
+      onSave()
+      return
     }
 
     setSaving(false)
