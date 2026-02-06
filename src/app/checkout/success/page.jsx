@@ -55,10 +55,14 @@ function CheckoutSuccessContent() {
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
             <h3 className="font-semibold text-gray-900 mb-2">Order Summary</h3>
             <div className="text-sm text-gray-600 space-y-1">
-              <p><span className="font-medium">Plan:</span> {session.metadata?.plan?.charAt(0).toUpperCase() + session.metadata?.plan?.slice(1)}</p>
-              <p><span className="font-medium">Billing:</span> {session.metadata?.billing?.charAt(0).toUpperCase() + session.metadata?.billing?.slice(1)}</p>
-              {session.metadata?.addOns && (
-                <p><span className="font-medium">Add-ons:</span> {session.metadata.addOns}</p>
+              {session.metadata?.plan && (
+                <p><span className="font-medium">Plan:</span> {session.metadata.plan.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+              )}
+              {session.metadata?.billing && (
+                <p><span className="font-medium">Billing:</span> {session.metadata.billing.charAt(0).toUpperCase() + session.metadata.billing.slice(1)}</p>
+              )}
+              {session.metadata?.addons && (
+                <p><span className="font-medium">Add-ons:</span> {session.metadata.addons.replace(/_/g, ' ').replace(/,/g, ', ')}</p>
               )}
             </div>
           </div>
