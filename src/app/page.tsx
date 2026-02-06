@@ -752,11 +752,19 @@ export default function Home() {
                 <div className="border-t border-gray-200 pt-4 mb-6">
                   <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">Optional Add-ons:</p>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
-                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Jenny Lite</span>
-                      <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
-                    </label>
+                    {plan.name === 'Elite' ? (
+                      <div className="flex items-center gap-2 text-[0.875rem]">
+                        <span className="text-[#00c853] font-bold">✓</span>
+                        <span className="text-[#1a1a2e] font-medium">Jenny Lite</span>
+                        <span className="text-[#00c853] font-semibold ml-auto text-[0.8125rem]">Included</span>
+                      </div>
+                    ) : (
+                      <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                        <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                        <span className="text-[#5c5c70]">Jenny Lite</span>
+                        <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
+                      </label>
+                    )}
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
                       <span className="text-[#5c5c70]">Keep Me Legal</span>

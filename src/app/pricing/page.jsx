@@ -270,9 +270,15 @@ export default function PricingPage() {
     );
   };
 
+  const isElite = selectedTier === 'elite';
+
   const selectTier = (tierId) => {
     setSelectedTier(tierId);
     setSelectedStandalone(null);
+    // Auto-include Jenny Lite when Elite is selected
+    if (tierId === 'elite') {
+      setSelectedAddons(prev => prev.includes('jenny_lite') ? prev : [...prev, 'jenny_lite']);
+    }
   };
 
   const selectStandalone = (standaloneId) => {
@@ -295,6 +301,8 @@ export default function PricingPage() {
     }
 
     selectedAddons.forEach((addonId) => {
+      // Jenny Lite is included free with Elite — don't charge for it
+      if (addonId === 'jenny_lite' && selectedTier === 'elite') return;
       const addon = ADDONS.find((a) => a.id === addonId);
       if (addon) {
         monthly += addon.monthlyPrice;
@@ -463,17 +471,21 @@ export default function PricingPage() {
 
           <div className="jenny-tiers">
             <div
-              className={`jenny-tier ${selectedAddons.includes('jenny_lite') ? 'selected' : ''}`}
+              className={`jenny-tier ${selectedAddons.includes('jenny_lite') ? 'selected' : ''} ${isElite ? 'included' : ''}`}
               onClick={() => {
+                // Don't allow removing Jenny Lite when Elite is selected (it's included)
+                if (isElite) return;
                 if (selectedAddons.includes('jenny_pro')) {
                   setSelectedAddons(prev => prev.filter(id => id !== 'jenny_pro'));
                 }
                 toggleAddon('jenny_lite');
               }}
+              style={isElite ? { cursor: 'default' } : {}}
             >
+              {isElite && <span className="jenny-included-label">✓ Included with Elite</span>}
               <div className="jenny-tier-header">
                 <h4>Jenny Lite</h4>
-                <span className="jenny-tier-price">+${isAnnual ? '16' : '19'}/mo</span>
+                <span className="jenny-tier-price">{isElite ? 'Included' : `+$${isAnnual ? '16' : '19'}/mo`}</span>
               </div>
               <ul>
                 <li>✓ Website chat widget</li>
@@ -481,7 +493,7 @@ export default function PricingPage() {
                 <li>✓ FAQ answering</li>
                 <li>✓ English & Spanish</li>
               </ul>
-              {isAnnual && <p className="jenny-annual-note">Billed $190/year</p>}
+              {!isElite && isAnnual && <p className="jenny-annual-note">Billed $190/year</p>}
               <div className="jenny-tier-check">{selectedAddons.includes('jenny_lite') ? '☑' : '☐'}</div>
             </div>
 
@@ -628,10 +640,11 @@ export default function PricingPage() {
 
                 {selectedAddons.map((addonId) => {
                   const addon = ADDONS.find(a => a.id === addonId);
+                  const isIncludedFree = addonId === 'jenny_lite' && isElite;
                   return (
                     <div key={addonId} className="summary-line">
                       <span>{addon?.icon} {addon?.name}</span>
-                      <span>+${addon?.monthlyPrice}/mo</span>
+                      <span>{isIncludedFree ? 'Included ✓' : `+$${addon?.monthlyPrice}/mo`}</span>
                     </div>
                   );
                 })}
@@ -1498,6 +1511,23 @@ export default function PricingPage() {
         }
         .jenny-tier.exec {
           background: linear-gradient(135deg, #f8f8ff, #fff);
+        }
+        .jenny-tier.included {
+          border-color: #2ab09e;
+          background: linear-gradient(135deg, #f0fdf9, #fff);
+        }
+        .jenny-included-label {
+          position: absolute;
+          top: -11px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #2ab09e;
+          color: white;
+          font-size: 0.7rem;
+          font-weight: 700;
+          padding: 0.2rem 0.75rem;
+          border-radius: 12px;
+          white-space: nowrap;
         }
         .jenny-annual-note {
           font-size: 0.75rem;
