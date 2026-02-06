@@ -88,6 +88,30 @@ export default function LeadsPage() {
     }
   }
 
+  const deleteLead = async (leadId: string) => {
+    if (!confirm('Are you sure you want to delete this lead?')) return
+
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', leadId)
+
+      if (error) {
+        console.error('Error deleting lead:', error)
+        alert('Failed to delete lead: ' + error.message)
+        return
+      }
+
+      if (companyId) {
+        fetchLeads(companyId)
+      }
+    } catch (err: any) {
+      console.error('Error deleting lead:', err)
+      alert('Failed to delete lead: ' + (err.message || 'Unknown error'))
+    }
+  }
+
   const convertToCustomer = async (lead: Lead) => {
     if (!companyId) return
 
@@ -275,6 +299,12 @@ export default function LeadsPage() {
                           Convert
                         </button>
                       )}
+                      <button
+                        onClick={() => deleteLead(lead.id)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -325,13 +355,32 @@ function LeadModal({ lead, companyId, onClose, onSave }: {
       ...formData,
       company_id: companyId,
       estimated_value: formData.estimated_value ? Number(formData.estimated_value) : null,
-      status: 'new',
+      status: lead ? lead.status : 'new',
     }
 
-    if (lead) {
-      await supabase.from('leads').update(data).eq('id', lead.id)
-    } else {
-      await supabase.from('leads').insert(data)
+    try {
+      if (lead) {
+        const { error } = await supabase.from('leads').update(data).eq('id', lead.id)
+        if (error) {
+          console.error('Error updating lead:', error)
+          alert('Failed to update lead: ' + error.message)
+          setSaving(false)
+          return
+        }
+      } else {
+        const { error } = await supabase.from('leads').insert(data)
+        if (error) {
+          console.error('Error creating lead:', error)
+          alert('Failed to create lead: ' + error.message)
+          setSaving(false)
+          return
+        }
+      }
+    } catch (err: any) {
+      console.error('Error saving lead:', err)
+      alert('Failed to save lead: ' + (err.message || 'Unknown error'))
+      setSaving(false)
+      return
     }
 
     setSaving(false)

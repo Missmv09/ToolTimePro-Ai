@@ -232,7 +232,7 @@ export default function SmartQuotingPage() {
     setIsProcessingVoice(true);
 
     try {
-      const response = await fetch('/.netlify/functions/ai-quote', {
+      const response = await fetch('/api/ai-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -300,7 +300,7 @@ export default function SmartQuotingPage() {
     setIsProcessingDescription(true);
 
     try {
-      const response = await fetch('/.netlify/functions/ai-quote', {
+      const response = await fetch('/api/ai-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -379,7 +379,7 @@ export default function SmartQuotingPage() {
     setPhotoAnalysis(null);
 
     try {
-      const response = await fetch('/.netlify/functions/ai-photo-analysis', {
+      const response = await fetch('/api/ai-photo-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -467,7 +467,7 @@ export default function SmartQuotingPage() {
     setShowAiSuggestion(item.id);
 
     try {
-      const response = await fetch('/.netlify/functions/ai-quote', {
+      const response = await fetch('/api/ai-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -506,7 +506,7 @@ export default function SmartQuotingPage() {
         `${item.description} (${item.quantity} ${item.unit} @ $${item.price})`
       ).join(', ');
 
-      const response = await fetch('/.netlify/functions/ai-quote', {
+      const response = await fetch('/api/ai-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -9,13 +9,22 @@ function CheckoutSuccessContent() {
   const sessionId = searchParams.get('session_id');
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (sessionId) {
       fetch(`/api/checkout/session?session_id=${sessionId}`)
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Failed to load checkout session (status ${res.status})`);
+          }
+          return res.json();
+        })
         .then(data => setSession(data))
-        .catch(err => console.error(err))
+        .catch(err => {
+          console.error(err);
+          setError(err.message || 'Something went wrong loading your order details.');
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -28,6 +37,22 @@ function CheckoutSuccessContent() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Processing your order...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+          <p className="text-red-700 font-medium mb-4">{error}</p>
+          <Link
+            href="/dashboard"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+          >
+            Go to Dashboard
+          </Link>
         </div>
       </div>
     );

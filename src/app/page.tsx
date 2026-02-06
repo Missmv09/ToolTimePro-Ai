@@ -752,11 +752,19 @@ export default function Home() {
                 <div className="border-t border-gray-200 pt-4 mb-6">
                   <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">Optional Add-ons:</p>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
-                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Jenny Lite</span>
-                      <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
-                    </label>
+                    {plan.name === 'Elite' ? (
+                      <div className="flex items-center gap-2 text-[0.875rem]">
+                        <span className="text-[#00c853] font-bold">✓</span>
+                        <span className="text-[#1a1a2e] font-medium">Jenny Lite</span>
+                        <span className="text-[#00c853] font-semibold ml-auto text-[0.8125rem]">Included</span>
+                      </div>
+                    ) : (
+                      <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
+                        <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
+                        <span className="text-[#5c5c70]">Jenny Lite</span>
+                        <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
+                      </label>
+                    )}
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
                       <span className="text-[#5c5c70]">Keep Me Legal</span>
@@ -817,6 +825,130 @@ export default function Home() {
             <p className="text-center text-[0.875rem] text-[#8e8e9f] mt-6">
               💡 Upgrade to a full plan anytime — we&apos;ll credit what you&apos;ve paid!
             </p>
+          </div>
+
+          {/* Jenny AI Section */}
+          <div className="mt-16 max-w-[1080px] mx-auto">
+            <div className="bg-[#1a2038] rounded-[20px] p-12 relative overflow-hidden">
+              {/* Background accents */}
+              <div className="absolute -top-20 -right-16 w-[280px] h-[280px] bg-[radial-gradient(circle,rgba(245,166,35,0.12)_0%,transparent_70%)] rounded-full pointer-events-none" />
+              <div className="absolute -bottom-16 -left-10 w-[200px] h-[200px] bg-[radial-gradient(circle,rgba(42,176,158,0.1)_0%,transparent_70%)] rounded-full pointer-events-none" />
+
+              {/* Header */}
+              <div className="flex items-center justify-between gap-4 mb-2 relative flex-wrap">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-[#f5a623] rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white">
+                      <path d="M12 1a3 3 0 00-3 3v1H8a7 7 0 00-7 7v1a2 2 0 002 2h1v2a5 5 0 005 5h6a5 5 0 005-5v-2h1a2 2 0 002-2v-1a7 7 0 00-7-7h-1V4a3 3 0 00-3-3zm-1 4V4a1 1 0 112 0v1h-2zM9 15a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm6 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-[22px] font-extrabold text-white leading-tight m-0">Add Jenny AI — Your Business Assistant</h3>
+                    <p className="text-sm text-white/60 mt-1">Jenny handles calls, chat, SMS, and keeps you compliant 24/7. Choose the tier that fits your needs.</p>
+                  </div>
+                </div>
+                <Link href="/jenny" className="text-[#f5a623] text-sm font-semibold no-underline whitespace-nowrap hover:opacity-80 transition-opacity">
+                  Learn More →
+                </Link>
+              </div>
+
+              <div className="text-sm text-white/50 mt-3.5 mb-8 relative">
+                From <strong className="text-[#f5a623] text-lg font-extrabold">$19/mo</strong>
+                <span className="text-[12.5px] text-white/35 line-through italic ml-3">Jobber charges $349/mo for this</span>
+              </div>
+
+              {/* Customer-Facing Label */}
+              <div className="text-center mb-3">
+                <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-white/12 text-white/70 px-3.5 py-1.5 rounded-full">
+                  Customer-Facing
+                </span>
+              </div>
+
+              {/* Customer-Facing Cards */}
+              <div className="flex gap-5 mb-7 relative flex-col md:flex-row">
+                {/* Jenny Lite */}
+                <div className="flex-1 bg-[#232b47] border-[1.5px] border-white/10 rounded-[14px] p-7 transition-all hover:border-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
+                  <div className="flex items-baseline justify-between mb-4">
+                    <span className="font-bold text-lg text-white">Jenny Lite</span>
+                    <span className="font-extrabold text-base text-[#f5a623]">+$19<span className="text-xs font-medium text-white/40">/mo</span></span>
+                  </div>
+                  <ul className="list-none m-0 p-0">
+                    {['Website chat widget', 'Lead capture & notifications', 'FAQ answering', 'English & Spanish'].map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
+                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="inline-flex items-center gap-1.5 bg-[rgba(42,176,158,0.15)] text-[#2ab09e] text-xs font-semibold px-3 py-1.5 rounded-lg mt-3.5">
+                    <svg width="14" height="14" viewBox="0 0 18 18"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    Included with Elite plan
+                  </div>
+                </div>
+
+                {/* Jenny Pro */}
+                <div className="flex-1 bg-[#232b47] border-[1.5px] border-[#f5a623] rounded-[14px] p-7 transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
+                  <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 bg-[#f5a623] text-white text-[10.5px] font-bold px-3.5 py-1 rounded-xl tracking-wider uppercase whitespace-nowrap">
+                    Most Popular
+                  </div>
+                  <div className="flex items-baseline justify-between mb-4">
+                    <span className="font-bold text-lg text-white">Jenny Pro</span>
+                    <span className="font-extrabold text-base text-[#f5a623]">+$49<span className="text-xs font-medium text-white/40">/mo</span></span>
+                  </div>
+                  <ul className="list-none m-0 p-0">
+                    {[
+                      { text: 'Everything in Lite, plus:', bold: false },
+                      { text: 'AI phone answering 24/7', bold: true },
+                      { text: 'SMS conversations', bold: false },
+                      { text: 'Direct booking into calendar', bold: false },
+                      { text: 'Bilingual voice support', bold: false },
+                      { text: 'Emergency escalation', bold: false },
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
+                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        {item.bold ? <strong className="text-white">{item.text}</strong> : item.text}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Owner-Facing Label */}
+              <div className="text-center mb-3 mt-10 pt-5 border-t border-white/10">
+                <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-[rgba(245,166,35,0.18)] text-[#f5a623] px-3.5 py-1.5 rounded-full">
+                  Owner-Facing
+                </span>
+              </div>
+
+              {/* Owner-Facing Card */}
+              <div className="flex gap-5 mb-0 relative flex-col md:flex-row">
+                <div className="flex-1 max-w-[480px] bg-[#232b47] border-[1.5px] border-white/10 rounded-[14px] p-7 transition-all hover:border-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
+                  <div className="flex items-baseline justify-between mb-4">
+                    <span className="font-bold text-lg text-white">Jenny Exec Admin</span>
+                    <span className="font-extrabold text-base text-[#f5a623]">+$79<span className="text-xs font-medium text-white/40">/mo</span></span>
+                  </div>
+                  <ul className="list-none m-0 p-0">
+                    {['Compliance advisor & alerts', 'HR guidance & document help', 'Business insights & reports', 'California labor law expertise', 'For owners only (not shown to workers)'].map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
+                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="mt-8 text-center relative">
+                <Link
+                  href="/pricing"
+                  className="inline-block px-9 py-3.5 bg-[#f5a623] text-white text-[15px] font-bold rounded-[10px] no-underline hover:bg-[#e6991a] active:scale-[0.98] transition-all"
+                >
+                  Start 14-Day Free Trial →
+                </Link>
+                <span className="block text-xs text-white/40 mt-2.5">No credit card required</span>
+              </div>
+            </div>
           </div>
 
           {/* Full Pricing Page Link */}

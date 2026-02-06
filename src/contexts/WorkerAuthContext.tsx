@@ -96,13 +96,17 @@ export function WorkerAuthProvider({ children }: { children: React.ReactNode }) 
 
       const worker = workers[0] as User;
 
-      // TODO: In production, validate PIN against stored hash
-      // For now, accept PIN "1234" for demo or implement proper PIN validation
-      // You would need to add a `pin_hash` column to users table
-      const validPin = pin === '1234'; // Demo mode
-
-      if (!validPin) {
-        return { success: false, error: 'Invalid PIN. Use 1234 for demo.' };
+      // Validate PIN against the stored pin on the user record
+      if (worker.pin) {
+        if (pin !== worker.pin) {
+          return { success: false, error: 'Invalid PIN. Please try again.' };
+        }
+      } else {
+        // Worker has no PIN set — allow login but warn them to set one
+        console.warn(`Worker ${worker.id} has no PIN set. Allowing login with any valid 4-digit PIN.`);
+        if (!/^\d{4}$/.test(pin)) {
+          return { success: false, error: 'Please enter a valid 4-digit PIN.' };
+        }
       }
 
       if (!worker.company_id) {

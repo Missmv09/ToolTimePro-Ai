@@ -58,9 +58,10 @@ export default function SchedulePage() {
     if (viewMode === 'week') {
       const d = new Date(date)
       const day = d.getDay()
-      const diff = d.getDate() - day
-      startDate = new Date(d.setDate(diff)).toISOString().split('T')[0]
-      endDate = new Date(d.setDate(diff + 6)).toISOString().split('T')[0]
+      const weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day)
+      const weekEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day + 6)
+      startDate = weekStart.toISOString().split('T')[0]
+      endDate = weekEnd.toISOString().split('T')[0]
     }
 
     const { data, error } = await supabase
@@ -281,10 +282,9 @@ export default function SchedulePage() {
         // Week View
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: 7 }).map((_, i) => {
-            const d = new Date(selectedDate)
-            const day = d.getDay()
-            const diff = d.getDate() - day + i
-            const date = new Date(d.setDate(diff))
+            const base = new Date(selectedDate)
+            const day = base.getDay()
+            const date = new Date(base.getFullYear(), base.getMonth(), base.getDate() - day + i)
             const dateStr = date.toISOString().split('T')[0]
             const dayJobs = jobsByDate[dateStr] || []
             const isToday = dateStr === new Date().toISOString().split('T')[0]
