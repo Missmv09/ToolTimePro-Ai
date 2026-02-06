@@ -7,11 +7,8 @@ interface Incident {
   id: string
   incident_type: string
   severity: string
-  title: string
   description: string
-  location: string
   status: string
-  incident_date: string
   created_at: string
 }
 
@@ -47,14 +44,17 @@ export default function WorkerSafetyPage() {
   const [activeTab, setActiveTab] = useState<'report' | 'history' | 'info'>('report')
 
   const fetchIncidents = useCallback(async (cId: string, uId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('incidents')
       .select('*')
       .eq('company_id', cId)
-      .eq('reported_by', uId)
+      .eq('user_id', uId)
       .order('created_at', { ascending: false })
       .limit(20)
 
+    if (error) {
+      console.error('Error fetching incidents:', error)
+    }
     setIncidents(data || [])
   }, [])
 
@@ -65,22 +65,21 @@ export default function WorkerSafetyPage() {
 
       setUserId(user.id)
 
-      // Get user's company and emergency contacts
+      // Get user's company info
       const { data: userData } = await supabase
         .from('users')
-        .select('company_id, company:companies(name, phone, emergency_contacts)')
+        .select('company_id, company:companies(name, phone)')
         .eq('id', user.id)
         .single()
 
       if (userData?.company_id) {
         setCompanyId(userData.company_id)
 
-        // Set emergency contacts from company or defaults
-        const companyData = userData.company as { name?: string; phone?: string; emergency_contacts?: EmergencyContact[] } | null
-        const companyContacts = companyData?.emergency_contacts || []
-        setEmergencyContacts(companyContacts.length > 0 ? companyContacts : [
+        // Set emergency contacts with defaults
+        const companyData = userData.company as { name?: string; phone?: string } | null
+        setEmergencyContacts([
           { name: 'Emergency Services', role: '911', phone: '911' },
-          { name: 'Company Office', role: 'Main Line', phone: companyData?.phone || '' },
+          { name: companyData?.name || 'Company Office', role: 'Main Line', phone: companyData?.phone || '' },
         ])
 
         fetchIncidents(userData.company_id, user.id)
@@ -217,11 +216,8 @@ export default function WorkerSafetyPage() {
                     <div className="flex items-start gap-3">
                       <span className="text-2xl">{getIncidentIcon(incident.incident_type)}</span>
                       <div>
-                        <p className="font-medium text-gray-900">{incident.title}</p>
+                        <p className="font-medium text-gray-900">{incident.description?.split('\n')[0] || 'Incident'}</p>
                         <p className="text-sm text-gray-500">{formatDate(incident.created_at)}</p>
-                        {incident.location && (
-                          <p className="text-sm text-gray-400">📍 {incident.location}</p>
-                        )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -338,16 +334,20 @@ function ReportIncidentModal({ companyId, userId, onClose, onSave }: {
 
     setSaving(true)
 
+    // Build a comprehensive description that includes title and location
+    const fullDescription = [
+      formData.title,
+      formData.location ? `Location: ${formData.location}` : '',
+      formData.description,
+    ].filter(Boolean).join('\n')
+
     const { error } = await supabase.from('incidents').insert({
       company_id: companyId,
-      reported_by: userId,
+      user_id: userId,
       incident_type: formData.incident_type,
       severity: formData.severity,
-      title: formData.title,
-      description: formData.description,
-      location: formData.location,
-      status: 'reported',
-      incident_date: new Date().toISOString(),
+      description: fullDescription,
+      status: 'open',
     })
 
     if (error) {

@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+
 export default function Page() {
-  return <div>Final Pay Guide</div>;
+  redirect('/dashboard/shield/final-wage');
 }

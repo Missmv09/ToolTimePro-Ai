@@ -82,7 +82,11 @@ export default function ClientsPage() {
   const deleteCustomer = async (id: string) => {
     if (!confirm('Are you sure you want to delete this customer?')) return
 
-    await supabase.from('customers').delete().eq('id', id)
+    const { error } = await supabase.from('customers').delete().eq('id', id)
+    if (error) {
+      alert('Failed to delete client: ' + error.message)
+      return
+    }
     if (companyId) fetchCustomers(companyId)
   }
 
@@ -316,9 +320,19 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
     const data = { ...formData, company_id: companyId }
 
     if (customer) {
-      await supabase.from('customers').update(data).eq('id', customer.id)
+      const { error } = await supabase.from('customers').update(data).eq('id', customer.id)
+      if (error) {
+        alert('Failed to update client: ' + error.message)
+        setSaving(false)
+        return
+      }
     } else {
-      await supabase.from('customers').insert(data)
+      const { error } = await supabase.from('customers').insert(data)
+      if (error) {
+        alert('Failed to add client: ' + error.message)
+        setSaving(false)
+        return
+      }
     }
 
     setSaving(false)

@@ -36,6 +36,7 @@ CREATE TABLE users (
     hourly_rate DECIMAL(10,2),
     is_active BOOLEAN DEFAULT true,
     avatar_url TEXT,
+    pin VARCHAR(10), -- Worker PIN for mobile app authentication
     last_login_at TIMESTAMP WITH TIME ZONE, -- NULL means never logged in (pending activation)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -343,8 +344,14 @@ CREATE TABLE incidents (
 CREATE TABLE review_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-    job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
+    job_id UUID REFERENCES jobs(id) ON DELETE SET NULL,
     customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+    customer_name VARCHAR(255),
+    customer_phone VARCHAR(50),
+    customer_email VARCHAR(255),
+    review_link TEXT,
+    status VARCHAR(50) DEFAULT 'pending', -- pending, sent, clicked, reviewed
+    channel VARCHAR(50) DEFAULT 'sms', -- sms, email
     sent_at TIMESTAMP WITH TIME ZONE,
     opened_at TIMESTAMP WITH TIME ZONE,
     rating INTEGER, -- 1-5
