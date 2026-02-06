@@ -12,7 +12,7 @@ function getResend() {
   return resend;
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@tooltimepro.com>';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@send.tooltimepro.com>';
 
 function formatPlanName(plan: string): string {
   return plan
