@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import ConvertKitSignup from '@/components/ConvertKitSignup';
 
 type Language = 'en' | 'es';
 
@@ -962,6 +963,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <ConvertKitSignup formId="YOUR_FORM_ID_HERE" />
 
       {/* Footer CTA */}
       <section className="bg-[#1a1a2e] text-center py-[100px] px-6 relative overflow-hidden">
