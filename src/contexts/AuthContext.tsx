@@ -20,6 +20,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -261,6 +262,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   };
 
+  const refreshUserData = async () => {
+    if (!isSupabaseConfigured) return;
+    const currentUser = user;
+    if (currentUser) {
+      await fetchUserData(currentUser.id);
+    }
+  };
+
   const resetPassword = async (email: string): Promise<{ error: Error | null }> => {
     if (!isSupabaseConfigured) {
       return { error: new Error('Authentication is not configured') };
@@ -293,6 +302,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     resetPassword,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
