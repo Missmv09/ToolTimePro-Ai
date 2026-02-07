@@ -122,13 +122,13 @@ export default function OnboardingPage() {
       return false
     }
 
-    // Bulk-create selected services
+    // Bulk-create selected services (names only — users set their own prices later)
     const servicesToCreate = selectedIndustry.services
       .filter((_, i) => selectedServices.has(i))
       .map((svc) => ({
         company_id: company.id,
         name: svc.name,
-        default_price: svc.price,
+        default_price: null,
         price_type: svc.priceType,
         duration_minutes: svc.duration,
       }))
@@ -193,14 +193,6 @@ export default function OnboardingPage() {
     }
 
     router.push('/dashboard')
-  }
-
-  const formatPrice = (price: number, priceType: string) => {
-    if (price === 0) return 'Free'
-    const formatted = price >= 1000 ? `$${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}k` : `$${price}`
-    if (priceType === 'hourly') return `${formatted}/hr`
-    if (priceType === 'per_sqft') return `${formatted}/sqft`
-    return formatted
   }
 
   // Show loading while auth data is being fetched
@@ -407,8 +399,7 @@ export default function OnboardingPage() {
                   </div>
 
                   <p className="text-sm text-gray-500 mb-3">
-                    Select the services you offer. We&apos;ve pre-filled common ones for {selectedIndustry.name.toLowerCase()} businesses.
-                    You can edit prices and add more from the dashboard later.
+                    Select the services you offer. You can set your own prices from the dashboard later.
                   </p>
 
                   <div className="space-y-2">
@@ -427,12 +418,7 @@ export default function OnboardingPage() {
                           onChange={() => toggleService(index)}
                           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-gray-900">{service.name}</span>
-                        </div>
-                        <span className="text-sm text-gray-500 whitespace-nowrap">
-                          {formatPrice(service.price, service.priceType)}
-                        </span>
+                        <span className="text-sm font-medium text-gray-900">{service.name}</span>
                       </label>
                     ))}
                   </div>
