@@ -185,6 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Step 1: Create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -203,33 +204,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Failed to create user') };
       }
 
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .insert({
-          name: companyName,
-          email: email,
-        })
-        .select()
-        .single();
+      // Step 2: Create company + user profile atomically via database function.
+      // This uses a SECURITY DEFINER function that bypasses RLS and runs in a
+      // transaction, so both records are created together or neither is.
+      const { error: setupError } = await supabase.rpc('handle_new_signup', {
+        p_user_id: authData.user.id,
+        p_email: email,
+        p_full_name: fullName,
+        p_company_name: companyName,
+      });
 
-      if (companyError) {
-        console.error('Error creating company:', companyError);
-        return { error: companyError };
-      }
-
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: email,
-          full_name: fullName,
-          company_id: companyData.id,
-          role: 'owner',
-        });
-
-      if (userError) {
-        console.error('Error creating user profile:', userError);
-        return { error: userError };
+      if (setupError) {
+        console.error('Error setting up account:', setupError);
+        return { error: setupError };
       }
 
       return { error: null };
