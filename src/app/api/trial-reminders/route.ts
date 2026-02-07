@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendTrialReminderEmail, sendTrialExpiredEmail, sendTrialWelcomeEmail } from '@/lib/email';
 
-// Use service role key to bypass RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+// Lazy-initialize to avoid build-time errors when env vars aren't set
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 // This endpoint should be called by a cron job (e.g., Vercel Cron, Supabase Edge Function)
 // Schedule: once per day
@@ -28,6 +30,8 @@ export async function GET(request: Request) {
   };
 
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Get all companies on trial (no stripe_customer_id = not yet paid)
     const { data: companies, error } = await supabaseAdmin
       .from('companies')
