@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -14,7 +13,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
+  const { signUp } = useAuth()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,65 +33,20 @@ export default function SignupPage() {
     }
 
     try {
-      // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            company_name: companyName,
-          },
-        },
-      })
+      const { error: signUpError } = await signUp(email, password, fullName, companyName)
 
-      if (authError) {
-        setError(authError.message)
+      if (signUpError) {
+        const message = signUpError.message
+        if (message === 'Failed to fetch') {
+          setError('Unable to connect. Please check your internet connection and try again.')
+        } else {
+          setError(message)
+        }
         setLoading(false)
         return
       }
 
-      if (authData.user) {
-        // Create company record
-        const { data: company, error: companyError } = await supabase
-          .from('companies')
-          .insert({
-            name: companyName,
-            email: email,
-          })
-          .select()
-          .single()
-
-        if (companyError) {
-          console.error('Error creating company:', companyError)
-          setError('Account created but company setup failed. Please contact support.')
-          setLoading(false)
-          return
-        }
-
-        // Create user profile linked to company
-        if (company) {
-          const { error: profileError } = await supabase
-            .from('users')
-            .insert({
-              id: authData.user.id,
-              email: email,
-              full_name: fullName,
-              company_id: company.id,
-              role: 'owner',
-            })
-
-          if (profileError) {
-            console.error('Error creating user profile:', profileError)
-            setError('Account created but profile setup failed. Please contact support.')
-            setLoading(false)
-            return
-          }
-        }
-
-        setSuccess(true)
-      }
-
+      setSuccess(true)
       setLoading(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
