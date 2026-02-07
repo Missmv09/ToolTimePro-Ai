@@ -122,9 +122,15 @@ export default function WebsiteWizard() {
     const prefillData = async () => {
       const updates = {};
 
-      // Map industry to trade
-      if (company.industry && industryToTrade[company.industry]) {
-        updates.trade = industryToTrade[company.industry];
+      // Map industry to trade (industries may be comma-separated)
+      if (company.industry) {
+        const slugs = company.industry.split(',').map((s) => s.trim());
+        for (const slug of slugs) {
+          if (industryToTrade[slug]) {
+            updates.trade = industryToTrade[slug];
+            break;
+          }
+        }
       }
 
       // Pre-fill business info

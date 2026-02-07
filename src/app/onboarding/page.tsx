@@ -15,7 +15,7 @@ const STEPS = [
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { user, company, dbUser, isLoading } = useAuth()
+  const { user, company, dbUser, isLoading, refreshUserData } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -272,6 +272,9 @@ export default function OnboardingPage() {
       setError('Failed to complete setup: ' + finishError.message)
       return
     }
+
+    // Refresh AuthContext so DashboardLayout sees onboarding_completed = true
+    await refreshUserData()
 
     router.push('/dashboard')
   }

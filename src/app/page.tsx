@@ -147,18 +147,39 @@ export default function Home() {
   const [language, setLanguage] = useState<Language>('en');
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [industriesOpen, setIndustriesOpen] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const router = useRouter();
   const { user, company, isLoading } = useAuth();
 
   // Redirect authenticated users away from the marketing homepage
   useEffect(() => {
     if (isLoading || !user) return;
+    setRedirecting(true);
     if (company?.onboarding_completed) {
       router.replace('/dashboard');
     } else if (company) {
       router.replace('/onboarding');
+    } else {
+      // Company data might still be loading — wait briefly then redirect to onboarding
+      const timeout = setTimeout(() => router.replace('/onboarding'), 1500);
+      return () => clearTimeout(timeout);
     }
   }, [user, company, isLoading, router]);
+
+  // Check for auth hash fragments in URL (email confirmation redirect)
+  const hasAuthHash = typeof window !== 'undefined' && window.location.hash.includes('access_token');
+
+  // Show loading spinner while auth is resolving or redirecting
+  if (isLoading || redirecting || hasAuthHash) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
 
   const t = {
     en: {
