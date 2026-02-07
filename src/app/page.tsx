@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Language = 'en' | 'es';
 
@@ -145,6 +147,18 @@ export default function Home() {
   const [language, setLanguage] = useState<Language>('en');
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [industriesOpen, setIndustriesOpen] = useState(false);
+  const router = useRouter();
+  const { user, company, isLoading } = useAuth();
+
+  // Redirect authenticated users away from the marketing homepage
+  useEffect(() => {
+    if (isLoading || !user) return;
+    if (company?.onboarding_completed) {
+      router.replace('/dashboard');
+    } else if (company) {
+      router.replace('/onboarding');
+    }
+  }, [user, company, isLoading, router]);
 
   const t = {
     en: {
