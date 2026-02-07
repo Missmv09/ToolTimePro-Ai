@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import WizardProgress from './WizardProgress';
 import Step1TradeSelect from './Step1TradeSelect';
 import Step2TemplatePicker from './Step2TemplatePicker';
@@ -8,6 +10,52 @@ import Step3BusinessInfo from './Step3BusinessInfo';
 import Step4DomainSearch from './Step4DomainSearch';
 import Step5Customize from './Step5Customize';
 import Step6ReviewLaunch from './Step6ReviewLaunch';
+
+// Map onboarding industry slugs to website builder trade IDs
+const industryToTrade = {
+  'painting': 'painter',
+  'landscaping': 'landscaper',
+  'lawn-care': 'landscaper',
+  'tree-service': 'landscaper',
+  'pool-service': 'pool',
+  'house-cleaning': 'cleaner',
+  'commercial-cleaning': 'cleaner',
+  'carpet-cleaning': 'cleaner',
+  'handyman': 'handyman',
+  'roofing': 'roofer',
+  'general-contractor': 'general',
+  'remodeling': 'general',
+  'plumbing': 'handyman',
+  'electrical': 'handyman',
+  'hvac': 'handyman',
+  'pest-control': 'general',
+  'window-cleaning': 'cleaner',
+  'pressure-washing': 'cleaner',
+  'junk-removal': 'general',
+  'moving': 'general',
+  'flooring': 'general',
+  'fencing': 'general',
+  'garage-door': 'general',
+  'locksmith': 'handyman',
+  'appliance-repair': 'handyman',
+  'auto-detailing': 'general',
+  'towing': 'general',
+  'pet-grooming': 'general',
+  'photography': 'general',
+  'event-planning': 'general',
+  'catering': 'general',
+  'personal-training': 'general',
+  'tutoring': 'general',
+};
+
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 function validateStep(step, data) {
   switch (step) {
@@ -34,7 +82,9 @@ function validateStep(step, data) {
 }
 
 export default function WebsiteWizard() {
+  const { company, user, dbUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  const [prefilled, setPrefilled] = useState(false);
   const [wizardData, setWizardData] = useState({
     // Step 1
     trade: null,
@@ -64,6 +114,51 @@ export default function WebsiteWizard() {
     // Step 6
     publishStatus: 'draft',
   });
+
+  // Pre-fill wizard data from company profile + services
+  useEffect(() => {
+    if (prefilled || !company) return;
+
+    const prefillData = async () => {
+      const updates = {};
+
+      // Map industry to trade
+      if (company.industry && industryToTrade[company.industry]) {
+        updates.trade = industryToTrade[company.industry];
+      }
+
+      // Pre-fill business info
+      if (company.name) updates.businessName = company.name;
+      if (company.phone) updates.phone = formatPhone(company.phone);
+      if (company.email) updates.email = company.email;
+
+      // Build service area from city/state
+      const areaParts = [company.city, company.state].filter(Boolean);
+      if (areaParts.length > 0) {
+        updates.serviceArea = areaParts.join(', ') + ' & surrounding areas';
+      }
+
+      // Fetch services from the services table
+      if (dbUser?.company_id) {
+        const { data: services } = await supabase
+          .from('services')
+          .select('name')
+          .eq('company_id', dbUser.company_id)
+          .eq('is_active', true);
+
+        if (services && services.length > 0) {
+          updates.services = services.map((s) => s.name);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setWizardData((prev) => ({ ...prev, ...updates }));
+      }
+      setPrefilled(true);
+    };
+
+    prefillData();
+  }, [company, dbUser?.company_id, prefilled]);
 
   const [validationError, setValidationError] = useState(null);
 
@@ -115,9 +210,26 @@ export default function WebsiteWizard() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-navy-500">Website Builder</h1>
-        <p className="text-gray-500 mt-1">Build your professional website in minutes.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-navy-500">Website Builder</h1>
+            <p className="text-gray-500 mt-1">Build your professional website in minutes.</p>
+          </div>
+          <a
+            href="/dashboard"
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Skip — I already have a website
+          </a>
+        </div>
       </div>
+
+      {/* Pre-filled notice */}
+      {prefilled && currentStep === 3 && wizardData.businessName && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+          We pre-filled your info from onboarding. Feel free to edit anything before continuing.
+        </div>
+      )}
 
       {/* Progress bar */}
       <WizardProgress currentStep={currentStep} onStepClick={handleStepClick} />

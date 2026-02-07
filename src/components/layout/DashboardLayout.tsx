@@ -20,6 +20,7 @@ import {
   LogOut,
   Settings,
   Quote,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -38,6 +39,7 @@ const navItems = [
   { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
   { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
   { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
+  { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
   { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
   { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
