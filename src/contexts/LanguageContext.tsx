@@ -26,8 +26,8 @@ const translations: Translations = {
 
   // Hero Section
   'hero.badge': { en: 'Built for Service Pros', es: 'Hecho para Profesionales' },
-  'hero.title1': { en: 'Run Your Business', es: 'Administra Tu Negocio' },
-  'hero.title2': { en: 'Like a Pro', es: 'Como un Pro' },
+  'hero.title1': { en: 'Your Business', es: 'Tu Negocio' },
+  'hero.title2': { en: 'On Autopilot', es: 'En Piloto Automático' },
   'hero.subtitle': { en: "We set it up. You run your business. It's that simple.", es: 'Nosotros lo configuramos. Tú manejas tu negocio. Así de simple.' },
   'hero.cta1': { en: 'Get Started Free', es: 'Empieza Gratis' },
   'hero.cta2': { en: 'See How It Works', es: 'Ver Cómo Funciona' },
@@ -102,7 +102,7 @@ const translations: Translations = {
   'promo.cta': { en: 'Start Free Trial', es: 'Prueba Gratis' },
 
   // Footer
-  'footer.tagline': { en: 'Run your business like a pro.', es: 'Administra tu negocio como un profesional.' },
+  'footer.tagline': { en: 'Your business, on autopilot.', es: 'Tu negocio, en piloto automático.' },
 };
 
 interface LanguageContextType {
