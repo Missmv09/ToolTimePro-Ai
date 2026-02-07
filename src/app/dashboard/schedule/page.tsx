@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -30,26 +30,7 @@ export default function SchedulePage() {
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
 
-  useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) return
-
-    // Redirect if not authenticated
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
-
-    // Fetch data once we have a company_id
-    if (companyId) {
-      fetchJobs(companyId, selectedDate)
-    } else {
-      // No company_id yet, stop loading to avoid infinite loop
-      setLoading(false)
-    }
-  }, [authLoading, user, companyId, router])
-
-  const fetchJobs = async (compId: string, date: string) => {
+  const fetchJobs = useCallback(async (compId: string, date: string) => {
     setLoading(true)
 
     let startDate = date
@@ -82,13 +63,32 @@ export default function SchedulePage() {
       setJobs(data || [])
     }
     setLoading(false)
-  }
+  }, [viewMode])
+
+  useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return
+
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchJobs(companyId, selectedDate)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router, fetchJobs, selectedDate])
 
   useEffect(() => {
     if (companyId) {
       fetchJobs(companyId, selectedDate)
     }
-  }, [selectedDate, viewMode, companyId])
+  }, [selectedDate, viewMode, companyId, fetchJobs])
 
   const changeDate = (days: number) => {
     const newDate = new Date(selectedDate)

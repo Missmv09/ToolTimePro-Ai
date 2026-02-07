@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
@@ -35,27 +35,7 @@ export default function InvoicesPage() {
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
 
-  useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) return
-
-    // Redirect if not authenticated
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
-
-    // Fetch data once we have a company_id
-    if (companyId) {
-      fetchInvoices(companyId)
-      fetchCustomers(companyId)
-    } else {
-      // No company_id yet, stop loading to avoid infinite loop
-      setLoading(false)
-    }
-  }, [authLoading, user, companyId, router])
-
-  const fetchInvoices = async (compId: string) => {
+  const fetchInvoices = useCallback(async (compId: string) => {
     let query = supabase
       .from('invoices')
       .select(`
@@ -78,22 +58,42 @@ export default function InvoicesPage() {
       setInvoices(data || [])
     }
     setLoading(false)
-  }
+  }, [filter])
 
-  const fetchCustomers = async (compId: string) => {
+  const fetchCustomers = useCallback(async (compId: string) => {
     const { data } = await supabase
       .from('customers')
       .select('id, name, email')
       .eq('company_id', compId)
       .order('name')
     setCustomers(data || [])
-  }
+  }, [])
+
+  useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return
+
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchInvoices(companyId)
+      fetchCustomers(companyId)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router, fetchInvoices, fetchCustomers])
 
   useEffect(() => {
     if (companyId) {
       fetchInvoices(companyId)
     }
-  }, [filter, companyId])
+  }, [filter, companyId, fetchInvoices])
 
   const updateInvoiceStatus = async (invoiceId: string, newStatus: string) => {
     try {

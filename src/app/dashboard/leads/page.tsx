@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -31,26 +31,7 @@ export default function LeadsPage() {
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
 
-  useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) return
-
-    // Redirect if not authenticated
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
-
-    // Fetch data once we have a company_id
-    if (companyId) {
-      fetchLeads(companyId)
-    } else {
-      // No company_id yet, stop loading to avoid infinite loop
-      setLoading(false)
-    }
-  }, [authLoading, user, companyId, router])
-
-  const fetchLeads = async (companyId: string) => {
+  const fetchLeads = useCallback(async (companyId: string) => {
     let query = supabase
       .from('leads')
       .select('*')
@@ -69,13 +50,32 @@ export default function LeadsPage() {
       setLeads(data || [])
     }
     setLoading(false)
-  }
+  }, [filter])
+
+  useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return
+
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchLeads(companyId)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router, fetchLeads])
 
   useEffect(() => {
     if (companyId) {
       fetchLeads(companyId)
     }
-  }, [filter, companyId])
+  }, [filter, companyId, fetchLeads])
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     const { error } = await supabase

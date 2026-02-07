@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -51,6 +51,63 @@ function JobsContent() {
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
 
+  const fetchJobs = useCallback(async (compId: string) => {
+    let query = supabase
+      .from('jobs')
+      .select(`
+        *,
+        customer:customers(id, name),
+        assigned_users:job_assignments(user:users(id, full_name))
+      `)
+      .eq('company_id', compId)
+      .order('scheduled_date', { ascending: true })
+
+    if (filter !== 'all') {
+      query = query.eq('status', filter)
+    }
+
+    if (customerFilter) {
+      query = query.eq('customer_id', customerFilter)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching jobs:', error)
+    } else {
+      setJobs(data || [])
+    }
+    setLoading(false)
+  }, [filter, customerFilter])
+
+  const fetchCustomers = useCallback(async (compId: string) => {
+    const { data } = await supabase
+      .from('customers')
+      .select('id, name')
+      .eq('company_id', compId)
+      .order('name')
+    setCustomers(data || [])
+  }, [])
+
+  const fetchWorkers = useCallback(async (compId: string) => {
+    const { data } = await supabase
+      .from('users')
+      .select('id, full_name')
+      .eq('company_id', compId)
+      .eq('is_active', true)
+    setWorkers(data || [])
+  }, [])
+
+  const fetchQuotes = useCallback(async (compId: string) => {
+    const { data } = await supabase
+      .from('quotes')
+      .select('id, quote_number, title, total, customer_id, customer:customers(id, name, address, city, state, zip)')
+      .eq('company_id', compId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+    setQuotes(data || [])
+  }, [])
+
   useEffect(() => {
     // Wait for auth to finish loading
     if (authLoading) return
@@ -71,70 +128,13 @@ function JobsContent() {
       // No company_id yet, stop loading to avoid infinite loop
       setLoading(false)
     }
-  }, [authLoading, user, companyId, router])
-
-  const fetchJobs = async (companyId: string) => {
-    let query = supabase
-      .from('jobs')
-      .select(`
-        *,
-        customer:customers(id, name),
-        assigned_users:job_assignments(user:users(id, full_name))
-      `)
-      .eq('company_id', companyId)
-      .order('scheduled_date', { ascending: true })
-
-    if (filter !== 'all') {
-      query = query.eq('status', filter)
-    }
-
-    if (customerFilter) {
-      query = query.eq('customer_id', customerFilter)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error('Error fetching jobs:', error)
-    } else {
-      setJobs(data || [])
-    }
-    setLoading(false)
-  }
-
-  const fetchCustomers = async (companyId: string) => {
-    const { data } = await supabase
-      .from('customers')
-      .select('id, name')
-      .eq('company_id', companyId)
-      .order('name')
-    setCustomers(data || [])
-  }
-
-  const fetchWorkers = async (companyId: string) => {
-    const { data } = await supabase
-      .from('users')
-      .select('id, full_name')
-      .eq('company_id', companyId)
-      .eq('is_active', true)
-    setWorkers(data || [])
-  }
-
-  const fetchQuotes = async (companyId: string) => {
-    const { data } = await supabase
-      .from('quotes')
-      .select('id, quote_number, title, total, customer_id, customer:customers(id, name, address, city, state, zip)')
-      .eq('company_id', companyId)
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false })
-    setQuotes(data || [])
-  }
+  }, [authLoading, user, companyId, router, fetchJobs, fetchCustomers, fetchWorkers, fetchQuotes])
 
   useEffect(() => {
     if (companyId) {
       fetchJobs(companyId)
     }
-  }, [filter, companyId, customerFilter])
+  }, [filter, companyId, customerFilter, fetchJobs])
 
   const updateJobStatus = async (jobId: string, newStatus: string) => {
     const updates: Record<string, string> = { status: newStatus, updated_at: new Date().toISOString() }
