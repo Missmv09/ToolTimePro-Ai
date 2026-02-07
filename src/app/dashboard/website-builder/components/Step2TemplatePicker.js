@@ -8,10 +8,12 @@ import TemplatePreview from './TemplatePreview';
 export default function Step2TemplatePicker({ wizardData, setWizardData }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [previewTemplate, setPreviewTemplate] = useState(null);
 
   const fetchTemplates = useCallback(async () => {
     setLoading(true);
+    setFetchError(null);
     const tradeFilter = [wizardData.trade, 'general'].filter(Boolean);
 
     const { data, error } = await supabase
@@ -23,6 +25,7 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
 
     if (error) {
       console.error('Error fetching templates:', error);
+      setFetchError(error);
     } else {
       setTemplates(data || []);
     }
@@ -69,6 +72,36 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
     <div>
       <h2 className="text-2xl font-bold text-navy-500 mb-2">Choose a template</h2>
       <p className="text-gray-500 mb-8">Pick a starting point — you can customize everything later.</p>
+
+      {fetchError && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="font-semibold text-red-700 mb-2">Error loading templates</p>
+          <p className="text-sm text-red-600">
+            {fetchError.message || 'Unknown error'}
+            {fetchError.code && <span className="ml-2">(Code: {fetchError.code})</span>}
+          </p>
+          {fetchError.hint && <p className="text-sm text-red-500 mt-1">Hint: {fetchError.hint}</p>}
+          {fetchError.details && <p className="text-sm text-red-500 mt-1">Details: {fetchError.details}</p>}
+          <p className="text-xs text-gray-500 mt-3">
+            If you just created the tables, run this in Supabase SQL Editor: <code className="bg-gray-100 px-1 rounded">NOTIFY pgrst, &apos;reload schema&apos;;</code>
+          </p>
+          <button
+            onClick={fetchTemplates}
+            className="mt-3 px-4 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!fetchError && templates.length === 0 && !loading && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="font-semibold text-yellow-700 mb-1">No templates found</p>
+          <p className="text-sm text-yellow-600">
+            No templates matched trade &quot;{wizardData.trade}&quot;. Make sure templates are seeded in the database.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.map((template) => {
