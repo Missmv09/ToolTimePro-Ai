@@ -157,8 +157,8 @@ export default function Home() {
       freeTools: 'Free Tools',
       getStarted: 'Get Started',
       badge: 'Built for Service Pros',
-      heroTitle1: 'Run Your Business',
-      heroTitle2: 'Like a Pro',
+      heroTitle1: 'Your Business',
+      heroTitle2: 'On Autopilot',
       heroSubtitle: "We set it up. You run your business. It's that simple.",
       cta1: 'Get Started Free',
       cta2: 'See How It Works',
@@ -189,8 +189,8 @@ export default function Home() {
       freeTools: 'Herramientas Gratis',
       getStarted: 'Comenzar',
       badge: 'Hecho para Profesionales',
-      heroTitle1: 'Administra Tu Negocio',
-      heroTitle2: 'Como un Pro',
+      heroTitle1: 'Tu Negocio',
+      heroTitle2: 'En Piloto Automático',
       heroSubtitle: 'Nosotros lo configuramos. Tú manejas tu negocio. Así de simple.',
       cta1: 'Empieza Gratis',
       cta2: 'Ver Cómo Funciona',
@@ -968,7 +968,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,166,35,0.1)_0%,transparent_60%)]" />
         <div className="max-w-[640px] mx-auto relative z-10">
           <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
-            Ready to Run Your Business Like a Pro?
+            Ready to Put Your Business On Autopilot?
           </h2>
           <p className="text-[1.125rem] text-white/70 mb-9">
             Join hundreds of service businesses using ToolTime Pro to save time, stay compliant, and get more customers.
