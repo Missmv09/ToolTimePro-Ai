@@ -119,10 +119,15 @@ function QuotesContent() {
   }, [filter, companyId, customerFilter])
 
   const updateQuoteStatus = async (quoteId: string, newStatus: string) => {
-    await supabase
+    const { error } = await supabase
       .from('quotes')
       .update({ status: newStatus, updated_at: new Date().toISOString() })
       .eq('id', quoteId)
+
+    if (error) {
+      alert('Failed to update quote status: ' + error.message)
+      return
+    }
 
     if (companyId) fetchQuotes(companyId)
   }
@@ -179,7 +184,7 @@ function QuotesContent() {
   const duplicateQuote = async (quote: Quote) => {
     if (!companyId) return
 
-    const { data: newQuote } = await supabase
+    const { data: newQuote, error } = await supabase
       .from('quotes')
       .insert({
         company_id: companyId,
@@ -193,6 +198,11 @@ function QuotesContent() {
       })
       .select()
       .single()
+
+    if (error) {
+      alert('Failed to duplicate quote: ' + error.message)
+      return
+    }
 
     if (newQuote && quote.items) {
       const newItems = quote.items.map(item => ({
@@ -485,11 +495,21 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
     let quoteId = quote?.id
 
     if (quote) {
-      await supabase.from('quotes').update(quoteData).eq('id', quote.id)
+      const { error: updateError } = await supabase.from('quotes').update(quoteData).eq('id', quote.id)
+      if (updateError) {
+        alert('Failed to update quote: ' + updateError.message)
+        setSaving(false)
+        return
+      }
       // Delete existing items
       await supabase.from('quote_items').delete().eq('quote_id', quote.id)
     } else {
-      const { data } = await supabase.from('quotes').insert(quoteData).select().single()
+      const { data, error: insertError } = await supabase.from('quotes').insert(quoteData).select().single()
+      if (insertError) {
+        alert('Failed to create quote: ' + insertError.message)
+        setSaving(false)
+        return
+      }
       quoteId = data?.id
     }
 
