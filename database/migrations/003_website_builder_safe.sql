@@ -286,7 +286,20 @@ VALUES
     ('cleaning-modern', 'SparkleClean', 'Modern, minimalist design for premium cleaning services.', 'cleaner', 'modern', '#059669', '#047857', '#8b5cf6', 'Poppins', 'Inter', 19,
      '{"heroStyle": "full-width", "sections": ["hero", "services", "process", "pricing", "reviews", "contact"], "navStyle": "fixed"}',
      '{"heroTitle": "Premium Cleaning Services", "heroSubtitle": "Spotless results, every time", "services": ["Residential Cleaning", "Commercial Cleaning", "Carpet Cleaning", "Window Cleaning", "Pressure Washing", "Post-Renovation Cleanup"], "ctaText": "Get an Instant Quote"}')
-ON CONFLICT (slug) DO NOTHING;
+ON CONFLICT (slug) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    trade_category = EXCLUDED.trade_category,
+    style = EXCLUDED.style,
+    primary_color = EXCLUDED.primary_color,
+    secondary_color = EXCLUDED.secondary_color,
+    accent_color = EXCLUDED.accent_color,
+    font_heading = EXCLUDED.font_heading,
+    font_body = EXCLUDED.font_body,
+    sort_order = EXCLUDED.sort_order,
+    layout_config = EXCLUDED.layout_config,
+    default_content = EXCLUDED.default_content,
+    updated_at = NOW();
 
 -- ============================================
 -- DONE! Verify with:
