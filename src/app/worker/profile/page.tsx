@@ -54,6 +54,8 @@ export default function WorkerProfilePage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showChangePin, setShowChangePin] = useState(false);
 
   // Initialize auth and fetch data
   useEffect(() => {
@@ -339,7 +341,10 @@ export default function WorkerProfilePage() {
             </div>
           </button>
 
-          <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => setShowEditProfile(true)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-gray-600" />
               <span className="font-medium text-gray-900">Edit Profile</span>
@@ -347,7 +352,10 @@ export default function WorkerProfilePage() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
 
-          <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => setShowChangePin(true)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5 text-gray-600" />
               <span className="font-medium text-gray-900">Change PIN</span>
@@ -356,6 +364,27 @@ export default function WorkerProfilePage() {
           </button>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <EditProfileModal
+          worker={worker}
+          onClose={() => setShowEditProfile(false)}
+          onSave={(updated) => {
+            setWorker(updated);
+            setShowEditProfile(false);
+          }}
+        />
+      )}
+
+      {/* Change PIN Modal */}
+      {showChangePin && (
+        <ChangePinModal
+          workerId={worker.id}
+          onClose={() => setShowChangePin(false)}
+          onSave={() => setShowChangePin(false)}
+        />
+      )}
 
       {/* Logout */}
       <button
@@ -368,6 +397,189 @@ export default function WorkerProfilePage() {
 
       {/* App Version */}
       <p className="text-center text-xs text-gray-400">ToolTime Pro Worker App v1.0.0</p>
+    </div>
+  );
+}
+
+function EditProfileModal({ worker, onClose, onSave }: {
+  worker: WorkerData;
+  onClose: () => void;
+  onSave: (updated: WorkerData) => void;
+}) {
+  const [formData, setFormData] = useState({
+    full_name: worker.full_name,
+    phone: worker.phone || '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.full_name.trim()) {
+      alert('Name is required');
+      return;
+    }
+
+    setSaving(true);
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        full_name: formData.full_name.trim(),
+        phone: formData.phone.trim() || null,
+      })
+      .eq('id', worker.id)
+      .select()
+      .single();
+
+    if (error) {
+      alert('Failed to update profile: ' + error.message);
+      setSaving(false);
+      return;
+    }
+
+    setSaving(false);
+    onSave(data as WorkerData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Edit Profile</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input
+              type="text"
+              value={formData.full_name}
+              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              placeholder="(555) 123-4567"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 py-3 border rounded-xl hover:bg-gray-50">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ChangePinModal({ workerId, onClose, onSave }: {
+  workerId: string;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!/^\d{4}$/.test(newPin)) {
+      alert('PIN must be exactly 4 digits');
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      alert('PINs do not match');
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase
+      .from('users')
+      .update({ pin: newPin })
+      .eq('id', workerId);
+
+    if (error) {
+      alert('Failed to update PIN: ' + error.message);
+      setSaving(false);
+      return;
+    }
+
+    setSaving(false);
+    alert('PIN updated successfully!');
+    onSave();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Change PIN</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">New 4-Digit PIN</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={newPin}
+              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 text-center text-2xl tracking-widest"
+              placeholder="••••"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm PIN</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={confirmPin}
+              onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 text-center text-2xl tracking-widest"
+              placeholder="••••"
+              required
+            />
+          </div>
+          <p className="text-xs text-gray-500">
+            This PIN is used to sign in to the ToolTime Worker App.
+          </p>
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 py-3 border rounded-xl hover:bg-gray-50">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Update PIN'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

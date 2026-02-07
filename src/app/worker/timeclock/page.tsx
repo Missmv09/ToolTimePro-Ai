@@ -136,14 +136,21 @@ export default function TimeclockPage() {
     const clockInTime = new Date(currentEntry.clock_in)
     const totalHours = (clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60)
 
-    await supabase
+    const { error } = await supabase
       .from('time_entries')
       .update({
         clock_out: clockOutTime.toISOString(),
         clock_out_location: location,
         total_hours: Math.round(totalHours * 100) / 100,
+        status: 'completed',
       })
       .eq('id', currentEntry.id)
+
+    if (error) {
+      alert('Failed to clock out: ' + error.message)
+      setActionLoading(false)
+      return
+    }
 
     setCurrentEntry(null)
     setActiveBreak(null)
@@ -151,18 +158,25 @@ export default function TimeclockPage() {
   }
 
   const startBreak = async (type: 'meal' | 'rest') => {
-    if (!currentEntry) return
+    if (!currentEntry || !userId) return
     setActionLoading(true)
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('breaks')
       .insert({
         time_entry_id: currentEntry.id,
+        user_id: userId,
         break_type: type,
         break_start: new Date().toISOString(),
       })
       .select()
       .single()
+
+    if (error) {
+      alert('Failed to start break: ' + error.message)
+      setActionLoading(false)
+      return
+    }
 
     if (data) {
       setActiveBreak(data)
@@ -174,17 +188,20 @@ export default function TimeclockPage() {
     if (!activeBreak) return
     setActionLoading(true)
 
-    const breakStart = new Date(activeBreak.break_start)
     const breakEnd = new Date()
-    const duration = Math.round((breakEnd.getTime() - breakStart.getTime()) / (1000 * 60))
 
-    await supabase
+    const { error } = await supabase
       .from('breaks')
       .update({
         break_end: breakEnd.toISOString(),
-        duration_minutes: duration,
       })
       .eq('id', activeBreak.id)
+
+    if (error) {
+      alert('Failed to end break: ' + error.message)
+      setActionLoading(false)
+      return
+    }
 
     setActiveBreak(null)
     setActionLoading(false)

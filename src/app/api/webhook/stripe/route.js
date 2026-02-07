@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -83,6 +84,7 @@ async function handleCheckoutComplete(session) {
   const customerId = session.customer;
   const subscriptionId = session.subscription;
   const metadata = session.metadata;
+  const plan = metadata.plan || metadata.tier || metadata.standalone || '';
 
   const { data: existingUser } = await getSupabase()
     .from('users')
@@ -96,7 +98,7 @@ async function handleCheckoutComplete(session) {
       .update({
         stripe_customer_id: customerId,
         stripe_subscription_id: subscriptionId,
-        plan: metadata.plan,
+        plan,
         billing_cycle: metadata.billing,
         subscription_status: 'active',
         updated_at: new Date().toISOString()
@@ -109,11 +111,24 @@ async function handleCheckoutComplete(session) {
         email: customerEmail,
         stripe_customer_id: customerId,
         stripe_subscription_id: subscriptionId,
-        plan: metadata.plan,
+        plan,
         billing_cycle: metadata.billing,
         subscription_status: 'active',
         created_at: new Date().toISOString()
       });
+  }
+
+  // Send welcome/confirmation email
+  if (customerEmail) {
+    try {
+      await sendWelcomeEmail({
+        to: customerEmail,
+        plan,
+        billing: metadata.billing,
+      });
+    } catch (err) {
+      console.error('Failed to send welcome email:', err.message);
+    }
   }
 }
 

@@ -1,3 +1,2 @@
-export async function sendEmail() {
-  throw new Error('MailerLite not configured');
-}
+// Deprecated: use @/lib/email instead
+export { sendWelcomeEmail as sendEmail } from './email';
