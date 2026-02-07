@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
+import GettingStartedChecklist from '@/components/dashboard/GettingStartedChecklist'
 
 const DASHBOARD_TIMEOUT_MS = 10000
 
@@ -272,6 +273,9 @@ export default function DashboardPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+
+      {/* Getting Started Checklist */}
+      <GettingStartedChecklist />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

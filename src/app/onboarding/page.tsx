@@ -1,23 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Building2, Wrench, Users, Check, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Building2, Wrench, Users, Check, ArrowRight, ArrowLeft, Search } from 'lucide-react'
+import { industries, type Industry } from '@/lib/industries'
 
 const STEPS = [
   { id: 1, title: 'Company Details', icon: Building2 },
-  { id: 2, title: 'Add a Service', icon: Wrench },
+  { id: 2, title: 'Your Industry', icon: Wrench },
   { id: 3, title: 'Invite Your Team', icon: Users },
 ]
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { company, dbUser } = useAuth()
+  const { user, company, dbUser, isLoading } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect if not authenticated or if onboarding already completed
+  useEffect(() => {
+    if (isLoading) return
+    if (!user) {
+      router.replace('/auth/login')
+      return
+    }
+    if (company?.onboarding_completed) {
+      router.replace('/dashboard')
+    }
+  }, [user, company, isLoading, router])
 
   // Step 1: Company details
   const [phone, setPhone] = useState('')
@@ -26,10 +39,36 @@ export default function OnboardingPage() {
   const [state, setState] = useState('')
   const [zip, setZip] = useState('')
 
-  // Step 2: Service
-  const [serviceName, setServiceName] = useState('')
-  const [servicePrice, setServicePrice] = useState('')
-  const [servicePriceType, setServicePriceType] = useState<'fixed' | 'hourly'>('fixed')
+  // Step 2: Industry & services
+  const [industrySearch, setIndustrySearch] = useState('')
+  const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null)
+  const [selectedServices, setSelectedServices] = useState<Set<number>>(new Set())
+
+  // When industry is selected, pre-check all its services
+  const handleSelectIndustry = (industry: Industry) => {
+    setSelectedIndustry(industry)
+    setSelectedServices(new Set(industry.services.map((_, i) => i)))
+  }
+
+  const toggleService = (index: number) => {
+    setSelectedServices((prev) => {
+      const next = new Set(prev)
+      if (next.has(index)) {
+        next.delete(index)
+      } else {
+        next.add(index)
+      }
+      return next
+    })
+  }
+
+  const filteredIndustries = useMemo(() => {
+    if (!industrySearch.trim()) return industries
+    const q = industrySearch.toLowerCase()
+    return industries.filter(
+      (i) => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)
+    )
+  }, [industrySearch])
 
   // Step 3: Team member
   const [memberName, setMemberName] = useState('')
@@ -37,7 +76,10 @@ export default function OnboardingPage() {
   const [memberRole, setMemberRole] = useState<'admin' | 'worker'>('worker')
 
   const handleSaveCompany = async () => {
-    if (!company) return
+    if (!company) {
+      setError('Account data is still loading. Please wait a moment and try again.')
+      return false
+    }
     setSaving(true)
     setError(null)
 
@@ -54,33 +96,56 @@ export default function OnboardingPage() {
     return true
   }
 
-  const handleSaveService = async () => {
-    if (!company || !serviceName.trim()) return true // skip if empty
+  const handleSaveIndustryAndServices = async () => {
+    if (!company) {
+      setError('Account data is still loading. Please wait a moment and try again.')
+      return false
+    }
+
+    if (!selectedIndustry) {
+      // No industry selected — just skip
+      return true
+    }
+
     setSaving(true)
     setError(null)
 
-    const { error: serviceError } = await supabase
-      .from('services')
-      .insert({
-        company_id: company.id,
-        name: serviceName.trim(),
-        default_price: servicePrice ? parseFloat(servicePrice) : null,
-        price_type: servicePriceType,
-        duration_minutes: 60,
-      })
+    // Save industry to company
+    const { error: industryError } = await supabase
+      .from('companies')
+      .update({ industry: selectedIndustry.slug })
+      .eq('id', company.id)
 
-    setSaving(false)
-    if (serviceError) {
-      setError(serviceError.message)
+    if (industryError) {
+      setSaving(false)
+      setError(industryError.message)
       return false
     }
-    return true
-  }
 
-  const handleInviteMember = async () => {
-    // This is optional - just skip if empty
-    if (!memberName.trim() || !memberEmail.trim()) return true
-    // For now, just show they can invite from the Team page
+    // Bulk-create selected services (names only — users set their own prices later)
+    const servicesToCreate = selectedIndustry.services
+      .filter((_, i) => selectedServices.has(i))
+      .map((svc) => ({
+        company_id: company.id,
+        name: svc.name,
+        default_price: null,
+        price_type: svc.priceType,
+        duration_minutes: svc.duration,
+      }))
+
+    if (servicesToCreate.length > 0) {
+      const { error: serviceError } = await supabase
+        .from('services')
+        .insert(servicesToCreate)
+
+      if (serviceError) {
+        setSaving(false)
+        setError(serviceError.message)
+        return false
+      }
+    }
+
+    setSaving(false)
     return true
   }
 
@@ -91,7 +156,7 @@ export default function OnboardingPage() {
       const success = await handleSaveCompany()
       if (success) setCurrentStep(2)
     } else if (currentStep === 2) {
-      const success = await handleSaveService()
+      const success = await handleSaveIndustryAndServices()
       if (success) setCurrentStep(3)
     } else if (currentStep === 3) {
       await handleFinish()
@@ -107,17 +172,39 @@ export default function OnboardingPage() {
   }
 
   const handleFinish = async () => {
-    if (!company) return
+    if (!company) {
+      setError('Account data is still loading. Please wait a moment and try again.')
+      return
+    }
     setSaving(true)
+    setError(null)
 
     // Mark onboarding as completed
-    await supabase
+    const { error: finishError } = await supabase
       .from('companies')
       .update({ onboarding_completed: true })
       .eq('id', company.id)
 
     setSaving(false)
+
+    if (finishError) {
+      setError('Failed to complete setup: ' + finishError.message)
+      return
+    }
+
     router.push('/dashboard')
+  }
+
+  // Show loading while auth data is being fetched
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Loading your account...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -244,7 +331,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2: Add a Service */}
+          {/* Step 2: Your Industry */}
           {currentStep === 2 && (
             <div>
               <div className="flex items-center gap-3 mb-6">
@@ -252,48 +339,110 @@ export default function OnboardingPage() {
                   <Wrench size={20} className="text-green-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Add Your First Service</h2>
-                  <p className="text-sm text-gray-500">What do you offer? You can always add more later.</p>
+                  <h2 className="text-lg font-semibold text-gray-900">What industry are you in?</h2>
+                  <p className="text-sm text-gray-500">
+                    We&apos;ll set up your services, pricing, and templates based on your industry.
+                  </p>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              {!selectedIndustry ? (
+                // Industry selection grid
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
-                  <input
-                    type="text"
-                    value={serviceName}
-                    onChange={(e) => setServiceName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Lawn Mowing, House Cleaning, Pool Maintenance"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                  <div className="relative mb-4">
+                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
-                      type="number"
-                      value={servicePrice}
-                      onChange={(e) => setServicePrice(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="150"
-                      min="0"
-                      step="0.01"
+                      type="text"
+                      value={industrySearch}
+                      onChange={(e) => setIndustrySearch(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Search industries..."
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price Type</label>
-                    <select
-                      value={servicePriceType}
-                      onChange={(e) => setServicePriceType(e.target.value as 'fixed' | 'hourly')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="fixed">Fixed Price</option>
-                      <option value="hourly">Hourly Rate</option>
-                    </select>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[360px] overflow-y-auto pr-1">
+                    {filteredIndustries.map((industry) => (
+                      <button
+                        key={industry.slug}
+                        onClick={() => handleSelectIndustry(industry)}
+                        className="flex items-center gap-2 px-3 py-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
+                      >
+                        <span className="text-xl">{industry.icon}</span>
+                        <span className="text-sm font-medium text-gray-800 leading-tight">{industry.name}</span>
+                      </button>
+                    ))}
+                    {filteredIndustries.length === 0 && (
+                      <div className="col-span-full text-center py-8 text-gray-400">
+                        No industries match &ldquo;{industrySearch}&rdquo;
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              ) : (
+                // Selected industry with suggested services
+                <div>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{selectedIndustry.icon}</span>
+                      <span className="text-lg font-semibold text-gray-900">{selectedIndustry.name}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedIndustry(null)
+                        setSelectedServices(new Set())
+                        setIndustrySearch('')
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                    >
+                      Change industry
+                    </button>
+                  </div>
+
+                  <p className="text-sm text-gray-500 mb-3">
+                    Select the services you offer. You can set your own prices from the dashboard later.
+                  </p>
+
+                  <div className="space-y-2">
+                    {selectedIndustry.services.map((service, index) => (
+                      <label
+                        key={index}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-colors ${
+                          selectedServices.has(index)
+                            ? 'border-blue-300 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedServices.has(index)}
+                          onChange={() => toggleService(index)}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-900">{service.name}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-3">
+                    <button
+                      onClick={() => setSelectedServices(new Set(selectedIndustry.services.map((_, i) => i)))}
+                      className="text-xs text-blue-600 hover:text-blue-500 font-medium"
+                    >
+                      Select all
+                    </button>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      onClick={() => setSelectedServices(new Set())}
+                      className="text-xs text-blue-600 hover:text-blue-500 font-medium"
+                    >
+                      Deselect all
+                    </button>
+                    <span className="ml-auto text-xs text-gray-400">
+                      {selectedServices.size} of {selectedIndustry.services.length} selected
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

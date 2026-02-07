@@ -64,16 +64,25 @@ export default function SignupPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full text-center">
           <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+            <div className="text-4xl mb-4">📬</div>
             <h2 className="text-2xl font-bold text-green-800 mb-4">Check your email!</h2>
-            <p className="text-green-700">
-              We&apos;ve sent you a confirmation link. Click it to activate your account.
+            <p className="text-green-700 mb-2">
+              We&apos;ve sent a confirmation link to <strong>{email}</strong>.
             </p>
-            <Link
-              href="/auth/login"
-              className="mt-6 inline-block text-blue-600 hover:text-blue-500"
-            >
-              Back to login
-            </Link>
+            <p className="text-green-600 text-sm">
+              Click the link in your email and you&apos;ll be taken straight into your account — no extra login needed.
+            </p>
+            <div className="mt-6 pt-4 border-t border-green-200">
+              <p className="text-sm text-gray-500">
+                Didn&apos;t get the email? Check your spam folder or{' '}
+                <button
+                  onClick={() => setSuccess(false)}
+                  className="text-blue-600 hover:text-blue-500 font-medium"
+                >
+                  try again
+                </button>
+              </p>
+            </div>
           </div>
         </div>
       </div>
