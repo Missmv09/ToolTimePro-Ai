@@ -27,6 +27,9 @@ export interface Database {
           plan: string
           stripe_customer_id: string | null
           booking_settings: Json | null
+          trial_starts_at: string | null
+          trial_ends_at: string | null
+          onboarding_completed: boolean
           created_at: string
           updated_at: string
         }
@@ -44,6 +47,9 @@ export interface Database {
           plan?: string
           stripe_customer_id?: string | null
           booking_settings?: Json | null
+          trial_starts_at?: string | null
+          trial_ends_at?: string | null
+          onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -61,6 +67,9 @@ export interface Database {
           plan?: string
           stripe_customer_id?: string | null
           booking_settings?: Json | null
+          trial_starts_at?: string | null
+          trial_ends_at?: string | null
+          onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
         }
