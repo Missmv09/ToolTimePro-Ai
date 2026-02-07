@@ -207,7 +207,7 @@ CREATE TRIGGER update_website_sites_updated_at
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================
--- SEED DATA: 10 Starter Templates
+-- SEED DATA: Starter Templates (one per trade + extras)
 -- ============================================
 INSERT INTO website_templates (slug, name, description, trade_category, style, primary_color, secondary_color, accent_color, font_heading, font_body, sort_order, layout_config, default_content)
 VALUES
@@ -235,19 +235,55 @@ VALUES
      '{"heroStyle": "full-width", "sections": ["hero", "services", "maintenance-plans", "gallery", "testimonials", "contact"], "navStyle": "fixed"}',
      '{"heroTitle": "Crystal Clear Pool Service", "heroSubtitle": "Weekly maintenance, repairs, and renovations", "services": ["Weekly Pool Cleaning", "Chemical Balancing", "Equipment Repair", "Pool Renovation", "Leak Detection", "Green Pool Recovery"], "ctaText": "Get a Free Quote"}'),
 
-    ('general-contractor', 'BuildRight', 'Professional design for general contractors and remodelers.', 'general', 'modern', '#78350f', '#92400e', '#2563eb', 'Merriweather', 'Source Sans Pro', 7,
+    ('plumber-pro', 'PipePro', 'Professional design for plumbing businesses. Emphasizes reliability and fast service.', 'plumber', 'modern', '#2563eb', '#1e40af', '#ef4444', 'Roboto', 'Roboto', 7,
+     '{"heroStyle": "split", "sections": ["hero", "emergency-banner", "services", "service-area", "testimonials", "contact"], "navStyle": "fixed"}',
+     '{"heroTitle": "Fast & Reliable Plumbing", "heroSubtitle": "Licensed, insured, and ready when you need us", "services": ["Emergency Repairs", "Drain Cleaning", "Water Heater Installation", "Pipe Repair", "Bathroom Remodeling", "Sewer Line Service"], "ctaText": "Call Now"}'),
+
+    ('electrician-spark', 'SparkWorks', 'High-energy design for electrical contractors.', 'electrician', 'bold', '#eab308', '#ca8a04', '#1f2937', 'Oswald', 'Nunito Sans', 8,
+     '{"heroStyle": "full-width", "sections": ["hero", "services", "safety-badges", "gallery", "reviews", "contact"], "navStyle": "dark"}',
+     '{"heroTitle": "Expert Electrical Services", "heroSubtitle": "Safe, reliable, up to code — every time", "services": ["Panel Upgrades", "Wiring & Rewiring", "EV Charger Installation", "Lighting Design", "Surge Protection", "Smart Home Wiring"], "ctaText": "Get a Free Estimate"}'),
+
+    ('hvac-comfort', 'ComfortZone', 'Clean, professional design for HVAC companies.', 'hvac', 'clean', '#0891b2', '#0e7490', '#f97316', 'Raleway', 'Open Sans', 9,
+     '{"heroStyle": "split", "sections": ["hero", "services", "brands", "maintenance-plans", "testimonials", "contact"], "navStyle": "fixed"}',
+     '{"heroTitle": "Your Comfort Is Our Priority", "heroSubtitle": "Heating, cooling, and air quality solutions", "services": ["AC Installation & Repair", "Furnace Service", "Heat Pumps", "Duct Cleaning", "Indoor Air Quality", "Maintenance Plans"], "ctaText": "Schedule Service"}'),
+
+    ('pest-shield', 'PestShield', 'Trustworthy design for pest control companies.', 'pest', 'modern', '#16a34a', '#15803d', '#dc2626', 'Poppins', 'Inter', 10,
+     '{"heroStyle": "full-width", "sections": ["hero", "services", "pests", "service-area", "testimonials", "contact"], "navStyle": "fixed"}',
+     '{"heroTitle": "Pest-Free Guaranteed", "heroSubtitle": "Fast, safe, and effective pest control", "services": ["General Pest Control", "Termite Treatment", "Rodent Removal", "Bed Bug Treatment", "Mosquito Control", "Wildlife Removal"], "ctaText": "Get a Free Inspection"}'),
+
+    ('pressure-power', 'PowerWash Pro', 'Bold design for pressure washing and exterior cleaning.', 'pressure-washer', 'bold', '#1e40af', '#1e3a8a', '#06b6d4', 'Montserrat', 'Inter', 11,
+     '{"heroStyle": "full-width", "sections": ["hero", "services", "before-after", "gallery", "testimonials", "contact"], "navStyle": "fixed"}',
+     '{"heroTitle": "Restore Your Property''s Shine", "heroSubtitle": "Professional pressure washing for homes and businesses", "services": ["House Washing", "Driveway Cleaning", "Deck Restoration", "Roof Cleaning", "Commercial Pressure Washing", "Graffiti Removal"], "ctaText": "Get a Free Quote"}'),
+
+    ('flooring-foundation', 'FloorCraft', 'Elegant design for flooring installation companies.', 'flooring', 'modern', '#78350f', '#92400e', '#f59e0b', 'Playfair Display', 'Inter', 12,
+     '{"heroStyle": "split", "sections": ["hero", "services", "materials", "gallery", "testimonials", "contact"], "navStyle": "transparent"}',
+     '{"heroTitle": "Beautiful Floors, Expert Installation", "heroSubtitle": "Hardwood, tile, vinyl & more", "services": ["Hardwood Flooring", "Tile Installation", "Luxury Vinyl Plank", "Carpet Installation", "Floor Refinishing", "Epoxy Flooring"], "ctaText": "Get a Free Estimate"}'),
+
+    ('mover-swift', 'SwiftMove', 'Energetic design for moving and junk removal companies.', 'mover', 'bold', '#7c3aed', '#6d28d9', '#f97316', 'Archivo', 'Inter', 13,
+     '{"heroStyle": "full-width", "sections": ["hero", "services", "pricing", "service-area", "testimonials", "contact"], "navStyle": "fixed"}',
+     '{"heroTitle": "Moving Made Easy", "heroSubtitle": "Professional moving & junk removal you can trust", "services": ["Local Moving", "Long Distance Moving", "Junk Removal", "Furniture Delivery", "Storage Solutions", "Estate Cleanouts"], "ctaText": "Get a Free Quote"}'),
+
+    ('auto-detail', 'DetailKing', 'Sleek design for auto detailing and mobile wash businesses.', 'auto', 'modern', '#1f2937', '#111827', '#ef4444', 'Poppins', 'Inter', 14,
+     '{"heroStyle": "full-width", "sections": ["hero", "services", "packages", "gallery", "testimonials", "contact"], "navStyle": "dark"}',
+     '{"heroTitle": "Premium Auto Detailing", "heroSubtitle": "Your car deserves the best", "services": ["Full Detail", "Interior Cleaning", "Exterior Wash & Wax", "Ceramic Coating", "Paint Correction", "Mobile Detailing"], "ctaText": "Book Now"}'),
+
+    ('tree-canopy', 'Canopy Care', 'Natural, strong design for tree service companies.', 'tree', 'modern', '#166534', '#14532d', '#ca8a04', 'Nunito', 'Inter', 15,
+     '{"heroStyle": "full-width", "sections": ["hero", "services", "gallery", "emergency-banner", "testimonials", "contact"], "navStyle": "fixed"}',
+     '{"heroTitle": "Expert Tree Care", "heroSubtitle": "Licensed, insured arborists you can trust", "services": ["Tree Trimming", "Tree Removal", "Stump Grinding", "Emergency Service", "Land Clearing", "Tree Health Assessment"], "ctaText": "Get a Free Estimate"}'),
+
+    ('general-contractor', 'BuildRight', 'Professional design for general contractors and remodelers.', 'general', 'modern', '#78350f', '#92400e', '#2563eb', 'Merriweather', 'Source Sans Pro', 16,
      '{"heroStyle": "full-width", "sections": ["hero", "services", "portfolio", "process", "testimonials", "contact"], "navStyle": "transparent"}',
      '{"heroTitle": "Quality Construction You Can Trust", "heroSubtitle": "From concept to completion", "services": ["Kitchen Remodeling", "Bathroom Renovation", "Room Additions", "Deck Building", "Whole Home Renovation", "New Construction"], "ctaText": "Get a Free Consultation"}'),
 
-    ('roofing-solid', 'SolidRoof', 'Sturdy design for roofing companies. Emphasizes protection and warranties.', 'roofer', 'bold', '#374151', '#1f2937', '#dc2626', 'Archivo', 'Inter', 8,
+    ('roofing-solid', 'SolidRoof', 'Sturdy design for roofing companies. Emphasizes protection and warranties.', 'roofer', 'bold', '#374151', '#1f2937', '#dc2626', 'Archivo', 'Inter', 17,
      '{"heroStyle": "full-width", "sections": ["hero", "storm-banner", "services", "materials", "gallery", "reviews", "contact"], "navStyle": "dark"}',
      '{"heroTitle": "Protecting What Matters Most", "heroSubtitle": "Expert roofing installation, repair, and inspection", "services": ["Roof Replacement", "Storm Damage Repair", "Roof Inspection", "Gutter Installation", "Commercial Roofing", "Emergency Tarping"], "ctaText": "Free Roof Inspection"}'),
 
-    ('cleaning-fresh', 'FreshStart', 'Bright, fresh design for cleaning businesses.', 'cleaner', 'clean', '#7c3aed', '#6d28d9', '#06b6d4', 'Quicksand', 'Nunito', 9,
+    ('cleaning-fresh', 'FreshStart', 'Bright, fresh design for cleaning businesses.', 'cleaner', 'clean', '#7c3aed', '#6d28d9', '#06b6d4', 'Quicksand', 'Nunito', 18,
      '{"heroStyle": "split", "sections": ["hero", "services", "checklist", "pricing", "testimonials", "contact"], "navStyle": "fixed"}',
      '{"heroTitle": "A Cleaner Space, A Happier Life", "heroSubtitle": "Residential and commercial cleaning you can count on", "services": ["House Cleaning", "Deep Cleaning", "Move In/Out Cleaning", "Office Cleaning", "Post-Construction Cleanup", "Window Cleaning"], "ctaText": "Book Your Cleaning"}'),
 
-    ('cleaning-modern', 'SparkleClean', 'Modern, minimalist design for premium cleaning services.', 'cleaner', 'modern', '#059669', '#047857', '#8b5cf6', 'Poppins', 'Inter', 10,
+    ('cleaning-modern', 'SparkleClean', 'Modern, minimalist design for premium cleaning services.', 'cleaner', 'modern', '#059669', '#047857', '#8b5cf6', 'Poppins', 'Inter', 19,
      '{"heroStyle": "full-width", "sections": ["hero", "services", "process", "pricing", "reviews", "contact"], "navStyle": "fixed"}',
      '{"heroTitle": "Premium Cleaning Services", "heroSubtitle": "Spotless results, every time", "services": ["Residential Cleaning", "Commercial Cleaning", "Carpet Cleaning", "Window Cleaning", "Pressure Washing", "Post-Renovation Cleanup"], "ctaText": "Get an Instant Quote"}')
 ON CONFLICT (slug) DO NOTHING;
