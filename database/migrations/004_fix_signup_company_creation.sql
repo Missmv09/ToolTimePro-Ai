@@ -11,13 +11,15 @@
 -- ============================================
 
 -- Users can view their own company
-CREATE POLICY IF NOT EXISTS "Users can view own company" ON companies
+DROP POLICY IF EXISTS "Users can view own company" ON companies;
+CREATE POLICY "Users can view own company" ON companies
     FOR SELECT USING (
         id IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
 
 -- Owners and admins can update their company
-CREATE POLICY IF NOT EXISTS "Owners can update company" ON companies
+DROP POLICY IF EXISTS "Owners can update company" ON companies;
+CREATE POLICY "Owners can update company" ON companies
     FOR UPDATE USING (
         id IN (
             SELECT company_id FROM users
