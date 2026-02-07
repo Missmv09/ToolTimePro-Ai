@@ -1,6 +1,6 @@
 'use client';
 
-import { Paintbrush, Trees, Waves, Sparkles, Wrench, Home, HardHat } from 'lucide-react';
+import { Paintbrush, Trees, Waves, Sparkles, Wrench, Home, HardHat, Droplets, Zap, Thermometer, Bug, Scissors, Truck, Car, Fence } from 'lucide-react';
 
 const trades = [
   {
@@ -28,6 +28,24 @@ const trades = [
     icon: Sparkles,
   },
   {
+    id: 'plumber',
+    label: 'Plumbing',
+    description: 'Plumbing repair & installation',
+    icon: Droplets,
+  },
+  {
+    id: 'electrician',
+    label: 'Electrical',
+    description: 'Wiring, panels & repairs',
+    icon: Zap,
+  },
+  {
+    id: 'hvac',
+    label: 'HVAC',
+    description: 'Heating, cooling & air quality',
+    icon: Thermometer,
+  },
+  {
     id: 'handyman',
     label: 'Handyman',
     description: 'General repairs & maintenance',
@@ -38,6 +56,42 @@ const trades = [
     label: 'Roofing',
     description: 'Roof repair & installation',
     icon: Home,
+  },
+  {
+    id: 'pest',
+    label: 'Pest Control',
+    description: 'Pest removal & prevention',
+    icon: Bug,
+  },
+  {
+    id: 'pressure-washer',
+    label: 'Pressure Washing',
+    description: 'Exterior cleaning & restoration',
+    icon: Droplets,
+  },
+  {
+    id: 'flooring',
+    label: 'Flooring',
+    description: 'Flooring install & refinishing',
+    icon: Fence,
+  },
+  {
+    id: 'mover',
+    label: 'Moving & Junk Removal',
+    description: 'Hauling, moving & cleanouts',
+    icon: Truck,
+  },
+  {
+    id: 'auto',
+    label: 'Auto Detailing',
+    description: 'Car detailing & mobile wash',
+    icon: Car,
+  },
+  {
+    id: 'tree',
+    label: 'Tree Service',
+    description: 'Trimming, removal & stump grinding',
+    icon: Scissors,
   },
   {
     id: 'general',
