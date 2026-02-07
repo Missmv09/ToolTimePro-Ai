@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -8,16 +8,28 @@ import { Building2, Wrench, Users, Check, ArrowRight, ArrowLeft } from 'lucide-r
 
 const STEPS = [
   { id: 1, title: 'Company Details', icon: Building2 },
-  { id: 2, title: 'Add a Service', icon: Wrench },
+  { id: 2, title: 'Your Services', icon: Wrench },
   { id: 3, title: 'Invite Your Team', icon: Users },
 ]
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { company, dbUser } = useAuth()
+  const { user, company, dbUser, isLoading } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect if not authenticated or if onboarding already completed
+  useEffect(() => {
+    if (isLoading) return
+    if (!user) {
+      router.replace('/auth/login')
+      return
+    }
+    if (company?.onboarding_completed) {
+      router.replace('/dashboard')
+    }
+  }, [user, company, isLoading, router])
 
   // Step 1: Company details
   const [phone, setPhone] = useState('')
@@ -37,7 +49,10 @@ export default function OnboardingPage() {
   const [memberRole, setMemberRole] = useState<'admin' | 'worker'>('worker')
 
   const handleSaveCompany = async () => {
-    if (!company) return
+    if (!company) {
+      setError('Account data is still loading. Please wait a moment and try again.')
+      return false
+    }
     setSaving(true)
     setError(null)
 
@@ -55,7 +70,11 @@ export default function OnboardingPage() {
   }
 
   const handleSaveService = async () => {
-    if (!company || !serviceName.trim()) return true // skip if empty
+    if (!serviceName.trim()) return true // skip if empty
+    if (!company) {
+      setError('Account data is still loading. Please wait a moment and try again.')
+      return false
+    }
     setSaving(true)
     setError(null)
 
@@ -107,17 +126,39 @@ export default function OnboardingPage() {
   }
 
   const handleFinish = async () => {
-    if (!company) return
+    if (!company) {
+      setError('Account data is still loading. Please wait a moment and try again.')
+      return
+    }
     setSaving(true)
+    setError(null)
 
     // Mark onboarding as completed
-    await supabase
+    const { error: finishError } = await supabase
       .from('companies')
       .update({ onboarding_completed: true })
       .eq('id', company.id)
 
     setSaving(false)
+
+    if (finishError) {
+      setError('Failed to complete setup: ' + finishError.message)
+      return
+    }
+
     router.push('/dashboard')
+  }
+
+  // Show loading while auth data is being fetched
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Loading your account...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -244,7 +285,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2: Add a Service */}
+          {/* Step 2: Your Services */}
           {currentStep === 2 && (
             <div>
               <div className="flex items-center gap-3 mb-6">
@@ -252,8 +293,8 @@ export default function OnboardingPage() {
                   <Wrench size={20} className="text-green-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Add Your First Service</h2>
-                  <p className="text-sm text-gray-500">What do you offer? You can always add more later.</p>
+                  <h2 className="text-lg font-semibold text-gray-900">What services do you offer?</h2>
+                  <p className="text-sm text-gray-500">Add one of the services your business provides to customers. You can add more from the dashboard later.</p>
                 </div>
               </div>
 
@@ -267,10 +308,11 @@ export default function OnboardingPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g. Lawn Mowing, House Cleaning, Pool Maintenance"
                   />
+                  <p className="text-xs text-gray-400 mt-1">This is the work you do for customers — it&apos;ll show up on quotes and invoices.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Starting Price ($)</label>
                     <input
                       type="number"
                       value={servicePrice}
