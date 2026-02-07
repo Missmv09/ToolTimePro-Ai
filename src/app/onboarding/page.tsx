@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Building2, Wrench, Users, Check, ArrowRight, ArrowLeft, Search } from 'lucide-react'
+import { Building2, Wrench, Users, Check, ArrowRight, ArrowLeft, Search, Plus, X } from 'lucide-react'
 import { industries, type Industry } from '@/lib/industries'
 
 const STEPS = [
@@ -39,25 +39,85 @@ export default function OnboardingPage() {
   const [state, setState] = useState('')
   const [zip, setZip] = useState('')
 
-  // Step 2: Industry & services
+  // Step 2: Industry & services (multi-select)
   const [industrySearch, setIndustrySearch] = useState('')
-  const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null)
-  const [selectedServices, setSelectedServices] = useState<Set<number>>(new Set())
+  const [selectedIndustries, setSelectedIndustries] = useState<Industry[]>([])
+  const [selectedServiceNames, setSelectedServiceNames] = useState<Set<string>>(new Set())
+  const [customServiceInput, setCustomServiceInput] = useState('')
+  const [customServices, setCustomServices] = useState<string[]>([])
 
-  // When industry is selected, pre-check all its services
-  const handleSelectIndustry = (industry: Industry) => {
-    setSelectedIndustry(industry)
-    setSelectedServices(new Set(industry.services.map((_, i) => i)))
+  // All suggested services from selected industries (deduplicated by name)
+  const allSuggestedServices = useMemo(() => {
+    const seen = new Set<string>()
+    const result: { name: string; priceType: 'fixed' | 'hourly' | 'per_sqft'; duration: number }[] = []
+    for (const ind of selectedIndustries) {
+      for (const svc of ind.services) {
+        if (!seen.has(svc.name)) {
+          seen.add(svc.name)
+          result.push({ name: svc.name, priceType: svc.priceType, duration: svc.duration })
+        }
+      }
+    }
+    return result
+  }, [selectedIndustries])
+
+  // When an industry is toggled, add/remove it and auto-check its services
+  const handleToggleIndustry = (industry: Industry) => {
+    const isAlreadySelected = selectedIndustries.some((i) => i.slug === industry.slug)
+    if (isAlreadySelected) {
+      // Remove industry and its unique services
+      setSelectedIndustries((prev) => prev.filter((i) => i.slug !== industry.slug))
+      // Remove services that only belonged to this industry
+      const otherIndustries = selectedIndustries.filter((i) => i.slug !== industry.slug)
+      const otherServiceNames = new Set(otherIndustries.flatMap((i) => i.services.map((s) => s.name)))
+      setSelectedServiceNames((prev) => {
+        const next = new Set(prev)
+        for (const svc of industry.services) {
+          if (!otherServiceNames.has(svc.name)) {
+            next.delete(svc.name)
+          }
+        }
+        return next
+      })
+    } else {
+      // Add industry and auto-check all its services
+      setSelectedIndustries((prev) => [...prev, industry])
+      setSelectedServiceNames((prev) => {
+        const next = new Set(prev)
+        for (const svc of industry.services) {
+          next.add(svc.name)
+        }
+        return next
+      })
+    }
   }
 
-  const toggleService = (index: number) => {
-    setSelectedServices((prev) => {
+  const toggleServiceByName = (name: string) => {
+    setSelectedServiceNames((prev) => {
       const next = new Set(prev)
-      if (next.has(index)) {
-        next.delete(index)
+      if (next.has(name)) {
+        next.delete(name)
       } else {
-        next.add(index)
+        next.add(name)
       }
+      return next
+    })
+  }
+
+  const addCustomService = () => {
+    const trimmed = customServiceInput.trim()
+    if (trimmed && !customServices.includes(trimmed) && !selectedServiceNames.has(trimmed)) {
+      setCustomServices((prev) => [...prev, trimmed])
+      setSelectedServiceNames((prev) => new Set(prev).add(trimmed))
+      setCustomServiceInput('')
+    }
+  }
+
+  const removeCustomService = (name: string) => {
+    setCustomServices((prev) => prev.filter((s) => s !== name))
+    setSelectedServiceNames((prev) => {
+      const next = new Set(prev)
+      next.delete(name)
       return next
     })
   }
@@ -102,36 +162,57 @@ export default function OnboardingPage() {
       return false
     }
 
-    if (!selectedIndustry) {
-      // No industry selected — just skip
+    if (selectedIndustries.length === 0 && customServices.length === 0) {
+      // Nothing selected — just skip
       return true
     }
 
     setSaving(true)
     setError(null)
 
-    // Save industry to company
-    const { error: industryError } = await supabase
-      .from('companies')
-      .update({ industry: selectedIndustry.slug })
-      .eq('id', company.id)
+    // Save primary industry (first selected) to company
+    if (selectedIndustries.length > 0) {
+      const industryValue = selectedIndustries.map((i) => i.slug).join(',')
+      const { error: industryError } = await supabase
+        .from('companies')
+        .update({ industry: industryValue })
+        .eq('id', company.id)
 
-    if (industryError) {
-      setSaving(false)
-      setError(industryError.message)
-      return false
+      if (industryError) {
+        setSaving(false)
+        setError(industryError.message)
+        return false
+      }
     }
 
-    // Bulk-create selected services (names only — users set their own prices later)
-    const servicesToCreate = selectedIndustry.services
-      .filter((_, i) => selectedServices.has(i))
-      .map((svc) => ({
-        company_id: company.id,
-        name: svc.name,
-        default_price: null,
-        price_type: svc.priceType,
-        duration_minutes: svc.duration,
-      }))
+    // Build services from selected suggested + custom
+    const servicesToCreate: { company_id: string; name: string; default_price: null; price_type: string; duration_minutes: number }[] = []
+
+    // Add selected suggested services
+    for (const svc of allSuggestedServices) {
+      if (selectedServiceNames.has(svc.name)) {
+        servicesToCreate.push({
+          company_id: company.id,
+          name: svc.name,
+          default_price: null,
+          price_type: svc.priceType,
+          duration_minutes: svc.duration,
+        })
+      }
+    }
+
+    // Add custom services
+    for (const name of customServices) {
+      if (selectedServiceNames.has(name)) {
+        servicesToCreate.push({
+          company_id: company.id,
+          name,
+          default_price: null,
+          price_type: 'fixed',
+          duration_minutes: 60,
+        })
+      }
+    }
 
     if (servicesToCreate.length > 0) {
       const { error: serviceError } = await supabase
@@ -341,106 +422,208 @@ export default function OnboardingPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">What industry are you in?</h2>
                   <p className="text-sm text-gray-500">
-                    We&apos;ll set up your services, pricing, and templates based on your industry.
+                    Select one or more. We&apos;ll suggest services based on your selection.
                   </p>
                 </div>
               </div>
 
-              {!selectedIndustry ? (
-                // Industry selection grid
-                <div>
-                  <div className="relative mb-4">
-                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      value={industrySearch}
-                      onChange={(e) => setIndustrySearch(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Search industries..."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[360px] overflow-y-auto pr-1">
-                    {filteredIndustries.map((industry) => (
-                      <button
-                        key={industry.slug}
-                        onClick={() => handleSelectIndustry(industry)}
-                        className="flex items-center gap-2 px-3 py-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
-                      >
-                        <span className="text-xl">{industry.icon}</span>
-                        <span className="text-sm font-medium text-gray-800 leading-tight">{industry.name}</span>
-                      </button>
-                    ))}
-                    {filteredIndustries.length === 0 && (
-                      <div className="col-span-full text-center py-8 text-gray-400">
-                        No industries match &ldquo;{industrySearch}&rdquo;
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                // Selected industry with suggested services
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{selectedIndustry.icon}</span>
-                      <span className="text-lg font-semibold text-gray-900">{selectedIndustry.name}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedIndustry(null)
-                        setSelectedServices(new Set())
-                        setIndustrySearch('')
-                      }}
-                      className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+              {/* Selected industries tags */}
+              {selectedIndustries.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {selectedIndustries.map((ind) => (
+                    <span
+                      key={ind.slug}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200"
                     >
-                      Change industry
-                    </button>
-                  </div>
+                      <span>{ind.icon}</span>
+                      {ind.name}
+                      <button
+                        onClick={() => handleToggleIndustry(ind)}
+                        className="text-blue-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
 
-                  <p className="text-sm text-gray-500 mb-3">
-                    Select the services you offer. You can set your own prices from the dashboard later.
+              {/* Industry search & grid */}
+              <div className="relative mb-4">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={industrySearch}
+                  onChange={(e) => setIndustrySearch(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Search industries..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[200px] overflow-y-auto pr-1">
+                {filteredIndustries.map((industry) => {
+                  const isSelected = selectedIndustries.some((i) => i.slug === industry.slug)
+                  return (
+                    <button
+                      key={industry.slug}
+                      onClick={() => handleToggleIndustry(industry)}
+                      className={`flex items-center gap-2 px-3 py-3 border rounded-lg transition-colors text-left ${
+                        isSelected
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50'
+                      }`}
+                    >
+                      <span className="text-xl">{industry.icon}</span>
+                      <span className="text-sm font-medium text-gray-800 leading-tight">{industry.name}</span>
+                      {isSelected && <Check size={14} className="ml-auto text-blue-600" />}
+                    </button>
+                  )
+                })}
+                {filteredIndustries.length === 0 && (
+                  <div className="col-span-full text-center py-8 text-gray-400">
+                    No industries match &ldquo;{industrySearch}&rdquo;
+                  </div>
+                )}
+              </div>
+
+              {/* Services from selected industries */}
+              {allSuggestedServices.length > 0 && (
+                <div className="mt-6 pt-5 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-700 mb-3">
+                    Your services — uncheck any you don&apos;t offer:
                   </p>
 
-                  <div className="space-y-2">
-                    {selectedIndustry.services.map((service, index) => (
+                  <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
+                    {allSuggestedServices.map((service) => (
                       <label
-                        key={index}
+                        key={service.name}
                         className={`flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedServices.has(index)
+                          selectedServiceNames.has(service.name)
                             ? 'border-blue-300 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
                         <input
                           type="checkbox"
-                          checked={selectedServices.has(index)}
-                          onChange={() => toggleService(index)}
+                          checked={selectedServiceNames.has(service.name)}
+                          onChange={() => toggleServiceByName(service.name)}
                           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                         <span className="text-sm font-medium text-gray-900">{service.name}</span>
                       </label>
                     ))}
+
+                    {/* Custom services */}
+                    {customServices.map((name) => (
+                      <div
+                        key={name}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg border border-blue-300 bg-blue-50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedServiceNames.has(name)}
+                          onChange={() => toggleServiceByName(name)}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-900">{name}</span>
+                        <button
+                          onClick={() => removeCustomService(name)}
+                          className="ml-auto text-gray-400 hover:text-red-500"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add custom service */}
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      type="text"
+                      value={customServiceInput}
+                      onChange={(e) => setCustomServiceInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomService() } }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Add a custom service..."
+                    />
+                    <button
+                      onClick={addCustomService}
+                      disabled={!customServiceInput.trim()}
+                      className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-1"
+                    >
+                      <Plus size={16} />
+                      Add
+                    </button>
                   </div>
 
                   <div className="mt-3 flex items-center gap-3">
                     <button
-                      onClick={() => setSelectedServices(new Set(selectedIndustry.services.map((_, i) => i)))}
+                      onClick={() => {
+                        const all = new Set(selectedServiceNames)
+                        allSuggestedServices.forEach((s) => all.add(s.name))
+                        customServices.forEach((s) => all.add(s))
+                        setSelectedServiceNames(all)
+                      }}
                       className="text-xs text-blue-600 hover:text-blue-500 font-medium"
                     >
                       Select all
                     </button>
                     <span className="text-gray-300">|</span>
                     <button
-                      onClick={() => setSelectedServices(new Set())}
+                      onClick={() => setSelectedServiceNames(new Set())}
                       className="text-xs text-blue-600 hover:text-blue-500 font-medium"
                     >
                       Deselect all
                     </button>
                     <span className="ml-auto text-xs text-gray-400">
-                      {selectedServices.size} of {selectedIndustry.services.length} selected
+                      {selectedServiceNames.size} selected
                     </span>
                   </div>
+                </div>
+              )}
+
+              {/* Custom service input when no industry selected yet */}
+              {selectedIndustries.length === 0 && (
+                <div className="mt-6 pt-5 border-t border-gray-200">
+                  <p className="text-sm text-gray-500 mb-3">
+                    Don&apos;t see your industry? Add your services manually:
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customServiceInput}
+                      onChange={(e) => setCustomServiceInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomService() } }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Type a service name and press Enter"
+                    />
+                    <button
+                      onClick={addCustomService}
+                      disabled={!customServiceInput.trim()}
+                      className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-1"
+                    >
+                      <Plus size={16} />
+                      Add
+                    </button>
+                  </div>
+                  {customServices.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {customServices.map((name) => (
+                        <span
+                          key={name}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200"
+                        >
+                          {name}
+                          <button
+                            onClick={() => removeCustomService(name)}
+                            className="text-blue-400 hover:text-red-500 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
