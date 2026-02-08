@@ -202,7 +202,10 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('[Create Site API] Error:', error);
-    return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
+    if (error.message?.includes('Supabase environment variables')) {
+      return NextResponse.json({ error: 'Server configuration error. Please contact support.' }, { status: 500 });
+    }
+    return NextResponse.json({ error: error.message || 'An unexpected error occurred.' }, { status: 500 });
   }
 }
 
