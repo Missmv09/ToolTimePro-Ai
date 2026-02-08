@@ -370,6 +370,9 @@ export default function Home() {
                   <Link href="/tools" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🧰 {text.freeTools}
                   </Link>
+                  <Link href="/blog" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    📝 Blog
+                  </Link>
                   <Link href="#demos" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🎮 Demos
                   </Link>
