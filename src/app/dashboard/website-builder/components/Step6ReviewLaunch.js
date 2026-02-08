@@ -259,7 +259,15 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
             {wizardData.selectedDomain && (
               <div>
                 <p className="text-navy-500 font-semibold">{wizardData.selectedDomain.domainName}</p>
-                <p className="text-sm text-gray-500">${wizardData.selectedDomain.price}/year (auto-renews)</p>
+                {wizardData.selectedDomain.type === 'new' && (
+                  <p className="text-sm text-gray-500">${wizardData.selectedDomain.price}/year (auto-renews)</p>
+                )}
+                {wizardData.selectedDomain.type === 'existing' && (
+                  <p className="text-sm text-green-600">Your existing domain — DNS setup after launch</p>
+                )}
+                {wizardData.selectedDomain.type === 'subdomain' && (
+                  <p className="text-sm text-green-600">Free subdomain — included with your plan</p>
+                )}
               </div>
             )}
           </div>
@@ -272,10 +280,24 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
                 <span className="text-gray-600">Website Builder Add-on</span>
                 <span className="font-semibold text-navy-500">$15/month</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Domain Registration</span>
-                <span className="font-semibold text-navy-500">${wizardData.selectedDomain?.price || '12.99'}/year</span>
-              </div>
+              {wizardData.selectedDomain?.type === 'new' && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Domain Registration</span>
+                  <span className="font-semibold text-navy-500">${wizardData.selectedDomain?.price || '12.99'}/year</span>
+                </div>
+              )}
+              {wizardData.selectedDomain?.type === 'existing' && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Custom Domain</span>
+                  <span className="font-semibold text-green-600">Included</span>
+                </div>
+              )}
+              {wizardData.selectedDomain?.type === 'subdomain' && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Free Subdomain</span>
+                  <span className="font-semibold text-green-600">Free</span>
+                </div>
+              )}
             </div>
             <div className="border-t border-gold-200 pt-3 space-y-1.5">
               {[
@@ -304,7 +326,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
                 className="mt-0.5 w-5 h-5 rounded border-gray-300 text-gold-500 focus:ring-gold-500"
               />
               <span className="text-sm text-gray-600">
-                I confirm the above information is correct and I agree to the Website Builder terms ($15/month + domain registration fee).
+                I confirm the above information is correct and I agree to the Website Builder terms ($15/month{wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).
               </span>
             </label>
 

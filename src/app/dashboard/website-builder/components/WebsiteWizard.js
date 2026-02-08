@@ -100,7 +100,9 @@ export default function WebsiteWizard() {
     licenseNumber: '',
     yearsInBusiness: '',
     // Step 4
+    domainMode: 'search', // 'search' | 'existing' | 'subdomain'
     selectedDomain: null,
+    existingDomain: '',
     domainSearchResults: [],
     // Step 5
     colors: {
