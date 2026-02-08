@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { registerDomain, setDNSRecords } from '@/lib/namecom';
 
+export const dynamic = 'force-dynamic';
+
 // Lazy initialization for Supabase
 let supabaseInstance = null;
 

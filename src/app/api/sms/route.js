@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Twilio from 'twilio';
 
+export const dynamic = 'force-dynamic';
+
 // Lazy initialization
 let twilioClient = null;
 let supabaseInstance = null;
@@ -11,7 +13,7 @@ function getTwilioClient() {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     if (!accountSid || !authToken) {
-      throw new Error('Twilio credentials not configured');
+      return null;
     }
     twilioClient = Twilio(accountSid, authToken);
   }
@@ -82,8 +84,8 @@ export async function POST(request) {
     const client = getTwilioClient();
     const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-    if (!fromNumber) {
-      return NextResponse.json({ error: 'TWILIO_PHONE_NUMBER not configured' }, { status: 500 });
+    if (!client || !fromNumber) {
+      return NextResponse.json({ error: 'Twilio SMS service is not configured' }, { status: 500 });
     }
 
     // Build message from template or custom

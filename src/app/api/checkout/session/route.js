@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // Lazy initialization to prevent build-time errors when env vars aren't available
 let stripeClient = null;
 
