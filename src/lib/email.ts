@@ -210,6 +210,65 @@ export async function sendTrialReminderEmail({
   return data;
 }
 
+export async function sendTeamMemberWelcomeEmail({
+  to,
+  name,
+  tempPassword,
+  companyName,
+}: {
+  to: string;
+  name: string;
+  tempPassword: string;
+  companyName?: string;
+}) {
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `You've been added to ${companyName || 'a team'} on ToolTime Pro`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #f97316; margin: 0;">ToolTime Pro</h1>
+        </div>
+
+        <h2 style="color: #111827;">Welcome to the team, ${name}!</h2>
+
+        <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+          You've been added ${companyName ? `to <strong>${companyName}</strong>` : 'to a team'} on ToolTime Pro.
+          Use the credentials below to log in for the first time.
+        </p>
+
+        <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <p style="margin: 4px 0; color: #374151;"><strong>Email:</strong> ${to}</p>
+          <p style="margin: 4px 0; color: #374151;"><strong>Temporary Password:</strong> <code style="background: #e5e7eb; padding: 2px 8px; border-radius: 4px; font-size: 15px;">${tempPassword}</code></p>
+        </div>
+
+        <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0; color: #92400e; font-weight: 600;">Important</p>
+          <p style="margin: 8px 0 0 0; color: #92400e; font-size: 14px;">
+            Please change your password after your first login to keep your account secure.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://tooltimepro.com/auth/login"
+             style="background: #f97316; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
+            Log In Now
+          </a>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+        <p style="color: #9ca3af; font-size: 13px; text-align: center;">
+          Questions? Email us at <a href="mailto:support@tooltimepro.com" style="color: #f97316;">support@tooltimepro.com</a>
+        </p>
+      </div>
+    `,
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
 export async function sendTrialExpiredEmail({ to, name }: { to: string; name: string }) {
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
