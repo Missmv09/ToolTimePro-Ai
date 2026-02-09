@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendTrialReminderEmail, sendTrialExpiredEmail, sendTrialWelcomeEmail } from '@/lib/email';
 
+export const dynamic = 'force-dynamic';
+
 // Lazy-initialize to avoid build-time errors when env vars aren't set
 function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase environment variables not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
 
 // This endpoint should be called by a cron job (e.g., Vercel Cron, Supabase Edge Function)
