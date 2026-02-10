@@ -21,27 +21,16 @@ export default function AuthCallbackPage() {
       return () => clearTimeout(timeout)
     }
 
-    // User is authenticated
+    // User is authenticated — wait for company data before redirecting
+    if (!company) return
+
     setStatus('redirecting')
 
-    // Wait a beat for company data to load, then redirect
-    const redirect = () => {
-      if (company?.onboarding_completed) {
-        router.replace('/dashboard')
-      } else {
-        router.replace('/onboarding')
-      }
+    if (company.onboarding_completed) {
+      router.replace('/dashboard')
+    } else {
+      router.replace('/onboarding')
     }
-
-    // If company data is already loaded, redirect immediately
-    if (company !== null) {
-      redirect()
-      return
-    }
-
-    // Otherwise wait briefly for fetchUserData to finish
-    const timeout = setTimeout(redirect, 2000)
-    return () => clearTimeout(timeout)
   }, [user, company, isLoading, router])
 
   return (
