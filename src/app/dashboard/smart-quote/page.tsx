@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -953,7 +954,7 @@ export default function SmartQuotingPage() {
                 {isAnalyzingPhoto && (
                   <div className="flex flex-col items-center">
                     {photoPreview && (
-                      <img src={photoPreview} alt="Job site" className="w-64 h-48 object-cover rounded-lg mb-4 shadow-md" />
+                      <Image src={photoPreview} alt="Job site" className="w-64 h-48 object-cover rounded-lg mb-4 shadow-md" width={256} height={192} />
                     )}
                     <div className="flex items-center gap-3 mb-2">
                       <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>

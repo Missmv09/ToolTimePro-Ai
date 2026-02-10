@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Twilio from 'twilio';
 
+export const dynamic = 'force-dynamic';
+
 // Lazy initialization
 let twilioClient = null;
 let supabaseInstance = null;

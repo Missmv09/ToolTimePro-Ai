@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -373,18 +374,27 @@ export default function TeamPage() {
           <h1 className="text-2xl font-bold text-navy-500">Team Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage your team members and HR notes</p>
         </div>
-        {canManageTeam && (
-          <button
-            onClick={() => {
-              setEditingMember(null)
-              setShowMemberModal(true)
-            }}
-            className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/team/calendar"
+            className="px-4 py-2 border border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 flex items-center gap-2 transition-colors"
           >
-            <Plus size={18} />
-            Add Team Member
-          </button>
-        )}
+            <Calendar size={18} />
+            Availability
+          </Link>
+          {canManageTeam && (
+            <button
+              onClick={() => {
+                setEditingMember(null)
+                setShowMemberModal(true)
+              }}
+              className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
+            >
+              <Plus size={18} />
+              Add Team Member
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -1019,13 +1029,46 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         return
       }
 
+      // Send welcome email with temporary password directly to the employee
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch('/api/send-team-invite', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            name: formData.full_name,
+            tempPassword,
+            companyId,
+          }),
+        })
+
+        if (!res.ok) {
+          console.error('Failed to send welcome email')
+          alert(
+            `Team member created successfully!\n\n` +
+            `However, we couldn't send the welcome email. Please share their temporary password manually:\n${tempPassword}`
+          )
+          setSaving(false)
+          onSave()
+          return
+        }
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError)
+        alert(
+          `Team member created successfully!\n\n` +
+          `However, we couldn't send the welcome email. Please share their temporary password manually:\n${tempPassword}`
+        )
+        setSaving(false)
+        onSave()
+        return
+      }
+
       setSaving(false)
-      alert(
-        `Team member created successfully!\n\n` +
-        `Temporary password for ${formData.email}:\n${tempPassword}\n\n` +
-        `Please share this password securely with the team member.\n` +
-        `They should change it on their first login.`
-      )
+      alert(`Team member created successfully!\n\nA welcome email with login credentials has been sent to ${formData.email}.`)
       onSave()
       return
     }
@@ -1143,7 +1186,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
           {!member && (
             <div className="bg-gold-50 border border-gold-200 rounded-lg p-3">
               <p className="text-sm text-gold-800">
-                <strong>Note:</strong> New team members will receive a temporary password and should reset it on first login.
+                <strong>Note:</strong> A welcome email with login credentials will be sent directly to the new team member. They should change their password on first login.
               </p>
             </div>
           )}

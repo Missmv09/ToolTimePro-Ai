@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -14,7 +13,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
+  const { signUp } = useAuth()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,65 +33,20 @@ export default function SignupPage() {
     }
 
     try {
-      // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            company_name: companyName,
-          },
-        },
-      })
+      const { error: signUpError } = await signUp(email, password, fullName, companyName)
 
-      if (authError) {
-        setError(authError.message)
+      if (signUpError) {
+        const message = signUpError.message
+        if (message === 'Failed to fetch') {
+          setError('Unable to connect. Please check your internet connection and try again.')
+        } else {
+          setError(message)
+        }
         setLoading(false)
         return
       }
 
-      if (authData.user) {
-        // Create company record
-        const { data: company, error: companyError } = await supabase
-          .from('companies')
-          .insert({
-            name: companyName,
-            email: email,
-          })
-          .select()
-          .single()
-
-        if (companyError) {
-          console.error('Error creating company:', companyError)
-          setError('Account created but company setup failed. Please contact support.')
-          setLoading(false)
-          return
-        }
-
-        // Create user profile linked to company
-        if (company) {
-          const { error: profileError } = await supabase
-            .from('users')
-            .insert({
-              id: authData.user.id,
-              email: email,
-              full_name: fullName,
-              company_id: company.id,
-              role: 'owner',
-            })
-
-          if (profileError) {
-            console.error('Error creating user profile:', profileError)
-            setError('Account created but profile setup failed. Please contact support.')
-            setLoading(false)
-            return
-          }
-        }
-
-        setSuccess(true)
-      }
-
+      setSuccess(true)
       setLoading(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
@@ -110,16 +64,25 @@ export default function SignupPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full text-center">
           <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+            <div className="text-4xl mb-4">📬</div>
             <h2 className="text-2xl font-bold text-green-800 mb-4">Check your email!</h2>
-            <p className="text-green-700">
-              We&apos;ve sent you a confirmation link. Click it to activate your account.
+            <p className="text-green-700 mb-2">
+              We&apos;ve sent a confirmation link to <strong>{email}</strong>.
             </p>
-            <Link
-              href="/auth/login"
-              className="mt-6 inline-block text-blue-600 hover:text-blue-500"
-            >
-              Back to login
-            </Link>
+            <p className="text-green-600 text-sm">
+              Click the link in your email and you&apos;ll be taken straight into your account — no extra login needed.
+            </p>
+            <div className="mt-6 pt-4 border-t border-green-200">
+              <p className="text-sm text-gray-500">
+                Didn&apos;t get the email? Check your spam folder or{' '}
+                <button
+                  onClick={() => setSuccess(false)}
+                  className="text-blue-600 hover:text-blue-500 font-medium"
+                >
+                  try again
+                </button>
+              </p>
+            </div>
           </div>
         </div>
       </div>

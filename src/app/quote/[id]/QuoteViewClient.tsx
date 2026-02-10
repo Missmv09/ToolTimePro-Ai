@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { Quote, Company, Customer } from '@/types/database';
@@ -347,7 +348,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           <div className="flex items-center justify-between">
             <div>
               {quote.company?.logo_url ? (
-                <img src={quote.company.logo_url} alt={quote.company.name} className="h-12" />
+                <Image src={quote.company.logo_url} alt={quote.company.name} className="h-12 w-auto" width={200} height={48} />
               ) : (
                 <h1 className="text-2xl font-bold text-navy-500">{quote.company?.name || 'Company'}</h1>
               )}
@@ -382,7 +383,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             </p>
             {signature && (
               <div className="inline-block p-2 bg-white rounded border border-green-200">
-                <img src={signature} alt="Your signature" className="h-16" />
+                <Image src={signature} alt="Your signature" className="h-16 w-auto" width={200} height={64} />
               </div>
             )}
           </div>
@@ -500,7 +501,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-gray-500 mb-1">Your Signature</div>
-                <img src={signature} alt="Signature" className="h-16 border border-gray-200 rounded p-1" />
+                <Image src={signature} alt="Signature" className="h-16 w-auto border border-gray-200 rounded p-1" width={200} height={64} />
               </div>
               <button
                 onClick={() => {

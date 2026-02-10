@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
@@ -9,21 +9,23 @@ interface Invoice {
   id: string
   invoice_number: string
   customer_id: string
-  customer: { id: string; name: string; email: string; phone?: string } | null
+  customer: { id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string } | null
   status: string
   subtotal: number
-  tax: number
+  tax_rate: number
+  tax_amount: number
   total: number
   notes: string
   due_date: string
   paid_at: string | null
+  sent_at: string | null
   created_at: string
   items?: { id: string; description: string; quantity: number; unit_price: number; total: number }[]
 }
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [customers, setCustomers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [customers, setCustomers] = useState<{ id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
@@ -34,6 +36,40 @@ export default function InvoicesPage() {
 
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
+
+  const fetchInvoices = useCallback(async (compId: string) => {
+    let query = supabase
+      .from('invoices')
+      .select(`
+        *,
+        customer:customers(id, name, email, phone, address, city, state, zip),
+        items:invoice_items(*)
+      `)
+      .eq('company_id', compId)
+      .order('created_at', { ascending: false })
+
+    if (filter !== 'all') {
+      query = query.eq('status', filter)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching invoices:', error)
+    } else {
+      setInvoices(data || [])
+    }
+    setLoading(false)
+  }, [filter])
+
+  const fetchCustomers = useCallback(async (compId: string) => {
+    const { data } = await supabase
+      .from('customers')
+      .select('id, name, email, phone, address, city, state, zip')
+      .eq('company_id', compId)
+      .order('name')
+    setCustomers(data || [])
+  }, [])
 
   useEffect(() => {
     // Wait for auth to finish loading
@@ -53,47 +89,13 @@ export default function InvoicesPage() {
       // No company_id yet, stop loading to avoid infinite loop
       setLoading(false)
     }
-  }, [authLoading, user, companyId, router])
-
-  const fetchInvoices = async (compId: string) => {
-    let query = supabase
-      .from('invoices')
-      .select(`
-        *,
-        customer:customers(id, name, email, phone),
-        items:invoice_items(*)
-      `)
-      .eq('company_id', compId)
-      .order('created_at', { ascending: false })
-
-    if (filter !== 'all') {
-      query = query.eq('status', filter)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error('Error fetching invoices:', error)
-    } else {
-      setInvoices(data || [])
-    }
-    setLoading(false)
-  }
-
-  const fetchCustomers = async (compId: string) => {
-    const { data } = await supabase
-      .from('customers')
-      .select('id, name, email')
-      .eq('company_id', compId)
-      .order('name')
-    setCustomers(data || [])
-  }
+  }, [authLoading, user, companyId, router, fetchInvoices, fetchCustomers])
 
   useEffect(() => {
     if (companyId) {
       fetchInvoices(companyId)
     }
-  }, [filter, companyId])
+  }, [filter, companyId, fetchInvoices])
 
   const updateInvoiceStatus = async (invoiceId: string, newStatus: string) => {
     try {
@@ -131,6 +133,96 @@ export default function InvoicesPage() {
       payment_method: 'manual',
       status: 'completed',
     })
+  }
+
+  const sendInvoice = async (invoice: Invoice) => {
+    const email = invoice.customer?.email
+    const phone = invoice.customer?.phone
+
+    if (!email && !phone) {
+      alert(`Cannot send invoice: no email or phone on file for ${invoice.customer?.name || 'this customer'}. Please add contact info in the customer record.`)
+      return
+    }
+
+    try {
+      // Update invoice status to sent
+      const { error: updateError } = await supabase
+        .from('invoices')
+        .update({
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', invoice.id)
+
+      if (updateError) {
+        console.error('Error updating invoice status:', updateError)
+        alert(`Failed to update invoice status: ${updateError.message}`)
+        return
+      }
+
+      const invoiceLink = `${window.location.origin}/invoice/${invoice.id}`
+      const invoiceNumber = invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`
+      let emailSent = false
+      let smsSent = false
+
+      // Send email if customer has email
+      if (email) {
+        try {
+          const res = await fetch('/api/invoice/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: email,
+              customerName: invoice.customer?.name || 'Customer',
+              invoiceNumber,
+              total: invoice.total,
+              dueDate: invoice.due_date,
+              invoiceLink,
+              companyId: companyId,
+            }),
+          })
+          if (res.ok) emailSent = true
+        } catch {
+          console.log('Email send failed, continuing...')
+        }
+      }
+
+      // Send SMS if customer has phone
+      if (phone) {
+        try {
+          const res = await fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: phone,
+              template: 'invoice_sent',
+              data: {
+                customerName: invoice.customer?.name || 'Customer',
+                companyName: 'Our team',
+                invoiceLink,
+              },
+              companyId,
+            }),
+          })
+          if (res.ok) smsSent = true
+        } catch {
+          console.log('SMS send failed, continuing...')
+        }
+      }
+
+      const methods = [emailSent && 'email', smsSent && 'SMS'].filter(Boolean).join(' and ')
+      if (methods) {
+        alert(`Invoice ${invoiceNumber} sent successfully via ${methods} to ${invoice.customer?.name}.`)
+      } else {
+        alert(`Invoice ${invoiceNumber} marked as sent, but delivery notifications could not be sent. The customer can still view it at their invoice link.`)
+      }
+
+      if (companyId) fetchInvoices(companyId)
+    } catch (err) {
+      console.error('Error sending invoice:', err)
+      alert('An unexpected error occurred while sending the invoice.')
+    }
   }
 
   const sendReminder = async (invoice: Invoice) => {
@@ -348,6 +440,14 @@ export default function InvoicesPage() {
                         </button>
                         {invoice.status !== 'paid' && (
                           <>
+                            {invoice.status === 'draft' && (
+                              <button
+                                onClick={() => sendInvoice(invoice)}
+                                className="text-indigo-600 hover:text-indigo-800 text-sm"
+                              >
+                                Send
+                              </button>
+                            )}
                             <button
                               onClick={() => markAsPaid(invoice)}
                               className="text-green-600 hover:text-green-800 text-sm"
@@ -355,12 +455,20 @@ export default function InvoicesPage() {
                               Mark Paid
                             </button>
                             {(invoice.status === 'sent' || overdue) && (
-                              <button
-                                onClick={() => sendReminder(invoice)}
-                                className="text-orange-600 hover:text-orange-800 text-sm"
-                              >
-                                Remind
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => sendReminder(invoice)}
+                                  className="text-orange-600 hover:text-orange-800 text-sm"
+                                >
+                                  Remind
+                                </button>
+                                <button
+                                  onClick={() => sendInvoice(invoice)}
+                                  className="text-indigo-600 hover:text-indigo-800 text-sm"
+                                >
+                                  Resend
+                                </button>
+                              </>
                             )}
                           </>
                         )}
@@ -397,10 +505,21 @@ export default function InvoicesPage() {
   )
 }
 
+// US state sales tax rates (general state rate, does not include local taxes)
+const STATE_TAX_RATES: Record<string, number> = {
+  AL: 4, AZ: 5.6, AR: 6.5, CA: 7.25, CO: 2.9, CT: 6.35, DC: 6, DE: 0,
+  FL: 6, GA: 4, HI: 4, ID: 6, IL: 6.25, IN: 7, IA: 6, KS: 6.5,
+  KY: 6, LA: 4.45, ME: 5.5, MD: 6, MA: 6.25, MI: 6, MN: 6.875, MS: 7,
+  MO: 4.225, MT: 0, NE: 5.5, NV: 6.85, NH: 0, NJ: 6.625, NM: 5.125,
+  NY: 4, NC: 4.75, ND: 5, OH: 5.75, OK: 4.5, OR: 0, PA: 6, RI: 7,
+  SC: 6, SD: 4.5, TN: 7, TX: 6.25, UT: 6.1, VT: 6, VA: 5.3,
+  WA: 6.5, WV: 6, WI: 5, WY: 4,
+}
+
 function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
   invoice: Invoice | null
   companyId: string
-  customers: { id: string; name: string; email: string }[]
+  customers: { id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string }[]
   onClose: () => void
   onSave: () => void
 }) {
@@ -408,14 +527,17 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
     customer_id: invoice?.customer_id || '',
     notes: invoice?.notes || '',
     due_date: invoice?.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    tax_rate: invoice?.tax ? ((invoice.tax / (invoice.subtotal || 1)) * 100).toFixed(2) : '0',
+    tax_rate: invoice?.tax_rate ? String(invoice.tax_rate) : '0',
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     invoice?.items?.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })) ||
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [customerError, setCustomerError] = useState<string | null>(null)
+
+  const selectedCustomer = customers.find(c => c.id === formData.customer_id) || null
 
   const addItem = () => setItems([...items, { description: '', quantity: 1, unit_price: 0 }])
   const removeItem = (index: number) => setItems(items.filter((_, i) => i !== index))
@@ -432,6 +554,7 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSaveError(null)
 
     // Validate customer is selected
     if (!formData.customer_id) {
@@ -441,43 +564,64 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
 
     setSaving(true)
 
-    const invoiceData = {
-      company_id: companyId,
-      customer_id: formData.customer_id,
-      notes: formData.notes,
-      due_date: formData.due_date,
-      subtotal,
-      tax,
-      total,
-      status: invoice?.status || 'draft',
-    }
-
-    let invoiceId = invoice?.id
-
-    if (invoice) {
-      await supabase.from('invoices').update(invoiceData).eq('id', invoice.id)
-      await supabase.from('invoice_items').delete().eq('invoice_id', invoice.id)
-    } else {
-      const { data } = await supabase.from('invoices').insert(invoiceData).select().single()
-      invoiceId = data?.id
-    }
-
-    if (invoiceId && items.length > 0) {
-      const invoiceItems = items.filter(i => i.description).map(item => ({
-        invoice_id: invoiceId,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total: item.quantity * item.unit_price,
-      }))
-
-      if (invoiceItems.length > 0) {
-        await supabase.from('invoice_items').insert(invoiceItems)
+    try {
+      const invoiceData = {
+        company_id: companyId,
+        customer_id: formData.customer_id,
+        notes: formData.notes,
+        due_date: formData.due_date,
+        subtotal,
+        tax_rate: taxRate,
+        tax_amount: tax,
+        total,
+        status: invoice?.status || 'draft',
+        updated_at: new Date().toISOString(),
       }
-    }
 
-    setSaving(false)
-    onSave()
+      let invoiceId = invoice?.id
+
+      if (invoice) {
+        const { error: updateError } = await supabase.from('invoices').update(invoiceData).eq('id', invoice.id)
+        if (updateError) {
+          throw new Error(`Failed to update invoice: ${updateError.message}`)
+        }
+        const { error: deleteItemsError } = await supabase.from('invoice_items').delete().eq('invoice_id', invoice.id)
+        if (deleteItemsError) {
+          throw new Error(`Failed to update line items: ${deleteItemsError.message}`)
+        }
+      } else {
+        const { data, error: insertError } = await supabase.from('invoices').insert(invoiceData).select().single()
+        if (insertError) {
+          throw new Error(`Failed to create invoice: ${insertError.message}`)
+        }
+        invoiceId = data?.id
+      }
+
+      if (invoiceId && items.length > 0) {
+        const invoiceItems = items.filter(i => i.description).map(item => ({
+          invoice_id: invoiceId,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.quantity * item.unit_price,
+        }))
+
+        if (invoiceItems.length > 0) {
+          const { error: itemsError } = await supabase.from('invoice_items').insert(invoiceItems)
+          if (itemsError) {
+            throw new Error(`Failed to save line items: ${itemsError.message}`)
+          }
+        }
+      }
+
+      onSave()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred while saving the invoice.'
+      console.error('Error saving invoice:', err)
+      setSaveError(message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -492,7 +636,12 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
               <select
                 value={formData.customer_id}
                 onChange={(e) => {
-                  setFormData({ ...formData, customer_id: e.target.value })
+                  const custId = e.target.value
+                  const cust = customers.find(c => c.id === custId)
+                  const autoTaxRate = cust?.state && STATE_TAX_RATES[cust.state.toUpperCase()] !== undefined
+                    ? String(STATE_TAX_RATES[cust.state.toUpperCase()])
+                    : formData.tax_rate
+                  setFormData({ ...formData, customer_id: custId, tax_rate: autoTaxRate })
                   setCustomerError(null)
                 }}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${customerError ? 'border-red-500' : ''}`}
@@ -515,6 +664,22 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
               />
             </div>
           </div>
+
+          {/* Customer Address */}
+          {selectedCustomer && (selectedCustomer.address || selectedCustomer.city || selectedCustomer.state) && (
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-medium text-gray-500 mb-1">Customer Address</p>
+              <p className="text-sm text-gray-800">
+                {[selectedCustomer.address, [selectedCustomer.city, selectedCustomer.state, selectedCustomer.zip].filter(Boolean).join(', ')].filter(Boolean).join(', ')}
+              </p>
+              {selectedCustomer.email && (
+                <p className="text-sm text-gray-600">{selectedCustomer.email}</p>
+              )}
+              {selectedCustomer.phone && (
+                <p className="text-sm text-gray-600">{selectedCustomer.phone}</p>
+              )}
+            </div>
+          )}
 
           {/* Line Items */}
           <div>
@@ -595,6 +760,12 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
               placeholder="Payment terms, thank you message..."
             />
           </div>
+
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-700">{saveError}</p>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">

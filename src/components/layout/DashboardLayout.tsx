@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -20,9 +20,12 @@ import {
   LogOut,
   Settings,
   Quote,
+  Globe,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import TrialBanner from '@/components/trial/TrialBanner';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -37,6 +40,8 @@ const navItems = [
   { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
   { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
   { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
+  { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
+  { href: '/dashboard/blog', label: 'Blog', icon: BookOpen },
   { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
   { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
@@ -45,8 +50,15 @@ const navItems = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, dbUser, company, signOut } = useAuth();
+  const { user, dbUser, company, signOut, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Redirect to onboarding if not completed
+  useEffect(() => {
+    if (!isLoading && company && company.onboarding_completed === false) {
+      router.push('/onboarding');
+    }
+  }, [isLoading, company, router]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -179,7 +191,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Main content */}
         <main className="lg:pl-64">
-          <div className="p-6 lg:p-8">{children}</div>
+          <div className="p-6 lg:p-8">
+            <TrialBanner />
+            {children}
+          </div>
         </main>
       </div>
     </ProtectedRoute>

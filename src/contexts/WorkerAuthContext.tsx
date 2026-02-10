@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import type { User, Company } from '@/types/database';
 
 interface WorkerAuthState {
@@ -31,6 +31,11 @@ export function WorkerAuthProvider({ children }: { children: React.ReactNode }) 
   // Restore session from localStorage
   useEffect(() => {
     const restoreSession = async () => {
+      if (!isSupabaseConfigured) {
+        setState(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
+
       try {
         const stored = localStorage.getItem(WORKER_SESSION_KEY);
         if (stored) {
@@ -73,6 +78,10 @@ export function WorkerAuthProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const signIn = useCallback(async (phone: string, pin: string): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: 'Authentication service is not configured' };
+    }
+
     try {
       // Normalize phone number (remove formatting)
       const normalizedPhone = phone.replace(/\D/g, '');

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -54,27 +54,7 @@ function QuotesContent() {
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
 
-  useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) return
-
-    // Redirect if not authenticated
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
-
-    // Fetch data once we have a company_id
-    if (companyId) {
-      fetchQuotes(companyId)
-      fetchCustomers(companyId)
-    } else {
-      // No company_id yet, stop loading to avoid infinite loop
-      setLoading(false)
-    }
-  }, [authLoading, user, companyId, router])
-
-  const fetchQuotes = async (compId: string) => {
+  const fetchQuotes = useCallback(async (compId: string) => {
     let query = supabase
       .from('quotes')
       .select(`
@@ -101,7 +81,7 @@ function QuotesContent() {
       setQuotes(data || [])
     }
     setLoading(false)
-  }
+  }, [filter, customerFilter])
 
   const fetchCustomers = async (compId: string) => {
     const { data } = await supabase
@@ -113,10 +93,30 @@ function QuotesContent() {
   }
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return
+
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Fetch data once we have a company_id
+    if (companyId) {
+      fetchQuotes(companyId)
+      fetchCustomers(companyId)
+    } else {
+      // No company_id yet, stop loading to avoid infinite loop
+      setLoading(false)
+    }
+  }, [authLoading, user, companyId, router, fetchQuotes])
+
+  useEffect(() => {
     if (companyId) {
       fetchQuotes(companyId)
     }
-  }, [filter, companyId, customerFilter])
+  }, [filter, companyId, customerFilter, fetchQuotes])
 
   const updateQuoteStatus = async (quoteId: string, newStatus: string) => {
     const { error } = await supabase

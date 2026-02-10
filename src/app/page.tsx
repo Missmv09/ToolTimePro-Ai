@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Language = 'en' | 'es';
 
@@ -145,6 +147,39 @@ export default function Home() {
   const [language, setLanguage] = useState<Language>('en');
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [industriesOpen, setIndustriesOpen] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const router = useRouter();
+  const { user, company, isLoading } = useAuth();
+
+  // Redirect authenticated users away from the marketing homepage
+  useEffect(() => {
+    if (isLoading || !user) return;
+    setRedirecting(true);
+    if (company?.onboarding_completed) {
+      router.replace('/dashboard');
+    } else if (company) {
+      router.replace('/onboarding');
+    } else {
+      // Company data might still be loading — wait briefly then redirect to onboarding
+      const timeout = setTimeout(() => router.replace('/onboarding'), 1500);
+      return () => clearTimeout(timeout);
+    }
+  }, [user, company, isLoading, router]);
+
+  // Check for auth hash fragments in URL (email confirmation redirect)
+  const hasAuthHash = typeof window !== 'undefined' && window.location.hash.includes('access_token');
+
+  // Show loading spinner while auth is resolving or redirecting
+  if (isLoading || redirecting || hasAuthHash) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
 
   const t = {
     en: {
@@ -157,8 +192,8 @@ export default function Home() {
       freeTools: 'Free Tools',
       getStarted: 'Get Started',
       badge: 'Built for Service Pros',
-      heroTitle1: 'Run Your Business',
-      heroTitle2: 'Like a Pro',
+      heroTitle1: 'Your Business',
+      heroTitle2: 'On Autopilot',
       heroSubtitle: "We set it up. You run your business. It's that simple.",
       cta1: 'Get Started Free',
       cta2: 'See How It Works',
@@ -189,8 +224,8 @@ export default function Home() {
       freeTools: 'Herramientas Gratis',
       getStarted: 'Comenzar',
       badge: 'Hecho para Profesionales',
-      heroTitle1: 'Administra Tu Negocio',
-      heroTitle2: 'Como un Pro',
+      heroTitle1: 'Tu Negocio',
+      heroTitle2: 'En Piloto Automático',
       heroSubtitle: 'Nosotros lo configuramos. Tú manejas tu negocio. Así de simple.',
       cta1: 'Empieza Gratis',
       cta2: 'Ver Cómo Funciona',
@@ -334,6 +369,9 @@ export default function Home() {
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
                   <Link href="/tools" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🧰 {text.freeTools}
+                  </Link>
+                  <Link href="/blog" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                    📝 Blog
                   </Link>
                   <Link href="#demos" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     🎮 Demos
@@ -968,7 +1006,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,166,35,0.1)_0%,transparent_60%)]" />
         <div className="max-w-[640px] mx-auto relative z-10">
           <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
-            Ready to Run Your Business Like a Pro?
+            Ready to Put Your Business On Autopilot?
           </h2>
           <p className="text-[1.125rem] text-white/70 mb-9">
             Join hundreds of service businesses using ToolTime Pro to save time, stay compliant, and get more customers.

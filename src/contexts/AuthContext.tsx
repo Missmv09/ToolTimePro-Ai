@@ -20,6 +20,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -185,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Step 1: Create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -192,6 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             full_name: fullName,
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -203,33 +206,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Failed to create user') };
       }
 
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .insert({
-          name: companyName,
-          email: email,
-        })
-        .select()
-        .single();
+      // Step 2: Create company + user profile atomically via database function.
+      // This uses a SECURITY DEFINER function that bypasses RLS and runs in a
+      // transaction, so both records are created together or neither is.
+      const { error: setupError } = await supabase.rpc('handle_new_signup', {
+        p_user_id: authData.user.id,
+        p_email: email,
+        p_full_name: fullName,
+        p_company_name: companyName,
+      });
 
-      if (companyError) {
-        console.error('Error creating company:', companyError);
-        return { error: companyError };
-      }
-
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: email,
-          full_name: fullName,
-          company_id: companyData.id,
-          role: 'owner',
-        });
-
-      if (userError) {
-        console.error('Error creating user profile:', userError);
-        return { error: userError };
+      if (setupError) {
+        console.error('Error setting up account:', setupError);
+        return { error: setupError };
       }
 
       return { error: null };
@@ -273,6 +262,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   };
 
+  const refreshUserData = async () => {
+    if (!isSupabaseConfigured) return;
+    const currentUser = user;
+    if (currentUser) {
+      await fetchUserData(currentUser.id);
+    }
+  };
+
   const resetPassword = async (email: string): Promise<{ error: Error | null }> => {
     if (!isSupabaseConfigured) {
       return { error: new Error('Authentication is not configured') };
@@ -305,6 +302,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     resetPassword,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
