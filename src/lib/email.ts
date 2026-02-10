@@ -224,21 +224,27 @@ export async function sendTeamMemberWelcomeEmail({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `You've been added to ${companyName || 'a team'} on ToolTime Pro`,
+    subject: `${companyName || 'Your team'} - ToolTime Pro Worker App Access`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #f97316; margin: 0;">ToolTime Pro</h1>
+          <p style="color: #6b7280; font-size: 14px; margin: 4px 0 0 0;">Worker App</p>
         </div>
 
-        <h2 style="color: #111827;">Welcome to the team, ${name}!</h2>
+        <h2 style="color: #111827;">Welcome to ${companyName ? `the ${companyName} team` : 'the team'}, ${name}!</h2>
 
         <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
-          You've been added ${companyName ? `to <strong>${companyName}</strong>` : 'to a team'} on ToolTime Pro.
-          Use the credentials below to log in for the first time.
+          ${companyName ? `<strong>${companyName}</strong> uses` : 'Your company uses'} <strong>ToolTime Pro</strong> to manage jobs, scheduling, and time tracking.
+          You've been set up with access to the <strong>ToolTime Pro Worker App</strong> so you can view your assigned jobs, clock in/out, and stay connected with your team.
+        </p>
+
+        <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+          Use the credentials below to log in to the worker app for the first time:
         </p>
 
         <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Your Login Credentials</p>
           <p style="margin: 4px 0; color: #374151;"><strong>Email:</strong> ${to}</p>
           <p style="margin: 4px 0; color: #374151;"><strong>Temporary Password:</strong> <code style="background: #e5e7eb; padding: 2px 8px; border-radius: 4px; font-size: 15px;">${tempPassword}</code></p>
         </div>
@@ -253,7 +259,7 @@ export async function sendTeamMemberWelcomeEmail({
         <div style="text-align: center; margin: 30px 0;">
           <a href="https://tooltimepro.com/auth/login"
              style="background: #f97316; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
-            Log In Now
+            Log In to the Worker App
           </a>
         </div>
 
