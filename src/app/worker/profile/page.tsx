@@ -67,21 +67,29 @@ export default function WorkerProfilePage() {
       }
 
       // Fetch worker data
-      const { data: userData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
         .single();
 
+      if (userError) {
+        console.error('Error fetching profile:', userError.message);
+      }
+
       if (userData) {
         setWorker(userData as WorkerData);
 
         // Fetch company data
-        const { data: companyData } = await supabase
+        const { data: companyData, error: companyError } = await supabase
           .from('companies')
           .select('id, name, phone')
           .eq('id', userData.company_id)
           .single();
+
+        if (companyError) {
+          console.error('Error fetching company:', companyError.message);
+        }
 
         if (companyData) {
           setCompany(companyData as CompanyData);

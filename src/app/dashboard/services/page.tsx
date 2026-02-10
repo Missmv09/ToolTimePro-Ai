@@ -9,7 +9,7 @@ interface Service {
   id: string
   name: string
   description: string | null
-  price: number | null
+  default_price: number | null
   duration_minutes: number
   is_active: boolean
   created_at: string
@@ -73,7 +73,7 @@ export default function ServicesPage() {
       setFormData({
         name: service.name,
         description: service.description || '',
-        price: service.price?.toString() || '',
+        price: service.default_price?.toString() || '',
         duration_minutes: service.duration_minutes || 60,
         is_active: service.is_active,
       })
@@ -104,7 +104,7 @@ export default function ServicesPage() {
       company_id: companyId,
       name: formData.name,
       description: formData.description || null,
-      price: formData.price ? parseFloat(formData.price) : null,
+      default_price: formData.price ? parseFloat(formData.price) : null,
       duration_minutes: formData.duration_minutes,
       is_active: formData.is_active,
     }
@@ -261,7 +261,7 @@ export default function ServicesPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={service.is_active ? 'text-gray-900' : 'text-gray-400'}>
-                      {service.price ? `$${service.price.toFixed(2)}` : 'Quote'}
+                      {service.default_price ? `$${service.default_price.toFixed(2)}` : 'Quote'}
                     </span>
                   </td>
                   <td className="px-6 py-4">

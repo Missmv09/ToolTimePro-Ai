@@ -81,94 +81,116 @@ export async function POST(request) {
 async function handleCheckoutComplete(session) {
   const customerEmail = session.customer_email || session.customer_details?.email;
   const customerId = session.customer;
-  const subscriptionId = session.subscription;
   const metadata = session.metadata;
 
+  // Find the user by email to get their company_id
   const { data: existingUser } = await getSupabase()
     .from('users')
-    .select('id')
+    .select('id, company_id')
     .eq('email', customerEmail)
     .single();
 
-  if (existingUser) {
-    await getSupabase()
-      .from('users')
+  if (existingUser?.company_id) {
+    // Update the company's plan and stripe info
+    const { error } = await getSupabase()
+      .from('companies')
       .update({
         stripe_customer_id: customerId,
-        stripe_subscription_id: subscriptionId,
-        plan: metadata.plan,
-        billing_cycle: metadata.billing,
-        subscription_status: 'active',
+        plan: metadata.plan || 'starter',
         updated_at: new Date().toISOString()
       })
-      .eq('id', existingUser.id);
+      .eq('id', existingUser.company_id);
+
+    if (error) {
+      console.error('Error updating company after checkout:', error.message);
+    }
   } else {
-    await getSupabase()
-      .from('users')
-      .insert({
-        email: customerEmail,
-        stripe_customer_id: customerId,
-        stripe_subscription_id: subscriptionId,
-        plan: metadata.plan,
-        billing_cycle: metadata.billing,
-        subscription_status: 'active',
-        created_at: new Date().toISOString()
-      });
+    console.error('No user/company found for email:', customerEmail);
   }
 }
 
 async function handleSubscriptionUpdate(subscription) {
-  await getSupabase()
-    .from('users')
+  const customerId = subscription.customer;
+  if (!customerId) return;
+
+  // Map Stripe subscription status to plan — active means keep plan, else downgrade
+  const planUpdate = subscription.status === 'active' ? {} : { plan: 'starter' };
+
+  const { error } = await getSupabase()
+    .from('companies')
     .update({
-      subscription_status: subscription.status,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      ...planUpdate,
       updated_at: new Date().toISOString()
     })
-    .eq('stripe_subscription_id', subscription.id);
+    .eq('stripe_customer_id', customerId);
+
+  if (error) {
+    console.error('Error updating subscription:', error.message);
+  }
 }
 
 async function handleSubscriptionCanceled(subscription) {
-  await getSupabase()
-    .from('users')
+  const customerId = subscription.customer;
+  if (!customerId) return;
+
+  const { error } = await getSupabase()
+    .from('companies')
     .update({
-      subscription_status: 'canceled',
+      plan: 'starter',
       updated_at: new Date().toISOString()
     })
-    .eq('stripe_subscription_id', subscription.id);
+    .eq('stripe_customer_id', customerId);
+
+  if (error) {
+    console.error('Error handling subscription cancellation:', error.message);
+  }
 }
 
 async function handlePaymentSucceeded(invoice) {
-  await getSupabase()
-    .from('payments')
-    .insert({
-      stripe_customer_id: invoice.customer,
-      stripe_invoice_id: invoice.id,
-      amount: invoice.amount_paid,
-      currency: invoice.currency,
-      status: 'succeeded',
-      created_at: new Date().toISOString()
-    });
+  // Find the company by stripe_customer_id to get company_id for payment record
+  const { data: company } = await getSupabase()
+    .from('companies')
+    .select('id')
+    .eq('stripe_customer_id', invoice.customer)
+    .single();
+
+  if (company) {
+    const { error } = await getSupabase()
+      .from('payments')
+      .insert({
+        company_id: company.id,
+        amount: invoice.amount_paid / 100, // Stripe amounts are in cents
+        payment_method: 'stripe',
+        status: 'completed',
+        notes: `Stripe invoice ${invoice.id}`,
+        created_at: new Date().toISOString()
+      });
+    if (error) {
+      console.error('Error recording payment:', error.message);
+    }
+  }
 }
 
 async function handlePaymentFailed(invoice) {
-  await getSupabase()
-    .from('payments')
-    .insert({
-      stripe_customer_id: invoice.customer,
-      stripe_invoice_id: invoice.id,
-      amount: invoice.amount_due,
-      currency: invoice.currency,
-      status: 'failed',
-      created_at: new Date().toISOString()
-    });
+  const { data: company } = await getSupabase()
+    .from('companies')
+    .select('id')
+    .eq('stripe_customer_id', invoice.customer)
+    .single();
 
-  await getSupabase()
-    .from('users')
-    .update({
-      subscription_status: 'past_due',
-      updated_at: new Date().toISOString()
-    })
-    .eq('stripe_customer_id', invoice.customer);
+  if (company) {
+    const { error } = await getSupabase()
+      .from('payments')
+      .insert({
+        company_id: company.id,
+        amount: invoice.amount_due / 100,
+        payment_method: 'stripe',
+        status: 'failed',
+        notes: `Failed: Stripe invoice ${invoice.id}`,
+        created_at: new Date().toISOString()
+      });
+    if (error) {
+      console.error('Error recording failed payment:', error.message);
+    }
+  }
 }

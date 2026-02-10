@@ -311,9 +311,10 @@ CREATE TABLE invoice_items (
 CREATE TABLE payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-    invoice_id UUID REFERENCES invoices(id) ON DELETE CASCADE,
+    invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL,
     amount DECIMAL(10,2) NOT NULL,
-    payment_method VARCHAR(50), -- card, cash, check, other
+    payment_method VARCHAR(50), -- card, cash, check, stripe, other
+    status VARCHAR(50) DEFAULT 'completed', -- completed, failed, refunded
     stripe_payment_id VARCHAR(255),
     notes TEXT,
     paid_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -362,6 +363,69 @@ CREATE TABLE review_requests (
 );
 
 -- ============================================
+-- COMPLIANCE_ALERTS (California labor compliance alerts)
+-- ============================================
+CREATE TABLE compliance_alerts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    time_entry_id UUID REFERENCES time_entries(id) ON DELETE SET NULL,
+    alert_type VARCHAR(100) NOT NULL, -- missed_meal_break, missed_rest_break, overtime, double_time
+    severity VARCHAR(50) DEFAULT 'warning', -- info, warning, violation
+    message TEXT NOT NULL,
+    acknowledged BOOLEAN DEFAULT false,
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    acknowledged_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- SMS_LOGS (SMS message history)
+-- ============================================
+CREATE TABLE sms_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+    to_phone VARCHAR(50) NOT NULL,
+    from_phone VARCHAR(50),
+    message TEXT NOT NULL,
+    message_type VARCHAR(50), -- review_request, invoice_reminder, appointment_reminder, custom
+    status VARCHAR(50) DEFAULT 'sent', -- queued, sent, delivered, failed
+    external_id VARCHAR(255), -- Twilio SID or similar
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- QBO_CONNECTIONS (QuickBooks Online integration)
+-- ============================================
+CREATE TABLE qbo_connections (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE UNIQUE,
+    realm_id VARCHAR(255) NOT NULL,
+    access_token TEXT NOT NULL,
+    refresh_token TEXT NOT NULL,
+    token_expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    connected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_sync_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- QBO_SYNC_LOG (QuickBooks sync history)
+-- ============================================
+CREATE TABLE qbo_sync_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+    sync_type VARCHAR(50) NOT NULL, -- customers, invoices, full
+    status VARCHAR(50) DEFAULT 'in_progress', -- in_progress, completed, failed
+    records_synced INTEGER DEFAULT 0,
+    error_message TEXT,
+    started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- ============================================
 -- INDEXES (Performance)
 -- ============================================
 CREATE INDEX idx_users_company ON users(company_id);
@@ -376,6 +440,11 @@ CREATE INDEX idx_time_entries_date ON time_entries(clock_in);
 CREATE INDEX idx_quotes_company ON quotes(company_id);
 CREATE INDEX idx_invoices_company ON invoices(company_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_compliance_alerts_company ON compliance_alerts(company_id);
+CREATE INDEX idx_compliance_alerts_user ON compliance_alerts(user_id);
+CREATE INDEX idx_sms_logs_company ON sms_logs(company_id);
+CREATE INDEX idx_qbo_connections_company ON qbo_connections(company_id);
+CREATE INDEX idx_qbo_sync_log_company ON qbo_sync_log(company_id);
 
 -- ============================================
 -- ROW LEVEL SECURITY (Multi-tenant isolation)
@@ -402,6 +471,10 @@ ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE review_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE compliance_alerts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sms_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE qbo_connections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE qbo_sync_log ENABLE ROW LEVEL SECURITY;
 
 -- Users can read their own row (prevents circular RLS dependency)
 CREATE POLICY "Users can read own profile" ON users
@@ -538,6 +611,22 @@ CREATE POLICY "Breaks for company time entries" ON breaks
             WHERE t.company_id = (SELECT company_id FROM users WHERE id = auth.uid())
         )
     );
+
+-- Compliance alerts: users can manage alerts in their company
+CREATE POLICY "Compliance alerts belong to company" ON compliance_alerts
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+
+-- SMS logs: users can view logs in their company
+CREATE POLICY "SMS logs belong to company" ON sms_logs
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+
+-- QBO connections: users can manage connections in their company
+CREATE POLICY "QBO connections belong to company" ON qbo_connections
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+
+-- QBO sync log: users can view sync logs in their company
+CREATE POLICY "QBO sync logs belong to company" ON qbo_sync_log
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- ============================================
 -- FUNCTIONS & TRIGGERS
