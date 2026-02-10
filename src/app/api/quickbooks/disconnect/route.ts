@@ -29,8 +29,19 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Delete the QBO connection for this user
-    const { error } = await supabase.from('qbo_connections').delete().eq('user_id', user.id)
+    // Get user's company_id
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('company_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!dbUser?.company_id) {
+      return NextResponse.json({ error: 'No company found' }, { status: 400 })
+    }
+
+    // Delete the QBO connection for this company
+    const { error } = await supabase.from('qbo_connections').delete().eq('company_id', dbUser.company_id)
 
     if (error) {
       console.error('Error deleting QBO connection:', error)

@@ -426,6 +426,79 @@ CREATE TABLE qbo_sync_log (
 );
 
 -- ============================================
+-- WEBSITE_TEMPLATES (Predefined website templates)
+-- ============================================
+CREATE TABLE website_templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    trade_category VARCHAR(100), -- landscaping, plumbing, electrical, etc.
+    style VARCHAR(100) DEFAULT 'modern', -- modern, classic, bold
+    preview_url TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- WEBSITE_SITES (Customer websites)
+-- ============================================
+CREATE TABLE website_sites (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    template_id UUID REFERENCES website_templates(id) ON DELETE SET NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    business_name VARCHAR(255) NOT NULL,
+    business_phone VARCHAR(50) NOT NULL,
+    business_email VARCHAR(255) NOT NULL,
+    business_address TEXT DEFAULT '',
+    site_content JSONB DEFAULT '{}',
+    status VARCHAR(50) DEFAULT 'draft', -- draft, building, live, error
+    custom_domain VARCHAR(255),
+    domain_status VARCHAR(50), -- pending, active
+    wizard_step INTEGER DEFAULT 1,
+    wizard_completed BOOLEAN DEFAULT false,
+    domain_registered_at TIMESTAMP WITH TIME ZONE,
+    domain_expires_at TIMESTAMP WITH TIME ZONE,
+    domain_auto_renew BOOLEAN DEFAULT false,
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- WEBSITE_LEADS (Leads from customer websites)
+-- ============================================
+CREATE TABLE website_leads (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    site_id UUID REFERENCES website_sites(id) ON DELETE CASCADE,
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    message TEXT,
+    service_requested TEXT,
+    source VARCHAR(100) DEFAULT 'website_contact_form',
+    status VARCHAR(50) DEFAULT 'new',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- WEBSITE_DOMAIN_LOG (Domain registration audit trail)
+-- ============================================
+CREATE TABLE website_domain_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    site_id UUID REFERENCES website_sites(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+    domain_name VARCHAR(255) NOT NULL,
+    action VARCHAR(50) NOT NULL, -- register, dns_update
+    status VARCHAR(50) NOT NULL, -- pending, success, failed
+    response_data JSONB,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
 -- INDEXES (Performance)
 -- ============================================
 CREATE INDEX idx_users_company ON users(company_id);
@@ -445,6 +518,11 @@ CREATE INDEX idx_compliance_alerts_user ON compliance_alerts(user_id);
 CREATE INDEX idx_sms_logs_company ON sms_logs(company_id);
 CREATE INDEX idx_qbo_connections_company ON qbo_connections(company_id);
 CREATE INDEX idx_qbo_sync_log_company ON qbo_sync_log(company_id);
+CREATE INDEX idx_website_sites_user ON website_sites(user_id);
+CREATE INDEX idx_website_sites_company ON website_sites(company_id);
+CREATE INDEX idx_website_leads_site ON website_leads(site_id);
+CREATE INDEX idx_website_leads_company ON website_leads(company_id);
+CREATE INDEX idx_website_domain_log_site ON website_domain_log(site_id);
 
 -- ============================================
 -- ROW LEVEL SECURITY (Multi-tenant isolation)
@@ -475,6 +553,10 @@ ALTER TABLE compliance_alerts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sms_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE qbo_connections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE qbo_sync_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE website_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE website_sites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE website_leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE website_domain_log ENABLE ROW LEVEL SECURITY;
 
 -- Users can read their own row (prevents circular RLS dependency)
 CREATE POLICY "Users can read own profile" ON users
@@ -626,6 +708,22 @@ CREATE POLICY "QBO connections belong to company" ON qbo_connections
 
 -- QBO sync log: users can view sync logs in their company
 CREATE POLICY "QBO sync logs belong to company" ON qbo_sync_log
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+
+-- Website templates: readable by all authenticated users
+CREATE POLICY "Templates are readable" ON website_templates
+    FOR SELECT USING (true);
+
+-- Website sites: users can manage sites in their company
+CREATE POLICY "Website sites belong to company" ON website_sites
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+
+-- Website leads: users can manage leads for their company's sites
+CREATE POLICY "Website leads belong to company" ON website_leads
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+
+-- Website domain log: users can view domain logs for their company
+CREATE POLICY "Website domain logs belong to company" ON website_domain_log
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- ============================================
