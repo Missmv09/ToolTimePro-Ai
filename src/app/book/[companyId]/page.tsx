@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -342,10 +343,12 @@ export default function BookingPage() {
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {company?.logo_url ? (
-              <img
+              <Image
                 src={company.logo_url}
                 alt={company.name}
                 className="w-10 h-10 rounded-lg object-cover"
+                width={40}
+                height={40}
               />
             ) : (
               <div className="w-10 h-10 bg-[#f5a623] rounded-lg flex items-center justify-center text-xl">

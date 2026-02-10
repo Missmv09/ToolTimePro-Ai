@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Check, Upload, X, ImageIcon } from 'lucide-react';
 
 export default function PhotoSelector({ photos, selectedPhoto, onSelect, multiple = false, selectedPhotos = [], onSelectMultiple, label }) {
@@ -81,7 +82,7 @@ export default function PhotoSelector({ photos, selectedPhoto, onSelect, multipl
         <div className="flex flex-wrap gap-2 mb-4">
           {selectedPhotos.map((photo, index) => (
             <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gold-500">
-              <img src={photo.url} alt={photo.alt || ''} className="w-full h-full object-cover" />
+              <Image src={photo.url} alt={photo.alt || ''} className="w-full h-full object-cover" fill />
               <button
                 onClick={() => removePhoto(index)}
                 className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
@@ -106,11 +107,11 @@ export default function PhotoSelector({ photos, selectedPhoto, onSelect, multipl
                 selected ? 'border-gold-500 shadow-card' : 'border-gray-200 hover:border-gold-300'
               }`}
             >
-              <img
+              <Image
                 src={photo.url}
                 alt={photo.alt}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                fill
               />
               {selected && (
                 <div className="absolute inset-0 bg-gold-500/20 flex items-center justify-center">
