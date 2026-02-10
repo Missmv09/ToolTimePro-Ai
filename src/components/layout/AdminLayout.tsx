@@ -53,6 +53,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return;
       }
 
+      const userEmail = user.email?.toLowerCase() || '';
+
+      // Client-side check: verify email against public admin list
+      const adminEmails = (process.env.NEXT_PUBLIC_PLATFORM_ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+      if (adminEmails.includes(userEmail)) {
+        setIsVerified(true);
+        setVerifying(false);
+        return;
+      }
+
+      // Fallback: server-side check (handles database-based admins)
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {

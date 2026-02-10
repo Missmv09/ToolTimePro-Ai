@@ -23,7 +23,8 @@ export function getAdminClient() {
  */
 export async function isPlatformAdmin(email: string): Promise<boolean> {
   // Quick check: env var list (for bootstrapping before DB is set up)
-  const envAdmins = process.env.PLATFORM_ADMIN_EMAILS;
+  // Check both server-side and public env vars
+  const envAdmins = process.env.PLATFORM_ADMIN_EMAILS || process.env.NEXT_PUBLIC_PLATFORM_ADMIN_EMAILS || '';
   if (envAdmins) {
     const adminEmails = envAdmins.split(',').map((e) => e.trim().toLowerCase());
     if (adminEmails.includes(email.toLowerCase())) {
