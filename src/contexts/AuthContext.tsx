@@ -115,8 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(initialSession?.user ?? null);
 
           if (initialSession?.user) {
-            // Fetch user data but don't block on it
-            fetchUserData(initialSession.user.id).catch(console.error);
+            await fetchUserData(initialSession.user.id);
           }
         }
 
