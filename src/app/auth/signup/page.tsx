@@ -6,8 +6,6 @@ import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -20,20 +18,8 @@ export default function SignupPage() {
     setLoading(true)
     setError(null)
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      setLoading(false)
-      return
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      setLoading(false)
-      return
-    }
-
     try {
-      const { error: signUpError } = await signUp(email, password, fullName, companyName)
+      const { error: signUpError } = await signUp(email, fullName, companyName)
 
       if (signUpError) {
         const message = signUpError.message
@@ -70,7 +56,7 @@ export default function SignupPage() {
               We&apos;ve sent a confirmation link to <strong>{email}</strong>.
             </p>
             <p className="text-green-600 text-sm">
-              Click the link in your email and you&apos;ll be taken straight into your account — no extra login needed.
+              Click the link in your email to verify your address and set your password.
             </p>
             <div className="mt-6 pt-4 border-t border-green-200">
               <p className="text-sm text-gray-500">
@@ -159,38 +145,6 @@ export default function SignupPage() {
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="••••••••"
-              />
-              <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="••••••••"
-              />
-            </div>
           </div>
 
           <button

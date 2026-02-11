@@ -21,6 +21,13 @@ export default function AuthCallbackPage() {
       return () => clearTimeout(timeout)
     }
 
+    // If the user still needs to set a password, send them there first
+    if (user.user_metadata?.needs_password) {
+      setStatus('redirecting')
+      router.replace('/auth/set-password')
+      return
+    }
+
     // User is authenticated — wait for company data before redirecting
     if (!company) return
 
