@@ -16,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean;
   authError: string | null;
   isConfigured: boolean;
-  signUp: (email: string, password: string, fullName: string, companyName: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, fullName: string, companyName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
@@ -176,7 +176,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (
     email: string,
-    password: string,
     fullName: string,
     companyName: string
   ): Promise<{ error: Error | null }> => {
@@ -185,13 +184,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Generate a random temporary password — the user will set their real
+      // password after clicking the email confirmation link.
+      const tempPassword = crypto.randomUUID() + 'Aa1!';
+
       // Step 1: Create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password,
+        password: tempPassword,
         options: {
           data: {
             full_name: fullName,
+            needs_password: true,
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
