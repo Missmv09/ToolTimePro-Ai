@@ -57,7 +57,9 @@ export async function POST(request) {
     if (siteError || !site) {
       return NextResponse.json({ error: 'Website site not found or access denied' }, { status: 404 });
     }
-    if (site.domain_status === 'active' && site.custom_domain) {
+    // Allow upgrading from a free subdomain to a custom domain
+    const isSubdomain = site.custom_domain?.endsWith('.tooltimepro.com');
+    if (site.domain_status === 'active' && site.custom_domain && !isSubdomain) {
       return NextResponse.json({ error: `Site already has domain: ${site.custom_domain}` }, { status: 409 });
     }
 

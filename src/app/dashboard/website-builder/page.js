@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw } from 'lucide-react';
 import WebsiteWizard from './components/WebsiteWizard';
+import DomainUpgradeCard from './components/DomainUpgradeCard';
 
 export default function WebsiteBuilderPage() {
   const [existingSite, setExistingSite] = useState(null);
@@ -127,6 +128,13 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
           </div>
         )}
       </div>
+
+      {/* Domain upgrade prompt for subdomain users */}
+      {site.custom_domain?.endsWith('.tooltimepro.com') && (
+        <div className="mb-6">
+          <DomainUpgradeCard site={site} onUpgraded={onRefresh} />
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
