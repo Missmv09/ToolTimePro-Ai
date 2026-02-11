@@ -35,6 +35,22 @@ export default function WebsiteBuilderPage() {
         .maybeSingle();
 
       if (site) {
+        // Auto-recover sites stuck in 'building' for over 2 minutes
+        if (site.status === 'building' && site.created_at) {
+          const ageMs = Date.now() - new Date(site.created_at).getTime();
+          if (ageMs > 2 * 60 * 1000) {
+            const { error: updateErr } = await supabase
+              .from('website_sites')
+              .update({ status: 'live', published_at: new Date().toISOString() })
+              .eq('id', site.id);
+
+            if (!updateErr) {
+              site.status = 'live';
+              site.published_at = new Date().toISOString();
+            }
+          }
+        }
+
         setExistingSite(site);
 
         // Get lead count

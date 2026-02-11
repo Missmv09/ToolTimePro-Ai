@@ -69,53 +69,94 @@ export async function POST(request) {
     // Check for existing site
     const { data: existingSite } = await supabase
       .from('website_sites')
-      .select('id')
+      .select('id, status, created_at')
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (existingSite) {
+    let site;
+
+    if (existingSite && existingSite.status === 'live') {
       return NextResponse.json({ error: 'You already have a website. Edit it from your dashboard.' }, { status: 409 });
     }
 
-    // Create slug
-    const slug = generateSlug(businessName) + '-' + Date.now().toString(36);
+    if (existingSite) {
+      // Site exists but is stuck in building/draft/error — update it with new data
+      const { data: updatedSite, error: updateError } = await supabase
+        .from('website_sites')
+        .update({
+          template_id: templateId || null,
+          business_name: businessName,
+          business_phone: phone,
+          business_email: email || user.email,
+          business_address: serviceArea || '',
+          site_content: {
+            trade,
+            tagline: tagline || '',
+            serviceArea: serviceArea || '',
+            services: services || [],
+            licenseNumber: licenseNumber || '',
+            yearsInBusiness: yearsInBusiness || '',
+            colors: colors || {},
+            enabledSections: enabledSections || [],
+            heroImage: heroImage || null,
+            galleryImages: galleryImages || [],
+          },
+          status: 'building',
+          custom_domain: selectedDomain.domainName,
+          domain_status: 'pending',
+          wizard_step: 6,
+          wizard_completed: true,
+        })
+        .eq('id', existingSite.id)
+        .select('id')
+        .single();
 
-    // Insert site record
-    const { data: site, error: insertError } = await supabase
-      .from('website_sites')
-      .insert({
-        company_id: dbUser.company_id,
-        user_id: user.id,
-        template_id: templateId || null,
-        slug,
-        business_name: businessName,
-        business_phone: phone,
-        business_email: email || user.email,
-        business_address: serviceArea || '',
-        site_content: {
-          trade,
-          tagline: tagline || '',
-          serviceArea: serviceArea || '',
-          services: services || [],
-          licenseNumber: licenseNumber || '',
-          yearsInBusiness: yearsInBusiness || '',
-          colors: colors || {},
-          enabledSections: enabledSections || [],
-          heroImage: heroImage || null,
-          galleryImages: galleryImages || [],
-        },
-        status: 'building',
-        custom_domain: selectedDomain.domainName,
-        domain_status: 'pending',
-        wizard_step: 6,
-        wizard_completed: true,
-      })
-      .select('id')
-      .single();
+      if (updateError) {
+        console.error('[Create Site] DB update error:', updateError);
+        return NextResponse.json({ error: 'Failed to update site record' }, { status: 500 });
+      }
+      site = updatedSite;
+    } else {
+      // No existing site — create a new one
+      const slug = generateSlug(businessName) + '-' + Date.now().toString(36);
 
-    if (insertError) {
-      console.error('[Create Site] DB insert error:', insertError);
-      return NextResponse.json({ error: 'Failed to create site record' }, { status: 500 });
+      const { data: newSite, error: insertError } = await supabase
+        .from('website_sites')
+        .insert({
+          company_id: dbUser.company_id,
+          user_id: user.id,
+          template_id: templateId || null,
+          slug,
+          business_name: businessName,
+          business_phone: phone,
+          business_email: email || user.email,
+          business_address: serviceArea || '',
+          site_content: {
+            trade,
+            tagline: tagline || '',
+            serviceArea: serviceArea || '',
+            services: services || [],
+            licenseNumber: licenseNumber || '',
+            yearsInBusiness: yearsInBusiness || '',
+            colors: colors || {},
+            enabledSections: enabledSections || [],
+            heroImage: heroImage || null,
+            galleryImages: galleryImages || [],
+          },
+          status: 'building',
+          custom_domain: selectedDomain.domainName,
+          domain_status: 'pending',
+          wizard_step: 6,
+          wizard_completed: true,
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        console.error('[Create Site] DB insert error:', insertError);
+        return NextResponse.json({ error: 'Failed to create site record' }, { status: 500 });
+      }
+      site = newSite;
     }
 
     const cleanDomain = selectedDomain.domainName.toLowerCase().trim();
