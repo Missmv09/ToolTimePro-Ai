@@ -12,6 +12,21 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Check if any Supabase auth cookies exist. This app currently uses
+  // localStorage for auth (client-side createClient), so cookies may not
+  // be present. Only attempt a session refresh when cookies ARE present —
+  // otherwise getUser() always returns null and we'd incorrectly block
+  // authenticated users.
+  const hasAuthCookies = request.cookies.getAll().some(
+    (c) => c.name.startsWith('sb-') && c.name.includes('auth')
+  )
+
+  if (!hasAuthCookies) {
+    // No Supabase cookies — nothing to refresh, let the request through.
+    // Client-side auth (localStorage) handles protection via AuthContext.
+    return supabaseResponse
+  }
+
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -27,18 +42,9 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // Refresh the auth session — this validates the token with Supabase Auth
-  // and refreshes it if expired. The refreshed tokens are set in cookies.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Redirect unauthenticated users away from protected routes
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
-  }
+  // Refresh the auth session when cookies exist — validates the token
+  // with Supabase Auth and sets updated cookies on the response.
+  await supabase.auth.getUser()
 
   return supabaseResponse
 }
