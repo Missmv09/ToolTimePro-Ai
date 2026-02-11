@@ -71,10 +71,9 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     setLaunchError(null);
 
     try {
-      // Always refresh the session to get a non-expired access token.
-      // The token stored in AuthContext state can go stale if the user
-      // spends time filling out the wizard.
-      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      // Force a token refresh — getSession() can return a stale/expired token.
+      // refreshSession() guarantees a fresh access_token from Supabase.
+      const { data: { session: freshSession } } = await supabase.auth.refreshSession();
       const token = freshSession?.access_token || session?.access_token;
 
       if (!token) {
