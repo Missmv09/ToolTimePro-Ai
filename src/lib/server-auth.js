@@ -2,22 +2,35 @@ import { NextResponse } from 'next/server';
 
 /**
  * Decode a Supabase JWT without making a network call back to Supabase.
- * The token was issued by Supabase over HTTPS — we trust its structure and expiry.
- * This avoids the auth.getUser(token) API call which can fail if the service-role
- * key is misconfigured or the Supabase auth endpoint is slow/unreachable.
+ * Returns { payload } on success or { reason } on failure.
  */
 function decodeSupabaseJWT(token) {
   try {
+    if (!token || typeof token !== 'string') {
+      return { reason: 'no_token' };
+    }
+
     const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-    // Reject expired tokens
-    if (payload.exp && payload.exp * 1000 < Date.now()) return null;
-    // Must have a subject (user ID)
-    if (!payload.sub) return null;
-    return payload;
-  } catch {
-    return null;
+    if (parts.length !== 3) {
+      return { reason: 'bad_format' };
+    }
+
+    // Use standard base64 with URL-safe char replacement (more compatible
+    // than 'base64url' which may not be supported in all runtimes)
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(Buffer.from(base64, 'base64').toString('utf8'));
+
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      return { reason: 'expired' };
+    }
+
+    if (!payload.sub) {
+      return { reason: 'no_sub' };
+    }
+
+    return { payload };
+  } catch (err) {
+    return { reason: `decode_error: ${err.message}` };
   }
 }
 
@@ -28,13 +41,21 @@ function decodeSupabaseJWT(token) {
 export function authenticateRequest(request) {
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+    console.error('[Auth] No Bearer token. Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'missing');
+    return { error: NextResponse.json({ error: 'Unauthorized — no token provided' }, { status: 401 }) };
   }
 
   const token = authHeader.replace('Bearer ', '');
-  const payload = decodeSupabaseJWT(token);
+  const { payload, reason } = decodeSupabaseJWT(token);
+
   if (!payload) {
-    return { error: NextResponse.json({ error: 'Invalid or expired session — please log in again' }, { status: 401 }) };
+    console.error('[Auth] JWT decode failed. Reason:', reason, '| Token length:', token.length);
+    return {
+      error: NextResponse.json(
+        { error: `Auth failed: ${reason}. Please log out, log back in, and try again.` },
+        { status: 401 }
+      ),
+    };
   }
 
   return {
