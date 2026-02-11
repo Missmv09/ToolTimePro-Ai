@@ -47,7 +47,7 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
     setError(null);
 
     try {
-      const response = await fetch('/api/website-builder/domain-search', {
+      const response = await fetch('/api/website-builder/domain-search/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
