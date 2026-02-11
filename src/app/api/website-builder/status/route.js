@@ -91,7 +91,7 @@ export async function GET(request) {
         siteUrl: site.custom_domain
           ? `https://${site.custom_domain}`
           : `https://tooltimepro.com/site/${site.slug}`,
-        isPublished: site.status === 'published',
+        isPublished: site.status === 'live',
         hasDomain: site.domain_status === 'active' && !!site.custom_domain,
       },
       template,

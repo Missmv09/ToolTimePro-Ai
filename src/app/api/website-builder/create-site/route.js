@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { registerDomain, setDNSRecords } from '@/lib/namecom';
 import { authenticateRequest } from '@/lib/server-auth';
 
+export const dynamic = 'force-dynamic';
+
 let supabaseInstance = null;
 
 function getSupabase() {
@@ -114,7 +116,16 @@ export async function POST(request) {
       site = updatedSite;
     } else {
       // No existing site — create a new one
-      const slug = generateSlug(businessName) + '-' + Date.now().toString(36);
+      // Add random suffix to slug and domain to prevent collisions
+      const randomSuffix = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const slug = generateSlug(businessName) + '-' + randomSuffix;
+
+      // De-duplicate subdomain names by appending the same suffix
+      let domainToStore = selectedDomain.domainName;
+      if (selectedDomain.type === 'subdomain' && domainToStore.endsWith('.tooltimepro.com')) {
+        const subPart = domainToStore.replace('.tooltimepro.com', '');
+        domainToStore = `${subPart}-${randomSuffix}.tooltimepro.com`;
+      }
 
       const { data: newSite, error: insertError } = await supabase
         .from('website_sites')
@@ -140,7 +151,7 @@ export async function POST(request) {
             galleryImages: galleryImages || [],
           },
           status: 'building',
-          custom_domain: selectedDomain.domainName,
+          custom_domain: domainToStore,
           domain_status: 'pending',
           wizard_step: 6,
           wizard_completed: true,
@@ -150,7 +161,7 @@ export async function POST(request) {
 
       if (insertError) {
         console.error('[Create Site] DB insert error:', insertError);
-        return NextResponse.json({ error: 'Failed to create site record' }, { status: 500 });
+        return NextResponse.json({ error: `Failed to create site record: ${insertError.message}` }, { status: 500 });
       }
       site = newSite;
     }
@@ -243,7 +254,12 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('[Create Site API] Error:', error);
-    return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
+    // Surface the real reason instead of a generic message
+    const msg = error?.message || 'Unknown error';
+    if (msg.includes('environment variables')) {
+      return NextResponse.json({ error: 'Server configuration error. Please contact support. (env)' }, { status: 500 });
+    }
+    return NextResponse.json({ error: `Site creation failed: ${msg}` }, { status: 500 });
   }
 }
 
