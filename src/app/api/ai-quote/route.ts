@@ -47,7 +47,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['tree', 'trees', 'trim', 'prune', 'pruning', 'branch', 'branches', 'limb'],
+    keywords: ['tree', 'trees', 'tree trim', 'tree trimming', 'prune', 'pruning', 'branch', 'branches', 'limb'],
     name: 'Tree Trimming',
     description: 'Tree pruning and dead branch removal',
     price: 150,
@@ -114,7 +114,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['paint', 'painting', 'repaint', 'walls', 'exterior paint', 'interior paint'],
+    keywords: ['paint', 'painting', 'repaint', 'walls', 'exterior paint', 'interior paint', 'trim work', 'baseboard', 'molding', 'crown molding', 'cabinet paint', 'ceiling paint', 'drywall'],
     name: 'Painting',
     description: 'Surface preparation and painting',
     price: 3,

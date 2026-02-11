@@ -69,7 +69,7 @@ const quickAddServices = [
 
 export default function SmartQuotingPage() {
   const router = useRouter();
-  const { user, dbUser, isLoading: authLoading } = useAuth();
+  const { user, dbUser, company, isLoading: authLoading } = useAuth();
 
   // Company and auth state - get from AuthContext
   const companyId = dbUser?.company_id || null;
@@ -239,7 +239,7 @@ export default function SmartQuotingPage() {
         body: JSON.stringify({
           jobDescription: transcript,
           inputType: 'voice',
-          businessType: 'landscaping/lawn care',
+          businessType: company?.industry || '',
           customerAddress: newCustomer.address || '',
           generateTiers: false,
         }),
@@ -307,7 +307,7 @@ export default function SmartQuotingPage() {
         body: JSON.stringify({
           jobDescription: jobDescription,
           inputType: 'text',
-          businessType: 'landscaping/lawn care',
+          businessType: company?.industry || '',
           customerAddress: newCustomer.address || '',
           generateTiers: showMultipleOptions,
         }),
@@ -385,7 +385,7 @@ export default function SmartQuotingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageBase64: imageBase64,
-          businessType: 'landscaping/lawn care',
+          businessType: company?.industry || '',
         }),
       });
 
@@ -474,7 +474,7 @@ export default function SmartQuotingPage() {
         body: JSON.stringify({
           jobDescription: `Price check for: ${item.description}, quantity: ${item.quantity} ${item.unit}`,
           inputType: 'text',
-          businessType: 'landscaping/lawn care',
+          businessType: company?.industry || '',
         }),
       });
 
@@ -513,7 +513,7 @@ export default function SmartQuotingPage() {
         body: JSON.stringify({
           jobDescription: `Generate pricing tiers for these services: ${itemsDescription}`,
           inputType: 'text',
-          businessType: 'landscaping/lawn care',
+          businessType: company?.industry || '',
           customerAddress: newCustomer.address || '',
           generateTiers: true,
           existingItems: lineItems.map(i => ({ name: i.description, price: i.price })),
