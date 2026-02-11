@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import SitePreviewFrame from './SitePreviewFrame';
 
@@ -32,7 +33,10 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     if (siteId && !publishSteps.live) {
       pollRef.current = setInterval(async () => {
         try {
-          const res = await fetch(`/api/website-builder/publish-status?siteId=${siteId}`);
+          const { data: { session } } = await supabase.auth.getSession();
+          const res = await fetch(`/api/website-builder/publish-status?siteId=${siteId}`, {
+            headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+          });
           const data = await res.json();
           if (data.steps) {
             setPublishSteps(data.steps);
@@ -59,9 +63,17 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     setLaunchError(null);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('You must be logged in to launch your website.');
+      }
+
       const response = await fetch('/api/website-builder/create-site', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           trade: wizardData.trade,
           templateId: wizardData.templateId,
