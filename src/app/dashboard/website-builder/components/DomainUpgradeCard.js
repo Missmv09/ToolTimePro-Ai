@@ -27,7 +27,7 @@ export default function DomainUpgradeCard({ site, onUpgraded }) {
     setSelectedDomain(null);
 
     try {
-      const response = await fetch('/api/website-builder/domain-search', {
+      const response = await fetch('/api/website-builder/domain-search/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessName: searchTerm.trim(), state: 'CA' }),
@@ -49,7 +49,7 @@ export default function DomainUpgradeCard({ site, onUpgraded }) {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch('/api/website-builder/domain-register', {
+      const response = await fetch('/api/website-builder/domain-register/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

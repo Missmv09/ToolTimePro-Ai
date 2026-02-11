@@ -42,7 +42,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           // Always get a fresh token — the stored one may have expired
           const { data: { session: pollSession } } = await supabase.auth.getSession();
           const pollToken = pollSession?.access_token || sessionRef.current?.access_token;
-          const res = await fetch(`/api/website-builder/publish-status?siteId=${siteId}`, {
+          const res = await fetch(`/api/website-builder/publish-status/?siteId=${siteId}`, {
             headers: pollToken ? { Authorization: `Bearer ${pollToken}` } : {},
           });
           const data = await res.json();
@@ -71,16 +71,49 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     setLaunchError(null);
 
     try {
-      // Force a token refresh — getSession() can return a stale/expired token.
-      // refreshSession() guarantees a fresh access_token from Supabase.
-      const { data: { session: freshSession } } = await supabase.auth.refreshSession();
-      const token = freshSession?.access_token || session?.access_token;
+      // Try multiple methods to get a valid token
+      let token = null;
+      let tokenSource = 'none';
 
-      if (!token) {
-        throw new Error('You must be logged in to launch your website. Please refresh the page and try again.');
+      // Method 1: Force a refresh
+      try {
+        const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
+        if (refreshData?.session?.access_token) {
+          token = refreshData.session.access_token;
+          tokenSource = 'refreshSession';
+        } else {
+          console.warn('[Launch] refreshSession failed:', refreshErr?.message || 'no session returned');
+        }
+      } catch (e) {
+        console.warn('[Launch] refreshSession threw:', e.message);
       }
 
-      const response = await fetch('/api/website-builder/create-site', {
+      // Method 2: getSession fallback
+      if (!token) {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.access_token) {
+            token = sessionData.session.access_token;
+            tokenSource = 'getSession';
+          }
+        } catch (e) {
+          console.warn('[Launch] getSession threw:', e.message);
+        }
+      }
+
+      // Method 3: AuthContext session fallback
+      if (!token && session?.access_token) {
+        token = session.access_token;
+        tokenSource = 'context';
+      }
+
+      if (!token) {
+        throw new Error('No auth token available. Please log out, log back in, and try again.');
+      }
+
+      console.log('[Launch] Using token from:', tokenSource, '| length:', token.length);
+
+      const response = await fetch('/api/website-builder/create-site/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,7 +141,9 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create site');
+        // Include debug info so the user can report the exact failure
+        const debugInfo = `[${response.status} | token: ${tokenSource} | len: ${token.length}]`;
+        throw new Error(`${data.error || 'Failed to create site'} ${debugInfo}`);
       }
 
       setSiteId(data.siteId);
