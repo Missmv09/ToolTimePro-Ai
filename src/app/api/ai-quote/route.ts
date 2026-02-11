@@ -61,7 +61,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['leaf', 'leaves', 'cleanup', 'clean up', 'clean-up', 'fall', 'debris'],
+    keywords: ['leaf', 'leaves', 'leaf cleanup', 'leaf removal', 'yard debris', 'debris'],
     name: 'Leaf & Debris Cleanup',
     description: 'Full property leaf removal and debris cleanup',
     price: 85,
@@ -101,7 +101,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['window', 'windows', 'glass'],
+    keywords: ['window', 'windows', 'window cleaning', 'window wash'],
     name: 'Window Cleaning',
     description: 'Interior and exterior window cleaning',
     price: 8,
@@ -114,7 +114,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['paint', 'painting', 'repaint', 'walls', 'exterior paint', 'interior paint', 'trim work', 'baseboard', 'molding', 'crown molding', 'cabinet paint', 'ceiling paint', 'drywall'],
+    keywords: ['paint', 'painting', 'repaint', 'exterior paint', 'interior paint', 'trim work', 'baseboard', 'molding', 'crown molding', 'cabinet paint', 'ceiling paint', 'drywall', 'paint the wall', 'paint walls'],
     name: 'Painting',
     description: 'Surface preparation and painting',
     price: 3,
@@ -128,7 +128,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['pressure wash', 'power wash', 'powerwash', 'pressure'],
+    keywords: ['pressure wash', 'power wash', 'powerwash', 'pressure washing'],
     name: 'Pressure Washing',
     description: 'Pressure washing of driveways, walkways, and patios',
     price: 175,
@@ -155,7 +155,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['irrigation', 'sprinkler', 'sprinklers', 'drip'],
+    keywords: ['irrigation', 'sprinkler', 'sprinklers', 'drip system', 'drip line', 'drip irrigation'],
     name: 'Irrigation System Service',
     description: 'Inspection, adjustment, and repair of irrigation system',
     price: 95,
@@ -181,7 +181,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['electric', 'electrical', 'wiring', 'outlet', 'light', 'lighting', 'fixture'],
+    keywords: ['electric', 'electrical', 'wiring', 'outlet', 'lighting', 'light fixture', 'light switch', 'recessed light', 'can light', 'ceiling fan', 'breaker', 'panel', 'circuit'],
     name: 'Electrical Work',
     description: 'General electrical repair and installation',
     price: 95,
@@ -246,7 +246,7 @@ const SERVICE_CATALOG: ServiceMatch[] = [
     ],
   },
   {
-    keywords: ['repair', 'fix', 'handyman', 'general'],
+    keywords: ['handyman', 'handyman service', 'odd job', 'general repair', 'general maintenance'],
     name: 'General Repair',
     description: 'General handyman repair work',
     price: 85,
