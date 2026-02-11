@@ -71,20 +71,20 @@ function SettingsContent() {
   // Check for QBO connection status
   useEffect(() => {
     const checkQboConnection = async () => {
-      if (!user) return
+      if (!company?.id) return
 
       try {
         const { data, error } = await supabase
           .from('qbo_connections')
-          .select('last_sync_at, sync_status')
-          .eq('user_id', user.id)
+          .select('last_sync_at')
+          .eq('company_id', company.id)
           .single()
 
         if (data && !error) {
           setQboConnected(true)
           setQboConnectionInfo({
             lastSyncAt: data.last_sync_at,
-            syncStatus: data.sync_status,
+            syncStatus: 'active',
           })
         }
       } catch {

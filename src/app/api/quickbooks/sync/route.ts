@@ -18,13 +18,12 @@ const QBO_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer
 
 interface QBOConnection {
   id: string
-  user_id: string
-  qbo_realm_id: string
+  company_id: string
+  realm_id: string
   access_token: string
   refresh_token: string
   token_expires_at: string
   last_sync_at: string | null
-  sync_status: string
 }
 
 interface QBOCustomer {
@@ -134,21 +133,7 @@ export async function POST() {
       supabase = userSupabase
     }
 
-    // Get user's QBO connection
-    const { data: connection, error: connectionError } = await supabase
-      .from('qbo_connections')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (connectionError || !connection) {
-      return NextResponse.json(
-        { error: 'QuickBooks not connected' },
-        { status: 400 }
-      )
-    }
-
-    // Get user's company_id
+    // Get user's company_id first
     const { data: dbUser, error: dbUserError } = await supabase
       .from('users')
       .select('company_id')
@@ -164,6 +149,20 @@ export async function POST() {
 
     const companyId = dbUser.company_id
 
+    // Get QBO connection by company_id
+    const { data: connection, error: connectionError } = await supabase
+      .from('qbo_connections')
+      .select('*')
+      .eq('company_id', companyId)
+      .single()
+
+    if (connectionError || !connection) {
+      return NextResponse.json(
+        { error: 'QuickBooks not connected' },
+        { status: 400 }
+      )
+    }
+
     // Check if token needs refresh
     let accessToken = connection.access_token
     const tokenExpiry = new Date(connection.token_expires_at)
@@ -174,12 +173,6 @@ export async function POST() {
         accessToken = await refreshToken(connection, supabase)
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError)
-        // Mark connection as needing re-authentication
-        await supabase
-          .from('qbo_connections')
-          .update({ sync_status: 'token_expired' })
-          .eq('id', connection.id)
-
         return NextResponse.json(
           { error: 'QuickBooks token expired. Please reconnect.' },
           { status: 401 }
@@ -187,7 +180,7 @@ export async function POST() {
       }
     }
 
-    const realmId = connection.qbo_realm_id
+    const realmId = connection.realm_id
     const syncResults = { customers: 0, invoices: 0, errors: [] as string[] }
 
     // Sync Customers
@@ -202,13 +195,14 @@ export async function POST() {
       const qboCustomers = customersResponse?.QueryResponse?.Customer || []
 
       for (const qboCustomer of qboCustomers) {
-        // Check if customer already exists by qbo_id
+        // Match by name + source='quickbooks' since schema doesn't have qbo_id
         const { data: existingCustomer } = await supabase
           .from('customers')
           .select('id')
-          .eq('qbo_id', qboCustomer.Id)
           .eq('company_id', companyId)
-          .single()
+          .eq('source', 'quickbooks')
+          .eq('name', qboCustomer.DisplayName)
+          .maybeSingle()
 
         const customerData = {
           company_id: companyId,
@@ -221,42 +215,37 @@ export async function POST() {
           zip: qboCustomer.BillAddr?.PostalCode || null,
           notes: qboCustomer.Notes || null,
           source: 'quickbooks',
-          qbo_id: qboCustomer.Id,
         }
 
         if (existingCustomer) {
-          // Update existing customer
           await supabase
             .from('customers')
             .update(customerData)
             .eq('id', existingCustomer.id)
         } else {
-          // Insert new customer
           await supabase
             .from('customers')
             .insert(customerData)
         }
 
         syncResults.customers++
-
-        // Log sync
-        await supabase.from('qbo_sync_log').insert({
-          user_id: user.id,
-          sync_type: 'customer',
-          direction: 'pull',
-          qbo_id: qboCustomer.Id,
-          status: 'success',
-        })
       }
+
+      // Log sync batch
+      await supabase.from('qbo_sync_log').insert({
+        company_id: companyId,
+        sync_type: 'customers',
+        status: 'completed',
+        records_synced: syncResults.customers,
+      })
     } catch (customerError) {
       console.error('Error syncing customers:', customerError)
       syncResults.errors.push(`Customers: ${customerError instanceof Error ? customerError.message : 'Unknown error'}`)
 
       await supabase.from('qbo_sync_log').insert({
-        user_id: user.id,
-        sync_type: 'customer',
-        direction: 'pull',
-        status: 'error',
+        company_id: companyId,
+        sync_type: 'customers',
+        status: 'failed',
         error_message: customerError instanceof Error ? customerError.message : 'Unknown error',
       })
     }
@@ -273,26 +262,31 @@ export async function POST() {
       const qboInvoices = invoicesResponse?.QueryResponse?.Invoice || []
 
       for (const qboInvoice of qboInvoices) {
-        // Find the matching customer by qbo_id if we have customer ref
+        // Find matching customer by name if we have a customer ref
         let customerId = null
-        if (qboInvoice.CustomerRef?.value) {
+        if (qboInvoice.CustomerRef?.name) {
           const { data: matchedCustomer } = await supabase
             .from('customers')
             .select('id')
-            .eq('qbo_id', qboInvoice.CustomerRef.value)
             .eq('company_id', companyId)
-            .single()
+            .eq('name', qboInvoice.CustomerRef.name)
+            .maybeSingle()
 
           customerId = matchedCustomer?.id || null
         }
 
-        // Check if invoice already exists by qbo_id
-        const { data: existingInvoice } = await supabase
-          .from('invoices')
-          .select('id')
-          .eq('qbo_id', qboInvoice.Id)
-          .eq('company_id', companyId)
-          .single()
+        // Check if invoice already exists by invoice_number
+        const docNumber = qboInvoice.DocNumber || null
+        let existingInvoice = null
+        if (docNumber) {
+          const { data } = await supabase
+            .from('invoices')
+            .select('id')
+            .eq('company_id', companyId)
+            .eq('invoice_number', docNumber)
+            .maybeSingle()
+          existingInvoice = data
+        }
 
         // Determine invoice status based on balance
         let status: 'draft' | 'sent' | 'viewed' | 'paid' | 'partial' | 'overdue' = 'sent'
@@ -307,62 +301,56 @@ export async function POST() {
         const invoiceData = {
           company_id: companyId,
           customer_id: customerId,
-          invoice_number: qboInvoice.DocNumber || null,
+          invoice_number: docNumber,
           total: qboInvoice.TotalAmt,
-          subtotal: qboInvoice.TotalAmt, // QBO doesn't always split these
+          subtotal: qboInvoice.TotalAmt,
           tax_rate: 0,
           tax_amount: 0,
           discount_amount: 0,
           amount_paid: qboInvoice.TotalAmt - qboInvoice.Balance,
           status,
           due_date: qboInvoice.DueDate || null,
-          notes: qboInvoice.PrivateNote || null,
-          qbo_id: qboInvoice.Id,
+          notes: qboInvoice.PrivateNote ? `QBO: ${qboInvoice.PrivateNote}` : null,
         }
 
         if (existingInvoice) {
-          // Update existing invoice
           await supabase
             .from('invoices')
             .update(invoiceData)
             .eq('id', existingInvoice.id)
         } else {
-          // Insert new invoice
           await supabase
             .from('invoices')
             .insert(invoiceData)
         }
 
         syncResults.invoices++
-
-        // Log sync
-        await supabase.from('qbo_sync_log').insert({
-          user_id: user.id,
-          sync_type: 'invoice',
-          direction: 'pull',
-          qbo_id: qboInvoice.Id,
-          status: 'success',
-        })
       }
+
+      // Log invoice sync batch
+      await supabase.from('qbo_sync_log').insert({
+        company_id: companyId,
+        sync_type: 'invoices',
+        status: 'completed',
+        records_synced: syncResults.invoices,
+      })
     } catch (invoiceError) {
       console.error('Error syncing invoices:', invoiceError)
       syncResults.errors.push(`Invoices: ${invoiceError instanceof Error ? invoiceError.message : 'Unknown error'}`)
 
       await supabase.from('qbo_sync_log').insert({
-        user_id: user.id,
-        sync_type: 'invoice',
-        direction: 'pull',
-        status: 'error',
+        company_id: companyId,
+        sync_type: 'invoices',
+        status: 'failed',
         error_message: invoiceError instanceof Error ? invoiceError.message : 'Unknown error',
       })
     }
 
-    // Update last_sync_at and sync_status
+    // Update last_sync_at
     await supabase
       .from('qbo_connections')
       .update({
         last_sync_at: new Date().toISOString(),
-        sync_status: syncResults.errors.length > 0 ? 'partial' : 'active',
       })
       .eq('id', connection.id)
 

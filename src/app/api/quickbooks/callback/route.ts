@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Decode and validate state
-    let stateData: { userId: string; timestamp: number }
+    let stateData: { userId: string; companyId?: string; timestamp: number }
     try {
       stateData = JSON.parse(Buffer.from(state, 'base64').toString())
     } catch {
@@ -90,19 +90,34 @@ export async function GET(request: NextRequest) {
     // Use service role key for admin operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Resolve company_id — either from state or by looking up the user
+    let companyId = stateData.companyId
+    if (!companyId) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', stateData.userId)
+        .single()
+      companyId = userData?.company_id
+    }
+
+    if (!companyId) {
+      console.error('No company found for user')
+      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=no_company', SITE_URL))
+    }
+
     // Upsert the connection (update if exists, insert if not)
     const { error: dbError } = await supabase.from('qbo_connections').upsert(
       {
-        user_id: stateData.userId,
-        qbo_realm_id: realmId,
+        company_id: companyId,
+        realm_id: realmId,
         access_token: tokenData.access_token,
         refresh_token: tokenData.refresh_token,
         token_expires_at: expiresAt.toISOString(),
         connected_at: new Date().toISOString(),
-        sync_status: 'active',
       },
       {
-        onConflict: 'user_id',
+        onConflict: 'company_id',
       }
     )
 
