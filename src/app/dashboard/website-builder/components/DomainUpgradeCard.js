@@ -49,13 +49,15 @@ export default function DomainUpgradeCard({ site, onUpgraded }) {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       const response = await fetch('/api/website-builder/domain-register/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
+          _authToken: token,  // Backup: survives 308 redirects that strip headers
           domainName: selectedDomain.domainName,
           siteId: site.id,
         }),

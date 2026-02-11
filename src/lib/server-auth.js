@@ -35,21 +35,55 @@ function decodeSupabaseJWT(token) {
 }
 
 /**
- * Extract and validate the user from the Authorization header.
+ * Extract and validate the user from the request.
+ *
+ * Token resolution order:
+ *   1. Authorization: Bearer <token>  header  (standard)
+ *   2. bodyToken parameter            (fallback — survives 308 redirects
+ *      that strip headers on Netlify / CDN edge)
+ *   3. ?_token=<token> query param    (fallback for GET requests)
+ *
  * Returns { user } on success or { error: NextResponse } on failure.
  */
-export function authenticateRequest(request) {
+export function authenticateRequest(request, bodyToken = null) {
+  // --- Resolve token from multiple sources ---
+  let token = null;
+  let source = 'none';
+
+  // 1. Authorization header (preferred)
   const authHeader = request.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    console.error('[Auth] No Bearer token. Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'missing');
+  if (authHeader?.startsWith('Bearer ')) {
+    token = authHeader.replace('Bearer ', '');
+    source = 'header';
+  }
+
+  // 2. Body token (POST fallback — bypasses 308 redirect header stripping)
+  if (!token && bodyToken) {
+    token = bodyToken;
+    source = 'body';
+  }
+
+  // 3. Query param (GET fallback)
+  if (!token) {
+    try {
+      const url = new URL(request.url);
+      const qToken = url.searchParams.get('_token');
+      if (qToken) {
+        token = qToken;
+        source = 'query';
+      }
+    } catch { /* ignore URL parse errors */ }
+  }
+
+  if (!token) {
+    console.error('[Auth] No token found. Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'missing', '| bodyToken:', !!bodyToken);
     return { error: NextResponse.json({ error: 'Unauthorized — no token provided' }, { status: 401 }) };
   }
 
-  const token = authHeader.replace('Bearer ', '');
   const { payload, reason } = decodeSupabaseJWT(token);
 
   if (!payload) {
-    console.error('[Auth] JWT decode failed. Reason:', reason, '| Token length:', token.length);
+    console.error('[Auth] JWT decode failed. Source:', source, '| Reason:', reason, '| Token length:', token.length);
     return {
       error: NextResponse.json(
         { error: `Auth failed: ${reason}. Please log out, log back in, and try again.` },

@@ -28,11 +28,12 @@ export async function POST(request) {
   try {
     const supabase = getSupabase();
 
-    // Auth check — decode JWT directly, no network call to Supabase
-    const { user, error: authResponse } = authenticateRequest(request);
+    const body = await request.json();
+
+    // Auth check — tries header, then body._authToken, then query param
+    const { user, error: authResponse } = authenticateRequest(request, body?._authToken);
     if (authResponse) return authResponse;
 
-    const body = await request.json();
     const { domainName, siteId } = body;
     if (!domainName || typeof domainName !== 'string') {
       return NextResponse.json({ error: 'Domain name is required' }, { status: 400 });
