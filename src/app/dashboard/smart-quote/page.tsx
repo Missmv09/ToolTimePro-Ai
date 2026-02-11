@@ -644,7 +644,8 @@ export default function SmartQuotingPage() {
           company_id: companyId,
           customer_id: customerId,
           subtotal: subtotal,
-          tax: taxAmount,
+          tax_rate: taxRate,
+          tax_amount: taxAmount,
           total: grandTotal,
           notes: notes,
           status: asDraft ? 'draft' : 'sent',
@@ -670,7 +671,7 @@ export default function SmartQuotingPage() {
             description: item.description,
             quantity: item.quantity,
             unit_price: item.price,
-            total: item.total,
+            total_price: item.total,
             sort_order: index,
           }));
 
