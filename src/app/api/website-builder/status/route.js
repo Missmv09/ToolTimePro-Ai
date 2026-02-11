@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,15 +27,9 @@ export async function GET(request) {
   try {
     const supabase = getSupabase();
 
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    // Auth check — decode JWT directly, no network call to Supabase
+    const { user, error: authResponse } = authenticateRequest(request);
+    if (authResponse) return authResponse;
 
     // Fetch website site with template info
     const { data: site, error: siteError } = await supabase

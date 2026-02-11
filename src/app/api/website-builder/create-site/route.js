@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { registerDomain, setDNSRecords } from '@/lib/namecom';
+import { authenticateRequest } from '@/lib/server-auth';
 
 let supabaseInstance = null;
 
@@ -31,16 +32,9 @@ export async function POST(request) {
   try {
     const supabase = getSupabase();
 
-    // Auth check
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    // Auth check — decode JWT directly, no network call to Supabase
+    const { user, error: authResponse } = authenticateRequest(request);
+    if (authResponse) return authResponse;
 
     // Get user profile for company_id
     const { data: dbUser } = await supabase
