@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import SitePreviewFrame from './SitePreviewFrame';
 
 export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToStep }) {
-  const { company } = useAuth();
+  const { company, session } = useAuth();
   const [confirmed, setConfirmed] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [launched, setLaunched] = useState(false);
@@ -21,6 +20,12 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     live: false,
   });
   const pollRef = useRef(null);
+  const sessionRef = useRef(session);
+
+  // Keep sessionRef in sync so the polling interval always has the latest token
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   // Determine if user is on a free trial (has trial_ends_at but no paid subscription)
   const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id;
@@ -33,9 +38,9 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     if (siteId && !publishSteps.live) {
       pollRef.current = setInterval(async () => {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const token = sessionRef.current?.access_token;
           const res = await fetch(`/api/website-builder/publish-status?siteId=${siteId}`, {
-            headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
           });
           const data = await res.json();
           if (data.steps) {
@@ -63,9 +68,8 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     setLaunchError(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        throw new Error('You must be logged in to launch your website.');
+        throw new Error('You must be logged in to launch your website. Please refresh the page and try again.');
       }
 
       const response = await fetch('/api/website-builder/create-site', {
