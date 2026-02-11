@@ -24,12 +24,13 @@ export async function PUT(request) {
   try {
     const supabase = getSupabase();
 
-    // Auth check — decode JWT directly, no network call to Supabase
-    const { user, error: authResponse } = authenticateRequest(request);
+    const body = await request.json();
+
+    // Auth check — tries header, then body._authToken, then query param
+    const { user, error: authResponse } = authenticateRequest(request, body?._authToken);
     if (authResponse) return authResponse;
 
-    const body = await request.json();
-    const { siteId, ...updates } = body;
+    const { siteId, _authToken, ...updates } = body;
 
     if (!siteId) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });

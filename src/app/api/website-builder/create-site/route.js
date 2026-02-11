@@ -34,8 +34,12 @@ export async function POST(request) {
   try {
     const supabase = getSupabase();
 
-    // Auth check — decode JWT directly, no network call to Supabase
-    const { user, error: authResponse } = authenticateRequest(request);
+    // Parse body FIRST — the token may be in the body as a fallback when
+    // the Authorization header is stripped by 308 redirects (trailingSlash + Netlify)
+    const body = await request.json();
+
+    // Auth check — tries: 1) Authorization header, 2) body._authToken, 3) query param
+    const { user, error: authResponse } = authenticateRequest(request, body?._authToken);
     if (authResponse) return authResponse;
 
     // Get user profile for company_id
@@ -49,7 +53,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No company found for user' }, { status: 400 });
     }
 
-    const body = await request.json();
     const {
       trade, templateId, businessName, tagline, phone, email,
       serviceArea, services, licenseNumber, yearsInBusiness,

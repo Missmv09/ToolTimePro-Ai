@@ -97,7 +97,11 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           // Always get a fresh token — the stored one may have expired
           const { data: { session: pollSession } } = await supabase.auth.getSession();
           const pollToken = pollSession?.access_token || sessionRef.current?.access_token;
-          const res = await fetch(`/api/website-builder/publish-status/?siteId=${siteId}`, {
+          // Send token via both header AND query param — header may be stripped by 308 redirects
+          const pollUrl = pollToken
+            ? `/api/website-builder/publish-status/?siteId=${siteId}&_token=${encodeURIComponent(pollToken)}`
+            : `/api/website-builder/publish-status/?siteId=${siteId}`;
+          const res = await fetch(pollUrl, {
             headers: pollToken ? { Authorization: `Bearer ${pollToken}` } : {},
           });
           const data = await res.json();
@@ -146,6 +150,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          _authToken: token,  // Backup: survives 308 redirects that strip headers
           trade: wizardData.trade,
           templateId: wizardData.templateId,
           businessName: wizardData.businessName,
