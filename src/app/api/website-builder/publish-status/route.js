@@ -61,14 +61,19 @@ export async function GET(request) {
 
     const domainRegistered = logs?.some((l) => l.action === 'register' && l.status === 'success') || false;
     const dnsConfigured = logs?.some((l) => l.action === 'dns_update' && l.status === 'success') || false;
+    // Subdomain/existing domain setups count as "registered" (no Name.com step needed)
+    const subdomainOrExisting = logs?.some((l) =>
+      (l.action === 'subdomain_setup' || l.action === 'existing_domain') && l.status === 'success'
+    ) || false;
     const isLive = site.status === 'live';
     const isBuilding = site.status === 'building';
+    const domainReady = domainRegistered || subdomainOrExisting;
 
     // Derive build steps
     const steps = {
-      domain_registered: domainRegistered,
-      dns_configured: dnsConfigured,
-      site_generated: isLive || (isBuilding && domainRegistered),
+      domain_registered: domainReady,
+      dns_configured: dnsConfigured || subdomainOrExisting,
+      site_generated: isLive || (isBuilding && domainReady),
       deployed: isLive,
       live: isLive,
     };
