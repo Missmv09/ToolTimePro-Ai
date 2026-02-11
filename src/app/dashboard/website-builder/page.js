@@ -35,9 +35,12 @@ export default function WebsiteBuilderPage() {
         .maybeSingle();
 
       if (site) {
-        // Auto-recover sites stuck in 'building' for over 2 minutes
-        if (site.status === 'building' && site.created_at) {
-          const ageMs = Date.now() - new Date(site.created_at).getTime();
+        // Auto-recover sites stuck in 'building' for over 2 minutes.
+        // Use updated_at (not created_at) — created_at never changes, so old
+        // sites would ALWAYS trigger recovery even if just re-launched.
+        if (site.status === 'building' && (site.updated_at || site.created_at)) {
+          const lastTouch = site.updated_at || site.created_at;
+          const ageMs = Date.now() - new Date(lastTouch).getTime();
           if (ageMs > 2 * 60 * 1000) {
             const { error: updateErr } = await supabase
               .from('website_sites')

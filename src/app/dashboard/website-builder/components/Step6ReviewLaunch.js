@@ -1,10 +1,23 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import SitePreviewFrame from './SitePreviewFrame';
+
+// Decode a JWT payload client-side to check expiry before sending
+function isTokenExpired(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // Expired if < 30 seconds remaining (30s buffer for network latency)
+    return !payload.exp || payload.exp * 1000 < Date.now() + 30000;
+  } catch {
+    return true;
+  }
+}
 
 export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToStep }) {
   const { company, session } = useAuth();
@@ -12,6 +25,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
   const [launching, setLaunching] = useState(false);
   const [launched, setLaunched] = useState(false);
   const [launchError, setLaunchError] = useState(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [siteId, setSiteId] = useState(null);
   const [publishSteps, setPublishSteps] = useState({
     domain_registered: false,
@@ -22,10 +36,51 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
   });
   const pollRef = useRef(null);
   const sessionRef = useRef(session);
+  const keepaliveRef = useRef(null);
 
   // Keep sessionRef in sync so the polling interval always has the latest token
   useEffect(() => {
     sessionRef.current = session;
+  }, [session]);
+
+  // Session keepalive — refresh every 10 minutes while on the review page.
+  // This prevents token expiry for users who spend a long time reviewing.
+  useEffect(() => {
+    keepaliveRef.current = setInterval(async () => {
+      try {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error || !data?.session) {
+          console.warn('[Keepalive] Session refresh failed:', error?.message);
+        }
+      } catch {
+        // Silently continue — launch will handle expired tokens
+      }
+    }, 10 * 60 * 1000); // Every 10 minutes
+
+    return () => clearInterval(keepaliveRef.current);
+  }, []);
+
+  // Helper: get a valid, non-expired token or null
+  const getValidToken = useCallback(async () => {
+    // Method 1: Force refresh — best shot at a fresh token
+    try {
+      const { data: refreshData } = await supabase.auth.refreshSession();
+      const t = refreshData?.session?.access_token;
+      if (t && !isTokenExpired(t)) return { token: t, source: 'refreshSession' };
+    } catch { /* continue */ }
+
+    // Method 2: getSession — may have a recent token in memory
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const t = sessionData?.session?.access_token;
+      if (t && !isTokenExpired(t)) return { token: t, source: 'getSession' };
+    } catch { /* continue */ }
+
+    // Method 3: AuthContext — last resort
+    const t = session?.access_token;
+    if (t && !isTokenExpired(t)) return { token: t, source: 'context' };
+
+    return null;
   }, [session]);
 
   // Determine if user is on a free trial (has trial_ends_at but no paid subscription)
@@ -69,48 +124,19 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
   const handleLaunch = async () => {
     setLaunching(true);
     setLaunchError(null);
+    setSessionExpired(false);
 
     try {
-      // Try multiple methods to get a valid token
-      let token = null;
-      let tokenSource = 'none';
+      // Get a valid, non-expired token
+      const result = await getValidToken();
 
-      // Method 1: Force a refresh
-      try {
-        const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
-        if (refreshData?.session?.access_token) {
-          token = refreshData.session.access_token;
-          tokenSource = 'refreshSession';
-        } else {
-          console.warn('[Launch] refreshSession failed:', refreshErr?.message || 'no session returned');
-        }
-      } catch (e) {
-        console.warn('[Launch] refreshSession threw:', e.message);
+      if (!result) {
+        // Every token source is expired — the user must re-authenticate
+        setSessionExpired(true);
+        throw new Error('Your session has expired. Please log in again to continue.');
       }
 
-      // Method 2: getSession fallback
-      if (!token) {
-        try {
-          const { data: sessionData } = await supabase.auth.getSession();
-          if (sessionData?.session?.access_token) {
-            token = sessionData.session.access_token;
-            tokenSource = 'getSession';
-          }
-        } catch (e) {
-          console.warn('[Launch] getSession threw:', e.message);
-        }
-      }
-
-      // Method 3: AuthContext session fallback
-      if (!token && session?.access_token) {
-        token = session.access_token;
-        tokenSource = 'context';
-      }
-
-      if (!token) {
-        throw new Error('No auth token available. Please log out, log back in, and try again.');
-      }
-
+      const { token, source: tokenSource } = result;
       console.log('[Launch] Using token from:', tokenSource, '| length:', token.length);
 
       const response = await fetch('/api/website-builder/create-site/', {
@@ -134,14 +160,17 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           colors: wizardData.colors,
           enabledSections: wizardData.enabledSections,
           heroImage: wizardData.heroImage ? { type: wizardData.heroImage.type, url: wizardData.heroImage.url } : null,
-          galleryImages: wizardData.galleryImages.map((p) => ({ type: p.type, url: p.url })),
+          galleryImages: (wizardData.galleryImages || []).map((p) => ({ type: p.type, url: p.url })),
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Include debug info so the user can report the exact failure
+        // If the server says auth failed, flag session as expired
+        if (response.status === 401) {
+          setSessionExpired(true);
+        }
         const debugInfo = `[${response.status} | token: ${tokenSource} | len: ${token.length}]`;
         throw new Error(`${data.error || 'Failed to create site'} ${debugInfo}`);
       }
@@ -421,7 +450,15 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
 
             {launchError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                {launchError}
+                <p>{launchError}</p>
+                {sessionExpired && (
+                  <a
+                    href="/auth/login"
+                    className="mt-2 inline-block font-semibold text-red-800 underline"
+                  >
+                    Log in again to continue
+                  </a>
+                )}
               </div>
             )}
 
