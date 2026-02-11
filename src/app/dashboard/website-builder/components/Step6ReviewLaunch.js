@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import SitePreviewFrame from './SitePreviewFrame';
 
 export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToStep }) {
+  const { company } = useAuth();
   const [confirmed, setConfirmed] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [launched, setLaunched] = useState(false);
@@ -18,6 +20,12 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     live: false,
   });
   const pollRef = useRef(null);
+
+  // Determine if user is on a free trial (has trial_ends_at but no paid subscription)
+  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id;
+  const trialDaysLeft = isOnTrial
+    ? Math.max(0, Math.ceil((new Date(company.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   // Poll for publish status
   useEffect(() => {
@@ -275,10 +283,22 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           {/* Cost Summary */}
           <div className="card border-2 border-gold-200 bg-gold-50/30">
             <h3 className="font-semibold text-navy-500 mb-4">Your Website Plan</h3>
+            {isOnTrial && (
+              <div className="mb-4 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                Included in your free trial — <strong>{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} remaining</strong>. Billing starts after your trial ends.
+              </div>
+            )}
             <div className="space-y-2 text-sm mb-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Website Builder Add-on</span>
-                <span className="font-semibold text-navy-500">$15/month</span>
+                {isOnTrial ? (
+                  <span className="font-semibold">
+                    <span className="line-through text-gray-400">$15/month</span>{' '}
+                    <span className="text-green-600">Free during trial</span>
+                  </span>
+                ) : (
+                  <span className="font-semibold text-navy-500">$15/month</span>
+                )}
               </div>
               {wizardData.selectedDomain?.type === 'new' && (
                 <div className="flex justify-between">
@@ -326,7 +346,10 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
                 className="mt-0.5 w-5 h-5 rounded border-gray-300 text-gold-500 focus:ring-gold-500"
               />
               <span className="text-sm text-gray-600">
-                I confirm the above information is correct and I agree to the Website Builder terms ($15/month{wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).
+                {isOnTrial
+                  ? `I confirm the above information is correct and I agree to the Website Builder terms. The Website Builder is included in my free trial — billing of $15/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''} begins when my trial ends.`
+                  : `I confirm the above information is correct and I agree to the Website Builder terms ($15/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).`
+                }
               </span>
             </label>
 
