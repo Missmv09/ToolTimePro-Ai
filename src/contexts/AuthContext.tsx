@@ -224,6 +224,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: setupError };
       }
 
+      // Step 3: Send a branded confirmation email via Resend (replaces Supabase's
+      // generic default). This is fire-and-forget — if it fails, the user still
+      // has the Supabase confirmation email as a fallback.
+      try {
+        await fetch('/api/send-confirmation-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: authData.user.id,
+            email,
+            name: fullName,
+            companyName,
+          }),
+        });
+      } catch {
+        // Non-critical — Supabase's default email is the fallback
+      }
+
       return { error: null };
     } catch (error) {
       console.error('Signup error:', error);

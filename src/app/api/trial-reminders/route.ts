@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     // Get all companies on trial (no stripe_customer_id = not yet paid)
     const { data: companies, error } = await supabaseAdmin
       .from('companies')
-      .select('id, name, email, trial_starts_at, trial_ends_at')
+      .select('id, name, email, trial_starts_at, trial_ends_at, welcome_email_sent_at')
       .is('stripe_customer_id', null)
       .not('trial_ends_at', 'is', null);
 
@@ -76,7 +76,8 @@ export async function GET(request: Request) {
 
       try {
         // Day 1: Welcome email (sent once, 1 day after signup)
-        if (daysSinceStart === 1) {
+        // Skip if the user already received the immediate welcome email at password-set time
+        if (daysSinceStart === 1 && !company.welcome_email_sent_at) {
           await sendTrialWelcomeEmail({ to: emailTo, name });
           results.welcome.push(emailTo);
         }
