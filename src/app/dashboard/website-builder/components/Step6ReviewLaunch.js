@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import SitePreviewFrame from './SitePreviewFrame';
 
 export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToStep }) {
@@ -38,9 +39,11 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     if (siteId && !publishSteps.live) {
       pollRef.current = setInterval(async () => {
         try {
-          const token = sessionRef.current?.access_token;
+          // Always get a fresh token — the stored one may have expired
+          const { data: { session: pollSession } } = await supabase.auth.getSession();
+          const pollToken = pollSession?.access_token || sessionRef.current?.access_token;
           const res = await fetch(`/api/website-builder/publish-status?siteId=${siteId}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            headers: pollToken ? { Authorization: `Bearer ${pollToken}` } : {},
           });
           const data = await res.json();
           if (data.steps) {
@@ -68,7 +71,13 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     setLaunchError(null);
 
     try {
-      if (!session?.access_token) {
+      // Always refresh the session to get a non-expired access token.
+      // The token stored in AuthContext state can go stale if the user
+      // spends time filling out the wizard.
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      const token = freshSession?.access_token || session?.access_token;
+
+      if (!token) {
         throw new Error('You must be logged in to launch your website. Please refresh the page and try again.');
       }
 
@@ -76,7 +85,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           trade: wizardData.trade,

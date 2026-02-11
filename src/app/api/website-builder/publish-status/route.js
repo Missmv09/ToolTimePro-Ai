@@ -12,7 +12,9 @@ function getSupabase() {
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase environment variables not configured');
     }
-    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
   }
   return supabaseInstance;
 }
