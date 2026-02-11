@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning'
+import { useSessionTimeout } from '@/hooks/useSessionTimeout'
 
 interface WorkerUser {
   id: string
@@ -48,12 +50,18 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   }, [pathname, router])
 
   const handleSignOut = async () => {
+    localStorage.removeItem('tooltime_worker_session')
     const { error } = await supabase.auth.signOut()
     if (error) {
       console.error('Sign out error:', error.message)
     }
     router.push('/worker/login')
   }
+
+  const { showWarning, secondsRemaining, resetTimeout } = useSessionTimeout({
+    onTimeout: handleSignOut,
+    enabled: !!user && pathname !== '/worker/login',
+  })
 
   // Helper to get company name (handles both object and array from Supabase)
   const getCompanyName = (company: WorkerUser['company']): string => {
@@ -129,6 +137,14 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
           })}
         </div>
       </nav>
+
+      {showWarning && (
+        <SessionTimeoutWarning
+          secondsRemaining={secondsRemaining}
+          onStayLoggedIn={resetTimeout}
+          onLogOut={handleSignOut}
+        />
+      )}
     </div>
   )
 }
