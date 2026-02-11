@@ -118,87 +118,91 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to create site record' }, { status: 500 });
     }
 
-    // Domain registration (synchronous — fast operations)
     const cleanDomain = selectedDomain.domainName.toLowerCase().trim();
+    const domainType = selectedDomain.type || 'new'; // 'new' | 'existing' | 'subdomain'
 
-    // Log attempt
-    await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'pending');
+    // Only register via Name.com for brand-new domain purchases
+    if (domainType === 'new') {
+      await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'pending');
 
-    // Get company info for contacts
-    const { data: company } = await supabase
-      .from('companies')
-      .select('name, email, phone, address, city, state, zip')
-      .eq('id', dbUser.company_id)
-      .single();
+      const { data: company } = await supabase
+        .from('companies')
+        .select('name, email, phone, address, city, state, zip')
+        .eq('id', dbUser.company_id)
+        .single();
 
-    const contacts = {
-      firstName: user.user_metadata?.first_name || 'ToolTime',
-      lastName: user.user_metadata?.last_name || 'Pro Customer',
-      companyName: company?.name || businessName,
-      address1: company?.address || '',
-      city: company?.city || '',
-      state: company?.state || 'CA',
-      zip: company?.zip || '',
-      phone: company?.phone || phone,
-      email: user.email || company?.email || email,
-    };
+      const contacts = {
+        firstName: user.user_metadata?.first_name || 'ToolTime',
+        lastName: user.user_metadata?.last_name || 'Pro Customer',
+        companyName: company?.name || businessName,
+        address1: company?.address || '',
+        city: company?.city || '',
+        state: company?.state || 'CA',
+        zip: company?.zip || '',
+        phone: company?.phone || phone,
+        email: user.email || company?.email || email,
+      };
 
-    try {
-      const regResult = await registerDomain(cleanDomain, contacts);
+      try {
+        const regResult = await registerDomain(cleanDomain, contacts);
 
-      if (regResult.success) {
-        await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'success', {
-          expireDate: regResult.expireDate,
-        });
+        if (regResult.success) {
+          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'success', {
+            expireDate: regResult.expireDate,
+          });
 
-        // Set DNS records
-        try {
-          const dnsResult = await setDNSRecords(cleanDomain);
-          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update',
-            dnsResult.success ? 'success' : 'failed', { records: dnsResult.records });
+          try {
+            const dnsResult = await setDNSRecords(cleanDomain);
+            await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update',
+              dnsResult.success ? 'success' : 'failed', { records: dnsResult.records });
 
-          // Update site with domain info
-          await supabase
-            .from('website_sites')
-            .update({
-              domain_status: dnsResult.success ? 'active' : 'pending',
-              domain_registered_at: new Date().toISOString(),
-              domain_expires_at: regResult.expireDate || null,
-              domain_auto_renew: true,
-              status: 'building',
-            })
-            .eq('id', site.id);
-        } catch (dnsError) {
-          console.error('[Create Site] DNS error:', dnsError.message);
-          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update', 'failed', null, { error: dnsError.message });
+            await supabase
+              .from('website_sites')
+              .update({
+                domain_status: dnsResult.success ? 'active' : 'pending',
+                domain_registered_at: new Date().toISOString(),
+                domain_expires_at: regResult.expireDate || null,
+                domain_auto_renew: true,
+              })
+              .eq('id', site.id);
+          } catch (dnsError) {
+            console.error('[Create Site] DNS error:', dnsError.message);
+            await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update', 'failed', null, { error: dnsError.message });
+          }
+        } else {
+          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: regResult.error });
         }
-      } else {
-        await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: regResult.error });
+      } catch (domainError) {
+        console.error('[Create Site] Domain registration error:', domainError.message);
+        await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: domainError.message });
       }
-    } catch (domainError) {
-      console.error('[Create Site] Domain registration error:', domainError.message);
-      await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: domainError.message });
+    } else {
+      // Subdomain or existing domain — no Name.com registration needed
+      await supabase
+        .from('website_sites')
+        .update({
+          domain_status: domainType === 'subdomain' ? 'active' : 'pending',
+        })
+        .eq('id', site.id);
+
+      await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain,
+        domainType === 'subdomain' ? 'subdomain_setup' : 'existing_domain',
+        'success', { type: domainType });
     }
 
-    // Simulate async build progress — update to 'live' after a short delay
-    // In production, this would be a background job or edge function
-    setTimeout(async () => {
-      try {
-        await getSupabase()
-          .from('website_sites')
-          .update({ status: 'live', published_at: new Date().toISOString() })
-          .eq('id', site.id);
-      } catch (err) {
-        console.error('[Create Site] Failed to set live status:', err.message);
-      }
-    }, 15000);
+    // Set site live immediately — no async build step yet.
+    // (When a real build pipeline exists, this will be replaced by a webhook/job.)
+    await supabase
+      .from('website_sites')
+      .update({ status: 'live', published_at: new Date().toISOString() })
+      .eq('id', site.id);
 
     return NextResponse.json({
       success: true,
       siteId: site.id,
-      status: 'building',
+      status: 'live',
       domain: cleanDomain,
-      message: 'Your website is being built! You\'ll be notified when it\'s live.',
+      message: 'Your website is live!',
     });
   } catch (error) {
     console.error('[Create Site API] Error:', error);

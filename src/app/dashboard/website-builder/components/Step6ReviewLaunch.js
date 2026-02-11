@@ -104,7 +104,14 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
       }
 
       setSiteId(data.siteId);
-      setPublishSteps((prev) => ({ ...prev, domain_registered: true, dns_configured: true }));
+
+      // API now sets site live synchronously — mark all steps done if already live
+      if (data.status === 'live') {
+        setPublishSteps({ domain_registered: true, dns_configured: true, site_generated: true, deployed: true, live: true });
+        setLaunched(true);
+      } else {
+        setPublishSteps((prev) => ({ ...prev, domain_registered: true, dns_configured: true }));
+      }
     } catch (err) {
       setLaunchError(err.message);
       setLaunching(false);
