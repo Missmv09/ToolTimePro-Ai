@@ -21,7 +21,8 @@ interface Quote {
   customer: { id: string; name: string; email: string } | null
   status: string
   subtotal: number
-  tax: number
+  tax_rate: number
+  tax_amount: number
   total: number
   notes: string
   valid_until: string
@@ -143,7 +144,8 @@ function QuotesContent() {
         customer_id: quote.customer_id,
         quote_id: quote.id,
         subtotal: quote.subtotal,
-        tax: quote.tax,
+        tax_rate: quote.tax_rate,
+        tax_amount: quote.tax_amount,
         total: quote.total,
         status: 'draft',
         notes: quote.notes,
@@ -190,7 +192,8 @@ function QuotesContent() {
         company_id: companyId,
         customer_id: quote.customer_id,
         subtotal: quote.subtotal,
-        tax: quote.tax,
+        tax_rate: quote.tax_rate,
+        tax_amount: quote.tax_amount,
         total: quote.total,
         notes: quote.notes,
         status: 'draft',
@@ -470,12 +473,12 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
-    const tax = subtotal * 0.0875 // CA sales tax estimate
-    const total = subtotal + tax
-    return { subtotal, tax, total }
+    const tax_amount = subtotal * 0.0875 // CA sales tax estimate
+    const total = subtotal + tax_amount
+    return { subtotal, tax_amount, total }
   }
 
-  const { subtotal, tax, total } = calculateTotals()
+  const { subtotal, tax_amount, total } = calculateTotals()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -487,7 +490,8 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
       notes: formData.notes,
       valid_until: formData.valid_until,
       subtotal,
-      tax,
+      tax_rate: 8.75,
+      tax_amount,
       total,
       status: quote?.status || 'draft',
     }
@@ -520,7 +524,7 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
         description: item.description,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        total: item.quantity * item.unit_price,
+        total_price: item.quantity * item.unit_price,
       }))
 
       if (quoteItems.length > 0) {
@@ -622,7 +626,7 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Tax (8.75%)</span>
-              <span>${tax.toFixed(2)}</span>
+              <span>${tax_amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
