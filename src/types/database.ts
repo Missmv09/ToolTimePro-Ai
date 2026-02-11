@@ -31,6 +31,7 @@ export interface Database {
           trial_ends_at: string | null
           industry: string | null
           onboarding_completed: boolean
+          welcome_email_sent_at: string | null
           created_at: string
           updated_at: string
         }
@@ -52,6 +53,7 @@ export interface Database {
           trial_ends_at?: string | null
           industry?: string | null
           onboarding_completed?: boolean
+          welcome_email_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -73,6 +75,7 @@ export interface Database {
           trial_ends_at?: string | null
           industry?: string | null
           onboarding_completed?: boolean
+          welcome_email_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }

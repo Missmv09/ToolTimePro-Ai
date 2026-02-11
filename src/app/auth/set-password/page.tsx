@@ -7,6 +7,23 @@ import { HardHat, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
+async function triggerWelcomeEmail() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    await fetch('/api/send-welcome-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+  } catch {
+    // Non-critical — don't block the user flow
+  }
+}
+
 export default function SetPasswordPage() {
   const router = useRouter();
   const { user, company, isLoading: authLoading } = useAuth();
@@ -69,6 +86,9 @@ export default function SetPasswordPage() {
 
     setSuccess(true);
     setIsLoading(false);
+
+    // Fire the welcome email in the background (non-blocking)
+    triggerWelcomeEmail();
 
     // Redirect to onboarding (or dashboard if already onboarded)
     setTimeout(() => {
