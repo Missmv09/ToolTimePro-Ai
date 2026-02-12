@@ -53,9 +53,11 @@ export function useSessionTimeout({
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const onTimeoutRef = useRef(onTimeout);
+  const showWarningRef = useRef(false);
 
-  // Keep callback ref up to date without re-running effects
+  // Keep refs up to date without re-running effects
   onTimeoutRef.current = onTimeout;
+  showWarningRef.current = showWarning;
 
   const clearAllTimers = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -74,6 +76,7 @@ export function useSessionTimeout({
     const warningDelay = timeoutMs - warningMs;
     warningRef.current = setTimeout(() => {
       setShowWarning(true);
+      showWarningRef.current = true;
       setSecondsRemaining(Math.round(warningMs / 1000));
 
       // Start a 1-second countdown for the remaining time display
@@ -92,12 +95,14 @@ export function useSessionTimeout({
     timeoutRef.current = setTimeout(() => {
       clearAllTimers();
       setShowWarning(false);
+      showWarningRef.current = false;
       onTimeoutRef.current();
     }, timeoutMs);
   }, [timeoutMs, warningMs, clearAllTimers]);
 
   const resetTimeout = useCallback(() => {
     setShowWarning(false);
+    showWarningRef.current = false;
     setSecondsRemaining(0);
     startTimers();
   }, [startTimers]);
@@ -107,6 +112,7 @@ export function useSessionTimeout({
     if (!enabled) {
       clearAllTimers();
       setShowWarning(false);
+      showWarningRef.current = false;
       return;
     }
 
@@ -122,7 +128,7 @@ export function useSessionTimeout({
       lastThrottled = now;
 
       // Don't reset if warning is already showing — user must explicitly dismiss it
-      if (showWarning) return;
+      if (showWarningRef.current) return;
 
       startTimers();
     };
@@ -133,7 +139,7 @@ export function useSessionTimeout({
 
     // Also handle visibility change: if user returns to the tab, check if we've exceeded timeout
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !showWarning) {
+      if (document.visibilityState === 'visible' && !showWarningRef.current) {
         const elapsed = Date.now() - lastActivityRef.current;
         if (elapsed >= timeoutMs) {
           // Already past timeout while tab was hidden
@@ -142,6 +148,7 @@ export function useSessionTimeout({
         } else if (elapsed >= timeoutMs - warningMs) {
           // Past warning threshold — show warning with correct remaining time
           setShowWarning(true);
+          showWarningRef.current = true;
           const remaining = Math.round((timeoutMs - elapsed) / 1000);
           setSecondsRemaining(Math.max(remaining, 0));
 
@@ -172,7 +179,7 @@ export function useSessionTimeout({
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [enabled, showWarning, timeoutMs, warningMs, startTimers, clearAllTimers]);
+  }, [enabled, timeoutMs, warningMs, startTimers, clearAllTimers]);
 
   return { showWarning, secondsRemaining, resetTimeout };
 }
