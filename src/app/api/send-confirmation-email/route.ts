@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const supabaseAdmin = getSupabaseAdmin();
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({
-        type: 'signup',
+        type: 'magiclink',
         email,
         options: {
           redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://tooltimepro.com'}/auth/callback`,
