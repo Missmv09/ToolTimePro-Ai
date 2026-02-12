@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
@@ -22,6 +22,12 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
+    if (!isSupabaseConfigured) {
+      setError('Authentication is not configured. Please contact support.')
+      setLoading(false)
+      return
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -29,7 +35,11 @@ export default function LoginPage() {
       })
 
       if (error) {
-        setError(error.message)
+        if (error.message === 'Failed to fetch') {
+          setError('Unable to connect. Please check your internet connection and try again.')
+        } else {
+          setError(error.message)
+        }
         setLoading(false)
       } else {
         router.push('/dashboard')

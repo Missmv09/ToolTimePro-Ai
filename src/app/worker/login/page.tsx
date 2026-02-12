@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 export default function WorkerLoginPage() {
   const [email, setEmail] = useState('')
@@ -16,6 +16,12 @@ export default function WorkerLoginPage() {
     setLoading(true)
     setError(null)
 
+    if (!isSupabaseConfigured) {
+      setError('Authentication is not configured. Please contact support.')
+      setLoading(false)
+      return
+    }
+
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -23,7 +29,11 @@ export default function WorkerLoginPage() {
       })
 
       if (authError) {
-        setError(authError.message)
+        if (authError.message === 'Failed to fetch') {
+          setError('Unable to connect. Please check your internet connection and try again.')
+        } else {
+          setError(authError.message)
+        }
         setLoading(false)
         return
       }
