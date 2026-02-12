@@ -71,6 +71,15 @@ export function authenticateRequest(request, bodyToken = null) {
     }
   } catch { /* ignore URL parse errors */ }
 
+  // 4. Cookie (most reliable — cookies are ALWAYS sent automatically with
+  // every request, even after 308 redirects, unlike headers/body/query)
+  try {
+    const cookieToken = request.cookies?.get?.('_auth_token')?.value;
+    if (cookieToken) {
+      candidates.push({ token: decodeURIComponent(cookieToken), source: 'cookie' });
+    }
+  } catch { /* ignore cookie parse errors */ }
+
   if (candidates.length === 0) {
     console.error('[Auth] No token found in any source. Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'missing', '| bodyToken:', !!bodyToken);
     return { error: NextResponse.json({ error: 'Unauthorized — no token provided' }, { status: 401 }) };

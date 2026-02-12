@@ -162,13 +162,16 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         galleryImages: (wizardData.galleryImages || []).map((p) => ({ type: p.type, url: p.url })),
       };
 
-      // Send token via ALL three channels: header, body, and query param.
+      // Send token via FOUR channels: header, body, query param, AND cookie.
       // Netlify/CDN 308 redirects strip the Authorization header and may drop
-      // the request body. Query params always survive redirects.
+      // the request body and query params. Cookies ALWAYS survive redirects
+      // because the browser attaches them automatically to every request.
+      document.cookie = `_auth_token=${encodeURIComponent(token)}; path=/api/; max-age=120; SameSite=Lax`;
       const url = `/api/website-builder/create-site/?_token=${encodeURIComponent(token)}`;
 
       let response = await fetch(url, {
         method: 'POST',
+        credentials: 'same-origin',  // Ensure cookies are sent
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -181,9 +184,11 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         console.warn('[Launch] First attempt returned 401 — refreshing token and retrying');
         const retry = await getValidToken();
         if (retry) {
+          document.cookie = `_auth_token=${encodeURIComponent(retry.token)}; path=/api/; max-age=120; SameSite=Lax`;
           const retryUrl = `/api/website-builder/create-site/?_token=${encodeURIComponent(retry.token)}`;
           response = await fetch(retryUrl, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${retry.token}`,
