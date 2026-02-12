@@ -89,7 +89,6 @@ export async function POST(request) {
           business_name: businessName,
           business_phone: phone,
           business_email: email || user.email,
-          business_address: serviceArea || '',
           site_content: {
             trade,
             tagline: tagline || '',
@@ -140,7 +139,6 @@ export async function POST(request) {
           business_name: businessName,
           business_phone: phone,
           business_email: email || user.email,
-          business_address: serviceArea || '',
           site_content: {
             trade,
             tagline: tagline || '',
