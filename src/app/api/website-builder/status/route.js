@@ -28,7 +28,7 @@ export async function GET(request) {
     const supabase = getSupabase();
 
     // Auth check — decode JWT directly, no network call to Supabase
-    const { user, error: authResponse } = authenticateRequest(request);
+    const { user, error: authResponse } = await authenticateRequest(request);
     if (authResponse) return authResponse;
 
     // Fetch website site with template info

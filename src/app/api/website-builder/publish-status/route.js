@@ -31,8 +31,8 @@ export async function GET(request) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });
     }
 
-    // Auth check — decode JWT directly, no network call to Supabase
-    const { user, error: authResponse } = authenticateRequest(request);
+    // Auth check — verifies via Supabase getUser(), falls back to local JWT
+    const { user, error: authResponse } = await authenticateRequest(request);
     if (authResponse) return authResponse;
 
     // Fetch site

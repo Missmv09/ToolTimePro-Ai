@@ -31,7 +31,7 @@ export async function POST(request) {
     const body = await request.json();
 
     // Auth check — tries header, then body._authToken, then query param
-    const { user, error: authResponse } = authenticateRequest(request, body?._authToken);
+    const { user, error: authResponse } = await authenticateRequest(request, body?._authToken);
     if (authResponse) return authResponse;
 
     const { domainName, siteId } = body;

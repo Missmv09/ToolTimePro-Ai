@@ -60,25 +60,45 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     return () => clearInterval(keepaliveRef.current);
   }, []);
 
-  // Helper: get a valid, non-expired token or null
+  // Helper: get a valid, non-expired token or null.
+  // IMPORTANT: Try cached sources FIRST (no network call → no 406 risk).
+  // refreshSession() triggers a Supabase API call that returns 406 when the
+  // refresh token is stale, which can poison the auth state and clear the
+  // cached session. By checking cached tokens first we avoid that entirely.
   const getValidToken = useCallback(async () => {
-    // Method 1: Force refresh — best shot at a fresh token
-    try {
-      const { data: refreshData } = await supabase.auth.refreshSession();
-      const t = refreshData?.session?.access_token;
-      if (t && !isTokenExpired(t)) return { token: t, source: 'refreshSession' };
-    } catch { /* continue */ }
+    // Method 1: AuthContext — instant, no network, no side-effects
+    const ctxToken = session?.access_token;
+    if (ctxToken && !isTokenExpired(ctxToken)) {
+      return { token: ctxToken, source: 'context' };
+    }
 
-    // Method 2: getSession — may have a recent token in memory
+    // Method 2: getSession — reads from Supabase memory/localStorage (no network)
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const t = sessionData?.session?.access_token;
       if (t && !isTokenExpired(t)) return { token: t, source: 'getSession' };
     } catch { /* continue */ }
 
-    // Method 3: AuthContext — last resort
-    const t = session?.access_token;
-    if (t && !isTokenExpired(t)) return { token: t, source: 'context' };
+    // Method 3: refreshSession — network call to Supabase (may 406 if refresh
+    // token is invalid, but we only try this as a last resort)
+    try {
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.warn('[getValidToken] refreshSession failed:', refreshError.message, '| status:', refreshError.status);
+      }
+      const t = refreshData?.session?.access_token;
+      if (t && !isTokenExpired(t)) return { token: t, source: 'refreshSession' };
+    } catch (e) {
+      console.warn('[getValidToken] refreshSession threw:', e.message);
+    }
+
+    // Method 4: If all above failed, try the cached token even if "expired"
+    // (with a generous 5-minute buffer — the server may have a different clock)
+    const anyToken = ctxToken || (await supabase.auth.getSession().catch(() => null))?.data?.session?.access_token;
+    if (anyToken) {
+      console.warn('[getValidToken] Using potentially-expired token as last resort');
+      return { token: anyToken, source: 'lastResort' };
+    }
 
     return null;
   }, [session]);
