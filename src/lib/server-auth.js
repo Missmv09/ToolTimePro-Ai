@@ -46,57 +46,68 @@ function decodeSupabaseJWT(token) {
  * Returns { user } on success or { error: NextResponse } on failure.
  */
 export function authenticateRequest(request, bodyToken = null) {
-  // --- Resolve token from multiple sources ---
-  let token = null;
-  let source = 'none';
+  // Collect all available tokens from every source.
+  // Netlify/CDN 308 redirects strip the Authorization header and may drop
+  // the request body, so we try every channel and use the first VALID one.
+  const candidates = [];
 
   // 1. Authorization header (preferred)
   const authHeader = request.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ')) {
-    token = authHeader.replace('Bearer ', '');
-    source = 'header';
+    candidates.push({ token: authHeader.replace('Bearer ', ''), source: 'header' });
   }
 
-  // 2. Body token (POST fallback — bypasses 308 redirect header stripping)
-  if (!token && bodyToken) {
-    token = bodyToken;
-    source = 'body';
+  // 2. Body token (POST fallback — bypasses header stripping)
+  if (bodyToken) {
+    candidates.push({ token: bodyToken, source: 'body' });
   }
 
-  // 3. Query param (GET fallback)
-  if (!token) {
-    try {
-      const url = new URL(request.url);
-      const qToken = url.searchParams.get('_token');
-      if (qToken) {
-        token = qToken;
-        source = 'query';
-      }
-    } catch { /* ignore URL parse errors */ }
-  }
+  // 3. Query param (survives ALL redirects)
+  try {
+    const url = new URL(request.url);
+    const qToken = url.searchParams.get('_token');
+    if (qToken) {
+      candidates.push({ token: qToken, source: 'query' });
+    }
+  } catch { /* ignore URL parse errors */ }
 
-  if (!token) {
-    console.error('[Auth] No token found. Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'missing', '| bodyToken:', !!bodyToken);
+  if (candidates.length === 0) {
+    console.error('[Auth] No token found in any source. Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'missing', '| bodyToken:', !!bodyToken);
     return { error: NextResponse.json({ error: 'Unauthorized — no token provided' }, { status: 401 }) };
   }
 
-  const { payload, reason } = decodeSupabaseJWT(token);
+  // De-duplicate tokens (header and body are usually the same value)
+  const seen = new Set();
+  const unique = candidates.filter(c => {
+    if (seen.has(c.token)) return false;
+    seen.add(c.token);
+    return true;
+  });
 
-  if (!payload) {
-    console.error('[Auth] JWT decode failed. Source:', source, '| Reason:', reason, '| Token length:', token.length);
-    return {
-      error: NextResponse.json(
-        { error: `Auth failed: ${reason}. Please log out, log back in, and try again.` },
-        { status: 401 }
-      ),
-    };
+  // Try each unique token — use the first one that validates successfully.
+  // This way if the header token is expired/bad but the query param has a
+  // fresh token (from a retry), we still succeed.
+  let lastReason = 'unknown';
+  for (const { token, source } of unique) {
+    const { payload, reason } = decodeSupabaseJWT(token);
+    if (payload) {
+      return {
+        user: {
+          id: payload.sub,
+          email: payload.email,
+          user_metadata: payload.user_metadata || {},
+        },
+      };
+    }
+    console.warn('[Auth] Token from', source, 'failed:', reason, '| len:', token.length);
+    lastReason = reason;
   }
 
+  console.error('[Auth] All token sources failed. Sources tried:', unique.map(c => c.source).join(', '), '| Last reason:', lastReason);
   return {
-    user: {
-      id: payload.sub,
-      email: payload.email,
-      user_metadata: payload.user_metadata || {},
-    },
+    error: NextResponse.json(
+      { error: `Auth failed: ${lastReason}. Please log out, log back in, and try again.` },
+      { status: 401 }
+    ),
   };
 }

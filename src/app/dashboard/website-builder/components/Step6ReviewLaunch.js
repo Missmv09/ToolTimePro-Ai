@@ -143,31 +143,55 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
       const { token, source: tokenSource } = result;
       console.log('[Launch] Using token from:', tokenSource, '| length:', token.length);
 
-      const response = await fetch('/api/website-builder/create-site/', {
+      const payload = {
+        _authToken: token,  // Backup: survives 308 redirects that strip headers
+        trade: wizardData.trade,
+        templateId: wizardData.templateId,
+        businessName: wizardData.businessName,
+        tagline: wizardData.tagline,
+        phone: wizardData.phone,
+        email: wizardData.email,
+        serviceArea: wizardData.serviceArea,
+        services: wizardData.services,
+        licenseNumber: wizardData.licenseNumber,
+        yearsInBusiness: wizardData.yearsInBusiness,
+        selectedDomain: wizardData.selectedDomain,
+        colors: wizardData.colors,
+        enabledSections: wizardData.enabledSections,
+        heroImage: wizardData.heroImage ? { type: wizardData.heroImage.type, url: wizardData.heroImage.url } : null,
+        galleryImages: (wizardData.galleryImages || []).map((p) => ({ type: p.type, url: p.url })),
+      };
+
+      // Send token via ALL three channels: header, body, and query param.
+      // Netlify/CDN 308 redirects strip the Authorization header and may drop
+      // the request body. Query params always survive redirects.
+      const url = `/api/website-builder/create-site/?_token=${encodeURIComponent(token)}`;
+
+      let response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          _authToken: token,  // Backup: survives 308 redirects that strip headers
-          trade: wizardData.trade,
-          templateId: wizardData.templateId,
-          businessName: wizardData.businessName,
-          tagline: wizardData.tagline,
-          phone: wizardData.phone,
-          email: wizardData.email,
-          serviceArea: wizardData.serviceArea,
-          services: wizardData.services,
-          licenseNumber: wizardData.licenseNumber,
-          yearsInBusiness: wizardData.yearsInBusiness,
-          selectedDomain: wizardData.selectedDomain,
-          colors: wizardData.colors,
-          enabledSections: wizardData.enabledSections,
-          heroImage: wizardData.heroImage ? { type: wizardData.heroImage.type, url: wizardData.heroImage.url } : null,
-          galleryImages: (wizardData.galleryImages || []).map((p) => ({ type: p.type, url: p.url })),
-        }),
+        body: JSON.stringify(payload),
       });
+
+      // If 401, get a completely fresh token and retry once
+      if (response.status === 401) {
+        console.warn('[Launch] First attempt returned 401 — refreshing token and retrying');
+        const retry = await getValidToken();
+        if (retry) {
+          const retryUrl = `/api/website-builder/create-site/?_token=${encodeURIComponent(retry.token)}`;
+          response = await fetch(retryUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${retry.token}`,
+            },
+            body: JSON.stringify({ ...payload, _authToken: retry.token }),
+          });
+        }
+      }
 
       const data = await response.json();
 
