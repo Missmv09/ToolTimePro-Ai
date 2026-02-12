@@ -38,8 +38,8 @@ export async function POST(request) {
     // the Authorization header is stripped by 308 redirects (trailingSlash + Netlify)
     const body = await request.json();
 
-    // Auth check — tries: 1) Authorization header, 2) body._authToken, 3) query param
-    const { user, error: authResponse } = authenticateRequest(request, body?._authToken);
+    // Auth check — tries header, body, query, cookie; verifies via Supabase getUser()
+    const { user, error: authResponse } = await authenticateRequest(request, body?._authToken);
     if (authResponse) return authResponse;
 
     // Get user profile for company_id
