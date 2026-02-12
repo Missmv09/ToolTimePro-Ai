@@ -89,7 +89,11 @@ export default function WebsiteBuilderPage() {
 }
 
 function WebsiteDashboard({ site, leadCount, onRefresh }) {
-  const domainUrl = site.custom_domain ? `https://${site.custom_domain}` : null;
+  const domainUrl = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com')
+    ? `https://${site.custom_domain}`
+    : site.slug
+      ? `/site/${site.slug}`
+      : null;
   const isLive = site.status === 'live';
   const isBuilding = site.status === 'building';
 

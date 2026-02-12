@@ -88,7 +88,7 @@ export async function GET(request) {
       hasWebsite: true,
       site: {
         ...siteData,
-        siteUrl: site.custom_domain
+        siteUrl: site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com')
           ? `https://${site.custom_domain}`
           : `https://tooltimepro.com/site/${site.slug}`,
         isPublished: site.status === 'live',
