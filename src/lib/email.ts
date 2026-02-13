@@ -12,7 +12,9 @@ function getResend() {
   return resend;
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@send.tooltimepro.com>';
+// Default to the verified root domain. Once send.tooltimepro.com is added
+// and verified in Resend, set EMAIL_FROM=ToolTime Pro <no-reply@send.tooltimepro.com>
+const FROM_EMAIL = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@tooltimepro.com>';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com';
 
 function formatPlanName(plan: string): string {
@@ -29,8 +31,7 @@ function emailLayout(content: string): string {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 32px 40px; text-align: center;">
           <table cellpadding="0" cellspacing="0" border="0" align="center"><tr>
-            <td style="width: 40px; height: 40px; background: #f59e0b; border-radius: 10px; text-align: center; vertical-align: middle; font-size: 20px;">&#9881;</td>
-            <td style="padding-left: 12px;"><span style="color: #ffffff; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">ToolTime Pro</span></td>
+            <td style="vertical-align: middle;"><img src="${BASE_URL}/logo-horizontal-white-01262026.png" alt="ToolTime Pro" width="200" style="display: block; height: auto;" /></td>
           </tr></table>
         </div>
         <!-- Body -->
