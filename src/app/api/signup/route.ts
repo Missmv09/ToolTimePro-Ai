@@ -141,7 +141,7 @@ export async function POST(request: Request) {
     // Re-affirm the needs_password flag after generateLink, because
     // generateLink({ type: 'magiclink' }) confirms the email as a side-effect
     // and may clear user_metadata in the process.
-    await supabaseAdmin.auth.admin.updateUser(userData.user.id, {
+    await supabaseAdmin.auth.admin.updateUserById(userData.user.id, {
       user_metadata: { full_name: fullName, needs_password: true },
       app_metadata: { needs_password: true },
     });

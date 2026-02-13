@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     }
 
     // Clear needs_password from both app_metadata and user_metadata
-    await supabaseAdmin.auth.admin.updateUser(user.id, {
+    await supabaseAdmin.auth.admin.updateUserById(user.id, {
       app_metadata: { needs_password: false },
       user_metadata: { needs_password: false },
     });
