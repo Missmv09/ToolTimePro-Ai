@@ -46,7 +46,15 @@ export async function POST(request: Request) {
       // If the auth user already exists, check whether it has a profile.
       // A previous failed signup may have left an orphaned auth user (auth
       // row exists but no matching row in the users/companies tables).
-      if (createError.message?.includes('already been registered')) {
+      // Supabase wording varies across versions so we check broadly.
+      const errMsg = (createError.message || '').toLowerCase();
+      const isDuplicate =
+        errMsg.includes('already') ||
+        errMsg.includes('registered') ||
+        errMsg.includes('exists') ||
+        errMsg.includes('duplicate');
+
+      if (isDuplicate) {
         const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
         const existingUser = listData?.users?.find(
           (u) => u.email?.toLowerCase() === email.toLowerCase()
@@ -71,11 +79,13 @@ export async function POST(request: Request) {
           // Orphaned auth user with no profile — clean up and recreate.
           // Also remove any orphaned company row that may have been left
           // behind by a previous failed signup (companies.email is UNIQUE).
+          // Use ilike for case-insensitive match since the stored email may
+          // differ in casing from what the user typed this time.
           await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
           await supabaseAdmin
             .from('companies')
             .delete()
-            .eq('email', email.toLowerCase());
+            .ilike('email', email);
           const retry = await supabaseAdmin.auth.admin.createUser({
             email,
             password: tempPassword,
