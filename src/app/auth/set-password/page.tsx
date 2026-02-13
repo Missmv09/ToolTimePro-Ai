@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { HardHat, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -34,9 +34,45 @@ export default function SetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const codeHandled = useRef(false);
+
+  // If Supabase redirected here with an auth code (signup magic link),
+  // exchange it for a session before doing anything else.
+  useEffect(() => {
+    if (codeHandled.current) return;
+    codeHandled.current = true;
+
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const tokenHash = url.searchParams.get('token_hash');
+    const type = url.searchParams.get('type');
+
+    const exchangeAuth = async () => {
+      try {
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code);
+        } else if (tokenHash && type) {
+          await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as 'signup' | 'magiclink' | 'recovery' | 'email',
+          });
+        }
+      } catch (err) {
+        console.error('Auth exchange error:', err);
+      }
+      setSessionReady(true);
+    };
+
+    if (code || tokenHash) {
+      exchangeAuth();
+    } else {
+      setSessionReady(true);
+    }
+  }, []);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !sessionReady) return;
 
     // If no user session, redirect to login
     if (!user) {
@@ -54,7 +90,7 @@ export default function SetPasswordPage() {
         router.replace('/onboarding');
       }
     }
-  }, [user, company, authLoading, router]);
+  }, [user, company, authLoading, sessionReady, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +152,7 @@ export default function SetPasswordPage() {
     );
   }
 
-  if (!user && !authLoading) {
+  if (!user && !authLoading && sessionReady) {
     return (
       <div className="min-h-screen bg-navy-gradient flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
