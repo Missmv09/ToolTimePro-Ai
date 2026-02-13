@@ -123,7 +123,7 @@ export async function POST(request: Request) {
         type: 'magiclink',
         email,
         options: {
-          redirectTo: `${baseUrl}/auth/callback?flow=signup`,
+          redirectTo: `${baseUrl}/auth/set-password`,
         },
       });
 
