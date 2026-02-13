@@ -126,9 +126,9 @@ export default function ResetPasswordPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
+                  placeholder="At least 8 characters"
                   className="input pl-10 pr-10"
-                  minLength={6}
+                  minLength={8}
                   required
                 />
                 <button
@@ -152,7 +152,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
                   className="input pl-10"
-                  minLength={6}
+                  minLength={8}
                   required
                 />
               </div>
