@@ -202,6 +202,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (authError) {
+        if (authError.message?.includes('already registered') || authError.message?.includes('already been registered')) {
+          return { error: new Error('An account with this email already exists. Please sign in instead.') };
+        }
         return { error: authError };
       }
 
@@ -221,6 +224,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (setupError) {
         console.error('Error setting up account:', setupError);
+        // Friendly message for duplicate email
+        if (setupError.message?.includes('companies_email_key') || setupError.message?.includes('duplicate key')) {
+          return { error: new Error('An account with this email already exists. Please sign in instead.') };
+        }
         return { error: setupError };
       }
 
