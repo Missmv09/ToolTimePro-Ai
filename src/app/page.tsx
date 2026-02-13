@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -151,16 +152,54 @@ export default function Home() {
   const router = useRouter();
   const { user, company, isLoading } = useAuth();
 
-  // Redirect authenticated users away from the marketing homepage
+  const passwordCheckDone = useRef(false);
+
+  // Redirect authenticated users away from the marketing homepage.
+  // Uses a server-side API call to check needs_password because the
+  // client-side JWT may not contain the flag after Supabase auth flows.
   useEffect(() => {
     if (isLoading || !user) return;
-    // If the user hasn't set a password yet, send them there first.
-    if (user.app_metadata?.needs_password || user.user_metadata?.needs_password) {
+
+    // Server-side password check (runs once)
+    if (!passwordCheckDone.current) {
+      passwordCheckDone.current = true;
       setRedirecting(true);
-      router.replace('/auth/set-password');
+
+      (async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            const res = await fetch('/api/auth/check-needs-password', {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (res.ok) {
+              const { needsPassword } = await res.json();
+              if (needsPassword) {
+                router.replace('/auth/set-password');
+                return;
+              }
+            }
+          }
+        } catch {
+          // If check fails, fall through to normal routing
+        }
+
+        // Normal routing: wait for company then redirect
+        if (company) {
+          if (company.onboarding_completed) {
+            router.replace('/dashboard');
+          } else {
+            router.replace('/onboarding');
+          }
+        } else {
+          // Company not loaded yet — the next effect run will handle it
+          setRedirecting(false);
+        }
+      })();
       return;
     }
-    // Wait until company data has loaded before deciding where to redirect
+
+    // After password check is done, handle company-based routing
     if (!company) return;
     setRedirecting(true);
     if (company.onboarding_completed) {

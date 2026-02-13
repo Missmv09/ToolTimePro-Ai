@@ -2,48 +2,28 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-
-async function checkNeedsPasswordOnServer(accessToken: string): Promise<boolean> {
-  try {
-    const res = await fetch('/api/auth/check-needs-password', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    if (!res.ok) return false
-    const { needsPassword } = await res.json()
-    return needsPassword === true
-  } catch {
-    return false
-  }
-}
 
 export default function AuthCallbackPage() {
   const router = useRouter()
-  const { user, company, isLoading } = useAuth()
   const [status, setStatus] = useState<'confirming' | 'redirecting'>('confirming')
-  const codeHandled = useRef(false)
-  const redirecting = useRef(false)
-  // Use state (not ref) so changes trigger the routing useEffect to re-run.
-  const [serverCheckDone, setServerCheckDone] = useState(false)
-  const [needsPasswordResult, setNeedsPasswordResult] = useState<boolean | null>(null)
+  const handled = useRef(false)
 
-  // Step 1: Exchange the auth code / token for a session, then ask the
-  // server (admin API → database) whether the user still needs to set a
-  // password.  This is more reliable than reading user_metadata from the
-  // client-side JWT.
+  // Single sequential flow — no race conditions, no competing useEffects,
+  // no reliance on client-side JWT metadata (which Supabase may clear).
+  // Every decision uses server-side checks only.
   useEffect(() => {
-    if (codeHandled.current) return
-    codeHandled.current = true
+    if (handled.current) return
+    handled.current = true
 
-    const url = new URL(window.location.href)
-    const code = url.searchParams.get('code')
-    const tokenHash = url.searchParams.get('token_hash')
-    const type = url.searchParams.get('type')
-
-    const processAuth = async () => {
+    const handleCallback = async () => {
       try {
-        // Exchange the code / token for a Supabase session.
+        const url = new URL(window.location.href)
+        const code = url.searchParams.get('code')
+        const tokenHash = url.searchParams.get('token_hash')
+        const type = url.searchParams.get('type')
+
+        // Step 1: Exchange the auth code / token for a Supabase session.
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code)
           if (error) console.error('Error exchanging code for session:', error)
@@ -55,8 +35,7 @@ export default function AuthCallbackPage() {
           if (error) console.error('Error verifying OTP:', error)
         }
 
-        // Poll for up to 5 s for the session to appear (handles hash-fragment
-        // tokens that the Supabase JS client detects asynchronously).
+        // Step 2: Wait for the session to appear.
         let session = null
         for (let i = 0; i < 20; i++) {
           const { data } = await supabase.auth.getSession()
@@ -67,77 +46,63 @@ export default function AuthCallbackPage() {
           await new Promise((r) => setTimeout(r, 250))
         }
 
-        if (session?.access_token) {
-          const needsPassword = await checkNeedsPasswordOnServer(session.access_token)
-          setNeedsPasswordResult(needsPassword)
-          setServerCheckDone(true)
-          if (needsPassword && !redirecting.current) {
-            redirecting.current = true
-            setStatus('redirecting')
-            router.replace('/auth/set-password')
+        if (!session?.access_token) {
+          router.replace('/auth/login')
+          return
+        }
+
+        // Step 3: Server-side password check — reads app_metadata directly
+        // from the database via admin API.  This is the ONLY reliable check;
+        // the client-side JWT may not contain our needs_password flag.
+        setStatus('redirecting')
+        try {
+          const res = await fetch('/api/auth/check-needs-password', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+          if (res.ok) {
+            const { needsPassword } = await res.json()
+            if (needsPassword) {
+              router.replace('/auth/set-password')
+              return
+            }
+          }
+        } catch {
+          // If the check fails, fall through to onboarding check below.
+        }
+
+        // Step 4: Check onboarding status directly from the database.
+        const { data: userData } = await supabase.auth.getUser()
+        const userId = userData?.user?.id
+        if (userId) {
+          const { data: userRow } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', userId)
+            .single()
+          if (userRow?.company_id) {
+            const { data: comp } = await supabase
+              .from('companies')
+              .select('onboarding_completed')
+              .eq('id', userRow.company_id)
+              .single()
+            if (comp?.onboarding_completed) {
+              router.replace('/dashboard')
+            } else {
+              router.replace('/onboarding')
+            }
             return
           }
-        } else {
-          // No session — let the routing useEffect handle fallback.
-          setServerCheckDone(true)
         }
+
+        router.replace('/onboarding')
       } catch (err) {
         console.error('Auth callback error:', err)
-        setServerCheckDone(true)
+        router.replace('/auth/login')
       }
     }
 
-    processAuth()
+    handleCallback()
   }, [router])
-
-  // Step 2: Once AuthContext has the user + company and the server check is
-  // done, decide where to send the user.  A `redirecting` guard prevents
-  // this from racing with the redirect in processAuth above.
-  useEffect(() => {
-    if (redirecting.current) return
-    if (isLoading) return
-
-    if (!user) {
-      const timeout = setTimeout(() => {
-        if (!redirecting.current) {
-          redirecting.current = true
-          router.replace('/auth/login')
-        }
-      }, 8000)
-      return () => clearTimeout(timeout)
-    }
-
-    // Client-side fallback for the needs_password check.
-    // Check both app_metadata (reliable, server-only) and user_metadata.
-    if (user.app_metadata?.needs_password || user.user_metadata?.needs_password) {
-      redirecting.current = true
-      setStatus('redirecting')
-      router.replace('/auth/set-password')
-      return
-    }
-
-    // Wait for the server-side check to finish before routing elsewhere.
-    if (!serverCheckDone) return
-
-    // Server said password is needed — redirect even if client metadata missed it.
-    if (needsPasswordResult) {
-      redirecting.current = true
-      setStatus('redirecting')
-      router.replace('/auth/set-password')
-      return
-    }
-
-    if (!company) return
-
-    redirecting.current = true
-    setStatus('redirecting')
-
-    if (company.onboarding_completed) {
-      router.replace('/dashboard')
-    } else {
-      router.replace('/onboarding')
-    }
-  }, [user, company, isLoading, router, serverCheckDone, needsPasswordResult])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
