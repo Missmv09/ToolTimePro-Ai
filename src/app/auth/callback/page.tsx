@@ -1,23 +1,50 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
   const { user, company, isLoading } = useAuth()
   const [status, setStatus] = useState<'confirming' | 'redirecting'>('confirming')
+  const codeHandled = useRef(false)
+
+  // Exchange the PKCE authorization code (or verify token hash) for a session.
+  // This must happen before the auth state listeners can detect a user.
+  useEffect(() => {
+    if (codeHandled.current) return
+    codeHandled.current = true
+
+    const url = new URL(window.location.href)
+    const code = url.searchParams.get('code')
+    const tokenHash = url.searchParams.get('token_hash')
+    const type = url.searchParams.get('type')
+
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).catch((err) => {
+        console.error('Error exchanging code for session:', err)
+      })
+    } else if (tokenHash && type) {
+      supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: type as 'signup' | 'magiclink' | 'recovery' | 'email',
+      }).catch((err) => {
+        console.error('Error verifying OTP:', err)
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (isLoading) return
 
     if (!user) {
-      // No session yet — might still be processing the URL hash.
+      // No session yet — might still be processing the auth code.
       // Give the Supabase client a moment, then fall back to login.
       const timeout = setTimeout(() => {
         router.replace('/auth/login')
-      }, 5000)
+      }, 8000)
       return () => clearTimeout(timeout)
     }
 

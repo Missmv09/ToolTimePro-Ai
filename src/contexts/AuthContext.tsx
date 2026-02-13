@@ -197,7 +197,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
 
       if (!res.ok) {
-        return { error: new Error(data.error || 'Signup failed') };
+        const msg = data.error || 'Signup failed';
+        if (msg.includes('companies_email_key') || msg.includes('duplicate key') || msg.includes('already registered')) {
+          return { error: new Error('An account with this email already exists. Please sign in instead.') };
+        }
+        return { error: new Error(msg) };
       }
 
       return { error: null };
