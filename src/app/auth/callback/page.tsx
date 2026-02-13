@@ -23,7 +23,10 @@ export default function AuthCallbackPage() {
   const { user, company, isLoading } = useAuth()
   const [status, setStatus] = useState<'confirming' | 'redirecting'>('confirming')
   const codeHandled = useRef(false)
-  const serverChecked = useRef(false)
+  const redirecting = useRef(false)
+  // Use state (not ref) so changes trigger the routing useEffect to re-run.
+  const [serverCheckDone, setServerCheckDone] = useState(false)
+  const [needsPasswordResult, setNeedsPasswordResult] = useState<boolean | null>(null)
 
   // Step 1: Exchange the auth code / token for a session, then ask the
   // server (admin API → database) whether the user still needs to set a
@@ -66,47 +69,66 @@ export default function AuthCallbackPage() {
 
         if (session?.access_token) {
           const needsPassword = await checkNeedsPasswordOnServer(session.access_token)
-          serverChecked.current = true
-          if (needsPassword) {
+          setNeedsPasswordResult(needsPassword)
+          setServerCheckDone(true)
+          if (needsPassword && !redirecting.current) {
+            redirecting.current = true
             setStatus('redirecting')
             router.replace('/auth/set-password')
             return
           }
+        } else {
+          // No session — let the routing useEffect handle fallback.
+          setServerCheckDone(true)
         }
       } catch (err) {
         console.error('Auth callback error:', err)
+        setServerCheckDone(true)
       }
     }
 
     processAuth()
   }, [router])
 
-  // Step 2 (fallback): Once AuthContext has the user + company, redirect.
-  // If the server check already redirected to set-password, this won't fire
-  // because the component unmounts.  If it did NOT redirect (e.g. the server
-  // call failed), fall back to the client-side user_metadata check.
+  // Step 2: Once AuthContext has the user + company and the server check is
+  // done, decide where to send the user.  A `redirecting` guard prevents
+  // this from racing with the redirect in processAuth above.
   useEffect(() => {
+    if (redirecting.current) return
     if (isLoading) return
 
     if (!user) {
       const timeout = setTimeout(() => {
-        router.replace('/auth/login')
+        if (!redirecting.current) {
+          redirecting.current = true
+          router.replace('/auth/login')
+        }
       }, 8000)
       return () => clearTimeout(timeout)
     }
 
     // Client-side fallback for the needs_password check
     if (user.user_metadata?.needs_password) {
+      redirecting.current = true
       setStatus('redirecting')
       router.replace('/auth/set-password')
       return
     }
 
-    // If the server-side check hasn't finished yet, wait.
-    if (!serverChecked.current) return
+    // Wait for the server-side check to finish before routing elsewhere.
+    if (!serverCheckDone) return
+
+    // Server said password is needed — redirect even if client metadata missed it.
+    if (needsPasswordResult) {
+      redirecting.current = true
+      setStatus('redirecting')
+      router.replace('/auth/set-password')
+      return
+    }
 
     if (!company) return
 
+    redirecting.current = true
     setStatus('redirecting')
 
     if (company.onboarding_completed) {
@@ -114,7 +136,7 @@ export default function AuthCallbackPage() {
     } else {
       router.replace('/onboarding')
     }
-  }, [user, company, isLoading, router])
+  }, [user, company, isLoading, router, serverCheckDone, needsPasswordResult])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
