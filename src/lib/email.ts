@@ -166,6 +166,50 @@ export async function sendSignupConfirmationEmail({
 }
 
 // ============================================
+// Password Reset Email (branded replacement for Supabase default)
+// ============================================
+
+export async function sendPasswordResetEmail({
+  to,
+  name,
+  resetUrl,
+}: {
+  to: string;
+  name: string;
+  resetUrl: string;
+}) {
+  const firstName = name.split(' ')[0] || 'there';
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Reset your ToolTime Pro password',
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Hi ${firstName},</h2>
+      <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
+        We received a request to reset your password. Click the button below to choose a new one.
+      </p>
+
+      ${ctaButton('Reset Password', resetUrl, '#3b82f6')}
+
+      <div style="background: #fefce8; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #eab308;">
+        <p style="margin: 0; color: #854d0e; font-size: 14px;">
+          If you didn't request this, you can safely ignore this email. Your password won't change.
+        </p>
+      </div>
+
+      <p style="color: #9ca3af; font-size: 13px; margin: 24px 0 0 0;">
+        If the button doesn't work, paste this link into your browser:<br />
+        <a href="${resetUrl}" style="color: #3b82f6; word-break: break-all; font-size: 12px;">${resetUrl}</a>
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
+// ============================================
 // Immediate Welcome Email (sent right after email verification + password set)
 // ============================================
 
