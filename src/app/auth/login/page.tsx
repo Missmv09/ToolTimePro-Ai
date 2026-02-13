@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
@@ -12,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const { authError } = useAuth()
+  const { authError, signIn, isConfigured } = useAuth()
 
   // Display either local error or auth context error
   const displayError = error || authError
@@ -23,13 +22,15 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { error } = await signIn(email, password)
 
       if (error) {
-        setError(error.message)
+        const message = error.message || 'An unexpected error occurred'
+        if (message.toLowerCase().includes('failed to fetch')) {
+          setError('Unable to connect to the server. Please check your internet connection and try again.')
+        } else {
+          setError(message)
+        }
         setLoading(false)
       } else {
         router.push('/dashboard')
@@ -37,8 +38,8 @@ export default function LoginPage() {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
-      if (message === 'Failed to fetch') {
-        setError('Unable to connect. Please check your internet connection and try again.')
+      if (message.toLowerCase().includes('failed to fetch')) {
+        setError('Unable to connect to the server. Please check your internet connection and try again.')
       } else {
         setError(message)
       }
@@ -57,6 +58,12 @@ export default function LoginPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          {!isConfigured && (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+              Authentication is not configured. Please contact support if this issue persists.
+            </div>
+          )}
+
           {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {displayError}
