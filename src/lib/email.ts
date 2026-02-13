@@ -83,28 +83,75 @@ export async function sendSignupConfirmationEmail({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `Confirm your email to get started with ToolTime Pro`,
+    subject: `${firstName}, confirm your email to start your free ToolTime Pro trial`,
     html: emailLayout(`
-      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Welcome, ${firstName}!</h2>
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Welcome to ToolTime Pro, ${firstName}!</h2>
       <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
-        You're one click away from managing <strong>${companyName}</strong> like a pro.
+        Your account for <strong>${companyName}</strong> has been created. You're one click away from simplifying how you run your business.
       </p>
 
       <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Click the button below to verify your email and set your password.
-        Your <strong>14-day free Pro trial</strong> is waiting &mdash; no credit card needed.
+        Click the button below to verify your email and set your password. Your <strong>14-day free Pro trial</strong> starts immediately &mdash; no credit card required, cancel anytime.
       </p>
 
       ${ctaButton('Verify Email & Get Started', confirmationUrl, '#3b82f6')}
 
-      <div style="background: #eff6ff; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #3b82f6;">
-        <p style="margin: 0 0 4px 0; color: #1e40af; font-weight: 600; font-size: 14px;">What you'll unlock:</p>
-        <ul style="color: #374151; font-size: 14px; line-height: 1.8; margin: 8px 0 0 0; padding-left: 20px;">
-          <li>Scheduling, quoting &amp; invoicing</li>
-          <li>Worker app with GPS clock-in</li>
-          <li>Time tracking &amp; CA compliance</li>
-          <li>SMS &amp; review automation</li>
-        </ul>
+      <div style="background: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+        <p style="margin: 0 0 8px 0; color: #1e40af; font-weight: 600; font-size: 15px;">Your Pro trial includes everything:</p>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top; width: 50%;">&#10003; Job scheduling &amp; dispatch</td>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top; width: 50%;">&#10003; Professional quotes &amp; invoices</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top;">&#10003; Worker app with GPS clock-in</td>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top;">&#10003; Time tracking &amp; timesheets</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top;">&#10003; CA labor compliance tools</td>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top;">&#10003; SMS &amp; review automation</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top;">&#10003; Customer management (CRM)</td>
+            <td style="padding: 6px 0; color: #374151; font-size: 14px; vertical-align: top;">&#10003; Up to 15 team members</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px 0; color: #111827; font-weight: 600; font-size: 15px;">What happens next?</p>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding: 8px 0;">
+              <table cellpadding="0" cellspacing="0" border="0"><tr>
+                <td style="width: 28px; height: 28px; background: #dbeafe; border-radius: 50%; text-align: center; vertical-align: middle; color: #3b82f6; font-weight: 700; font-size: 13px;">1</td>
+                <td style="padding-left: 12px; color: #374151; font-size: 14px;"><strong>Verify your email</strong> &mdash; click the button above</td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;">
+              <table cellpadding="0" cellspacing="0" border="0"><tr>
+                <td style="width: 28px; height: 28px; background: #dbeafe; border-radius: 50%; text-align: center; vertical-align: middle; color: #3b82f6; font-weight: 700; font-size: 13px;">2</td>
+                <td style="padding-left: 12px; color: #374151; font-size: 14px;"><strong>Set your password</strong> &mdash; choose a secure password for your account</td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;">
+              <table cellpadding="0" cellspacing="0" border="0"><tr>
+                <td style="width: 28px; height: 28px; background: #dbeafe; border-radius: 50%; text-align: center; vertical-align: middle; color: #3b82f6; font-weight: 700; font-size: 13px;">3</td>
+                <td style="padding-left: 12px; color: #374151; font-size: 14px;"><strong>Set up your company</strong> &mdash; add your services, rates &amp; team in ~10 minutes</td>
+              </tr></table>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #fefce8; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #eab308;">
+        <p style="margin: 0; color: #854d0e; font-size: 14px;">
+          <strong>Questions?</strong> Reply to this email or reach us at <a href="mailto:support@tooltimepro.com" style="color: #854d0e;">support@tooltimepro.com</a> &mdash; we're here to help you get set up.
+        </p>
       </div>
 
       <p style="color: #9ca3af; font-size: 13px; margin: 24px 0 0 0;">
@@ -377,6 +424,164 @@ export async function sendTeamMemberWelcomeEmail({
       </div>
 
       ${ctaButton('Log In to the Worker App', `${BASE_URL}/auth/login`)}
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
+// ============================================
+// Invoice Email (sent to customer with full context)
+// ============================================
+
+export async function sendInvoiceEmail({
+  to,
+  customerName,
+  invoiceNumber,
+  items,
+  subtotal,
+  taxRate,
+  taxAmount,
+  discountAmount,
+  total,
+  dueDate,
+  notes,
+  invoiceLink,
+  companyName,
+}: {
+  to: string;
+  customerName: string;
+  invoiceNumber: string;
+  items?: { description: string; quantity: number; unit_price: number; total: number }[];
+  subtotal?: number;
+  taxRate?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  total: number;
+  dueDate?: string;
+  notes?: string;
+  invoiceLink: string;
+  companyName?: string;
+}) {
+  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedDueDate = dueDate
+    ? new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
+
+  const formatCurrency = (amount: number) =>
+    `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  // Build line items table if items are available
+  let lineItemsHtml = '';
+  if (items && items.length > 0) {
+    const rows = items.map(item => `
+      <tr>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px;">${item.description}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: center;">${item.quantity}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(item.unit_price)}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(item.total)}</td>
+      </tr>
+    `).join('');
+
+    lineItemsHtml = `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+        <thead>
+          <tr style="background: #f9fafb;">
+            <th style="padding: 10px 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Description</th>
+            <th style="padding: 10px 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Qty</th>
+            <th style="padding: 10px 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Rate</th>
+            <th style="padding: 10px 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // Build totals breakdown
+  let totalsHtml = '';
+  if (subtotal !== undefined && subtotal !== total) {
+    totalsHtml = `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 24px 0;">
+        <tr>
+          <td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Subtotal</td>
+          <td style="padding: 6px 0; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(subtotal)}</td>
+        </tr>
+        ${discountAmount && discountAmount > 0 ? `
+        <tr>
+          <td style="padding: 6px 0; color: #16a34a; font-size: 14px;">Discount</td>
+          <td style="padding: 6px 0; color: #16a34a; font-size: 14px; text-align: right;">-${formatCurrency(discountAmount)}</td>
+        </tr>` : ''}
+        ${taxAmount && taxAmount > 0 ? `
+        <tr>
+          <td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Tax${taxRate ? ` (${taxRate}%)` : ''}</td>
+          <td style="padding: 6px 0; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(taxAmount)}</td>
+        </tr>` : ''}
+        <tr>
+          <td style="padding: 10px 0 6px 0; color: #111827; font-size: 16px; font-weight: 700; border-top: 2px solid #e5e7eb;">Total Due</td>
+          <td style="padding: 10px 0 6px 0; color: #111827; font-size: 16px; font-weight: 700; text-align: right; border-top: 2px solid #e5e7eb;">${formattedTotal}</td>
+        </tr>
+      </table>
+    `;
+  }
+
+  const senderLabel = companyName || 'ToolTime Pro';
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Invoice ${invoiceNumber} from ${senderLabel} - ${formattedTotal}${formattedDueDate ? ` due by ${formattedDueDate}` : ''}`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Hi ${customerName},</h2>
+      <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
+        ${senderLabel} has sent you an invoice.
+      </p>
+
+      <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="color: #6b7280; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px;" colspan="2">Invoice Summary</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Invoice:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${invoiceNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Amount:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right; font-weight: 700;">${formattedTotal}</td>
+          </tr>
+          ${formattedDueDate ? `
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Due Date:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${formattedDueDate}</td>
+          </tr>` : ''}
+          ${companyName ? `
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>From:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${companyName}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+
+      ${lineItemsHtml}
+
+      ${totalsHtml}
+
+      ${notes ? `
+      <div style="background: #eff6ff; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+        <p style="margin: 0 0 4px 0; color: #1e40af; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Notes</p>
+        <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6; white-space: pre-line;">${notes}</p>
+      </div>` : ''}
+
+      ${ctaButton('View & Pay Invoice', invoiceLink, '#3b82f6')}
+
+      <p style="color: #9ca3af; font-size: 13px; margin: 24px 0 0 0;">
+        If the button doesn't work, paste this link into your browser:<br />
+        <a href="${invoiceLink}" style="color: #3b82f6; word-break: break-all; font-size: 12px;">${invoiceLink}</a>
+      </p>
     `),
   });
 

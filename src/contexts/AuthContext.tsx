@@ -184,62 +184,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Generate a random temporary password — the user will set their real
-      // password after clicking the email confirmation link.
-      const tempPassword = crypto.randomUUID() + 'Aa1!';
-
-      // Step 1: Create the auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: tempPassword,
-        options: {
-          data: {
-            full_name: fullName,
-            needs_password: true,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+      // All signup logic runs server-side via /api/signup. This uses the admin
+      // API to create the user (which does NOT send Supabase's default plain
+      // confirmation email) and instead sends only our branded email with full
+      // context about the account, trial, and next steps.
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, fullName, companyName }),
       });
 
-      if (authError) {
-        return { error: authError };
-      }
+      const data = await res.json();
 
-      if (!authData.user) {
-        return { error: new Error('Failed to create user') };
-      }
-
-      // Step 2: Create company + user profile atomically via database function.
-      // This uses a SECURITY DEFINER function that bypasses RLS and runs in a
-      // transaction, so both records are created together or neither is.
-      const { error: setupError } = await supabase.rpc('handle_new_signup', {
-        p_user_id: authData.user.id,
-        p_email: email,
-        p_full_name: fullName,
-        p_company_name: companyName,
-      });
-
-      if (setupError) {
-        console.error('Error setting up account:', setupError);
-        return { error: setupError };
-      }
-
-      // Step 3: Send a branded confirmation email via Resend (replaces Supabase's
-      // generic default). This is fire-and-forget — if it fails, the user still
-      // has the Supabase confirmation email as a fallback.
-      try {
-        await fetch('/api/send-confirmation-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: authData.user.id,
-            email,
-            name: fullName,
-            companyName,
-          }),
-        });
-      } catch {
-        // Non-critical — Supabase's default email is the fallback
+      if (!res.ok) {
+        return { error: new Error(data.error || 'Signup failed') };
       }
 
       return { error: null };
