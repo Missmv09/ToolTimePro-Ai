@@ -32,7 +32,7 @@ export default function InvoicesPage() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
 
   const router = useRouter()
-  const { user, dbUser, isLoading: authLoading } = useAuth()
+  const { user, dbUser, company, isLoading: authLoading } = useAuth()
 
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
@@ -176,10 +176,15 @@ export default function InvoicesPage() {
               to: email,
               customerName: invoice.customer?.name || 'Customer',
               invoiceNumber,
+              items: invoice.items,
+              subtotal: invoice.subtotal,
+              taxRate: invoice.tax_rate,
+              taxAmount: invoice.tax_amount,
               total: invoice.total,
               dueDate: invoice.due_date,
+              notes: invoice.notes,
               invoiceLink,
-              companyId: companyId,
+              companyName: company?.name,
             }),
           })
           if (res.ok) emailSent = true

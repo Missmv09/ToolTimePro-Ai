@@ -89,7 +89,11 @@ export default function WebsiteBuilderPage() {
 }
 
 function WebsiteDashboard({ site, leadCount, onRefresh }) {
-  const domainUrl = site.custom_domain ? `https://${site.custom_domain}` : null;
+  const domainUrl = site.custom_domain
+    ? `https://${site.custom_domain}`
+    : site.slug
+      ? `/site/${site.slug}`
+      : null;
   const isLive = site.status === 'live';
   const isBuilding = site.status === 'building';
 
@@ -119,7 +123,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
             <Globe size={24} className="text-gold-500" />
             <div>
               <p className="font-semibold text-navy-500">
-                {site.custom_domain || 'No domain yet'}
+                {site.custom_domain || (site.slug ? `tooltimepro.com/site/${site.slug}` : 'No domain yet')}
               </p>
               <span className={`badge mt-1 ${statusColors[site.status] || statusColors.draft}`}>
                 {site.status === 'live' ? 'Live' : site.status === 'building' ? 'Building...' : site.status}
