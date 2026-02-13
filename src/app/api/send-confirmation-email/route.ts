@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         type: 'magiclink',
         email,
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://tooltimepro.com'}/auth/set-password`,
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://tooltimepro.com'}/auth/callback`,
         },
       });
 
