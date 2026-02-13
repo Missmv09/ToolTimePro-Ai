@@ -22,16 +22,21 @@ export async function GET(request: Request) {
     const supabaseAdmin = createClient(supabaseUrl, serviceKey);
 
     // getUser with the token reads directly from the auth database,
-    // not the JWT — this is the most reliable way to check user_metadata.
+    // not the JWT — this is the most reliable way to check metadata.
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
       return NextResponse.json({ needsPassword: false });
     }
 
-    return NextResponse.json({
-      needsPassword: user.user_metadata?.needs_password === true,
-    });
+    // Check app_metadata first (server-only, immune to Supabase auth flow
+    // side-effects like generateLink clearing user_metadata), then fall
+    // back to user_metadata.
+    const needsPassword =
+      user.app_metadata?.needs_password === true ||
+      user.user_metadata?.needs_password === true;
+
+    return NextResponse.json({ needsPassword });
   } catch {
     return NextResponse.json({ needsPassword: false });
   }
