@@ -12,7 +12,9 @@ export default function AuthCallbackPage() {
   const codeHandled = useRef(false)
 
   // Exchange the PKCE authorization code (or verify token hash) for a session.
-  // This must happen before the auth state listeners can detect a user.
+  // We await the result and check needs_password directly on the returned user
+  // to avoid a race condition where the auth context loads company data before
+  // the second useEffect can redirect to the set-password page.
   useEffect(() => {
     if (codeHandled.current) return
     codeHandled.current = true
@@ -22,19 +24,43 @@ export default function AuthCallbackPage() {
     const tokenHash = url.searchParams.get('token_hash')
     const type = url.searchParams.get('type')
 
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).catch((err) => {
-        console.error('Error exchanging code for session:', err)
-      })
-    } else if (tokenHash && type) {
-      supabase.auth.verifyOtp({
-        token_hash: tokenHash,
-        type: type as 'signup' | 'magiclink' | 'recovery' | 'email',
-      }).catch((err) => {
-        console.error('Error verifying OTP:', err)
-      })
+    const processAuth = async () => {
+      try {
+        let authUser = null
+
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) {
+            console.error('Error exchanging code for session:', error)
+            return
+          }
+          authUser = data?.user
+        } else if (tokenHash && type) {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as 'signup' | 'magiclink' | 'recovery' | 'email',
+          })
+          if (error) {
+            console.error('Error verifying OTP:', error)
+            return
+          }
+          authUser = data?.user
+        }
+
+        // Redirect immediately if this user still needs to set a password.
+        // Checking the returned user directly is more reliable than waiting
+        // for the auth context to propagate the updated user state.
+        if (authUser?.user_metadata?.needs_password) {
+          setStatus('redirecting')
+          router.replace('/auth/set-password')
+        }
+      } catch (err) {
+        console.error('Auth callback error:', err)
+      }
     }
-  }, [])
+
+    processAuth()
+  }, [router])
 
   useEffect(() => {
     if (isLoading) return
