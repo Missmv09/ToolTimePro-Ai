@@ -29,9 +29,53 @@ export async function POST(request: Request) {
     const supabaseAdmin = getSupabaseAdmin();
     const tempPassword = crypto.randomUUID() + 'Aa1!';
 
+    // Step 0: Proactively check for an existing auth user with this email.
+    // A previous failed signup may have left an orphaned auth user (auth row
+    // exists but no matching users/companies rows). We must clean these up
+    // before calling createUser, because Supabase will reject duplicates.
+    const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
+    const existingAuthUser = listData?.users?.find(
+      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    );
+
+    if (existingAuthUser) {
+      // Check if this auth user has a real profile in our users table
+      const { data: profile } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('id', existingAuthUser.id)
+        .single();
+
+      if (profile) {
+        // Genuine duplicate — they really do have a complete account
+        return NextResponse.json(
+          { error: 'An account with this email already exists. Please sign in instead.' },
+          { status: 409 }
+        );
+      }
+
+      // Orphaned auth user — clean up the stale auth user and any orphaned
+      // company row so we can start fresh.
+      console.log(`Cleaning up orphaned auth user for ${email}`);
+      await supabaseAdmin.auth.admin.deleteUser(existingAuthUser.id);
+      await supabaseAdmin
+        .from('companies')
+        .delete()
+        .ilike('email', email);
+    }
+
+    // Also clean up any orphaned company row even if there was no auth user
+    // (edge case: auth user was already cleaned up but company row remains).
+    if (!existingAuthUser) {
+      await supabaseAdmin
+        .from('companies')
+        .delete()
+        .ilike('email', email);
+    }
+
     // Step 1: Create auth user via admin API — this does NOT send a default
     // Supabase confirmation email, so the user only receives our branded email.
-    let { data: userData, error: createError } =
+    const { data: userData, error: createError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
         password: tempPassword,
@@ -42,66 +86,10 @@ export async function POST(request: Request) {
         },
       });
 
-    if (createError) {
-      // If the auth user already exists, check whether it has a profile.
-      // A previous failed signup may have left an orphaned auth user (auth
-      // row exists but no matching row in the users/companies tables).
-      if (createError.message?.includes('already been registered')) {
-        const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
-        const existingUser = listData?.users?.find(
-          (u) => u.email?.toLowerCase() === email.toLowerCase()
-        );
-
-        if (existingUser) {
-          // Check if this auth user already has a profile (i.e. a real account)
-          const { data: profile } = await supabaseAdmin
-            .from('users')
-            .select('id')
-            .eq('id', existingUser.id)
-            .single();
-
-          if (profile) {
-            // Genuine duplicate — the user really does have an account
-            return NextResponse.json(
-              { error: 'An account with this email already exists. Please sign in instead.' },
-              { status: 409 }
-            );
-          }
-
-          // Orphaned auth user with no profile — clean up and recreate.
-          // Also remove any orphaned company row that may have been left
-          // behind by a previous failed signup (companies.email is UNIQUE).
-          await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
-          await supabaseAdmin
-            .from('companies')
-            .delete()
-            .eq('email', email.toLowerCase());
-          const retry = await supabaseAdmin.auth.admin.createUser({
-            email,
-            password: tempPassword,
-            email_confirm: false,
-            user_metadata: {
-              full_name: fullName,
-              needs_password: true,
-            },
-          });
-          createError = retry.error;
-          userData = retry.data;
-        }
-      }
-
-      if (createError || !userData?.user) {
-        console.error('Error creating user:', createError);
-        return NextResponse.json(
-          { error: createError?.message || 'Failed to create user' },
-          { status: 500 }
-        );
-      }
-    }
-
-    if (!userData.user) {
+    if (createError || !userData?.user) {
+      console.error('Error creating user:', createError);
       return NextResponse.json(
-        { error: 'Failed to create user' },
+        { error: createError?.message || 'Failed to create user' },
         { status: 500 }
       );
     }
