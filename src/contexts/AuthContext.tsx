@@ -259,12 +259,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      // Use the server-side /api/reset-password route which calls the admin
+      // API's generateLink({ type: 'recovery' }). This works even when the
+      // user was created with email_confirm: false (the client-side
+      // resetPasswordForEmail silently skips unconfirmed users).
+      const res = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
 
-      if (error) {
-        return { error };
+      if (!res.ok) {
+        const data = await res.json();
+        return { error: new Error(data.error || 'Failed to send reset email') };
       }
 
       return { error: null };
