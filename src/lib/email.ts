@@ -12,7 +12,9 @@ function getResend() {
   return resend;
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@send.tooltimepro.com>';
+// Default to the verified root domain. Once send.tooltimepro.com is added
+// and verified in Resend, set EMAIL_FROM=ToolTime Pro <no-reply@send.tooltimepro.com>
+const FROM_EMAIL = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@tooltimepro.com>';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com';
 
 function formatPlanName(plan: string): string {
