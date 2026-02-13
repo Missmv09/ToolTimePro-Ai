@@ -20,17 +20,44 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [passwordChecked, setPasswordChecked] = useState(false)
+
+  // Server-side password check — the client-side JWT may not contain the
+  // needs_password flag, so we must ask the server (which reads from the DB).
+  useEffect(() => {
+    if (isLoading || !user) return
+    let cancelled = false
+
+    const checkPassword = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) { setPasswordChecked(true); return }
+
+        const res = await fetch('/api/auth/check-needs-password', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (!cancelled && res.ok) {
+          const { needsPassword } = await res.json()
+          if (needsPassword) {
+            router.replace('/auth/set-password')
+            return
+          }
+        }
+      } catch {
+        // If the check fails, let them through to onboarding
+      }
+      if (!cancelled) setPasswordChecked(true)
+    }
+
+    checkPassword()
+    return () => { cancelled = true }
+  }, [isLoading, user, router])
+
   // Redirect if not authenticated or if onboarding already completed
   useEffect(() => {
     if (isLoading) return
     if (!user) {
       router.replace('/auth/login')
-      return
-    }
-    // If the user hasn't set a password yet, send them there first.
-    // This catches cases where the auth callback was bypassed.
-    if (user.app_metadata?.needs_password || user.user_metadata?.needs_password) {
-      router.replace('/auth/set-password')
       return
     }
     if (company?.onboarding_completed) {
@@ -285,8 +312,8 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
-  // Show loading while auth data is being fetched
-  if (isLoading || !user) {
+  // Show loading while auth data or password check is pending
+  if (isLoading || !user || !passwordChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
