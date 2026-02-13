@@ -112,7 +112,8 @@ export default function SetPasswordPage() {
 
     setIsLoading(true);
 
-    // Set the user's real password and clear the needs_password flag
+    // Set the user's real password and clear the needs_password flag.
+    // updateUser changes the password AND returns a fresh session token.
     const { error: updateError } = await supabase.auth.updateUser({
       password: password,
       data: { needs_password: false },
@@ -124,19 +125,26 @@ export default function SetPasswordPage() {
       return;
     }
 
-    // Also clear needs_password from app_metadata via the admin API.
-    // app_metadata can only be modified server-side.
+    // Clear needs_password from app_metadata via the admin API.
+    // IMPORTANT: We must get a FRESH session token because updateUser()
+    // above changed the password, which may have invalidated the old token.
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await fetch('/api/auth/password-setup-complete', {
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      if (freshSession?.access_token) {
+        const res = await fetch('/api/auth/password-setup-complete', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          headers: { Authorization: `Bearer ${freshSession.access_token}` },
         });
+        if (!res.ok) {
+          console.error('Failed to clear app_metadata needs_password:', res.status);
+        }
       }
-    } catch {
-      // Non-critical — the user_metadata flag is already cleared
+    } catch (err) {
+      console.error('Error clearing app_metadata needs_password:', err);
     }
+
+    // Refresh the session to pick up the cleared metadata in the JWT
+    await supabase.auth.refreshSession();
 
     setSuccess(true);
     setIsLoading(false);
