@@ -1,7 +1,27 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const MAIN_DOMAIN = 'tooltimepro.com'
+
 export async function middleware(request: NextRequest) {
+  // --- Subdomain rewrite for customer sites ---
+  // If *.tooltimepro.com is hit (e.g. saldana-sons.tooltimepro.com),
+  // rewrite to /site/{subdomain} so the public site renderer handles it.
+  const hostname = request.headers.get('host') || ''
+  if (
+    hostname.endsWith(`.${MAIN_DOMAIN}`) &&
+    hostname !== `www.${MAIN_DOMAIN}` &&
+    hostname !== MAIN_DOMAIN
+  ) {
+    const subdomain = hostname.replace(`.${MAIN_DOMAIN}`, '')
+    const url = request.nextUrl.clone()
+    // Only rewrite root / requests to the site renderer; let subpaths pass through
+    if (url.pathname === '/' || url.pathname === '') {
+      url.pathname = `/site/${subdomain}`
+      return NextResponse.rewrite(url)
+    }
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
