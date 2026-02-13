@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Redirect to onboarding if not completed
   useEffect(() => {
-    if (!isLoading && company && company.onboarding_completed === false) {
+    if (!isLoading && company && !company.onboarding_completed) {
       router.push('/onboarding');
     }
   }, [isLoading, company, router]);
