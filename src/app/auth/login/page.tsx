@@ -29,7 +29,7 @@ export default function LoginPage() {
         if (message.toLowerCase().includes('failed to fetch')) {
           setError('Unable to connect to the server. Please check your internet connection and try again.')
         } else if (message.toLowerCase().includes('invalid login credentials')) {
-          setError('Incorrect email or password. Please try again or reset your password.')
+          setError('invalid_credentials')
         } else {
           setError(message)
         }
@@ -68,7 +68,16 @@ export default function LoginPage() {
 
           {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {displayError}
+              {displayError === 'invalid_credentials' ? (
+                <>
+                  Incorrect email or password. Please try again or{' '}
+                  <Link href="/auth/forgot-password" className="underline font-medium text-red-800 hover:text-red-900">
+                    reset your password
+                  </Link>.
+                </>
+              ) : (
+                displayError
+              )}
             </div>
           )}
 
