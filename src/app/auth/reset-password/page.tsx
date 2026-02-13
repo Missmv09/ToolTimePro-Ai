@@ -16,16 +16,31 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   useEffect(() => {
-    // Check if we have a valid recovery session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Listen for auth state changes so we detect the recovery session
+    // once Supabase finishes processing the URL hash tokens.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session) {
+          setIsValidSession(true);
+          setIsCheckingSession(false);
+        }
+      }
+    );
+
+    // Also check if a session already exists (e.g. page refresh)
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsValidSession(true);
       }
+      setIsCheckingSession(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
-    checkSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +89,18 @@ export default function ResetPasswordPage() {
           <p className="text-gray-600 mb-6">
             Your password has been successfully reset. Redirecting to dashboard...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-navy-gradient flex flex-col items-center justify-center p-6">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6" />
+          <h1 className="text-2xl font-bold text-navy-500 mb-2">Verifying your link...</h1>
+          <p className="text-gray-600">Just a moment while we verify your reset link.</p>
         </div>
       </div>
     );
