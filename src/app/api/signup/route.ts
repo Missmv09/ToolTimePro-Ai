@@ -39,25 +39,25 @@ export async function POST(request: Request) {
     );
 
     if (existingAuthUser) {
-      // Check if this auth user has a real profile in our users table
-      const { data: profile } = await supabaseAdmin
-        .from('users')
-        .select('id')
-        .eq('id', existingAuthUser.id)
-        .single();
+      // Check if this auth user has confirmed their email — that means they
+      // completed the full signup flow (account + email verified).  If NOT
+      // confirmed, the previous attempt never finished (e.g. email send
+      // failed) and we should clean up and let them retry.
+      const emailConfirmed = !!existingAuthUser.email_confirmed_at;
 
-      if (profile) {
-        // Genuine duplicate — they really do have a complete account
+      if (emailConfirmed) {
+        // Genuine duplicate — they completed signup successfully before
         return NextResponse.json(
           { error: 'An account with this email already exists. Please sign in instead.' },
           { status: 409 }
         );
       }
 
-      // Orphaned auth user — clean up the stale auth user and any orphaned
-      // company row so we can start fresh.
-      console.log(`Cleaning up orphaned auth user for ${email}`);
+      // Unconfirmed auth user — clean up the stale auth user, profile, and
+      // company rows so we can start fresh.
+      console.log(`Cleaning up unconfirmed auth user for ${email}`);
       await supabaseAdmin.auth.admin.deleteUser(existingAuthUser.id);
+      await supabaseAdmin.from('users').delete().eq('id', existingAuthUser.id);
       await supabaseAdmin
         .from('companies')
         .delete()
@@ -136,12 +136,20 @@ export async function POST(request: Request) {
     }
 
     // Step 4: Send the branded confirmation email via Resend.
-    await sendSignupConfirmationEmail({
-      to: email,
-      name: fullName,
-      companyName,
-      confirmationUrl: linkData.properties.action_link,
-    });
+    try {
+      await sendSignupConfirmationEmail({
+        to: email,
+        name: fullName,
+        companyName,
+        confirmationUrl: linkData.properties.action_link,
+      });
+    } catch (emailErr) {
+      // Email failed — clean up the account so the user can retry
+      console.error('Failed to send confirmation email, rolling back account:', emailErr);
+      await supabaseAdmin.auth.admin.deleteUser(userData.user.id);
+      const emailMessage = emailErr instanceof Error ? emailErr.message : 'Failed to send email';
+      return NextResponse.json({ error: emailMessage }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
