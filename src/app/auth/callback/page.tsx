@@ -5,19 +5,30 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 
+async function checkNeedsPasswordOnServer(accessToken: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/auth/check-needs-password', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return false
+    const { needsPassword } = await res.json()
+    return needsPassword === true
+  } catch {
+    return false
+  }
+}
+
 export default function AuthCallbackPage() {
   const router = useRouter()
   const { user, company, isLoading } = useAuth()
   const [status, setStatus] = useState<'confirming' | 'redirecting'>('confirming')
   const codeHandled = useRef(false)
-  // Track whether the redirect URL told us this is a new signup flow
-  const isSignupFlow = useRef(false)
+  const serverChecked = useRef(false)
 
-  // Exchange the PKCE authorization code (or verify token hash) for a session.
-  // The signup and resend-confirmation routes tag the redirect URL with
-  // ?flow=signup so we know to send the user to set-password regardless of
-  // what user_metadata contains (which can be unreliable across Supabase
-  // redirect modes).
+  // Step 1: Exchange the auth code / token for a session, then ask the
+  // server (admin API → database) whether the user still needs to set a
+  // password.  This is more reliable than reading user_metadata from the
+  // client-side JWT.
   useEffect(() => {
     if (codeHandled.current) return
     codeHandled.current = true
@@ -26,36 +37,41 @@ export default function AuthCallbackPage() {
     const code = url.searchParams.get('code')
     const tokenHash = url.searchParams.get('token_hash')
     const type = url.searchParams.get('type')
-    const flow = url.searchParams.get('flow')
-
-    if (flow === 'signup') {
-      isSignupFlow.current = true
-    }
 
     const processAuth = async () => {
       try {
+        // Exchange the code / token for a Supabase session.
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code)
-          if (error) {
-            console.error('Error exchanging code for session:', error)
-          }
+          if (error) console.error('Error exchanging code for session:', error)
         } else if (tokenHash && type) {
           const { error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: type as 'signup' | 'magiclink' | 'recovery' | 'email',
           })
-          if (error) {
-            console.error('Error verifying OTP:', error)
-          }
+          if (error) console.error('Error verifying OTP:', error)
         }
 
-        // After session is established, fetch the latest user from Supabase's
-        // server (not the JWT) to reliably check needs_password.
-        const { data: { user: freshUser } } = await supabase.auth.getUser()
+        // Poll for up to 5 s for the session to appear (handles hash-fragment
+        // tokens that the Supabase JS client detects asynchronously).
+        let session = null
+        for (let i = 0; i < 20; i++) {
+          const { data } = await supabase.auth.getSession()
+          if (data.session) {
+            session = data.session
+            break
+          }
+          await new Promise((r) => setTimeout(r, 250))
+        }
 
-        if (isSignupFlow.current || freshUser?.user_metadata?.needs_password) {
-          setStatus('redirecting')
-          router.replace('/auth/set-password')
+        if (session?.access_token) {
+          const needsPassword = await checkNeedsPasswordOnServer(session.access_token)
+          serverChecked.current = true
+          if (needsPassword) {
+            setStatus('redirecting')
+            router.replace('/auth/set-password')
+            return
+          }
         }
       } catch (err) {
         console.error('Auth callback error:', err)
@@ -65,26 +81,30 @@ export default function AuthCallbackPage() {
     processAuth()
   }, [router])
 
+  // Step 2 (fallback): Once AuthContext has the user + company, redirect.
+  // If the server check already redirected to set-password, this won't fire
+  // because the component unmounts.  If it did NOT redirect (e.g. the server
+  // call failed), fall back to the client-side user_metadata check.
   useEffect(() => {
     if (isLoading) return
 
     if (!user) {
-      // No session yet — might still be processing the auth code.
-      // Give the Supabase client a moment, then fall back to login.
       const timeout = setTimeout(() => {
         router.replace('/auth/login')
       }, 8000)
       return () => clearTimeout(timeout)
     }
 
-    // If this is a signup flow or the user still needs a password, go there
-    if (isSignupFlow.current || user.user_metadata?.needs_password) {
+    // Client-side fallback for the needs_password check
+    if (user.user_metadata?.needs_password) {
       setStatus('redirecting')
       router.replace('/auth/set-password')
       return
     }
 
-    // User is authenticated — wait for company data before redirecting
+    // If the server-side check hasn't finished yet, wait.
+    if (!serverChecked.current) return
+
     if (!company) return
 
     setStatus('redirecting')
