@@ -28,6 +28,8 @@ export default function LoginPage() {
         const message = error.message || 'An unexpected error occurred'
         if (message.toLowerCase().includes('failed to fetch')) {
           setError('Unable to connect to the server. Please check your internet connection and try again.')
+        } else if (message.toLowerCase().includes('invalid login credentials')) {
+          setError('Incorrect email or password. Please try again or reset your password.')
         } else {
           setError(message)
         }
