@@ -154,6 +154,12 @@ export default function Home() {
   // Redirect authenticated users away from the marketing homepage
   useEffect(() => {
     if (isLoading || !user) return;
+    // If the user hasn't set a password yet, send them there first.
+    if (user.app_metadata?.needs_password || user.user_metadata?.needs_password) {
+      setRedirecting(true);
+      router.replace('/auth/set-password');
+      return;
+    }
     // Wait until company data has loaded before deciding where to redirect
     if (!company) return;
     setRedirecting(true);

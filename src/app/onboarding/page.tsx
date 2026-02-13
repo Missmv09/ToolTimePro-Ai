@@ -27,6 +27,12 @@ export default function OnboardingPage() {
       router.replace('/auth/login')
       return
     }
+    // If the user hasn't set a password yet, send them there first.
+    // This catches cases where the auth callback was bypassed.
+    if (user.app_metadata?.needs_password || user.user_metadata?.needs_password) {
+      router.replace('/auth/set-password')
+      return
+    }
     if (company?.onboarding_completed) {
       router.replace('/dashboard')
     }
