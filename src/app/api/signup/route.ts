@@ -84,6 +84,9 @@ export async function POST(request: Request) {
           full_name: fullName,
           needs_password: true,
         },
+        app_metadata: {
+          needs_password: true,
+        },
       });
 
     if (createError || !userData?.user) {
@@ -134,6 +137,14 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    // Re-affirm the needs_password flag after generateLink, because
+    // generateLink({ type: 'magiclink' }) confirms the email as a side-effect
+    // and may clear user_metadata in the process.
+    await supabaseAdmin.auth.admin.updateUserById(userData.user.id, {
+      user_metadata: { full_name: fullName, needs_password: true },
+      app_metadata: { needs_password: true },
+    });
 
     // Step 4: Send the branded confirmation email via Resend.
     try {

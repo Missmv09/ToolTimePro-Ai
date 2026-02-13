@@ -107,8 +107,9 @@ export default function AuthCallbackPage() {
       return () => clearTimeout(timeout)
     }
 
-    // Client-side fallback for the needs_password check
-    if (user.user_metadata?.needs_password) {
+    // Client-side fallback for the needs_password check.
+    // Check both app_metadata (reliable, server-only) and user_metadata.
+    if (user.app_metadata?.needs_password || user.user_metadata?.needs_password) {
       redirecting.current = true
       setStatus('redirecting')
       router.replace('/auth/set-password')

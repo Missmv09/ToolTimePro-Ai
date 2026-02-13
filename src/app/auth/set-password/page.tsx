@@ -82,8 +82,12 @@ export default function SetPasswordPage() {
       return () => clearTimeout(timeout);
     }
 
-    // If the user already set their password, skip this page
-    if (user.user_metadata?.needs_password === false) {
+    // If the user already set their password, skip this page.
+    // Check both user_metadata and app_metadata — the flag could be in either.
+    const needsPw =
+      user.app_metadata?.needs_password === true ||
+      user.user_metadata?.needs_password === true;
+    if (!needsPw) {
       if (company?.onboarding_completed) {
         router.replace('/dashboard');
       } else {
@@ -118,6 +122,20 @@ export default function SetPasswordPage() {
       setError(updateError.message);
       setIsLoading(false);
       return;
+    }
+
+    // Also clear needs_password from app_metadata via the admin API.
+    // app_metadata can only be modified server-side.
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        await fetch('/api/auth/password-setup-complete', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+      }
+    } catch {
+      // Non-critical — the user_metadata flag is already cleared
     }
 
     setSuccess(true);
