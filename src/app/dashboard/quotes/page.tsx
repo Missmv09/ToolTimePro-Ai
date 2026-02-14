@@ -11,7 +11,7 @@ interface QuoteItem {
   description: string
   quantity: number
   unit_price: number
-  total: number
+  total_price: number
 }
 
 interface Quote {
@@ -167,7 +167,7 @@ function QuotesContent() {
         description: item.description,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        total: item.total,
+        total_price: item.total_price,
       }))
 
       await supabase.from('invoice_items').insert(invoiceItems)
@@ -213,7 +213,7 @@ function QuotesContent() {
         description: item.description,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        total: item.total,
+        total_price: item.total_price,
       }))
       await supabase.from('quote_items').insert(newItems)
     }
