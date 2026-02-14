@@ -27,6 +27,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
   const [launchError, setLaunchError] = useState(null);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [siteId, setSiteId] = useState(null);
+  const [siteUrl, setSiteUrl] = useState(null);
   const [publishSteps, setPublishSteps] = useState({
     domain_registered: false,
     dns_configured: false,
@@ -128,6 +129,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           if (data.steps) {
             setPublishSteps(data.steps);
           }
+          if (data.siteUrl && !siteUrl) setSiteUrl(data.siteUrl);
           if (data.status === 'live' || data.status === 'error') {
             clearInterval(pollRef.current);
             if (data.status === 'live') {
@@ -143,7 +145,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
       }, 5000);
     }
     return () => clearInterval(pollRef.current);
-  }, [siteId, publishSteps.live]);
+  }, [siteId, publishSteps.live]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLaunch = async () => {
     setLaunching(true);
@@ -230,6 +232,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
       }
 
       setSiteId(data.siteId);
+      if (data.siteUrl) setSiteUrl(data.siteUrl);
 
       // API now sets site live synchronously — mark all steps done if already live
       if (data.status === 'live') {
@@ -302,10 +305,10 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         )}
 
         {/* CTAs */}
-        {launched && (
+        {launched && (siteUrl || wizardData.selectedDomain?.domainName) && (
           <div className="space-y-3 mb-8">
             <a
-              href={`https://${wizardData.selectedDomain?.domainName}`}
+              href={siteUrl || `https://${wizardData.selectedDomain?.domainName}`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary w-full flex items-center justify-center gap-2 py-3"
