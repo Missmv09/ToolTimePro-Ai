@@ -28,7 +28,8 @@ import {
   Award,
   AlertCircle,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Trash2
 } from 'lucide-react'
 
 // Generate a random secure temporary password
@@ -192,6 +193,8 @@ export default function TeamPage() {
   const [selectedWorkerForNote, setSelectedWorkerForNote] = useState<TeamMember | null>(null)
   const [selectedWorkerForCert, setSelectedWorkerForCert] = useState<TeamMember | null>(null)
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<TeamMember | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const router = useRouter()
   const { user, dbUser, isLoading: authLoading } = useAuth()
@@ -327,6 +330,40 @@ export default function TeamPage() {
     } else if (companyId) {
       fetchTeamMembers(companyId)
     }
+  }
+
+  const deleteTeamMember = async (member: TeamMember) => {
+    setDeleting(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/team-member/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          memberId: member.id,
+          companyId,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        alert(`Error deleting team member: ${data.error || 'Unknown error'}`)
+      } else {
+        setShowDeleteConfirm(null)
+        if (companyId) {
+          fetchTeamMembers(companyId)
+          fetchWorkerNotes(companyId)
+          fetchWorkerCerts(companyId)
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting team member:', err)
+      alert('Failed to delete team member. Please try again.')
+    }
+    setDeleting(false)
   }
 
   const toggleExpanded = (memberId: string) => {
@@ -601,6 +638,16 @@ export default function TeamPage() {
                             {member.is_active ? 'Active' : 'Inactive'}
                           </button>
                         )}
+                        {userRole === 'owner' && member.id !== dbUser?.id && (
+                          <button
+                            onClick={() => setShowDeleteConfirm(member)}
+                            className="px-3 py-1.5 text-sm border border-red-300 text-red-500 rounded-lg hover:bg-red-50 flex items-center gap-1 transition-colors"
+                            title="Delete team member"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -865,6 +912,42 @@ export default function TeamPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-dropdown">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Trash2 size={20} className="text-red-600" />
+              </div>
+              <h2 className="text-lg font-bold text-navy-500">Delete Team Member</h2>
+            </div>
+            <p className="text-gray-600 mb-2">
+              Are you sure you want to permanently delete <strong>{showDeleteConfirm.full_name}</strong>?
+            </p>
+            <p className="text-sm text-red-600 mb-6">
+              This will remove their profile, all HR notes, certifications, and job assignments. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteTeamMember(showDeleteConfirm)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {deleting ? 'Deleting...' : 'Delete Member'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -972,6 +1055,39 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         alert(`Error updating team member: ${error.message}`)
         setSaving(false)
         return
+      }
+
+      // If email was changed, update it via server-side API (requires admin privileges)
+      if (formData.email !== member.email) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          const res = await fetch('/api/team-member/update-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+              memberId: member.id,
+              newEmail: formData.email,
+              companyId,
+            }),
+          })
+
+          if (!res.ok) {
+            const data = await res.json()
+            alert(`Member updated but email change failed: ${data.error || 'Unknown error'}. Other changes were saved.`)
+            setSaving(false)
+            onSave()
+            return
+          }
+        } catch (emailErr) {
+          console.error('Error updating email:', emailErr)
+          alert('Member updated but email change failed. Other changes were saved.')
+          setSaving(false)
+          onSave()
+          return
+        }
       }
     } else {
       // Create new team member using signUp (works from client-side)
@@ -1113,9 +1229,11 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
                 onChange={(e) => handleEmailChange(e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
                 placeholder="john@company.com"
-                disabled={!!member}
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              {member && formData.email !== member.email && (
+                <p className="text-amber-600 text-xs mt-1">Email will be updated for login as well</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
