@@ -48,6 +48,8 @@ interface CompanyDetail {
   trial_ends_at: string | null;
   industry: string | null;
   onboarding_completed: boolean;
+  is_beta_tester: boolean;
+  beta_notes: string | null;
   created_at: string;
   updated_at: string;
   status: string;
@@ -225,6 +227,25 @@ export default function AdminCompanyDetailPage({ params }: { params: Promise<{ i
                   </div>
                 </div>
 
+                {/* Toggle Beta Tester */}
+                <div>
+                  <p className="text-sm font-medium text-gray-300 mb-2">Beta Tester</p>
+                  <button
+                    onClick={() => performAction('toggle_beta_tester')}
+                    disabled={actionLoading}
+                    className={`w-full px-3 py-2 rounded-lg text-sm disabled:opacity-50 ${
+                      company.is_beta_tester
+                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                        : 'bg-gray-600/50 text-gray-400 hover:bg-gray-600/70'
+                    }`}
+                  >
+                    {company.is_beta_tester ? 'Beta Tester (ON) — Click to remove' : 'Enable Beta Tester Access'}
+                  </button>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Grants Elite access, all add-ons, no trial expiry
+                  </p>
+                </div>
+
                 {/* Suspend / Reactivate */}
                 <div className="pt-2 border-t border-gray-700">
                   {company.users.some((u) => u.is_active) ? (
@@ -310,6 +331,14 @@ export default function AdminCompanyDetailPage({ params }: { params: Promise<{ i
                   {company.onboarding_completed ? 'Completed' : 'Incomplete'}
                 </span>
               </div>
+              {company.is_beta_tester && (
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-400">Beta Tester</span>
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full border bg-green-500/10 text-green-400 border-green-500/20">
+                    Beta
+                  </span>
+                </div>
+              )}
               {company.trial_ends_at && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-400">Trial Ends</span>

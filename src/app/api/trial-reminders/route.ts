@@ -39,11 +39,13 @@ export async function GET(request: Request) {
     const supabaseAdmin = getSupabaseAdmin();
 
     // Get all companies on trial (no stripe_customer_id = not yet paid)
+    // Skip beta testers - they don't get trial reminder emails
     const { data: companies, error } = await supabaseAdmin
       .from('companies')
-      .select('id, name, email, trial_starts_at, trial_ends_at, welcome_email_sent_at')
+      .select('id, name, email, trial_starts_at, trial_ends_at, welcome_email_sent_at, is_beta_tester')
       .is('stripe_customer_id', null)
-      .not('trial_ends_at', 'is', null);
+      .not('trial_ends_at', 'is', null)
+      .or('is_beta_tester.is.null,is_beta_tester.eq.false');
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

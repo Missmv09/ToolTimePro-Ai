@@ -54,6 +54,8 @@ export async function GET(request: Request) {
       query = query.not('stripe_customer_id', 'is', null);
     } else if (status === 'expired') {
       query = query.is('stripe_customer_id', null).lt('trial_ends_at', now);
+    } else if (status === 'beta') {
+      query = query.eq('is_beta_tester', true);
     }
 
     // Plan filter
