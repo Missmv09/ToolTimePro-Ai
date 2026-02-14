@@ -68,14 +68,20 @@ export async function PUT(request) {
 
     siteUpdate.site_content = contentUpdate;
 
-    const { error: updateError } = await supabase
+    const { data: updatedRows, error: updateError } = await supabase
       .from('website_sites')
       .update(siteUpdate)
-      .eq('id', siteId);
+      .eq('id', siteId)
+      .select('id, slug');
 
     if (updateError) {
       console.error('[Update Site] DB error:', updateError);
-      return NextResponse.json({ error: 'Failed to update site' }, { status: 500 });
+      return NextResponse.json({ error: `Failed to update site: ${updateError.message}` }, { status: 500 });
+    }
+
+    if (!updatedRows || updatedRows.length === 0) {
+      console.error('[Update Site] No rows updated for siteId:', siteId);
+      return NextResponse.json({ error: 'Update did not apply. Please try again.' }, { status: 500 });
     }
 
     // Bust Next.js cache so the live site reflects changes immediately
@@ -86,6 +92,7 @@ export async function PUT(request) {
     return NextResponse.json({
       success: true,
       siteId,
+      slug: site.slug,
       message: 'Site updated successfully.',
     });
   } catch (error) {
