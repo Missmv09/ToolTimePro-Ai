@@ -11,7 +11,7 @@ interface QuoteLineItem {
   description: string;
   quantity: number;
   unit_price: number;
-  total: number;
+  total_price: number;
 }
 
 interface QuoteWithDetails extends Quote {
@@ -49,11 +49,11 @@ const demoQuote = {
     zip: '95123',
   },
   items: [
-    { id: '1', description: 'Front yard lawn mowing (1/4 acre)', quantity: 1, unit_price: 45, total: 45 },
-    { id: '2', description: 'Hedge trimming - front yard', quantity: 1, unit_price: 65, total: 65 },
-    { id: '3', description: 'Edge trimming along walkway & driveway', quantity: 1, unit_price: 25, total: 25 },
-    { id: '4', description: 'Gutter cleaning', quantity: 1, unit_price: 95, total: 95 },
-    { id: '5', description: 'Yard debris cleanup & haul away', quantity: 1, unit_price: 50, total: 50 },
+    { id: '1', description: 'Front yard lawn mowing (1/4 acre)', quantity: 1, unit_price: 45, total_price: 45 },
+    { id: '2', description: 'Hedge trimming - front yard', quantity: 1, unit_price: 65, total_price: 65 },
+    { id: '3', description: 'Edge trimming along walkway & driveway', quantity: 1, unit_price: 25, total_price: 25 },
+    { id: '4', description: 'Gutter cleaning', quantity: 1, unit_price: 95, total_price: 95 },
+    { id: '5', description: 'Yard debris cleanup & haul away', quantity: 1, unit_price: 50, total_price: 50 },
   ],
   subtotal: 280,
   tax_rate: 8.25,
@@ -123,7 +123,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
         // Fetch line items
         const { data: lineItems } = await supabase
-          .from('quote_line_items')
+          .from('quote_items')
           .select('*')
           .eq('quote_id', byNumber.id)
           .order('created_at', { ascending: true });
@@ -134,7 +134,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
         // Fetch line items
         const { data: lineItems } = await supabase
-          .from('quote_line_items')
+          .from('quote_items')
           .select('*')
           .eq('quote_id', data.id)
           .order('created_at', { ascending: true });
@@ -443,7 +443,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                       <td className="py-3 text-navy-500">{item.description}</td>
                       <td className="py-3 text-center text-gray-600">{item.quantity}</td>
                       <td className="py-3 text-right text-gray-600">${(item.unit_price || 0).toFixed(2)}</td>
-                      <td className="py-3 text-right font-medium text-navy-500">${(item.total || 0).toFixed(2)}</td>
+                      <td className="py-3 text-right font-medium text-navy-500">${(item.total_price || 0).toFixed(2)}</td>
                     </tr>
                   ))}
                   {items.length === 0 && (

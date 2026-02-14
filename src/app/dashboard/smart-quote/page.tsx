@@ -131,7 +131,7 @@ export default function SmartQuotingPage() {
   ]);
 
   // Quote details
-  const [taxRate, setTaxRate] = useState(0);
+  const [taxRate, setTaxRate] = useState(8.75);
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState('');
   const [validDays, setValidDays] = useState(30);
@@ -646,6 +646,7 @@ export default function SmartQuotingPage() {
           subtotal: subtotal,
           tax_rate: taxRate,
           tax_amount: taxAmount,
+          discount_amount: discountAmount,
           total: grandTotal,
           notes: notes,
           status: asDraft ? 'draft' : 'sent',
