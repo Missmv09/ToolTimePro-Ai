@@ -23,22 +23,22 @@ export async function POST(request: NextRequest) {
     const token = authHeader.replace('Bearer ', '')
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
     }
 
-    // Verify caller identity with anon key
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    // Use admin client for all server-side operations (bypasses RLS)
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    // Verify caller identity
+    const { data: { user }, error: authError } = await adminClient.auth.getUser(token)
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    // Use admin client to bypass RLS for profile lookups
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
 
     // Verify the caller is an owner for this company
     const { data: callerProfile } = await adminClient
