@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { supabase } from '@/lib/supabase';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,6 +14,19 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, dbUser, isLoading, isConfigured } = useAuth();
   const router = useRouter();
+  const [kicked, setKicked] = useState(false);
+
+  // Single-session enforcement: sign out if another device logged in
+  const handleKicked = useCallback(async () => {
+    setKicked(true);
+    await supabase.auth.signOut();
+    router.push('/auth/login?reason=session_replaced');
+  }, [router]);
+
+  useSessionGuard({
+    enabled: isConfigured && !!user && !isLoading,
+    onKicked: handleKicked,
+  });
 
   useEffect(() => {
     // If Supabase isn't configured, allow access (demo mode)
@@ -35,6 +50,11 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
       }
     }
   }, [user, dbUser, isLoading, isConfigured, router, requiredRole]);
+
+  // If the user was kicked due to another login, show nothing (redirect in progress)
+  if (kicked) {
+    return null;
+  }
 
   // Show loading spinner while auth is initializing (but only if Supabase is configured)
   if (isLoading && isConfigured) {

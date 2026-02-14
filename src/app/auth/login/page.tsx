@@ -1,17 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
+import { registerSession } from '@/hooks/useSessionGuard'
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { authError, signIn, isConfigured } = useAuth()
+
+  // Check if user was kicked due to another login
+  const sessionReplaced = searchParams.get('reason') === 'session_replaced'
 
   // Display either local error or auth context error
   const displayError = error || authError
@@ -30,11 +36,65 @@ export default function LoginPage() {
           setError('Unable to connect to the server. Please check your internet connection and try again.')
         } else if (message.toLowerCase().includes('invalid login credentials')) {
           setError('invalid_credentials')
+        } else if (message.toLowerCase().includes('email not confirmed')) {
+          setError('email_not_confirmed')
         } else {
           setError(message)
         }
         setLoading(false)
       } else {
+        // Register this browser as the single active session.
+        // Any other browser logged in as this user will be signed out.
+        await registerSession()
+
+        // Determine the correct destination after login:
+        //   needs_password → /auth/set-password
+        //   onboarding not done → /onboarding
+        //   otherwise → /dashboard
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
+            // Server-side password check (reads app_metadata directly)
+            const pwRes = await fetch('/api/auth/check-needs-password', {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            })
+            if (pwRes.ok) {
+              const { needsPassword } = await pwRes.json()
+              if (needsPassword) {
+                router.push('/auth/set-password')
+                return
+              }
+            }
+          }
+        } catch {
+          // If the check fails, fall through to dashboard
+        }
+
+        // Check onboarding status
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser()
+          if (authUser?.id) {
+            const { data: userRow } = await supabase
+              .from('users')
+              .select('company_id')
+              .eq('id', authUser.id)
+              .single()
+            if (userRow?.company_id) {
+              const { data: comp } = await supabase
+                .from('companies')
+                .select('onboarding_completed')
+                .eq('id', userRow.company_id)
+                .single()
+              if (comp && !comp.onboarding_completed) {
+                router.push('/onboarding')
+                return
+              }
+            }
+          }
+        } catch {
+          // If the check fails, fall through to dashboard
+        }
+
         router.push('/dashboard')
         router.refresh()
       }
@@ -60,6 +120,13 @@ export default function LoginPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          {sessionReplaced && !displayError && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
+              You were signed out because your account was signed in from another device.
+              Only one active session is allowed at a time.
+            </div>
+          )}
+
           {!isConfigured && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
               Authentication is not configured. Please contact support if this issue persists.
@@ -70,10 +137,19 @@ export default function LoginPage() {
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {displayError === 'invalid_credentials' ? (
                 <>
-                  Incorrect email or password. Please try again or{' '}
+                  Incorrect email or password. If you signed up recently but never set a password, please{' '}
                   <Link href="/auth/forgot-password" className="underline font-medium text-red-800 hover:text-red-900">
                     reset your password
-                  </Link>.
+                  </Link>{' '}
+                  to get started.
+                </>
+              ) : displayError === 'email_not_confirmed' ? (
+                <>
+                  Your email hasn&apos;t been verified yet. Check your inbox for the verification email, or{' '}
+                  <Link href="/auth/signup" className="underline font-medium text-red-800 hover:text-red-900">
+                    sign up again
+                  </Link>{' '}
+                  to get a new one.
                 </>
               ) : (
                 displayError
@@ -142,5 +218,20 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

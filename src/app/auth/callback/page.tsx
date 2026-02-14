@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { registerSession } from '@/hooks/useSessionGuard'
 
 function AuthCallbackContent() {
   const router = useRouter()
@@ -63,6 +64,9 @@ function AuthCallbackContent() {
           setStatus('error')
           return
         }
+
+        // Register this as the active session (single-session enforcement)
+        await registerSession()
 
         // Step 3: Server-side password check — reads app_metadata directly
         // from the database via admin API.  This is the ONLY reliable check;
