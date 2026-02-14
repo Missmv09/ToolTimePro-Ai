@@ -322,7 +322,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         <div className="card bg-gold-50 border border-gold-200">
           <h3 className="font-semibold text-navy-500 mb-2">While you wait...</h3>
           <p className="text-sm text-gray-600 mb-4">Set up Jenny AI Chatbot to capture leads from your website 24/7.</p>
-          <a href="/dashboard/settings" className="btn-primary inline-flex items-center gap-2 text-sm">
+          <a href="/jenny" className="btn-primary inline-flex items-center gap-2 text-sm">
             Set up Jenny AI Chatbot
             <ArrowRight size={16} />
           </a>
