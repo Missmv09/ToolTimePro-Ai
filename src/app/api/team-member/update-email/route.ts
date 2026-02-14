@@ -37,8 +37,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Use admin client to bypass RLS for profile lookups
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
+
     // Verify the caller is an admin/owner for this company
-    const { data: callerProfile } = await supabase
+    const { data: callerProfile } = await adminClient
       .from('users')
       .select('role, company_id')
       .eq('id', user.id)
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the member belongs to the same company
-    const { data: memberProfile } = await supabase
+    const { data: memberProfile } = await adminClient
       .from('users')
       .select('id, email, company_id')
       .eq('id', memberId)
@@ -68,9 +71,6 @@ export async function POST(request: NextRequest) {
     if (memberProfile.email === newEmail) {
       return NextResponse.json({ success: true })
     }
-
-    // Use admin client to update auth email
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
 
     const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(
       memberId,

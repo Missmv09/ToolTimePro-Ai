@@ -68,8 +68,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Use admin client to bypass RLS for the caller profile check
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
+
     // Verify the caller is an admin/owner for this company
-    const { data: callerProfile } = await supabase
+    const { data: callerProfile } = await adminClient
       .from('users')
       .select('role, company_id')
       .eq('id', user.id)
@@ -82,9 +85,6 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
-
-    // Use admin client to create user (bypasses Supabase confirmation email)
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
 
     const tempPassword = generateTempPassword()
 
