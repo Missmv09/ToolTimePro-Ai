@@ -90,6 +90,8 @@ export default function WebsiteBuilderPage() {
 }
 
 function WebsiteDashboard({ site, leadCount, onRefresh }) {
+  const { company } = useAuth();
+  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id;
   const hasRealDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
   const domainUrl = hasRealDomain
     ? `https://${site.custom_domain}`
@@ -202,8 +204,8 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
         </div>
       </div>
 
-      {/* Jenny AI Chatbot promo */}
-      {isLive && (
+      {/* Jenny AI Chatbot promo — hidden for free-trial users */}
+      {isLive && !isOnTrial && (
         <Link href="/jenny" className="block mb-6 no-underline">
           <div className="card bg-gradient-to-r from-[#fef9ee] to-[#fff7e0] border border-[#f5a623]/30 hover:border-[#f5a623] transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
