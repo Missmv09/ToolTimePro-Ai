@@ -12,6 +12,9 @@ export default function TrialBanner() {
   // Don't show if they have a paid subscription (stripe_customer_id set)
   if (company.stripe_customer_id) return null
 
+  // Don't show trial countdown for beta testers
+  if (company.is_beta_tester) return null
+
   const trialEnd = new Date(company.trial_ends_at)
   const now = new Date()
   const daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))

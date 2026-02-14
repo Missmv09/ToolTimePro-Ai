@@ -23,6 +23,7 @@ interface CompanyRow {
   trial_starts_at: string | null;
   trial_ends_at: string | null;
   industry: string | null;
+  is_beta_tester: boolean;
   created_at: string;
   user_count: number;
   status: string;
@@ -138,6 +139,7 @@ export default function AdminCompaniesPage() {
               <option value="trial">Trial</option>
               <option value="paid">Paid</option>
               <option value="expired">Expired</option>
+              <option value="beta">Beta Tester</option>
             </select>
           </div>
 
@@ -195,6 +197,11 @@ export default function AdminCompaniesPage() {
                           <Link href={`/admin/companies/${company.id}`} className="group">
                             <p className="font-medium text-gray-200 group-hover:text-orange-400 transition-colors">
                               {company.name}
+                              {company.is_beta_tester && (
+                                <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                                  Beta
+                                </span>
+                              )}
                             </p>
                             <p className="text-sm text-gray-500">{company.email}</p>
                           </Link>

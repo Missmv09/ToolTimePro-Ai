@@ -96,6 +96,35 @@ export async function POST(
         return NextResponse.json({ message: `Plan changed to ${plan}` });
       }
 
+      case 'toggle_beta_tester': {
+        const isBeta = !company.is_beta_tester;
+        const updateData: Record<string, unknown> = {
+          is_beta_tester: isBeta,
+        };
+
+        // When enabling beta: upgrade to elite plan and extend trial generously
+        if (isBeta) {
+          updateData.plan = 'elite';
+          // Set trial to 1 year from now so it doesn't expire during beta
+          updateData.trial_ends_at = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+          if (!company.trial_starts_at) {
+            updateData.trial_starts_at = new Date().toISOString();
+          }
+        }
+
+        const { error } = await supabase
+          .from('companies')
+          .update(updateData)
+          .eq('id', id);
+
+        if (error) throw error;
+        return NextResponse.json({
+          message: isBeta
+            ? 'Beta tester enabled — upgraded to Elite with extended access'
+            : 'Beta tester disabled',
+        });
+      }
+
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }
