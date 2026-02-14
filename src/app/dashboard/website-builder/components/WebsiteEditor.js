@@ -423,6 +423,12 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
               {/* Fonts tab */}
               {activeTab === 'fonts' && (
                 <div className="space-y-6 max-w-lg">
+                  {/* Load selected Google Fonts so previews render correctly */}
+                  {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+                  <link
+                    rel="stylesheet"
+                    href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(form.fontHeading || 'Inter')}:wght@400;700;800&family=${encodeURIComponent(form.fontBody || 'Inter')}:wght@400;500;600&display=swap`}
+                  />
                   <div>
                     <p className="text-sm font-medium text-navy-500 mb-2">Heading Font</p>
                     <select
@@ -434,7 +440,7 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
                         <option key={f} value={f}>{f}</option>
                       ))}
                     </select>
-                    <p className="mt-2 text-lg font-bold text-navy-500" style={{ fontFamily: `${form.fontHeading || 'Inter'}, sans-serif` }}>
+                    <p className="mt-2 text-lg font-bold" style={{ fontFamily: `'${form.fontHeading || 'Inter'}', sans-serif`, color: form.colors.headingColor || form.colors.primary || '#1a1a2e' }}>
                       The quick brown fox jumps over the lazy dog
                     </p>
                   </div>
@@ -449,9 +455,44 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
                         <option key={f} value={f}>{f}</option>
                       ))}
                     </select>
-                    <p className="mt-2 text-sm text-gray-600" style={{ fontFamily: `${form.fontBody || 'Inter'}, sans-serif` }}>
+                    <p className="mt-2 text-sm" style={{ fontFamily: `'${form.fontBody || 'Inter'}', sans-serif`, color: form.colors.bodyColor || '#333' }}>
                       The quick brown fox jumps over the lazy dog. This is how your body text will look on your website.
                     </p>
+                  </div>
+
+                  {/* Font colors */}
+                  <div className="space-y-3 pt-2 border-t border-gray-200">
+                    <p className="text-sm font-medium text-navy-500">Font Colors</p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={form.colors.headingColor || form.colors.primary || '#1a1a2e'}
+                        onChange={(e) => updateColors({ headingColor: e.target.value })}
+                        className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                      />
+                      <div>
+                        <p className="text-sm text-navy-500">Heading Color</p>
+                        <p className="text-xs text-gray-400">Section titles &middot; {form.colors.headingColor || 'uses primary'}</p>
+                      </div>
+                      {form.colors.headingColor && (
+                        <button onClick={() => updateColors({ headingColor: '' })} className="text-xs text-gray-400 hover:text-red-500">Reset</button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={form.colors.bodyColor || '#333333'}
+                        onChange={(e) => updateColors({ bodyColor: e.target.value })}
+                        className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                      />
+                      <div>
+                        <p className="text-sm text-navy-500">Body Text Color</p>
+                        <p className="text-xs text-gray-400">Paragraphs, cards &middot; {form.colors.bodyColor || '#333333'}</p>
+                      </div>
+                      {form.colors.bodyColor && (
+                        <button onClick={() => updateColors({ bodyColor: '' })} className="text-xs text-gray-400 hover:text-red-500">Reset</button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}

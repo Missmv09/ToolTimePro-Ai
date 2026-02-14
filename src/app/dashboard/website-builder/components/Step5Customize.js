@@ -172,6 +172,12 @@ export default function Step5Customize({ wizardData, setWizardData }) {
           {/* Fonts tab */}
           {activeTab === 'fonts' && (
             <div className="space-y-6">
+              {/* Load selected Google Fonts so previews render correctly */}
+              {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+              <link
+                rel="stylesheet"
+                href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(wizardData.fontHeading || 'Inter')}:wght@400;700;800&family=${encodeURIComponent(wizardData.fontBody || 'Inter')}:wght@400;500;600&display=swap`}
+              />
               <div>
                 <p className="text-sm font-medium text-navy-500 mb-2">Heading Font</p>
                 <select
@@ -183,7 +189,7 @@ export default function Step5Customize({ wizardData, setWizardData }) {
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </select>
-                <p className="mt-2 text-lg font-bold text-navy-500" style={{ fontFamily: `${wizardData.fontHeading || 'Inter'}, sans-serif` }}>
+                <p className="mt-2 text-lg font-bold" style={{ fontFamily: `'${wizardData.fontHeading || 'Inter'}', sans-serif`, color: wizardData.colors.headingColor || wizardData.colors.primary || '#1a1a2e' }}>
                   The quick brown fox jumps over the lazy dog
                 </p>
               </div>
@@ -198,9 +204,44 @@ export default function Step5Customize({ wizardData, setWizardData }) {
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </select>
-                <p className="mt-2 text-sm text-gray-600" style={{ fontFamily: `${wizardData.fontBody || 'Inter'}, sans-serif` }}>
+                <p className="mt-2 text-sm" style={{ fontFamily: `'${wizardData.fontBody || 'Inter'}', sans-serif`, color: wizardData.colors.bodyColor || '#333' }}>
                   The quick brown fox jumps over the lazy dog. This is how your body text will look on your website.
                 </p>
+              </div>
+
+              {/* Font colors */}
+              <div className="space-y-3 pt-2 border-t border-gray-200">
+                <p className="text-sm font-medium text-navy-500">Font Colors</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={wizardData.colors.headingColor || wizardData.colors.primary || '#1a1a2e'}
+                    onChange={(e) => updateColors({ headingColor: e.target.value })}
+                    className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                  />
+                  <div>
+                    <p className="text-sm text-navy-500">Heading Color</p>
+                    <p className="text-xs text-gray-400">Section titles &middot; {wizardData.colors.headingColor || 'uses primary'}</p>
+                  </div>
+                  {wizardData.colors.headingColor && (
+                    <button onClick={() => updateColors({ headingColor: '' })} className="text-xs text-gray-400 hover:text-red-500">Reset</button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={wizardData.colors.bodyColor || '#333333'}
+                    onChange={(e) => updateColors({ bodyColor: e.target.value })}
+                    className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                  />
+                  <div>
+                    <p className="text-sm text-navy-500">Body Text Color</p>
+                    <p className="text-xs text-gray-400">Paragraphs, cards &middot; {wizardData.colors.bodyColor || '#333333'}</p>
+                  </div>
+                  {wizardData.colors.bodyColor && (
+                    <button onClick={() => updateColors({ bodyColor: '' })} className="text-xs text-gray-400 hover:text-red-500">Reset</button>
+                  )}
+                </div>
               </div>
             </div>
           )}
