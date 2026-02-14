@@ -88,11 +88,11 @@ export async function GET(request) {
       hasWebsite: true,
       site: {
         ...siteData,
-        siteUrl: site.custom_domain
+        siteUrl: site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com')
           ? `https://${site.custom_domain}`
           : `https://tooltimepro.com/site/${site.slug}`,
         isPublished: site.status === 'live',
-        hasDomain: site.domain_status === 'active' && !!site.custom_domain,
+        hasDomain: site.domain_status === 'active' && !!site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com'),
       },
       template,
       stats: { leadCount: leadCount || 0 },
