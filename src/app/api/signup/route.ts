@@ -130,7 +130,7 @@ export async function POST(request: Request) {
         },
       });
 
-    if (linkError || !linkData?.properties?.action_link) {
+    if (linkError || !linkData?.properties?.hashed_token) {
       console.error('Error generating confirmation link:', linkError);
       return NextResponse.json(
         { error: 'Account created but failed to generate confirmation link' },
@@ -147,12 +147,20 @@ export async function POST(request: Request) {
     });
 
     // Step 4: Send the branded confirmation email via Resend.
+    // IMPORTANT: We use a direct URL with token_hash instead of the Supabase
+    // action_link.  The action_link goes through Supabase's /auth/v1/verify
+    // endpoint which redirects back with a PKCE `code` param.  Since the link
+    // was generated server-side, the user's browser has no PKCE code_verifier,
+    // so exchangeCodeForSession() would fail.  By passing the token_hash
+    // directly, the callback page uses verifyOtp() which doesn't need PKCE.
+    const confirmationUrl = `${baseUrl}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=magiclink`;
+
     try {
       await sendSignupConfirmationEmail({
         to: email,
         name: fullName,
         companyName,
-        confirmationUrl: linkData.properties.action_link,
+        confirmationUrl,
       });
     } catch (emailErr) {
       // Email failed — clean up the account so the user can retry

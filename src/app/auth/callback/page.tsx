@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase'
 
 function AuthCallbackContent() {
   const router = useRouter()
-  const [status, setStatus] = useState<'confirming' | 'redirecting'>('confirming')
+  const [status, setStatus] = useState<'confirming' | 'redirecting' | 'error'>('confirming')
+  const [errorMessage, setErrorMessage] = useState('')
   const handled = useRef(false)
 
   // Single sequential flow — no race conditions, no competing useEffects,
@@ -24,15 +25,24 @@ function AuthCallbackContent() {
         const type = url.searchParams.get('type')
 
         // Step 1: Exchange the auth code / token for a Supabase session.
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code)
-          if (error) console.error('Error exchanging code for session:', error)
-        } else if (tokenHash && type) {
+        // Prefer token_hash (direct OTP verification, no PKCE needed) over
+        // code (PKCE exchange that requires a code_verifier in localStorage).
+        let exchangeError: string | null = null
+        if (tokenHash && type) {
           const { error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: type as 'signup' | 'magiclink' | 'recovery' | 'email',
           })
-          if (error) console.error('Error verifying OTP:', error)
+          if (error) {
+            console.error('Error verifying OTP:', error)
+            exchangeError = error.message
+          }
+        } else if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) {
+            console.error('Error exchanging code for session:', error)
+            exchangeError = error.message
+          }
         }
 
         // Step 2: Wait for the session to appear.
@@ -47,7 +57,10 @@ function AuthCallbackContent() {
         }
 
         if (!session?.access_token) {
-          router.replace('/auth/login')
+          // Show a user-friendly error instead of silently redirecting to login
+          const reason = exchangeError || 'Your verification link may have expired.'
+          setErrorMessage(reason)
+          setStatus('error')
           return
         }
 
@@ -97,12 +110,35 @@ function AuthCallbackContent() {
         router.replace('/onboarding')
       } catch (err) {
         console.error('Auth callback error:', err)
-        router.replace('/auth/login')
+        setErrorMessage('Something went wrong verifying your account.')
+        setStatus('error')
       }
     }
 
     handleCallback()
   }, [router])
+
+  if (status === 'error') {
+    return (
+      <div className="text-center max-w-md">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Verification Failed</h2>
+        <p className="text-gray-500 mb-6">{errorMessage || 'Your link may have expired or already been used.'}</p>
+        <div className="space-y-3">
+          <a href="/auth/signup" className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Sign Up Again
+          </a>
+          <a href="/auth/login" className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+            Go to Login
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="text-center">

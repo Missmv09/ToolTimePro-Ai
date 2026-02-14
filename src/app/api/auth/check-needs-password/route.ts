@@ -9,14 +9,20 @@ export async function GET(request: Request) {
     const token = authHeader?.replace('Bearer ', '');
 
     if (!token) {
-      return NextResponse.json({ needsPassword: false });
+      return NextResponse.json(
+        { error: 'Missing authorization token' },
+        { status: 401 }
+      );
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceKey) {
-      return NextResponse.json({ needsPassword: false });
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceKey);
@@ -26,7 +32,10 @@ export async function GET(request: Request) {
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
-      return NextResponse.json({ needsPassword: false });
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
     }
 
     // Check app_metadata first (server-only, immune to Supabase auth flow
@@ -38,6 +47,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ needsPassword });
   } catch {
-    return NextResponse.json({ needsPassword: false });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
