@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import PublicSiteRenderer from './PublicSiteRenderer';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 function getSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

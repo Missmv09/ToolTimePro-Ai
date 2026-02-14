@@ -82,7 +82,7 @@ export async function GET(request) {
       {
         headers: {
           ...corsHeaders,
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=10',
         },
       }
     );

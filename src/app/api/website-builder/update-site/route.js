@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { revalidatePath } from 'next/cache';
 import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
@@ -39,7 +40,7 @@ export async function PUT(request) {
     // Verify ownership
     const { data: site, error: siteError } = await supabase
       .from('website_sites')
-      .select('id, site_content')
+      .select('id, slug, site_content')
       .eq('id', siteId)
       .eq('user_id', user.id)
       .single();
@@ -53,9 +54,9 @@ export async function PUT(request) {
     const contentUpdate = { ...(site.site_content || {}) };
 
     // Direct column updates
-    if (updates.businessName) siteUpdate.business_name = updates.businessName;
-    if (updates.phone) siteUpdate.business_phone = updates.phone;
-    if (updates.email) siteUpdate.business_email = updates.email;
+    if (updates.businessName !== undefined) siteUpdate.business_name = updates.businessName;
+    if (updates.phone !== undefined) siteUpdate.business_phone = updates.phone;
+    if (updates.email !== undefined) siteUpdate.business_email = updates.email;
 
     // Content updates (merged into site_content JSONB)
     const contentFields = ['tagline', 'serviceArea', 'services', 'licenseNumber', 'yearsInBusiness', 'colors', 'enabledSections', 'heroImage', 'galleryImages'];
@@ -75,6 +76,11 @@ export async function PUT(request) {
     if (updateError) {
       console.error('[Update Site] DB error:', updateError);
       return NextResponse.json({ error: 'Failed to update site' }, { status: 500 });
+    }
+
+    // Bust Next.js cache so the live site reflects changes immediately
+    if (site.slug) {
+      revalidatePath(`/site/${site.slug}`);
     }
 
     return NextResponse.json({
