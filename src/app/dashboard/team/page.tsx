@@ -641,8 +641,17 @@ export default function TeamPage() {
                         {userRole === 'owner' && member.id !== dbUser?.id && (
                           <button
                             onClick={() => setShowDeleteConfirm(member)}
-                            className="px-3 py-1.5 text-sm border border-red-300 text-red-500 rounded-lg hover:bg-red-50 flex items-center gap-1 transition-colors"
-                            title="Delete team member"
+                            disabled={(member.job_assignments?.length || 0) > 0}
+                            className={`px-3 py-1.5 text-sm border rounded-lg flex items-center gap-1 transition-colors ${
+                              (member.job_assignments?.length || 0) > 0
+                                ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                                : 'border-red-300 text-red-500 hover:bg-red-50'
+                            }`}
+                            title={
+                              (member.job_assignments?.length || 0) > 0
+                                ? 'Cannot delete — assigned to jobs. Remove from all jobs first or mark as Inactive.'
+                                : 'Delete team member'
+                            }
                           >
                             <Trash2 size={14} />
                             Delete
@@ -926,9 +935,14 @@ export default function TeamPage() {
             <p className="text-gray-600 mb-2">
               Are you sure you want to permanently delete <strong>{showDeleteConfirm.full_name}</strong>?
             </p>
-            <p className="text-sm text-red-600 mb-6">
-              This will remove their profile, all HR notes, certifications, and job assignments. This action cannot be undone.
+            <p className="text-sm text-red-600 mb-4">
+              This will remove their profile, all HR notes, and certifications. This action cannot be undone.
             </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+              <p className="text-xs text-amber-800">
+                <strong>Note:</strong> Team members who have been assigned to jobs or have time log entries cannot be deleted. Use the Inactive status instead.
+              </p>
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(null)}

@@ -69,8 +69,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Team member not found' }, { status: 404 })
     }
 
-    // Use admin client to delete related records and auth user
+    // Use admin client for checks and deletion
     const adminClient = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Check if the member has any job assignments
+    const { count: jobCount } = await adminClient
+      .from('job_assignments')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', memberId)
+
+    if (jobCount && jobCount > 0) {
+      return NextResponse.json(
+        { error: 'This team member is assigned to one or more jobs and cannot be deleted. Remove them from all jobs first, or mark them as Inactive instead.' },
+        { status: 409 }
+      )
+    }
+
+    // Check if the member has any time entries
+    const { count: timeCount } = await adminClient
+      .from('time_entries')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', memberId)
+
+    if (timeCount && timeCount > 0) {
+      return NextResponse.json(
+        { error: 'This team member has time log entries and cannot be deleted. Mark them as Inactive instead to preserve their records.' },
+        { status: 409 }
+      )
+    }
+
+    // Safe to delete — no jobs or time logs
 
     // Delete related worker_notes
     await adminClient
@@ -83,12 +111,6 @@ export async function POST(request: NextRequest) {
       .from('worker_certifications')
       .delete()
       .eq('worker_id', memberId)
-
-    // Delete related job_assignments
-    await adminClient
-      .from('job_assignments')
-      .delete()
-      .eq('user_id', memberId)
 
     // Delete the user profile from users table
     const { error: deleteProfileError } = await adminClient
