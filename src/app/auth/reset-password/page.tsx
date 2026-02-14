@@ -19,8 +19,68 @@ export default function ResetPasswordPage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   useEffect(() => {
-    // Listen for auth state changes so we detect the recovery session
-    // once Supabase finishes processing the URL hash tokens.
+    // If the URL contains token_hash + type (direct link from our branded
+    // reset email), verify the OTP to establish a recovery session.  This
+    // avoids the PKCE code_verifier mismatch that would occur if the link
+    // went through Supabase's /auth/v1/verify redirect.
+    const url = new URL(window.location.href);
+    const tokenHash = url.searchParams.get('token_hash');
+    const type = url.searchParams.get('type');
+    const code = url.searchParams.get('code');
+
+    const exchangeToken = async () => {
+      try {
+        if (tokenHash && type) {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as 'recovery',
+          });
+          if (error) {
+            console.error('Error verifying recovery OTP:', error);
+            setIsCheckingSession(false);
+            return;
+          }
+          setIsValidSession(true);
+          setIsCheckingSession(false);
+          return;
+        }
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('Error exchanging code for session:', error);
+            setIsCheckingSession(false);
+            return;
+          }
+          setIsValidSession(true);
+          setIsCheckingSession(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Token exchange error:', err);
+      }
+
+      // No token params — fall through to session/listener check below.
+      checkExistingSession();
+    };
+
+    const checkExistingSession = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setIsValidSession(true);
+        }
+        setIsCheckingSession(false);
+      });
+    };
+
+    if (tokenHash || code) {
+      exchangeToken();
+    } else {
+      // Listen for auth state changes so we detect the recovery session
+      // once Supabase finishes processing the URL hash tokens.
+      checkExistingSession();
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session) {
@@ -29,14 +89,6 @@ export default function ResetPasswordPage() {
         }
       }
     );
-
-    // Also check if a session already exists (e.g. page refresh)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setIsValidSession(true);
-      }
-      setIsCheckingSession(false);
-    });
 
     return () => {
       subscription.unsubscribe();

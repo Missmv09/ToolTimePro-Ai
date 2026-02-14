@@ -72,17 +72,24 @@ export async function POST(request: Request) {
         },
       });
 
-    if (linkError || !linkData?.properties?.action_link) {
+    if (linkError || !linkData?.properties?.hashed_token) {
       console.error('Error generating recovery link:', linkError);
       // Still return success to avoid leaking user existence
       return NextResponse.json({ success: true });
     }
 
+    // Build a direct URL with token_hash instead of using the Supabase
+    // action_link.  The action_link redirects through Supabase's server,
+    // which returns a PKCE `code` the browser can't exchange (no
+    // code_verifier stored).  With token_hash the reset page calls
+    // verifyOtp() directly, which doesn't need PKCE.
+    const resetUrl = `${baseUrl}/auth/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
+
     // Send the branded password reset email via Resend
     await sendPasswordResetEmail({
       to: email,
       name,
-      resetUrl: linkData.properties.action_link,
+      resetUrl,
     });
 
     return NextResponse.json({ success: true });
