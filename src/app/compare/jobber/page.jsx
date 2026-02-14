@@ -80,7 +80,7 @@ const translations = {
     complianceIncluded: 'Compliance Tools Included',
     complianceIncludedDesc: "ToolTime Shield keeps you audit-ready with safety checklists and compliance docs — most competitors don't offer this.",
     toolTimeAssistantTitle: 'ToolTime Assistant',
-    toolTimeAssistantDesc: '24/7 AI-powered lead capture for just $19/mo — available as an affordable add-on, not locked to expensive plans.',
+    toolTimeAssistantDesc: '24/7 AI-powered lead capture included free on every plan — competitors charge extra or lock it behind premium tiers.',
     builtForGrowingTeams: 'Built for Growing Teams',
     builtForGrowingTeamsDesc: "Our plans include more users at every tier. Get 2x the team capacity at half the price.",
     realWorldCost: 'Real-World Cost Comparison',
@@ -97,7 +97,7 @@ const translations = {
     faqMobileApp: 'Does ToolTime Pro have a mobile app?',
     faqMobileAppAnswer: 'Yes, our Worker App is available on iOS and Android. It includes GPS clock-in/out, job details, customer info, and the ability to collect payments on-site.',
     faqAssistant: 'What is ToolTime Assistant?',
-    faqAssistantAnswer: "ToolTime Assistant is our AI-powered chatbot that captures leads 24/7, answers customer questions, and can book appointments — even when you're asleep or on a job. It's available as a $19/mo add-on on any plan.",
+    faqAssistantAnswer: "ToolTime Assistant is our AI-powered chatbot that captures leads 24/7, answers customer questions, and can book appointments — even when you're asleep or on a job. It's included free with every ToolTime Pro plan.",
     faqFreeTrial: 'Is there a free trial?',
     faqFreeTrialAnswer: 'Yes! All plans include a 14-day free trial with no credit card required. Try everything before you commit.',
     faqHelp: 'What if I need help getting started?',
@@ -192,7 +192,7 @@ const translations = {
     complianceIncluded: 'Herramientas de Cumplimiento Incluidas',
     complianceIncludedDesc: 'ToolTime Shield lo mantiene listo para auditorías con listas de seguridad y documentos de cumplimiento — la mayoría de competidores no ofrecen esto.',
     toolTimeAssistantTitle: 'Asistente ToolTime',
-    toolTimeAssistantDesc: 'Captura de clientes con IA 24/7 por solo $19/mes — disponible como complemento accesible, no bloqueado en planes costosos.',
+    toolTimeAssistantDesc: 'Captura de clientes con IA 24/7 incluida gratis en todos los planes — los competidores cobran extra o la bloquean en planes premium.',
     builtForGrowingTeams: 'Diseñado para Equipos en Crecimiento',
     builtForGrowingTeamsDesc: 'Nuestros planes incluyen más usuarios en cada nivel. Obtenga 2x la capacidad del equipo a mitad de precio.',
     realWorldCost: 'Comparación de Costos Reales',
@@ -209,7 +209,7 @@ const translations = {
     faqMobileApp: '¿ToolTime Pro tiene una aplicación móvil?',
     faqMobileAppAnswer: 'Sí, nuestra App para Trabajadores está disponible en iOS y Android. Incluye registro GPS de entrada/salida, detalles del trabajo, información del cliente y la capacidad de cobrar pagos en el sitio.',
     faqAssistant: '¿Qué es el Asistente ToolTime?',
-    faqAssistantAnswer: 'El Asistente ToolTime es nuestro chatbot con IA que captura clientes 24/7, responde preguntas y puede agendar citas — incluso cuando usted está dormido o en un trabajo. Está disponible como complemento de $19/mes en cualquier plan.',
+    faqAssistantAnswer: 'El Asistente ToolTime es nuestro chatbot con IA que captura clientes 24/7, responde preguntas y puede agendar citas — incluso cuando usted está dormido o en un trabajo. Está incluido gratis con todos los planes de ToolTime Pro.',
     faqFreeTrial: '¿Hay una prueba gratis?',
     faqFreeTrialAnswer: '¡Sí! Todos los planes incluyen una prueba gratis de 14 días sin tarjeta de crédito requerida. Pruebe todo antes de comprometerse.',
     faqHelp: '¿Qué pasa si necesito ayuda para comenzar?',
@@ -614,7 +614,7 @@ export default function CompareJobber() {
                 </tr>
                 <tr className="border-b border-gray-100 bg-green-50">
                   <td className="p-4 font-medium text-gray-800">{t.toolTimeAssistant}</td>
-                  <td className="p-4 text-center text-green-600 font-medium">✅ $19{t.perMo} {t.addOn}</td>
+                  <td className="p-4 text-center text-green-600 font-medium">✅ {language === 'es' ? 'Incluido gratis' : 'Included free'}</td>
                   <td className="p-4 text-center text-gray-500">⚠️ {t.premiumPlansOnly}</td>
                 </tr>
                 <tr className="border-b border-gray-100 bg-white">

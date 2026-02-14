@@ -164,7 +164,7 @@ export default function JennyPage() {
                   href="/pricing"
                   className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#f5a623]/25 no-underline"
                 >
-                  Add Jenny from $19/mo →
+                  Jenny Lite Included Free →
                 </Link>
                 <Link
                   href="#features"
@@ -175,7 +175,7 @@ export default function JennyPage() {
               </div>
 
               <p className="text-white/50 text-sm mt-6">
-                Works with any plan • 14-day free trial • Jobber charges $349/mo for this
+                Jenny Lite included free on all plans • 14-day free trial • Jobber charges $349/mo for this
               </p>
             </div>
 
@@ -222,8 +222,8 @@ export default function JennyPage() {
               <div className="text-gray-500 mt-1">Always Available</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#00c853]">$19</div>
-              <div className="text-gray-500 mt-1">Starting Price/mo</div>
+              <div className="text-4xl font-bold text-[#00c853]">$0</div>
+              <div className="text-gray-500 mt-1">Jenny Lite — Included</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-[#1a1a2e]">18x</div>
@@ -373,7 +373,7 @@ export default function JennyPage() {
                   <th className="text-center p-4 font-semibold">
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-[#f5a623]">Jenny</span>
-                      <span className="text-xs bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded-full">from $19/mo</span>
+                      <span className="text-xs bg-[#00c853] text-white px-2 py-0.5 rounded-full">Lite included free</span>
                     </div>
                   </th>
                   <th className="text-center p-4 font-semibold">Jobber</th>
@@ -445,17 +445,17 @@ export default function JennyPage() {
             Ready to Meet Jenny?
           </h2>
           <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-            Add Jenny to any ToolTime Pro plan starting at just $19/mo.
-            Jobber charges $349/mo for this. You save $300+ every month.
+            Jenny Lite is included free with every ToolTime Pro plan.
+            Upgrade to Jenny Pro for $49/mo. Jobber charges $349/mo for this.
           </p>
 
           <div className="bg-white/10 rounded-2xl p-6 mb-8 max-w-lg mx-auto">
             <div className="text-white/60 text-sm mb-4">Jenny AI Tiers:</div>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-[#f5a623] text-2xl font-bold">$19</div>
+                <div className="text-[#00c853] text-2xl font-bold">Free</div>
                 <div className="text-white/60 text-sm">Jenny Lite</div>
-                <div className="text-white/40 text-xs">Chat & Leads</div>
+                <div className="text-white/40 text-xs">Included in all plans</div>
               </div>
               <div>
                 <div className="text-[#f5a623] text-2xl font-bold">$49</div>

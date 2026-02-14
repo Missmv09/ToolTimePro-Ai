@@ -135,7 +135,6 @@ const standalonePlans = [
 
 // Add-ons
 const pricingAddOns = [
-  { id: 'jenny_lite', name: 'Jenny Lite', price: 19, icon: '💬', description: 'Website chat & lead capture 24/7', highlight: true },
   { id: 'website_builder', name: 'Website Builder', price: 15, icon: '🌐', description: 'Custom landing page built for you' },
   { id: 'keep_me_legal', name: 'Keep Me Legal', price: 19, icon: '🛡️', description: 'Compliance monitoring & alerts' },
   { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
@@ -784,23 +783,15 @@ export default function Home() {
                   )}
                 </ul>
 
-                {/* Optional Add-ons */}
+                {/* Included AI + Optional Add-ons */}
                 <div className="border-t border-gray-200 pt-4 mb-6">
+                  <div className="flex items-center gap-2 text-[0.875rem] mb-3 bg-[#f0fdf9] -mx-10 px-10 py-2.5 rounded-none">
+                    <span className="text-[#00c853] font-bold">✓</span>
+                    <span className="text-[#1a1a2e] font-medium">Jenny Lite — AI Chat & Lead Capture</span>
+                    <span className="text-[#00c853] font-semibold ml-auto text-[0.8125rem]">Included</span>
+                  </div>
                   <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">Optional Add-ons:</p>
                   <div className="space-y-2">
-                    {plan.name === 'Elite' ? (
-                      <div className="flex items-center gap-2 text-[0.875rem]">
-                        <span className="text-[#00c853] font-bold">✓</span>
-                        <span className="text-[#1a1a2e] font-medium">Jenny Lite</span>
-                        <span className="text-[#00c853] font-semibold ml-auto text-[0.8125rem]">Included</span>
-                      </div>
-                    ) : (
-                      <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
-                        <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                        <span className="text-[#5c5c70]">Jenny Lite</span>
-                        <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
-                      </label>
-                    )}
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
                       <span className="text-[#5c5c70]">Keep Me Legal</span>
@@ -889,7 +880,7 @@ export default function Home() {
               </div>
 
               <div className="text-sm text-white/50 mt-3.5 mb-8 relative">
-                From <strong className="text-[#f5a623] text-lg font-extrabold">$19/mo</strong>
+                Jenny Lite <strong className="text-[#00c853] text-lg font-extrabold">Included Free</strong> on all plans
                 <span className="text-[12.5px] text-white/35 line-through italic ml-3">Jobber charges $349/mo for this</span>
               </div>
 
@@ -903,23 +894,22 @@ export default function Home() {
               {/* Customer-Facing Cards */}
               <div className="flex gap-5 mb-7 relative flex-col md:flex-row">
                 {/* Jenny Lite */}
-                <div className="flex-1 bg-[#232b47] border-[1.5px] border-white/10 rounded-[14px] p-7 transition-all hover:border-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
+                <div className="flex-1 bg-[#232b47] border-[1.5px] border-[#2ab09e] rounded-[14px] p-7 transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
+                  <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 bg-[#2ab09e] text-white text-[10.5px] font-bold px-3.5 py-1 rounded-xl tracking-wider uppercase whitespace-nowrap">
+                    Included in All Plans
+                  </div>
                   <div className="flex items-baseline justify-between mb-4">
                     <span className="font-bold text-lg text-white">Jenny Lite</span>
-                    <span className="font-extrabold text-base text-[#f5a623]">+$19<span className="text-xs font-medium text-white/40">/mo</span></span>
+                    <span className="font-extrabold text-base text-[#00c853]">Free</span>
                   </div>
                   <ul className="list-none m-0 p-0">
                     {['Website chat widget', 'Lead capture & notifications', 'FAQ answering', 'English & Spanish'].map((item, i) => (
                       <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
-                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#2ab09e" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         {item}
                       </li>
                     ))}
                   </ul>
-                  <div className="inline-flex items-center gap-1.5 bg-[rgba(42,176,158,0.15)] text-[#2ab09e] text-xs font-semibold px-3 py-1.5 rounded-lg mt-3.5">
-                    <svg width="14" height="14" viewBox="0 0 18 18"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    Included with Elite plan
-                  </div>
                 </div>
 
                 {/* Jenny Pro */}
