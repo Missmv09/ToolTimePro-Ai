@@ -22,7 +22,8 @@ export async function POST(request) {
     }
 
     const systemPrompt = `You are an expert SEO content writer for home service and trade businesses. You write blog posts that:
-- Are optimized for local SEO (naturally include the city/region when provided)
+- Are optimized for local SEO (mention the location/region 2-3 times total, not in every paragraph)
+- When a location includes "surrounding areas", refer broadly to the service area (e.g. "the [city] area", "our service area", "[city] and nearby communities") rather than repeating the exact city name throughout
 - Are helpful and informative for homeowners
 - Build trust and position the business as an expert
 - Include a clear call-to-action at the end

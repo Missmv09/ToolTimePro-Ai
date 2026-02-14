@@ -109,12 +109,12 @@ export default function BlogPage() {
   // Map industry to trade for topic suggestions
   const tradeTopics = TOPIC_SUGGESTIONS[trade] || DEFAULT_TOPICS;
 
-  // Pre-fill location from company
+  // Pre-fill location from company (include surrounding areas for service businesses)
   useEffect(() => {
     if (company) {
       const parts = [company.city, company.state].filter(Boolean);
       if (parts.length > 0) {
-        setLocation(parts.join(', '));
+        setLocation(parts.join(', ') + ' & surrounding areas');
       }
     }
   }, [company]);
