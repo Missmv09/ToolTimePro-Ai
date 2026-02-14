@@ -1,16 +1,27 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, RefreshCw, Globe, Link2, ShoppingCart, Check } from 'lucide-react';
+import { Search, RefreshCw, Globe, Link2, ShoppingCart, Check, Sparkles } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import DomainCard from './DomainCard';
 
 export default function Step4DomainSearch({ wizardData, setWizardData }) {
-  const [mode, setMode] = useState(wizardData.domainMode || 'search'); // 'search' | 'existing' | 'subdomain'
+  const { company } = useAuth();
+  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id;
+
+  const [mode, setMode] = useState(wizardData.domainMode || (isOnTrial ? 'subdomain' : 'search')); // 'search' | 'existing' | 'subdomain'
   const [searchTerm, setSearchTerm] = useState('');
   const [existingDomain, setExistingDomain] = useState(wizardData.existingDomain || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Auto-select subdomain for trial users on first visit
+  useEffect(() => {
+    if (isOnTrial && !wizardData.selectedDomain && !wizardData.domainMode) {
+      handleSubdomain();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-populate search term from business name
   useEffect(() => {
@@ -36,7 +47,7 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
     setError(null);
 
     try {
-      const response = await fetch('/api/website-builder/domain-search', {
+      const response = await fetch('/api/website-builder/domain-search/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -153,6 +164,16 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
         Choose how you want customers to find your website.
       </p>
 
+      {/* Trial recommendation */}
+      {isOnTrial && (
+        <div className="mb-6 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
+          <Sparkles size={18} className="text-blue-500 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-blue-700">
+            <strong>Recommended during your free trial:</strong> Start with a free subdomain. You can upgrade to a custom domain anytime after subscribing — no cost during your trial.
+          </div>
+        </div>
+      )}
+
       {/* Mode selector */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
         <button
@@ -207,7 +228,10 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
             <Globe size={20} />
           </div>
           <div>
-            <p className="font-semibold text-navy-500 text-sm">Free subdomain</p>
+            <p className="font-semibold text-navy-500 text-sm">
+              Free subdomain
+              {isOnTrial && <span className="ml-2 text-xs font-medium text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">Recommended</span>}
+            </p>
             <p className="text-xs text-gray-500">Use yourname.tooltimepro.com</p>
           </div>
         </button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -373,18 +374,27 @@ export default function TeamPage() {
           <h1 className="text-2xl font-bold text-navy-500">Team Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage your team members and HR notes</p>
         </div>
-        {canManageTeam && (
-          <button
-            onClick={() => {
-              setEditingMember(null)
-              setShowMemberModal(true)
-            }}
-            className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/team/calendar"
+            className="px-4 py-2 border border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 flex items-center gap-2 transition-colors"
           >
-            <Plus size={18} />
-            Add Team Member
-          </button>
-        )}
+            <Calendar size={18} />
+            Availability
+          </Link>
+          {canManageTeam && (
+            <button
+              onClick={() => {
+                setEditingMember(null)
+                setShowMemberModal(true)
+              }}
+              className="bg-navy-500 text-white px-4 py-2 rounded-lg hover:bg-navy-600 flex items-center gap-2 transition-colors"
+            >
+              <Plus size={18} />
+              Add Team Member
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search and Filters */}

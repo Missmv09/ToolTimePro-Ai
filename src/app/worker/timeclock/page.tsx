@@ -75,33 +75,45 @@ export default function TimeclockPage() {
   }, [])
 
   const fetchCurrentEntry = async (uId: string) => {
-    // Get today's open time entry (no clock_out)
-    const today = new Date().toISOString().split('T')[0]
+    try {
+      // Get today's open time entry (no clock_out)
+      const today = new Date().toISOString().split('T')[0]
 
-    const { data: entry } = await supabase
-      .from('time_entries')
-      .select('*')
-      .eq('user_id', uId)
-      .is('clock_out', null)
-      .gte('clock_in', today)
-      .order('clock_in', { ascending: false })
-      .limit(1)
-      .single()
-
-    if (entry) {
-      setCurrentEntry(entry)
-
-      // Check for active break
-      const { data: breakData } = await supabase
-        .from('breaks')
+      const { data: entry, error: entryError } = await supabase
+        .from('time_entries')
         .select('*')
-        .eq('time_entry_id', entry.id)
-        .is('break_end', null)
+        .eq('user_id', uId)
+        .is('clock_out', null)
+        .gte('clock_in', today)
+        .order('clock_in', { ascending: false })
+        .limit(1)
         .single()
 
-      if (breakData) {
-        setActiveBreak(breakData)
+      if (entryError && entryError.code !== 'PGRST116') {
+        console.error('Error fetching time entry:', entryError.message)
       }
+
+      if (entry) {
+        setCurrentEntry(entry)
+
+        // Check for active break
+        const { data: breakData, error: breakError } = await supabase
+          .from('breaks')
+          .select('*')
+          .eq('time_entry_id', entry.id)
+          .is('break_end', null)
+          .single()
+
+        if (breakError && breakError.code !== 'PGRST116') {
+          console.error('Error fetching active break:', breakError.message)
+        }
+
+        if (breakData) {
+          setActiveBreak(breakData)
+        }
+      }
+    } catch (err) {
+      console.error('Error initializing timeclock:', err)
     }
 
     setLoading(false)

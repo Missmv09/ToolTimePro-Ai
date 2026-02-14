@@ -235,10 +235,13 @@ function JobDetailContent() {
       setActiveTimeEntry(timeEntry as TimeEntry);
 
       // Update job status to in_progress
-      await supabase
+      const { error: statusError } = await supabase
         .from('jobs')
         .update({ status: 'in_progress' })
         .eq('id', jobId);
+      if (statusError) {
+        console.error('Failed to update job status:', statusError.message);
+      }
 
     } catch (err) {
       console.error('Error clocking in:', err);
@@ -295,11 +298,31 @@ function JobDetailContent() {
 
       if (updateError) throw updateError;
 
+      // Save job photos to database
+      if (photos.length > 0 && worker) {
+        const photoRecords = photos.map((photo) => ({
+          job_id: jobId,
+          user_id: worker.id,
+          photo_url: photo.url,
+          photo_type: 'after' as const,
+          caption: null,
+        }));
+        const { error: photoError } = await supabase
+          .from('job_photos')
+          .insert(photoRecords);
+        if (photoError) {
+          console.error('Failed to save photos:', photoError.message);
+        }
+      }
+
       // Update job status to completed
-      await supabase
+      const { error: jobError } = await supabase
         .from('jobs')
         .update({ status: 'completed' })
         .eq('id', jobId);
+      if (jobError) {
+        console.error('Failed to update job status:', jobError.message);
+      }
 
       setShowCompleteModal(false);
       router.push('/worker/job');

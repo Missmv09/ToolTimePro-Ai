@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { registerDomain, setDNSRecords } from '@/lib/namecom';
+import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,9 @@ function getSupabase() {
       throw new Error('Supabase environment variables not configured');
     }
 
-    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
   }
   return supabaseInstance;
 }
@@ -25,17 +28,12 @@ export async function POST(request) {
   try {
     const supabase = getSupabase();
 
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
-
     const body = await request.json();
+
+    // Auth check — tries header, then body._authToken, then query param
+    const { user, error: authResponse } = await authenticateRequest(request, body?._authToken);
+    if (authResponse) return authResponse;
+
     const { domainName, siteId } = body;
     if (!domainName || typeof domainName !== 'string') {
       return NextResponse.json({ error: 'Domain name is required' }, { status: 400 });
@@ -57,7 +55,9 @@ export async function POST(request) {
     if (siteError || !site) {
       return NextResponse.json({ error: 'Website site not found or access denied' }, { status: 404 });
     }
-    if (site.domain_status === 'active' && site.custom_domain) {
+    // Allow upgrading from a free subdomain to a custom domain
+    const isSubdomain = site.custom_domain?.endsWith('.tooltimepro.com');
+    if (site.domain_status === 'active' && site.custom_domain && !isSubdomain) {
       return NextResponse.json({ error: `Site already has domain: ${site.custom_domain}` }, { status: 409 });
     }
 

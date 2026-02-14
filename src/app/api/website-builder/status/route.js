@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,9 @@ function getSupabase() {
       throw new Error('Supabase environment variables not configured');
     }
 
-    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
   }
   return supabaseInstance;
 }
@@ -24,15 +27,9 @@ export async function GET(request) {
   try {
     const supabase = getSupabase();
 
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    // Auth check — decode JWT directly, no network call to Supabase
+    const { user, error: authResponse } = await authenticateRequest(request);
+    if (authResponse) return authResponse;
 
     // Fetch website site with template info
     const { data: site, error: siteError } = await supabase
@@ -94,7 +91,7 @@ export async function GET(request) {
         siteUrl: site.custom_domain
           ? `https://${site.custom_domain}`
           : `https://tooltimepro.com/site/${site.slug}`,
-        isPublished: site.status === 'published',
+        isPublished: site.status === 'live',
         hasDomain: site.domain_status === 'active' && !!site.custom_domain,
       },
       template,

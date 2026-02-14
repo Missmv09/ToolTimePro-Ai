@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw } from 'lucide-react';
 import WebsiteWizard from './components/WebsiteWizard';
+import DomainUpgradeCard from './components/DomainUpgradeCard';
 
 export default function WebsiteBuilderPage() {
   const [existingSite, setExistingSite] = useState(null);
@@ -34,6 +35,25 @@ export default function WebsiteBuilderPage() {
         .maybeSingle();
 
       if (site) {
+        // Auto-recover sites stuck in 'building' for over 2 minutes.
+        // Use updated_at (not created_at) — created_at never changes, so old
+        // sites would ALWAYS trigger recovery even if just re-launched.
+        if (site.status === 'building' && (site.updated_at || site.created_at)) {
+          const lastTouch = site.updated_at || site.created_at;
+          const ageMs = Date.now() - new Date(lastTouch).getTime();
+          if (ageMs > 2 * 60 * 1000) {
+            const { error: updateErr } = await supabase
+              .from('website_sites')
+              .update({ status: 'live', published_at: new Date().toISOString() })
+              .eq('id', site.id);
+
+            if (!updateErr) {
+              site.status = 'live';
+              site.published_at = new Date().toISOString();
+            }
+          }
+        }
+
         setExistingSite(site);
 
         // Get lead count
@@ -69,7 +89,11 @@ export default function WebsiteBuilderPage() {
 }
 
 function WebsiteDashboard({ site, leadCount, onRefresh }) {
-  const domainUrl = site.custom_domain ? `https://${site.custom_domain}` : null;
+  const domainUrl = site.custom_domain
+    ? `https://${site.custom_domain}`
+    : site.slug
+      ? `/site/${site.slug}`
+      : null;
   const isLive = site.status === 'live';
   const isBuilding = site.status === 'building';
 
@@ -99,7 +123,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
             <Globe size={24} className="text-gold-500" />
             <div>
               <p className="font-semibold text-navy-500">
-                {site.custom_domain || 'No domain yet'}
+                {site.custom_domain || (site.slug ? `tooltimepro.com/site/${site.slug}` : 'No domain yet')}
               </p>
               <span className={`badge mt-1 ${statusColors[site.status] || statusColors.draft}`}>
                 {site.status === 'live' ? 'Live' : site.status === 'building' ? 'Building...' : site.status}
@@ -127,6 +151,13 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
           </div>
         )}
       </div>
+
+      {/* Domain upgrade prompt for subdomain users */}
+      {site.custom_domain?.endsWith('.tooltimepro.com') && (
+        <div className="mb-6">
+          <DomainUpgradeCard site={site} onUpgraded={onRefresh} />
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,9 @@ function getSupabase() {
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase environment variables not configured');
     }
-    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
   }
   return supabaseInstance;
 }
@@ -21,19 +24,13 @@ export async function PUT(request) {
   try {
     const supabase = getSupabase();
 
-    // Auth check
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { siteId, ...updates } = body;
+
+    // Auth check — tries header, then body._authToken, then query param
+    const { user, error: authResponse } = await authenticateRequest(request, body?._authToken);
+    if (authResponse) return authResponse;
+
+    const { siteId, _authToken, ...updates } = body;
 
     if (!siteId) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });

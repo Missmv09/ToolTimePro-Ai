@@ -279,7 +279,7 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
-  // Show loading while auth data is being fetched
+  // Show loading while auth data is pending
   if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

@@ -54,6 +54,7 @@ export default function WorkerSafetyPage() {
 
     if (error) {
       console.error('Error fetching incidents:', error)
+      alert('Failed to load incident reports. Please try refreshing the page.')
     }
     setIncidents(data || [])
   }, [])

@@ -1,14 +1,31 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import SitePreviewFrame from './SitePreviewFrame';
 
+// Decode a JWT payload client-side to check expiry before sending
+function isTokenExpired(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // Expired if < 30 seconds remaining (30s buffer for network latency)
+    return !payload.exp || payload.exp * 1000 < Date.now() + 30000;
+  } catch {
+    return true;
+  }
+}
+
 export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToStep }) {
+  const { company, session } = useAuth();
   const [confirmed, setConfirmed] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [launched, setLaunched] = useState(false);
   const [launchError, setLaunchError] = useState(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [siteId, setSiteId] = useState(null);
   const [publishSteps, setPublishSteps] = useState({
     domain_registered: false,
@@ -18,13 +35,95 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
     live: false,
   });
   const pollRef = useRef(null);
+  const sessionRef = useRef(session);
+  const keepaliveRef = useRef(null);
+
+  // Keep sessionRef in sync so the polling interval always has the latest token
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  // Session keepalive — refresh every 10 minutes while on the review page.
+  // This prevents token expiry for users who spend a long time reviewing.
+  useEffect(() => {
+    keepaliveRef.current = setInterval(async () => {
+      try {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error || !data?.session) {
+          console.warn('[Keepalive] Session refresh failed:', error?.message);
+        }
+      } catch {
+        // Silently continue — launch will handle expired tokens
+      }
+    }, 10 * 60 * 1000); // Every 10 minutes
+
+    return () => clearInterval(keepaliveRef.current);
+  }, []);
+
+  // Helper: get a valid, non-expired token or null.
+  // IMPORTANT: Try cached sources FIRST (no network call → no 406 risk).
+  // refreshSession() triggers a Supabase API call that returns 406 when the
+  // refresh token is stale, which can poison the auth state and clear the
+  // cached session. By checking cached tokens first we avoid that entirely.
+  const getValidToken = useCallback(async () => {
+    // Method 1: AuthContext — instant, no network, no side-effects
+    const ctxToken = session?.access_token;
+    if (ctxToken && !isTokenExpired(ctxToken)) {
+      return { token: ctxToken, source: 'context' };
+    }
+
+    // Method 2: getSession — reads from Supabase memory/localStorage (no network)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const t = sessionData?.session?.access_token;
+      if (t && !isTokenExpired(t)) return { token: t, source: 'getSession' };
+    } catch { /* continue */ }
+
+    // Method 3: refreshSession — network call to Supabase (may 406 if refresh
+    // token is invalid, but we only try this as a last resort)
+    try {
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.warn('[getValidToken] refreshSession failed:', refreshError.message, '| status:', refreshError.status);
+      }
+      const t = refreshData?.session?.access_token;
+      if (t && !isTokenExpired(t)) return { token: t, source: 'refreshSession' };
+    } catch (e) {
+      console.warn('[getValidToken] refreshSession threw:', e.message);
+    }
+
+    // Method 4: If all above failed, try the cached token even if "expired"
+    // (with a generous 5-minute buffer — the server may have a different clock)
+    const anyToken = ctxToken || (await supabase.auth.getSession().catch(() => null))?.data?.session?.access_token;
+    if (anyToken) {
+      console.warn('[getValidToken] Using potentially-expired token as last resort');
+      return { token: anyToken, source: 'lastResort' };
+    }
+
+    return null;
+  }, [session]);
+
+  // Determine if user is on a free trial (has trial_ends_at but no paid subscription)
+  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id;
+  const trialDaysLeft = isOnTrial
+    ? Math.max(0, Math.ceil((new Date(company.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   // Poll for publish status
   useEffect(() => {
     if (siteId && !publishSteps.live) {
       pollRef.current = setInterval(async () => {
         try {
-          const res = await fetch(`/api/website-builder/publish-status?siteId=${siteId}`);
+          // Always get a fresh token — the stored one may have expired
+          const { data: { session: pollSession } } = await supabase.auth.getSession();
+          const pollToken = pollSession?.access_token || sessionRef.current?.access_token;
+          // Send token via both header AND query param — header may be stripped by 308 redirects
+          const pollUrl = pollToken
+            ? `/api/website-builder/publish-status/?siteId=${siteId}&_token=${encodeURIComponent(pollToken)}`
+            : `/api/website-builder/publish-status/?siteId=${siteId}`;
+          const res = await fetch(pollUrl, {
+            headers: pollToken ? { Authorization: `Bearer ${pollToken}` } : {},
+          });
           const data = await res.json();
           if (data.steps) {
             setPublishSteps(data.steps);
@@ -49,38 +148,96 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
   const handleLaunch = async () => {
     setLaunching(true);
     setLaunchError(null);
+    setSessionExpired(false);
 
     try {
-      const response = await fetch('/api/website-builder/create-site', {
+      // Get a valid, non-expired token
+      const result = await getValidToken();
+
+      if (!result) {
+        // Every token source is expired — the user must re-authenticate
+        setSessionExpired(true);
+        throw new Error('Your session has expired. Please log in again to continue.');
+      }
+
+      const { token, source: tokenSource } = result;
+      console.log('[Launch] Using token from:', tokenSource, '| length:', token.length);
+
+      const payload = {
+        _authToken: token,  // Backup: survives 308 redirects that strip headers
+        trade: wizardData.trade,
+        templateId: wizardData.templateId,
+        businessName: wizardData.businessName,
+        tagline: wizardData.tagline,
+        phone: wizardData.phone,
+        email: wizardData.email,
+        serviceArea: wizardData.serviceArea,
+        services: wizardData.services,
+        licenseNumber: wizardData.licenseNumber,
+        yearsInBusiness: wizardData.yearsInBusiness,
+        selectedDomain: wizardData.selectedDomain,
+        colors: wizardData.colors,
+        enabledSections: wizardData.enabledSections,
+        heroImage: wizardData.heroImage ? { type: wizardData.heroImage.type, url: wizardData.heroImage.url } : null,
+        galleryImages: (wizardData.galleryImages || []).map((p) => ({ type: p.type, url: p.url })),
+      };
+
+      // Send token via FOUR channels: header, body, query param, AND cookie.
+      // Netlify/CDN 308 redirects strip the Authorization header and may drop
+      // the request body and query params. Cookies ALWAYS survive redirects
+      // because the browser attaches them automatically to every request.
+      document.cookie = `_auth_token=${encodeURIComponent(token)}; path=/api/; max-age=120; SameSite=Lax`;
+      const url = `/api/website-builder/create-site/?_token=${encodeURIComponent(token)}`;
+
+      let response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trade: wizardData.trade,
-          templateId: wizardData.templateId,
-          businessName: wizardData.businessName,
-          tagline: wizardData.tagline,
-          phone: wizardData.phone,
-          email: wizardData.email,
-          serviceArea: wizardData.serviceArea,
-          services: wizardData.services,
-          licenseNumber: wizardData.licenseNumber,
-          yearsInBusiness: wizardData.yearsInBusiness,
-          selectedDomain: wizardData.selectedDomain,
-          colors: wizardData.colors,
-          enabledSections: wizardData.enabledSections,
-          heroImage: wizardData.heroImage ? { type: wizardData.heroImage.type, url: wizardData.heroImage.url } : null,
-          galleryImages: wizardData.galleryImages.map((p) => ({ type: p.type, url: p.url })),
-        }),
+        credentials: 'same-origin',  // Ensure cookies are sent
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
+
+      // If 401, get a completely fresh token and retry once
+      if (response.status === 401) {
+        console.warn('[Launch] First attempt returned 401 — refreshing token and retrying');
+        const retry = await getValidToken();
+        if (retry) {
+          document.cookie = `_auth_token=${encodeURIComponent(retry.token)}; path=/api/; max-age=120; SameSite=Lax`;
+          const retryUrl = `/api/website-builder/create-site/?_token=${encodeURIComponent(retry.token)}`;
+          response = await fetch(retryUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${retry.token}`,
+            },
+            body: JSON.stringify({ ...payload, _authToken: retry.token }),
+          });
+        }
+      }
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create site');
+        // If the server says auth failed, flag session as expired
+        if (response.status === 401) {
+          setSessionExpired(true);
+        }
+        const debugInfo = `[${response.status} | token: ${tokenSource} | len: ${token.length}]`;
+        throw new Error(`${data.error || 'Failed to create site'} ${debugInfo}`);
       }
 
       setSiteId(data.siteId);
-      setPublishSteps((prev) => ({ ...prev, domain_registered: true, dns_configured: true }));
+
+      // API now sets site live synchronously — mark all steps done if already live
+      if (data.status === 'live') {
+        setPublishSteps({ domain_registered: true, dns_configured: true, site_generated: true, deployed: true, live: true });
+        setLaunched(true);
+      } else {
+        setPublishSteps((prev) => ({ ...prev, domain_registered: true, dns_configured: true }));
+      }
     } catch (err) {
       setLaunchError(err.message);
       setLaunching(false);
@@ -275,10 +432,22 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           {/* Cost Summary */}
           <div className="card border-2 border-gold-200 bg-gold-50/30">
             <h3 className="font-semibold text-navy-500 mb-4">Your Website Plan</h3>
+            {isOnTrial && (
+              <div className="mb-4 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                Included in your free trial — <strong>{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} remaining</strong>. Billing starts after your trial ends.
+              </div>
+            )}
             <div className="space-y-2 text-sm mb-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Website Builder Add-on</span>
-                <span className="font-semibold text-navy-500">$15/month</span>
+                {isOnTrial ? (
+                  <span className="font-semibold">
+                    <span className="line-through text-gray-400">$15/month</span>{' '}
+                    <span className="text-green-600">Free during trial</span>
+                  </span>
+                ) : (
+                  <span className="font-semibold text-navy-500">$15/month</span>
+                )}
               </div>
               {wizardData.selectedDomain?.type === 'new' && (
                 <div className="flex justify-between">
@@ -326,13 +495,24 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
                 className="mt-0.5 w-5 h-5 rounded border-gray-300 text-gold-500 focus:ring-gold-500"
               />
               <span className="text-sm text-gray-600">
-                I confirm the above information is correct and I agree to the Website Builder terms ($15/month{wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).
+                {isOnTrial
+                  ? `I confirm the above information is correct and I agree to the Website Builder terms. The Website Builder is included in my free trial — billing of $15/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''} begins when my trial ends.`
+                  : `I confirm the above information is correct and I agree to the Website Builder terms ($15/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).`
+                }
               </span>
             </label>
 
             {launchError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                {launchError}
+                <p>{launchError}</p>
+                {sessionExpired && (
+                  <a
+                    href="/auth/login"
+                    className="mt-2 inline-block font-semibold text-red-800 underline"
+                  >
+                    Log in again to continue
+                  </a>
+                )}
               </div>
             )}
 

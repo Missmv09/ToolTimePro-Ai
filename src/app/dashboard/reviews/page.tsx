@@ -163,9 +163,13 @@ export default function ReviewsPage() {
         await fetchReviewRequests();
         // Remove from completed jobs list
         setCompletedJobs((prev) => prev.filter((j) => j.id !== job.id));
+      } else {
+        const errData = await response.json().catch(() => null);
+        alert('Failed to send review request: ' + (errData?.error || response.statusText));
       }
     } catch (error) {
       console.error('Error sending review request:', error);
+      alert('Failed to send review request. Please check your connection and try again.');
     } finally {
       setIsSending(null);
     }

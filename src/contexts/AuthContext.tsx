@@ -16,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean;
   authError: string | null;
   isConfigured: boolean;
-  signUp: (email: string, password: string, fullName: string, companyName: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, fullName: string, companyName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
@@ -115,8 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(initialSession?.user ?? null);
 
           if (initialSession?.user) {
-            // Fetch user data but don't block on it
-            fetchUserData(initialSession.user.id).catch(console.error);
+            await fetchUserData(initialSession.user.id);
           }
         }
 
@@ -130,8 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error initializing auth:', error);
         if (mountedRef.current && !initCompleteRef.current) {
           const message = error instanceof Error ? error.message : 'Authentication error';
-          if (message === 'Failed to fetch') {
-            setAuthError('Unable to connect. Please check your internet connection and try again.');
+          if (message.toLowerCase().includes('failed to fetch')) {
+            setAuthError('Unable to connect to the server. Please check your internet connection and try again.');
           } else {
             setAuthError(message);
           }
@@ -177,7 +176,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (
     email: string,
-    password: string,
     fullName: string,
     companyName: string
   ): Promise<{ error: Error | null }> => {
@@ -186,39 +184,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Step 1: Create the auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+      // All signup logic runs server-side via /api/signup. This uses the admin
+      // API to create the user (which does NOT send Supabase's default plain
+      // confirmation email) and instead sends only our branded email with full
+      // context about the account, trial, and next steps.
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, fullName, companyName }),
       });
 
-      if (authError) {
-        return { error: authError };
-      }
+      const data = await res.json();
 
-      if (!authData.user) {
-        return { error: new Error('Failed to create user') };
-      }
-
-      // Step 2: Create company + user profile atomically via database function.
-      // This uses a SECURITY DEFINER function that bypasses RLS and runs in a
-      // transaction, so both records are created together or neither is.
-      const { error: setupError } = await supabase.rpc('handle_new_signup', {
-        p_user_id: authData.user.id,
-        p_email: email,
-        p_full_name: fullName,
-        p_company_name: companyName,
-      });
-
-      if (setupError) {
-        console.error('Error setting up account:', setupError);
-        return { error: setupError };
+      if (!res.ok) {
+        const msg = data.error || 'Signup failed';
+        if (msg.includes('companies_email_key') || msg.includes('duplicate key') || msg.includes('already registered')) {
+          return { error: new Error('An account with this email already exists. Please sign in instead.') };
+        }
+        return { error: new Error(msg) };
       }
 
       return { error: null };
@@ -276,12 +259,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      // Use the server-side /api/reset-password route which calls the admin
+      // API's generateLink({ type: 'recovery' }). This works even when the
+      // user was created with email_confirm: false (the client-side
+      // resetPasswordForEmail silently skips unconfirmed users).
+      const res = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
 
-      if (error) {
-        return { error };
+      if (!res.ok) {
+        const data = await res.json();
+        return { error: new Error(data.error || 'Failed to send reset email') };
       }
 
       return { error: null };

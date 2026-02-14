@@ -154,15 +154,13 @@ export default function Home() {
   // Redirect authenticated users away from the marketing homepage
   useEffect(() => {
     if (isLoading || !user) return;
+    // Wait until company data has loaded before deciding where to redirect
+    if (!company) return;
     setRedirecting(true);
-    if (company?.onboarding_completed) {
+    if (company.onboarding_completed) {
       router.replace('/dashboard');
-    } else if (company) {
-      router.replace('/onboarding');
     } else {
-      // Company data might still be loading — wait briefly then redirect to onboarding
-      const timeout = setTimeout(() => router.replace('/onboarding'), 1500);
-      return () => clearTimeout(timeout);
+      router.replace('/onboarding');
     }
   }, [user, company, isLoading, router]);
 

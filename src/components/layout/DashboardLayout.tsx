@@ -26,6 +26,8 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import TrialBanner from '@/components/trial/TrialBanner';
+import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning';
+import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -64,6 +66,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     await signOut();
     router.push('/auth/login');
   };
+
+  const { showWarning, secondsRemaining, resetTimeout } = useSessionTimeout({
+    onTimeout: handleSignOut,
+    enabled: !!user,
+  });
 
   // Get user initials from name or email
   const getInitials = (name: string | undefined, email: string | undefined) => {
@@ -196,6 +203,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {children}
           </div>
         </main>
+
+        {showWarning && (
+          <SessionTimeoutWarning
+            secondsRemaining={secondsRemaining}
+            onStayLoggedIn={resetTimeout}
+            onLogOut={handleSignOut}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );

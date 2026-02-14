@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,9 @@ function getSupabase() {
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase environment variables not configured');
     }
-    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
   }
   return supabaseInstance;
 }
@@ -28,16 +31,9 @@ export async function GET(request) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });
     }
 
-    // Auth check
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    // Auth check — verifies via Supabase getUser(), falls back to local JWT
+    const { user, error: authResponse } = await authenticateRequest(request);
+    if (authResponse) return authResponse;
 
     // Fetch site
     const { data: site, error: siteError } = await supabase
@@ -61,14 +57,19 @@ export async function GET(request) {
 
     const domainRegistered = logs?.some((l) => l.action === 'register' && l.status === 'success') || false;
     const dnsConfigured = logs?.some((l) => l.action === 'dns_update' && l.status === 'success') || false;
+    // Subdomain/existing domain setups count as "registered" (no Name.com step needed)
+    const subdomainOrExisting = logs?.some((l) =>
+      (l.action === 'subdomain_setup' || l.action === 'existing_domain') && l.status === 'success'
+    ) || false;
     const isLive = site.status === 'live';
     const isBuilding = site.status === 'building';
+    const domainReady = domainRegistered || subdomainOrExisting;
 
     // Derive build steps
     const steps = {
-      domain_registered: domainRegistered,
-      dns_configured: dnsConfigured,
-      site_generated: isLive || (isBuilding && domainRegistered),
+      domain_registered: domainReady,
+      dns_configured: dnsConfigured || subdomainOrExisting,
+      site_generated: isLive || (isBuilding && domainReady),
       deployed: isLive,
       live: isLive,
     };
