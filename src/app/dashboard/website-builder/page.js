@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw } from 'lucide-react';
+import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw, MessageCircle, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import WebsiteWizard from './components/WebsiteWizard';
 import DomainUpgradeCard from './components/DomainUpgradeCard';
 
@@ -200,6 +201,24 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
           </p>
         </div>
       </div>
+
+      {/* Jenny AI Chatbot promo */}
+      {isLive && (
+        <Link href="/jenny" className="block mb-6 no-underline">
+          <div className="card bg-gradient-to-r from-[#fef9ee] to-[#fff7e0] border border-[#f5a623]/30 hover:border-[#f5a623] transition-colors cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-[#f5a623]/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <MessageCircle size={24} className="text-[#f5a623]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-navy-500 text-base">Add Jenny AI Chatbot to Your Website</h3>
+                <p className="text-sm text-gray-600 mt-0.5">Capture leads 24/7 with an AI chatbot that answers questions and books appointments while you sleep.</p>
+              </div>
+              <ArrowRight size={20} className="text-[#f5a623] flex-shrink-0" />
+            </div>
+          </div>
+        </Link>
+      )}
 
       {/* Quick info */}
       <div className="card">
