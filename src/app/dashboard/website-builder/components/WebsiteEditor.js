@@ -133,11 +133,16 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
     businessName: form.businessName,
     tagline: form.tagline,
     phone: form.phone,
+    email: form.email,
     services: form.services,
     colors: form.colors,
     enabledSections: form.enabledSections,
     heroImage: form.heroImage,
     galleryImages: form.galleryImages,
+    trade: content.trade || '',
+    serviceArea: form.serviceArea,
+    licenseNumber: form.licenseNumber,
+    yearsInBusiness: form.yearsInBusiness,
   };
 
   return (
