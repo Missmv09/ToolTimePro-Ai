@@ -5,10 +5,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
 
-    if (!token) {
+    if (!token && !userId) {
       return NextResponse.json({ needsPassword: false });
     }
 
@@ -16,28 +18,48 @@ export async function GET(request: Request) {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceKey) {
+      console.error('check-needs-password: missing env vars');
       return NextResponse.json({ needsPassword: false });
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceKey);
 
-    // getUser with the token reads directly from the auth database,
-    // not the JWT — this is the most reliable way to check metadata.
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    // Strategy 1 (preferred): Use getUserById with the admin API.
+    // This reads directly from the auth database, bypasses JWT entirely,
+    // and is immune to token-invalidation or stale-JWT issues.
+    if (userId) {
+      const { data: { user }, error } =
+        await supabaseAdmin.auth.admin.getUserById(userId);
 
-    if (error || !user) {
-      return NextResponse.json({ needsPassword: false });
+      if (!error && user) {
+        const needsPassword =
+          user.app_metadata?.needs_password === true ||
+          user.user_metadata?.needs_password === true;
+        console.log(`check-needs-password (byId ${userId}): app=${user.app_metadata?.needs_password}, user=${user.user_metadata?.needs_password} → ${needsPassword}`);
+        return NextResponse.json({ needsPassword });
+      }
+      console.error('check-needs-password: getUserById failed:', error?.message);
     }
 
-    // Check app_metadata first (server-only, immune to Supabase auth flow
-    // side-effects like generateLink clearing user_metadata), then fall
-    // back to user_metadata.
-    const needsPassword =
-      user.app_metadata?.needs_password === true ||
-      user.user_metadata?.needs_password === true;
+    // Strategy 2 (fallback): Validate the JWT token.
+    if (token) {
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
-    return NextResponse.json({ needsPassword });
-  } catch {
+      if (!error && user) {
+        const needsPassword =
+          user.app_metadata?.needs_password === true ||
+          user.user_metadata?.needs_password === true;
+        console.log(`check-needs-password (byToken): app=${user.app_metadata?.needs_password}, user=${user.user_metadata?.needs_password} → ${needsPassword}`);
+        return NextResponse.json({ needsPassword });
+      }
+      console.error('check-needs-password: getUser(token) failed:', error?.message);
+    }
+
+    // Both strategies failed — log it so we can debug
+    console.error('check-needs-password: all strategies failed, returning false');
+    return NextResponse.json({ needsPassword: false });
+  } catch (err) {
+    console.error('check-needs-password: unexpected error:', err);
     return NextResponse.json({ needsPassword: false });
   }
 }

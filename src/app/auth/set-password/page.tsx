@@ -82,18 +82,37 @@ export default function SetPasswordPage() {
       return () => clearTimeout(timeout);
     }
 
-    // If the user already set their password, skip this page.
-    // Check both user_metadata and app_metadata — the flag could be in either.
-    const needsPw =
-      user.app_metadata?.needs_password === true ||
-      user.user_metadata?.needs_password === true;
-    if (!needsPw) {
-      if (company?.onboarding_completed) {
-        router.replace('/dashboard');
-      } else {
-        router.replace('/onboarding');
+    // Check server-side whether the user still needs a password.
+    // We do NOT trust client-side JWT metadata here because:
+    //  - app_metadata set via admin API may not be in the client JWT
+    //  - Supabase magic link flow may clear user_metadata
+    // The server-side check uses admin.getUserById which reads the DB directly.
+    const checkServerSide = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return; // no session yet, wait
+
+        const params = new URLSearchParams();
+        if (user.id) params.set('userId', user.id);
+        const res = await fetch(`/api/auth/check-needs-password?${params}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const { needsPassword } = await res.json();
+          if (!needsPassword) {
+            // Password already set — skip this page
+            if (company?.onboarding_completed) {
+              router.replace('/dashboard');
+            } else {
+              router.replace('/onboarding');
+            }
+          }
+        }
+      } catch {
+        // If the check fails, stay on this page (safe default)
       }
-    }
+    };
+    checkServerSide();
   }, [user, company, authLoading, sessionReady, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {

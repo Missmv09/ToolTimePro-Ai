@@ -52,27 +52,35 @@ export default function AuthCallbackPage() {
         }
 
         // Step 3: Server-side password check — reads app_metadata directly
-        // from the database via admin API.  This is the ONLY reliable check;
-        // the client-side JWT may not contain our needs_password flag.
+        // from the auth database via admin getUserById.  This is the ONLY
+        // reliable check; the client-side JWT may not contain our flag.
         setStatus('redirecting')
+
+        // Extract user ID so the API can use admin.getUserById (most reliable).
+        const { data: userData } = await supabase.auth.getUser()
+        const userId = userData?.user?.id
+
+        let needsPassword = true // Safe default: show set-password if check fails
         try {
-          const res = await fetch('/api/auth/check-needs-password', {
+          const params = new URLSearchParams()
+          if (userId) params.set('userId', userId)
+          const res = await fetch(`/api/auth/check-needs-password?${params}`, {
             headers: { Authorization: `Bearer ${session.access_token}` },
           })
           if (res.ok) {
-            const { needsPassword } = await res.json()
-            if (needsPassword) {
-              router.replace('/auth/set-password')
-              return
-            }
+            const data = await res.json()
+            needsPassword = data.needsPassword
           }
-        } catch {
-          // If the check fails, fall through to onboarding check below.
+        } catch (err) {
+          console.error('Password check failed, defaulting to set-password:', err)
+        }
+
+        if (needsPassword) {
+          router.replace('/auth/set-password')
+          return
         }
 
         // Step 4: Check onboarding status directly from the database.
-        const { data: userData } = await supabase.auth.getUser()
-        const userId = userData?.user?.id
         if (userId) {
           const { data: userRow } = await supabase
             .from('users')
