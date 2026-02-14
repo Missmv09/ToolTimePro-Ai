@@ -108,7 +108,7 @@ export async function POST(request) {
           wizard_completed: true,
         })
         .eq('id', existingSite.id)
-        .select('id')
+        .select('id, slug')
         .single();
 
       if (updateError) {
@@ -157,7 +157,7 @@ export async function POST(request) {
           wizard_step: 6,
           wizard_completed: true,
         })
-        .select('id')
+        .select('id, slug')
         .single();
 
       if (insertError) {
@@ -246,11 +246,19 @@ export async function POST(request) {
       .update({ status: 'live', published_at: new Date().toISOString() })
       .eq('id', site.id);
 
+    // For subdomain or when no real custom domain exists, use the path-based URL
+    const isSubdomain = (selectedDomain.type || 'new') === 'subdomain' || cleanDomain.endsWith('.tooltimepro.com');
+    const siteUrl = isSubdomain
+      ? `/site/${site.slug}`
+      : `https://${cleanDomain}`;
+
     return NextResponse.json({
       success: true,
       siteId: site.id,
+      slug: site.slug,
       status: 'live',
       domain: cleanDomain,
+      siteUrl,
       message: 'Your website is live!',
     });
   } catch (error) {

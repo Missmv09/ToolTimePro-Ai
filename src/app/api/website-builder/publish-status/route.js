@@ -74,8 +74,10 @@ export async function GET(request) {
       live: isLive,
     };
 
-    const siteUrl = isLive && site.custom_domain
-      ? `https://${site.custom_domain}`
+    // Use path-based URL for subdomain sites; real custom domains get https://
+    const hasRealDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
+    const siteUrl = isLive
+      ? (hasRealDomain ? `https://${site.custom_domain}` : (site.slug ? `/site/${site.slug}` : null))
       : null;
 
     return NextResponse.json({
