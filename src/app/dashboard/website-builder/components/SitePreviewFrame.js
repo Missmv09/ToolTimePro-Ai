@@ -1,7 +1,7 @@
 'use client';
 
 import { Maximize2, Monitor, Smartphone } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function SitePreviewFrame({ wizardData }) {
   const [viewMode, setViewMode] = useState('desktop');
@@ -167,6 +167,18 @@ export default function SitePreviewFrame({ wizardData }) {
 </body>
 </html>`;
 
+  // Write directly to iframe document so changes always render immediately
+  const iframeRef = useRef(null);
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc) return;
+    doc.open();
+    doc.write(previewHtml);
+    doc.close();
+  }, [previewHtml]);
+
   const containerClass = fullscreen
     ? 'fixed inset-0 z-50 bg-white flex flex-col'
     : 'border border-gray-200 rounded-xl overflow-hidden bg-white';
@@ -205,12 +217,11 @@ export default function SitePreviewFrame({ wizardData }) {
       {/* Preview iframe */}
       <div className={`flex-1 flex justify-center bg-gray-50 ${fullscreen ? '' : 'max-h-[500px]'} overflow-auto`}>
         <iframe
-          srcDoc={previewHtml}
+          ref={iframeRef}
           className={`border-0 bg-white transition-all duration-300 ${
             viewMode === 'mobile' ? 'w-[375px]' : 'w-full'
           } ${fullscreen ? 'h-full' : 'min-h-[400px]'}`}
           title="Website Preview"
-          sandbox="allow-same-origin"
         />
       </div>
 
