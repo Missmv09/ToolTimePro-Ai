@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw } from 'lucide-react';
+import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw, Edit2 } from 'lucide-react';
 import WebsiteWizard from './components/WebsiteWizard';
+import WebsiteEditor from './components/WebsiteEditor';
 import DomainUpgradeCard from './components/DomainUpgradeCard';
 
 export default function WebsiteBuilderPage() {
@@ -89,6 +90,7 @@ export default function WebsiteBuilderPage() {
 }
 
 function WebsiteDashboard({ site, leadCount, onRefresh }) {
+  const [editing, setEditing] = useState(false);
   const hasRealDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
   const domainUrl = hasRealDomain
     ? `https://${site.custom_domain}`
@@ -132,17 +134,28 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
             </div>
           </div>
 
-          {isLive && domainUrl && (
-            <a
-              href={domainUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary flex items-center gap-2"
-            >
-              <ExternalLink size={16} />
-              Visit Site
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <button
+                onClick={() => setEditing(true)}
+                className="btn-ghost flex items-center gap-2"
+              >
+                <Edit2 size={16} />
+                Edit Site
+              </button>
+            )}
+            {isLive && domainUrl && (
+              <a
+                href={domainUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary flex items-center gap-2"
+              >
+                <ExternalLink size={16} />
+                Visit Site
+              </a>
+            )}
+          </div>
         </div>
 
         {isBuilding && (
@@ -223,6 +236,17 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
           </div>
         </dl>
       </div>
+
+      {/* Website Editor modal */}
+      {editing && (
+        <WebsiteEditor
+          site={site}
+          onClose={() => setEditing(false)}
+          onSaved={() => {
+            onRefresh();
+          }}
+        />
+      )}
     </div>
   );
 }
