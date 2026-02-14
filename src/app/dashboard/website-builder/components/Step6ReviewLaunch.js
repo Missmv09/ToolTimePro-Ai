@@ -179,6 +179,8 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         yearsInBusiness: wizardData.yearsInBusiness,
         selectedDomain: wizardData.selectedDomain,
         colors: wizardData.colors,
+        fontHeading: wizardData.fontHeading,
+        fontBody: wizardData.fontBody,
         enabledSections: wizardData.enabledSections,
         heroImage: wizardData.heroImage ? { type: wizardData.heroImage.type, url: wizardData.heroImage.url } : null,
         galleryImages: (wizardData.galleryImages || []).map((p) => ({ type: p.type, url: p.url })),

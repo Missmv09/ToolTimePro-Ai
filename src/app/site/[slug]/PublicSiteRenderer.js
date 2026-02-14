@@ -27,14 +27,16 @@ export default function PublicSiteRenderer({ site, template }) {
   const secondaryColor = content.colors?.secondary || template.secondary_color || '#16213e';
   const accentColor = content.colors?.accent || template.accent_color || '#f5a623';
   const bgColor = content.colors?.background || '#ffffff';
-  const fontHeading = template.font_heading || 'Inter';
-  const fontBody = template.font_body || 'Inter';
+  const headingColor = content.colors?.headingColor || primaryColor;
+  const bodyColor = content.colors?.bodyColor || '#333';
+  const fontHeading = content.fontHeading || template.font_heading || 'Inter';
+  const fontBody = content.fontBody || template.font_body || 'Inter';
 
   return (
     <div
       style={{
         fontFamily: `${fontBody}, -apple-system, BlinkMacSystemFont, sans-serif`,
-        color: '#333',
+        color: bodyColor,
         background: bgColor,
         minHeight: '100vh',
       }}
@@ -203,7 +205,7 @@ export default function PublicSiteRenderer({ site, template }) {
               fontWeight: 700,
               textAlign: 'center',
               marginBottom: '40px',
-              color: primaryColor,
+              color: headingColor,
               fontFamily: `${fontHeading}, sans-serif`,
             }}
           >
@@ -226,7 +228,7 @@ export default function PublicSiteRenderer({ site, template }) {
                   textAlign: 'center',
                   fontSize: '15px',
                   fontWeight: 500,
-                  color: '#374151',
+                  color: bodyColor,
                   background: '#fff',
                   transition: 'box-shadow 0.2s',
                 }}
@@ -248,7 +250,7 @@ export default function PublicSiteRenderer({ site, template }) {
                 fontWeight: 700,
                 textAlign: 'center',
                 marginBottom: '40px',
-                color: primaryColor,
+                color: headingColor,
                 fontFamily: `${fontHeading}, sans-serif`,
               }}
             >
@@ -289,7 +291,7 @@ export default function PublicSiteRenderer({ site, template }) {
                 fontSize: '28px',
                 fontWeight: 700,
                 marginBottom: '20px',
-                color: primaryColor,
+                color: headingColor,
                 fontFamily: `${fontHeading}, sans-serif`,
               }}
             >
@@ -321,7 +323,7 @@ export default function PublicSiteRenderer({ site, template }) {
               fontWeight: 700,
               textAlign: 'center',
               marginBottom: '40px',
-              color: primaryColor,
+              color: headingColor,
               fontFamily: `${fontHeading}, sans-serif`,
             }}
           >
@@ -345,7 +347,7 @@ export default function PublicSiteRenderer({ site, template }) {
                 <div style={{ color: accentColor, fontSize: '18px', marginBottom: '8px' }}>
                   {'★'.repeat(5)}
                 </div>
-                <p style={{ fontSize: '15px', color: '#374151', lineHeight: 1.6 }}>
+                <p style={{ fontSize: '15px', color: bodyColor, lineHeight: 1.6 }}>
                   &ldquo;{review.text}&rdquo;
                 </p>
                 <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
@@ -370,7 +372,7 @@ export default function PublicSiteRenderer({ site, template }) {
                 fontWeight: 700,
                 textAlign: 'center',
                 marginBottom: '32px',
-                color: primaryColor,
+                color: headingColor,
                 fontFamily: `${fontHeading}, sans-serif`,
               }}
             >

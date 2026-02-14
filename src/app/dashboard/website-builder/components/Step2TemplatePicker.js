@@ -41,10 +41,14 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
       ...prev,
       templateId: template.id,
       colors: {
+        ...prev.colors,
         primary: template.primary_color || '#1a1a2e',
+        secondary: template.secondary_color || '#16213e',
         accent: template.accent_color || '#f5a623',
         background: '#ffffff',
       },
+      fontHeading: template.font_heading || 'Inter',
+      fontBody: template.font_body || 'Inter',
     }));
   };
 

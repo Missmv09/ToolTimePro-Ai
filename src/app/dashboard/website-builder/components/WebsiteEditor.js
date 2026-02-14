@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Save, Eye, Palette, Layout, FileText, ImageIcon, RefreshCw, Check } from 'lucide-react';
+import { X, Save, Eye, Palette, Layout, FileText, ImageIcon, Type, RefreshCw, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { getStockPhotos } from '@/lib/stock-photos';
 import SectionToggle from './SectionToggle';
@@ -9,11 +9,16 @@ import PhotoSelector from './PhotoSelector';
 import SitePreviewFrame from './SitePreviewFrame';
 
 const colorPresets = [
-  { name: 'Classic', primary: '#1a1a2e', accent: '#f5a623', background: '#ffffff' },
-  { name: 'Modern', primary: '#374151', accent: '#14b8a6', background: '#ffffff' },
-  { name: 'Clean', primary: '#1e40af', accent: '#3b82f6', background: '#ffffff' },
-  { name: 'Bold', primary: '#18181b', accent: '#ef4444', background: '#ffffff' },
-  { name: 'Earth', primary: '#365314', accent: '#a16207', background: '#fefce8' },
+  { name: 'Classic', primary: '#1a1a2e', secondary: '#16213e', accent: '#f5a623', background: '#ffffff' },
+  { name: 'Modern', primary: '#374151', secondary: '#4b5563', accent: '#14b8a6', background: '#ffffff' },
+  { name: 'Clean', primary: '#1e40af', secondary: '#1e3a8a', accent: '#3b82f6', background: '#ffffff' },
+  { name: 'Bold', primary: '#18181b', secondary: '#27272a', accent: '#ef4444', background: '#ffffff' },
+  { name: 'Earth', primary: '#365314', secondary: '#3f6212', accent: '#a16207', background: '#fefce8' },
+];
+
+const fontOptions = [
+  'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
+  'Poppins', 'Raleway', 'Oswald', 'Playfair Display', 'Merriweather',
 ];
 
 export default function WebsiteEditor({ site, onClose, onSaved }) {
@@ -28,7 +33,9 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
     services: content.services || [],
     licenseNumber: content.licenseNumber || '',
     yearsInBusiness: content.yearsInBusiness || '',
-    colors: content.colors || { primary: '#1a1a2e', accent: '#f5a623', background: '#ffffff' },
+    colors: content.colors || { primary: '#1a1a2e', secondary: '#16213e', accent: '#f5a623', background: '#ffffff', headingColor: '', bodyColor: '' },
+    fontHeading: content.fontHeading || 'Inter',
+    fontBody: content.fontBody || 'Inter',
     enabledSections: content.enabledSections || ['hero', 'services', 'contact'],
     heroImage: content.heroImage || null,
     galleryImages: content.galleryImages || [],
@@ -102,6 +109,8 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
           licenseNumber: form.licenseNumber,
           yearsInBusiness: form.yearsInBusiness,
           colors: form.colors,
+          fontHeading: form.fontHeading,
+          fontBody: form.fontBody,
           enabledSections: form.enabledSections,
           heroImage: form.heroImage,
           galleryImages: form.galleryImages,
@@ -126,6 +135,7 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
   const tabs = [
     { id: 'info', label: 'Business Info', icon: FileText },
     { id: 'colors', label: 'Colors', icon: Palette },
+    { id: 'fonts', label: 'Fonts', icon: Type },
     { id: 'sections', label: 'Sections', icon: Layout },
     { id: 'photos', label: 'Photos', icon: ImageIcon },
   ];
@@ -138,6 +148,8 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
     email: form.email,
     services: form.services,
     colors: form.colors,
+    fontHeading: form.fontHeading,
+    fontBody: form.fontBody,
     enabledSections: form.enabledSections,
     heroImage: form.heroImage,
     galleryImages: form.galleryImages,
@@ -338,7 +350,7 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
                       {colorPresets.map((preset) => (
                         <button
                           key={preset.name}
-                          onClick={() => { updateColors({ primary: preset.primary, accent: preset.accent, background: preset.background }); }}
+                          onClick={() => { updateColors({ primary: preset.primary, secondary: preset.secondary, accent: preset.accent, background: preset.background }); }}
                           className="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-gray-200 hover:border-gold-300 transition-colors"
                         >
                           <div className="flex gap-0.5">
@@ -351,25 +363,95 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-sm font-medium text-navy-500">Custom Colors</p>
+                    <p className="text-sm font-medium text-navy-500">Site Colors</p>
                     {[
-                      { key: 'primary', label: 'Primary Color' },
-                      { key: 'accent', label: 'Accent Color' },
-                      { key: 'background', label: 'Background Color' },
-                    ].map(({ key, label }) => (
+                      { key: 'primary', label: 'Primary Color', desc: 'Nav, headings, footer' },
+                      { key: 'secondary', label: 'Secondary Color', desc: 'Hero gradient end' },
+                      { key: 'accent', label: 'Accent Color', desc: 'Buttons, links, highlights' },
+                      { key: 'background', label: 'Background Color', desc: 'Page background' },
+                    ].map(({ key, label, desc }) => (
                       <div key={key} className="flex items-center gap-3">
                         <input
                           type="color"
-                          value={form.colors[key]}
+                          value={form.colors[key] || '#333333'}
                           onChange={(e) => updateColors({ [key]: e.target.value })}
                           className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
                         />
                         <div>
                           <p className="text-sm text-navy-500">{label}</p>
-                          <p className="text-xs text-gray-400">{form.colors[key]}</p>
+                          <p className="text-xs text-gray-400">{desc} &middot; {form.colors[key] || 'default'}</p>
                         </div>
                       </div>
                     ))}
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-navy-500">Font Colors</p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={form.colors.headingColor || form.colors.primary || '#1a1a2e'}
+                        onChange={(e) => updateColors({ headingColor: e.target.value })}
+                        className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                      />
+                      <div>
+                        <p className="text-sm text-navy-500">Heading Color</p>
+                        <p className="text-xs text-gray-400">Section titles &middot; {form.colors.headingColor || 'uses primary'}</p>
+                      </div>
+                      {form.colors.headingColor && (
+                        <button onClick={() => updateColors({ headingColor: '' })} className="text-xs text-gray-400 hover:text-red-500">Reset</button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={form.colors.bodyColor || '#333333'}
+                        onChange={(e) => updateColors({ bodyColor: e.target.value })}
+                        className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                      />
+                      <div>
+                        <p className="text-sm text-navy-500">Body Text Color</p>
+                        <p className="text-xs text-gray-400">Paragraphs, cards &middot; {form.colors.bodyColor || '#333333'}</p>
+                      </div>
+                      {form.colors.bodyColor && (
+                        <button onClick={() => updateColors({ bodyColor: '' })} className="text-xs text-gray-400 hover:text-red-500">Reset</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Fonts tab */}
+              {activeTab === 'fonts' && (
+                <div className="space-y-6 max-w-lg">
+                  <div>
+                    <p className="text-sm font-medium text-navy-500 mb-2">Heading Font</p>
+                    <select
+                      value={form.fontHeading || 'Inter'}
+                      onChange={(e) => updateField('fontHeading', e.target.value)}
+                      className="input w-full"
+                    >
+                      {fontOptions.map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                    <p className="mt-2 text-lg font-bold text-navy-500" style={{ fontFamily: `${form.fontHeading || 'Inter'}, sans-serif` }}>
+                      The quick brown fox jumps over the lazy dog
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-navy-500 mb-2">Body Font</p>
+                    <select
+                      value={form.fontBody || 'Inter'}
+                      onChange={(e) => updateField('fontBody', e.target.value)}
+                      className="input w-full"
+                    >
+                      {fontOptions.map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                    <p className="mt-2 text-sm text-gray-600" style={{ fontFamily: `${form.fontBody || 'Inter'}, sans-serif` }}>
+                      The quick brown fox jumps over the lazy dog. This is how your body text will look on your website.
+                    </p>
                   </div>
                 </div>
               )}

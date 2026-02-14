@@ -59,7 +59,7 @@ export async function PUT(request) {
     if (updates.email !== undefined) siteUpdate.business_email = updates.email;
 
     // Content updates (merged into site_content JSONB)
-    const contentFields = ['tagline', 'serviceArea', 'services', 'licenseNumber', 'yearsInBusiness', 'colors', 'enabledSections', 'heroImage', 'galleryImages'];
+    const contentFields = ['tagline', 'serviceArea', 'services', 'licenseNumber', 'yearsInBusiness', 'colors', 'enabledSections', 'heroImage', 'galleryImages', 'fontHeading', 'fontBody'];
     for (const field of contentFields) {
       if (updates[field] !== undefined) {
         contentUpdate[field] = updates[field];
