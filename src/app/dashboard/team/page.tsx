@@ -1104,65 +1104,10 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
         }
       }
     } else {
-      // Create new team member using signUp (works from client-side)
-      const tempPassword = generateTempPassword()
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: tempPassword,
-        options: {
-          data: {
-            full_name: formData.full_name,
-          },
-        },
-      })
-
-      if (authError) {
-        console.error('Error creating auth user:', authError)
-        if (authError.message.includes('already registered')) {
-          alert('A user with this email already exists. Please use a different email address.')
-        } else if (authError.message.toLowerCase().includes('rate limit')) {
-          alert('Rate limit reached. Please wait 1-2 minutes and try again.')
-        } else {
-          alert(`Unable to create team member: ${authError.message}`)
-        }
-        setSaving(false)
-        return
-      }
-
-      if (!authData.user) {
-        console.error('No user returned from signUp')
-        alert('Unable to create team member. Please try again.')
-        setSaving(false)
-        return
-      }
-
-      const newUserData = {
-        id: authData.user.id,
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone || null,
-        role: formData.role,
-        hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-        is_active: formData.is_active,
-        notes: formData.notes || null,
-        company_id: companyId,
-      }
-
-      const { error: insertError } = await supabase
-        .from('users')
-        .insert(newUserData)
-
-      if (insertError) {
-        console.error('Error creating user profile:', insertError)
-        alert(`Error creating team member profile: ${insertError.message}`)
-        setSaving(false)
-        return
-      }
-
-      // Send welcome email with temporary password directly to the employee
+      // Create new team member via server-side admin API (avoids Supabase confirmation email)
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        const res = await fetch('/api/send-team-invite', {
+        const res = await fetch('/api/team-member/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1170,35 +1115,40 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
           },
           body: JSON.stringify({
             email: formData.email,
-            name: formData.full_name,
-            tempPassword,
+            full_name: formData.full_name,
+            phone: formData.phone,
+            role: formData.role,
+            hourly_rate: formData.hourly_rate,
+            is_active: formData.is_active,
+            notes: formData.notes,
             companyId,
           }),
         })
 
+        const result = await res.json()
+
         if (!res.ok) {
-          console.error('Failed to send welcome email')
-          alert(
-            `Team member created successfully!\n\n` +
-            `However, we couldn't send the welcome email. Please share their temporary password manually:\n${tempPassword}`
-          )
+          alert(result.error || 'Unable to create team member. Please try again.')
           setSaving(false)
-          onSave()
           return
         }
-      } catch (emailError) {
-        console.error('Error sending welcome email:', emailError)
-        alert(
-          `Team member created successfully!\n\n` +
-          `However, we couldn't send the welcome email. Please share their temporary password manually:\n${tempPassword}`
-        )
+
+        if (result.emailFailed) {
+          alert(
+            `Team member created successfully!\n\n` +
+            `However, we couldn't send the welcome email. Please share their temporary password manually:\n${result.tempPassword}`
+          )
+        } else {
+          alert(`Team member created successfully!\n\nA welcome email with login credentials has been sent to ${formData.email}.`)
+        }
+      } catch (err) {
+        console.error('Error creating team member:', err)
+        alert('Unable to create team member. Please try again.')
         setSaving(false)
-        onSave()
         return
       }
 
       setSaving(false)
-      alert(`Team member created successfully!\n\nA welcome email with login credentials has been sent to ${formData.email}.`)
       onSave()
       return
     }
