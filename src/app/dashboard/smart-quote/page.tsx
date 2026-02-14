@@ -25,6 +25,59 @@ interface Customer {
   phone: string | null;
   email: string | null;
   address: string | null;
+  state: string | null;
+}
+
+// US state sales tax rates (2024 averages including state + avg local)
+const STATE_TAX_RATES: Record<string, number> = {
+  AL: 9.24, AK: 1.76, AZ: 8.40, AR: 9.47, CA: 8.68,
+  CO: 7.77, CT: 6.35, DE: 0, FL: 7.02, GA: 7.37,
+  HI: 4.44, ID: 6.02, IL: 8.82, IN: 7.00, IA: 6.94,
+  KS: 8.70, KY: 6.00, LA: 9.55, ME: 5.50, MD: 6.00,
+  MA: 6.25, MI: 6.00, MN: 7.49, MS: 7.07, MO: 8.30,
+  MT: 0, NE: 6.94, NV: 8.23, NH: 0, NJ: 6.63,
+  NM: 7.72, NY: 8.52, NC: 6.99, ND: 6.96, OH: 7.24,
+  OK: 8.98, OR: 0, PA: 6.34, RI: 7.00, SC: 7.44,
+  SD: 6.40, TN: 9.55, TX: 8.20, UT: 7.19, VT: 6.36,
+  VA: 5.75, WA: 9.29, WV: 6.50, WI: 5.43, WY: 5.36,
+  DC: 6.00,
+};
+
+// Two-letter state abbreviations for matching
+const STATE_ABBREVS = new Set(Object.keys(STATE_TAX_RATES));
+
+// Full state names to abbreviations
+const STATE_NAMES: Record<string, string> = {
+  alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA',
+  colorado: 'CO', connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA',
+  hawaii: 'HI', idaho: 'ID', illinois: 'IL', indiana: 'IN', iowa: 'IA',
+  kansas: 'KS', kentucky: 'KY', louisiana: 'LA', maine: 'ME', maryland: 'MD',
+  massachusetts: 'MA', michigan: 'MI', minnesota: 'MN', mississippi: 'MS', missouri: 'MO',
+  montana: 'MT', nebraska: 'NE', nevada: 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+  'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH',
+  oklahoma: 'OK', oregon: 'OR', pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+  'south dakota': 'SD', tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT',
+  virginia: 'VA', washington: 'WA', 'west virginia': 'WV', wisconsin: 'WI', wyoming: 'WY',
+  'district of columbia': 'DC',
+};
+
+function detectStateFromAddress(address: string): string | null {
+  if (!address) return null;
+  const trimmed = address.trim();
+
+  // Try matching ", ST 12345" or ", ST" at end of address
+  const abbrMatch = trimmed.match(/,\s*([A-Z]{2})\s*\d{0,5}\s*$/);
+  if (abbrMatch && STATE_ABBREVS.has(abbrMatch[1])) {
+    return abbrMatch[1];
+  }
+
+  // Try matching full state name anywhere in the address
+  const lower = trimmed.toLowerCase();
+  for (const [name, abbr] of Object.entries(STATE_NAMES)) {
+    if (lower.includes(name)) return abbr;
+  }
+
+  return null;
 }
 
 interface QuoteOption {
@@ -161,7 +214,7 @@ export default function SmartQuotingPage() {
       const fetchCustomers = async () => {
         const { data: customersData } = await supabase
           .from('customers')
-          .select('id, name, phone, email, address')
+          .select('id, name, phone, email, address, state')
           .eq('company_id', companyId)
           .order('name');
 
@@ -1071,6 +1124,11 @@ export default function SmartQuotingPage() {
                             email: customer.email || '',
                             address: customer.address || '',
                           });
+                          // Auto-set tax rate from customer state
+                          const state = customer.state || detectStateFromAddress(customer.address || '');
+                          if (state && STATE_TAX_RATES[state] !== undefined) {
+                            setTaxRate(STATE_TAX_RATES[state]);
+                          }
                           setCustomerSearch('');
                           setShowCustomerDropdown(false);
                         }}
@@ -1129,6 +1187,12 @@ export default function SmartQuotingPage() {
                     type="text"
                     value={newCustomer.address}
                     onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
+                    onBlur={(e) => {
+                      const state = detectStateFromAddress(e.target.value);
+                      if (state && STATE_TAX_RATES[state] !== undefined) {
+                        setTaxRate(STATE_TAX_RATES[state]);
+                      }
+                    }}
                     placeholder="123 Main St, City, CA 12345"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                   />
@@ -1582,7 +1646,15 @@ export default function SmartQuotingPage() {
 
                 {/* Tax */}
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Tax</span>
+                  <div>
+                    <span className="text-gray-500">Tax</span>
+                    {(() => {
+                      const detectedState = selectedCustomer?.state || detectStateFromAddress(newCustomer.address);
+                      return detectedState ? (
+                        <span className="text-xs text-gray-400 ml-1">({detectedState})</span>
+                      ) : null;
+                    })()}
+                  </div>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -1591,7 +1663,7 @@ export default function SmartQuotingPage() {
                       className="w-16 px-2 py-1 border border-gray-200 rounded text-right text-sm"
                       min="0"
                       max="20"
-                      step="0.5"
+                      step="0.01"
                     />
                     <span className="text-gray-400">%</span>
                     <span className="text-navy-500 w-20 text-right">${taxAmount.toFixed(2)}</span>
