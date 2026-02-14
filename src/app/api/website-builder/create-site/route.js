@@ -57,6 +57,7 @@ export async function POST(request) {
       trade, templateId, businessName, tagline, phone, email,
       serviceArea, services, licenseNumber, yearsInBusiness,
       selectedDomain, colors, enabledSections, heroImage, galleryImages,
+      fontHeading, fontBody,
     } = body;
 
     // Validation
@@ -100,6 +101,8 @@ export async function POST(request) {
             enabledSections: enabledSections || [],
             heroImage: heroImage || null,
             galleryImages: galleryImages || [],
+            fontHeading: fontHeading || 'Inter',
+            fontBody: fontBody || 'Inter',
           },
           status: 'building',
           custom_domain: selectedDomain.domainName,
@@ -150,6 +153,8 @@ export async function POST(request) {
             enabledSections: enabledSections || [],
             heroImage: heroImage || null,
             galleryImages: galleryImages || [],
+            fontHeading: fontHeading || 'Inter',
+            fontBody: fontBody || 'Inter',
           },
           status: 'building',
           custom_domain: domainToStore,

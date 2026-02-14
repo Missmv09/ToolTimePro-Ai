@@ -107,9 +107,14 @@ export default function WebsiteWizard() {
     // Step 5
     colors: {
       primary: '#1a1a2e',
+      secondary: '#16213e',
       accent: '#f5a623',
       background: '#ffffff',
+      headingColor: '',
+      bodyColor: '',
     },
+    fontHeading: 'Inter',
+    fontBody: 'Inter',
     enabledSections: ['hero', 'services', 'gallery', 'reviews', 'contact', 'about'],
     heroImage: null,
     galleryImages: [],
