@@ -21,13 +21,52 @@ function getSupabase() {
   return supabaseInstance;
 }
 
-function generateSlug(businessName) {
+function generateBaseSlug(businessName) {
   return businessName
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
     .substring(0, 60);
+}
+
+/**
+ * Generate a unique slug by checking the database for collisions.
+ * First tries the clean slug (e.g. "saldana-sons"), then appends
+ * an incrementing number if taken (e.g. "saldana-sons-2", "saldana-sons-3").
+ */
+async function generateUniqueSlug(supabase, businessName) {
+  const baseSlug = generateBaseSlug(businessName);
+
+  // Check if the base slug is available
+  const { data: existing } = await supabase
+    .from('website_sites')
+    .select('slug')
+    .eq('slug', baseSlug)
+    .maybeSingle();
+
+  if (!existing) return baseSlug;
+
+  // Find all slugs that start with this base to determine the next number
+  const { data: similar } = await supabase
+    .from('website_sites')
+    .select('slug')
+    .like('slug', `${baseSlug}-%`);
+
+  // Extract numeric suffixes from existing slugs like "saldana-sons-2", "saldana-sons-3"
+  let maxNum = 1;
+  if (similar?.length) {
+    for (const row of similar) {
+      const suffix = row.slug.replace(`${baseSlug}-`, '');
+      const num = parseInt(suffix, 10);
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num;
+      }
+    }
+  }
+
+  return `${baseSlug}-${maxNum + 1}`;
 }
 
 export async function POST(request) {
@@ -121,15 +160,13 @@ export async function POST(request) {
       site = updatedSite;
     } else {
       // No existing site — create a new one
-      // Add random suffix to slug and domain to prevent collisions
-      const randomSuffix = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      const slug = generateSlug(businessName) + '-' + randomSuffix;
+      // Generate a clean, unique slug (e.g. "saldana-sons" or "saldana-sons-2")
+      const slug = await generateUniqueSlug(supabase, businessName);
 
-      // De-duplicate subdomain names by appending the same suffix
+      // For subdomains, use the slug directly as the subdomain (clean name)
       let domainToStore = selectedDomain.domainName;
       if (selectedDomain.type === 'subdomain' && domainToStore.endsWith('.tooltimepro.com')) {
-        const subPart = domainToStore.replace('.tooltimepro.com', '');
-        domainToStore = `${subPart}-${randomSuffix}.tooltimepro.com`;
+        domainToStore = `${slug}.tooltimepro.com`;
       }
 
       const { data: newSite, error: insertError } = await supabase
@@ -251,10 +288,10 @@ export async function POST(request) {
       .update({ status: 'live', published_at: new Date().toISOString() })
       .eq('id', site.id);
 
-    // For subdomain or when no real custom domain exists, use the path-based URL
+    // Build the public-facing URL for the site
     const isSubdomain = (selectedDomain.type || 'new') === 'subdomain' || cleanDomain.endsWith('.tooltimepro.com');
     const siteUrl = isSubdomain
-      ? `/site/${site.slug}`
+      ? `https://${site.slug}.tooltimepro.com`
       : `https://${cleanDomain}`;
 
     return NextResponse.json({
