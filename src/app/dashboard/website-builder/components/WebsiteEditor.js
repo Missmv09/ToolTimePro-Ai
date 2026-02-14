@@ -37,6 +37,7 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
   const [activeTab, setActiveTab] = useState('info');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedSlug, setSavedSlug] = useState(null);
   const [error, setError] = useState(null);
   const [newService, setNewService] = useState('');
   const [photos, setPhotos] = useState({ hero: [], gallery: [] });
@@ -113,6 +114,7 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
       }
 
       setSaved(true);
+      setSavedSlug(data.slug || null);
       if (onSaved) onSaved();
     } catch (err) {
       setError(err.message);
@@ -178,8 +180,18 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
           <div className="px-6 py-2 bg-red-50 border-b border-red-200 text-sm text-red-700">{error}</div>
         )}
         {saved && !error && (
-          <div className="px-6 py-2 bg-green-50 border-b border-green-200 text-sm text-green-700">
-            Changes saved! Your site is updated live.
+          <div className="px-6 py-2 bg-green-50 border-b border-green-200 text-sm text-green-700 flex items-center justify-between">
+            <span>Changes saved! Your site is updated live.</span>
+            {savedSlug && (
+              <a
+                href={`/site/${savedSlug}/?t=${Date.now()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline hover:text-green-900"
+              >
+                View Live Site &rarr;
+              </a>
+            )}
           </div>
         )}
 
