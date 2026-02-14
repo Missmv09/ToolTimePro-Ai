@@ -38,7 +38,7 @@ export default function GettingStartedChecklist() {
     const checkProgress = async () => {
       const companyId = dbUser.company_id
 
-      const [customersRes, jobsRes, teamRes] = await Promise.all([
+      const [customersRes, jobsRes, teamRes, websiteRes] = await Promise.all([
         supabase
           .from('customers')
           .select('id', { count: 'exact', head: true })
@@ -51,12 +51,17 @@ export default function GettingStartedChecklist() {
           .from('users')
           .select('id', { count: 'exact', head: true })
           .eq('company_id', companyId),
+        supabase
+          .from('website_sites')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+          .eq('status', 'live'),
       ])
 
       setHasCustomers((customersRes.count ?? 0) > 0)
       setHasJobs((jobsRes.count ?? 0) > 0)
       setHasTeam((teamRes.count ?? 0) > 1) // More than the owner
-      setHasWebsite(!!company?.website)
+      setHasWebsite(!!company?.website || (websiteRes.count ?? 0) > 0)
       setLoaded(true)
     }
 
