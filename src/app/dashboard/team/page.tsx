@@ -519,7 +519,7 @@ export default function TeamPage() {
                               Inactive
                             </span>
                           )}
-                          {member.is_active && !member.last_login_at && (
+                          {member.is_active && !member.last_login_at && member.role !== 'owner' && (
                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                               Pending Activation
                             </span>
