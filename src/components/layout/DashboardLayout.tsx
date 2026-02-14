@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -54,6 +54,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const { user, dbUser, company, signOut, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    if (profileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [profileMenuOpen]);
 
   // Redirect to onboarding if not completed
   useEffect(() => {
@@ -162,9 +177,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </nav>
 
           {/* User section */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-navy-100 rounded-full flex items-center justify-center">
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200" ref={profileMenuRef}>
+            {/* Dropdown menu */}
+            {profileMenuOpen && (
+              <div className="absolute bottom-full left-4 right-4 mb-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <Link
+                  href="/dashboard/settings"
+                  onClick={() => { setProfileMenuOpen(false); setSidebarOpen(false); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <Settings size={16} />
+                  <span>Settings</span>
+                </Link>
+                <div className="border-t border-gray-100 my-1" />
+                <button
+                  onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut size={16} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
+            <button
+              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+              className="flex items-center gap-3 w-full text-left rounded-lg hover:bg-gray-50 transition-colors p-1 -m-1"
+            >
+              <div className="w-10 h-10 bg-navy-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-sm font-medium text-navy-500">
                   {getInitials(dbUser?.full_name, user?.email)}
                 </span>
@@ -177,14 +216,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {formatRole(dbUser?.role)}
                 </p>
               </div>
-              <button
-                onClick={handleSignOut}
-                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                title="Sign Out"
-              >
-                <LogOut size={18} />
-              </button>
-            </div>
+              <ChevronRight size={16} className={`text-gray-400 transition-transform ${profileMenuOpen ? 'rotate-90' : ''}`} />
+            </button>
           </div>
         </aside>
 
