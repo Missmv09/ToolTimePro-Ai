@@ -21,9 +21,11 @@ const fontOptions = [
   'Poppins', 'Raleway', 'Oswald', 'Playfair Display', 'Merriweather',
 ];
 
-export default function WebsiteEditor({ site, onClose, onSaved }) {
+export default function WebsiteEditor({ site, template = {}, onClose, onSaved }) {
   const content = site.site_content || {};
 
+  // Use the same fallback chain as PublicSiteRenderer so the editor preview
+  // matches the live site exactly: site_content.colors -> template colors -> hardcoded defaults.
   const [form, setForm] = useState({
     businessName: site.business_name || '',
     phone: site.business_phone || '',
@@ -33,9 +35,16 @@ export default function WebsiteEditor({ site, onClose, onSaved }) {
     services: content.services || [],
     licenseNumber: content.licenseNumber || '',
     yearsInBusiness: content.yearsInBusiness || '',
-    colors: content.colors || { primary: '#1a1a2e', secondary: '#16213e', accent: '#f5a623', background: '#ffffff', headingColor: '', bodyColor: '' },
-    fontHeading: content.fontHeading || 'Inter',
-    fontBody: content.fontBody || 'Inter',
+    colors: {
+      primary: content.colors?.primary || template.primary_color || '#1a1a2e',
+      secondary: content.colors?.secondary || template.secondary_color || '#16213e',
+      accent: content.colors?.accent || template.accent_color || '#f5a623',
+      background: content.colors?.background || '#ffffff',
+      headingColor: content.colors?.headingColor || '',
+      bodyColor: content.colors?.bodyColor || '',
+    },
+    fontHeading: content.fontHeading || template.font_heading || 'Inter',
+    fontBody: content.fontBody || template.font_body || 'Inter',
     enabledSections: content.enabledSections || ['hero', 'services', 'contact'],
     heroImage: content.heroImage || null,
     galleryImages: content.galleryImages || [],

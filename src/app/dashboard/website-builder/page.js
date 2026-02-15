@@ -31,7 +31,7 @@ export default function WebsiteBuilderPage() {
     try {
       const { data: site, error } = await supabase
         .from('website_sites')
-        .select('*, website_templates(name, trade_category, style)')
+        .select('*, website_templates(id, slug, name, trade_category, style, primary_color, secondary_color, accent_color, font_heading, font_body, layout_config, default_content)')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -241,6 +241,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
       {editing && (
         <WebsiteEditor
           site={site}
+          template={site.website_templates || {}}
           onClose={() => setEditing(false)}
           onSaved={() => {
             onRefresh();
