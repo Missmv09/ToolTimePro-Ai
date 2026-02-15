@@ -92,9 +92,10 @@ const TIERS = [
       'Federal compliance (ToolTime Shield)',
       '1-page website',
       'Spanish language support',
+      'Jenny Lite — AI Chat & Lead Capture',
       'Chat & email support',
     ],
-    notIncluded: ['Worker App', 'Time Tracking', 'Jenny AI', 'Dispatch Board'],
+    notIncluded: ['Worker App', 'Time Tracking', 'Dispatch Board'],
     popular: false,
   },
   {
@@ -114,7 +115,7 @@ const TIERS = [
       'Review automation',
       'Phone support',
     ],
-    notIncluded: ['Jenny AI', 'Dispatch Board', 'Route Optimization'],
+    notIncluded: ['Dispatch Board', 'Route Optimization'],
     popular: true,
   },
   {
@@ -134,7 +135,7 @@ const TIERS = [
       'Compliance alerts',
       'Priority support',
     ],
-    notIncluded: ['Jenny AI'],
+    notIncluded: [],
     popular: false,
     highlight: 'dispatch',
   },
@@ -275,10 +276,8 @@ export default function PricingPage() {
   const selectTier = (tierId) => {
     setSelectedTier(tierId);
     setSelectedStandalone(null);
-    // Auto-include Jenny Lite when Elite is selected
-    if (tierId === 'elite') {
-      setSelectedAddons(prev => prev.includes('jenny_lite') ? prev : [...prev, 'jenny_lite']);
-    }
+    // Auto-include Jenny Lite — included with all plans
+    setSelectedAddons(prev => prev.includes('jenny_lite') ? prev : [...prev, 'jenny_lite']);
   };
 
   const selectStandalone = (standaloneId) => {
@@ -301,8 +300,8 @@ export default function PricingPage() {
     }
 
     selectedAddons.forEach((addonId) => {
-      // Jenny Lite is included free with Elite — don't charge for it
-      if (addonId === 'jenny_lite' && selectedTier === 'elite') return;
+      // Jenny Lite is included free with all plans — don't charge for it
+      if (addonId === 'jenny_lite' && selectedTier) return;
       const addon = ADDONS.find((a) => a.id === addonId);
       if (addon) {
         monthly += addon.monthlyPrice;
@@ -457,7 +456,7 @@ export default function PricingPage() {
                 <h2>Add Jenny AI — Your Business Assistant</h2>
                 <p>Jenny handles calls, chat, SMS, and keeps you compliant 24/7. Choose the tier that fits your needs.</p>
                 <div className="jenny-compare">
-                  <span className="jenny-price">From <strong>$19/mo</strong></span>
+                  <span className="jenny-price">Lite <strong>Included Free</strong> on all plans</span>
                   <span className="jenny-vs">Jobber charges $349/mo for this</span>
                 </div>
               </div>
@@ -471,21 +470,21 @@ export default function PricingPage() {
 
           <div className="jenny-tiers">
             <div
-              className={`jenny-tier ${selectedAddons.includes('jenny_lite') ? 'selected' : ''} ${isElite ? 'included' : ''}`}
+              className={`jenny-tier ${selectedAddons.includes('jenny_lite') ? 'selected' : ''} ${selectedTier ? 'included' : ''}`}
               onClick={() => {
-                // Don't allow removing Jenny Lite when Elite is selected (it's included)
-                if (isElite) return;
+                // Don't allow removing Jenny Lite when any plan is selected (it's included)
+                if (selectedTier) return;
                 if (selectedAddons.includes('jenny_pro')) {
                   setSelectedAddons(prev => prev.filter(id => id !== 'jenny_pro'));
                 }
                 toggleAddon('jenny_lite');
               }}
-              style={isElite ? { cursor: 'default' } : {}}
+              style={selectedTier ? { cursor: 'default' } : {}}
             >
-              {isElite && <span className="jenny-included-label">✓ Included with Elite</span>}
+              {selectedTier && <span className="jenny-included-label">✓ Included in All Plans</span>}
               <div className="jenny-tier-header">
                 <h4>Jenny Lite</h4>
-                <span className="jenny-tier-price">{isElite ? 'Included' : `+$${isAnnual ? '16' : '19'}/mo`}</span>
+                <span className="jenny-tier-price">{selectedTier ? 'Included' : `+$${isAnnual ? '16' : '19'}/mo`}</span>
               </div>
               <ul>
                 <li>✓ Website chat widget</li>
@@ -493,7 +492,7 @@ export default function PricingPage() {
                 <li>✓ FAQ answering</li>
                 <li>✓ English & Spanish</li>
               </ul>
-              {!isElite && isAnnual && <p className="jenny-annual-note">Billed $190/year</p>}
+              {!selectedTier && isAnnual && <p className="jenny-annual-note">Billed $190/year</p>}
               <div className="jenny-tier-check">{selectedAddons.includes('jenny_lite') ? '☑' : '☐'}</div>
             </div>
 
@@ -640,7 +639,7 @@ export default function PricingPage() {
 
                 {selectedAddons.map((addonId) => {
                   const addon = ADDONS.find(a => a.id === addonId);
-                  const isIncludedFree = addonId === 'jenny_lite' && isElite;
+                  const isIncludedFree = addonId === 'jenny_lite' && selectedTier;
                   return (
                     <div key={addonId} className="summary-line">
                       <span>{addon?.icon} {addon?.name}</span>
