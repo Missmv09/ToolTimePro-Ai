@@ -17,29 +17,34 @@ function getSupabase() {
 }
 
 async function getSiteData(slug) {
-  const supabase = getSupabase();
+  try {
+    const supabase = getSupabase();
 
-  const { data: site, error } = await supabase
-    .from('website_sites')
-    .select(`
-      id, slug, business_name, business_phone, business_email,
-      site_content, status, custom_domain, published_at,
-      website_templates (
-        id, slug, name, trade_category, style,
-        primary_color, secondary_color, accent_color,
-        font_heading, font_body, layout_config, default_content
-      )
-    `)
-    .eq('slug', slug)
-    .eq('status', 'live')
-    .maybeSingle();
+    const { data: site, error } = await supabase
+      .from('website_sites')
+      .select(`
+        id, slug, business_name, business_phone, business_email,
+        site_content, status, custom_domain, published_at,
+        website_templates (
+          id, slug, name, trade_category, style,
+          primary_color, secondary_color, accent_color,
+          font_heading, font_body, layout_config, default_content
+        )
+      `)
+      .eq('slug', slug)
+      .eq('status', 'live')
+      .maybeSingle();
 
-  if (error) {
-    console.error('[Public Site] DB error:', error);
+    if (error) {
+      console.error('[Public Site] DB error:', error);
+      return null;
+    }
+
+    return site;
+  } catch (err) {
+    console.error('[Public Site] Failed to query site:', err);
     return null;
   }
-
-  return site;
 }
 
 export async function generateMetadata({ params }) {
