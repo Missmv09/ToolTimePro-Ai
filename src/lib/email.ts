@@ -634,6 +634,164 @@ export async function sendInvoiceEmail({
   return data;
 }
 
+// ============================================
+// Quote Email (sent to customer with full context)
+// ============================================
+
+export async function sendQuoteEmail({
+  to,
+  customerName,
+  quoteNumber,
+  items,
+  subtotal,
+  taxRate,
+  taxAmount,
+  discountAmount,
+  total,
+  validUntil,
+  notes,
+  quoteLink,
+  companyName,
+}: {
+  to: string;
+  customerName: string;
+  quoteNumber: string;
+  items?: { description: string; quantity: number; unit_price: number; total: number }[];
+  subtotal?: number;
+  taxRate?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  total: number;
+  validUntil?: string;
+  notes?: string;
+  quoteLink: string;
+  companyName?: string;
+}) {
+  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedValidUntil = validUntil
+    ? new Date(validUntil).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
+
+  const formatCurrency = (amount: number) =>
+    `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  // Build line items table if items are available
+  let lineItemsHtml = '';
+  if (items && items.length > 0) {
+    const rows = items.map(item => `
+      <tr>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px;">${item.description}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: center;">${item.quantity}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(item.unit_price)}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(item.total)}</td>
+      </tr>
+    `).join('');
+
+    lineItemsHtml = `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+        <thead>
+          <tr style="background: #f9fafb;">
+            <th style="padding: 10px 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Description</th>
+            <th style="padding: 10px 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Qty</th>
+            <th style="padding: 10px 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Rate</th>
+            <th style="padding: 10px 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // Build totals breakdown
+  let totalsHtml = '';
+  if (subtotal !== undefined && subtotal !== total) {
+    totalsHtml = `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 24px 0;">
+        <tr>
+          <td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Subtotal</td>
+          <td style="padding: 6px 0; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(subtotal)}</td>
+        </tr>
+        ${discountAmount && discountAmount > 0 ? `
+        <tr>
+          <td style="padding: 6px 0; color: #16a34a; font-size: 14px;">Discount</td>
+          <td style="padding: 6px 0; color: #16a34a; font-size: 14px; text-align: right;">-${formatCurrency(discountAmount)}</td>
+        </tr>` : ''}
+        ${taxAmount && taxAmount > 0 ? `
+        <tr>
+          <td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Tax${taxRate ? ` (${taxRate}%)` : ''}</td>
+          <td style="padding: 6px 0; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(taxAmount)}</td>
+        </tr>` : ''}
+        <tr>
+          <td style="padding: 10px 0 6px 0; color: #111827; font-size: 16px; font-weight: 700; border-top: 2px solid #e5e7eb;">Total</td>
+          <td style="padding: 10px 0 6px 0; color: #111827; font-size: 16px; font-weight: 700; text-align: right; border-top: 2px solid #e5e7eb;">${formattedTotal}</td>
+        </tr>
+      </table>
+    `;
+  }
+
+  const senderLabel = companyName || 'ToolTime Pro';
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Quote ${quoteNumber} from ${senderLabel} - ${formattedTotal}`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Hi ${customerName},</h2>
+      <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
+        ${senderLabel} has sent you a quote for your review.
+      </p>
+
+      <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="color: #6b7280; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px;" colspan="2">Quote Summary</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Quote:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${quoteNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Amount:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right; font-weight: 700;">${formattedTotal}</td>
+          </tr>
+          ${formattedValidUntil ? `
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Valid Until:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${formattedValidUntil}</td>
+          </tr>` : ''}
+          ${companyName ? `
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>From:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${companyName}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+
+      ${lineItemsHtml}
+
+      ${totalsHtml}
+
+      ${notes ? `
+      <div style="background: #eff6ff; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+        <p style="margin: 0 0 4px 0; color: #1e40af; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Notes</p>
+        <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6; white-space: pre-line;">${notes}</p>
+      </div>` : ''}
+
+      ${ctaButton('View & Approve Quote', quoteLink, '#22c55e')}
+
+      <p style="color: #9ca3af; font-size: 13px; margin: 24px 0 0 0;">
+        If the button doesn't work, paste this link into your browser:<br />
+        <a href="${quoteLink}" style="color: #3b82f6; word-break: break-all; font-size: 12px;">${quoteLink}</a>
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
 export async function sendTrialExpiredEmail({ to, name }: { to: string; name: string }) {
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
