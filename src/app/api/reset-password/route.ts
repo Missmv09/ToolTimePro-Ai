@@ -28,41 +28,15 @@ export async function POST(request: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // Look up the user by email via the admin API
-    const { data: userList, error: listError } =
-      await supabaseAdmin.auth.admin.listUsers();
-
-    if (listError) {
-      console.error('Error listing users:', listError);
-      // Don't reveal whether the email exists — always return success
-      return NextResponse.json({ success: true });
-    }
-
-    const user = userList.users.find(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
-    );
-
-    if (!user) {
-      // Don't reveal that the email doesn't exist
-      return NextResponse.json({ success: true });
-    }
-
-    // Fetch the user's display name from the users table
-    const { data: dbUser } = await supabaseAdmin
-      .from('users')
-      .select('full_name')
-      .eq('id', user.id)
-      .single();
-
-    const name = dbUser?.full_name || user.user_metadata?.full_name || 'there';
-
-    // Generate a recovery link via admin API — works regardless of
-    // email_confirmed_at status, which is the key fix.
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       request.headers.get('origin') ||
       'https://tooltimepro.com';
 
+    // Generate a recovery link via admin API — works regardless of
+    // email_confirmed_at status.  This also validates that the email
+    // exists in Supabase auth; if not, it returns an error and we
+    // silently return success to prevent email enumeration.
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({
         type: 'recovery',
@@ -76,6 +50,25 @@ export async function POST(request: Request) {
       console.error('Error generating recovery link:', linkError);
       // Still return success to avoid leaking user existence
       return NextResponse.json({ success: true });
+    }
+
+    // Look up the user's display name for a personalised email.
+    // Use the user id returned by generateLink so we don't need to
+    // paginate through listUsers().
+    const userId = linkData.user?.id;
+    let name = 'there';
+
+    if (userId) {
+      const { data: dbUser } = await supabaseAdmin
+        .from('users')
+        .select('full_name')
+        .eq('id', userId)
+        .single();
+
+      name =
+        dbUser?.full_name ||
+        linkData.user?.user_metadata?.full_name ||
+        'there';
     }
 
     // Build a direct URL with token_hash instead of using the Supabase
