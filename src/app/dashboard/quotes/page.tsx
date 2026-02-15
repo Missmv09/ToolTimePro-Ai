@@ -18,7 +18,7 @@ interface Quote {
   id: string
   quote_number: string
   customer_id: string
-  customer: { id: string; name: string; email: string } | null
+  customer: { id: string; name: string; email: string; phone: string | null } | null
   status: string
   subtotal: number
   tax_rate: number
@@ -46,11 +46,12 @@ function QuotesContent() {
   const [showModal, setShowModal] = useState(false)
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
   const [showNewQuoteDropdown, setShowNewQuoteDropdown] = useState(false)
+  const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
 
   const router = useRouter()
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
-  const { user, dbUser, isLoading: authLoading } = useAuth()
+  const { user, dbUser, company, isLoading: authLoading } = useAuth()
 
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
@@ -60,7 +61,7 @@ function QuotesContent() {
       .from('quotes')
       .select(`
         *,
-        customer:customers(id, name, email),
+        customer:customers(id, name, email, phone),
         items:quote_items(*)
       `)
       .eq('company_id', compId)
@@ -130,6 +131,81 @@ function QuotesContent() {
       return
     }
 
+    if (companyId) fetchQuotes(companyId)
+  }
+
+  const sendQuote = async (quote: Quote) => {
+    if (!companyId) return
+    setSendingQuoteId(quote.id)
+
+    // Update quote status to sent
+    const { error } = await supabase
+      .from('quotes')
+      .update({ status: 'sent', sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq('id', quote.id)
+
+    if (error) {
+      alert('Failed to send quote: ' + error.message)
+      setSendingQuoteId(null)
+      return
+    }
+
+    const quoteLink = `${window.location.origin}/quote/${quote.id}`
+
+    // Send SMS if customer has phone
+    if (quote.customer?.phone) {
+      try {
+        await fetch('/api/sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: quote.customer.phone,
+            template: 'quote_sent',
+            data: {
+              customerName: quote.customer.name || 'Customer',
+              companyName: company?.name || 'Our team',
+              quoteLink,
+            },
+            companyId: companyId,
+          }),
+        })
+      } catch {
+        console.log('SMS notification skipped or failed for quote:', quote.id)
+      }
+    }
+
+    // Send email if customer has email
+    if (quote.customer?.email) {
+      try {
+        await fetch('/api/quote/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: quote.customer.email,
+            customerName: quote.customer.name || 'Customer',
+            quoteNumber: quote.quote_number || `Q-${quote.id.slice(0, 8)}`,
+            items: quote.items?.map(i => ({
+              description: i.description,
+              quantity: i.quantity,
+              unit_price: i.unit_price,
+              total: i.total_price,
+            })),
+            subtotal: quote.subtotal,
+            taxRate: quote.tax_rate,
+            taxAmount: quote.tax_amount,
+            total: quote.total,
+            validUntil: quote.valid_until,
+            notes: quote.notes,
+            quoteLink,
+            companyName: company?.name,
+          }),
+        })
+      } catch {
+        console.log('Email notification skipped or failed for quote:', quote.id)
+      }
+    }
+
+    setSendingQuoteId(null)
     if (companyId) fetchQuotes(companyId)
   }
 
@@ -383,6 +459,15 @@ function QuotesContent() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
+                      {quote.status === 'draft' && (
+                        <button
+                          onClick={() => sendQuote(quote)}
+                          disabled={sendingQuoteId === quote.id}
+                          className="text-green-600 hover:text-green-800 text-sm font-medium disabled:opacity-50"
+                        >
+                          {sendingQuoteId === quote.id ? 'Sending...' : 'Send'}
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           setEditingQuote(quote)

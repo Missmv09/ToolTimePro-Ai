@@ -188,10 +188,11 @@ export function useQuotes(): UseQuotesReturn {
         return { error: updateError };
       }
 
-      // Send SMS notification if customer has phone number
       const quote = quotes.find((q) => q.id === id);
+      const quoteLink = `${window.location.origin}/quote/${id}`;
+
+      // Send SMS notification if customer has phone number
       if (quote?.customer?.phone && company?.id) {
-        const quoteLink = `${window.location.origin}/quote/${id}`;
         try {
           await fetch('/api/sms', {
             method: 'POST',
@@ -210,6 +211,27 @@ export function useQuotes(): UseQuotesReturn {
         } catch {
           // SMS is optional - don't fail if it fails
           console.log('SMS notification skipped or failed for quote:', id);
+        }
+      }
+
+      // Send email notification if customer has email
+      if (quote?.customer?.email && company?.id) {
+        try {
+          await fetch('/api/quote/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: quote.customer.email,
+              customerName: quote.customer.name || 'Customer',
+              quoteNumber: quote.quote_number || `Q-${id.slice(0, 8)}`,
+              total: quote.total || 0,
+              quoteLink,
+              companyName: company.name,
+            }),
+          });
+        } catch {
+          // Email is optional - don't fail if it fails
+          console.log('Email notification skipped or failed for quote:', id);
         }
       }
 

@@ -765,31 +765,62 @@ export default function SmartQuotingPage() {
     const quote = await saveQuote(false);
 
     if (quote) {
-      // Optionally send SMS/Email notification
-      if (selectedCustomer?.phone || newCustomer.phone) {
-        try {
-          const phone = selectedCustomer?.phone || newCustomer.phone;
-          const customerName = selectedCustomer?.name || newCustomer.name;
-          const quoteLink = `${window.location.origin}/quote/${quote.id}`;
+      const customerName = selectedCustomer?.name || newCustomer.name;
+      const customerPhone = selectedCustomer?.phone || newCustomer.phone;
+      const customerEmail = selectedCustomer?.email || newCustomer.email;
+      const quoteLink = `${window.location.origin}/quote/${quote.id}`;
 
-          if (sendMethod === 'sms' || sendMethod === 'both') {
-            await fetch('/api/sms', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                to: phone,
-                template: 'quote_sent',
-                data: {
-                  customerName: customerName || 'Customer',
-                  quoteLink,
-                },
-                companyId: companyId,
-              }),
-            });
-          }
+      // Send SMS notification
+      if (customerPhone && (sendMethod === 'sms' || sendMethod === 'both')) {
+        try {
+          await fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: customerPhone,
+              template: 'quote_sent',
+              data: {
+                customerName: customerName || 'Customer',
+                companyName: company?.name || 'Our team',
+                quoteLink,
+              },
+              companyId: companyId,
+            }),
+          });
         } catch {
-          // SMS is optional - don't fail if it fails
           console.log('SMS notification skipped or failed');
+        }
+      }
+
+      // Send email notification
+      if (customerEmail && (sendMethod === 'email' || sendMethod === 'both')) {
+        try {
+          await fetch('/api/quote/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: customerEmail,
+              customerName: customerName || 'Customer',
+              quoteNumber: quote.quote_number || `Q-${quote.id.slice(0, 8)}`,
+              items: lineItems.filter(i => i.description).map(i => ({
+                description: i.description,
+                quantity: i.quantity,
+                unit_price: i.price,
+                total: i.total,
+              })),
+              subtotal,
+              taxRate,
+              taxAmount,
+              discountAmount,
+              total: grandTotal,
+              validUntil: new Date(Date.now() + validDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              notes,
+              quoteLink,
+              companyName: company?.name,
+            }),
+          });
+        } catch {
+          console.log('Email notification skipped or failed');
         }
       }
 
@@ -1728,7 +1759,7 @@ export default function SmartQuotingPage() {
                 ) : (
                   <button
                     onClick={sendQuote}
-                    disabled={isSending || isSaving || lineItems.length === 0 || !newCustomer.name || !newCustomer.phone}
+                    disabled={isSending || isSaving || lineItems.length === 0 || !newCustomer.name || (!newCustomer.phone && !newCustomer.email)}
                     className="w-full py-3 bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSending ? (
