@@ -252,7 +252,7 @@ function QuotesContent() {
     // Update quote status
     await supabase
       .from('quotes')
-      .update({ status: 'accepted' })
+      .update({ status: 'approved' })
       .eq('id', quote.id)
 
     fetchQuotes(companyId)
@@ -301,9 +301,18 @@ function QuotesContent() {
     draft: 'bg-gray-100 text-gray-700',
     sent: 'bg-blue-100 text-blue-700',
     viewed: 'bg-purple-100 text-purple-700',
-    accepted: 'bg-green-100 text-green-700',
-    declined: 'bg-red-100 text-red-700',
+    approved: 'bg-green-100 text-green-700',
+    rejected: 'bg-red-100 text-red-700',
     expired: 'bg-yellow-100 text-yellow-700',
+  }
+
+  const statusLabels: Record<string, string> = {
+    draft: 'Draft',
+    sent: 'Sent',
+    viewed: 'Viewed',
+    approved: 'Accepted',
+    rejected: 'Declined',
+    expired: 'Expired',
   }
 
   if (loading) {
@@ -362,7 +371,7 @@ function QuotesContent() {
 
       {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {['all', 'draft', 'sent', 'viewed', 'accepted', 'declined'].map((status) => (
+        {['all', 'draft', 'sent', 'viewed', 'approved', 'rejected'].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -372,7 +381,7 @@ function QuotesContent() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {status === 'all' ? 'All' : statusLabels[status] || status}
           </button>
         ))}
       </div>
@@ -392,14 +401,14 @@ function QuotesContent() {
         <div className="bg-green-50 p-4 rounded-lg border border-green-200">
           <p className="text-sm text-green-600">Accepted</p>
           <p className="text-2xl font-bold text-green-700">
-            ${quotes.filter(q => q.status === 'accepted').reduce((sum, q) => sum + q.total, 0).toLocaleString()}
+            ${quotes.filter(q => q.status === 'approved').reduce((sum, q) => sum + q.total, 0).toLocaleString()}
           </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg border">
           <p className="text-sm text-gray-500">Conversion Rate</p>
           <p className="text-2xl font-bold">
             {quotes.length > 0
-              ? Math.round((quotes.filter(q => q.status === 'accepted').length / quotes.filter(q => q.status !== 'draft').length) * 100) || 0
+              ? Math.round((quotes.filter(q => q.status === 'approved').length / quotes.filter(q => q.status !== 'draft').length) * 100) || 0
               : 0}%
           </p>
         </div>
@@ -449,8 +458,8 @@ function QuotesContent() {
                       <option value="draft">Draft</option>
                       <option value="sent">Sent</option>
                       <option value="viewed">Viewed</option>
-                      <option value="accepted">Accepted</option>
-                      <option value="declined">Declined</option>
+                      <option value="approved">Accepted</option>
+                      <option value="rejected">Declined</option>
                       <option value="expired">Expired</option>
                     </select>
                   </td>
@@ -483,7 +492,7 @@ function QuotesContent() {
                       >
                         Copy
                       </button>
-                      {quote.status === 'accepted' && (
+                      {quote.status === 'approved' && (
                         <button
                           onClick={() => convertToInvoice(quote)}
                           className="text-green-600 hover:text-green-800 text-sm"
