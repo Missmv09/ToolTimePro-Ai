@@ -95,7 +95,8 @@ function LoginContent() {
           // If the check fails, fall through to dashboard
         }
 
-        router.push('/dashboard')
+        const redirectTo = searchParams.get('redirect')
+        router.push(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/dashboard')
         router.refresh()
       }
     } catch (err) {
