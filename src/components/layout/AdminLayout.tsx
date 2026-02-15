@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       if (isLoading) return;
 
       if (!user) {
-        router.push('/auth/login');
+        router.push('/auth/login?redirect=/admin');
         return;
       }
 
@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {
-          router.push('/auth/login');
+          router.push('/auth/login?redirect=/admin');
           return;
         }
 
