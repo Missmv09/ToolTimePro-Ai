@@ -204,7 +204,7 @@ export default function Step5Customize({ wizardData, setWizardData }) {
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </select>
-                <p className="mt-2 text-sm" style={{ fontFamily: `'${wizardData.fontBody || 'Inter'}', sans-serif`, color: wizardData.colors.bodyColor || '#333' }}>
+                <p className="mt-2 text-sm" style={{ fontFamily: `'${wizardData.fontBody || 'Inter'}', sans-serif`, color: wizardData.colors.bodyColor || '#333333' }}>
                   The quick brown fox jumps over the lazy dog. This is how your body text will look on your website.
                 </p>
               </div>

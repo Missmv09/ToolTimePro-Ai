@@ -37,6 +37,8 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
   }, [fetchTemplates]);
 
   const handleSelect = (template) => {
+    const templateSections = template.layout_config?.sections;
+    const defaultContent = template.default_content || {};
     setWizardData((prev) => ({
       ...prev,
       templateId: template.id,
@@ -49,6 +51,10 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
       },
       fontHeading: template.font_heading || 'Inter',
       fontBody: template.font_body || 'Inter',
+      // Apply the template's section layout if it defines one
+      ...(templateSections?.length ? { enabledSections: templateSections } : {}),
+      // Store CTA text from template default_content for preview parity
+      ctaText: defaultContent.ctaText || 'Get a Free Estimate',
     }));
   };
 

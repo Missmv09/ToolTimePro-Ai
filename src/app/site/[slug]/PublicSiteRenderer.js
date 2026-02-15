@@ -7,7 +7,7 @@ export default function PublicSiteRenderer({ site, template }) {
   const defaultContent = template.default_content || {};
   const layout = template.layout_config || {};
   const sections = content.enabledSections || layout.sections || [
-    'hero', 'services', 'about', 'contact',
+    'hero', 'services', 'gallery', 'about', 'contact',
   ];
 
   const businessName = site.business_name || 'Our Business';
@@ -28,7 +28,7 @@ export default function PublicSiteRenderer({ site, template }) {
   const accentColor = content.colors?.accent || template.accent_color || '#f5a623';
   const bgColor = content.colors?.background || '#ffffff';
   const headingColor = content.colors?.headingColor || primaryColor;
-  const bodyColor = content.colors?.bodyColor || '#333';
+  const bodyColor = content.colors?.bodyColor || '#333333';
   const fontHeading = content.fontHeading || template.font_heading || 'Inter';
   const fontBody = content.fontBody || template.font_body || 'Inter';
 
