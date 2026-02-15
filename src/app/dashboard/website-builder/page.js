@@ -95,7 +95,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
   const domainUrl = hasRealDomain
     ? `https://${site.custom_domain}`
     : site.slug
-      ? `/site/${site.slug}`
+      ? `https://${site.slug}.tooltimepro.com`
       : null;
   const isLive = site.status === 'live';
   const isBuilding = site.status === 'building';
@@ -126,7 +126,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
             <Globe size={24} className="text-gold-500" />
             <div>
               <p className="font-semibold text-navy-500">
-                {hasRealDomain ? site.custom_domain : (site.slug ? `tooltimepro.com/site/${site.slug}` : 'No domain yet')}
+                {hasRealDomain ? site.custom_domain : (site.slug ? `${site.slug}.tooltimepro.com` : 'No domain yet')}
               </p>
               <span className={`badge mt-1 ${statusColors[site.status] || statusColors.draft}`}>
                 {site.status === 'live' ? 'Live' : site.status === 'building' ? 'Building...' : site.status}
