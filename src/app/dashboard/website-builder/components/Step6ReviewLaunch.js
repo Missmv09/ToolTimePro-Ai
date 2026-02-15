@@ -310,7 +310,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         {launched && (siteUrl || wizardData.selectedDomain?.domainName) && (
           <div className="space-y-3 mb-8">
             <a
-              href={siteUrl || `https://${wizardData.selectedDomain?.domainName}`}
+              href={siteUrl || (wizardData.selectedDomain?.type === 'subdomain' ? `https://tooltimepro.com/site/${wizardData.selectedDomain?.domainName?.replace('.tooltimepro.com', '')}` : `https://${wizardData.selectedDomain?.domainName}`)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary w-full flex items-center justify-center gap-2 py-3"

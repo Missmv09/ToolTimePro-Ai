@@ -232,7 +232,7 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
               Free subdomain
               {isOnTrial && <span className="ml-2 text-xs font-medium text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">Recommended</span>}
             </p>
-            <p className="text-xs text-gray-500">Use yourname.tooltimepro.com</p>
+            <p className="text-xs text-gray-500">Use tooltimepro.com/site/yourname</p>
           </div>
         </button>
       </div>
