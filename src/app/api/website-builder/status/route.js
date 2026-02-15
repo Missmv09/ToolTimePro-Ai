@@ -90,7 +90,7 @@ export async function GET(request) {
         ...siteData,
         siteUrl: site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com')
           ? `https://${site.custom_domain}`
-          : `https://tooltimepro.com/site/${site.slug}`,
+          : `https://${site.slug}.tooltimepro.com`,
         isPublished: site.status === 'live',
         hasDomain: site.domain_status === 'active' && !!site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com'),
       },
