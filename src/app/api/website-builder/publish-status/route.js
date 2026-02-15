@@ -77,7 +77,7 @@ export async function GET(request) {
     // Build the public-facing URL for the site
     const hasRealDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
     const siteUrl = isLive
-      ? (hasRealDomain ? `https://${site.custom_domain}` : (site.slug ? `https://tooltimepro.com/site/${site.slug}` : null))
+      ? (hasRealDomain ? `https://${site.custom_domain}` : (site.slug ? `/site/${site.slug}` : null))
       : null;
 
     return NextResponse.json({
