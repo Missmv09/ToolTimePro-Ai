@@ -6,7 +6,7 @@ export default function PublicSiteRenderer({ site, template }) {
   const content = site.site_content || {};
   const defaultContent = template.default_content || {};
   const layout = template.layout_config || {};
-  const sections = layout.sections || content.enabledSections || [
+  const sections = content.enabledSections || layout.sections || [
     'hero', 'services', 'about', 'contact',
   ];
 
