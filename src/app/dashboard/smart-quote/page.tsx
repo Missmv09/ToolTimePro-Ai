@@ -769,6 +769,9 @@ export default function SmartQuotingPage() {
                 .insert(quoteItems);
               if (itemsError) {
                 console.error('Error creating quote items:', itemsError);
+                setSaveError('Quote was created but line items failed to save: ' + itemsError.message);
+                setIsSaving(false);
+                return retryData;
               }
             }
           }
@@ -802,7 +805,9 @@ export default function SmartQuotingPage() {
 
           if (itemsError) {
             console.error('Error creating quote items:', itemsError);
-            // Don't fail entirely if items fail, quote is already created
+            setSaveError('Quote was created but line items failed to save: ' + itemsError.message);
+            setIsSaving(false);
+            return quoteData; // Return the quote so the user can edit it later
           }
         }
       }

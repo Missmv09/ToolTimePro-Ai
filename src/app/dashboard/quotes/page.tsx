@@ -62,14 +62,14 @@ function QuotesContent() {
   const companyId = dbUser?.company_id || null
 
   const fetchQuotes = useCallback(async (compId: string) => {
+    // Step 1: Fetch quotes with customer and items (no FK hints for creator/sender
+    // since those have multiple FKs to users table and hint names may not match)
     let query = supabase
       .from('quotes')
       .select(`
         *,
         customer:customers(id, name, email, phone),
-        items:quote_items(*),
-        creator:users!quotes_created_by_fkey(full_name),
-        sender:users!quotes_sent_by_fkey(full_name)
+        items:quote_items(id, description, quantity, unit_price, total_price, sort_order)
       `)
       .eq('company_id', compId)
       .order('created_at', { ascending: false })
@@ -82,13 +82,95 @@ function QuotesContent() {
       query = query.eq('customer_id', customerFilter)
     }
 
-    const { data, error } = await query
+    let { data, error } = await query
 
+    // Fallback: if the join query fails, try without the items join
     if (error) {
-      console.error('Error fetching quotes:', error)
-    } else {
-      setQuotes(data || [])
+      console.error('Error fetching quotes with joins:', error)
+      let fallbackQuery = supabase
+        .from('quotes')
+        .select(`*, customer:customers(id, name, email, phone)`)
+        .eq('company_id', compId)
+        .order('created_at', { ascending: false })
+
+      if (filter !== 'all') {
+        fallbackQuery = fallbackQuery.eq('status', filter)
+      }
+      if (customerFilter) {
+        fallbackQuery = fallbackQuery.eq('customer_id', customerFilter)
+      }
+
+      const fallback = await fallbackQuery
+      if (!fallback.error) {
+        data = (fallback.data || []).map((q: Record<string, unknown>) => ({ ...q, items: [] }))
+        error = null
+      }
     }
+
+    if (error || !data) {
+      console.error('Error fetching quotes:', error)
+      setLoading(false)
+      return
+    }
+
+    // Step 2: For quotes where the items join returned empty but total > 0,
+    // fetch items separately (handles cases where join silently returns empty)
+    const quotesNeedingItems = data.filter(
+      (q: Record<string, unknown>) =>
+        (!q.items || (q.items as unknown[]).length === 0) &&
+        (Number(q.total) > 0 || Number(q.subtotal) > 0)
+    )
+
+    if (quotesNeedingItems.length > 0) {
+      const quoteIds = quotesNeedingItems.map((q: Record<string, unknown>) => q.id as string)
+      const { data: separateItems } = await supabase
+        .from('quote_items')
+        .select('*')
+        .in('quote_id', quoteIds)
+        .order('sort_order', { ascending: true })
+
+      if (separateItems && separateItems.length > 0) {
+        const itemsByQuote: Record<string, typeof separateItems> = {}
+        for (const item of separateItems) {
+          if (!itemsByQuote[item.quote_id]) itemsByQuote[item.quote_id] = []
+          itemsByQuote[item.quote_id].push(item)
+        }
+        data = data.map((q: Record<string, unknown>) => ({
+          ...q,
+          items: (itemsByQuote[q.id as string] || q.items || []),
+        }))
+      }
+    }
+
+    // Step 3: Fetch creator/sender info separately (avoids FK hint issues)
+    const creatorIds = [...new Set(data.filter((q: Record<string, unknown>) => q.created_by).map((q: Record<string, unknown>) => q.created_by as string))]
+    const senderIds = [...new Set(data.filter((q: Record<string, unknown>) => q.sent_by).map((q: Record<string, unknown>) => q.sent_by as string))]
+    const allUserIds = [...new Set([...creatorIds, ...senderIds])]
+
+    let usersMap: Record<string, string> = {}
+    if (allUserIds.length > 0) {
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .in('id', allUserIds)
+      if (usersData) {
+        for (const u of usersData) {
+          usersMap[u.id] = u.full_name
+        }
+      }
+    }
+
+    setQuotes(
+      data.map((q: Record<string, unknown>) => ({
+        ...q,
+        creator: q.created_by && usersMap[q.created_by as string]
+          ? { full_name: usersMap[q.created_by as string] }
+          : null,
+        sender: q.sent_by && usersMap[q.sent_by as string]
+          ? { full_name: usersMap[q.sent_by as string] }
+          : null,
+      })) as Quote[]
+    )
     setLoading(false)
   }, [filter, customerFilter])
 
@@ -753,17 +835,26 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
     valid_until: quote?.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
-    quote?.items && quote.items.length > 0
-      ? quote.items.map(i => ({ description: i.description || '', quantity: Number(i.quantity) || 1, unit_price: Number(i.unit_price) || 0 }))
-      : [{ description: '', quantity: 1, unit_price: 0 }]
+    [{ description: '', quantity: 1, unit_price: 0 }]
   )
   const [saving, setSaving] = useState(false)
   const [loadingItems, setLoadingItems] = useState(false)
 
-  // Fetch items directly from database when editing an existing quote
-  // This handles cases where the joined items data is missing or empty
+  // Always fetch items directly from the database when editing an existing quote.
+  // This is more reliable than depending on joined data which can fail silently.
   useEffect(() => {
-    if (quote?.id && (!quote.items || quote.items.length === 0)) {
+    if (quote?.id) {
+      // First try using the already-joined items if available
+      if (quote.items && quote.items.length > 0) {
+        setItems(quote.items.map(i => ({
+          description: i.description || '',
+          quantity: Number(i.quantity) || 1,
+          unit_price: Number(i.unit_price) || 0,
+        })))
+        return
+      }
+
+      // Otherwise fetch items directly from quote_items table
       setLoadingItems(true)
       supabase
         .from('quote_items')
@@ -771,7 +862,10 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
         .eq('quote_id', quote.id)
         .order('sort_order', { ascending: true })
         .then(({ data, error }) => {
-          if (!error && data && data.length > 0) {
+          if (error) {
+            console.error('Error fetching quote items:', error)
+          }
+          if (data && data.length > 0) {
             setItems(data.map(i => ({
               description: i.description || '',
               quantity: Number(i.quantity) || 1,
@@ -781,7 +875,7 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
           setLoadingItems(false)
         })
     }
-  }, [quote?.id, quote?.items])
+  }, [quote?.id]) // Only depend on quote ID, not on quote.items reference
 
   const addItem = () => {
     setItems([...items, { description: '', quantity: 1, unit_price: 0 }])
