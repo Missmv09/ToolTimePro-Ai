@@ -309,6 +309,46 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Link href="/dashboard/dispatch">
+          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">📡</span>
+              <h3 className="font-bold">Dispatch Board</h3>
+            </div>
+            <p className="text-white/60 text-sm">Track crews, assign jobs, manage live operations</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/schedule">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">📅</span>
+              <h3 className="font-bold">Schedule</h3>
+            </div>
+            <p className="text-white/60 text-sm">Day and week calendar view of all jobs</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/route-optimizer">
+          <div className="bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-xl p-5 text-[#1a1a2e] hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">🗺️</span>
+              <h3 className="font-bold">Route Optimizer</h3>
+            </div>
+            <p className="text-[#1a1a2e]/60 text-sm">Optimize routes, save gas and drive time</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/booking">
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">📆</span>
+              <h3 className="font-bold">Online Booking</h3>
+            </div>
+            <p className="text-white/60 text-sm">Manage appointments and booking calendar</p>
+          </div>
+        </Link>
+      </div>
+
       {/* Revenue Card */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white mb-8">
         <p className="text-blue-100 text-sm">Revenue This Month</p>
