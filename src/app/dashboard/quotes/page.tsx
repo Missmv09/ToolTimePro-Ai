@@ -521,12 +521,10 @@ function QuotesContent() {
   }
 
   const canDeleteQuote = (quote: Quote) => {
-    // Only unsent quotes (draft or pending_approval) can be deleted
-    if (!['draft', 'pending_approval'].includes(quote.status)) return false
-    // Owner/Admin can delete any unsent quote
+    // Owner/Admin can delete any quote
     if (isOwnerOrAdmin) return true
-    // Workers can only delete their own drafts
-    return quote.status === 'draft' && quote.created_by === user?.id
+    // Workers can only delete their own draft or pending_approval quotes
+    return ['draft', 'pending_approval'].includes(quote.status) && quote.created_by === user?.id
   }
 
   const statusColors: Record<string, string> = {
