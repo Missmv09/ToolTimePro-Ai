@@ -466,6 +466,8 @@ export interface Database {
           approved_at: string | null
           signature_url: string | null
           notes: string | null
+          created_by: string | null
+          sent_by: string | null
           created_at: string
           updated_at: string
         }
@@ -489,6 +491,8 @@ export interface Database {
           approved_at?: string | null
           signature_url?: string | null
           notes?: string | null
+          created_by?: string | null
+          sent_by?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -512,6 +516,8 @@ export interface Database {
           approved_at?: string | null
           signature_url?: string | null
           notes?: string | null
+          created_by?: string | null
+          sent_by?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -245,6 +245,8 @@ CREATE TABLE quotes (
     approved_at TIMESTAMP WITH TIME ZONE,
     signature_url TEXT,
     notes TEXT,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL, -- Employee who created the quote
+    sent_by UUID REFERENCES users(id) ON DELETE SET NULL, -- Employee who sent the quote
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -511,6 +513,8 @@ CREATE INDEX idx_jobs_status ON jobs(status);
 CREATE INDEX idx_time_entries_user ON time_entries(user_id);
 CREATE INDEX idx_time_entries_date ON time_entries(clock_in);
 CREATE INDEX idx_quotes_company ON quotes(company_id);
+CREATE INDEX idx_quotes_created_by ON quotes(created_by);
+CREATE INDEX idx_quotes_sent_by ON quotes(sent_by);
 CREATE INDEX idx_invoices_company ON invoices(company_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE INDEX idx_compliance_alerts_company ON compliance_alerts(company_id);
