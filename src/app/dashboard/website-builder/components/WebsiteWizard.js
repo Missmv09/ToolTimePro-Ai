@@ -145,14 +145,54 @@ export default function WebsiteWizard() {
 
   // Restore state from sessionStorage to survive auth-triggered remounts
   const restored = useRef(loadWizardState());
-  const [currentStep, setCurrentStep] = useState(restored.current?.step || 1);
+  const [currentStep, _setCurrentStep] = useState(restored.current?.step || 1);
   const [prefilled, setPrefilled] = useState(restored.current?.prefilled || false);
-  const [wizardData, setWizardData] = useState(restored.current?.data || defaultWizardData);
+  const [wizardData, _setWizardData] = useState(restored.current?.data || defaultWizardData);
 
-  // Persist wizard state to sessionStorage on every change
+  // Refs that always hold the latest values — used inside state-updater
+  // closures that can't read current state.
+  const stepRef = useRef(currentStep);
+  const prefilledRef = useRef(prefilled);
+  const dataRef = useRef(wizardData);
+  stepRef.current = currentStep;
+  prefilledRef.current = prefilled;
+  dataRef.current = wizardData;
+
+  // ---- Synchronous sessionStorage saves ----
+  // The previous implementation saved in a useEffect (fires AFTER render).
+  // If the component unmounted before the effect ran — e.g. ProtectedRoute
+  // briefly returning null during a Supabase token-refresh race — the latest
+  // state change was lost.  These wrappers save INSIDE the state updater
+  // (synchronous), so the data is persisted before React can unmount anything.
+
+  const setWizardData = useCallback((updater) => {
+    _setWizardData((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      saveWizardState(stepRef.current, next, prefilledRef.current);
+      return next;
+    });
+  }, []);
+
+  const setCurrentStep = useCallback((updater) => {
+    _setCurrentStep((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      saveWizardState(next, dataRef.current, prefilledRef.current);
+      return next;
+    });
+  }, []);
+
+  // Backup: also save when prefilled flag changes (async effects like the
+  // prefill below update this separately from the wrappers above).
   useEffect(() => {
-    saveWizardState(currentStep, wizardData, prefilled);
-  }, [currentStep, wizardData, prefilled]);
+    saveWizardState(stepRef.current, dataRef.current, prefilled);
+  }, [prefilled]);
+
+  // Save on unmount as a final safety net
+  useEffect(() => {
+    return () => {
+      saveWizardState(stepRef.current, dataRef.current, prefilledRef.current);
+    };
+  }, []);
 
   // Pre-fill wizard data from company profile + services
   useEffect(() => {
@@ -203,7 +243,7 @@ export default function WebsiteWizard() {
     };
 
     prefillData();
-  }, [company, dbUser?.company_id, prefilled]);
+  }, [company, dbUser?.company_id, prefilled, setWizardData]);
 
   const [validationError, setValidationError] = useState(null);
 
