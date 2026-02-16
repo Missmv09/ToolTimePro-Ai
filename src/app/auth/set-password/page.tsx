@@ -26,7 +26,7 @@ async function triggerWelcomeEmail() {
 
 export default function SetPasswordPage() {
   const router = useRouter();
-  const { user, company, isLoading: authLoading } = useAuth();
+  const { user, dbUser, company, isLoading: authLoading } = useAuth();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -88,7 +88,9 @@ export default function SetPasswordPage() {
       user.app_metadata?.needs_password === true ||
       user.user_metadata?.needs_password === true;
     if (!needsPw) {
-      if (company?.onboarding_completed) {
+      if (dbUser?.role === 'worker') {
+        router.replace('/worker');
+      } else if (company?.onboarding_completed) {
         router.replace('/dashboard');
       } else {
         router.replace('/onboarding');
@@ -152,9 +154,11 @@ export default function SetPasswordPage() {
     // Fire the welcome email in the background (non-blocking)
     triggerWelcomeEmail();
 
-    // Redirect to onboarding (or dashboard if already onboarded)
+    // Redirect based on user role
     setTimeout(() => {
-      if (company?.onboarding_completed) {
+      if (dbUser?.role === 'worker') {
+        router.push('/worker');
+      } else if (company?.onboarding_completed) {
         router.push('/dashboard');
       } else {
         router.push('/onboarding');

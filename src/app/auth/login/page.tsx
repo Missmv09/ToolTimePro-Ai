@@ -70,15 +70,22 @@ function LoginContent() {
           // If the check fails, fall through to dashboard
         }
 
-        // Check onboarding status
+        // Check user role and onboarding status
         try {
           const { data: { user: authUser } } = await supabase.auth.getUser()
           if (authUser?.id) {
             const { data: userRow } = await supabase
               .from('users')
-              .select('company_id')
+              .select('company_id, role')
               .eq('id', authUser.id)
               .single()
+
+            // Workers should be redirected to the worker app
+            if (userRow?.role === 'worker') {
+              router.push('/worker')
+              return
+            }
+
             if (userRow?.company_id) {
               const { data: comp } = await supabase
                 .from('companies')

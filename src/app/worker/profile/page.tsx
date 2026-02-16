@@ -15,6 +15,9 @@ import {
   Calendar,
   AlertCircle,
   Loader2,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -56,6 +59,7 @@ export default function WorkerProfilePage() {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChangePin, setShowChangePin] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   // Initialize auth and fetch data
   useEffect(() => {
@@ -370,6 +374,17 @@ export default function WorkerProfilePage() {
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
+
+          <button
+            onClick={() => setShowChangePassword(true)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Lock className="w-5 h-5 text-gray-600" />
+              <span className="font-medium text-gray-900">Change Password</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </button>
         </div>
       </div>
 
@@ -391,6 +406,14 @@ export default function WorkerProfilePage() {
           workerId={worker.id}
           onClose={() => setShowChangePin(false)}
           onSave={() => setShowChangePin(false)}
+        />
+      )}
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <ChangePasswordModal
+          onClose={() => setShowChangePassword(false)}
+          onSave={() => setShowChangePassword(false)}
         />
       )}
 
@@ -584,6 +607,113 @@ function ChangePinModal({ workerId, onClose, onSave }: {
               className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Update PIN'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ChangePasswordModal({ onClose, onSave }: {
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setSaving(true);
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (updateError) {
+      setError(updateError.message);
+      setSaving(false);
+      return;
+    }
+
+    setSaving(false);
+    alert('Password updated successfully!');
+    onSave();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Change Password</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 pr-12"
+                placeholder="At least 8 characters"
+                minLength={8}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              placeholder="Confirm your password"
+              minLength={8}
+              required
+            />
+          </div>
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 py-3 border rounded-xl hover:bg-gray-50">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Updating...' : 'Update Password'}
             </button>
           </div>
         </form>

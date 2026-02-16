@@ -94,6 +94,10 @@ export async function POST(request: NextRequest) {
       email_confirm: true,
       user_metadata: {
         full_name,
+        needs_password: true,
+      },
+      app_metadata: {
+        needs_password: true,
       },
     })
 
