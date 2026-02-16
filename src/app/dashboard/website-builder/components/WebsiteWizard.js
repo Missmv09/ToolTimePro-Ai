@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import WizardProgress from './WizardProgress';
@@ -10,6 +10,28 @@ import Step3BusinessInfo from './Step3BusinessInfo';
 import Step4DomainSearch from './Step4DomainSearch';
 import Step5Customize from './Step5Customize';
 import Step6ReviewLaunch from './Step6ReviewLaunch';
+
+// Persist wizard state to sessionStorage so it survives component remounts
+// caused by auth token refreshes or parent re-renders.
+const WIZARD_STORAGE_KEY = 'ttp_wizard_state';
+
+function loadWizardState() {
+  try {
+    const stored = sessionStorage.getItem(WIZARD_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore parse errors */ }
+  return null;
+}
+
+function saveWizardState(step, data, prefilled) {
+  try {
+    sessionStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify({ step, data, prefilled }));
+  } catch { /* ignore quota errors */ }
+}
+
+export function clearWizardState() {
+  try { sessionStorage.removeItem(WIZARD_STORAGE_KEY); } catch { /* ignore */ }
+}
 
 // Map onboarding industry slugs to website builder trade IDs
 const industryToTrade = {
@@ -81,46 +103,56 @@ function validateStep(step, data) {
   }
 }
 
+const defaultWizardData = {
+  // Step 1
+  trade: null,
+  // Step 2
+  templateId: null,
+  // Step 3
+  businessName: '',
+  tagline: '',
+  phone: '',
+  email: '',
+  serviceArea: '',
+  services: [],
+  licenseNumber: '',
+  yearsInBusiness: '',
+  // Step 4
+  domainMode: 'search', // 'search' | 'existing' | 'subdomain'
+  selectedDomain: null,
+  existingDomain: '',
+  domainSearchResults: [],
+  // Step 5
+  colors: {
+    primary: '#1a1a2e',
+    secondary: '#16213e',
+    accent: '#f5a623',
+    background: '#ffffff',
+    headingColor: '',
+    bodyColor: '',
+  },
+  fontHeading: 'Inter',
+  fontBody: 'Inter',
+  enabledSections: ['hero', 'services', 'gallery', 'about', 'contact'],
+  heroImage: null,
+  galleryImages: [],
+  // Step 6
+  publishStatus: 'draft',
+};
+
 export default function WebsiteWizard() {
   const { company, user, dbUser } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [prefilled, setPrefilled] = useState(false);
-  const [wizardData, setWizardData] = useState({
-    // Step 1
-    trade: null,
-    // Step 2
-    templateId: null,
-    // Step 3
-    businessName: '',
-    tagline: '',
-    phone: '',
-    email: '',
-    serviceArea: '',
-    services: [],
-    licenseNumber: '',
-    yearsInBusiness: '',
-    // Step 4
-    domainMode: 'search', // 'search' | 'existing' | 'subdomain'
-    selectedDomain: null,
-    existingDomain: '',
-    domainSearchResults: [],
-    // Step 5
-    colors: {
-      primary: '#1a1a2e',
-      secondary: '#16213e',
-      accent: '#f5a623',
-      background: '#ffffff',
-      headingColor: '',
-      bodyColor: '',
-    },
-    fontHeading: 'Inter',
-    fontBody: 'Inter',
-    enabledSections: ['hero', 'services', 'gallery', 'about', 'contact'],
-    heroImage: null,
-    galleryImages: [],
-    // Step 6
-    publishStatus: 'draft',
-  });
+
+  // Restore state from sessionStorage to survive auth-triggered remounts
+  const restored = useRef(loadWizardState());
+  const [currentStep, setCurrentStep] = useState(restored.current?.step || 1);
+  const [prefilled, setPrefilled] = useState(restored.current?.prefilled || false);
+  const [wizardData, setWizardData] = useState(restored.current?.data || defaultWizardData);
+
+  // Persist wizard state to sessionStorage on every change
+  useEffect(() => {
+    saveWizardState(currentStep, wizardData, prefilled);
+  }, [currentStep, wizardData, prefilled]);
 
   // Pre-fill wizard data from company profile + services
   useEffect(() => {

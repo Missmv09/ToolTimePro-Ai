@@ -5,6 +5,7 @@ import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, Refre
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import SitePreviewFrame from './SitePreviewFrame';
+import { clearWizardState } from './WebsiteWizard';
 
 // Decode a JWT payload client-side to check expiry before sending
 function isTokenExpired(token) {
@@ -134,6 +135,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
             clearInterval(pollRef.current);
             if (data.status === 'live') {
               setLaunched(true);
+              clearWizardState();
             }
             if (data.status === 'error') {
               setLaunchError(data.error || 'Something went wrong during deployment.');
@@ -240,6 +242,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
       if (data.status === 'live') {
         setPublishSteps({ domain_registered: true, dns_configured: true, site_generated: true, deployed: true, live: true });
         setLaunched(true);
+        clearWizardState();
       } else {
         setPublishSteps((prev) => ({ ...prev, domain_registered: true, dns_configured: true }));
       }
