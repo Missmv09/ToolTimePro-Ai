@@ -66,6 +66,7 @@ export default function BookingDashboardPage() {
   const [copied, setCopied] = useState(false);
   const [filter, setFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [siteSlug, setSiteSlug] = useState<string | null>(null);
 
   const fetchBookings = useCallback(async (compId: string) => {
     setLoading(true);
@@ -100,14 +101,24 @@ export default function BookingDashboardPage() {
   useEffect(() => {
     if (companyId) {
       fetchBookings(companyId);
+      // Fetch the site slug for the booking URL
+      supabase
+        .from('website_deployments')
+        .select('slug')
+        .eq('company_id', companyId)
+        .limit(1)
+        .single()
+        .then(({ data }) => {
+          if (data?.slug) setSiteSlug(data.slug);
+        });
     } else {
       setLoading(false);
     }
   }, [companyId, fetchBookings]);
 
   // Build the public booking URL
-  const bookingUrl = company?.slug
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/site/${company.slug}/book`
+  const bookingUrl = siteSlug
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/site/${siteSlug}/book`
     : null;
 
   const handleCopyLink = () => {
