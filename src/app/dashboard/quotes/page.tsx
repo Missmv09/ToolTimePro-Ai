@@ -51,6 +51,7 @@ function QuotesContent() {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
   const [showNewQuoteDropdown, setShowNewQuoteDropdown] = useState(false)
   const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
+  const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -395,6 +396,57 @@ function QuotesContent() {
     if (companyId) fetchQuotes(companyId)
   }
 
+  const deleteQuote = async (quote: Quote) => {
+    if (!companyId) return
+    const quoteLabel = quote.quote_number || `Q-${quote.id.slice(0, 8)}`
+    if (!confirm(`Are you sure you want to delete quote ${quoteLabel}? This cannot be undone.`)) return
+
+    setDeletingQuoteId(quote.id)
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
+      if (!token) {
+        alert('Your session has expired. Please refresh the page and log in again.')
+        setDeletingQuoteId(null)
+        return
+      }
+
+      const res = await fetch('/api/quote/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ quoteId: quote.id }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        alert(result.error || 'Failed to delete quote')
+        setDeletingQuoteId(null)
+        return
+      }
+
+      if (companyId) fetchQuotes(companyId)
+    } catch {
+      alert('Failed to delete quote. Please try again.')
+    }
+
+    setDeletingQuoteId(null)
+  }
+
+  const canDeleteQuote = (quote: Quote) => {
+    // Only unsent quotes (draft or pending_approval) can be deleted
+    if (!['draft', 'pending_approval'].includes(quote.status)) return false
+    // Owner/Admin can delete any unsent quote
+    if (isOwnerOrAdmin) return true
+    // Workers can only delete their own drafts
+    return quote.status === 'draft' && quote.created_by === user?.id
+  }
+
   const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700',
     pending_approval: 'bg-orange-100 text-orange-700',
@@ -646,6 +698,15 @@ function QuotesContent() {
                       >
                         View
                       </Link>
+                      {canDeleteQuote(quote) && (
+                        <button
+                          onClick={() => deleteQuote(quote)}
+                          disabled={deletingQuoteId === quote.id}
+                          className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50"
+                        >
+                          {deletingQuoteId === quote.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

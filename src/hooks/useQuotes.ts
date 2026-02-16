@@ -158,13 +158,26 @@ export function useQuotes(): UseQuotesReturn {
 
   const deleteQuote = async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('quotes')
-        .delete()
-        .eq('id', id);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
 
-      if (deleteError) {
-        return { error: deleteError };
+      if (!token) {
+        return { error: new Error('Not authenticated. Please log in again.') };
+      }
+
+      const res = await fetch('/api/quote/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ quoteId: id }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        return { error: new Error(result.error || 'Failed to delete quote') };
       }
 
       await fetchQuotes();
