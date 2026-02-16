@@ -114,6 +114,89 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * POST /api/admin/companies
+ * Creates a new company and optionally marks it as a beta tester.
+ *
+ * Body:
+ *   name - company name (required)
+ *   email - company email (required)
+ *   phone - phone number (optional)
+ *   industry - industry type (optional)
+ *   is_beta_tester - whether to mark as beta tester (optional, default false)
+ *   beta_notes - notes about the beta tester (optional)
+ */
+export async function POST(request: Request) {
+  const admin = await verifyPlatformAdmin(request);
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
+  try {
+    const supabase = getAdminClient();
+    const body = await request.json();
+
+    const { name, email, phone, industry, is_beta_tester, beta_notes } = body;
+
+    if (!name || !email) {
+      return NextResponse.json(
+        { error: 'Name and email are required' },
+        { status: 400 }
+      );
+    }
+
+    // Check if email already exists
+    const { data: existing } = await supabase
+      .from('companies')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (existing) {
+      return NextResponse.json(
+        { error: 'A company with this email already exists' },
+        { status: 409 }
+      );
+    }
+
+    const now = new Date();
+    const trialEnd = new Date(now);
+
+    // Beta testers get 1 year, regular companies get 14-day trial
+    if (is_beta_tester) {
+      trialEnd.setFullYear(trialEnd.getFullYear() + 1);
+    } else {
+      trialEnd.setDate(trialEnd.getDate() + 14);
+    }
+
+    const { data: company, error } = await supabase
+      .from('companies')
+      .insert({
+        name,
+        email,
+        phone: phone || null,
+        industry: industry || null,
+        plan: is_beta_tester ? 'elite' : 'pro',
+        is_beta_tester: is_beta_tester || false,
+        beta_notes: beta_notes || null,
+        trial_starts_at: now.toISOString(),
+        trial_ends_at: trialEnd.toISOString(),
+        onboarding_completed: false,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ company }, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 function getCompanyStatus(company: { stripe_customer_id: string | null; trial_ends_at: string | null }): string {
   if (company.stripe_customer_id) return 'paid';
   if (!company.trial_ends_at) return 'no_trial';
