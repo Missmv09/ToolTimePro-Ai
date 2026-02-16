@@ -753,10 +753,35 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
     valid_until: quote?.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
-    quote?.items?.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })) ||
-    [{ description: '', quantity: 1, unit_price: 0 }]
+    quote?.items && quote.items.length > 0
+      ? quote.items.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price }))
+      : [{ description: '', quantity: 1, unit_price: 0 }]
   )
   const [saving, setSaving] = useState(false)
+  const [loadingItems, setLoadingItems] = useState(false)
+
+  // Fetch items directly from database when editing an existing quote
+  // This handles cases where the joined items data is missing or empty
+  useEffect(() => {
+    if (quote?.id && (!quote.items || quote.items.length === 0)) {
+      setLoadingItems(true)
+      supabase
+        .from('quote_items')
+        .select('*')
+        .eq('quote_id', quote.id)
+        .order('sort_order', { ascending: true })
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            setItems(data.map(i => ({
+              description: i.description,
+              quantity: i.quantity,
+              unit_price: i.unit_price,
+            })))
+          }
+          setLoadingItems(false)
+        })
+    }
+  }, [quote?.id, quote?.items])
 
   const addItem = () => {
     setItems([...items, { description: '', quantity: 1, unit_price: 0 }])
@@ -892,6 +917,9 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
           {/* Line Items */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Line Items</label>
+            {loadingItems && (
+              <p className="text-sm text-gray-500 mb-2">Loading line items...</p>
+            )}
             <div className="space-y-2">
               {items.map((item, index) => (
                 <div key={index} className="flex gap-2 items-start">
