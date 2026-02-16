@@ -720,100 +720,47 @@ export default function SmartQuotingPage() {
         quoteInsertData.sent_by = createdById;
       }
 
-      // Create the quote
-      const { data: quoteData, error: quoteError } = await supabase
-        .from('quotes')
-        .insert(quoteInsertData)
-        .select()
-        .single();
+      // Build quote items
+      const quoteItems = lineItems
+        .filter(item => item.description)
+        .map((item, index) => ({
+          description: item.description,
+          quantity: Number(item.quantity) || 1,
+          unit_price: Number(item.price) || 0,
+          total_price: Number(item.total) || 0,
+          sort_order: index,
+        }));
 
-      if (quoteError) {
-        console.error('Error creating quote:', quoteError);
+      // Save quote + items via server-side API (bypasses RLS issues on quote_items)
+      const token = sessionData.session.access_token;
+      const res = await fetch('/api/quote/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          quoteData: quoteInsertData,
+          items: quoteItems.length > 0 ? quoteItems : [],
+        }),
+      });
 
-        // If the error is about created_by/sent_by columns not existing,
-        // retry without those fields (migration may not have been applied)
-        if (quoteError.message?.includes('created_by') || quoteError.message?.includes('sent_by') || quoteError.code === '42703') {
-          console.warn('Retrying quote creation without employee tracking fields');
-          delete quoteInsertData.created_by;
-          delete quoteInsertData.sent_by;
+      const result = await res.json();
 
-          const { data: retryData, error: retryError } = await supabase
-            .from('quotes')
-            .insert(quoteInsertData)
-            .select()
-            .single();
-
-          if (retryError) {
-            console.error('Error creating quote (retry):', retryError);
-            setSaveError('Failed to create quote: ' + retryError.message);
-            setIsSaving(false);
-            return null;
-          }
-
-          // Success on retry - continue with retryData
-          if (lineItems.length > 0) {
-            const quoteItems = lineItems
-              .filter(item => item.description)
-              .map((item, index) => ({
-                quote_id: retryData.id,
-                description: item.description,
-                quantity: Number(item.quantity) || 1,
-                unit_price: Number(item.price) || 0,
-                total_price: Number(item.total) || 0,
-                sort_order: index,
-              }));
-
-            if (quoteItems.length > 0) {
-              const { error: itemsError } = await supabase
-                .from('quote_items')
-                .insert(quoteItems);
-              if (itemsError) {
-                console.error('Error creating quote items:', itemsError);
-                setSaveError('Quote was created but line items failed to save: ' + itemsError.message);
-                setIsSaving(false);
-                return retryData;
-              }
-            }
-          }
-
-          setIsSaving(false);
-          return retryData;
-        }
-
-        setSaveError('Failed to create quote: ' + quoteError.message);
+      if (!res.ok) {
+        setSaveError(result.error || 'Failed to create quote');
         setIsSaving(false);
         return null;
       }
 
-      // Create quote items
-      if (lineItems.length > 0) {
-        const quoteItems = lineItems
-          .filter(item => item.description)
-          .map((item, index) => ({
-            quote_id: quoteData.id,
-            description: item.description,
-            quantity: Number(item.quantity) || 1,
-            unit_price: Number(item.price) || 0,
-            total_price: Number(item.total) || 0,
-            sort_order: index,
-          }));
-
-        if (quoteItems.length > 0) {
-          const { error: itemsError } = await supabase
-            .from('quote_items')
-            .insert(quoteItems);
-
-          if (itemsError) {
-            console.error('Error creating quote items:', itemsError);
-            setSaveError('Quote was created but line items failed to save: ' + itemsError.message);
-            setIsSaving(false);
-            return quoteData; // Return the quote so the user can edit it later
-          }
-        }
+      if (result.itemsError) {
+        setSaveError('Quote was created but line items failed to save: ' + result.itemsError);
+        setIsSaving(false);
+        return result.quote;
       }
 
       setIsSaving(false);
-      return quoteData;
+      return result.quote;
     } catch (err) {
       console.error('Error saving quote:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -842,10 +789,12 @@ export default function SmartQuotingPage() {
       const customerEmail = selectedCustomer?.email || newCustomer.email;
       const quoteLink = `${window.location.origin}/quote/${quote.id}`;
 
+      const sendErrors: string[] = [];
+
       // Send SMS notification
       if (customerPhone && (sendMethod === 'sms' || sendMethod === 'both')) {
         try {
-          await fetch('/api/sms', {
+          const smsRes = await fetch('/api/sms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -859,15 +808,19 @@ export default function SmartQuotingPage() {
               companyId: companyId,
             }),
           });
+          if (!smsRes.ok) {
+            const smsResult = await smsRes.json().catch(() => ({}));
+            sendErrors.push(`SMS failed: ${smsResult.error || 'Unknown error'}`);
+          }
         } catch {
-          console.log('SMS notification skipped or failed');
+          sendErrors.push('SMS failed: Network error');
         }
       }
 
       // Send email notification
       if (customerEmail && (sendMethod === 'email' || sendMethod === 'both')) {
         try {
-          await fetch('/api/quote/send', {
+          const emailRes = await fetch('/api/quote/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -891,18 +844,26 @@ export default function SmartQuotingPage() {
               companyName: company?.name,
             }),
           });
+          if (!emailRes.ok) {
+            const emailResult = await emailRes.json().catch(() => ({}));
+            sendErrors.push(`Email failed: ${emailResult.error || 'Unknown error'}`);
+          }
         } catch {
-          console.log('Email notification skipped or failed');
+          sendErrors.push('Email failed: Network error');
         }
+      }
+
+      if (sendErrors.length > 0) {
+        setSaveError(`Quote saved but delivery had issues: ${sendErrors.join('. ')}`);
       }
 
       setIsSending(false);
       setQuoteSent(true);
 
-      // Redirect to dashboard after a brief delay
+      // Redirect to dashboard after a brief delay (longer if there were errors)
       setTimeout(() => {
         router.push('/dashboard/quotes');
-      }, 1500);
+      }, sendErrors.length > 0 ? 4000 : 1500);
     } else {
       setIsSending(false);
     }
