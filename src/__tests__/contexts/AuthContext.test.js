@@ -146,8 +146,11 @@ describe('AuthContext', () => {
     expect(result.current.company).toBeNull();
   });
 
-  it('resetPassword calls supabase with redirect URL', async () => {
-    supabase.auth.resetPasswordForEmail.mockResolvedValue({ error: null });
+  it('resetPassword calls server-side reset endpoint', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({}),
+    });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -158,12 +161,15 @@ describe('AuthContext', () => {
     const { error } = await result.current.resetPassword('test@test.com');
 
     expect(error).toBeNull();
-    expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith(
-      'test@test.com',
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/reset-password',
       expect.objectContaining({
-        redirectTo: expect.stringContaining('/auth/reset-password'),
+        method: 'POST',
+        body: JSON.stringify({ email: 'test@test.com' }),
       })
     );
+
+    delete global.fetch;
   });
 
   it('handles auth initialization error gracefully', async () => {
