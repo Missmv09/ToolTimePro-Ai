@@ -912,6 +912,8 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
       return
     }
 
+    const token = sessionData.session.access_token
+
     const quoteData: Record<string, unknown> = {
       company_id: companyId,
       customer_id: formData.customer_id || null,
@@ -930,38 +932,16 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
     let quoteId = quote?.id
 
     if (quote) {
+      // Update existing quote
       const { error: updateError } = await supabase.from('quotes').update(quoteData).eq('id', quote.id)
       if (updateError) {
         alert('Failed to update quote: ' + updateError.message)
         setSaving(false)
         return
       }
-      // Delete existing items
-      await supabase.from('quote_items').delete().eq('quote_id', quote.id)
     } else {
-      let { data, error: insertError } = await supabase.from('quotes').insert(quoteData).select().single()
-
-      // If insert fails due to created_by column not existing, retry without it
-      if (insertError && (insertError.message?.includes('created_by') || insertError.code === '42703')) {
-        console.warn('Retrying quote creation without created_by field')
-        delete quoteData.created_by
-        const retry = await supabase.from('quotes').insert(quoteData).select().single()
-        data = retry.data
-        insertError = retry.error
-      }
-
-      if (insertError) {
-        alert('Failed to create quote: ' + insertError.message)
-        setSaving(false)
-        return
-      }
-      quoteId = data?.id
-    }
-
-    // Insert items
-    if (quoteId && items.length > 0) {
+      // Create new quote via server-side API (bypasses RLS issues)
       const quoteItems = items.filter(i => i.description).map((item, index) => ({
-        quote_id: quoteId,
         description: item.description,
         quantity: Number(item.quantity) || 1,
         unit_price: Number(item.unit_price) || 0,
@@ -969,8 +949,55 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
         sort_order: index,
       }))
 
-      if (quoteItems.length > 0) {
-        await supabase.from('quote_items').insert(quoteItems)
+      const res = await fetch('/api/quote/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ quoteData, items: quoteItems }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        alert('Failed to create quote: ' + (result.error || 'Unknown error'))
+        setSaving(false)
+        return
+      }
+
+      if (result.itemsError) {
+        alert('Quote created but items failed to save: ' + result.itemsError)
+      }
+
+      setSaving(false)
+      onSave()
+      return
+    }
+
+    // For existing quotes, save items via server-side API (bypasses RLS)
+    if (quoteId) {
+      const quoteItems = items.filter(i => i.description).map((item, index) => ({
+        description: item.description,
+        quantity: Number(item.quantity) || 1,
+        unit_price: Number(item.unit_price) || 0,
+        total_price: Number(item.quantity * item.unit_price) || 0,
+        sort_order: index,
+      }))
+
+      const res = await fetch('/api/quote/save-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ quoteId, items: quoteItems }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        alert('Quote updated but items failed to save: ' + (result.error || 'Unknown error'))
       }
     }
 

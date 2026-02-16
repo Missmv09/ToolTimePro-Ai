@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       )
     }
-
     // Check if an invoice references this quote
     const { count: invoiceCount } = await adminClient
       .from('invoices')
