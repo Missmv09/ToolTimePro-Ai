@@ -150,6 +150,25 @@ export async function POST(request: NextRequest) {
       .eq('id', companyId)
       .single()
 
+    // Generate a password reset link so the team member can set their own
+    // password directly from the welcome email (instead of relying solely
+    // on the temporary password).
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com'
+    let resetUrl: string | undefined
+    try {
+      const { data: linkData } = await adminClient.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: { redirectTo: `${baseUrl}/auth/reset-password` },
+      })
+      if (linkData?.properties?.hashed_token) {
+        resetUrl = `${baseUrl}/auth/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`
+      }
+    } catch (linkErr) {
+      console.error('Error generating password reset link for welcome email:', linkErr)
+      // Non-critical — the temp password is still in the email
+    }
+
     // Send welcome email via Resend
     try {
       await sendTeamMemberWelcomeEmail({
@@ -157,6 +176,7 @@ export async function POST(request: NextRequest) {
         name: full_name,
         tempPassword,
         companyName: company?.name,
+        resetUrl,
       })
     } catch (emailError) {
       console.error('Error sending welcome email:', emailError)

@@ -437,11 +437,13 @@ export async function sendTeamMemberWelcomeEmail({
   name,
   tempPassword,
   companyName,
+  resetUrl,
 }: {
   to: string;
   name: string;
   tempPassword: string;
   companyName?: string;
+  resetUrl?: string;
 }) {
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
@@ -461,14 +463,26 @@ export async function sendTeamMemberWelcomeEmail({
         <p style="margin: 4px 0; color: #374151;"><strong>Temporary Password:</strong> <code style="background: #e5e7eb; padding: 2px 8px; border-radius: 4px; font-size: 15px;">${tempPassword}</code></p>
       </div>
 
+      ${ctaButton('Log In to the Worker App', `${BASE_URL}/auth/login`)}
+
+      ${resetUrl ? `
+      <div style="background: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+        <p style="margin: 0 0 8px 0; color: #1e40af; font-weight: 600; font-size: 15px;">Prefer to set your own password?</p>
+        <p style="margin: 0 0 12px 0; color: #374151; font-size: 14px;">
+          Click the link below to choose your own password instead of using the temporary one above.
+        </p>
+        <a href="${resetUrl}" style="color: #3b82f6; font-weight: 600; font-size: 14px; text-decoration: none;">Set Your Own Password &rarr;</a>
+      </div>
+      ` : `
       <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #f59e0b;">
         <p style="margin: 0; color: #92400e; font-weight: 600;">Important</p>
         <p style="margin: 8px 0 0 0; color: #92400e; font-size: 14px;">
-          Please change your password after your first login to keep your account secure.
+          Please change your password after your first login. You can do this by visiting
+          <a href="${BASE_URL}/auth/forgot-password" style="color: #92400e; font-weight: 600;">Forgot Password</a>
+          on the login page.
         </p>
       </div>
-
-      ${ctaButton('Log In to the Worker App', `${BASE_URL}/auth/login`)}
+      `}
     `),
   });
 

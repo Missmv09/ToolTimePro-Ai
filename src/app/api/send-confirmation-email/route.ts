@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         },
       });
 
-    if (linkError || !linkData?.properties?.action_link) {
+    if (linkError || !linkData?.properties?.hashed_token) {
       console.error('Error generating confirmation link:', linkError);
       return NextResponse.json(
         { error: 'Failed to generate confirmation link' },
@@ -45,12 +45,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // Build a direct URL with token_hash instead of using the Supabase
+    // action_link.  The action_link redirects through Supabase's server,
+    // which returns a PKCE `code` the browser can't exchange (no
+    // code_verifier stored).  With token_hash the callback page calls
+    // verifyOtp() directly, which doesn't need PKCE.
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://tooltimepro.com';
+    const confirmationUrl = `${baseUrl}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=magiclink`;
+
     // Send the branded confirmation email via Resend
     await sendSignupConfirmationEmail({
       to: email,
       name,
       companyName,
-      confirmationUrl: linkData.properties.action_link,
+      confirmationUrl,
     });
 
     return NextResponse.json({ success: true });
