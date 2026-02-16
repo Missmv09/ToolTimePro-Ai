@@ -115,7 +115,7 @@ export default function WebsiteWizard() {
     },
     fontHeading: 'Inter',
     fontBody: 'Inter',
-    enabledSections: ['hero', 'services', 'gallery', 'reviews', 'contact', 'about'],
+    enabledSections: ['hero', 'services', 'gallery', 'about', 'contact'],
     heroImage: null,
     galleryImages: [],
     // Step 6

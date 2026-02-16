@@ -23,6 +23,7 @@ export default function SitePreviewFrame({ wizardData }) {
     yearsInBusiness = '',
     fontHeading = 'Inter',
     fontBody = 'Inter',
+    ctaText = 'Get a Free Estimate',
   } = wizardData;
 
   const primaryColor = colors.primary || '#1a1a2e';
@@ -30,7 +31,7 @@ export default function SitePreviewFrame({ wizardData }) {
   const accentColor = colors.accent || '#f5a623';
   const bgColor = colors.background || '#ffffff';
   const headingColor = colors.headingColor || primaryColor;
-  const bodyColor = colors.bodyColor || '#333';
+  const bodyColor = colors.bodyColor || '#333333';
 
   const fh = fontHeading || 'Inter';
   const fb = fontBody || 'Inter';
@@ -75,7 +76,7 @@ export default function SitePreviewFrame({ wizardData }) {
   <section style="position:relative;padding:80px 24px;text-align:center;color:#fff;${heroBackground}min-height:420px;display:flex;flex-direction:column;justify-content:center;align-items:center;">
     <h1 style="font-size:clamp(28px,5vw,48px);font-weight:800;margin-bottom:16px;font-family:${fh},sans-serif;line-height:1.2;max-width:800px;color:#fff;">${businessName}</h1>
     ${tagline ? `<p style="font-size:clamp(16px,2.5vw,22px);opacity:0.92;margin-bottom:32px;max-width:600px;line-height:1.5;color:#fff;">${tagline}</p>` : ''}
-    <a href="#contact" style="display:inline-block;padding:14px 36px;background:${accentColor};color:${primaryColor};font-weight:700;border-radius:8px;font-size:16px;text-decoration:none;">Get a Free Estimate</a>
+    <a href="#contact" style="display:inline-block;padding:14px 36px;background:${accentColor};color:${primaryColor};font-weight:700;border-radius:8px;font-size:16px;text-decoration:none;">${ctaText}</a>
     ${serviceArea ? `<p style="margin-top:20px;font-size:14px;opacity:0.8;color:#fff;">Proudly serving ${serviceArea}</p>` : ''}
   </section>
   ` : ''}

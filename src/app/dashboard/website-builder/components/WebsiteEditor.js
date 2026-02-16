@@ -23,9 +23,10 @@ const fontOptions = [
 
 export default function WebsiteEditor({ site, template = {}, onClose, onSaved }) {
   const content = site.site_content || {};
+  const layout = template.layout_config || {};
 
   // Use the same fallback chain as PublicSiteRenderer so the editor preview
-  // matches the live site exactly: site_content.colors -> template colors -> hardcoded defaults.
+  // matches the live site exactly: site_content -> template -> hardcoded defaults.
   const [form, setForm] = useState({
     businessName: site.business_name || '',
     phone: site.business_phone || '',
@@ -45,7 +46,8 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
     },
     fontHeading: content.fontHeading || template.font_heading || 'Inter',
     fontBody: content.fontBody || template.font_body || 'Inter',
-    enabledSections: content.enabledSections || ['hero', 'services', 'contact'],
+    // Same fallback chain as PublicSiteRenderer: site_content -> template layout -> default
+    enabledSections: content.enabledSections || layout.sections || ['hero', 'services', 'gallery', 'about', 'contact'],
     heroImage: content.heroImage || null,
     galleryImages: content.galleryImages || [],
   });
@@ -149,6 +151,8 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
     { id: 'photos', label: 'Photos', icon: ImageIcon },
   ];
 
+  const defaultContent = template.default_content || {};
+
   // Build a wizardData-shaped object for SitePreviewFrame
   const previewData = {
     businessName: form.businessName,
@@ -166,6 +170,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
     serviceArea: form.serviceArea,
     licenseNumber: form.licenseNumber,
     yearsInBusiness: form.yearsInBusiness,
+    ctaText: defaultContent.ctaText || 'Get a Free Estimate',
   };
 
   return (
@@ -464,7 +469,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
                         <option key={f} value={f}>{f}</option>
                       ))}
                     </select>
-                    <p className="mt-2 text-sm" style={{ fontFamily: `'${form.fontBody || 'Inter'}', sans-serif`, color: form.colors.bodyColor || '#333' }}>
+                    <p className="mt-2 text-sm" style={{ fontFamily: `'${form.fontBody || 'Inter'}', sans-serif`, color: form.colors.bodyColor || '#333333' }}>
                       The quick brown fox jumps over the lazy dog. This is how your body text will look on your website.
                     </p>
                   </div>
