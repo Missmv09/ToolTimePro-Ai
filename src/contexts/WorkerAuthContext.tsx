@@ -66,6 +66,40 @@ export function WorkerAuthProvider({ children }: { children: React.ReactNode }) 
             return;
           }
         }
+
+        // Fallback: check Supabase auth session (email+password login).
+        // Team members who log in via /auth/login with email+password
+        // won't have a localStorage entry yet.
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: worker } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+
+          if (worker && worker.company_id) {
+            const { data: company } = await supabase
+              .from('companies')
+              .select('*')
+              .eq('id', worker.company_id)
+              .single();
+
+            // Store in localStorage so future page loads are faster
+            localStorage.setItem(WORKER_SESSION_KEY, JSON.stringify({
+              workerId: worker.id,
+              companyId: worker.company_id,
+            }));
+
+            setState({
+              worker: worker as User,
+              company: company as Company || null,
+              isLoading: false,
+              isAuthenticated: true,
+            });
+            return;
+          }
+        }
       } catch (err) {
         console.error('Failed to restore worker session:', err);
         localStorage.removeItem(WORKER_SESSION_KEY);
