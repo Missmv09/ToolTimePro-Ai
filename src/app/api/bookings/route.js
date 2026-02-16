@@ -232,42 +232,40 @@ export async function POST(request) {
       );
     }
 
-    // Also create a lead for tracking
-    await supabase
-      .from('leads')
-      .insert({
-        company_id: companyId,
-        customer_id: customerId,
-        name: customerName,
-        email: customerEmail,
-        phone: customerPhone,
-        address: customerAddress,
-        service_requested: serviceName,
-        message: notes || `Booked ${serviceName} for ${scheduledDate}`,
-        source: 'online_booking',
-        status: 'won', // Already converted to a booking
-      });
+    // Run lead creation and company name fetch in parallel (independent queries)
+    const [, companyResult] = await Promise.all([
+      supabase
+        .from('leads')
+        .insert({
+          company_id: companyId,
+          customer_id: customerId,
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          address: customerAddress,
+          service_requested: serviceName,
+          message: notes || `Booked ${serviceName} for ${scheduledDate}`,
+          source: 'online_booking',
+          status: 'won',
+        }),
+      supabase
+        .from('companies')
+        .select('name')
+        .eq('id', companyId)
+        .single(),
+    ]);
 
-    // Get company name for SMS
-    let companyName = 'Our team';
-    const { data: company } = await supabase
-      .from('companies')
-      .select('name')
-      .eq('id', companyId)
-      .single();
-    if (company?.name) {
-      companyName = company.name;
-    }
+    const companyName = companyResult.data?.name || 'Our team';
 
-    // Send confirmation SMS (non-blocking)
-    const smsResult = await sendConfirmationSMS({
+    // Fire SMS as fire-and-forget — don't block the response on it
+    sendConfirmationSMS({
       to: customerPhone,
       customerName,
       serviceName,
       date: scheduledDate,
       time: scheduledTimeStart,
       companyName,
-    });
+    }).catch(err => console.error('SMS background error:', err));
 
     return NextResponse.json({
       success: true,
@@ -278,7 +276,7 @@ export async function POST(request) {
         time: scheduledTimeStart,
         customer: customerName,
       },
-      smsStatus: smsResult.sent ? 'sent' : 'not_sent',
+      smsStatus: 'queued',
     });
 
   } catch (error) {

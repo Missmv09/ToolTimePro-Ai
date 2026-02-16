@@ -119,7 +119,7 @@ Return ONLY the JSON, no other text.`;
                 type: 'image_url',
                 image_url: {
                   url: `data:image/jpeg;base64,${base64Data}`,
-                  detail: 'high'
+                  detail: 'auto'
                 }
               }
             ]

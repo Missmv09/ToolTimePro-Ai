@@ -8,8 +8,12 @@ const { createClient } = require('@supabase/supabase-js');
 // In production, this would always use Supabase
 let demoBookings = [];
 
-// Get Supabase client if configured
+// Cache Supabase client across warm invocations to avoid re-init overhead
+let supabaseClient = null;
+
 function getSupabase() {
+  if (supabaseClient) return supabaseClient;
+
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -17,7 +21,8 @@ function getSupabase() {
     return null;
   }
 
-  return createClient(url, key);
+  supabaseClient = createClient(url, key);
+  return supabaseClient;
 }
 
 // Parse date string like "Mon, Jan 27" to ISO date

@@ -164,7 +164,12 @@ Return a JSON object with this exact format:
 
 Return ONLY the JSON, no other text.`;
 
-    // Call OpenAI with GPT-4o for better understanding
+    // Use gpt-4o for voice transcripts and tiered quotes (needs stronger reasoning),
+    // gpt-4o-mini for standard text quotes (much faster, lower cost)
+    const needsFullModel = inputType === 'voice' || generateTiers;
+    const model = needsFullModel ? 'gpt-4o' : 'gpt-4o-mini';
+    const maxTokens = generateTiers ? 2000 : 1200;
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -172,12 +177,12 @@ Return ONLY the JSON, no other text.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 2000,
+        max_tokens: maxTokens,
         temperature: 0.5,
       }),
     });
