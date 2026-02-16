@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ensureReadableColor } from '@/lib/color-utils';
 
 export default function PublicSiteRenderer({ site, template }) {
   const content = site.site_content || {};
@@ -27,10 +28,16 @@ export default function PublicSiteRenderer({ site, template }) {
   const secondaryColor = content.colors?.secondary || template.secondary_color || '#16213e';
   const accentColor = content.colors?.accent || template.accent_color || '#f5a623';
   const bgColor = content.colors?.background || '#ffffff';
-  const headingColor = content.colors?.headingColor || primaryColor;
-  const bodyColor = content.colors?.bodyColor || '#333333';
+  const rawHeadingColor = content.colors?.headingColor || primaryColor;
+  const rawBodyColor = content.colors?.bodyColor || '#333333';
   const fontHeading = content.fontHeading || template.font_heading || 'Inter';
   const fontBody = content.fontBody || template.font_body || 'Inter';
+
+  // Ensure text colors are readable on light section backgrounds.
+  // Sections use either bgColor (page bg) or #f9fafb (alt sections).
+  // Check against white (#ffffff) — the worst-case lightest background.
+  const headingColor = ensureReadableColor(rawHeadingColor, '#ffffff', primaryColor);
+  const bodyColor = ensureReadableColor(rawBodyColor, '#ffffff', '#333333');
 
   return (
     <div

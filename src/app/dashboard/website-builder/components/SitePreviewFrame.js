@@ -2,6 +2,7 @@
 
 import { Maximize2, Monitor, Smartphone } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { ensureReadableColor } from '@/lib/color-utils';
 
 export default function SitePreviewFrame({ wizardData }) {
   const [viewMode, setViewMode] = useState('desktop');
@@ -30,8 +31,9 @@ export default function SitePreviewFrame({ wizardData }) {
   const secondaryColor = colors.secondary || '#16213e';
   const accentColor = colors.accent || '#f5a623';
   const bgColor = colors.background || '#ffffff';
-  const headingColor = colors.headingColor || primaryColor;
-  const bodyColor = colors.bodyColor || '#333333';
+  // Ensure heading/body colors are readable on light section backgrounds
+  const headingColor = ensureReadableColor(colors.headingColor || primaryColor, '#ffffff', primaryColor);
+  const bodyColor = ensureReadableColor(colors.bodyColor || '#333333', '#ffffff', '#333333');
 
   const fh = fontHeading || 'Inter';
   const fb = fontBody || 'Inter';

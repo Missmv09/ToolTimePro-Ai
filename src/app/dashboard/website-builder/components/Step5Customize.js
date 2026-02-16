@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Palette, Layout, ImageIcon, Type } from 'lucide-react';
+import { Palette, Layout, ImageIcon, Type, AlertTriangle } from 'lucide-react';
 import { getStockPhotos } from '@/lib/stock-photos';
+import { contrastRatio } from '@/lib/color-utils';
 import SectionToggle from './SectionToggle';
 import PhotoSelector from './PhotoSelector';
 import SitePreviewFrame from './SitePreviewFrame';
@@ -42,6 +43,8 @@ export default function Step5Customize({ wizardData, setWizardData }) {
       secondary: preset.secondary,
       accent: preset.accent,
       background: preset.background,
+      headingColor: '',
+      bodyColor: '',
     });
   };
 
@@ -135,6 +138,13 @@ export default function Step5Customize({ wizardData, setWizardData }) {
               {/* Font colors */}
               <div className="space-y-3">
                 <p className="text-sm font-medium text-navy-500">Font Colors</p>
+                {(wizardData.colors.headingColor && contrastRatio(wizardData.colors.headingColor, wizardData.colors.background || '#ffffff') < 3) ||
+                 (wizardData.colors.bodyColor && contrastRatio(wizardData.colors.bodyColor, wizardData.colors.background || '#ffffff') < 3) ? (
+                  <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                    <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+                    <span>Font color is too close to your background — text may be hard to read. We&apos;ll auto-correct it on your live site, but consider picking a darker color or hitting Reset.</span>
+                  </div>
+                ) : null}
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -212,6 +222,13 @@ export default function Step5Customize({ wizardData, setWizardData }) {
               {/* Font colors */}
               <div className="space-y-3 pt-2 border-t border-gray-200">
                 <p className="text-sm font-medium text-navy-500">Font Colors</p>
+                {(wizardData.colors.headingColor && contrastRatio(wizardData.colors.headingColor, wizardData.colors.background || '#ffffff') < 3) ||
+                 (wizardData.colors.bodyColor && contrastRatio(wizardData.colors.bodyColor, wizardData.colors.background || '#ffffff') < 3) ? (
+                  <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                    <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+                    <span>Font color is too close to your background — text may be hard to read. We&apos;ll auto-correct it on your live site, but consider picking a darker color or hitting Reset.</span>
+                  </div>
+                ) : null}
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
