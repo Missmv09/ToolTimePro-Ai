@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -235,6 +235,9 @@ function SettingsContent() {
               </div>
             </div>
           </div>
+
+          {/* Change Password */}
+          <ChangePasswordCard />
 
           {/* Company Info (editable) */}
           <div className="bg-white rounded-xl border p-6">
@@ -490,6 +493,93 @@ function SettingsContent() {
         </div>
         )
       })()}
+    </div>
+  )
+}
+
+function ChangePasswordCard() {
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setMessage(null)
+
+    if (newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'Password must be at least 8 characters' })
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'Passwords do not match' })
+      return
+    }
+
+    setSaving(true)
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+
+    if (error) {
+      setMessage({ type: 'error', text: error.message })
+    } else {
+      setMessage({ type: 'success', text: 'Password updated successfully!' })
+      setNewPassword('')
+      setConfirmPassword('')
+      setTimeout(() => setMessage(null), 5000)
+    }
+
+    setSaving(false)
+  }
+
+  return (
+    <div className="bg-white rounded-xl border p-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="At least 8 characters"
+            minLength={8}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Confirm your password"
+            minLength={8}
+            required
+          />
+        </div>
+        {message && (
+          <div
+            className={`p-3 rounded-lg text-sm ${
+              message.type === 'success'
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
+        <button
+          type="submit"
+          disabled={saving}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          {saving ? 'Updating...' : 'Update Password'}
+        </button>
+      </form>
     </div>
   )
 }
