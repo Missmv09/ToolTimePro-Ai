@@ -66,6 +66,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
     }
 
+    // Approved quotes cannot be deleted
+    if (quote.status === 'approved') {
+      return NextResponse.json(
+        { error: 'Approved quotes cannot be deleted.' },
+        { status: 409 }
+      )
+    }
+
     // Check if an invoice references this quote
     const { count: invoiceCount } = await adminClient
       .from('invoices')
