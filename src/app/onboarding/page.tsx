@@ -731,7 +731,11 @@ export default function OnboardingPage() {
         {/* Trial info */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
-            You&apos;re on the <strong>Pro plan</strong> free trial &mdash; 14 days of full access, no credit card required.
+            {company?.is_beta_tester ? (
+              <>You have <strong>Beta Tester</strong> access &mdash; all features unlocked on the <strong>Elite plan</strong>.</>
+            ) : (
+              <>You&apos;re on the <strong>Pro plan</strong> free trial &mdash; 14 days of full access, no credit card required.</>
+            )}
           </p>
         </div>
       </div>

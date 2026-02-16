@@ -385,31 +385,48 @@ function SettingsContent() {
 
       {/* Subscription Tab */}
       {activeTab === 'subscription' && (() => {
+        const isBetaTester = company?.is_beta_tester
         const planKey = company?.plan || 'free_trial'
         const planInfo = PLAN_CONFIG[planKey] || { name: planKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), price: '--', period: '' }
-        const isFreeTrial = planKey === 'free_trial' || !company?.plan
+        const isFreeTrial = !isBetaTester && (planKey === 'free_trial' || !company?.plan)
 
         return (
         <div className="space-y-6">
           <div className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscription</h2>
 
-            <div className={`${isFreeTrial ? 'bg-amber-50' : 'bg-blue-50'} rounded-lg p-4 mb-6`}>
+            <div className={`${isBetaTester ? 'bg-green-50' : isFreeTrial ? 'bg-amber-50' : 'bg-blue-50'} rounded-lg p-4 mb-6`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={`text-sm ${isFreeTrial ? 'text-amber-600' : 'text-blue-600'} font-medium`}>Current Plan</p>
-                  <p className={`text-2xl font-bold ${isFreeTrial ? 'text-amber-700' : 'text-blue-700'}`}>{planInfo.name}</p>
+                  <p className={`text-sm ${isBetaTester ? 'text-green-600' : isFreeTrial ? 'text-amber-600' : 'text-blue-600'} font-medium`}>Current Plan</p>
+                  <p className={`text-2xl font-bold ${isBetaTester ? 'text-green-700' : isFreeTrial ? 'text-amber-700' : 'text-blue-700'}`}>
+                    {isBetaTester ? 'Elite (Beta Tester)' : planInfo.name}
+                  </p>
                 </div>
                 <div className="text-right">
-                  {planInfo.period && (
-                    <p className={`text-sm ${isFreeTrial ? 'text-amber-600' : 'text-blue-600'}`}>{planInfo.period}</p>
+                  {isBetaTester ? (
+                    <p className="text-2xl font-bold text-green-700">All Access</p>
+                  ) : (
+                    <>
+                      {planInfo.period && (
+                        <p className={`text-sm ${isFreeTrial ? 'text-amber-600' : 'text-blue-600'}`}>{planInfo.period}</p>
+                      )}
+                      <p className={`text-2xl font-bold ${isFreeTrial ? 'text-amber-700' : 'text-blue-700'}`}>
+                        {isFreeTrial ? 'No charge' : `${planInfo.price}/mo`}
+                      </p>
+                    </>
                   )}
-                  <p className={`text-2xl font-bold ${isFreeTrial ? 'text-amber-700' : 'text-blue-700'}`}>
-                    {isFreeTrial ? 'No charge' : `${planInfo.price}/mo`}
-                  </p>
                 </div>
               </div>
             </div>
+
+            {isBetaTester && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <p className="text-green-800 text-sm font-medium">
+                  You have beta tester access — all features are unlocked at no charge. Thank you for testing!
+                </p>
+              </div>
+            )}
 
             {isFreeTrial && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">

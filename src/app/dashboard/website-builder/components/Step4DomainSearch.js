@@ -7,7 +7,7 @@ import DomainCard from './DomainCard';
 
 export default function Step4DomainSearch({ wizardData, setWizardData }) {
   const { company } = useAuth();
-  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id;
+  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id && !company?.is_beta_tester;
 
   const [mode, setMode] = useState(wizardData.domainMode || (isOnTrial ? 'subdomain' : 'search')); // 'search' | 'existing' | 'subdomain'
   const [searchTerm, setSearchTerm] = useState('');

@@ -106,7 +106,8 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
   }, [session]);
 
   // Determine if user is on a free trial (has trial_ends_at but no paid subscription)
-  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id;
+  // Beta testers are not treated as trial users — they get full access
+  const isOnTrial = company?.trial_ends_at && !company?.stripe_customer_id && !company?.is_beta_tester;
   const trialDaysLeft = isOnTrial
     ? Math.max(0, Math.ceil((new Date(company.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
