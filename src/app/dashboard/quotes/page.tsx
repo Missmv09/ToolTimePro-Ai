@@ -314,7 +314,9 @@ function QuotesContent() {
       return
     }
 
-    // Notify owner(s) via SMS
+    // Notify owner(s) via SMS and email
+    const quoteNum = quote.quote_number || `Q-${quote.id.slice(0, 8)}`
+    const dashboardLink = `${window.location.origin}/dashboard/quotes?status=pending_approval`
     try {
       const { data: owners } = await supabase
         .from('users')
@@ -324,6 +326,7 @@ function QuotesContent() {
 
       if (owners) {
         for (const owner of owners) {
+          // Send SMS
           if (owner.phone) {
             await fetch('/api/sms', {
               method: 'POST',
@@ -332,9 +335,26 @@ function QuotesContent() {
                 to: owner.phone,
                 template: 'custom',
                 data: {
-                  message: `Quote ${quote.quote_number || `Q-${quote.id.slice(0, 8)}`} for ${quote.customer?.name || 'a customer'} ($${quote.total?.toLocaleString()}) needs your approval. Open your dashboard to review.`,
+                  message: `Quote ${quoteNum} for ${quote.customer?.name || 'a customer'} ($${quote.total?.toLocaleString()}) needs your approval. Open your dashboard to review.`,
                 },
                 companyId,
+              }),
+            })
+          }
+          // Send email
+          if (owner.email) {
+            await fetch('/api/quote/notify-approval', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: owner.email,
+                ownerName: owner.full_name || 'Boss',
+                quoteNumber: quoteNum,
+                customerName: quote.customer?.name || 'Customer',
+                total: quote.total,
+                itemCount: quote.items?.length || 0,
+                submittedBy: dbUser?.full_name,
+                dashboardLink,
               }),
             })
           }

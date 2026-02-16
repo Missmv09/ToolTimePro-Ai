@@ -835,3 +835,78 @@ export async function sendTrialExpiredEmail({ to, name }: { to: string; name: st
   if (error) throw new Error(`Failed to send email: ${error.message}`);
   return data;
 }
+
+// ============================================
+// Quote Approval Request Email (sent to owner/admin)
+// ============================================
+
+export async function sendQuoteApprovalEmail({
+  to,
+  ownerName,
+  quoteNumber,
+  customerName,
+  total,
+  itemCount,
+  submittedBy,
+  dashboardLink,
+}: {
+  to: string;
+  ownerName: string;
+  quoteNumber: string;
+  customerName: string;
+  total: number;
+  itemCount: number;
+  submittedBy?: string;
+  dashboardLink: string;
+}) {
+  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Quote ${quoteNumber} needs your approval - ${formattedTotal}`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Quote Approval Needed</h2>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Hi ${ownerName}, a quote is waiting for your review and approval before it gets sent to the customer.
+      </p>
+
+      <div style="background: #fff7ed; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #f97316;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Quote #</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${quoteNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Customer</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${customerName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Items</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; text-align: right;">${itemCount} line item${itemCount !== 1 ? 's' : ''}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0 4px 0; color: #6b7280; font-size: 14px; border-top: 1px solid #fed7aa;">Total</td>
+            <td style="padding: 8px 0 4px 0; color: #111827; font-size: 20px; font-weight: 700; text-align: right; border-top: 1px solid #fed7aa;">${formattedTotal}</td>
+          </tr>
+          ${submittedBy ? `
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Submitted by</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; text-align: right;">${submittedBy}</td>
+          </tr>
+          ` : ''}
+        </table>
+      </div>
+
+      ${ctaButton('Review & Approve', dashboardLink)}
+
+      <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 24px;">
+        You can approve, edit, or return this quote to draft from your dashboard.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
