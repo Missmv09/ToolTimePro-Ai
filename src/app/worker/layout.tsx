@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning'
 import { useSessionTimeout } from '@/hooks/useSessionTimeout'
+import { WorkerAuthProvider } from '@/contexts/WorkerAuthContext'
 
 interface WorkerUser {
   id: string
@@ -95,6 +96,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   ]
 
   return (
+    <WorkerAuthProvider>
     <div className="min-h-screen bg-gray-100 pb-20">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
@@ -146,5 +148,6 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
         />
       )}
     </div>
+    </WorkerAuthProvider>
   )
 }
