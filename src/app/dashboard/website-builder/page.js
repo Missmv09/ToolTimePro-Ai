@@ -95,7 +95,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
   const domainUrl = hasRealDomain
     ? `https://${site.custom_domain}`
     : site.slug
-      ? `https://tooltimepro.com/site/${site.slug}`
+      ? `/site/${site.slug}/`
       : null;
   const isLive = site.status === 'live';
   const isBuilding = site.status === 'building';

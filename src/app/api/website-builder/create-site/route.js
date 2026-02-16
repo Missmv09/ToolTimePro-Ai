@@ -291,7 +291,7 @@ export async function POST(request) {
     // Build the public-facing URL for the site
     const isSubdomain = (selectedDomain.type || 'new') === 'subdomain' || cleanDomain.endsWith('.tooltimepro.com');
     const siteUrl = isSubdomain
-      ? `https://tooltimepro.com/site/${site.slug}`
+      ? `/site/${site.slug}/`
       : `https://${cleanDomain}`;
 
     return NextResponse.json({

@@ -210,7 +210,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
             <span>Changes saved! Your site is updated live.</span>
             {savedSlug && (
               <a
-                href={`https://tooltimepro.com/site/${savedSlug}`}
+                href={`/site/${savedSlug}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium underline hover:text-green-900"

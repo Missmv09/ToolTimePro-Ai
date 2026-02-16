@@ -78,7 +78,9 @@ describe('/api/webhook/stripe', () => {
     expect(body.error).toBe('Webhook signature verification failed');
   });
 
-  it('handles checkout.session.completed for new users', async () => {
+  it('handles checkout.session.completed when no user found', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
     mockConstructEvent.mockReturnValue({
       type: 'checkout.session.completed',
       data: {
@@ -99,7 +101,9 @@ describe('/api/webhook/stripe', () => {
 
     expect(response.status).toBe(200);
     expect(mockSupabaseFrom).toHaveBeenCalledWith('users');
-    expect(mockInsert).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith('No user/company found for email:', 'test@example.com');
+
+    consoleSpy.mockRestore();
   });
 
   it('handles checkout.session.completed for existing users', async () => {
@@ -115,12 +119,13 @@ describe('/api/webhook/stripe', () => {
       },
     });
 
-    mockSingle.mockResolvedValue({ data: { id: 'user-123' }, error: null });
+    mockSingle.mockResolvedValue({ data: { id: 'user-123', company_id: 'company-456' }, error: null });
 
     const request = makeWebhookRequest();
     const response = await POST(request);
 
     expect(response.status).toBe(200);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('companies');
     expect(mockUpdate).toHaveBeenCalled();
   });
 
@@ -152,7 +157,7 @@ describe('/api/webhook/stripe', () => {
     mockConstructEvent.mockReturnValue({
       type: 'customer.subscription.deleted',
       data: {
-        object: { id: 'sub_123' },
+        object: { id: 'sub_123', customer: 'cus_123' },
       },
     });
 
@@ -160,6 +165,7 @@ describe('/api/webhook/stripe', () => {
     const response = await POST(request);
 
     expect(response.status).toBe(200);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('companies');
     expect(mockUpdate).toHaveBeenCalled();
   });
 
@@ -176,12 +182,15 @@ describe('/api/webhook/stripe', () => {
       },
     });
 
+    mockSingle.mockResolvedValue({ data: { id: 'company-789' }, error: null });
+
     const request = makeWebhookRequest();
     const response = await POST(request);
 
     expect(response.status).toBe(200);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('companies');
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('payments');
     expect(mockInsert).toHaveBeenCalled();
-    expect(mockUpdate).toHaveBeenCalled();
   });
 
   it('returns 200 for unknown event types', async () => {
