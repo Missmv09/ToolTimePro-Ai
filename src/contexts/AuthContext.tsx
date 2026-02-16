@@ -1,12 +1,19 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User as DbUser, Company } from '@/types/database';
 
 // Timeout for auth initialization to prevent infinite loading
 const AUTH_TIMEOUT_MS = 5000;
+
+// Grace period before clearing user state on null-session auth events.
+// Supabase can briefly fire SIGNED_OUT during token refresh before the new
+// session arrives.  Without this delay, ProtectedRoute sees user === null,
+// unmounts the entire dashboard (including in-progress wizard state), then
+// immediately re-mounts when the valid session event follows.
+const AUTH_NULL_GRACE_MS = 2000;
 
 interface AuthContextType {
   user: User | null;
@@ -34,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null);
   const mountedRef = useRef(true);
   const initCompleteRef = useRef(false);
+  const nullGraceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch user profile and company data
   const fetchUserData = async (userId: string) => {
@@ -149,15 +157,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mountedRef.current) return;
 
         setSession(currentSession);
-        setUser(currentSession?.user ?? null);
         setAuthError(null);
 
         if (currentSession?.user) {
+          // Valid session — cancel any pending null-user grace timeout
+          if (nullGraceRef.current) {
+            clearTimeout(nullGraceRef.current);
+            nullGraceRef.current = null;
+          }
+          setUser(currentSession.user);
           // Don't await - let it run in background to avoid blocking
           fetchUserData(currentSession.user.id).catch(console.error);
         } else {
-          setDbUser(null);
-          setCompany(null);
+          // Null session — could be a genuine sign-out OR a transient blip
+          // during a Supabase token refresh.  Delay clearing user/dbUser/company
+          // so ProtectedRoute doesn't briefly unmount the entire component tree.
+          // The explicit signOut() function already clears state synchronously,
+          // so this path only matters for automatic auth events.
+          if (nullGraceRef.current) clearTimeout(nullGraceRef.current);
+          nullGraceRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              setUser(null);
+              setDbUser(null);
+              setCompany(null);
+            }
+            nullGraceRef.current = null;
+          }, AUTH_NULL_GRACE_MS);
         }
 
         // Only set loading false if init is already complete
@@ -170,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       mountedRef.current = false;
       clearTimeout(timeoutId);
+      if (nullGraceRef.current) clearTimeout(nullGraceRef.current);
       subscription.unsubscribe();
     };
   }, []);
@@ -280,7 +306,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value = {
+  // Memoize the context value so consumers only re-render when actual auth
+  // data changes — not on every AuthProvider render.
+  const value = useMemo(() => ({
     user,
     dbUser,
     company,
@@ -293,7 +321,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     resetPassword,
     refreshUserData,
-  };
+  }), [user, dbUser, company, session, isLoading, authError]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
