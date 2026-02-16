@@ -96,7 +96,7 @@ export default function SetPasswordPage() {
         router.replace('/onboarding');
       }
     }
-  }, [user, company, authLoading, sessionReady, router]);
+  }, [user, dbUser, company, authLoading, sessionReady, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
