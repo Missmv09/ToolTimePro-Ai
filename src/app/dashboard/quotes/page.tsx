@@ -348,6 +348,15 @@ function QuotesContent() {
     alert('Invoice created! Go to Invoices to send it.')
   }
 
+  const convertToJob = (quote: Quote) => {
+    // Navigate to jobs page with quote context to create a new job
+    const params = new URLSearchParams({
+      fromQuote: quote.id,
+      customer: quote.customer_id,
+    })
+    router.push(`/dashboard/jobs?${params.toString()}`)
+  }
+
   const duplicateQuote = async (quote: Quote) => {
     if (!companyId) return
 
@@ -766,12 +775,20 @@ function QuotesContent() {
                         Copy
                       </button>
                       {quote.status === 'approved' && (
-                        <button
-                          onClick={() => convertToInvoice(quote)}
-                          className="text-green-600 hover:text-green-800 text-sm"
-                        >
-                          Invoice
-                        </button>
+                        <>
+                          <button
+                            onClick={() => convertToJob(quote)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            Schedule Job
+                          </button>
+                          <button
+                            onClick={() => convertToInvoice(quote)}
+                            className="text-green-600 hover:text-green-800 text-sm"
+                          >
+                            Invoice
+                          </button>
+                        </>
                       )}
                       <Link
                         href={`/quote/${quote.id}`}

@@ -76,6 +76,9 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [schedulingRequested, setSchedulingRequested] = useState(false);
+  const [requestingSchedule, setRequestingSchedule] = useState(false);
+  const [preferredContact, setPreferredContact] = useState<string>('');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -267,6 +270,36 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     }
   };
 
+  // Request scheduling - notifies the business owner
+  const requestScheduling = async () => {
+    if (!quote) return;
+
+    setRequestingSchedule(true);
+
+    try {
+      await fetch('/api/quote/request-scheduling', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quoteId: quote.id,
+          quoteNumber: quote.quote_number || quote.id.slice(0, 8),
+          customerName: quote.customer?.name || 'Customer',
+          customerPhone: quote.customer?.phone || '',
+          customerEmail: quote.customer?.email || '',
+          companyId: quote.company?.id,
+          total: quote.total,
+          preferredContact: preferredContact || 'anytime',
+        }),
+      });
+
+      setSchedulingRequested(true);
+    } catch (err) {
+      console.error('Error requesting scheduling:', err);
+    } finally {
+      setRequestingSchedule(false);
+    }
+  };
+
   // Reject quote
   const rejectQuote = async () => {
     if (!showRejectReason) {
@@ -379,33 +412,81 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             <div className="text-5xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold text-green-700 mb-2">Quote Approved!</h2>
             <p className="text-green-600 mb-4">
-              Thank you for your business! You can schedule your service now or we&apos;ll be in touch shortly.
+              Thank you for your business!
             </p>
             {signature && (
               <div className="inline-block p-2 bg-white rounded border border-green-200 mb-4">
                 <Image src={signature} alt="Your signature" className="h-16 w-auto" width={200} height={64} />
               </div>
             )}
-            {quote.company?.id && (
-              <div className="mt-4">
-                <a
-                  href={`/book/${quote.company.id}?${new URLSearchParams({
-                    ...(quote.customer?.name ? { name: quote.customer.name } : {}),
-                    ...(quote.customer?.email ? { email: quote.customer.email } : {}),
-                    ...(quote.customer?.phone ? { phone: quote.customer.phone } : {}),
-                    ...(quote.customer?.address ? { address: quote.customer.address } : {}),
-                    ...(quote.customer?.city ? { city: quote.customer.city } : {}),
-                    ...(quote.customer?.state ? { state: quote.customer.state } : {}),
-                    ...(quote.customer?.zip ? { zip: quote.customer.zip } : {}),
-                    from: 'quote',
-                    quoteId: quote.id,
-                  }).toString()}`}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-gold-500 text-navy-900 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-colors no-underline"
+
+            {/* Scheduling Request Section */}
+            {!schedulingRequested ? (
+              <div className="mt-6 bg-white rounded-xl border border-green-200 p-6 text-left max-w-md mx-auto">
+                <h3 className="font-semibold text-navy-500 text-center mb-2">Ready to schedule?</h3>
+                <p className="text-sm text-gray-600 text-center mb-4">
+                  Let us know the best time to reach you and we&apos;ll call to set up your service date.
+                </p>
+
+                <div className="space-y-2 mb-4">
+                  {[
+                    { value: 'morning', label: 'Morning (8am - 12pm)' },
+                    { value: 'afternoon', label: 'Afternoon (12pm - 5pm)' },
+                    { value: 'evening', label: 'Evening (5pm - 7pm)' },
+                    { value: 'anytime', label: 'Anytime works' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setPreferredContact(option.value)}
+                      className={`w-full p-3 text-left rounded-lg border transition-colors text-sm ${
+                        preferredContact === option.value
+                          ? 'border-gold-500 bg-gold-50 text-navy-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={requestScheduling}
+                  disabled={requestingSchedule}
+                  className="w-full py-3 bg-gold-500 text-navy-900 rounded-xl font-semibold hover:bg-gold-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  📅 Schedule Your Service
-                </a>
-                <p className="text-sm text-green-600 mt-2">
-                  Pick a date and time that works best for you
+                  {requestingSchedule ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-navy-900 border-t-transparent rounded-full"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    'Request a Call to Schedule'
+                  )}
+                </button>
+
+                <p className="text-xs text-gray-500 text-center mt-3">
+                  Or call us directly at{' '}
+                  <a href={`tel:${quote.company?.phone}`} className="text-gold-600 font-medium">
+                    {quote.company?.phone}
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <div className="mt-6 bg-white rounded-xl border border-green-200 p-6 max-w-md mx-auto">
+                <div className="text-3xl mb-2">✓</div>
+                <h3 className="font-semibold text-green-700 mb-2">Scheduling Request Sent!</h3>
+                <p className="text-sm text-gray-600">
+                  We&apos;ve notified {quote.company?.name || 'the team'} and they&apos;ll reach out
+                  {preferredContact && preferredContact !== 'anytime'
+                    ? ` during your preferred time (${preferredContact})`
+                    : ' shortly'
+                  } to schedule your service.
+                </p>
+                <p className="text-sm text-gray-500 mt-3">
+                  Need to reach us sooner? Call{' '}
+                  <a href={`tel:${quote.company?.phone}`} className="text-gold-600 font-medium">
+                    {quote.company?.phone}
+                  </a>
                 </p>
               </div>
             )}

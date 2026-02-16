@@ -423,16 +423,6 @@ export default function BookingPage() {
 
       {/* Main Content */}
       <div className="max-w-3xl mx-auto px-4 py-8">
-        {fromQuote && step !== 'success' && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-            <span className="text-2xl">✓</span>
-            <div>
-              <p className="font-semibold text-green-800">Quote Approved!</p>
-              <p className="text-green-700 text-sm">Pick a date and time to schedule your service. Your info has been pre-filled.</p>
-            </div>
-          </div>
-        )}
-
         {error && step !== 'success' && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
             <p className="text-red-700">{error}</p>

@@ -840,6 +840,99 @@ export async function sendTrialExpiredEmail({ to, name }: { to: string; name: st
 // Quote Approval Request Email (sent to owner/admin)
 // ============================================
 
+// ============================================
+// Quote Scheduling Request Email (sent to owner/admin when customer wants to schedule)
+// ============================================
+
+export async function sendSchedulingRequestEmail({
+  to,
+  ownerName,
+  quoteNumber,
+  customerName,
+  customerPhone,
+  customerEmail,
+  total,
+  preferredContact,
+  dashboardLink,
+}: {
+  to: string;
+  ownerName: string;
+  quoteNumber: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  total: number;
+  preferredContact: string;
+  dashboardLink: string;
+}) {
+  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Action needed: ${customerName} approved Quote ${quoteNumber} and wants to schedule`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Time to Schedule!</h2>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Hi ${ownerName}, great news &mdash; <strong>${customerName}</strong> has approved their quote and is ready to get the work scheduled.
+      </p>
+
+      <div style="background: #f0fdf4; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #22c55e;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Quote #</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${quoteNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Customer</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${customerName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0 4px 0; color: #6b7280; font-size: 14px; border-top: 1px solid #bbf7d0;">Total</td>
+            <td style="padding: 8px 0 4px 0; color: #111827; font-size: 20px; font-weight: 700; text-align: right; border-top: 1px solid #bbf7d0;">${formattedTotal}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+        <p style="margin: 0 0 8px 0; color: #1e40af; font-weight: 600; font-size: 15px;">Customer Contact Info</p>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          ${customerPhone ? `
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Phone</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; text-align: right;">
+              <a href="tel:${customerPhone}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">${customerPhone}</a>
+            </td>
+          </tr>` : ''}
+          ${customerEmail ? `
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Email</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; text-align: right;">
+              <a href="mailto:${customerEmail}" style="color: #3b82f6; text-decoration: none;">${customerEmail}</a>
+            </td>
+          </tr>` : ''}
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Preferred callback</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${preferredContact}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #fefce8; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #eab308;">
+        <p style="margin: 0; color: #854d0e; font-size: 14px;">
+          <strong>Next steps:</strong> Call the customer to discuss timing, then create a job from this quote in your dashboard. Assign your team and pick a date that works.
+        </p>
+      </div>
+
+      ${ctaButton('Go to Approved Quotes', dashboardLink, '#22c55e')}
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
 export async function sendQuoteApprovalEmail({
   to,
   ownerName,
