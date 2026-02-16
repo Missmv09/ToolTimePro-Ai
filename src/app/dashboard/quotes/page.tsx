@@ -724,17 +724,27 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
     e.preventDefault()
     setSaving(true)
 
-    const quoteData = {
+    // Refresh session to ensure auth token is still valid
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !sessionData.session) {
+      alert('Your session has expired. Please refresh the page and log in again.')
+      setSaving(false)
+      return
+    }
+
+    const quoteData: Record<string, unknown> = {
       company_id: companyId,
       customer_id: formData.customer_id || null,
       notes: formData.notes,
       valid_until: formData.valid_until,
-      subtotal,
+      subtotal: Number(subtotal) || 0,
       tax_rate: 8.75,
-      tax_amount,
-      total,
+      tax_amount: Number(tax_amount) || 0,
+      total: Number(total) || 0,
       status: quote?.status || 'draft',
-      ...(!quote && userId ? { created_by: userId } : {}),
+    }
+    if (!quote && userId) {
+      quoteData.created_by = userId
     }
 
     let quoteId = quote?.id
@@ -749,7 +759,17 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
       // Delete existing items
       await supabase.from('quote_items').delete().eq('quote_id', quote.id)
     } else {
-      const { data, error: insertError } = await supabase.from('quotes').insert(quoteData).select().single()
+      let { data, error: insertError } = await supabase.from('quotes').insert(quoteData).select().single()
+
+      // If insert fails due to created_by column not existing, retry without it
+      if (insertError && (insertError.message?.includes('created_by') || insertError.code === '42703')) {
+        console.warn('Retrying quote creation without created_by field')
+        delete quoteData.created_by
+        const retry = await supabase.from('quotes').insert(quoteData).select().single()
+        data = retry.data
+        insertError = retry.error
+      }
+
       if (insertError) {
         alert('Failed to create quote: ' + insertError.message)
         setSaving(false)
@@ -763,9 +783,9 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
       const quoteItems = items.filter(i => i.description).map(item => ({
         quote_id: quoteId,
         description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price,
+        quantity: Number(item.quantity) || 1,
+        unit_price: Number(item.unit_price) || 0,
+        total_price: Number(item.quantity * item.unit_price) || 0,
       }))
 
       if (quoteItems.length > 0) {
