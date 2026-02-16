@@ -705,6 +705,8 @@ export default function SmartQuotingPage() {
           status: asDraft ? 'draft' : 'sent',
           valid_until: validUntil.toISOString().split('T')[0],
           sent_at: asDraft ? null : new Date().toISOString(),
+          created_by: user?.id || null,
+          ...(!asDraft && user ? { sent_by: user.id } : {}),
         })
         .select()
         .single();

@@ -26,8 +26,12 @@ interface Quote {
   total: number
   notes: string
   valid_until: string
+  created_by: string | null
+  sent_by: string | null
   created_at: string
   items?: QuoteItem[]
+  creator?: { full_name: string } | null
+  sender?: { full_name: string } | null
 }
 
 function Loading() {
@@ -62,7 +66,9 @@ function QuotesContent() {
       .select(`
         *,
         customer:customers(id, name, email, phone),
-        items:quote_items(*)
+        items:quote_items(*),
+        creator:users!quotes_created_by_fkey(full_name),
+        sender:users!quotes_sent_by_fkey(full_name)
       `)
       .eq('company_id', compId)
       .order('created_at', { ascending: false })
@@ -141,7 +147,7 @@ function QuotesContent() {
     // Update quote status to sent
     const { error } = await supabase
       .from('quotes')
-      .update({ status: 'sent', sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .update({ status: 'sent', sent_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(user ? { sent_by: user.id } : {}) })
       .eq('id', quote.id)
 
     if (error) {
@@ -274,6 +280,7 @@ function QuotesContent() {
         notes: quote.notes,
         status: 'draft',
         valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        ...(user ? { created_by: user.id } : {}),
       })
       .select()
       .single()
@@ -423,6 +430,7 @@ function QuotesContent() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created By</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valid Until</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
@@ -430,7 +438,7 @@ function QuotesContent() {
           <tbody className="divide-y divide-gray-200">
             {quotes.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   No quotes found. Create your first quote to get started.
                 </td>
               </tr>
@@ -462,6 +470,12 @@ function QuotesContent() {
                       <option value="rejected">Declined</option>
                       <option value="expired">Expired</option>
                     </select>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-gray-900">{quote.creator?.full_name || '-'}</p>
+                    {quote.sender && quote.sender.full_name !== quote.creator?.full_name && (
+                      <p className="text-xs text-gray-500">Sent by: {quote.sender.full_name}</p>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : '-'}
@@ -521,6 +535,7 @@ function QuotesContent() {
         <QuoteModal
           quote={editingQuote}
           companyId={companyId!}
+          userId={user?.id || null}
           customers={customers}
           onClose={() => setShowModal(false)}
           onSave={() => {
@@ -533,9 +548,10 @@ function QuotesContent() {
   )
 }
 
-function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
+function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
   quote: Quote | null
   companyId: string
+  userId: string | null
   customers: { id: string; name: string; email: string }[]
   onClose: () => void
   onSave: () => void
@@ -588,6 +604,7 @@ function QuoteModal({ quote, companyId, customers, onClose, onSave }: {
       tax_amount,
       total,
       status: quote?.status || 'draft',
+      ...(!quote && userId ? { created_by: userId } : {}),
     }
 
     let quoteId = quote?.id
