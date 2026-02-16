@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,16 +13,23 @@ export default function WebsiteBuilderPage() {
   const [existingSite, setExistingSite] = useState(null);
   const [leadCount, setLeadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const checkedRef = useRef(false);
   const router = useRouter();
   const { user, dbUser, isLoading: authLoading } = useAuth();
 
+  // Only check for existing site once after auth loads — not on every user
+  // reference change (which happens on token refreshes and can cause the
+  // wizard component to re-render or remount, losing in-progress state).
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
       router.push('/auth/login');
       return;
     }
-    checkExistingSite();
+    if (!checkedRef.current) {
+      checkedRef.current = true;
+      checkExistingSite();
+    }
   }, [authLoading, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkExistingSite = async () => {
