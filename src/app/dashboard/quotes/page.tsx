@@ -754,7 +754,7 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     quote?.items && quote.items.length > 0
-      ? quote.items.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price }))
+      ? quote.items.map(i => ({ description: i.description || '', quantity: Number(i.quantity) || 1, unit_price: Number(i.unit_price) || 0 }))
       : [{ description: '', quantity: 1, unit_price: 0 }]
   )
   const [saving, setSaving] = useState(false)
@@ -773,9 +773,9 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
         .then(({ data, error }) => {
           if (!error && data && data.length > 0) {
             setItems(data.map(i => ({
-              description: i.description,
-              quantity: i.quantity,
-              unit_price: i.unit_price,
+              description: i.description || '',
+              quantity: Number(i.quantity) || 1,
+              unit_price: Number(i.unit_price) || 0,
             })))
           }
           setLoadingItems(false)
@@ -798,7 +798,7 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
   }
 
   const calculateTotals = () => {
-    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
+    const subtotal = items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0)
     const tax_amount = subtotal * 0.0875 // CA sales tax estimate
     const total = subtotal + tax_amount
     return { subtotal, tax_amount, total }
@@ -866,12 +866,13 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
 
     // Insert items
     if (quoteId && items.length > 0) {
-      const quoteItems = items.filter(i => i.description).map(item => ({
+      const quoteItems = items.filter(i => i.description).map((item, index) => ({
         quote_id: quoteId,
         description: item.description,
         quantity: Number(item.quantity) || 1,
         unit_price: Number(item.unit_price) || 0,
         total_price: Number(item.quantity * item.unit_price) || 0,
+        sort_order: index,
       }))
 
       if (quoteItems.length > 0) {
@@ -947,7 +948,7 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
                     step="0.01"
                   />
                   <span className="w-24 py-2 text-sm text-right font-medium">
-                    ${(item.quantity * item.unit_price).toFixed(2)}
+                    ${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}
                   </span>
                   <button
                     type="button"
