@@ -66,11 +66,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
     }
 
-    // Only allow deletion of unsent quotes (draft or pending_approval)
-    const deletableStatuses = ['draft', 'pending_approval']
-    if (!deletableStatuses.includes(quote.status)) {
+    // Approved quotes cannot be deleted
+    if (quote.status === 'approved') {
       return NextResponse.json(
-        { error: 'Only draft or pending approval quotes can be deleted. Sent quotes cannot be deleted.' },
+        { error: 'Approved quotes cannot be deleted.' },
         { status: 409 }
       )
     }
@@ -92,16 +91,16 @@ export async function POST(request: NextRequest) {
     const isOwnerOrAdmin = callerProfile.role === 'owner' || callerProfile.role === 'admin'
 
     if (!isOwnerOrAdmin) {
-      // Workers can only delete their own draft quotes
+      // Workers can only delete their own draft or pending_approval quotes
       if (quote.created_by !== user.id) {
         return NextResponse.json(
           { error: 'You can only delete quotes you created.' },
           { status: 403 }
         )
       }
-      if (quote.status !== 'draft') {
+      if (!['draft', 'pending_approval'].includes(quote.status)) {
         return NextResponse.json(
-          { error: 'You can only delete your own draft quotes. Quotes submitted for approval must be deleted by an admin or owner.' },
+          { error: 'You can only delete your own draft quotes. Other quotes must be deleted by an admin or owner.' },
           { status: 403 }
         )
       }
