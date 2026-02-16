@@ -23,6 +23,10 @@ import {
   Globe,
   BookOpen,
   MessageCircle,
+  Radio,
+  CalendarDays,
+  Route,
+  CalendarCheck,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -36,7 +40,11 @@ interface DashboardLayoutProps {
 
 const getNavItems = (isBetaTester: boolean) => [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/dispatch', label: 'Dispatch Board', icon: Radio },
+  { href: '/dashboard/schedule', label: 'Schedule', icon: CalendarDays },
   { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
+  { href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route },
+  { href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck },
   { href: '/dashboard/team', label: 'Team', icon: UsersRound },
   { href: '/dashboard/customers', label: 'Customers', icon: UserCircle },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
