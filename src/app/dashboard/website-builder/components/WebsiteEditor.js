@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Save, Eye, Palette, Layout, FileText, ImageIcon, Type, RefreshCw, Check } from 'lucide-react';
+import { X, Save, Eye, Palette, Layout, FileText, ImageIcon, Type, RefreshCw, Check, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { getStockPhotos } from '@/lib/stock-photos';
+import { contrastRatio } from '@/lib/color-utils';
 import SectionToggle from './SectionToggle';
 import PhotoSelector from './PhotoSelector';
 import SitePreviewFrame from './SitePreviewFrame';
@@ -364,7 +365,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
                       {colorPresets.map((preset) => (
                         <button
                           key={preset.name}
-                          onClick={() => { updateColors({ primary: preset.primary, secondary: preset.secondary, accent: preset.accent, background: preset.background }); }}
+                          onClick={() => { updateColors({ primary: preset.primary, secondary: preset.secondary, accent: preset.accent, background: preset.background, headingColor: '', bodyColor: '' }); }}
                           className="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-gray-200 hover:border-gold-300 transition-colors"
                         >
                           <div className="flex gap-0.5">
@@ -400,6 +401,13 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
                   </div>
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-navy-500">Font Colors</p>
+                    {(form.colors.headingColor && contrastRatio(form.colors.headingColor, form.colors.background || '#ffffff') < 3) ||
+                     (form.colors.bodyColor && contrastRatio(form.colors.bodyColor, form.colors.background || '#ffffff') < 3) ? (
+                      <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                        <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+                        <span>Font color is too close to your background — text may be hard to read. We&apos;ll auto-correct it on your live site, but consider picking a darker color or hitting Reset.</span>
+                      </div>
+                    ) : null}
                     <div className="flex items-center gap-3">
                       <input
                         type="color"
@@ -477,6 +485,13 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
                   {/* Font colors */}
                   <div className="space-y-3 pt-2 border-t border-gray-200">
                     <p className="text-sm font-medium text-navy-500">Font Colors</p>
+                    {(form.colors.headingColor && contrastRatio(form.colors.headingColor, form.colors.background || '#ffffff') < 3) ||
+                     (form.colors.bodyColor && contrastRatio(form.colors.bodyColor, form.colors.background || '#ffffff') < 3) ? (
+                      <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                        <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+                        <span>Font color is too close to your background — text may be hard to read. We&apos;ll auto-correct it on your live site, but consider picking a darker color or hitting Reset.</span>
+                      </div>
+                    ) : null}
                     <div className="flex items-center gap-3">
                       <input
                         type="color"
