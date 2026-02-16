@@ -34,7 +34,7 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
+const getNavItems = (isBetaTester: boolean) => [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
   { href: '/dashboard/team', label: 'Team', icon: UsersRound },
@@ -43,7 +43,7 @@ const navItems = [
   { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
   { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
   { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
-  { href: '/dashboard/jenny-lite', label: 'Jenny Lite', icon: MessageCircle },
+  { href: '/dashboard/jenny-lite', label: isBetaTester ? 'Jenny AI' : 'Jenny Lite', icon: MessageCircle },
   { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
   { href: '/dashboard/blog', label: 'Blog', icon: BookOpen },
   { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Navigation */}
           <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
+            {getNavItems(!!company?.is_beta_tester).map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link

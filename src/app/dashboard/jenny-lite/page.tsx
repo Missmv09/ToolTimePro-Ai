@@ -100,6 +100,7 @@ export default function JennyLitePage() {
     });
   };
 
+  const isBetaTester = company?.is_beta_tester;
   const plan = company?.plan || 'free_trial';
   const planLabel = plan === 'free_trial' ? 'Free Trial' : plan.charAt(0).toUpperCase() + plan.slice(1);
 
@@ -117,20 +118,27 @@ export default function JennyLitePage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            Jenny Lite
+            {isBetaTester ? 'Jenny AI' : 'Jenny Lite'}
+            {isBetaTester && (
+              <span className="text-xs font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
+                All Access
+              </span>
+            )}
           </h1>
           <p className="text-gray-500 mt-1">AI-powered chat widget for your website</p>
         </div>
-        <Link
-          href="/jenny"
-          className="text-sm text-orange-500 font-semibold hover:text-orange-600 no-underline"
-        >
-          Upgrade to Jenny Pro →
-        </Link>
+        {!isBetaTester && (
+          <Link
+            href="/jenny"
+            className="text-sm text-orange-500 font-semibold hover:text-orange-600 no-underline"
+          >
+            Upgrade to Jenny Pro →
+          </Link>
+        )}
       </div>
 
       {/* Plan Status Card */}
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6 mb-8">
+      <div className={`bg-gradient-to-r ${isBetaTester ? 'from-green-50 to-emerald-50 border-green-200' : 'from-emerald-50 to-teal-50 border-emerald-200'} border rounded-xl p-6 mb-8`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-2xl">
@@ -138,13 +146,17 @@ export default function JennyLitePage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-emerald-700 font-bold text-lg">Jenny Lite — Active</span>
+                <span className="text-emerald-700 font-bold text-lg">
+                  {isBetaTester ? 'Jenny AI — All Access' : 'Jenny Lite — Active'}
+                </span>
                 <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                  Included with {planLabel}
+                  {isBetaTester ? 'Beta Tester — Elite Plan' : `Included with ${planLabel}`}
                 </span>
               </div>
               <p className="text-emerald-600 text-sm mt-0.5">
-                24/7 AI chat widget, lead capture, and FAQ answering — included free on your plan.
+                {isBetaTester
+                  ? 'Full Jenny AI suite — chat widget, lead capture, FAQ answering, and all Pro features unlocked.'
+                  : '24/7 AI chat widget, lead capture, and FAQ answering — included free on your plan.'}
               </p>
             </div>
           </div>
@@ -543,23 +555,25 @@ export default function JennyLitePage() {
         </div>
       )}
 
-      {/* Upgrade CTA */}
-      <div className="mt-10 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-8 text-white">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h3 className="text-lg font-bold mb-1">Want Jenny to answer your phone calls too?</h3>
-            <p className="text-white/60 text-sm">
-              Upgrade to Jenny Pro ($49/mo) for AI phone answering, SMS conversations, and direct booking.
-            </p>
+      {/* Upgrade CTA — hidden for beta testers who already have full access */}
+      {!isBetaTester && (
+        <div className="mt-10 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-8 text-white">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h3 className="text-lg font-bold mb-1">Want Jenny to answer your phone calls too?</h3>
+              <p className="text-white/60 text-sm">
+                Upgrade to Jenny Pro ($49/mo) for AI phone answering, SMS conversations, and direct booking.
+              </p>
+            </div>
+            <Link
+              href="/pricing"
+              className="px-6 py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors no-underline text-sm whitespace-nowrap"
+            >
+              Upgrade to Jenny Pro →
+            </Link>
           </div>
-          <Link
-            href="/pricing"
-            className="px-6 py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors no-underline text-sm whitespace-nowrap"
-          >
-            Upgrade to Jenny Pro →
-          </Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }
