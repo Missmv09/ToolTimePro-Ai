@@ -304,8 +304,100 @@ function QuotesContent() {
     fetchQuotes(companyId)
   }
 
+  const isOwnerOrAdmin = dbUser?.role === 'owner' || dbUser?.role === 'admin'
+
+  const submitForApproval = async (quote: Quote) => {
+    if (!companyId) return
+    setSendingQuoteId(quote.id)
+
+    const { error } = await supabase
+      .from('quotes')
+      .update({ status: 'pending_approval', updated_at: new Date().toISOString() })
+      .eq('id', quote.id)
+
+    if (error) {
+      alert('Failed to submit quote for approval: ' + error.message)
+      setSendingQuoteId(null)
+      return
+    }
+
+    // Notify owner(s) via SMS and email
+    const quoteNum = quote.quote_number || `Q-${quote.id.slice(0, 8)}`
+    const dashboardLink = `${window.location.origin}/dashboard/quotes?status=pending_approval`
+    try {
+      const { data: owners } = await supabase
+        .from('users')
+        .select('phone, full_name, email')
+        .eq('company_id', companyId)
+        .in('role', ['owner', 'admin'])
+
+      if (owners) {
+        for (const owner of owners) {
+          // Send SMS
+          if (owner.phone) {
+            await fetch('/api/sms', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: owner.phone,
+                template: 'custom',
+                data: {
+                  message: `Quote ${quoteNum} for ${quote.customer?.name || 'a customer'} ($${quote.total?.toLocaleString()}) needs your approval. Open your dashboard to review.`,
+                },
+                companyId,
+              }),
+            })
+          }
+          // Send email
+          if (owner.email) {
+            await fetch('/api/quote/notify-approval', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: owner.email,
+                ownerName: owner.full_name || 'Boss',
+                quoteNumber: quoteNum,
+                customerName: quote.customer?.name || 'Customer',
+                total: quote.total,
+                itemCount: quote.items?.length || 0,
+                submittedBy: dbUser?.full_name,
+                dashboardLink,
+              }),
+            })
+          }
+        }
+      }
+    } catch {
+      console.log('Owner notification skipped or failed for quote:', quote.id)
+    }
+
+    setSendingQuoteId(null)
+    if (companyId) fetchQuotes(companyId)
+  }
+
+  const approveAndSend = async (quote: Quote) => {
+    if (!companyId) return
+    // Use the existing sendQuote function which handles status update + notifications
+    await sendQuote(quote)
+  }
+
+  const returnToDraft = async (quote: Quote) => {
+    if (!companyId) return
+    const { error } = await supabase
+      .from('quotes')
+      .update({ status: 'draft', updated_at: new Date().toISOString() })
+      .eq('id', quote.id)
+
+    if (error) {
+      alert('Failed to return quote to draft: ' + error.message)
+      return
+    }
+    if (companyId) fetchQuotes(companyId)
+  }
+
   const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700',
+    pending_approval: 'bg-orange-100 text-orange-700',
     sent: 'bg-blue-100 text-blue-700',
     viewed: 'bg-purple-100 text-purple-700',
     approved: 'bg-green-100 text-green-700',
@@ -315,6 +407,7 @@ function QuotesContent() {
 
   const statusLabels: Record<string, string> = {
     draft: 'Draft',
+    pending_approval: 'Pending Approval',
     sent: 'Sent',
     viewed: 'Viewed',
     approved: 'Accepted',
@@ -378,7 +471,7 @@ function QuotesContent() {
 
       {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {['all', 'draft', 'sent', 'viewed', 'approved', 'rejected'].map((status) => (
+        {['all', 'draft', 'pending_approval', 'sent', 'viewed', 'approved', 'rejected'].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -402,7 +495,7 @@ function QuotesContent() {
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-600">Pending</p>
           <p className="text-2xl font-bold text-blue-700">
-            ${quotes.filter(q => ['sent', 'viewed'].includes(q.status)).reduce((sum, q) => sum + q.total, 0).toLocaleString()}
+            ${quotes.filter(q => ['pending_approval', 'sent', 'viewed'].includes(q.status)).reduce((sum, q) => sum + q.total, 0).toLocaleString()}
           </p>
         </div>
         <div className="bg-green-50 p-4 rounded-lg border border-green-200">
@@ -415,7 +508,7 @@ function QuotesContent() {
           <p className="text-sm text-gray-500">Conversion Rate</p>
           <p className="text-2xl font-bold">
             {quotes.length > 0
-              ? Math.round((quotes.filter(q => q.status === 'approved').length / quotes.filter(q => q.status !== 'draft').length) * 100) || 0
+              ? Math.round((quotes.filter(q => q.status === 'approved').length / quotes.filter(q => !['draft', 'pending_approval'].includes(q.status)).length) * 100) || 0
               : 0}%
           </p>
         </div>
@@ -464,6 +557,7 @@ function QuotesContent() {
                       className={`text-xs px-2 py-1 rounded-full border-0 ${statusColors[quote.status] || 'bg-gray-100'}`}
                     >
                       <option value="draft">Draft</option>
+                      <option value="pending_approval">Pending Approval</option>
                       <option value="sent">Sent</option>
                       <option value="viewed">Viewed</option>
                       <option value="approved">Accepted</option>
@@ -481,8 +575,9 @@ function QuotesContent() {
                     {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      {quote.status === 'draft' && (
+                    <div className="flex gap-2 flex-wrap">
+                      {/* Draft: Owner/Admin can Send directly, workers submit for approval */}
+                      {quote.status === 'draft' && isOwnerOrAdmin && (
                         <button
                           onClick={() => sendQuote(quote)}
                           disabled={sendingQuoteId === quote.id}
@@ -491,15 +586,45 @@ function QuotesContent() {
                           {sendingQuoteId === quote.id ? 'Sending...' : 'Send'}
                         </button>
                       )}
-                      <button
-                        onClick={() => {
-                          setEditingQuote(quote)
-                          setShowModal(true)
-                        }}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        Edit
-                      </button>
+                      {quote.status === 'draft' && !isOwnerOrAdmin && (
+                        <button
+                          onClick={() => submitForApproval(quote)}
+                          disabled={sendingQuoteId === quote.id}
+                          className="text-orange-600 hover:text-orange-800 text-sm font-medium disabled:opacity-50"
+                        >
+                          {sendingQuoteId === quote.id ? 'Submitting...' : 'Submit for Approval'}
+                        </button>
+                      )}
+                      {/* Pending Approval: Owner/Admin can approve & send, or return to draft */}
+                      {quote.status === 'pending_approval' && isOwnerOrAdmin && (
+                        <>
+                          <button
+                            onClick={() => approveAndSend(quote)}
+                            disabled={sendingQuoteId === quote.id}
+                            className="text-green-600 hover:text-green-800 text-sm font-medium disabled:opacity-50"
+                          >
+                            {sendingQuoteId === quote.id ? 'Sending...' : 'Approve & Send'}
+                          </button>
+                          <button
+                            onClick={() => returnToDraft(quote)}
+                            className="text-orange-600 hover:text-orange-800 text-sm"
+                          >
+                            Return to Draft
+                          </button>
+                        </>
+                      )}
+                      {/* Edit available until customer accepts */}
+                      {!['approved', 'rejected'].includes(quote.status) && (
+                        <button
+                          onClick={() => {
+                            setEditingQuote(quote)
+                            setShowModal(true)
+                          }}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         onClick={() => duplicateQuote(quote)}
                         className="text-gray-600 hover:text-gray-800 text-sm"
@@ -533,13 +658,18 @@ function QuotesContent() {
       {/* Add/Edit Modal */}
       {showModal && (
         <QuoteModal
+          key={editingQuote?.id || 'new'}
           quote={editingQuote}
           companyId={companyId!}
           userId={user?.id || null}
           customers={customers}
-          onClose={() => setShowModal(false)}
+          onClose={() => {
+            setShowModal(false)
+            setEditingQuote(null)
+          }}
           onSave={() => {
             setShowModal(false)
+            setEditingQuote(null)
             if (companyId) fetchQuotes(companyId)
           }}
         />
