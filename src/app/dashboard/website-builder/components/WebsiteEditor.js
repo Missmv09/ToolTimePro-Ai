@@ -20,6 +20,7 @@ const colorPresets = [
 const fontOptions = [
   'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
   'Poppins', 'Raleway', 'Oswald', 'Playfair Display', 'Merriweather',
+  'Nunito', 'Source Sans Pro', 'Nunito Sans', 'Archivo', 'Quicksand',
 ];
 
 export default function WebsiteEditor({ site, template = {}, onClose, onSaved }) {
@@ -172,6 +173,8 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
     licenseNumber: form.licenseNumber,
     yearsInBusiness: form.yearsInBusiness,
     ctaText: defaultContent.ctaText || 'Get a Free Estimate',
+    emergencyText: defaultContent.emergencyText || '',
+    stormText: defaultContent.stormText || '',
   };
 
   return (

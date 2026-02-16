@@ -53,8 +53,12 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
       fontBody: template.font_body || 'Inter',
       // Apply the template's section layout if it defines one
       ...(templateSections?.length ? { enabledSections: templateSections } : {}),
-      // Store CTA text from template default_content for preview parity
+      // Pre-fill tagline from template so preview matches live site
+      ...(prev.tagline ? {} : { tagline: defaultContent.heroSubtitle || '' }),
+      // Store CTA text and banner text from template for preview parity
       ctaText: defaultContent.ctaText || 'Get a Free Estimate',
+      emergencyText: defaultContent.emergencyText || '',
+      stormText: defaultContent.stormText || '',
     }));
   };
 

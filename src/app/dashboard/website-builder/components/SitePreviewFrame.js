@@ -25,6 +25,8 @@ export default function SitePreviewFrame({ wizardData }) {
     fontHeading = 'Inter',
     fontBody = 'Inter',
     ctaText = 'Get a Free Estimate',
+    emergencyText = '',
+    stormText = '',
   } = wizardData;
 
   const primaryColor = colors.primary || '#1a1a2e';
@@ -80,6 +82,13 @@ export default function SitePreviewFrame({ wizardData }) {
     ${tagline ? `<p style="font-size:clamp(16px,2.5vw,22px);opacity:0.92;margin-bottom:32px;max-width:600px;line-height:1.5;color:#fff;">${tagline}</p>` : ''}
     <a href="#contact" style="display:inline-block;padding:14px 36px;background:${accentColor};color:${primaryColor};font-weight:700;border-radius:8px;font-size:16px;text-decoration:none;">${ctaText}</a>
     ${serviceArea ? `<p style="margin-top:20px;font-size:14px;opacity:0.8;color:#fff;">Proudly serving ${serviceArea}</p>` : ''}
+  </section>
+  ` : ''}
+
+  ${enabledSections.includes('emergency-banner') || enabledSections.includes('storm-banner') ? `
+  <!-- Emergency / Storm Banner -->
+  <section style="background:${accentColor};color:${primaryColor};padding:16px 24px;text-align:center;font-weight:700;font-size:15px;">
+    ${emergencyText || stormText || '24/7 Emergency Service Available'}${phone ? ` &mdash; <a href="tel:${phone}" style="color:${primaryColor};text-decoration:underline;">Call ${phone}</a>` : ''}
   </section>
   ` : ''}
 

@@ -19,6 +19,7 @@ const colorPresets = [
 const fontOptions = [
   'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
   'Poppins', 'Raleway', 'Oswald', 'Playfair Display', 'Merriweather',
+  'Nunito', 'Source Sans Pro', 'Nunito Sans', 'Archivo', 'Quicksand',
 ];
 
 export default function Step5Customize({ wizardData, setWizardData }) {

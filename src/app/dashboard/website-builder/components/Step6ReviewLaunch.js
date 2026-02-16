@@ -185,6 +185,7 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
         fontHeading: wizardData.fontHeading,
         fontBody: wizardData.fontBody,
         enabledSections: wizardData.enabledSections,
+        ctaText: wizardData.ctaText || 'Get a Free Estimate',
         heroImage: wizardData.heroImage ? { type: wizardData.heroImage.type, url: wizardData.heroImage.url } : null,
         galleryImages: (wizardData.galleryImages || []).map((p) => ({ type: p.type, url: p.url })),
       };

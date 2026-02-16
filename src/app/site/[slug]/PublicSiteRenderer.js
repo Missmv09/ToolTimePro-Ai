@@ -16,7 +16,7 @@ export default function PublicSiteRenderer({ site, template }) {
   const email = site.business_email || '';
   const tagline = content.tagline || defaultContent.heroSubtitle || '';
   const services = content.services || defaultContent.services || [];
-  const ctaText = defaultContent.ctaText || 'Get a Free Estimate';
+  const ctaText = content.ctaText || defaultContent.ctaText || 'Get a Free Estimate';
   const heroImage = content.heroImage || null;
   const galleryImages = content.galleryImages || [];
   const trade = content.trade || template.trade_category || '';
