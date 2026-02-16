@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning';
+import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -95,6 +97,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     await signOut();
     router.push('/auth/login');
   };
+
+  const { showWarning, secondsRemaining, resetTimeout } = useSessionTimeout({
+    onTimeout: handleSignOut,
+    enabled: !!user && isVerified,
+  });
 
   if (verifying || isLoading) {
     return (
@@ -210,6 +217,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <main className="lg:pl-64">
         <div className="p-6 lg:p-8">{children}</div>
       </main>
+
+      {showWarning && (
+        <SessionTimeoutWarning
+          secondsRemaining={secondsRemaining}
+          onStayLoggedIn={resetTimeout}
+          onLogOut={handleSignOut}
+        />
+      )}
     </div>
   );
 }
