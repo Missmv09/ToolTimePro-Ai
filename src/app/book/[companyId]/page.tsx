@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Service, Company } from '@/types/database';
@@ -123,7 +123,12 @@ function getAvailableDates(
 
 export default function BookingPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const companyId = params.companyId as string;
+
+  // Check if customer is coming from an approved quote
+  const fromQuote = searchParams.get('from') === 'quote';
+  const quoteId = searchParams.get('quoteId');
 
   const [company, setCompany] = useState<Company | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -136,14 +141,14 @@ export default function BookingPage() {
     service: null,
     date: '',
     time: '',
-    customerName: '',
-    customerEmail: '',
-    customerPhone: '',
-    customerAddress: '',
-    customerCity: '',
-    customerState: '',
-    customerZip: '',
-    notes: '',
+    customerName: searchParams.get('name') || '',
+    customerEmail: searchParams.get('email') || '',
+    customerPhone: searchParams.get('phone') || '',
+    customerAddress: searchParams.get('address') || '',
+    customerCity: searchParams.get('city') || '',
+    customerState: searchParams.get('state') || '',
+    customerZip: searchParams.get('zip') || '',
+    notes: quoteId ? `Approved Quote: ${quoteId}` : '',
   });
 
   // Get booking settings from company or use defaults
@@ -288,6 +293,7 @@ export default function BookingPage() {
           customerState: booking.customerState,
           customerZip: booking.customerZip,
           notes: booking.notes,
+          ...(quoteId ? { quoteId } : {}),
         }),
       });
 
@@ -417,6 +423,16 @@ export default function BookingPage() {
 
       {/* Main Content */}
       <div className="max-w-3xl mx-auto px-4 py-8">
+        {fromQuote && step !== 'success' && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <span className="text-2xl">✓</span>
+            <div>
+              <p className="font-semibold text-green-800">Quote Approved!</p>
+              <p className="text-green-700 text-sm">Pick a date and time to schedule your service. Your info has been pre-filled.</p>
+            </div>
+          </div>
+        )}
+
         {error && step !== 'success' && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
             <p className="text-red-700">{error}</p>

@@ -379,11 +379,34 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             <div className="text-5xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold text-green-700 mb-2">Quote Approved!</h2>
             <p className="text-green-600 mb-4">
-              Thank you for your business! We&apos;ll be in touch shortly to schedule your service.
+              Thank you for your business! You can schedule your service now or we&apos;ll be in touch shortly.
             </p>
             {signature && (
-              <div className="inline-block p-2 bg-white rounded border border-green-200">
+              <div className="inline-block p-2 bg-white rounded border border-green-200 mb-4">
                 <Image src={signature} alt="Your signature" className="h-16 w-auto" width={200} height={64} />
+              </div>
+            )}
+            {quote.company?.id && (
+              <div className="mt-4">
+                <a
+                  href={`/book/${quote.company.id}?${new URLSearchParams({
+                    ...(quote.customer?.name ? { name: quote.customer.name } : {}),
+                    ...(quote.customer?.email ? { email: quote.customer.email } : {}),
+                    ...(quote.customer?.phone ? { phone: quote.customer.phone } : {}),
+                    ...(quote.customer?.address ? { address: quote.customer.address } : {}),
+                    ...(quote.customer?.city ? { city: quote.customer.city } : {}),
+                    ...(quote.customer?.state ? { state: quote.customer.state } : {}),
+                    ...(quote.customer?.zip ? { zip: quote.customer.zip } : {}),
+                    from: 'quote',
+                    quoteId: quote.id,
+                  }).toString()}`}
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-gold-500 text-navy-900 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-colors no-underline"
+                >
+                  📅 Schedule Your Service
+                </a>
+                <p className="text-sm text-green-600 mt-2">
+                  Pick a date and time that works best for you
+                </p>
               </div>
             )}
           </div>

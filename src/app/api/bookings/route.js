@@ -108,6 +108,7 @@ export async function POST(request) {
       customerState,
       customerZip,
       notes,
+      quoteId,
     } = body;
 
     // Validate required fields
@@ -202,25 +203,32 @@ export async function POST(request) {
       customerId = newCustomer.id;
     }
 
-    // Create the job (booking)
+    // Create the job (booking), linking to approved quote if provided
+    const jobData = {
+      company_id: companyId,
+      customer_id: customerId,
+      title: serviceName,
+      description: notes || `Online booking for ${serviceName}`,
+      address: customerAddress,
+      city: customerCity,
+      state: customerState,
+      zip: customerZip,
+      scheduled_date: scheduledDate,
+      scheduled_time_start: scheduledTimeStart,
+      scheduled_time_end: scheduledTimeEnd,
+      status: 'scheduled',
+      priority: 'normal',
+      notes: notes || null,
+    };
+
+    // Link job to the approved quote if one was provided
+    if (quoteId) {
+      jobData.quote_id = quoteId;
+    }
+
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .insert({
-        company_id: companyId,
-        customer_id: customerId,
-        title: serviceName,
-        description: notes || `Online booking for ${serviceName}`,
-        address: customerAddress,
-        city: customerCity,
-        state: customerState,
-        zip: customerZip,
-        scheduled_date: scheduledDate,
-        scheduled_time_start: scheduledTimeStart,
-        scheduled_time_end: scheduledTimeEnd,
-        status: 'scheduled',
-        priority: 'normal',
-        notes: notes || null,
-      })
+      .insert(jobData)
       .select()
       .single();
 
