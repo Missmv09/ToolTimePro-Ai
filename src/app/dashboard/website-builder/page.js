@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw, Edit2 } from 'lucide-react';
+import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw, Edit2, Trash2 } from 'lucide-react';
 import WebsiteWizard from './components/WebsiteWizard';
 import WebsiteEditor from './components/WebsiteEditor';
 import DomainUpgradeCard from './components/DomainUpgradeCard';
@@ -98,6 +98,8 @@ export default function WebsiteBuilderPage() {
 
 function WebsiteDashboard({ site, leadCount, onRefresh }) {
   const [editing, setEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const hasRealDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
   const domainUrl = hasRealDomain
     ? `https://${site.custom_domain}`
@@ -242,6 +244,59 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
             <dd className="text-navy-500">{new Date(site.created_at).toLocaleDateString()}</dd>
           </div>
         </dl>
+      </div>
+
+      {/* Danger zone */}
+      <div className="card mt-6 border border-red-200">
+        <h2 className="font-semibold text-red-600 mb-2">Danger Zone</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Delete this website to start fresh. This removes all site data and leads. This cannot be undone.
+        </p>
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <Trash2 size={16} />
+            Delete Site
+          </button>
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={async () => {
+                setDeleting(true);
+                try {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  const token = session?.access_token;
+                  if (!token) return;
+
+                  const res = await fetch('/api/website-builder/delete-site/', {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+
+                  if (res.ok) {
+                    window.location.reload();
+                  }
+                } catch {
+                  setDeleting(false);
+                  setShowDeleteConfirm(false);
+                }
+              }}
+              disabled={deleting}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+            >
+              {deleting ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              {deleting ? 'Deleting...' : 'Yes, delete my site'}
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Website Editor modal */}
