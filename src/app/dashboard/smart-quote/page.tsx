@@ -633,6 +633,14 @@ export default function SmartQuotingPage() {
     setSaveError(null);
 
     try {
+      // Refresh session to ensure auth token is still valid
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        setSaveError('Your session has expired. Please refresh the page and log in again.');
+        setIsSaving(false);
+        return null;
+      }
+
       // First, find or create customer
       let customerId: string | null = selectedCustomer?.id || null;
 
@@ -678,7 +686,7 @@ export default function SmartQuotingPage() {
 
           if (customerError) {
             console.error('Error creating customer:', customerError);
-            setSaveError('Failed to create customer');
+            setSaveError('Failed to create customer: ' + customerError.message);
             setIsSaving(false);
             return null;
           }
@@ -690,30 +698,86 @@ export default function SmartQuotingPage() {
       const validUntil = new Date();
       validUntil.setDate(validUntil.getDate() + validDays);
 
+      // Use dbUser.id for created_by (verified to exist in users table)
+      const createdById = dbUser?.id || null;
+
+      // Build quote insert data
+      const quoteInsertData: Record<string, unknown> = {
+        company_id: companyId,
+        customer_id: customerId,
+        subtotal: Number(subtotal) || 0,
+        tax_rate: Number(taxRate) || 0,
+        tax_amount: Number(taxAmount) || 0,
+        discount_amount: Number(discountAmount) || 0,
+        total: Number(grandTotal) || 0,
+        notes: notes,
+        status: asDraft ? 'draft' : 'sent',
+        valid_until: validUntil.toISOString().split('T')[0],
+        sent_at: asDraft ? null : new Date().toISOString(),
+        created_by: createdById,
+      };
+      if (!asDraft && createdById) {
+        quoteInsertData.sent_by = createdById;
+      }
+
       // Create the quote
       const { data: quoteData, error: quoteError } = await supabase
         .from('quotes')
-        .insert({
-          company_id: companyId,
-          customer_id: customerId,
-          subtotal: subtotal,
-          tax_rate: taxRate,
-          tax_amount: taxAmount,
-          discount_amount: discountAmount,
-          total: grandTotal,
-          notes: notes,
-          status: asDraft ? 'draft' : 'sent',
-          valid_until: validUntil.toISOString().split('T')[0],
-          sent_at: asDraft ? null : new Date().toISOString(),
-          created_by: user?.id || null,
-          ...(!asDraft && user ? { sent_by: user.id } : {}),
-        })
+        .insert(quoteInsertData)
         .select()
         .single();
 
       if (quoteError) {
         console.error('Error creating quote:', quoteError);
-        setSaveError('Failed to create quote');
+
+        // If the error is about created_by/sent_by columns not existing,
+        // retry without those fields (migration may not have been applied)
+        if (quoteError.message?.includes('created_by') || quoteError.message?.includes('sent_by') || quoteError.code === '42703') {
+          console.warn('Retrying quote creation without employee tracking fields');
+          delete quoteInsertData.created_by;
+          delete quoteInsertData.sent_by;
+
+          const { data: retryData, error: retryError } = await supabase
+            .from('quotes')
+            .insert(quoteInsertData)
+            .select()
+            .single();
+
+          if (retryError) {
+            console.error('Error creating quote (retry):', retryError);
+            setSaveError('Failed to create quote: ' + retryError.message);
+            setIsSaving(false);
+            return null;
+          }
+
+          // Success on retry - continue with retryData
+          if (lineItems.length > 0) {
+            const quoteItems = lineItems
+              .filter(item => item.description)
+              .map((item, index) => ({
+                quote_id: retryData.id,
+                description: item.description,
+                quantity: Number(item.quantity) || 1,
+                unit_price: Number(item.price) || 0,
+                total_price: Number(item.total) || 0,
+                sort_order: index,
+              }));
+
+            if (quoteItems.length > 0) {
+              const { error: itemsError } = await supabase
+                .from('quote_items')
+                .insert(quoteItems);
+              if (itemsError) {
+                console.error('Error creating quote items:', itemsError);
+              }
+            }
+          }
+
+          setIsSaving(false);
+          return retryData;
+        }
+
+        setSaveError('Failed to create quote: ' + quoteError.message);
         setIsSaving(false);
         return null;
       }
@@ -725,9 +789,9 @@ export default function SmartQuotingPage() {
           .map((item, index) => ({
             quote_id: quoteData.id,
             description: item.description,
-            quantity: item.quantity,
-            unit_price: item.price,
-            total_price: item.total,
+            quantity: Number(item.quantity) || 1,
+            unit_price: Number(item.price) || 0,
+            total_price: Number(item.total) || 0,
             sort_order: index,
           }));
 
@@ -747,7 +811,8 @@ export default function SmartQuotingPage() {
       return quoteData;
     } catch (err) {
       console.error('Error saving quote:', err);
-      setSaveError('Failed to save quote');
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setSaveError('Failed to save quote: ' + message);
       setIsSaving(false);
       return null;
     }
