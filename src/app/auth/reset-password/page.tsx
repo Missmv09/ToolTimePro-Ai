@@ -111,6 +111,9 @@ export default function ResetPasswordPage() {
 
     setIsLoading(true);
 
+    // Get the current session token before updating the password
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+
     const { error } = await supabase.auth.updateUser({
       password: password,
     });
@@ -121,12 +124,28 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    // Invalidate ALL sessions globally so any other device/browser
+    // using the old password is forced to re-authenticate.
+    if (currentSession?.access_token) {
+      await fetch('/api/auth/signout-all', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentSession.access_token}`,
+        },
+      }).catch(() => {
+        // Non-critical — the password was still changed
+      });
+    }
+
+    // Sign out locally so this browser also requires a fresh login
+    await supabase.auth.signOut();
+
     setSuccess(true);
     setIsLoading(false);
 
-    // Redirect to dashboard after 2 seconds
+    // Redirect to login after brief confirmation
     setTimeout(() => {
-      router.push('/dashboard');
+      router.push('/auth/login');
     }, 2000);
   };
 
@@ -139,7 +158,7 @@ export default function ResetPasswordPage() {
           </div>
           <h1 className="text-2xl font-bold text-navy-500 mb-2">Password Updated</h1>
           <p className="text-gray-600 mb-6">
-            Your password has been successfully reset. Redirecting to dashboard...
+            Your password has been successfully reset. All sessions have been signed out for security. Redirecting to login...
           </p>
         </div>
       </div>
