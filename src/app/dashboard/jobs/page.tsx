@@ -52,6 +52,31 @@ function JobsContent() {
   const companyId = dbUser?.company_id || null
 
   const fetchJobs = useCallback(async (compId: string) => {
+    // Try server-side API first (bypasses RLS on job_assignments so assignments show up)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (token) {
+        const params = new URLSearchParams()
+        if (filter !== 'all') params.set('filter', filter)
+        if (customerFilter) params.set('customer', customerFilter)
+        const qs = params.toString()
+
+        const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const result = await res.json()
+          setJobs(result.jobs || [])
+          setLoading(false)
+          return
+        }
+      }
+    } catch {
+      // Fall through to direct Supabase query
+    }
+
+    // Fallback: direct Supabase client query
     let query = supabase
       .from('jobs')
       .select(`
