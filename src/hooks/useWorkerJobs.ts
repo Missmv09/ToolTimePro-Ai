@@ -27,7 +27,11 @@ export function useWorkerJobs(workerId: string | null, companyId: string | null)
   const [error, setError] = useState<string | null>(null);
 
   const fetchJobs = useCallback(async () => {
-    if (!workerId || !companyId) return;
+    if (!workerId || !companyId) {
+      setJobs([]);
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
