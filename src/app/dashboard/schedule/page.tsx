@@ -107,6 +107,15 @@ export default function SchedulePage() {
     cancelled: 'border-l-gray-500 bg-gray-50',
   }
 
+  const formatTime = (timeStr: string | null): string => {
+    if (!timeStr) return 'TBD'
+    const [hours, minutes] = timeStr.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour % 12 || 12
+    return `${displayHour}:${minutes} ${ampm}`
+  }
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -253,8 +262,8 @@ export default function SchedulePage() {
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-gray-900">
-                          {job.scheduled_time_start || 'TBD'}
-                          {job.scheduled_time_end && ` - ${job.scheduled_time_end}`}
+                          {formatTime(job.scheduled_time_start)}
+                          {job.scheduled_time_end && ` - ${formatTime(job.scheduled_time_end)}`}
                         </p>
                         <p className="text-sm text-gray-500">
                           {job.assigned_users?.map(a => {
@@ -300,7 +309,7 @@ export default function SchedulePage() {
                     <Link key={job.id} href={`/dashboard/jobs?edit=${job.id}`}>
                       <div className={`p-2 rounded text-xs border-l-2 ${statusColors[job.status] || 'border-l-gray-300'} hover:opacity-80`}>
                         <p className="font-medium truncate">{job.title}</p>
-                        <p className="text-gray-500">{job.scheduled_time_start || 'TBD'}</p>
+                        <p className="text-gray-500">{formatTime(job.scheduled_time_start)}</p>
                       </div>
                     </Link>
                   ))}
