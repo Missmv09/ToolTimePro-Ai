@@ -18,6 +18,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
 
 interface ChecklistItem {
   id: string;
@@ -80,7 +81,11 @@ function JobDetailContent() {
   const jobId = searchParams.get('id');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [worker, setWorker] = useState<WorkerData | null>(null);
+  const { worker: authWorker, isLoading: authLoading, isAuthenticated } = useWorkerAuth();
+
+  // Derive worker data from auth context
+  const worker: WorkerData | null = authWorker ? { id: authWorker.id, company_id: authWorker.company_id || '' } : null;
+
   const [job, setJob] = useState<Job | null>(null);
   const [activeTimeEntry, setActiveTimeEntry] = useState<TimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,27 +104,12 @@ function JobDetailContent() {
     return customer;
   };
 
-  // Initialize auth and fetch worker data
+  // Redirect to login if not authenticated
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/worker/login');
-        return;
-      }
-
-      const { data: userData } = await supabase
-        .from('users')
-        .select('id, company_id')
-        .eq('id', user.id)
-        .single();
-
-      if (userData) {
-        setWorker(userData);
-      }
-    };
-    init();
-  }, [router]);
+    if (!authLoading && !isAuthenticated) {
+      router.push('/worker/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch job details
   const fetchJob = useCallback(async () => {
@@ -362,7 +352,7 @@ function JobDetailContent() {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
-  if (isLoading || !worker) {
+  if (isLoading || authLoading || !worker) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
