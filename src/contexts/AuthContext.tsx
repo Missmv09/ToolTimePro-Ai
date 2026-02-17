@@ -246,13 +246,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
         return { error };
+      }
+
+      // Update last_login_at to clear "Pending Activation" status
+      if (data.user?.id) {
+        await supabase
+          .from('users')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('id', data.user.id);
       }
 
       return { error: null };

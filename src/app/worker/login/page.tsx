@@ -42,11 +42,15 @@ export default function WorkerLoginPage() {
         return
       }
 
-      // Update last_login_at timestamp
-      await supabase
+      // Update last_login_at timestamp to clear "Pending Activation" status
+      const { error: updateError } = await supabase
         .from('users')
         .update({ last_login_at: new Date().toISOString() })
         .eq('id', data.user?.id)
+
+      if (updateError) {
+        console.error('Failed to update last_login_at:', updateError)
+      }
 
       // Workers and admins/owners can access worker app
       router.push('/worker/timeclock')
