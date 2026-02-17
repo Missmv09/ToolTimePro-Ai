@@ -445,15 +445,36 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
       }
 
       // Handle worker assignment
-      if (jobId && formData.assigned_worker_id) {
-        // Remove existing assignments
-        await supabase.from('job_assignments').delete().eq('job_id', jobId)
+      if (jobId) {
+        // Remove existing assignments first
+        const { error: deleteError } = await supabase
+          .from('job_assignments')
+          .delete()
+          .eq('job_id', jobId)
 
-        // Add new assignment
-        await supabase.from('job_assignments').insert({
-          job_id: jobId,
-          user_id: formData.assigned_worker_id,
-        })
+        if (deleteError) {
+          console.error('Error removing old assignments:', deleteError)
+          alert('Failed to update worker assignment. Please try again.')
+          setSaving(false)
+          return
+        }
+
+        // Add new assignment if a worker was selected
+        if (formData.assigned_worker_id) {
+          const { error: assignError } = await supabase
+            .from('job_assignments')
+            .insert({
+              job_id: jobId,
+              user_id: formData.assigned_worker_id,
+            })
+
+          if (assignError) {
+            console.error('Error assigning worker:', assignError)
+            alert('Job was saved but failed to assign worker. Please try again.')
+            setSaving(false)
+            return
+          }
+        }
       }
 
       setSaving(false)
