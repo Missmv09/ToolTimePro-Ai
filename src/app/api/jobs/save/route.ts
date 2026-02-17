@@ -116,11 +116,10 @@ export async function POST(request: NextRequest) {
 
     // ---- HANDLE ASSIGNMENT ----
     // Step 1: Delete ALL existing assignments for this job
-    const { error: deleteError, count: deleteCount } = await adminClient
+    const { error: deleteError } = await adminClient
       .from('job_assignments')
       .delete()
       .eq('job_id', jobId)
-      .select('id', { count: 'exact', head: true })
 
     if (deleteError) {
       log.push(`Delete assignments error: ${deleteError.message} (code: ${deleteError.code})`)
@@ -129,7 +128,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-    log.push(`Cleared ${deleteCount ?? '?'} existing assignment(s) for job ${jobId}`)
+    log.push(`Cleared existing assignment(s) for job ${jobId}`)
 
     // Step 2: Insert new assignment if a worker was selected
     if (assignedWorkerId) {
