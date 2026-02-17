@@ -99,6 +99,43 @@ export function useWorkerJobs(workerId: string | null, companyId: string | null)
     fetchJobs();
   }, [fetchJobs]);
 
+  // Set up real-time subscriptions for job updates
+  useEffect(() => {
+    if (!workerId || !companyId) return;
+
+    const subscription = supabase
+      .channel(`worker-jobs-${workerId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'job_assignments',
+          filter: `user_id=eq.${workerId}`,
+        },
+        () => {
+          fetchJobs();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'jobs',
+          filter: `company_id=eq.${companyId}`,
+        },
+        () => {
+          fetchJobs();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [workerId, companyId, fetchJobs]);
+
   // Calculate today's jobs
   const today = new Date().toISOString().split('T')[0];
   const todaysJobs = jobs.filter((job) => job.scheduled_date === today);
