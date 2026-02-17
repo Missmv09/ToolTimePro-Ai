@@ -18,7 +18,7 @@ interface Job {
   scheduled_time_end: string
   status: string
   priority: string
-  price: number
+  total_amount: number
   quote_id: string | null
   customer: { id: string; name: string } | null
   assigned_users: { user: { id: string; full_name: string } }[]
@@ -275,7 +275,7 @@ function JobsContent() {
                     </select>
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {job.price ? `$${job.price.toLocaleString()}` : '-'}
+                    {job.total_amount ? `$${job.total_amount.toLocaleString()}` : '-'}
                   </td>
                   <td className="px-6 py-4 flex gap-3">
                     <button
@@ -342,7 +342,7 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
     scheduled_time_start: job?.scheduled_time_start || '',
     scheduled_time_end: job?.scheduled_time_end || '',
     priority: job?.priority || 'normal',
-    price: job?.price?.toString() || '',
+    price: job?.total_amount?.toString() || '',
     assigned_worker_id: job?.assigned_users?.[0]?.user?.id || '',
   })
   const [saving, setSaving] = useState(false)
@@ -423,6 +423,15 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
     setSaving(true)
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) {
+        alert('Session expired. Please refresh the page and try again.')
+        setSaving(false)
+        return
+      }
+
       const jobData = {
         title: formData.title,
         description: formData.description,
@@ -441,55 +450,25 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
         status: job?.status || 'scheduled',
       }
 
-      let jobId = job?.id
+      const res = await fetch('/api/jobs/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          jobData,
+          assignedWorkerId: formData.assigned_worker_id || null,
+          existingJobId: job?.id || null,
+        }),
+      })
 
-      if (job) {
-        const { error } = await supabase.from('jobs').update(jobData).eq('id', job.id)
-        if (error) {
-          alert('Failed to update job. Please try again.')
-          setSaving(false)
-          return
-        }
-      } else {
-        const { data, error } = await supabase.from('jobs').insert(jobData).select().single()
-        if (error) {
-          alert('Failed to create job. Please try again.')
-          setSaving(false)
-          return
-        }
-        jobId = data?.id
-      }
-
-      // Handle worker assignment via server-side API (bypasses RLS)
-      if (jobId) {
-        const { data: { session } } = await supabase.auth.getSession()
-        const token = session?.access_token
-
-        if (!token) {
-          alert('Job was saved but session expired. Please refresh and try again.')
-          setSaving(false)
-          return
-        }
-
-        const assignRes = await fetch('/api/jobs/assign', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            job_id: jobId,
-            user_id: formData.assigned_worker_id || null,
-          }),
-        })
-
-        if (!assignRes.ok) {
-          const errData = await assignRes.json().catch(() => ({}))
-          console.error('Assignment API error:', errData)
-          alert(`Job was saved but failed to assign worker: ${errData.details || errData.error || 'Unknown error'}`)
-          setSaving(false)
-          return
-        }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        console.error('Job save error:', errData)
+        alert(`Failed to save job: ${errData.details || errData.error || 'Unknown error'}`)
+        setSaving(false)
+        return
       }
 
       setSaving(false)
