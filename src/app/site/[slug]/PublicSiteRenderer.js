@@ -135,6 +135,7 @@ export default function PublicSiteRenderer({ site, template }) {
               fontFamily: `${fontHeading}, sans-serif`,
               lineHeight: 1.2,
               maxWidth: '800px',
+              color: '#fff',
             }}
           >
             {businessName}
@@ -147,6 +148,7 @@ export default function PublicSiteRenderer({ site, template }) {
                 marginBottom: '32px',
                 maxWidth: '600px',
                 lineHeight: 1.5,
+                color: '#fff',
               }}
             >
               {tagline}
@@ -169,7 +171,7 @@ export default function PublicSiteRenderer({ site, template }) {
             {ctaText}
           </a>
           {serviceArea && (
-            <p style={{ marginTop: '20px', fontSize: '14px', opacity: 0.8 }}>
+            <p style={{ marginTop: '20px', fontSize: '14px', opacity: 0.8, color: '#fff' }}>
               Proudly serving {serviceArea}
             </p>
           )}
@@ -403,7 +405,7 @@ export default function PublicSiteRenderer({ site, template }) {
           textAlign: 'center',
         }}
       >
-        <p style={{ fontWeight: 700, fontSize: '16px', marginBottom: '8px' }}>
+        <p style={{ fontWeight: 700, fontSize: '16px', marginBottom: '8px', color: '#fff' }}>
           {businessName}
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', fontSize: '14px', opacity: 0.85 }}>
@@ -418,10 +420,10 @@ export default function PublicSiteRenderer({ site, template }) {
             </a>
           )}
         </div>
-        <p style={{ marginTop: '16px', fontSize: '12px', opacity: 0.6 }}>
+        <p style={{ marginTop: '16px', fontSize: '12px', opacity: 0.6, color: '#fff' }}>
           &copy; {new Date().getFullYear()} {businessName}. All rights reserved.
         </p>
-        <p style={{ marginTop: '8px', fontSize: '11px', opacity: 0.4 }}>
+        <p style={{ marginTop: '8px', fontSize: '11px', opacity: 0.4, color: '#fff' }}>
           Powered by <a href="https://tooltimepro.com" style={{ color: accentColor, textDecoration: 'none' }}>ToolTime Pro</a>
         </p>
       </footer>
