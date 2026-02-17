@@ -319,16 +319,34 @@ export default function TeamPage() {
   const avgHourlyRate = teamMembers.length > 0 ? totalHourlyRate / teamMembers.length : 0
 
   const toggleMemberStatus = async (member: TeamMember) => {
-    const { error } = await supabase
-      .from('users')
-      .update({ is_active: !member.is_active })
-      .eq('id', member.id)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        alert('You must be logged in to change member status.')
+        return
+      }
 
-    if (error) {
-      console.error('Error updating status:', error)
-      alert(`Error updating status: ${error.message}`)
-    } else if (companyId) {
-      fetchTeamMembers(companyId)
+      const res = await fetch('/api/team-member/toggle-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ memberId: member.id, companyId }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || 'Failed to update status')
+        return
+      }
+
+      if (companyId) {
+        fetchTeamMembers(companyId)
+      }
+    } catch (err) {
+      console.error('Error updating status:', err)
+      alert('Failed to update member status')
     }
   }
 
