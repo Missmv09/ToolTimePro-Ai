@@ -460,45 +460,35 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
         jobId = data?.id
       }
 
-      // Handle worker assignment
+      // Handle worker assignment via server-side API (bypasses RLS)
       if (jobId) {
-        // Remove existing assignments first
-        const { error: deleteError } = await supabase
-          .from('job_assignments')
-          .delete()
-          .eq('job_id', jobId)
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
 
-        if (deleteError) {
-          console.error('Error removing old assignments:', deleteError)
-          alert('Failed to update worker assignment. Please try again.')
+        if (!token) {
+          alert('Job was saved but session expired. Please refresh and try again.')
           setSaving(false)
           return
         }
 
-        // Add new assignment if a worker was selected
-        if (formData.assigned_worker_id) {
-          const { data: assignData, error: assignError } = await supabase
-            .from('job_assignments')
-            .insert({
-              job_id: jobId,
-              user_id: formData.assigned_worker_id,
-            })
-            .select()
+        const assignRes = await fetch('/api/jobs/assign', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            job_id: jobId,
+            user_id: formData.assigned_worker_id || null,
+          }),
+        })
 
-          if (assignError) {
-            console.error('Error assigning worker:', assignError)
-            alert('Job was saved but failed to assign worker. Please try again.')
-            setSaving(false)
-            return
-          }
-
-          // Supabase RLS can silently reject inserts - check data came back
-          if (!assignData || assignData.length === 0) {
-            console.error('Assignment insert returned no data - likely RLS rejection')
-            alert('Job was saved but worker assignment was rejected. Please check database permissions.')
-            setSaving(false)
-            return
-          }
+        if (!assignRes.ok) {
+          const errData = await assignRes.json().catch(() => ({}))
+          console.error('Assignment API error:', errData)
+          alert(`Job was saved but failed to assign worker: ${errData.details || errData.error || 'Unknown error'}`)
+          setSaving(false)
+          return
         }
       }
 
