@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ensureReadableColor } from '@/lib/color-utils';
 
-export default function PublicSiteRenderer({ site, template }) {
+export default function PublicSiteRenderer({ site, template, isBetaTester }) {
   const content = site.site_content || {};
   const defaultContent = template.default_content || {};
   const layout = template.layout_config || {};
@@ -425,6 +425,306 @@ export default function PublicSiteRenderer({ site, template }) {
           Powered by <a href="https://tooltimepro.com" style={{ color: accentColor, textDecoration: 'none' }}>ToolTime Pro</a>
         </p>
       </footer>
+
+      {/* Jenny Chat Widget — auto-included for beta testers */}
+      {isBetaTester && (
+        <JennyChatWidget
+          businessName={businessName}
+          phone={phone}
+          accentColor={accentColor}
+          trade={trade}
+        />
+      )}
+    </div>
+  );
+}
+
+function JennyChatWidget({ businessName, phone, accentColor, trade }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+
+  const greeting = `Hi! I'm Jenny, ${businessName}'s virtual assistant. How can I help you today?`;
+
+  const quickReplies = [
+    'What services do you offer?',
+    'How do I get a quote?',
+    phone ? 'Can I speak to someone?' : null,
+  ].filter(Boolean);
+
+  const handleSend = (text) => {
+    const msg = text || input.trim();
+    if (!msg) return;
+
+    setMessages((prev) => [...prev, { from: 'user', text: msg }]);
+    setInput('');
+
+    // Simple auto-responses
+    setTimeout(() => {
+      let reply;
+      const lower = msg.toLowerCase();
+      if (lower.includes('quote') || lower.includes('estimate') || lower.includes('price')) {
+        reply = `I'd be happy to help you get a quote! You can fill out our contact form below, or ${phone ? `call us at ${phone}` : 'send us a message'} and we'll get back to you right away.`;
+      } else if (lower.includes('service') || lower.includes('offer') || lower.includes('do you')) {
+        reply = `We provide professional ${trade || 'home service'} work. Check out our Services section above for the full list! Want a free estimate?`;
+      } else if (lower.includes('speak') || lower.includes('call') || lower.includes('phone') || lower.includes('person')) {
+        reply = phone
+          ? `Of course! You can reach us at ${phone}. We're happy to help!`
+          : `You can reach us through the contact form below and we'll get back to you ASAP!`;
+      } else if (lower.includes('hour') || lower.includes('open') || lower.includes('available')) {
+        reply = `We're typically available Monday through Saturday. For the fastest response, ${phone ? `give us a call at ${phone}` : 'fill out the contact form below'}!`;
+      } else {
+        reply = `Thanks for your message! For the best help, ${phone ? `call us at ${phone} or ` : ''}fill out our contact form below and we'll get back to you shortly.`;
+      }
+      setMessages((prev) => [...prev, { from: 'bot', text: reply }]);
+    }, 800);
+  };
+
+  return (
+    <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
+      {/* Chat Window */}
+      {isOpen && (
+        <div
+          style={{
+            width: '340px',
+            maxHeight: '480px',
+            background: '#fff',
+            borderRadius: '16px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            overflow: 'hidden',
+            marginBottom: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            border: '1px solid #e5e7eb',
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              padding: '14px 16px',
+              background: accentColor,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                background: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+              }}
+            >
+              🤖
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '14px' }}>Jenny</div>
+              <div style={{ fontSize: '11px', opacity: 0.85 }}>{businessName}</div>
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#fff',
+                fontSize: '20px',
+                cursor: 'pointer',
+                padding: '0 4px',
+                opacity: 0.8,
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div
+            style={{
+              flex: 1,
+              padding: '14px',
+              overflowY: 'auto',
+              background: '#f9fafb',
+              minHeight: '240px',
+              maxHeight: '320px',
+            }}
+          >
+            {/* Greeting */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: accentColor + '22',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  flexShrink: 0,
+                }}
+              >
+                🤖
+              </div>
+              <div
+                style={{
+                  background: '#fff',
+                  borderRadius: '14px 14px 14px 4px',
+                  padding: '10px 14px',
+                  fontSize: '13px',
+                  color: '#374151',
+                  maxWidth: '240px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  border: '1px solid #f3f4f6',
+                }}
+              >
+                {greeting}
+              </div>
+            </div>
+
+            {/* Quick Replies (shown when no user messages yet) */}
+            {messages.length === 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginLeft: '36px' }}>
+                {quickReplies.map((qr, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSend(qr)}
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 12px',
+                      borderRadius: '14px',
+                      border: `1px solid ${accentColor}`,
+                      background: 'transparent',
+                      color: accentColor,
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {qr}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Conversation */}
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  justifyContent: msg.from === 'user' ? 'flex-end' : 'flex-start',
+                  gap: '8px',
+                  marginTop: '10px',
+                }}
+              >
+                {msg.from === 'bot' && (
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: accentColor + '22',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    🤖
+                  </div>
+                )}
+                <div
+                  style={{
+                    background: msg.from === 'user' ? accentColor : '#fff',
+                    color: msg.from === 'user' ? '#fff' : '#374151',
+                    borderRadius: msg.from === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                    padding: '10px 14px',
+                    fontSize: '13px',
+                    maxWidth: '220px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    border: msg.from === 'user' ? 'none' : '1px solid #f3f4f6',
+                  }}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Input */}
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+            style={{
+              padding: '10px 12px',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              gap: '8px',
+              background: '#fff',
+            }}
+          >
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              style={{
+                flex: 1,
+                padding: '8px 14px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '20px',
+                fontSize: '13px',
+                outline: 'none',
+                background: '#f9fafb',
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                background: accentColor,
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              ↑
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Floating Bubble */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          background: accentColor,
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '26px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+          marginLeft: 'auto',
+        }}
+      >
+        {isOpen ? '×' : '💬'}
+      </div>
     </div>
   );
 }

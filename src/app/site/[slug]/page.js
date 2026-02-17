@@ -25,6 +25,8 @@ async function getSiteData(slug) {
       .select(`
         id, slug, business_name, business_phone, business_email,
         site_content, status, custom_domain, published_at,
+        company_id,
+        companies ( is_beta_tester ),
         website_templates (
           id, slug, name, trade_category, style,
           primary_color, secondary_color, accent_color,
@@ -82,7 +84,8 @@ export default async function PublicSitePage({ params }) {
   }
 
   const template = site.website_templates || {};
-  const { website_templates: _, ...siteData } = site;
+  const isBetaTester = site.companies?.is_beta_tester || false;
+  const { website_templates: _, companies: _c, ...siteData } = site;
 
-  return <PublicSiteRenderer site={siteData} template={template} />;
+  return <PublicSiteRenderer site={siteData} template={template} isBetaTester={isBetaTester} />;
 }
