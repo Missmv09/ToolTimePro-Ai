@@ -62,6 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (userData) {
+        // Backfill last_login_at for users who logged in before it was tracked
+        if (!userData.last_login_at) {
+          const now = new Date().toISOString();
+          await supabase
+            .from('users')
+            .update({ last_login_at: now })
+            .eq('id', userId);
+          userData.last_login_at = now;
+        }
+
         setDbUser(userData as DbUser);
 
         if (userData.company_id) {
