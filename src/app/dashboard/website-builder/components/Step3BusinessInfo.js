@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Sparkles, RefreshCw } from 'lucide-react';
 
 const serviceSuggestions = {
   painter: ['Interior Painting', 'Exterior Painting', 'Cabinet Refinishing', 'Drywall Repair', 'Color Consultation', 'Deck Staining', 'Wallpaper Removal', 'Pressure Washing'],
@@ -25,6 +25,8 @@ export default function Step3BusinessInfo({ wizardData, setWizardData }) {
   const [serviceInput, setServiceInput] = useState('');
   const [errors, setErrors] = useState({});
   const serviceInputRef = useRef(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
 
   const suggestions = serviceSuggestions[wizardData.trade] || serviceSuggestions.general;
   const availableSuggestions = suggestions.filter(
@@ -70,6 +72,31 @@ export default function Step3BusinessInfo({ wizardData, setWizardData }) {
     }
   };
 
+  const suggestTaglines = async () => {
+    setAiLoading(true);
+    setAiSuggestions([]);
+    try {
+      const res = await fetch('/api/website-builder/ai-suggest/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: wizardData.businessName,
+          trade: wizardData.trade,
+          services: wizardData.services,
+          serviceArea: wizardData.serviceArea,
+        }),
+      });
+      const data = await res.json();
+      if (data.suggestions?.length) {
+        setAiSuggestions(data.suggestions);
+      }
+    } catch {
+      // Silently fail — user can still type manually
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-navy-500 mb-2">Tell us about your business</h2>
@@ -97,7 +124,18 @@ export default function Step3BusinessInfo({ wizardData, setWizardData }) {
 
         {/* Tagline */}
         <div>
-          <label className="input-label">Tagline</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="input-label mb-0">Tagline</label>
+            <button
+              type="button"
+              onClick={suggestTaglines}
+              disabled={aiLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full bg-gold-50 text-gold-700 border border-gold-200 hover:bg-gold-100 transition-colors disabled:opacity-50"
+            >
+              {aiLoading ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />}
+              {aiLoading ? 'Thinking...' : 'Suggest with AI'}
+            </button>
+          </div>
           <input
             type="text"
             className="input"
@@ -105,7 +143,23 @@ export default function Step3BusinessInfo({ wizardData, setWizardData }) {
             value={wizardData.tagline}
             onChange={(e) => updateField('tagline', e.target.value)}
           />
-          <p className="text-xs text-gray-400 mt-1">Leave blank and we&apos;ll create one for you</p>
+          {aiSuggestions.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {aiSuggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => { updateField('tagline', s); setAiSuggestions([]); }}
+                  className="px-3 py-1.5 bg-gold-50 text-navy-500 rounded-full text-xs border border-gold-200 hover:bg-gold-100 hover:border-gold-300 transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+          {aiSuggestions.length === 0 && (
+            <p className="text-xs text-gray-400 mt-1">Type your own or tap &ldquo;Suggest with AI&rdquo; for ideas</p>
+          )}
         </div>
 
         {/* Phone & Email */}
