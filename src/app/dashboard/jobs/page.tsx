@@ -422,32 +422,37 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
 
     setSaving(true)
 
+    const jobPayload = {
+      title: formData.title,
+      description: formData.description,
+      customer_id: formData.customer_id || null,
+      quote_id: formData.quote_id || null,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      zip: formData.zip,
+      scheduled_date: formData.scheduled_date,
+      scheduled_time_start: formData.scheduled_time_start,
+      scheduled_time_end: formData.scheduled_time_end || null,
+      priority: formData.priority,
+      total_amount: formData.price ? Number(formData.price) : null,
+      company_id: companyId,
+      status: job?.status || 'scheduled',
+    }
+
+    const workerId = formData.assigned_worker_id || null
+    console.log('[JobSave] Starting save. Worker:', workerId, 'Editing:', job?.id || 'NEW')
+
+    // ---------- ATTEMPT 1: Server-side API (bypasses RLS) ----------
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
       if (!token) {
-        alert('Session expired. Please refresh the page and try again.')
+        console.error('[JobSave] No session token')
+        alert('Session expired. Please refresh the page and log in again.')
         setSaving(false)
         return
-      }
-
-      const jobData = {
-        title: formData.title,
-        description: formData.description,
-        customer_id: formData.customer_id || null,
-        quote_id: formData.quote_id || null,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        zip: formData.zip,
-        scheduled_date: formData.scheduled_date,
-        scheduled_time_start: formData.scheduled_time_start,
-        scheduled_time_end: formData.scheduled_time_end || null,
-        priority: formData.priority,
-        total_amount: formData.price ? Number(formData.price) : null,
-        company_id: companyId,
-        status: job?.status || 'scheduled',
       }
 
       const res = await fetch('/api/jobs/save', {
@@ -457,24 +462,104 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          jobData,
-          assignedWorkerId: formData.assigned_worker_id || null,
+          jobData: jobPayload,
+          assignedWorkerId: workerId,
           existingJobId: job?.id || null,
         }),
       })
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        console.error('Job save error:', errData)
-        alert(`Failed to save job: ${errData.details || errData.error || 'Unknown error'}`)
+      const result = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+      console.log('[JobSave] API response:', res.status, result)
+
+      if (res.ok && result.success) {
+        console.log('[JobSave] Success via API. Log:', result.log)
         setSaving(false)
+        onSave()
         return
+      }
+
+      // API returned an error — log it and fall through to direct fallback
+      console.error('[JobSave] API failed:', result.error, result.details, 'Log:', result.log)
+
+    } catch (apiErr) {
+      console.error('[JobSave] API unreachable:', apiErr)
+    }
+
+    // ---------- ATTEMPT 2: Direct Supabase client fallback ----------
+    console.log('[JobSave] Falling back to direct Supabase client')
+    try {
+      let jobId = job?.id
+
+      if (job) {
+        // Update existing
+        const { error: updateErr } = await supabase
+          .from('jobs')
+          .update({ ...jobPayload, updated_at: new Date().toISOString() })
+          .eq('id', job.id)
+
+        if (updateErr) {
+          console.error('[JobSave] Direct update failed:', updateErr)
+          alert(`Failed to save job: ${updateErr.message}`)
+          setSaving(false)
+          return
+        }
+        console.log('[JobSave] Direct update OK')
+      } else {
+        // Insert new
+        const { data: newJob, error: insertErr } = await supabase
+          .from('jobs')
+          .insert(jobPayload)
+          .select('id')
+          .single()
+
+        if (insertErr || !newJob) {
+          console.error('[JobSave] Direct insert failed:', insertErr)
+          alert(`Failed to create job: ${insertErr?.message || 'No data returned'}`)
+          setSaving(false)
+          return
+        }
+        jobId = newJob.id
+        console.log('[JobSave] Direct insert OK, id:', jobId)
+      }
+
+      // Handle assignment directly
+      if (jobId) {
+        // Clear existing
+        const { error: delErr } = await supabase
+          .from('job_assignments')
+          .delete()
+          .eq('job_id', jobId)
+
+        if (delErr) {
+          console.error('[JobSave] Direct delete assignments failed:', delErr)
+        } else {
+          console.log('[JobSave] Cleared existing assignments')
+        }
+
+        // Insert new assignment
+        if (workerId) {
+          const { data: assignData, error: assignErr } = await supabase
+            .from('job_assignments')
+            .insert({ job_id: jobId, user_id: workerId })
+            .select()
+
+          if (assignErr) {
+            console.error('[JobSave] Direct assignment insert failed:', assignErr)
+            alert(`Job saved but worker assignment failed: ${assignErr.message}`)
+          } else if (!assignData || assignData.length === 0) {
+            console.error('[JobSave] Direct assignment insert returned empty (RLS silent reject)')
+            alert('Job saved but worker assignment was silently rejected by database security policy. Please contact support.')
+          } else {
+            console.log('[JobSave] Direct assignment OK:', assignData)
+          }
+        }
       }
 
       setSaving(false)
       onSave()
-    } catch {
-      alert('An unexpected error occurred. Please try again.')
+    } catch (err) {
+      console.error('[JobSave] Unexpected error:', err)
+      alert('An unexpected error occurred. Check browser console for details.')
       setSaving(false)
     }
   }
