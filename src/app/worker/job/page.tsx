@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -83,8 +83,11 @@ function JobDetailContent() {
 
   const { worker: authWorker, isLoading: authLoading, isAuthenticated } = useWorkerAuth();
 
-  // Derive worker data from auth context
-  const worker: WorkerData | null = authWorker ? { id: authWorker.id, company_id: authWorker.company_id || '' } : null;
+  // Derive worker data from auth context (memoized to prevent infinite re-fetch loop)
+  const worker: WorkerData | null = useMemo(
+    () => authWorker ? { id: authWorker.id, company_id: authWorker.company_id || '' } : null,
+    [authWorker?.id, authWorker?.company_id]
+  );
 
   const [job, setJob] = useState<Job | null>(null);
   const [activeTimeEntry, setActiveTimeEntry] = useState<TimeEntry | null>(null);
@@ -113,7 +116,10 @@ function JobDetailContent() {
 
   // Fetch job details
   const fetchJob = useCallback(async () => {
-    if (!jobId || !worker?.company_id) return;
+    if (!jobId || !worker?.company_id) {
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -156,10 +162,8 @@ function JobDetailContent() {
   }, [jobId, worker?.company_id, worker?.id]);
 
   useEffect(() => {
-    if (worker) {
-      fetchJob();
-    }
-  }, [worker, fetchJob]);
+    fetchJob();
+  }, [fetchJob]);
 
   // Timer effect
   useEffect(() => {
