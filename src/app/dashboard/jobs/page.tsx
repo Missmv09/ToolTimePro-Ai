@@ -137,15 +137,25 @@ function JobsContent() {
   }, [filter, companyId, customerFilter, fetchJobs])
 
   const updateJobStatus = async (jobId: string, newStatus: string) => {
-    const updates: Record<string, string> = { status: newStatus, updated_at: new Date().toISOString() }
-
-    if (newStatus === 'completed') {
-      updates.completed_at = new Date().toISOString()
-    }
-
-    const { error } = await supabase.from('jobs').update(updates).eq('id', jobId)
+    const { error } = await supabase
+      .from('jobs')
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', jobId)
     if (error) {
       alert('Failed to update job status. Please try again.')
+      return
+    }
+    if (companyId) fetchJobs(companyId)
+  }
+
+  const deleteJob = async (jobId: string) => {
+    if (!confirm('Are you sure you want to delete this job? This cannot be undone.')) {
+      return
+    }
+
+    const { error } = await supabase.from('jobs').delete().eq('id', jobId)
+    if (error) {
+      alert('Failed to delete job. Please try again.')
       return
     }
     if (companyId) fetchJobs(companyId)
@@ -267,7 +277,7 @@ function JobsContent() {
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {job.price ? `$${job.price.toLocaleString()}` : '-'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex gap-3">
                     <button
                       onClick={() => {
                         setEditingJob(job)
@@ -276,6 +286,12 @@ function JobsContent() {
                       className="text-blue-600 hover:text-blue-800 text-sm"
                     >
                       Edit
+                    </button>
+                    <button
+                      onClick={() => deleteJob(job.id)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -461,16 +477,25 @@ function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave 
 
         // Add new assignment if a worker was selected
         if (formData.assigned_worker_id) {
-          const { error: assignError } = await supabase
+          const { data: assignData, error: assignError } = await supabase
             .from('job_assignments')
             .insert({
               job_id: jobId,
               user_id: formData.assigned_worker_id,
             })
+            .select()
 
           if (assignError) {
             console.error('Error assigning worker:', assignError)
             alert('Job was saved but failed to assign worker. Please try again.')
+            setSaving(false)
+            return
+          }
+
+          // Supabase RLS can silently reject inserts - check data came back
+          if (!assignData || assignData.length === 0) {
+            console.error('Assignment insert returned no data - likely RLS rejection')
+            alert('Job was saved but worker assignment was rejected. Please check database permissions.')
             setSaving(false)
             return
           }
