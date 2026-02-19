@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ensureReadableColor } from '@/lib/color-utils';
+import JennyLiteWidget from './JennyLiteWidget';
 
 export default function PublicSiteRenderer({ site, template }) {
   const content = site.site_content || {};
@@ -427,6 +428,14 @@ export default function PublicSiteRenderer({ site, template }) {
           Powered by <a href="https://tooltimepro.com" style={{ color: accentColor, textDecoration: 'none' }}>ToolTime Pro</a>
         </p>
       </footer>
+
+      {/* Jenny Lite Chat Widget */}
+      <JennyLiteWidget
+        businessName={businessName}
+        phone={phone}
+        accentColor={accentColor}
+        position="right"
+      />
     </div>
   );
 }
