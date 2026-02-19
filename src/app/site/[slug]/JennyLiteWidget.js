@@ -3,35 +3,53 @@
 import { useState, useRef, useEffect } from 'react';
 
 /**
- * JennyLiteWidget — Floating AI chat widget rendered on public ToolTime Pro sites.
+ * Jenny Chat Widget — Floating AI chat widget rendered on public ToolTime Pro sites.
+ *
+ * Shows "Jenny AI" (full features) for beta testers, "Jenny Lite" for everyone else.
  *
  * Props:
  *   businessName  – company name shown in the header
  *   phone         – business phone (offered as quick action)
  *   accentColor   – brand color for the widget chrome
  *   position      – 'right' (default) or 'left'
+ *   isBetaTester  – if true, unlocks full Jenny AI branding & features
  */
 export default function JennyLiteWidget({
   businessName = 'Our Business',
   phone = '',
   accentColor = '#f5a623',
   position = 'right',
+  isBetaTester = false,
 }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [awaitingInfo, setAwaitingInfo] = useState(false);
+  const [bookingStep, setBookingStep] = useState(null); // null | 'name' | 'phone' | 'service' | 'time' | 'confirm'
+  const [bookingData, setBookingData] = useState({});
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const greeting = `Hi! I'm Jenny, the virtual assistant for ${businessName}. How can I help you today?`;
+  const jennyName = isBetaTester ? 'Jenny AI' : 'Jenny';
+  const headerLabel = isBetaTester ? 'Jenny AI' : 'Jenny';
 
-  const quickReplies = [
-    'What services do you offer?',
-    'How do I get a quote?',
-    'What areas do you serve?',
-  ];
+  const greeting = isBetaTester
+    ? `Hi! I'm Jenny AI, the smart assistant for ${businessName}. I can answer questions, book appointments, and connect you with our team. How can I help?`
+    : `Hi! I'm Jenny, the virtual assistant for ${businessName}. How can I help you today?`;
+
+  const quickReplies = isBetaTester
+    ? [
+        'Book an appointment',
+        'What services do you offer?',
+        'Get a free quote',
+        'Talk to someone',
+      ]
+    : [
+        'What services do you offer?',
+        'How do I get a quote?',
+        'What areas do you serve?',
+      ];
 
   // Seed the greeting on first open
   useEffect(() => {
@@ -50,45 +68,135 @@ export default function JennyLiteWidget({
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  // ---- Booking flow (Jenny AI / beta testers only) ----
+
+  function handleBookingFlow(userText) {
+    const lower = userText.toLowerCase();
+
+    switch (bookingStep) {
+      case 'name':
+        setBookingData((prev) => ({ ...prev, name: userText }));
+        setBookingStep('phone');
+        return `Thanks ${userText}! What's the best phone number to reach you?`;
+
+      case 'phone':
+        setBookingData((prev) => ({ ...prev, phone: userText }));
+        setBookingStep('service');
+        return `Got it. What service are you looking for?`;
+
+      case 'service':
+        setBookingData((prev) => ({ ...prev, service: userText }));
+        setBookingStep('time');
+        return `Great — ${userText}. Do you have a preferred day or time? (e.g. "Monday morning", "this weekend", "ASAP")`;
+
+      case 'time':
+        setBookingData((prev) => ({ ...prev, time: userText }));
+        setBookingStep(null);
+        setLeadCaptured(true);
+        return `Perfect! I've submitted your appointment request:\n\n` +
+          `Name: ${bookingData.name}\n` +
+          `Phone: ${bookingData.phone}\n` +
+          `Service: ${bookingData.service}\n` +
+          `Preferred time: ${userText}\n\n` +
+          `Someone from ${businessName} will confirm your appointment shortly.${phone ? ` You can also call us at ${phone}.` : ''}`;
+
+      default:
+        return null;
+    }
+  }
+
+  // ---- Bot response logic ----
+
   function botReply(userText) {
     const lower = userText.toLowerCase();
 
-    // If we're waiting for contact info, try to extract it
+    // If we're in a booking flow, handle that first
+    if (bookingStep) {
+      const bookingReply = handleBookingFlow(userText);
+      if (bookingReply) return bookingReply;
+    }
+
+    // If we're waiting for contact info (non-booking lead capture)
     if (awaitingInfo) {
       setAwaitingInfo(false);
       setLeadCaptured(true);
       return `Thanks! I've passed your info along to the ${businessName} team. Someone will reach out to you shortly.${phone ? ` You can also call us anytime at ${phone}.` : ''}`;
     }
 
+    // ---- Booking triggers (Jenny AI only) ----
+    if (isBetaTester && (lower.includes('book') || lower.includes('appointment') || lower.includes('schedule'))) {
+      setBookingStep('name');
+      return `I'd love to help you book an appointment! Let's get a few details. What's your name?`;
+    }
+
+    // ---- Talk to a person (Jenny AI only) ----
+    if (isBetaTester && (lower.includes('talk to') || lower.includes('speak to') || lower.includes('real person') || lower.includes('human'))) {
+      setAwaitingInfo(true);
+      return phone
+        ? `Of course! You can reach the ${businessName} team directly at ${phone}. Or leave your name and number here and someone will call you right back.`
+        : `I'll connect you with the team. Leave your name and phone number and someone from ${businessName} will call you back shortly.`;
+    }
+
+    // ---- Common intents ----
     if (lower.includes('quote') || lower.includes('estimate') || lower.includes('price') || lower.includes('cost')) {
+      if (isBetaTester) {
+        setBookingStep('name');
+        return `We'd love to get you a free estimate! Let me grab your details. What's your name?`;
+      }
       setAwaitingInfo(true);
       return `We'd love to get you a free estimate! Could you share your name and the best phone number to reach you? Our team will follow up quickly.`;
     }
 
     if (lower.includes('service') || lower.includes('offer') || lower.includes('do you do')) {
-      return `${businessName} offers a full range of professional services. For specific questions or to discuss your project, leave your name and number and we'll get back to you — or call us${phone ? ` at ${phone}` : ''}.`;
+      return `${businessName} offers a full range of professional services. ${isBetaTester ? 'I can book an appointment for you, or feel free to ask about specific services.' : 'For specific questions or to discuss your project, leave your name and number and we\'ll get back to you'} ${phone ? (isBetaTester ? `You can also call us at ${phone}.` : `— or call us at ${phone}.`) : '.'}`;
     }
 
     if (lower.includes('area') || lower.includes('location') || lower.includes('where') || lower.includes('serve')) {
-      return `Great question! For details on our service area, leave your info and someone from ${businessName} will reach out.${phone ? ` Or give us a call at ${phone}.` : ''}`;
+      return isBetaTester
+        ? `Great question! ${businessName} serves the local area and surrounding communities. Want me to book a consultation to discuss your specific location?${phone ? ` Or call us at ${phone}.` : ''}`
+        : `Great question! For details on our service area, leave your info and someone from ${businessName} will reach out.${phone ? ` Or give us a call at ${phone}.` : ''}`;
     }
 
     if (lower.includes('hour') || lower.includes('open') || lower.includes('available') || lower.includes('when')) {
-      return `Our team is typically available during business hours, but I'm here 24/7! Leave your name and number and we'll get back to you during our next available slot.`;
+      return isBetaTester
+        ? `Our team is typically available during business hours, but I'm here 24/7! Want me to book you an appointment for a convenient time?`
+        : `Our team is typically available during business hours, but I'm here 24/7! Leave your name and number and we'll get back to you during our next available slot.`;
     }
 
-    if (lower.includes('book') || lower.includes('appointment') || lower.includes('schedule')) {
+    if (!isBetaTester && (lower.includes('book') || lower.includes('appointment') || lower.includes('schedule'))) {
       setAwaitingInfo(true);
       return `I can help you get an appointment set up! What's your name and the best number to reach you?`;
     }
 
     if (lower.includes('phone') || lower.includes('call') || lower.includes('contact')) {
       return phone
-        ? `You can reach ${businessName} at ${phone}. Or leave your info here and we'll call you!`
+        ? `You can reach ${businessName} at ${phone}. ${isBetaTester ? 'Or I can book an appointment for you right here!' : 'Or leave your info here and we\'ll call you!'}`
         : `Leave your name and phone number here and someone from ${businessName} will contact you shortly.`;
     }
 
-    // Default — nudge toward lead capture
+    // ---- Jenny AI extras ----
+    if (isBetaTester) {
+      if (lower.includes('emergency') || lower.includes('urgent') || lower.includes('asap')) {
+        return phone
+          ? `For urgent needs, please call ${businessName} directly at ${phone}. If it's after hours, leave a message and we'll get back to you as soon as possible.`
+          : `I understand this is urgent. Leave your name and phone number and the ${businessName} team will prioritize your request.`;
+      }
+
+      if (lower.includes('thank') || lower.includes('thanks') || lower.includes('great') || lower.includes('perfect')) {
+        return `You're welcome! Is there anything else I can help you with? I can book appointments, answer questions, or connect you with the team.`;
+      }
+
+      if (lower.match(/^(hi|hello|hey|good morning|good afternoon|good evening)/)) {
+        return `Hello! Welcome to ${businessName}. I can help you book an appointment, get a quote, or answer any questions. What would you like to do?`;
+      }
+    }
+
+    // Default — nudge toward lead capture (or booking for beta testers)
+    if (isBetaTester) {
+      setBookingStep('name');
+      return `Thanks for reaching out! I'd love to help. Let me connect you with the ${businessName} team. What's your name?`;
+    }
+
     setAwaitingInfo(true);
     return `Thanks for reaching out! I'd be happy to connect you with the ${businessName} team. Could you share your name and phone number so someone can follow up?`;
   }
@@ -105,7 +213,7 @@ export default function JennyLiteWidget({
     setTimeout(() => {
       const reply = botReply(msg);
       setMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
-    }, 600);
+    }, isBetaTester ? 400 : 600);
   }
 
   function handleKeyDown(e) {
@@ -163,7 +271,23 @@ export default function JennyLiteWidget({
               <span role="img" aria-label="bot">🤖</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>Jenny</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {headerLabel}
+                {isBetaTester && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      background: 'rgba(255,255,255,0.25)',
+                      padding: '2px 6px',
+                      borderRadius: 8,
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    AI
+                  </span>
+                )}
+              </div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>{businessName}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -243,6 +367,7 @@ export default function JennyLiteWidget({
                     lineHeight: 1.5,
                     boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
                     border: msg.sender === 'user' ? 'none' : '1px solid #e5e7eb',
+                    whiteSpace: 'pre-line',
                   }}
                 >
                   {msg.text}
@@ -292,7 +417,7 @@ export default function JennyLiteWidget({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
+              placeholder={bookingStep ? 'Type your answer...' : 'Type a message...'}
               style={{
                 flex: 1,
                 padding: '10px 16px',
