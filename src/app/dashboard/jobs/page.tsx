@@ -52,7 +52,7 @@ function JobsContent() {
   const companyId = dbUser?.company_id || null
 
   const fetchJobs = useCallback(async (compId: string) => {
-    // Try server-side API first (bypasses RLS on job_assignments so assignments show up)
+    // Use server-side API to fetch jobs with assignments (bypasses RLS)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
@@ -62,21 +62,26 @@ function JobsContent() {
         if (customerFilter) params.set('customer', customerFilter)
         const qs = params.toString()
 
+        console.log('[fetchJobs] Calling /api/jobs/list...')
         const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
+
         if (res.ok) {
           const result = await res.json()
+          console.log('[fetchJobs] API returned', result.jobs?.length, 'jobs. Sample assignments:',
+            result.jobs?.slice(0, 2).map((j: Job) => ({ title: j.title, assigned: j.assigned_users })))
           setJobs(result.jobs || [])
           setLoading(false)
           return
         }
+        console.warn('[fetchJobs] API returned', res.status, '- falling back to direct query')
       }
-    } catch {
-      // Fall through to direct Supabase query
+    } catch (err) {
+      console.warn('[fetchJobs] API call failed:', err, '- falling back to direct query')
     }
 
-    // Fallback: direct Supabase client query
+    // Fallback: direct Supabase client query (assignments may not show due to RLS)
     let query = supabase
       .from('jobs')
       .select(`
@@ -98,8 +103,9 @@ function JobsContent() {
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching jobs:', error)
+      console.error('[fetchJobs] Direct query error:', error)
     } else {
+      console.log('[fetchJobs] Direct query returned', data?.length, 'jobs (RLS - assignments may be empty)')
       setJobs(data || [])
     }
     setLoading(false)
