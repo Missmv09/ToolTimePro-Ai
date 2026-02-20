@@ -97,27 +97,29 @@ export async function POST(request) {
       saved = true;
     }
 
-    // 2. Also insert into CRM leads table
+    // 2. Always try CRM leads table as fallback
+    const crmRecord = {
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: trimmedPhone,
+      message: trimmedMessage,
+      service_requested: trimmedService,
+      source: 'website',
+      status: 'new',
+    };
     if (site.company_id) {
-      const { error: crmError } = await supabase.from('leads').insert({
-        company_id: site.company_id,
-        name: trimmedName,
-        email: trimmedEmail,
-        phone: trimmedPhone,
-        message: trimmedMessage,
-        service_requested: trimmedService,
-        source: 'website',
-        status: 'new',
+      crmRecord.company_id = site.company_id;
+    }
+
+    const { error: crmError } = await supabase.from('leads').insert(crmRecord);
+    if (crmError) {
+      console.error('[Website Leads] CRM leads insert failed:', {
+        message: crmError.message,
+        code: crmError.code,
+        details: crmError.details,
       });
-      if (crmError) {
-        console.error('[Website Leads] CRM leads insert failed:', {
-          message: crmError.message,
-          code: crmError.code,
-          details: crmError.details,
-        });
-      } else {
-        saved = true;
-      }
+    } else {
+      saved = true;
     }
 
     // If neither table accepted the lead, return error

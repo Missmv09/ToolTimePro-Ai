@@ -254,7 +254,7 @@ describe('/api/website-builder/leads', () => {
       expect(insertCall).not.toHaveProperty('company_id');
     });
 
-    it('skips CRM insert when company_id is null', async () => {
+    it('still inserts into CRM leads without company_id when null', async () => {
       setupSiteLookup({ ...VALID_SITE, company_id: null });
 
       const request = makeRequest({
@@ -264,7 +264,10 @@ describe('/api/website-builder/leads', () => {
 
       await POST(request);
 
-      expect(mockFrom).not.toHaveBeenCalledWith('leads');
+      expect(mockFrom).toHaveBeenCalledWith('leads');
+      const insertCall = mockCrmLeadsInsert.mock.calls[0][0];
+      expect(insertCall).not.toHaveProperty('company_id');
+      expect(insertCall.name).toBe('John Doe');
     });
   });
 
