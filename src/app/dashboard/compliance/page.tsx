@@ -17,9 +17,11 @@ import {
   RefreshCw,
   FileText,
   Download,
+  Lock,
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useComplianceAlerts } from '@/hooks/useComplianceAlerts';
+import { useAuth } from '@/contexts/AuthContext';
 
 const severityColors = {
   info: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -51,8 +53,14 @@ function formatHours(hours: number): string {
 }
 
 export default function ComplianceDashboardPage() {
+  const { dbUser, company } = useAuth();
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month'>('week');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const isOwner = dbUser?.role === 'owner';
+  const isBetaTester = !!company?.is_beta_tester;
+  const hasJennyExec = (company?.addons || []).includes('jenny_exec_admin');
+  const hasAccess = isOwner && (isBetaTester || hasJennyExec);
 
   const {
     alerts,
@@ -155,6 +163,29 @@ export default function ComplianceDashboardPage() {
   const topViolators = Object.entries(violationsByWorker)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
+
+  if (!hasAccess) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-lg mx-auto mt-20 text-center">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-amber-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Jenny Exec Admin Feature</h1>
+          <p className="text-gray-500 mb-6">
+            The CA Compliance Dashboard is part of Jenny Exec Admin — available to business owners
+            for $79/mo. Get compliance alerts, HR guidance, and business insights.
+          </p>
+          <Link
+            href="/pricing"
+            className="inline-block px-6 py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors no-underline"
+          >
+            View Plans & Add-ons
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   FileText,
   Download,
@@ -13,7 +14,9 @@ import {
   Users,
   ExternalLink,
   Search,
+  Lock,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Template {
   id: string;
@@ -92,8 +95,14 @@ const categories = [
 ];
 
 export default function HRToolkitPage() {
+  const { dbUser, company } = useAuth();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const isOwner = dbUser?.role === 'owner';
+  const isBetaTester = !!company?.is_beta_tester;
+  const hasJennyExec = (company?.addons || []).includes('jenny_exec_admin');
+  const hasAccess = isOwner && (isBetaTester || hasJennyExec);
 
   const filteredTemplates = templates.filter((template) => {
     const matchesCategory = activeCategory === 'all' || template.category === activeCategory;
@@ -106,6 +115,27 @@ export default function HRToolkitPage() {
   const handleDownload = (template: Template) => {
     window.open(template.downloadUrl, '_blank');
   };
+
+  if (!hasAccess) {
+    return (
+      <div className="max-w-lg mx-auto mt-20 text-center">
+        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-8 h-8 text-amber-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Jenny Exec Admin Feature</h1>
+        <p className="text-gray-500 mb-6">
+          The HR Toolkit is part of Jenny Exec Admin — available to business owners
+          for $79/mo. Get HR templates, compliance documents, and workforce management tools.
+        </p>
+        <Link
+          href="/pricing"
+          className="inline-block px-6 py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors no-underline"
+        >
+          View Plans & Add-ons
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
