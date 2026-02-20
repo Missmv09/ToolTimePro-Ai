@@ -285,33 +285,6 @@ async function handleBookingFlow(message, conversationHistory, bookingState, boo
           service: selectedService
         };
 
-        // Send confirmation SMS via Twilio
-        const accountSid = process.env.TWILIO_ACCOUNT_SID;
-        const authToken = process.env.TWILIO_AUTH_TOKEN;
-        const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
-
-        if (accountSid && authToken && twilioPhone) {
-          const digits = bookingState.customerPhone.replace(/\D/g, '');
-          const formattedTo = digits.length === 10 ? `+1${digits}` :
-                              digits.length === 11 && digits.startsWith('1') ? `+${digits}` :
-                              `+${digits}`;
-          const smsBody = `Hi ${bookingState.customerName}! Your ${selectedService} appointment with ${businessName || 'us'} is confirmed for ${bookingState.selectedDate} at ${bookingState.selectedTime}. We look forward to serving you!`;
-
-          // Fire-and-forget — don't block the chat response
-          fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Basic ' + Buffer.from(`${accountSid}:${authToken}`).toString('base64'),
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              To: formattedTo,
-              From: twilioPhone,
-              Body: smsBody,
-            }),
-          }).catch(err => console.error('Confirmation SMS error:', err));
-        }
-
         reply = `🎉 Booking Confirmed!\n\n` +
                 `📅 ${bookingState.selectedDate}\n` +
                 `⏰ ${bookingState.selectedTime}\n` +

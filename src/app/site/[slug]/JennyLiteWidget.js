@@ -165,6 +165,7 @@ export default function JennyLiteWidget({
   accentColor = '#f5a623',
   position = 'right',
   isBetaTester = false,
+  companyId = null,
 }) {
   const hasPro = isBetaTester; // Pro features unlocked for beta testers
 
@@ -248,25 +249,33 @@ export default function JennyLiteWidget({
         setBookingStep(null);
         setLeadCaptured(true);
         let msg = t.bookConfirm(finalData, businessName, phone);
-        // Pro: mention SMS confirmation and actually send it
-        if (hasPro && finalData.phone) {
-          msg += t.bookSmsNote(finalData, businessName);
-          // Send the confirmation SMS
-          fetch('/api/sms', {
+
+        // Save booking to database (creates lead, job, customer, and sends SMS)
+        if (companyId) {
+          // Parse a rough date from user input (e.g. "Monday morning", "ASAP")
+          // Default to tomorrow if we can't parse a specific date
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const scheduledDate = tomorrow.toISOString().split('T')[0];
+
+          fetch('/api/bookings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              to: finalData.phone,
-              template: 'booking_confirmation',
-              data: {
-                customerName: finalData.name,
-                serviceName: finalData.service,
-                companyName: businessName,
-                date: finalData.time,
-                time: '',
-              },
+              companyId,
+              serviceName: finalData.service,
+              scheduledDate,
+              scheduledTimeStart: '09:00',
+              durationMinutes: 60,
+              customerName: finalData.name,
+              customerPhone: finalData.phone,
+              notes: `Preferred time: ${finalData.time} (booked via Jenny AI chat)`,
             }),
-          }).catch((err) => console.error('Confirmation SMS error:', err));
+          }).catch((err) => console.error('Booking save error:', err));
+
+          if (hasPro) {
+            msg += t.bookSmsNote(finalData, businessName);
+          }
         }
         return msg;
       }
