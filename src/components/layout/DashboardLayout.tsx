@@ -141,12 +141,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           {/* Logo */}
-          <div className="h-16 flex items-center px-4 border-b border-gray-200">
+          <div className="h-16 flex items-center px-4 border-b border-gray-200 flex-shrink-0">
             <Link href="/dashboard">
               <Image
                 src="/logo-01262026.png"
@@ -161,14 +161,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Company Name */}
           {company && (
-            <div className="px-6 py-3 bg-navy-50 border-b border-gray-200">
+            <div className="px-6 py-3 bg-navy-50 border-b border-gray-200 flex-shrink-0">
               <p className="text-xs text-gray-500">Company</p>
               <p className="text-sm font-medium text-navy-500 truncate">{company.name}</p>
             </div>
           )}
 
           {/* Navigation */}
-          <nav className="p-4 space-y-1">
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
             {getNavItems(!!company?.is_beta_tester).map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
@@ -187,7 +187,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </nav>
 
           {/* User section */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200" ref={profileMenuRef}>
+          <div className="relative flex-shrink-0 p-4 border-t border-gray-200" ref={profileMenuRef}>
             {/* Dropdown menu */}
             {profileMenuOpen && (
               <div className="absolute bottom-full left-4 right-4 mb-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
