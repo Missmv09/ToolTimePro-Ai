@@ -389,6 +389,16 @@ function SettingsContent() {
         const planKey = company?.plan || 'free_trial'
         const planInfo = PLAN_CONFIG[planKey] || { name: planKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), price: '--', period: '' }
         const isFreeTrial = !isBetaTester && (planKey === 'free_trial' || !company?.plan)
+        const activeAddons = company?.addons || []
+
+        const ADDON_LABELS: Record<string, { name: string; description: string }> = {
+          jenny_lite: { name: 'Jenny Lite', description: 'AI chat widget for your website' },
+          jenny_pro: { name: 'Jenny Pro', description: 'AI phone answering, SMS, and direct booking' },
+          jenny_exec_admin: { name: 'Jenny Exec Admin', description: 'Compliance advisor, HR guidance, business insights' },
+          website_builder: { name: 'Website Builder', description: 'Custom business website' },
+          keep_me_legal: { name: 'Keep Me Legal', description: 'Ongoing compliance monitoring' },
+          quickbooks_sync: { name: 'QuickBooks Sync', description: 'Two-way QuickBooks integration' },
+        }
 
         return (
         <div className="space-y-6">
@@ -493,6 +503,45 @@ function SettingsContent() {
                 View Plans
               </button>
             </div>
+          </div>
+
+          {/* Active Add-ons */}
+          <div className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Active Add-ons</h2>
+            {isBetaTester ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-800 text-sm font-medium">
+                  All add-ons are included with your beta tester access.
+                </p>
+              </div>
+            ) : activeAddons.length > 0 ? (
+              <div className="space-y-3">
+                {activeAddons.map((addonId) => {
+                  const addon = ADDON_LABELS[addonId]
+                  return (
+                    <div key={addonId} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div>
+                        <p className="text-sm font-semibold text-blue-800">{addon?.name || addonId}</p>
+                        {addon?.description && (
+                          <p className="text-xs text-blue-600 mt-0.5">{addon.description}</p>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Active</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-gray-500 text-sm mb-3">No add-ons active on your account.</p>
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className="text-sm text-orange-500 font-semibold hover:text-orange-600"
+                >
+                  Browse available add-ons
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="bg-gray-50 rounded-xl border p-6">

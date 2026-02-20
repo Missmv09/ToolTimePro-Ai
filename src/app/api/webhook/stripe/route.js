@@ -84,6 +84,7 @@ async function handleCheckoutComplete(session) {
   const customerId = session.customer;
   const metadata = session.metadata;
   const plan = metadata.plan || metadata.tier || metadata.standalone || '';
+  const addons = metadata.addons ? metadata.addons.split(',').filter(Boolean) : [];
 
   // Find the user by email to get their company_id
   const { data: existingUser } = await getSupabase()
@@ -93,14 +94,30 @@ async function handleCheckoutComplete(session) {
     .single();
 
   if (existingUser?.company_id) {
-    // Update the company's plan and stripe info
+    // Build the update payload
+    const updateData = {
+      stripe_customer_id: customerId,
+      plan: plan || 'starter',
+      updated_at: new Date().toISOString()
+    };
+
+    // Persist purchased addons (merge with any existing addons)
+    if (addons.length > 0) {
+      const { data: currentCompany } = await getSupabase()
+        .from('companies')
+        .select('addons')
+        .eq('id', existingUser.company_id)
+        .single();
+
+      const existingAddons = currentCompany?.addons || [];
+      const mergedAddons = [...new Set([...existingAddons, ...addons])];
+      updateData.addons = mergedAddons;
+    }
+
+    // Update the company's plan, addons, and stripe info
     const { error } = await getSupabase()
       .from('companies')
-      .update({
-        stripe_customer_id: customerId,
-        plan: plan || 'starter',
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', existingUser.company_id);
 
     if (error) {

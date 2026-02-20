@@ -18,6 +18,7 @@ CREATE TABLE companies (
     zip VARCHAR(20),
     logo_url TEXT,
     plan VARCHAR(50) DEFAULT 'starter', -- starter, pro, elite
+    addons TEXT[] DEFAULT '{}', -- purchased add-on IDs (jenny_exec_admin, jenny_pro, etc.)
     stripe_customer_id VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

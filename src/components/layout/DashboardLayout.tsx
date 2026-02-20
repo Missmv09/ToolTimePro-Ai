@@ -38,26 +38,45 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-const getNavItems = (isBetaTester: boolean) => [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/dispatch', label: 'Dispatch Board', icon: Radio },
-  { href: '/dashboard/schedule', label: 'Schedule', icon: CalendarDays },
-  { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
-  { href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route },
-  { href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck },
-  { href: '/dashboard/team', label: 'Team', icon: UsersRound },
-  { href: '/dashboard/customers', label: 'Customers', icon: UserCircle },
-  { href: '/dashboard/leads', label: 'Leads', icon: Users },
-  { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
-  { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
-  { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
-  { href: '/dashboard/jenny-lite', label: isBetaTester ? 'Jenny AI' : 'Jenny Lite', icon: MessageCircle },
-  { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
-  { href: '/dashboard/blog', label: 'Blog', icon: BookOpen },
-  { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
-  { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
+interface NavItemOptions {
+  isBetaTester: boolean;
+  hasJennyExec: boolean;
+  isOwner: boolean;
+}
+
+const getNavItems = ({ isBetaTester, hasJennyExec, isOwner }: NavItemOptions) => {
+  const showExecFeatures = isOwner && (isBetaTester || hasJennyExec);
+
+  const items = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/dispatch', label: 'Dispatch Board', icon: Radio },
+    { href: '/dashboard/schedule', label: 'Schedule', icon: CalendarDays },
+    { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
+    { href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route },
+    { href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck },
+    { href: '/dashboard/team', label: 'Team', icon: UsersRound },
+    { href: '/dashboard/customers', label: 'Customers', icon: UserCircle },
+    { href: '/dashboard/leads', label: 'Leads', icon: Users },
+    { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
+    { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
+    { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
+    { href: '/dashboard/jenny-lite', label: isBetaTester ? 'Jenny AI' : 'Jenny Lite', icon: MessageCircle },
+    { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
+    { href: '/dashboard/blog', label: 'Blog', icon: BookOpen },
+  ];
+
+  // Owner-facing Jenny Exec Admin features: only visible to owners with the addon or beta testers
+  if (showExecFeatures) {
+    items.push(
+      { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
+      { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
+    );
+  }
+
+  items.push({ href: '/dashboard/settings', label: 'Settings', icon: Settings });
+
+  return items;
+};
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
@@ -169,7 +188,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-            {getNavItems(!!company?.is_beta_tester).map((item) => {
+            {getNavItems({
+              isBetaTester: !!company?.is_beta_tester,
+              hasJennyExec: (company?.addons || []).includes('jenny_exec_admin'),
+              isOwner: dbUser?.role === 'owner',
+            }).map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link

@@ -25,6 +25,7 @@ export interface Database {
           website: string | null
           logo_url: string | null
           plan: string
+          addons: string[]
           stripe_customer_id: string | null
           booking_settings: Json | null
           trial_starts_at: string | null
@@ -49,6 +50,7 @@ export interface Database {
           website?: string | null
           logo_url?: string | null
           plan?: string
+          addons?: string[]
           stripe_customer_id?: string | null
           booking_settings?: Json | null
           trial_starts_at?: string | null
@@ -73,6 +75,7 @@ export interface Database {
           website?: string | null
           logo_url?: string | null
           plan?: string
+          addons?: string[]
           stripe_customer_id?: string | null
           booking_settings?: Json | null
           trial_starts_at?: string | null
