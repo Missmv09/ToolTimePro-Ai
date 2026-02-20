@@ -65,7 +65,34 @@ export async function POST(request) {
 
     let saved = false;
 
-    // 1. Try website_leads table first
+    // Helper: try insert, if FK violation on company_id retry without it
+    async function tryInsert(table, record) {
+      const { error } = await supabase.from(table).insert(record);
+      if (!error) return { success: true };
+
+      console.error(`[Website Leads] ${table} insert failed:`, {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+
+      // 23503 = foreign key violation — retry without company_id
+      if (error.code === '23503' && record.company_id) {
+        console.log(`[Website Leads] Retrying ${table} without company_id`);
+        const { company_id, ...withoutCompany } = record;
+        const { error: retryError } = await supabase.from(table).insert(withoutCompany);
+        if (!retryError) return { success: true };
+        console.error(`[Website Leads] ${table} retry also failed:`, {
+          message: retryError.message,
+          code: retryError.code,
+          details: retryError.details,
+        });
+      }
+      return { success: false };
+    }
+
+    // 1. Try website_leads table
     const websiteLeadRecord = {
       site_id: site.id,
       name: trimmedName,
@@ -80,24 +107,10 @@ export async function POST(request) {
       websiteLeadRecord.company_id = site.company_id;
     }
 
-    const { error: leadError } = await supabase
-      .from('website_leads')
-      .insert(websiteLeadRecord);
+    const wlResult = await tryInsert('website_leads', websiteLeadRecord);
+    if (wlResult.success) saved = true;
 
-    if (leadError) {
-      console.error('[Website Leads] website_leads insert failed:', {
-        message: leadError.message,
-        code: leadError.code,
-        details: leadError.details,
-        hint: leadError.hint,
-        siteId: site.id,
-        companyId: site.company_id,
-      });
-    } else {
-      saved = true;
-    }
-
-    // 2. Always try CRM leads table as fallback
+    // 2. Also try CRM leads table
     const crmRecord = {
       name: trimmedName,
       email: trimmedEmail,
@@ -111,16 +124,8 @@ export async function POST(request) {
       crmRecord.company_id = site.company_id;
     }
 
-    const { error: crmError } = await supabase.from('leads').insert(crmRecord);
-    if (crmError) {
-      console.error('[Website Leads] CRM leads insert failed:', {
-        message: crmError.message,
-        code: crmError.code,
-        details: crmError.details,
-      });
-    } else {
-      saved = true;
-    }
+    const crmResult = await tryInsert('leads', crmRecord);
+    if (crmResult.success) saved = true;
 
     // If neither table accepted the lead, return error
     if (!saved) {

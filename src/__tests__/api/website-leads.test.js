@@ -327,6 +327,40 @@ describe('/api/website-builder/leads', () => {
       expect(response.status).toBe(500);
       expect(body.error).toContain('Failed to save lead');
     });
+
+    it('retries without company_id on foreign key violation (23503)', async () => {
+      // First call fails with FK violation, second (retry) succeeds
+      mockWebsiteLeadsInsert
+        .mockResolvedValueOnce({
+          error: { message: 'insert or update violates foreign key constraint', code: '23503' },
+        })
+        .mockResolvedValueOnce({ error: null });
+
+      mockCrmLeadsInsert
+        .mockResolvedValueOnce({
+          error: { message: 'insert or update violates foreign key constraint', code: '23503' },
+        })
+        .mockResolvedValueOnce({ error: null });
+
+      const request = makeRequest({
+        siteId: VALID_SITE.id,
+        name: 'John Doe',
+        email: 'john@example.com',
+      });
+
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+
+      // Should have been called twice per table (original + retry)
+      expect(mockWebsiteLeadsInsert).toHaveBeenCalledTimes(2);
+      // Retry call should NOT have company_id
+      const retryCall = mockWebsiteLeadsInsert.mock.calls[1][0];
+      expect(retryCall).not.toHaveProperty('company_id');
+      expect(retryCall.name).toBe('John Doe');
+    });
   });
 
   describe('CORS headers', () => {
