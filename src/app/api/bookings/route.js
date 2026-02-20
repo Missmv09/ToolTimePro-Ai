@@ -110,8 +110,8 @@ export async function POST(request) {
       notes,
     } = body;
 
-    // Validate required fields
-    if (!companyId || !serviceName || !scheduledDate || !scheduledTimeStart || !customerName || !customerEmail || !customerPhone || !customerAddress) {
+    // Validate required fields (email & address optional for chatbot bookings)
+    if (!companyId || !serviceName || !scheduledDate || !scheduledTimeStart || !customerName || !customerPhone) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -148,46 +148,52 @@ export async function POST(request) {
       );
     }
 
-    // Check if customer already exists
+    // Check if customer already exists (by email if available, otherwise by phone)
     let customerId = null;
-    const { data: existingCustomer } = await supabase
+    let existingCustomerQuery = supabase
       .from('customers')
       .select('id')
-      .eq('company_id', companyId)
-      .eq('email', customerEmail)
-      .single();
+      .eq('company_id', companyId);
+
+    if (customerEmail) {
+      existingCustomerQuery = existingCustomerQuery.eq('email', customerEmail);
+    } else {
+      existingCustomerQuery = existingCustomerQuery.eq('phone', customerPhone);
+    }
+
+    const { data: existingCustomer } = await existingCustomerQuery.single();
 
     if (existingCustomer) {
       customerId = existingCustomer.id;
 
-      // Update customer info
+      // Update customer info (only set fields that are provided)
+      const updateData = { name: customerName, phone: customerPhone, updated_at: new Date().toISOString() };
+      if (customerAddress) updateData.address = customerAddress;
+      if (customerCity) updateData.city = customerCity;
+      if (customerState) updateData.state = customerState;
+      if (customerZip) updateData.zip = customerZip;
+
       await supabase
         .from('customers')
-        .update({
-          name: customerName,
-          phone: customerPhone,
-          address: customerAddress,
-          city: customerCity,
-          state: customerState,
-          zip: customerZip,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', customerId);
     } else {
       // Create new customer
-      const { data: newCustomer, error: customerError } = await supabase
-        .from('customers')
-        .insert({
+      const newCustomerRow = {
           company_id: companyId,
           name: customerName,
-          email: customerEmail,
           phone: customerPhone,
-          address: customerAddress,
-          city: customerCity,
-          state: customerState,
-          zip: customerZip,
           source: 'online_booking',
-        })
+        };
+      if (customerEmail) newCustomerRow.email = customerEmail;
+      if (customerAddress) newCustomerRow.address = customerAddress;
+      if (customerCity) newCustomerRow.city = customerCity;
+      if (customerState) newCustomerRow.state = customerState;
+      if (customerZip) newCustomerRow.zip = customerZip;
+
+      const { data: newCustomer, error: customerError } = await supabase
+        .from('customers')
+        .insert(newCustomerRow)
         .select('id')
         .single();
 
@@ -203,24 +209,26 @@ export async function POST(request) {
     }
 
     // Create the job (booking)
-    const { data: job, error: jobError } = await supabase
-      .from('jobs')
-      .insert({
+    const jobRow = {
         company_id: companyId,
         customer_id: customerId,
         title: serviceName,
         description: notes || `Online booking for ${serviceName}`,
-        address: customerAddress,
-        city: customerCity,
-        state: customerState,
-        zip: customerZip,
         scheduled_date: scheduledDate,
         scheduled_time_start: scheduledTimeStart,
         scheduled_time_end: scheduledTimeEnd,
         status: 'scheduled',
         priority: 'normal',
         notes: notes || null,
-      })
+      };
+    if (customerAddress) jobRow.address = customerAddress;
+    if (customerCity) jobRow.city = customerCity;
+    if (customerState) jobRow.state = customerState;
+    if (customerZip) jobRow.zip = customerZip;
+
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .insert(jobRow)
       .select()
       .single();
 
@@ -240,9 +248,9 @@ export async function POST(request) {
           company_id: companyId,
           customer_id: customerId,
           name: customerName,
-          email: customerEmail,
+          email: customerEmail || null,
           phone: customerPhone,
-          address: customerAddress,
+          address: customerAddress || null,
           service_requested: serviceName,
           message: notes || `Booked ${serviceName} for ${scheduledDate}`,
           source: 'online_booking',

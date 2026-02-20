@@ -436,6 +436,7 @@ export default function PublicSiteRenderer({ site, template, isBetaTester = fals
         accentColor={accentColor}
         position="right"
         isBetaTester={isBetaTester}
+        companyId={site.company_id}
       />
     </div>
   );
