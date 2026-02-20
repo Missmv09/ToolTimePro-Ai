@@ -52,32 +52,50 @@ export async function POST(request) {
       .single();
 
     if (siteError || !site) {
+      console.error('[Website Leads] Site lookup failed:', siteError?.message || 'Site not found', { siteId });
       return NextResponse.json({ error: 'Site not found' }, { status: 404, headers: corsHeaders });
+    }
+
+    // Build lead record — allow null company_id so the lead is still captured
+    const leadRecord = {
+      site_id: site.id,
+      name: name.trim(),
+      email: email?.trim() || null,
+      phone: phone?.trim() || null,
+      message: message?.trim() || null,
+      service_requested: service?.trim() || null,
+      source: source || 'website_contact_form',
+      status: 'new',
+    };
+
+    // Only include company_id if it exists on the site
+    if (site.company_id) {
+      leadRecord.company_id = site.company_id;
     }
 
     // Insert into website_leads
     const { error: leadError } = await supabase
       .from('website_leads')
-      .insert({
-        site_id: site.id,
-        company_id: site.company_id,
-        name: name.trim(),
-        email: email?.trim() || null,
-        phone: phone?.trim() || null,
-        message: message?.trim() || null,
-        service_requested: service?.trim() || null,
-        source: source || 'website_contact_form',
-        status: 'new',
-      });
+      .insert(leadRecord);
 
     if (leadError) {
-      console.error('[Website Leads] Insert error:', leadError);
-      return NextResponse.json({ error: 'Failed to save lead' }, { status: 500, headers: corsHeaders });
+      console.error('[Website Leads] Insert error:', {
+        message: leadError.message,
+        code: leadError.code,
+        details: leadError.details,
+        hint: leadError.hint,
+        siteId: site.id,
+        companyId: site.company_id,
+      });
+      return NextResponse.json(
+        { error: 'Failed to save lead. Please try again or contact us directly.' },
+        { status: 500, headers: corsHeaders }
+      );
     }
 
-    // Also insert into main CRM leads table
-    try {
-      await supabase.from('leads').insert({
+    // Also insert into main CRM leads table (non-blocking)
+    if (site.company_id) {
+      const { error: crmError } = await supabase.from('leads').insert({
         company_id: site.company_id,
         name: name.trim(),
         email: email?.trim() || null,
@@ -87,9 +105,14 @@ export async function POST(request) {
         source: 'website',
         status: 'new',
       });
-    } catch (crmError) {
-      console.error('[Website Leads] CRM insert error:', crmError.message);
-      // Non-blocking — website lead was already saved
+      if (crmError) {
+        console.error('[Website Leads] CRM insert error:', {
+          message: crmError.message,
+          code: crmError.code,
+          details: crmError.details,
+        });
+        // Non-blocking — website lead was already saved
+      }
     }
 
     return NextResponse.json(

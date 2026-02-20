@@ -477,7 +477,11 @@ function ContactForm({ siteId, accentColor, primaryColor }) {
       setForm({ name: '', phone: '', email: '', message: '', service: '' });
     } catch (err) {
       setStatus('error');
-      setErrorMsg(err.message || 'Something went wrong. Please try again.');
+      setErrorMsg(
+        err.message === 'Failed to send message'
+          ? 'Unable to send your message right now. Please try again or call us directly.'
+          : err.message || 'Something went wrong. Please try again.'
+      );
     }
   };
 
