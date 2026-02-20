@@ -248,9 +248,25 @@ export default function JennyLiteWidget({
         setBookingStep(null);
         setLeadCaptured(true);
         let msg = t.bookConfirm(finalData, businessName, phone);
-        // Pro: mention SMS confirmation
+        // Pro: mention SMS confirmation and actually send it
         if (hasPro && finalData.phone) {
           msg += t.bookSmsNote(finalData, businessName);
+          // Send the confirmation SMS
+          fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: finalData.phone,
+              template: 'booking_confirmation',
+              data: {
+                customerName: finalData.name,
+                serviceName: finalData.service,
+                companyName: businessName,
+                date: finalData.time,
+                time: '',
+              },
+            }),
+          }).catch((err) => console.error('Confirmation SMS error:', err));
         }
         return msg;
       }
