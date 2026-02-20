@@ -4,10 +4,11 @@
 
 /**
  * Tests for /api/website-builder/leads route
- * Validates lead submission, error handling, and CRM dual-insert
+ * Validates lead submission, fallback behavior, and error handling
  */
 
-const mockInsert = jest.fn();
+const mockWebsiteLeadsInsert = jest.fn();
+const mockCrmLeadsInsert = jest.fn();
 const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockSingle = jest.fn();
@@ -16,8 +17,13 @@ const mockFrom = jest.fn((table) => {
   if (table === 'website_sites') {
     return { select: mockSelect };
   }
-  // website_leads or leads
-  return { insert: mockInsert };
+  if (table === 'website_leads') {
+    return { insert: mockWebsiteLeadsInsert };
+  }
+  if (table === 'leads') {
+    return { insert: mockCrmLeadsInsert };
+  }
+  return { insert: jest.fn().mockResolvedValue({ error: null }) };
 });
 
 jest.mock('@supabase/supabase-js', () => ({
@@ -56,7 +62,8 @@ describe('/api/website-builder/leads', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupSiteLookup(VALID_SITE);
-    mockInsert.mockResolvedValue({ error: null });
+    mockWebsiteLeadsInsert.mockResolvedValue({ error: null });
+    mockCrmLeadsInsert.mockResolvedValue({ error: null });
   });
 
   describe('validation', () => {
@@ -145,9 +152,8 @@ describe('/api/website-builder/leads', () => {
 
       await POST(request);
 
-      // First call to insert is website_leads
       expect(mockFrom).toHaveBeenCalledWith('website_leads');
-      expect(mockInsert).toHaveBeenCalledWith(
+      expect(mockWebsiteLeadsInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           site_id: VALID_SITE.id,
           company_id: VALID_SITE.company_id,
@@ -172,7 +178,7 @@ describe('/api/website-builder/leads', () => {
       await POST(request);
 
       expect(mockFrom).toHaveBeenCalledWith('leads');
-      expect(mockInsert).toHaveBeenCalledWith(
+      expect(mockCrmLeadsInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           company_id: VALID_SITE.company_id,
           name: 'John Doe',
@@ -191,7 +197,7 @@ describe('/api/website-builder/leads', () => {
 
       await POST(request);
 
-      expect(mockInsert).toHaveBeenCalledWith(
+      expect(mockWebsiteLeadsInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           email: null,
           phone: null,
@@ -209,7 +215,7 @@ describe('/api/website-builder/leads', () => {
 
       await POST(request);
 
-      expect(mockInsert).toHaveBeenCalledWith(
+      expect(mockWebsiteLeadsInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           source: 'website_contact_form',
         })
@@ -234,7 +240,7 @@ describe('/api/website-builder/leads', () => {
       expect(body.success).toBe(true);
     });
 
-    it('does not include company_id in insert when null', async () => {
+    it('does not include company_id in website_leads insert when null', async () => {
       setupSiteLookup({ ...VALID_SITE, company_id: null });
 
       const request = makeRequest({
@@ -244,8 +250,7 @@ describe('/api/website-builder/leads', () => {
 
       await POST(request);
 
-      // website_leads insert should NOT have company_id
-      const insertCall = mockInsert.mock.calls[0][0];
+      const insertCall = mockWebsiteLeadsInsert.mock.calls[0][0];
       expect(insertCall).not.toHaveProperty('company_id');
     });
 
@@ -259,36 +264,34 @@ describe('/api/website-builder/leads', () => {
 
       await POST(request);
 
-      // Should only call from() for website_sites and website_leads, NOT leads
       expect(mockFrom).not.toHaveBeenCalledWith('leads');
     });
   });
 
-  describe('error handling', () => {
-    it('returns 500 when website_leads insert fails', async () => {
-      mockInsert.mockResolvedValueOnce({
+  describe('fallback behavior', () => {
+    it('succeeds via CRM table when website_leads table does not exist', async () => {
+      mockWebsiteLeadsInsert.mockResolvedValueOnce({
         error: { message: 'relation "website_leads" does not exist', code: '42P01' },
       });
 
       const request = makeRequest({
         siteId: VALID_SITE.id,
         name: 'John Doe',
+        email: 'john@example.com',
       });
 
       const response = await POST(request);
       const body = await response.json();
 
-      expect(response.status).toBe(500);
-      expect(body.error).toContain('Failed to save lead');
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(mockCrmLeadsInsert).toHaveBeenCalled();
     });
 
-    it('still succeeds when CRM insert fails', async () => {
-      // First insert (website_leads) succeeds, second (leads) fails
-      mockInsert
-        .mockResolvedValueOnce({ error: null })
-        .mockResolvedValueOnce({
-          error: { message: 'column "service_requested" does not exist', code: '42703' },
-        });
+    it('succeeds via website_leads when CRM insert fails', async () => {
+      mockCrmLeadsInsert.mockResolvedValueOnce({
+        error: { message: 'column "service_requested" does not exist', code: '42703' },
+      });
 
       const request = makeRequest({
         siteId: VALID_SITE.id,
@@ -302,6 +305,28 @@ describe('/api/website-builder/leads', () => {
       expect(body.success).toBe(true);
     });
 
+    it('returns 500 only when BOTH inserts fail', async () => {
+      mockWebsiteLeadsInsert.mockResolvedValueOnce({
+        error: { message: 'relation "website_leads" does not exist', code: '42P01' },
+      });
+      mockCrmLeadsInsert.mockResolvedValueOnce({
+        error: { message: 'relation "leads" does not exist', code: '42P01' },
+      });
+
+      const request = makeRequest({
+        siteId: VALID_SITE.id,
+        name: 'John Doe',
+      });
+
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(body.error).toContain('Failed to save lead');
+    });
+  });
+
+  describe('CORS headers', () => {
     it('returns CORS headers on error responses', async () => {
       const request = makeRequest({});
       const response = await POST(request);
