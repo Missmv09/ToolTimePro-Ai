@@ -56,63 +56,83 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404, headers: corsHeaders });
     }
 
-    // Build lead record — allow null company_id so the lead is still captured
-    const leadRecord = {
-      site_id: site.id,
-      name: name.trim(),
-      email: email?.trim() || null,
-      phone: phone?.trim() || null,
-      message: message?.trim() || null,
-      service_requested: service?.trim() || null,
-      source: source || 'website_contact_form',
-      status: 'new',
-    };
+    const trimmedName = name.trim();
+    const trimmedEmail = email?.trim() || null;
+    const trimmedPhone = phone?.trim() || null;
+    const trimmedMessage = message?.trim() || null;
+    const trimmedService = service?.trim() || null;
+    const leadSource = source || 'website_contact_form';
 
-    // Only include company_id if it exists on the site
-    if (site.company_id) {
-      leadRecord.company_id = site.company_id;
+    let saved = false;
+
+    // Helper: try insert, if FK violation on company_id retry without it
+    async function tryInsert(table, record) {
+      const { error } = await supabase.from(table).insert(record);
+      if (!error) return { success: true };
+
+      console.error(`[Website Leads] ${table} insert failed:`, {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+
+      // 23503 = foreign key violation — retry without company_id
+      if (error.code === '23503' && record.company_id) {
+        console.log(`[Website Leads] Retrying ${table} without company_id`);
+        const { company_id, ...withoutCompany } = record;
+        const { error: retryError } = await supabase.from(table).insert(withoutCompany);
+        if (!retryError) return { success: true };
+        console.error(`[Website Leads] ${table} retry also failed:`, {
+          message: retryError.message,
+          code: retryError.code,
+          details: retryError.details,
+        });
+      }
+      return { success: false };
     }
 
-    // Insert into website_leads
-    const { error: leadError } = await supabase
-      .from('website_leads')
-      .insert(leadRecord);
+    // 1. Try website_leads table
+    const websiteLeadRecord = {
+      site_id: site.id,
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: trimmedPhone,
+      message: trimmedMessage,
+      service_requested: trimmedService,
+      source: leadSource,
+      status: 'new',
+    };
+    if (site.company_id) {
+      websiteLeadRecord.company_id = site.company_id;
+    }
 
-    if (leadError) {
-      console.error('[Website Leads] Insert error:', {
-        message: leadError.message,
-        code: leadError.code,
-        details: leadError.details,
-        hint: leadError.hint,
-        siteId: site.id,
-        companyId: site.company_id,
-      });
+    const wlResult = await tryInsert('website_leads', websiteLeadRecord);
+    if (wlResult.success) saved = true;
+
+    // 2. Also try CRM leads table
+    const crmRecord = {
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: trimmedPhone,
+      message: trimmedMessage,
+      service_requested: trimmedService,
+      source: 'website',
+      status: 'new',
+    };
+    if (site.company_id) {
+      crmRecord.company_id = site.company_id;
+    }
+
+    const crmResult = await tryInsert('leads', crmRecord);
+    if (crmResult.success) saved = true;
+
+    // If neither table accepted the lead, return error
+    if (!saved) {
       return NextResponse.json(
         { error: 'Failed to save lead. Please try again or contact us directly.' },
         { status: 500, headers: corsHeaders }
       );
-    }
-
-    // Also insert into main CRM leads table (non-blocking)
-    if (site.company_id) {
-      const { error: crmError } = await supabase.from('leads').insert({
-        company_id: site.company_id,
-        name: name.trim(),
-        email: email?.trim() || null,
-        phone: phone?.trim() || null,
-        message: message?.trim() || null,
-        service_requested: service?.trim() || null,
-        source: 'website',
-        status: 'new',
-      });
-      if (crmError) {
-        console.error('[Website Leads] CRM insert error:', {
-          message: crmError.message,
-          code: crmError.code,
-          details: crmError.details,
-        });
-        // Non-blocking — website lead was already saved
-      }
     }
 
     return NextResponse.json(
