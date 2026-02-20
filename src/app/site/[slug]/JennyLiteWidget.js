@@ -36,15 +36,17 @@ const i18n = {
     qrTalk: 'Talk to someone',
     qrText: 'Text me info',
     // Booking flow
-    bookStart: "I'd love to help you book an appointment! Let's get a few details. What's your name?",
+    bookStart: "I'd love to help you schedule a free quote! Let's get a few details. What's your name?",
     bookPhone: (name) => `Thanks ${name}! What's the best phone number to reach you?`,
     bookService: 'Got it. What service are you looking for?',
-    bookTime: (svc) =>
-      `Great — ${svc}. Do you have a preferred day or time? (e.g. "Monday morning", "this weekend", "ASAP")`,
+    bookUrgency: (svc) =>
+      `Great — ${svc}. How soon do you need the service? (e.g. "This week", "Within a month", "No rush")`,
+    bookPreference: (urgency) =>
+      `Got it — ${urgency}. Would you like to schedule a time for a quote, or would you prefer we recommend the best option for you?`,
     bookConfirm: (data, biz, phone) =>
-      `Perfect! I've submitted your appointment request:\n\n` +
-      `Name: ${data.name}\nPhone: ${data.phone}\nService: ${data.service}\nPreferred time: ${data.time}\n\n` +
-      `Someone from ${biz} will confirm shortly.${phone ? ` You can also call us at ${phone}.` : ''}`,
+      `Perfect! I've submitted your quote request:\n\n` +
+      `Name: ${data.name}\nPhone: ${data.phone}\nService: ${data.service}\nTimeline: ${data.urgency}\nPreference: ${data.preference}\n\n` +
+      `Someone from ${biz} will reach out to schedule your quote.${phone ? ` You can also call us at ${phone}.` : ''}`,
     bookSmsNote: (data, biz) =>
       `\n\nWe'll also send a confirmation text to ${data.phone}.`,
     // Intents
@@ -104,15 +106,17 @@ const i18n = {
     qrQuotePro: 'Obtener presupuesto gratis',
     qrTalk: 'Hablar con alguien',
     qrText: 'Envíenme info por texto',
-    bookStart: '¡Me encantaría ayudarle a agendar una cita! Necesito algunos datos. ¿Cuál es su nombre?',
+    bookStart: '¡Me encantaría ayudarle a agendar un presupuesto gratis! Necesito algunos datos. ¿Cuál es su nombre?',
     bookPhone: (name) => `¡Gracias ${name}! ¿Cuál es el mejor número de teléfono para contactarle?`,
     bookService: 'Entendido. ¿Qué servicio necesita?',
-    bookTime: (svc) =>
-      `Perfecto — ${svc}. ¿Tiene algún día u hora de preferencia? (ej. "lunes por la mañana", "este fin de semana", "lo antes posible")`,
+    bookUrgency: (svc) =>
+      `Perfecto — ${svc}. ¿Qué tan pronto necesita el servicio? (ej. "Esta semana", "Dentro de un mes", "Sin prisa")`,
+    bookPreference: (urgency) =>
+      `Entendido — ${urgency}. ¿Le gustaría agendar una cita para un presupuesto, o prefiere que le recomendemos la mejor opción?`,
     bookConfirm: (data, biz, phone) =>
-      `¡Perfecto! He enviado su solicitud de cita:\n\n` +
-      `Nombre: ${data.name}\nTeléfono: ${data.phone}\nServicio: ${data.service}\nHora preferida: ${data.time}\n\n` +
-      `Alguien de ${biz} confirmará su cita pronto.${phone ? ` También puede llamarnos al ${phone}.` : ''}`,
+      `¡Perfecto! He enviado su solicitud de presupuesto:\n\n` +
+      `Nombre: ${data.name}\nTeléfono: ${data.phone}\nServicio: ${data.service}\nPlazo: ${data.urgency}\nPreferencia: ${data.preference}\n\n` +
+      `Alguien de ${biz} se comunicará para agendar su presupuesto.${phone ? ` También puede llamarnos al ${phone}.` : ''}`,
     bookSmsNote: (data) =>
       `\n\nTambién enviaremos una confirmación por texto al ${data.phone}.`,
     quoteProStart: '¡Nos encantaría darle un presupuesto gratis! Déjeme tomar sus datos. ¿Cuál es su nombre?',
@@ -174,7 +178,7 @@ export default function JennyLiteWidget({
   const [input, setInput] = useState('');
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [awaitingInfo, setAwaitingInfo] = useState(false);
-  const [bookingStep, setBookingStep] = useState(null); // null | 'name' | 'phone' | 'service' | 'time'
+  const [bookingStep, setBookingStep] = useState(null); // null | 'name' | 'phone' | 'service' | 'urgency' | 'preference'
   const [bookingData, setBookingData] = useState({});
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -239,11 +243,16 @@ export default function JennyLiteWidget({
 
       case 'service':
         setBookingData((prev) => ({ ...prev, service: userText }));
-        setBookingStep('time');
-        return t.bookTime(userText);
+        setBookingStep('urgency');
+        return t.bookUrgency(userText);
 
-      case 'time': {
-        const finalData = { ...bookingData, time: userText };
+      case 'urgency':
+        setBookingData((prev) => ({ ...prev, urgency: userText }));
+        setBookingStep('preference');
+        return t.bookPreference(userText);
+
+      case 'preference': {
+        const finalData = { ...bookingData, preference: userText };
         setBookingData(finalData);
         setBookingStep(null);
         setLeadCaptured(true);
