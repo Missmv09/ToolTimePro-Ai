@@ -24,6 +24,8 @@ export interface LeadStats {
   new: number;
   contacted: number;
   quoted: number;
+  booked: number;
+  won: number;
   totalValue: number;
 }
 
@@ -164,6 +166,8 @@ export function useLeads(): UseLeadsReturn {
     new: leads.filter((l) => l.status === 'new').length,
     contacted: leads.filter((l) => l.status === 'contacted').length,
     quoted: leads.filter((l) => l.status === 'quoted').length,
+    booked: leads.filter((l) => l.status === 'booked').length,
+    won: leads.filter((l) => l.status === 'won').length,
     totalValue: leads
       .filter((l) => l.status !== 'lost')
       .reduce((sum, l) => sum + (l.estimated_value || 0), 0),
