@@ -3,10 +3,58 @@
 // Uses Supabase when configured, falls back to in-memory for demo
 
 const { createClient } = require('@supabase/supabase-js');
+const Twilio = require('twilio');
 
 // In-memory store for demo mode (resets on function cold start)
 // In production, this would always use Supabase
 let demoBookings = [];
+
+// Lazy Twilio initialization
+let twilioClient = null;
+
+function getTwilioClient() {
+  if (!twilioClient) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (accountSid && authToken) {
+      twilioClient = Twilio(accountSid, authToken);
+    }
+  }
+  return twilioClient;
+}
+
+// Format phone to E.164
+function formatPhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  return phone.startsWith('+') ? phone : `+${digits}`;
+}
+
+// Send booking confirmation SMS (gracefully fails if Twilio not configured)
+async function sendBookingConfirmationSMS({ to, customerName, serviceName, date, time }) {
+  try {
+    const client = getTwilioClient();
+    const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+
+    if (!client || !fromNumber) {
+      console.log('Twilio not configured - skipping booking confirmation SMS');
+      return { sent: false, reason: 'not_configured' };
+    }
+
+    const message = await client.messages.create({
+      body: `Hi ${customerName}! Your ${serviceName} appointment is confirmed for ${date} at ${time}. We'll see you then! Reply STOP to opt out.`,
+      to: formatPhone(to),
+      from: fromNumber,
+    });
+
+    console.log('Booking confirmation SMS sent:', message.sid);
+    return { sent: true, messageId: message.sid };
+  } catch (error) {
+    console.error('SMS send error:', error.message);
+    return { sent: false, error: error.message };
+  }
+}
 
 // Cache Supabase client across warm invocations to avoid re-init overhead
 let supabaseClient = null;
@@ -216,13 +264,23 @@ exports.handler = async (event, context) => {
 
       console.log('New booking saved:', appointment);
 
+      // Send confirmation SMS (fire-and-forget — don't block the response)
+      sendBookingConfirmationSMS({
+        to: bookingData.phone,
+        customerName: bookingData.name,
+        serviceName: bookingData.service,
+        date: bookingData.date,
+        time: bookingData.time,
+      }).catch(err => console.error('SMS background error:', err));
+
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           success: true,
           message: 'Booking saved successfully',
-          appointment
+          appointment,
+          smsStatus: 'queued',
         }),
       };
     }
