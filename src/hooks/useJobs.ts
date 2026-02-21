@@ -61,8 +61,9 @@ export function useJobs(): UseJobsReturn {
           )
         `)
         .eq('company_id', company.id)
-        .order('scheduled_date', { ascending: true })
-        .order('scheduled_time_start', { ascending: true });
+        .order('scheduled_date', { ascending: false })
+        .order('scheduled_time_start', { ascending: true })
+        .limit(5000);
 
       if (fetchError) {
         throw fetchError;

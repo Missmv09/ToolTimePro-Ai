@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -51,7 +51,12 @@ function JobsContent() {
   // Get company_id from AuthContext
   const companyId = dbUser?.company_id || null
 
+  // Track the latest fetch to prevent stale responses from overwriting newer data
+  const fetchIdRef = useRef(0)
+
   const fetchJobs = useCallback(async (compId: string) => {
+    const currentFetchId = ++fetchIdRef.current
+
     // Use server-side API to fetch jobs with assignments (bypasses RLS)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -69,6 +74,8 @@ function JobsContent() {
 
         if (res.ok) {
           const result = await res.json()
+          // Only update state if this is still the latest request
+          if (currentFetchId !== fetchIdRef.current) return
           console.log('[fetchJobs] API returned', result.jobs?.length, 'jobs. Sample assignments:',
             result.jobs?.slice(0, 2).map((j: Job) => ({ title: j.title, assigned: j.assigned_users })))
           setJobs(result.jobs || [])
@@ -90,7 +97,8 @@ function JobsContent() {
         assigned_users:job_assignments(user:users(id, full_name))
       `)
       .eq('company_id', compId)
-      .order('scheduled_date', { ascending: true })
+      .order('scheduled_date', { ascending: false })
+      .limit(5000)
 
     if (filter !== 'all') {
       query = query.eq('status', filter)
@@ -101,6 +109,9 @@ function JobsContent() {
     }
 
     const { data, error } = await query
+
+    // Only update state if this is still the latest request
+    if (currentFetchId !== fetchIdRef.current) return
 
     if (error) {
       console.error('[fetchJobs] Direct query error:', error)
@@ -139,33 +150,28 @@ function JobsContent() {
     setQuotes(data || [])
   }, [])
 
+  // Auth & initial data load (customers, workers, quotes — only when companyId changes)
   useEffect(() => {
-    // Wait for auth to finish loading
     if (authLoading) return
-
-    // Redirect if not authenticated
     if (!user) {
       router.push('/auth/login')
       return
     }
-
-    // Fetch data once we have a company_id
     if (companyId) {
-      fetchJobs(companyId)
       fetchCustomers(companyId)
       fetchWorkers(companyId)
       fetchQuotes(companyId)
     } else {
-      // No company_id yet, stop loading to avoid infinite loop
       setLoading(false)
     }
-  }, [authLoading, user, companyId, router, fetchJobs, fetchCustomers, fetchWorkers, fetchQuotes])
+  }, [authLoading, user, companyId, router, fetchCustomers, fetchWorkers, fetchQuotes])
 
+  // Fetch jobs whenever filter, customerFilter, or companyId changes
   useEffect(() => {
     if (companyId) {
       fetchJobs(companyId)
     }
-  }, [filter, companyId, customerFilter, fetchJobs])
+  }, [companyId, fetchJobs])
 
   const updateJobStatus = async (jobId: string, newStatus: string) => {
     const { error } = await supabase

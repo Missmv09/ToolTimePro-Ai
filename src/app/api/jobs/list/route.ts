@@ -48,7 +48,8 @@ export async function GET(request: NextRequest) {
       .from('jobs')
       .select('*, customer:customers(id, name)')
       .eq('company_id', profile.company_id)
-      .order('scheduled_date', { ascending: true })
+      .order('scheduled_date', { ascending: false })
+      .limit(5000)
 
     if (filter !== 'all') {
       query = query.eq('status', filter)
