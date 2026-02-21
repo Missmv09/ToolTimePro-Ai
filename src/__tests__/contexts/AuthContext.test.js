@@ -36,6 +36,9 @@ jest.mock('@/lib/supabase', () => {
             single: jest.fn().mockResolvedValue({ data: null, error: null }),
           }),
         }),
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
       }),
       rpc: jest.fn().mockResolvedValue({ error: null }),
     },
@@ -100,7 +103,7 @@ describe('AuthContext', () => {
   });
 
   it('signIn calls supabase auth', async () => {
-    supabase.auth.signInWithPassword.mockResolvedValue({ error: null });
+    supabase.auth.signInWithPassword.mockResolvedValue({ data: { user: { id: 'user-123' }, session: null }, error: null });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
