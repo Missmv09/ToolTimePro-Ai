@@ -20,6 +20,7 @@ import {
   Lock,
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import JennyExecChat from '@/components/jenny/JennyExecChat';
 import { useComplianceAlerts } from '@/hooks/useComplianceAlerts';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -438,30 +439,17 @@ export default function ComplianceDashboardPage() {
               </div>
             </div>
 
-            {/* CA Labor Law Reference */}
-            <div className="card bg-navy-50 border border-navy-100">
-              <h3 className="text-sm font-semibold text-navy-500 mb-3 flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                CA Labor Law Quick Reference
-              </h3>
-              <div className="space-y-2 text-xs text-navy-600">
-                <p>
-                  <strong>Meal Break:</strong> 30 min unpaid after 5 hours
-                </p>
-                <p>
-                  <strong>Second Meal:</strong> After 10 hours if &gt;12 hr shift
-                </p>
-                <p>
-                  <strong>Rest Break:</strong> 10 min paid per 4 hours worked
-                </p>
-                <p>
-                  <strong>Overtime:</strong> 1.5x after 8 hours/day
-                </p>
-                <p>
-                  <strong>Double Time:</strong> 2x after 12 hours/day
-                </p>
-              </div>
-            </div>
+            {/* Jenny AI Compliance Advisor */}
+            <JennyExecChat
+              mode="compliance"
+              complianceStats={{
+                totalViolations: stats.totalViolations,
+                mealBreakViolations: stats.mealBreakViolations,
+                restBreakViolations: stats.restBreakViolations,
+                overtimeAlerts: stats.overtimeAlerts,
+              }}
+              inline
+            />
           </div>
         </div>
 
