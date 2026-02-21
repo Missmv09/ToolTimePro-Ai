@@ -69,13 +69,15 @@ let supabaseInstance = null;
 function getSupabase() {
   if (!supabaseInstance) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase environment variables not configured');
+      throw new Error('Supabase environment variables not configured (SUPABASE_SERVICE_ROLE_KEY is required for bookings)');
     }
 
-    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+    supabaseInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
   }
   return supabaseInstance;
 }
@@ -241,7 +243,7 @@ export async function POST(request) {
     }
 
     // Run lead creation and company name fetch in parallel (independent queries)
-    const [, companyResult] = await Promise.all([
+    const [leadResult, companyResult] = await Promise.all([
       supabase
         .from('leads')
         .insert({
@@ -254,7 +256,7 @@ export async function POST(request) {
           service_requested: serviceName,
           message: notes || `Booked ${serviceName} for ${scheduledDate}`,
           source: 'online_booking',
-          status: 'won',
+          status: 'new',
         }),
       supabase
         .from('companies')
@@ -263,17 +265,21 @@ export async function POST(request) {
         .single(),
     ]);
 
+    if (leadResult.error) {
+      console.error('Lead insert error:', leadResult.error);
+    }
+
     const companyName = companyResult.data?.name || 'Our team';
 
-    // Fire SMS as fire-and-forget — don't block the response on it
-    sendConfirmationSMS({
+    // Await SMS so we can report real status
+    const smsResult = await sendConfirmationSMS({
       to: customerPhone,
       customerName,
       serviceName,
       date: scheduledDate,
       time: scheduledTimeStart,
       companyName,
-    }).catch(err => console.error('SMS background error:', err));
+    });
 
     return NextResponse.json({
       success: true,
@@ -284,7 +290,9 @@ export async function POST(request) {
         time: scheduledTimeStart,
         customer: customerName,
       },
-      smsStatus: 'queued',
+      leadCreated: !leadResult.error,
+      smsStatus: smsResult.sent ? 'sent' : 'not_sent',
+      smsDetail: smsResult.sent ? undefined : (smsResult.reason || smsResult.error),
     });
 
   } catch (error) {
