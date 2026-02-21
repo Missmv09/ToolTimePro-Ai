@@ -421,6 +421,9 @@ export default function DashboardPage() {
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       lead.status === 'new' ? 'bg-green-100 text-green-700' :
                       lead.status === 'contacted' ? 'bg-blue-100 text-blue-700' :
+                      lead.status === 'quoted' ? 'bg-yellow-100 text-yellow-700' :
+                      lead.status === 'booked' ? 'bg-indigo-100 text-indigo-700' :
+                      lead.status === 'won' ? 'bg-purple-100 text-purple-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
                       {lead.status}

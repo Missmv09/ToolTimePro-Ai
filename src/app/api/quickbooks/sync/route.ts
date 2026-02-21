@@ -324,6 +324,16 @@ export async function POST() {
             .insert(invoiceData)
         }
 
+        // Update any booked leads for this customer to "won" now that payment is received
+        if (status === 'paid' && customerId) {
+          await supabase
+            .from('leads')
+            .update({ status: 'won', updated_at: new Date().toISOString() })
+            .eq('company_id', companyId)
+            .eq('customer_id', customerId)
+            .eq('status', 'booked')
+        }
+
         syncResults.invoices++
       }
 
