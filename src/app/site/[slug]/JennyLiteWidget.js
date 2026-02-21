@@ -216,7 +216,10 @@ export default function JennyLiteWidget({
 
   function saveLead({ name, phoneNumber, service, chatTranscript }) {
     if (leadSavedRef.current) return;
-    if (!siteId && !companyId) return;
+    if (!siteId && !companyId) {
+      console.warn('[Jenny] saveLead skipped: no siteId or companyId');
+      return;
+    }
 
     leadSavedRef.current = true;
 
@@ -238,7 +241,19 @@ export default function JennyLiteWidget({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    }).catch((err) => console.error('Jenny lead save error:', err));
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((data) => {
+            console.error('[Jenny] Lead save API error:', res.status, data);
+            leadSavedRef.current = false; // Allow retry on failure
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('[Jenny] Lead save network error:', err);
+        leadSavedRef.current = false; // Allow retry on failure
+      });
   }
 
   // ── Language switch ────────────────────────────────────────────
@@ -282,15 +297,9 @@ export default function JennyLiteWidget({
         setLeadCaptured(true);
         let msg = t.bookConfirm(finalData, businessName, phone);
 
-        // Also save to website_leads so it appears in leads dashboard
-        saveLead({
-          name: finalData.name,
-          phoneNumber: finalData.phone,
-          service: finalData.service,
-          chatTranscript: [...messages, { sender: 'user', text: userText }],
-        });
-
         // Save booking to database (creates lead, job, customer, and sends SMS)
+        // Note: /api/bookings already creates a lead with source='online_booking',
+        // so we only call saveLead() as a fallback when companyId is missing.
         if (companyId) {
           // Parse a rough date from user input (e.g. "Monday morning", "ASAP")
           // Default to tomorrow if we can't parse a specific date
@@ -335,6 +344,14 @@ export default function JennyLiteWidget({
                 { sender: 'bot', text: '⚠️ We had trouble confirming your booking online. Don\'t worry — our team has your info and will reach out to confirm.' },
               ]);
             });
+        } else {
+          // No companyId — fall back to saving just the lead via website-builder API
+          saveLead({
+            name: finalData.name,
+            phoneNumber: finalData.phone,
+            service: finalData.service,
+            chatTranscript: [...messages, { sender: 'user', text: userText }],
+          });
         }
         return msg;
       }

@@ -55,6 +55,8 @@ export async function POST(request) {
     let resolvedCompanyId = bodyCompanyId || null;
     let resolvedSiteId = siteId || null;
 
+    console.log('[Website Leads] Incoming lead:', { name: trimmedName, source: leadSource, siteId: resolvedSiteId, companyId: resolvedCompanyId });
+
     // Helper: try insert, if FK violation on company_id retry without it
     async function tryInsert(table, record) {
       const { error } = await supabase.from(table).insert(record);
@@ -136,11 +138,14 @@ export async function POST(request) {
 
     // If neither table accepted the lead, return error
     if (!saved) {
+      console.error('[Website Leads] All inserts failed for lead:', { name: trimmedName, source: leadSource, companyId: resolvedCompanyId, siteId: resolvedSiteId });
       return NextResponse.json(
         { error: 'Failed to save lead. Please try again or contact us directly.' },
         { status: 500, headers: corsHeaders }
       );
     }
+
+    console.log('[Website Leads] Lead saved:', { name: trimmedName, source: leadSource, companyId: resolvedCompanyId });
 
     return NextResponse.json(
       { success: true, message: 'Thank you! We\'ll be in touch soon.' },
