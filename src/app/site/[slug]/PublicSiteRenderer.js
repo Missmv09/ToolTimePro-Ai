@@ -437,6 +437,7 @@ export default function PublicSiteRenderer({ site, template, isBetaTester = fals
         position="right"
         isBetaTester={isBetaTester}
         companyId={site.company_id}
+        siteId={site.id}
       />
     </div>
   );

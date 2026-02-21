@@ -166,6 +166,7 @@ export default function JennyLiteWidget({
   position = 'right',
   isBetaTester = false,
   companyId = null,
+  siteId = null,
 }) {
   const hasPro = isBetaTester; // Pro features unlocked for beta testers
 
@@ -181,6 +182,8 @@ export default function JennyLiteWidget({
   const inputRef = useRef(null);
 
   const t = i18n[lang];
+
+  const leadSavedRef = useRef(false);
 
   const headerLabel = hasPro ? 'Jenny AI' : 'Jenny';
 
@@ -208,6 +211,35 @@ export default function JennyLiteWidget({
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
+
+  // ── Save lead to backend ──────────────────────────────────────
+
+  function saveLead({ name, phoneNumber, service, chatTranscript }) {
+    if (leadSavedRef.current) return;
+    if (!siteId && !companyId) return;
+
+    leadSavedRef.current = true;
+
+    const transcriptText = chatTranscript
+      .map((m) => `${m.sender === 'user' ? 'Customer' : 'Jenny AI'}: ${m.text}`)
+      .join('\n');
+
+    const payload = {
+      name: name || 'Chat visitor',
+      phone: phoneNumber || null,
+      message: transcriptText || null,
+      service: service || null,
+      source: 'jenny_ai_chat',
+    };
+    if (siteId) payload.siteId = siteId;
+    if (companyId) payload.companyId = companyId;
+
+    fetch('/api/website-builder/leads/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch((err) => console.error('Jenny lead save error:', err));
+  }
 
   // ── Language switch ────────────────────────────────────────────
 
@@ -249,6 +281,14 @@ export default function JennyLiteWidget({
         setBookingStep(null);
         setLeadCaptured(true);
         let msg = t.bookConfirm(finalData, businessName, phone);
+
+        // Also save to website_leads so it appears in leads dashboard
+        saveLead({
+          name: finalData.name,
+          phoneNumber: finalData.phone,
+          service: finalData.service,
+          chatTranscript: [...messages, { sender: 'user', text: userText }],
+        });
 
         // Save booking to database (creates lead, job, customer, and sends SMS)
         if (companyId) {
@@ -318,6 +358,21 @@ export default function JennyLiteWidget({
     if (awaitingInfo) {
       setAwaitingInfo(false);
       setLeadCaptured(true);
+
+      // Extract phone number and name from user message
+      const phoneMatch = userText.match(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\d{10}/);
+      const extractedPhone = phoneMatch ? phoneMatch[0] : null;
+      // Rough name extraction: strip the phone number, take what remains
+      const nameCandidate = userText.replace(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\d{10}/g, '').replace(/[,.\-]/g, ' ').trim();
+      const extractedName = nameCandidate.length >= 2 ? nameCandidate : null;
+
+      saveLead({
+        name: extractedName,
+        phoneNumber: extractedPhone,
+        service: null,
+        chatTranscript: [...messages, { sender: 'user', text: userText }],
+      });
+
       return t.leadCaptured(businessName, phone);
     }
 
