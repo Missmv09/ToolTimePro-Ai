@@ -138,9 +138,15 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
 
       setAlerts(alertsList);
       setTimeEntries(entriesWithHours as TimeEntryWithCompliance[]);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error fetching compliance data:', err);
-      setError('Failed to load compliance data');
+      // If tables don't exist yet, show empty state instead of error
+      const msg = err instanceof Error ? err.message : String(err);
+      const isTableMissing =
+        msg.includes('relation') && msg.includes('does not exist');
+      if (!isTableMissing) {
+        setError('Failed to load compliance data');
+      }
     } finally {
       setIsLoading(false);
     }
