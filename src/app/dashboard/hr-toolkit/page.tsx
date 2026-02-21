@@ -16,6 +16,8 @@ import {
   Search,
   Lock,
 } from 'lucide-react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import JennyExecChat from '@/components/jenny/JennyExecChat';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Template {
@@ -118,26 +120,29 @@ export default function HRToolkitPage() {
 
   if (!hasAccess) {
     return (
-      <div className="max-w-lg mx-auto mt-20 text-center">
-        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Lock className="w-8 h-8 text-amber-600" />
+      <DashboardLayout>
+        <div className="max-w-lg mx-auto mt-20 text-center">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-amber-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Jenny Exec Admin Feature</h1>
+          <p className="text-gray-500 mb-6">
+            The HR Toolkit is part of Jenny Exec Admin — available to business owners
+            for $79/mo. Get HR templates, compliance documents, and workforce management tools.
+          </p>
+          <Link
+            href="/pricing"
+            className="inline-block px-6 py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors no-underline"
+          >
+            View Plans & Add-ons
+          </Link>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Jenny Exec Admin Feature</h1>
-        <p className="text-gray-500 mb-6">
-          The HR Toolkit is part of Jenny Exec Admin — available to business owners
-          for $79/mo. Get HR templates, compliance documents, and workforce management tools.
-        </p>
-        <Link
-          href="/pricing"
-          className="inline-block px-6 py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors no-underline"
-        >
-          View Plans & Add-ons
-        </Link>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
+    <DashboardLayout>
     <div className="space-y-8">
       {/* Header */}
       <div>
@@ -218,6 +223,9 @@ export default function HRToolkitPage() {
         </div>
       )}
 
+      {/* Jenny AI HR Advisor */}
+      <JennyExecChat mode="hr" inline />
+
       {/* Quick Links */}
       <div className="card bg-navy-500">
         <h2 className="text-lg font-semibold text-white mb-4">Official Government Forms</h2>
@@ -265,5 +273,6 @@ export default function HRToolkitPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }
