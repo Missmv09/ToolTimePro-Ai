@@ -7,7 +7,8 @@ interface ChatMessage {
   content: string;
 }
 
-const COMPLIANCE_SYSTEM_PROMPT = `You are Jenny, an AI compliance advisor for California home service businesses inside ToolTime Pro.
+const COMPLIANCE_SYSTEM_PROMPT: Record<string, string> = {
+  en: `You are Jenny, an AI compliance advisor for California home service businesses inside ToolTime Pro.
 
 You are an expert in California labor law as it applies to small home service businesses (landscaping, plumbing, HVAC, cleaning, electrical, etc.). You help business owners stay compliant and avoid costly penalties.
 
@@ -38,9 +39,45 @@ FORMAT:
 - Keep responses concise (2-4 paragraphs max)
 - Use bullet points for lists
 - Bold key takeaways
-- If suggesting an action, be specific about what they need to do`;
+- If suggesting an action, be specific about what they need to do`,
 
-const HR_SYSTEM_PROMPT = `You are Jenny, an AI HR advisor for California home service businesses inside ToolTime Pro.
+  es: `Eres Jenny, una asesora de cumplimiento de IA para negocios de servicios del hogar en California dentro de ToolTime Pro.
+
+Eres experta en la ley laboral de California aplicada a pequeños negocios de servicios del hogar (jardinería, plomería, HVAC, limpieza, electricidad, etc.). Ayudas a los dueños de negocios a mantenerse en cumplimiento y evitar multas costosas.
+
+TU EXPERIENCIA:
+- Leyes de descanso para comer de California (30 min sin pago después de 5 horas, segundo descanso después de 10 horas)
+- Leyes de descanso de California (10 min pagados por cada 4 horas trabajadas)
+- Reglas de tiempo extra (1.5x después de 8 horas/día, 2x después de 12 horas/día, tiempo extra semanal después de 40 horas)
+- AB5 y clasificación de trabajadores (prueba ABC para contratistas independientes vs empleados W-2)
+- Multas PAGA y cómo evitarlas
+- Reglas de pago final (mismo día por despido, 72 horas por renuncia sin aviso)
+- Avisos de la Ley de Prevención de Robo de Salarios
+- Requisitos de compensación de trabajadores
+- Prevención de enfermedades por calor para trabajadores al aire libre
+- Reembolso de vehículo y millaje bajo el Código Laboral §2802
+- Requisitos de salario prevaleciente para obras públicas
+
+PERSONALIDAD:
+- Directa y práctica — da respuestas que un dueño de negocio ocupado pueda aplicar de inmediato
+- Usa español claro y sencillo, no jerga legal
+- Cuando sea relevante, menciona la sección específica del código laboral pero explícala de forma simple
+- Siempre sé precavida — recomienda cumplimiento en vez de atajos
+- Si una pregunta requiere un abogado, dilo claramente
+- Cuando des información sobre multas, incluye cantidades en dólares cuando sea posible
+
+CONTEXTO: Tienes acceso a los datos de cumplimiento del dueño del negocio cuando se proporcionan. Úsalos para dar consejos personalizados.
+
+FORMATO:
+- Mantén las respuestas concisas (2-4 párrafos máximo)
+- Usa viñetas para listas
+- Pon en negritas los puntos clave
+- Si sugieres una acción, sé específica sobre qué deben hacer
+- IMPORTANTE: Siempre responde en español`,
+};
+
+const HR_SYSTEM_PROMPT: Record<string, string> = {
+  en: `You are Jenny, an AI HR advisor for California home service businesses inside ToolTime Pro.
 
 You help small business owners manage their workforce — hiring, onboarding, managing, and separating employees — while staying compliant with California employment law.
 
@@ -72,9 +109,46 @@ FORMAT:
 - Use numbered steps for processes
 - Use bullet points for requirements
 - Bold the most critical compliance items
-- Include relevant form names or document titles when applicable`;
+- Include relevant form names or document titles when applicable`,
 
-const INSIGHTS_SYSTEM_PROMPT = `You are Jenny, an AI business insights advisor for home service businesses inside ToolTime Pro.
+  es: `Eres Jenny, una asesora de recursos humanos de IA para negocios de servicios del hogar en California dentro de ToolTime Pro.
+
+Ayudas a los dueños de pequeños negocios a gestionar su fuerza laboral — contratación, incorporación, gestión y separación de empleados — manteniéndose en cumplimiento con la ley laboral de California.
+
+TU EXPERIENCIA:
+- Mejores prácticas de contratación para negocios de servicios (W-2 vs 1099, cumplimiento AB5)
+- Requisitos de incorporación (I-9, W-4, DE-4, Aviso de Prevención de Robo de Salarios)
+- Manuales y políticas de empleados para pequeños negocios
+- Gestión de desempeño y documentación
+- Políticas de disciplina progresiva
+- Procedimientos de terminación y pago final (Código Laboral de CA §201-203)
+- Requisitos de capacitación anti-acoso (SB 1343)
+- Compensación de trabajadores y seguridad laboral
+- Requisitos de beneficios (umbrales de seguro médico, licencia por enfermedad)
+- Licencia por enfermedad pagada de California (mínimo 5 días/40 horas al año)
+- Licencia familiar y médica (CFRA, PDL)
+- Obligaciones de impuestos de nómina (EDD, SDI, UI)
+- Requisitos de mantenimiento de registros (4 años para registros de nómina)
+- Requisitos de Cal/OSHA para negocios de servicios
+
+PERSONALIDAD:
+- Amigable pero profesional — como una gerente de RH conocedora
+- Da guías paso a paso que se puedan aplicar
+- Menciona cuándo algo es legalmente requerido vs. mejor práctica
+- Si una situación es suficientemente compleja para necesitar un abogado laboral, dilo
+- Adapta los consejos a pequeños negocios de servicios del hogar (típicamente 2-20 empleados)
+
+FORMATO:
+- Mantén las respuestas concisas y fáciles de escanear
+- Usa pasos numerados para procesos
+- Usa viñetas para requisitos
+- Pon en negritas los puntos de cumplimiento más críticos
+- Incluye nombres de formularios o documentos relevantes cuando aplique
+- IMPORTANTE: Siempre responde en español`,
+};
+
+const INSIGHTS_SYSTEM_PROMPT: Record<string, string> = {
+  en: `You are Jenny, an AI business insights advisor for home service businesses inside ToolTime Pro.
 
 You help business owners understand their numbers, spot trends, and make smarter decisions to grow profitably.
 
@@ -103,27 +177,73 @@ FORMAT:
 - Lead with the key insight or takeaway
 - Use specific numbers when available
 - Keep responses focused and actionable
-- Suggest 1-2 concrete next steps`;
+- Suggest 1-2 concrete next steps`,
 
-function getSystemPrompt(mode: string): string {
+  es: `Eres Jenny, una asesora de perspectivas de negocio de IA para negocios de servicios del hogar dentro de ToolTime Pro.
+
+Ayudas a los dueños de negocios a entender sus números, detectar tendencias y tomar decisiones más inteligentes para crecer de forma rentable.
+
+TU EXPERIENCIA:
+- Análisis de ingresos y tendencias para negocios de servicios
+- Métricas de productividad y utilización de equipos
+- Análisis de rentabilidad por trabajo
+- Planificación estacional y pronósticos
+- Estrategia de precios para servicios del hogar
+- Costo de adquisición de clientes y valor de por vida
+- Gestión de flujo de efectivo para negocios de servicios
+- Indicadores clave de rendimiento (KPIs) para empresas de servicios en campo
+- Análisis de costos laborales y optimización de equipos
+- ROI de marketing para negocios de servicios locales
+
+PERSONALIDAD:
+- Basada en datos pero conversacional
+- Siempre conecta los números con consejos accionables
+- Compara métricas con puntos de referencia de la industria cuando sea relevante
+- Enfócate en la rentabilidad, no solo en los ingresos
+- Sé honesta sobre lo que muestran los datos, aunque no sean buenas noticias
+
+CONTEXTO: Cuando se proporcionan datos del negocio (ingresos, trabajos, info de equipo, estadísticas de cumplimiento), úsalos para dar perspectivas personalizadas.
+
+FORMATO:
+- Empieza con la perspectiva o conclusión clave
+- Usa números específicos cuando estén disponibles
+- Mantén las respuestas enfocadas y accionables
+- Sugiere 1-2 pasos concretos siguientes
+- IMPORTANTE: Siempre responde en español`,
+};
+
+function getSystemPrompt(mode: string, language: string = 'en'): string {
+  const lang = language === 'es' ? 'es' : 'en';
   switch (mode) {
     case 'compliance':
-      return COMPLIANCE_SYSTEM_PROMPT;
+      return COMPLIANCE_SYSTEM_PROMPT[lang];
     case 'hr':
-      return HR_SYSTEM_PROMPT;
+      return HR_SYSTEM_PROMPT[lang];
     case 'insights':
-      return INSIGHTS_SYSTEM_PROMPT;
+      return INSIGHTS_SYSTEM_PROMPT[lang];
     default:
-      return COMPLIANCE_SYSTEM_PROMPT;
+      return COMPLIANCE_SYSTEM_PROMPT[lang];
   }
 }
 
-function getFallbackResponse(mode: string, userMessage: string): string {
+function getFallbackResponse(mode: string, userMessage: string, language: string = 'en'): string {
   const lowerMsg = userMessage.toLowerCase();
+  const isEs = language === 'es';
 
   if (mode === 'compliance') {
-    if (lowerMsg.includes('meal') || lowerMsg.includes('break') || lowerMsg.includes('lunch')) {
-      return `**California Meal Break Requirements:**
+    if (lowerMsg.includes('meal') || lowerMsg.includes('break') || lowerMsg.includes('lunch') || lowerMsg.includes('comer') || lowerMsg.includes('descanso') || lowerMsg.includes('almuerzo')) {
+      return isEs
+        ? `**Requisitos de Descanso para Comer en California:**
+
+- Los empleados que trabajan **más de 5 horas** deben recibir un descanso de 30 minutos sin pago
+- Los empleados que trabajan **más de 10 horas** reciben un segundo descanso de 30 minutos (se puede renunciar si el turno es menor a 12 horas)
+- El descanso debe proporcionarse **antes del final de la 5ta hora** de trabajo
+- Los empleados deben ser **relevados de todas sus tareas** durante el descanso
+
+**Multa por violaciones:** Una hora adicional de pago a la tarifa regular del empleado por cada día de trabajo que se pierda un descanso para comer.
+
+**Consejo:** Configura recordatorios de descanso en tu control de tiempo para evitar violaciones. ¿Quieres saber más sobre descansos o tiempo extra?`
+        : `**California Meal Break Requirements:**
 
 - Employees working **more than 5 hours** must receive a 30-minute unpaid meal break
 - Employees working **more than 10 hours** get a second 30-minute meal break (can be waived if shift is under 12 hours)
@@ -134,8 +254,19 @@ function getFallbackResponse(mode: string, userMessage: string): string {
 
 **Tip:** Set up break reminders in your time tracking to avoid violations. Want to know more about rest breaks or overtime?`;
     }
-    if (lowerMsg.includes('overtime') || lowerMsg.includes('ot') || lowerMsg.includes('hours')) {
-      return `**California Overtime Rules for Service Businesses:**
+    if (lowerMsg.includes('overtime') || lowerMsg.includes('ot') || lowerMsg.includes('hours') || lowerMsg.includes('tiempo extra') || lowerMsg.includes('horas extra')) {
+      return isEs
+        ? `**Reglas de Tiempo Extra en California para Negocios de Servicios:**
+
+- **Tiempo extra diario:** 1.5x de pago después de 8 horas en un día laboral
+- **Tiempo doble:** 2x de pago después de 12 horas en un día laboral
+- **Tiempo extra semanal:** 1.5x de pago después de 40 horas en una semana laboral
+- **7mo día consecutivo:** 1.5x por las primeras 8 horas, 2x después de 8 horas
+
+**Importante:** California usa tiempo extra DIARIO, no solo semanal como la ley federal. Muchos dueños de negocios de servicios caen en esto.
+
+**Consejo:** Registra las horas diarias cuidadosamente, especialmente durante temporadas ocupadas cuando los equipos trabajan jornadas largas.`
+        : `**California Overtime Rules for Service Businesses:**
 
 - **Daily overtime:** 1.5x pay after 8 hours in a workday
 - **Double time:** 2x pay after 12 hours in a workday
@@ -146,7 +277,17 @@ function getFallbackResponse(mode: string, userMessage: string): string {
 
 **Tip:** Track daily hours carefully, especially during busy seasons when crews work long days.`;
     }
-    return `I'm Jenny, your CA compliance advisor. I can help with meal/rest break rules, overtime calculations, worker classification (AB5), final pay requirements, and more.
+    return isEs
+      ? `Soy Jenny, tu asesora de cumplimiento de CA. Puedo ayudarte con reglas de descansos, cálculos de tiempo extra, clasificación de trabajadores (AB5), requisitos de pago final, y más.
+
+**Preguntas comunes que puedo responder:**
+- "¿Cuándo debo dar descansos para comer?"
+- "¿Cómo funciona el tiempo extra en California?"
+- "¿Mi trabajador es contratista o empleado?"
+- "¿Cuáles son las multas por descansos perdidos?"
+
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
+      : `I'm Jenny, your CA compliance advisor. I can help with meal/rest break rules, overtime calculations, worker classification (AB5), final pay requirements, and more.
 
 **Common questions I can help with:**
 - "When do I need to give meal breaks?"
@@ -158,8 +299,25 @@ To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_
   }
 
   if (mode === 'hr') {
-    if (lowerMsg.includes('hire') || lowerMsg.includes('onboard') || lowerMsg.includes('new employee')) {
-      return `**California New Hire Checklist:**
+    if (lowerMsg.includes('hire') || lowerMsg.includes('onboard') || lowerMsg.includes('new employee') || lowerMsg.includes('contrat') || lowerMsg.includes('nuevo empleado') || lowerMsg.includes('incorpora')) {
+      return isEs
+        ? `**Lista de Verificación para Nuevas Contrataciones en California:**
+
+1. **Antes del primer día:** Hacer verificación de antecedentes (si aplica), preparar carta de oferta
+2. **Día 1 — Formularios requeridos:**
+   - Formulario I-9 (Elegibilidad de Empleo)
+   - Formulario W-4 (Retención de Impuestos Federales)
+   - Formulario CA DE-4 (Retención de Impuestos Estatales)
+   - Aviso de Prevención de Robo de Salarios (DLSE)
+3. **Dentro de 20 días:** Reportar nueva contratación al EDD (Registro de Nuevos Empleados)
+4. **Proporcionar por escrito:**
+   - Tarifa de pago y calendario de pagos
+   - Información de seguro de compensación de trabajadores
+   - Política de licencia por enfermedad pagada
+   - Política contra el acoso
+
+**No olvides:** ¡Si son contratistas 1099, usa la prueba ABC para confirmar la clasificación correcta primero!`
+        : `**California New Hire Checklist:**
 
 1. **Before first day:** Run background check (if applicable), prepare offer letter
 2. **Day 1 — Required forms:**
@@ -176,8 +334,25 @@ To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_
 
 **Don't forget:** If they're a 1099 contractor, use the ABC test to confirm proper classification first!`;
     }
-    if (lowerMsg.includes('fire') || lowerMsg.includes('terminat') || lowerMsg.includes('let go')) {
-      return `**California Termination Checklist:**
+    if (lowerMsg.includes('fire') || lowerMsg.includes('terminat') || lowerMsg.includes('let go') || lowerMsg.includes('despid') || lowerMsg.includes('termin') || lowerMsg.includes('despedir')) {
+      return isEs
+        ? `**Lista de Verificación de Terminación en California:**
+
+**Tiempo de Pago Final (esto es crítico):**
+- **Terminación involuntaria (despido):** Último cheque debido **inmediatamente** el último día
+- **Renuncia voluntaria con 72+ horas de aviso:** Debido el último día
+- **Renuncia voluntaria sin aviso:** Debido dentro de **72 horas**
+
+**El pago final debe incluir:**
+- Todas las horas trabajadas hasta el último día
+- Todas las vacaciones/PTO acumuladas no utilizadas
+- Cualquier comisión o bono ganado
+- Reembolsos de gastos
+
+**Multa por pago final tardío:** Un día de salario por cada día de retraso, hasta 30 días (Código Laboral §203).
+
+**Documenta todo:** Haz que el empleado firme por el equipo devuelto, llaves y propiedad de la empresa.`
+        : `**California Termination Checklist:**
 
 **Final Pay Timing (this is critical):**
 - **Involuntary termination (fired):** Final paycheck due **immediately** on last day
@@ -194,7 +369,17 @@ To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_
 
 **Document everything:** Have the employee sign for returned equipment, keys, and company property.`;
     }
-    return `I'm Jenny, your HR advisor for home service businesses. I can help with hiring, onboarding, managing employees, terminations, and CA employment law.
+    return isEs
+      ? `Soy Jenny, tu asesora de RH para negocios de servicios del hogar. Puedo ayudarte con contratación, incorporación, gestión de empleados, terminaciones, y ley laboral de CA.
+
+**Preguntas comunes que puedo responder:**
+- "¿Qué formularios necesito para una nueva contratación?"
+- "¿Cómo despido correctamente a un empleado?"
+- "¿Necesito un manual del empleado?"
+- "¿Cuál es la diferencia entre W-2 y 1099?"
+
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
+      : `I'm Jenny, your HR advisor for home service businesses. I can help with hiring, onboarding, managing employees, terminations, and CA employment law.
 
 **Common questions I can help with:**
 - "What forms do I need for a new hire?"
@@ -206,7 +391,17 @@ To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_
   }
 
   // Insights fallback
-  return `I'm Jenny, your business insights advisor. I can help analyze your revenue, crew productivity, job profitability, and more.
+  return isEs
+    ? `Soy Jenny, tu asesora de perspectivas de negocio. Puedo ayudarte a analizar tus ingresos, productividad del equipo, rentabilidad por trabajo, y más.
+
+**Pregúntame cosas como:**
+- "¿Cómo está rindiendo mi equipo?"
+- "¿Cuánto debo cobrar por corte de césped?"
+- "¿Cómo puedo mejorar la rentabilidad?"
+- "¿Qué KPIs debo seguir?"
+
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
+    : `I'm Jenny, your business insights advisor. I can help analyze your revenue, crew productivity, job profitability, and more.
 
 **Ask me things like:**
 - "How is my crew performing?"
@@ -223,10 +418,12 @@ export async function POST(request: NextRequest) {
     const {
       messages,
       mode = 'compliance',
+      language = 'en',
       context,
     } = body as {
       messages: ChatMessage[];
       mode: 'compliance' | 'hr' | 'insights';
+      language?: 'en' | 'es';
       context?: {
         companyName?: string;
         companyPlan?: string;
@@ -251,7 +448,7 @@ export async function POST(request: NextRequest) {
     const lastUserMessage = messages[messages.length - 1]?.content || '';
 
     // Build system prompt with context
-    let systemPrompt = getSystemPrompt(mode);
+    let systemPrompt = getSystemPrompt(mode, language);
 
     if (context) {
       const contextParts: string[] = [];
@@ -273,7 +470,7 @@ export async function POST(request: NextRequest) {
     // If no OpenAI key, return smart fallback
     if (!OPENAI_API_KEY) {
       return NextResponse.json({
-        message: getFallbackResponse(mode, lastUserMessage),
+        message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
       });
     }
@@ -304,7 +501,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       console.error('OpenAI error:', await response.text());
       return NextResponse.json({
-        message: getFallbackResponse(mode, lastUserMessage),
+        message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
       });
     }
@@ -314,7 +511,7 @@ export async function POST(request: NextRequest) {
 
     if (!content) {
       return NextResponse.json({
-        message: getFallbackResponse(mode, lastUserMessage),
+        message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
       });
     }

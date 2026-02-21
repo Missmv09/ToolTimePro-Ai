@@ -103,6 +103,45 @@ const translations: Translations = {
 
   // Footer
   'footer.tagline': { en: 'Your business, on autopilot.', es: 'Tu negocio, en piloto automático.' },
+
+  // Jenny Exec Chat — UI
+  'jenny.askJenny': { en: 'Ask Jenny', es: 'Pregúntale a Jenny' },
+  'jenny.clearChat': { en: 'Clear chat', es: 'Borrar chat' },
+  'jenny.scrollLatest': { en: 'Scroll to latest', es: 'Ir al más reciente' },
+  'jenny.errorConnect': { en: 'Sorry, I had trouble connecting. Please try again in a moment.', es: 'Lo siento, tuve problemas al conectar. Por favor intenta de nuevo en un momento.' },
+
+  // Jenny — Compliance mode
+  'jenny.compliance.title': { en: 'Jenny Compliance Advisor', es: 'Jenny Asesora de Cumplimiento' },
+  'jenny.compliance.subtitle': { en: 'CA labor law expertise', es: 'Experta en leyes laborales de CA' },
+  'jenny.compliance.greeting': { en: "Hi! I'm Jenny, your CA compliance advisor. Ask me anything or pick a question below.", es: '¡Hola! Soy Jenny, tu asesora de cumplimiento de CA. Pregúntame lo que quieras o elige una pregunta abajo.' },
+  'jenny.compliance.placeholder': { en: 'Ask Jenny about compliance...', es: 'Pregúntale a Jenny sobre cumplimiento...' },
+  'jenny.compliance.prompt': { en: 'CA labor law compliance', es: 'cumplimiento de leyes laborales de CA' },
+  'jenny.compliance.q1': { en: 'When do I need to give meal breaks?', es: '¿Cuándo debo dar descansos para comer?' },
+  'jenny.compliance.q2': { en: 'How does overtime work in California?', es: '¿Cómo funciona el tiempo extra en California?' },
+  'jenny.compliance.q3': { en: 'Is my worker a contractor or employee?', es: '¿Mi trabajador es contratista o empleado?' },
+  'jenny.compliance.q4': { en: 'What are the penalties for missed breaks?', es: '¿Cuáles son las multas por descansos perdidos?' },
+
+  // Jenny — HR mode
+  'jenny.hr.title': { en: 'Jenny HR Advisor', es: 'Jenny Asesora de RH' },
+  'jenny.hr.subtitle': { en: 'Workforce management guidance', es: 'Guía para gestión de personal' },
+  'jenny.hr.greeting': { en: "Hi! I'm Jenny, your HR advisor. Ask me anything or pick a question below.", es: '¡Hola! Soy Jenny, tu asesora de recursos humanos. Pregúntame lo que quieras o elige una pregunta abajo.' },
+  'jenny.hr.placeholder': { en: 'Ask Jenny about HR...', es: 'Pregúntale a Jenny sobre RH...' },
+  'jenny.hr.prompt': { en: 'HR and workforce management', es: 'RH y gestión de personal' },
+  'jenny.hr.q1': { en: 'What forms do I need for a new hire?', es: '¿Qué formularios necesito para una nueva contratación?' },
+  'jenny.hr.q2': { en: 'How do I properly terminate an employee?', es: '¿Cómo despido correctamente a un empleado?' },
+  'jenny.hr.q3': { en: 'Do I need an employee handbook?', es: '¿Necesito un manual del empleado?' },
+  'jenny.hr.q4': { en: 'W-2 vs 1099 — how do I classify workers?', es: 'W-2 vs 1099 — ¿cómo clasifico a los trabajadores?' },
+
+  // Jenny — Insights mode
+  'jenny.insights.title': { en: 'Jenny Business Insights', es: 'Jenny Perspectivas de Negocio' },
+  'jenny.insights.subtitle': { en: 'Data-driven business advice', es: 'Consejos de negocio basados en datos' },
+  'jenny.insights.greeting': { en: "Hi! I'm Jenny, your business insights advisor. Ask me anything or pick a question below.", es: '¡Hola! Soy Jenny, tu asesora de perspectivas de negocio. Pregúntame lo que quieras o elige una pregunta abajo.' },
+  'jenny.insights.placeholder': { en: 'Ask Jenny about your business...', es: 'Pregúntale a Jenny sobre tu negocio...' },
+  'jenny.insights.prompt': { en: 'your business metrics', es: 'las métricas de tu negocio' },
+  'jenny.insights.q1': { en: 'What KPIs should I track?', es: '¿Qué KPIs debo seguir?' },
+  'jenny.insights.q2': { en: 'How can I improve profitability?', es: '¿Cómo puedo mejorar la rentabilidad?' },
+  'jenny.insights.q3': { en: 'What should I charge for my services?', es: '¿Cuánto debo cobrar por mis servicios?' },
+  'jenny.insights.q4': { en: 'How do I reduce crew turnover?', es: '¿Cómo reduzco la rotación de personal?' },
 };
 
 interface LanguageContextType {
