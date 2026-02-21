@@ -237,6 +237,16 @@ export function useInvoices(): UseInvoicesReturn {
         return { error: updateError };
       }
 
+      // Update any booked leads for this customer to "won" now that payment is received
+      if (invoice?.customer_id && company?.id) {
+        await supabase
+          .from('leads')
+          .update({ status: 'won', updated_at: new Date().toISOString() })
+          .eq('company_id', company.id)
+          .eq('customer_id', invoice.customer_id)
+          .eq('status', 'booked');
+      }
+
       await fetchInvoices();
       return { error: null };
     } catch (err) {

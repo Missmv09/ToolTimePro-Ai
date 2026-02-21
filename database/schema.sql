@@ -91,7 +91,7 @@ CREATE TABLE leads (
     service_requested TEXT,
     message TEXT,
     source VARCHAR(100) DEFAULT 'website', -- website, chatbot, phone, referral
-    status VARCHAR(50) DEFAULT 'new', -- new, contacted, quoted, won, lost
+    status VARCHAR(50) DEFAULT 'new', -- new, contacted, quoted, booked, won, lost
     estimated_value DECIMAL(10,2),
     follow_up_date DATE,
     assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,

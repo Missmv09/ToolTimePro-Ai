@@ -133,6 +133,16 @@ export default function InvoicesPage() {
       payment_method: 'manual',
       status: 'completed',
     })
+
+    // Update any booked leads for this customer to "won" now that payment is received
+    if (invoice.customer_id && companyId) {
+      await supabase
+        .from('leads')
+        .update({ status: 'won', updated_at: new Date().toISOString() })
+        .eq('company_id', companyId)
+        .eq('customer_id', invoice.customer_id)
+        .eq('status', 'booked')
+    }
   }
 
   const sendInvoice = async (invoice: Invoice) => {

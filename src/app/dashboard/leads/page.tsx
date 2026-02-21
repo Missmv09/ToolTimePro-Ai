@@ -138,20 +138,21 @@ export default function LeadsPage() {
     await supabase
       .from('leads')
       .update({
-        status: 'won',
+        status: 'booked',
         customer_id: customer.id,
         updated_at: new Date().toISOString()
       })
       .eq('id', lead.id)
 
     fetchLeads(companyId)
-    alert('Lead converted to customer!')
+    alert('Lead booked! Status will update to Won once payment is received.')
   }
 
   const statusColors: Record<string, string> = {
     new: 'bg-green-100 text-green-700',
     contacted: 'bg-blue-100 text-blue-700',
     quoted: 'bg-yellow-100 text-yellow-700',
+    booked: 'bg-indigo-100 text-indigo-700',
     won: 'bg-purple-100 text-purple-700',
     lost: 'bg-gray-100 text-gray-700',
   }
@@ -181,7 +182,7 @@ export default function LeadsPage() {
 
       {/* Filters */}
       <div className="flex gap-2 mb-6">
-        {['all', 'new', 'contacted', 'quoted', 'won', 'lost'].map((status) => (
+        {['all', 'new', 'contacted', 'quoted', 'booked', 'won', 'lost'].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -197,7 +198,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg border">
           <p className="text-sm text-gray-500">Total</p>
           <p className="text-2xl font-bold">{leads.length}</p>
@@ -218,6 +219,12 @@ export default function LeadsPage() {
           <p className="text-sm text-yellow-600">Quoted</p>
           <p className="text-2xl font-bold text-yellow-700">
             {leads.filter(l => l.status === 'quoted').length}
+          </p>
+        </div>
+        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+          <p className="text-sm text-indigo-600">Booked</p>
+          <p className="text-2xl font-bold text-indigo-700">
+            {leads.filter(l => l.status === 'booked').length}
           </p>
         </div>
         <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
@@ -274,6 +281,7 @@ export default function LeadsPage() {
                       <option value="new">New</option>
                       <option value="contacted">Contacted</option>
                       <option value="quoted">Quoted</option>
+                      <option value="booked">Booked</option>
                       <option value="won">Won</option>
                       <option value="lost">Lost</option>
                     </select>
@@ -291,7 +299,7 @@ export default function LeadsPage() {
                           Call
                         </a>
                       )}
-                      {lead.status !== 'won' && (
+                      {lead.status !== 'booked' && lead.status !== 'won' && (
                         <button
                           onClick={() => convertToCustomer(lead)}
                           className="text-green-600 hover:text-green-800 text-sm"

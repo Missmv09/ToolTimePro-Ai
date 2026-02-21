@@ -13,7 +13,7 @@ export interface Lead {
   service_requested: string | null;
   message: string | null;
   source: string;
-  status: 'new' | 'contacted' | 'quoted' | 'won' | 'lost';
+  status: 'new' | 'contacted' | 'quoted' | 'booked' | 'won' | 'lost';
   estimated_value: number | null;
   follow_up_date: string | null;
   created_at: string;
