@@ -56,6 +56,7 @@ const industryToTrade = {
   'junk-removal': 'mover',
   'moving': 'mover',
   'flooring': 'flooring',
+  'sheet-metal': 'sheet-metal',
   'fencing': 'general',
   'garage-door': 'general',
   'locksmith': 'handyman',
