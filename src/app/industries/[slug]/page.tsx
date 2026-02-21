@@ -441,6 +441,28 @@ const industries: Record<string, {
       { question: 'Can customers pay on-site?', answer: 'Yes! Send invoice with payment link. Get paid by card before you leave.' }
     ]
   },
+  'sheet-metal': {
+    name: 'Sheet Metal',
+    icon: '🏭',
+    description: 'Run your sheet metal fabrication and installation business with ease. Manage custom jobs, schedule crews, send professional quotes, and get paid faster.',
+    painPoints: ['Creating accurate fabrication estimates', 'Tracking custom job specs and measurements', 'Coordinating shop and field crews', 'Chasing payments on large projects'],
+    testimonial: {
+      quote: "ToolTime Pro helped us go from handwritten quotes to professional estimates in minutes. We\'re closing bigger contracts and getting paid twice as fast.",
+      author: "Ray Gutierrez",
+      company: "Precision Sheet Metal Works",
+      location: "Los Angeles, CA"
+    },
+    stats: [
+      { value: '45%', label: 'Faster estimates' },
+      { value: '2x', label: 'Payment speed' },
+      { value: '$8K', label: 'Avg job value' }
+    ],
+    faqs: [
+      { question: 'Can I create detailed fabrication estimates?', answer: 'Yes! Build itemized quotes with materials, labor, and custom line items for ductwork, flashing, gutters, or any sheet metal work. Send professional estimates instantly.' },
+      { question: 'How do I manage shop and field crews?', answer: 'See your entire team on one calendar. Assign fabrication work at the shop and installation jobs in the field without double-booking.' },
+      { question: 'Can I track custom job specifications?', answer: 'Yes! Add detailed notes, measurements, and photos to every job. Your whole team can access specs from the mobile app on-site.' }
+    ]
+  },
   'window-cleaning': {
     name: 'Window Cleaning',
     icon: '🪟',
@@ -468,7 +490,7 @@ const industries: Record<string, {
 // List of all industry slugs for static generation
 const allIndustrySlugs = [
   'landscaping', 'lawn-care', 'tree-service', 'pool-service', 'irrigation', 'fencing', 'snow-removal', 'pressure-washing',
-  'plumbing', 'electrical', 'hvac', 'roofing', 'painting', 'flooring', 'carpentry', 'drywall', 'concrete', 'welding', 'insulation', 'siding',
+  'plumbing', 'electrical', 'hvac', 'roofing', 'painting', 'flooring', 'carpentry', 'drywall', 'concrete', 'welding', 'sheet-metal', 'insulation', 'siding',
   'cleaning', 'commercial-cleaning', 'carpet-cleaning', 'window-cleaning', 'gutter-cleaning', 'chimney-sweep', 'janitorial',
   'handyman', 'appliance-repair', 'garage-door', 'locksmith', 'glass-mirror', 'furniture-assembly', 'tv-mounting',
   'pest-control', 'solar', 'home-inspection', 'septic', 'security-systems', 'home-theater', 'smart-home',
