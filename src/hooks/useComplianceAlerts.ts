@@ -91,7 +91,9 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
       if (alertsError) throw alertsError;
 
       // Fetch time entries with attestation data
-      const { data: entriesData, error: entriesError } = await supabase
+      // Try with compliance columns first, fall back to base columns if migration not applied
+      let entriesData;
+      const { data: fullData, error: fullError } = await supabase
         .from('time_entries')
         .select(`
           id,
@@ -108,7 +110,37 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
         .not('clock_out', 'is', null)
         .order('clock_in', { ascending: false });
 
-      if (entriesError) throw entriesError;
+      if (fullError) {
+        const errMsg = fullError.message || '';
+        // If compliance columns don't exist yet, retry with base columns only
+        if (errMsg.includes('does not exist') || errMsg.includes('undefined')) {
+          const { data: baseData, error: baseError } = await supabase
+            .from('time_entries')
+            .select(`
+              id,
+              clock_in,
+              clock_out,
+              break_minutes,
+              user:users(id, full_name)
+            `)
+            .eq('company_id', company.id)
+            .gte('clock_in', `${startDate}T00:00:00`)
+            .not('clock_out', 'is', null)
+            .order('clock_in', { ascending: false });
+
+          if (baseError) throw baseError;
+          entriesData = (baseData || []).map((e) => ({
+            ...e,
+            missed_meal_break: false,
+            missed_rest_break: false,
+            attestation_completed: false,
+          }));
+        } else {
+          throw fullError;
+        }
+      } else {
+        entriesData = fullData;
+      }
 
       // Calculate hours worked for each entry
       const entriesWithHours = (entriesData || []).map((entry) => {
@@ -140,11 +172,11 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
       setTimeEntries(entriesWithHours as TimeEntryWithCompliance[]);
     } catch (err: unknown) {
       console.error('Error fetching compliance data:', err);
-      // If tables don't exist yet, show empty state instead of error
+      // If tables or columns don't exist yet, show empty state instead of error
       const msg = err instanceof Error ? err.message : String(err);
-      const isTableMissing =
-        msg.includes('relation') && msg.includes('does not exist');
-      if (!isTableMissing) {
+      const isSchemaMissing =
+        msg.includes('does not exist') || msg.includes('undefined');
+      if (!isSchemaMissing) {
         setError('Failed to load compliance data');
       }
     } finally {
