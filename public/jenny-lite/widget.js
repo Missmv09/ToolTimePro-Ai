@@ -65,28 +65,39 @@
 
   function saveLead(name, phoneNumber, userMessage) {
     if (leadSaved) return;
-    if (!siteId && !companyId) return;
+    if (!siteId && !companyId) {
+      console.warn('[Jenny] saveLead skipped: no siteId or companyId configured');
+      return;
+    }
     leadSaved = true;
 
     var transcript = messages.concat([{ sender: 'user', text: userMessage }])
       .map(function (m) { return (m.sender === 'user' ? 'Customer' : 'Jenny AI') + ': ' + m.text; })
       .join('\n');
 
-    if (siteId || companyId) {
-      var payload = {
-        name: name || 'Chat visitor',
-        phone: phoneNumber || null,
-        message: transcript,
-        source: 'jenny_ai_chat',
-      };
-      if (siteId) payload.siteId = siteId;
-      if (companyId) payload.companyId = companyId;
+    var payload = {
+      name: name || 'Chat visitor',
+      phone: phoneNumber || null,
+      message: transcript,
+      source: 'jenny_ai_chat',
+    };
+    if (siteId) payload.siteId = siteId;
+    if (companyId) payload.companyId = companyId;
 
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', apiBase + '/api/website-builder/leads/');
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(JSON.stringify(payload));
-    }
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', apiBase + '/api/website-builder/leads/');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function () {
+      if (xhr.status >= 400) {
+        console.error('[Jenny] Lead save failed:', xhr.status, xhr.responseText);
+        leadSaved = false; // Allow retry
+      }
+    };
+    xhr.onerror = function () {
+      console.error('[Jenny] Lead save network error');
+      leadSaved = false; // Allow retry
+    };
+    xhr.send(JSON.stringify(payload));
   }
 
   // ---- Bot Logic ----
