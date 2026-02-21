@@ -1,6 +1,6 @@
 'use client';
 
-import { Paintbrush, Trees, Waves, Sparkles, Wrench, Home, HardHat, Droplets, Zap, Thermometer, Bug, Scissors, Truck, Car, Fence } from 'lucide-react';
+import { Paintbrush, Trees, Waves, Sparkles, Wrench, Home, HardHat, Droplets, Zap, Thermometer, Bug, Scissors, Truck, Car, Fence, Factory } from 'lucide-react';
 
 const trades = [
   {
@@ -92,6 +92,12 @@ const trades = [
     label: 'Tree Service',
     description: 'Trimming, removal & stump grinding',
     icon: Scissors,
+  },
+  {
+    id: 'sheet-metal',
+    label: 'Sheet Metal',
+    description: 'Fabrication & installation',
+    icon: Factory,
   },
   {
     id: 'general',

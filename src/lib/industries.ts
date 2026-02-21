@@ -182,6 +182,17 @@ export const industries: Industry[] = [
     ],
   },
 
+  {
+    name: 'Sheet Metal', icon: '🏭', slug: 'sheet-metal', category: 'Trades',
+    services: [
+      { name: 'Custom Ductwork Fabrication', price: 1500, priceType: 'fixed', duration: 480 },
+      { name: 'Gutter & Downspout Install', price: 12, priceType: 'per_sqft', duration: 240 },
+      { name: 'Flashing & Trim Work', price: 85, priceType: 'hourly', duration: 180 },
+      { name: 'Metal Roofing Install', price: 10, priceType: 'per_sqft', duration: 480 },
+      { name: 'HVAC Sheet Metal Fabrication', price: 2000, priceType: 'fixed', duration: 480 },
+    ],
+  },
+
   // Cleaning & Maintenance
   {
     name: 'House Cleaning', icon: '🧹', slug: 'cleaning', category: 'Cleaning',

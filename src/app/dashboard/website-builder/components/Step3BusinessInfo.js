@@ -10,6 +10,7 @@ const serviceSuggestions = {
   cleaner: ['Regular Cleaning', 'Deep Cleaning', 'Move-In/Out', 'Office Cleaning', 'Post-Construction', 'Window Cleaning', 'Carpet Cleaning', 'Organizing'],
   handyman: ['Plumbing Repairs', 'Electrical Fixes', 'Drywall Patching', 'Door Installation', 'Furniture Assembly', 'Tile Work', 'Fence Repair', 'Caulking'],
   roofer: ['Roof Inspection', 'Shingle Repair', 'Full Replacement', 'Gutter Installation', 'Leak Repair', 'Flat Roofing', 'Tile Roofing', 'Emergency Tarping'],
+  'sheet-metal': ['Custom Ductwork', 'Gutter Installation', 'Flashing & Trim', 'Metal Roofing', 'HVAC Fabrication', 'Exhaust Hoods', 'Architectural Metals', 'Repair & Patching'],
   general: ['Remodeling', 'Room Additions', 'Kitchen Renovation', 'Bathroom Renovation', 'Flooring', 'Framing', 'Permits', 'Project Management'],
 };
 
