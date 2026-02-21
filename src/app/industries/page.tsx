@@ -27,6 +27,7 @@ const industries = [
   { name: 'Drywall', icon: '🧱', slug: 'drywall', category: 'Trades' },
   { name: 'Concrete & Masonry', icon: '🧱', slug: 'concrete', category: 'Trades' },
   { name: 'Welding', icon: '🔥', slug: 'welding', category: 'Trades' },
+  { name: 'Sheet Metal', icon: '🏭', slug: 'sheet-metal', category: 'Trades' },
   { name: 'Insulation', icon: '🏗️', slug: 'insulation', category: 'Trades' },
   { name: 'Siding', icon: '🏡', slug: 'siding', category: 'Trades' },
 
