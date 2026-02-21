@@ -15,6 +15,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Message {
   id: string;
@@ -34,51 +35,27 @@ interface JennyExecChatProps {
   inline?: boolean;
 }
 
-const MODE_CONFIG = {
+const MODE_STYLE = {
   compliance: {
-    title: 'Jenny Compliance Advisor',
-    subtitle: 'CA labor law expertise',
     icon: Shield,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
     accentColor: 'bg-blue-600',
-    quickQuestions: [
-      'When do I need to give meal breaks?',
-      'How does overtime work in California?',
-      'Is my worker a contractor or employee?',
-      'What are the penalties for missed breaks?',
-    ],
   },
   hr: {
-    title: 'Jenny HR Advisor',
-    subtitle: 'Workforce management guidance',
     icon: Users,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
     accentColor: 'bg-purple-600',
-    quickQuestions: [
-      'What forms do I need for a new hire?',
-      'How do I properly terminate an employee?',
-      'Do I need an employee handbook?',
-      'W-2 vs 1099 — how do I classify workers?',
-    ],
   },
   insights: {
-    title: 'Jenny Business Insights',
-    subtitle: 'Data-driven business advice',
     icon: TrendingUp,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
     accentColor: 'bg-green-600',
-    quickQuestions: [
-      'What KPIs should I track?',
-      'How can I improve profitability?',
-      'What should I charge for my services?',
-      'How do I reduce crew turnover?',
-    ],
   },
 };
 
@@ -96,8 +73,20 @@ export default function JennyExecChat({
   inline = false,
 }: JennyExecChatProps) {
   const { company } = useAuth();
-  const config = MODE_CONFIG[mode];
-  const ModeIcon = config.icon;
+  const { t, language } = useLanguage();
+  const style = MODE_STYLE[mode];
+  const ModeIcon = style.icon;
+
+  const title = t(`jenny.${mode}.title`);
+  const subtitle = t(`jenny.${mode}.subtitle`);
+  const greeting = t(`jenny.${mode}.greeting`);
+  const placeholder = t(`jenny.${mode}.placeholder`);
+  const quickQuestions = [
+    t(`jenny.${mode}.q1`),
+    t(`jenny.${mode}.q2`),
+    t(`jenny.${mode}.q3`),
+    t(`jenny.${mode}.q4`),
+  ];
 
   const [isOpen, setIsOpen] = useState(inline);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -146,6 +135,7 @@ export default function JennyExecChat({
         body: JSON.stringify({
           messages: apiMessages,
           mode,
+          language,
           context: {
             companyName: company?.name,
             companyPlan: company?.plan,
@@ -160,7 +150,9 @@ export default function JennyExecChat({
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: data.message || 'Sorry, I could not generate a response. Please try again.',
+        content: data.message || (language === 'es'
+          ? 'Lo siento, no pude generar una respuesta. Por favor intenta de nuevo.'
+          : 'Sorry, I could not generate a response. Please try again.'),
         timestamp: new Date(),
       };
 
@@ -171,7 +163,7 @@ export default function JennyExecChat({
         {
           id: `error-${Date.now()}`,
           role: 'assistant',
-          content: 'Sorry, I had trouble connecting. Please try again in a moment.',
+          content: t('jenny.errorConnect'),
           timestamp: new Date(),
         },
       ]);
@@ -193,12 +185,12 @@ export default function JennyExecChat({
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
-            className={`fixed bottom-6 right-6 z-50 ${config.accentColor} text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105 group`}
+            className={`fixed bottom-6 right-6 z-50 ${style.accentColor} text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105 group`}
           >
             <div className="flex items-center gap-2">
               <Sparkles className="w-6 h-6" />
               <span className="hidden group-hover:inline text-sm font-medium pr-1">
-                Ask Jenny
+                {t('jenny.askJenny')}
               </span>
             </div>
           </button>
@@ -209,15 +201,15 @@ export default function JennyExecChat({
           <div className="fixed bottom-6 right-6 z-50 w-[400px] max-h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
             {/* Header */}
             <div
-              className={`${config.accentColor} text-white px-5 py-4 flex items-center justify-between`}
+              className={`${style.accentColor} text-white px-5 py-4 flex items-center justify-between`}
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
                   <ModeIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm">{config.title}</h3>
-                  <p className="text-xs opacity-80">{config.subtitle}</p>
+                  <h3 className="font-semibold text-sm">{title}</h3>
+                  <p className="text-xs opacity-80">{subtitle}</p>
                 </div>
               </div>
               <button
@@ -234,23 +226,23 @@ export default function JennyExecChat({
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <div
-                      className={`w-8 h-8 ${config.bgColor} rounded-full flex items-center justify-center flex-shrink-0`}
+                      className={`w-8 h-8 ${style.bgColor} rounded-full flex items-center justify-center flex-shrink-0`}
                     >
-                      <Bot className={`w-4 h-4 ${config.color}`} />
+                      <Bot className={`w-4 h-4 ${style.color}`} />
                     </div>
-                    <div className={`${config.bgColor} rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]`}>
+                    <div className={`${style.bgColor} rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]`}>
                       <p className="text-sm text-gray-700">
-                        Hi! I&apos;m Jenny, your {mode === 'compliance' ? 'CA compliance' : mode === 'hr' ? 'HR' : 'business insights'} advisor. Ask me anything or pick a question below.
+                        {greeting}
                       </p>
                     </div>
                   </div>
 
                   <div className="space-y-2 pl-11">
-                    {config.quickQuestions.map((q) => (
+                    {quickQuestions.map((q) => (
                       <button
                         key={q}
                         onClick={() => sendMessage(q)}
-                        className={`block w-full text-left text-sm px-3 py-2 rounded-lg border ${config.borderColor} ${config.bgColor} hover:opacity-80 transition-opacity`}
+                        className={`block w-full text-left text-sm px-3 py-2 rounded-lg border ${style.borderColor} ${style.bgColor} hover:opacity-80 transition-opacity`}
                       >
                         {q}
                       </button>
@@ -265,20 +257,20 @@ export default function JennyExecChat({
                   >
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        msg.role === 'user' ? 'bg-gray-200' : config.bgColor
+                        msg.role === 'user' ? 'bg-gray-200' : style.bgColor
                       }`}
                     >
                       {msg.role === 'user' ? (
                         <User className="w-4 h-4 text-gray-600" />
                       ) : (
-                        <Bot className={`w-4 h-4 ${config.color}`} />
+                        <Bot className={`w-4 h-4 ${style.color}`} />
                       )}
                     </div>
                     <div
                       className={`rounded-2xl px-4 py-3 max-w-[85%] ${
                         msg.role === 'user'
                           ? 'bg-gray-100 rounded-tr-sm'
-                          : `${config.bgColor} rounded-tl-sm`
+                          : `${style.bgColor} rounded-tl-sm`
                       }`}
                     >
                       <div
@@ -293,12 +285,12 @@ export default function JennyExecChat({
               {isLoading && (
                 <div className="flex items-start gap-3">
                   <div
-                    className={`w-8 h-8 ${config.bgColor} rounded-full flex items-center justify-center`}
+                    className={`w-8 h-8 ${style.bgColor} rounded-full flex items-center justify-center`}
                   >
-                    <Bot className={`w-4 h-4 ${config.color}`} />
+                    <Bot className={`w-4 h-4 ${style.color}`} />
                   </div>
-                  <div className={`${config.bgColor} rounded-2xl rounded-tl-sm px-4 py-3`}>
-                    <Loader2 className={`w-4 h-4 ${config.color} animate-spin`} />
+                  <div className={`${style.bgColor} rounded-2xl rounded-tl-sm px-4 py-3`}>
+                    <Loader2 className={`w-4 h-4 ${style.color} animate-spin`} />
                   </div>
                 </div>
               )}
@@ -313,14 +305,14 @@ export default function JennyExecChat({
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={`Ask Jenny about ${mode}...`}
+                placeholder={placeholder}
                 className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className={`${config.accentColor} text-white p-2 rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity`}
+                className={`${style.accentColor} text-white p-2 rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity`}
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -333,21 +325,21 @@ export default function JennyExecChat({
 
   // Inline mode (embedded in page)
   return (
-    <div className={`card border ${config.borderColor} overflow-hidden`}>
+    <div className={`card border ${style.borderColor} overflow-hidden`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 ${config.bgColor} rounded-lg flex items-center justify-center`}>
-            <Sparkles className={`w-5 h-5 ${config.color}`} />
+          <div className={`w-10 h-10 ${style.bgColor} rounded-lg flex items-center justify-center`}>
+            <Sparkles className={`w-5 h-5 ${style.color}`} />
           </div>
           <div>
             <h3 className="font-semibold text-navy-500 text-sm flex items-center gap-2">
-              {config.title}
-              <span className={`text-[10px] px-1.5 py-0.5 ${config.bgColor} ${config.color} rounded-full font-medium`}>
+              {title}
+              <span className={`text-[10px] px-1.5 py-0.5 ${style.bgColor} ${style.color} rounded-full font-medium`}>
                 AI
               </span>
             </h3>
-            <p className="text-xs text-gray-500">{config.subtitle}</p>
+            <p className="text-xs text-gray-500">{subtitle}</p>
           </div>
         </div>
         {messages.length > 0 && (
@@ -355,7 +347,7 @@ export default function JennyExecChat({
             onClick={() => setMessages([])}
             className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
-            Clear chat
+            {t('jenny.clearChat')}
           </button>
         )}
       </div>
@@ -365,16 +357,16 @@ export default function JennyExecChat({
         {messages.length === 0 ? (
           <div className="space-y-2">
             <p className="text-sm text-gray-500 mb-3">
-              Ask Jenny anything about {mode === 'compliance' ? 'CA labor law compliance' : mode === 'hr' ? 'HR and workforce management' : 'your business metrics'}:
+              {greeting.split('.')[0]}:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {config.quickQuestions.map((q) => (
+              {quickQuestions.map((q) => (
                 <button
                   key={q}
                   onClick={() => sendMessage(q)}
-                  className={`text-left text-xs px-3 py-2 rounded-lg border ${config.borderColor} hover:${config.bgColor} transition-colors`}
+                  className={`text-left text-xs px-3 py-2 rounded-lg border ${style.borderColor} hover:${style.bgColor} transition-colors`}
                 >
-                  <MessageCircle className={`w-3 h-3 ${config.color} inline mr-1.5`} />
+                  <MessageCircle className={`w-3 h-3 ${style.color} inline mr-1.5`} />
                   {q}
                 </button>
               ))}
@@ -389,20 +381,20 @@ export default function JennyExecChat({
               >
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    msg.role === 'user' ? 'bg-gray-200' : config.bgColor
+                    msg.role === 'user' ? 'bg-gray-200' : style.bgColor
                   }`}
                 >
                   {msg.role === 'user' ? (
                     <User className="w-3 h-3 text-gray-600" />
                   ) : (
-                    <Bot className={`w-3 h-3 ${config.color}`} />
+                    <Bot className={`w-3 h-3 ${style.color}`} />
                   )}
                 </div>
                 <div
                   className={`rounded-xl px-3 py-2 max-w-[85%] ${
                     msg.role === 'user'
                       ? 'bg-gray-100 rounded-tr-sm'
-                      : `${config.bgColor} rounded-tl-sm`
+                      : `${style.bgColor} rounded-tl-sm`
                   }`}
                 >
                   <div
@@ -415,11 +407,11 @@ export default function JennyExecChat({
 
             {isLoading && (
               <div className="flex items-start gap-2">
-                <div className={`w-6 h-6 ${config.bgColor} rounded-full flex items-center justify-center`}>
-                  <Bot className={`w-3 h-3 ${config.color}`} />
+                <div className={`w-6 h-6 ${style.bgColor} rounded-full flex items-center justify-center`}>
+                  <Bot className={`w-3 h-3 ${style.color}`} />
                 </div>
-                <div className={`${config.bgColor} rounded-xl rounded-tl-sm px-3 py-2`}>
-                  <Loader2 className={`w-3 h-3 ${config.color} animate-spin`} />
+                <div className={`${style.bgColor} rounded-xl rounded-tl-sm px-3 py-2`}>
+                  <Loader2 className={`w-3 h-3 ${style.color} animate-spin`} />
                 </div>
               </div>
             )}
@@ -431,7 +423,7 @@ export default function JennyExecChat({
                 onClick={scrollToBottom}
                 className="mx-auto block text-xs text-gray-400 hover:text-gray-600"
               >
-                <ChevronDown className="w-4 h-4 inline" /> Scroll to latest
+                <ChevronDown className="w-4 h-4 inline" /> {t('jenny.scrollLatest')}
               </button>
             )}
           </>
@@ -445,14 +437,14 @@ export default function JennyExecChat({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={`Ask Jenny about ${mode}...`}
+          placeholder={placeholder}
           className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
           disabled={isLoading}
         />
         <button
           type="submit"
           disabled={!input.trim() || isLoading}
-          className={`${config.accentColor} text-white p-2 rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity`}
+          className={`${style.accentColor} text-white p-2 rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity`}
         >
           <Send className="w-4 h-4" />
         </button>
