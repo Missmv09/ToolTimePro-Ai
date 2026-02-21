@@ -121,19 +121,21 @@ export async function POST(request) {
     }
 
     const supabase = getSupabase();
+    const isChatbotBooking = notes && notes.includes('booked via Jenny AI chat');
 
-    // Calculate end time
-    const scheduledTimeEnd = calculateEndTime(scheduledTimeStart, durationMinutes || 60);
+    // Find an available time slot
+    // For chatbot bookings the requested time is a rough preference, so
+    // auto-advance to the next open slot instead of rejecting outright.
+    let finalDate = scheduledDate;
+    let finalTimeStart = scheduledTimeStart;
 
-    // Check if the time slot is still available
+    // Get all booked slots for the requested date
     const { data: existingJobs, error: checkError } = await supabase
       .from('jobs')
-      .select('id')
+      .select('scheduled_time_start')
       .eq('company_id', companyId)
       .eq('scheduled_date', scheduledDate)
-      .eq('scheduled_time_start', scheduledTimeStart)
-      .neq('status', 'cancelled')
-      .limit(1);
+      .neq('status', 'cancelled');
 
     if (checkError) {
       console.error('Error checking availability:', checkError);
@@ -143,12 +145,37 @@ export async function POST(request) {
       );
     }
 
-    if (existingJobs && existingJobs.length > 0) {
-      return NextResponse.json(
-        { error: 'This time slot is no longer available. Please select a different time.' },
-        { status: 409 }
-      );
+    const bookedTimes = new Set((existingJobs || []).map(j => j.scheduled_time_start));
+
+    if (bookedTimes.has(finalTimeStart)) {
+      if (!isChatbotBooking) {
+        // Non-chatbot bookings: strict — reject the conflict
+        return NextResponse.json(
+          { error: 'This time slot is no longer available. Please select a different time.' },
+          { status: 409 }
+        );
+      }
+
+      // Chatbot bookings: find the next open hourly slot (08:00–17:00)
+      const slots = [];
+      for (let h = 8; h <= 17; h++) {
+        slots.push(`${String(h).padStart(2, '0')}:00`);
+      }
+      const nextOpen = slots.find(s => !bookedTimes.has(s));
+
+      if (nextOpen) {
+        finalTimeStart = nextOpen;
+      } else {
+        // Entire day full — move to the next business day
+        const d = new Date(scheduledDate + 'T00:00:00');
+        do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6);
+        finalDate = d.toISOString().split('T')[0];
+        finalTimeStart = '09:00';
+      }
     }
+
+    // Calculate end time
+    const scheduledTimeEnd = calculateEndTime(finalTimeStart, durationMinutes || 60);
 
     // Check if customer already exists (by email if available, otherwise by phone)
     let customerId = null;
@@ -216,8 +243,8 @@ export async function POST(request) {
         customer_id: customerId,
         title: serviceName,
         description: notes || `Online booking for ${serviceName}`,
-        scheduled_date: scheduledDate,
-        scheduled_time_start: scheduledTimeStart,
+        scheduled_date: finalDate,
+        scheduled_time_start: finalTimeStart,
         scheduled_time_end: scheduledTimeEnd,
         status: 'scheduled',
         priority: 'normal',
@@ -254,7 +281,7 @@ export async function POST(request) {
           phone: customerPhone,
           address: customerAddress || null,
           service_requested: serviceName,
-          message: notes || `Booked ${serviceName} for ${scheduledDate}`,
+          message: notes || `Booked ${serviceName} for ${finalDate}`,
           source: 'online_booking',
           status: 'new',
         }),
@@ -276,8 +303,8 @@ export async function POST(request) {
       to: customerPhone,
       customerName,
       serviceName,
-      date: scheduledDate,
-      time: scheduledTimeStart,
+      date: finalDate,
+      time: finalTimeStart,
       companyName,
     });
 
@@ -286,8 +313,8 @@ export async function POST(request) {
       booking: {
         id: job.id,
         service: serviceName,
-        date: scheduledDate,
-        time: scheduledTimeStart,
+        date: finalDate,
+        time: finalTimeStart,
         customer: customerName,
       },
       leadCreated: !leadResult.error,
