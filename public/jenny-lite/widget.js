@@ -25,10 +25,14 @@
   var accentColor = cfg.accentColor || '#f5a623';
   var position = cfg.position || 'right';
   var faqs = Array.isArray(cfg.faqs) ? cfg.faqs.filter(function (f) { return f.question && f.answer; }) : [];
+  var siteId = cfg.siteId || null;
+  var companyId = cfg.companyId || null;
+  var apiBase = cfg.apiBase || 'https://tooltimepro.com';
 
   var isOpen = false;
   var messages = [];
   var leadCaptured = false;
+  var leadSaved = false;
   var awaitingInfo = false;
 
   // ---- Helpers ----
@@ -57,6 +61,34 @@
     return node;
   }
 
+  // ---- Lead Saving ----
+
+  function saveLead(name, phoneNumber, userMessage) {
+    if (leadSaved) return;
+    if (!siteId && !companyId) return;
+    leadSaved = true;
+
+    var transcript = messages.concat([{ sender: 'user', text: userMessage }])
+      .map(function (m) { return (m.sender === 'user' ? 'Customer' : 'Jenny AI') + ': ' + m.text; })
+      .join('\n');
+
+    if (siteId || companyId) {
+      var payload = {
+        name: name || 'Chat visitor',
+        phone: phoneNumber || null,
+        message: transcript,
+        source: 'jenny_ai_chat',
+      };
+      if (siteId) payload.siteId = siteId;
+      if (companyId) payload.companyId = companyId;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', apiBase + '/api/website-builder/leads/');
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify(payload));
+    }
+  }
+
   // ---- Bot Logic ----
 
   function botReply(text) {
@@ -65,6 +97,15 @@
     if (awaitingInfo) {
       awaitingInfo = false;
       leadCaptured = true;
+
+      // Extract phone and name from user's message
+      var phoneMatch = text.match(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\d{10}/);
+      var extractedPhone = phoneMatch ? phoneMatch[0] : null;
+      var nameCandidate = text.replace(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\d{10}/g, '').replace(/[,.\-]/g, ' ').trim();
+      var extractedName = nameCandidate.length >= 2 ? nameCandidate : null;
+
+      saveLead(extractedName, extractedPhone, text);
+
       return (
         "Thanks! I've passed your info along to the " +
         businessName +

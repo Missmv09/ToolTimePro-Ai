@@ -35,25 +35,13 @@ export async function POST(request) {
     const supabase = getSupabase();
     const body = await request.json();
 
-    const { siteId, name, phone, email, message, service, source } = body;
+    const { siteId, companyId: bodyCompanyId, name, phone, email, message, service, source } = body;
 
-    if (!siteId) {
-      return NextResponse.json({ error: 'siteId is required' }, { status: 400, headers: corsHeaders });
+    if (!siteId && !bodyCompanyId) {
+      return NextResponse.json({ error: 'siteId or companyId is required' }, { status: 400, headers: corsHeaders });
     }
     if (!name || typeof name !== 'string' || name.trim().length < 1) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400, headers: corsHeaders });
-    }
-
-    // Fetch site to get company_id
-    const { data: site, error: siteError } = await supabase
-      .from('website_sites')
-      .select('id, company_id, user_id, business_name')
-      .eq('id', siteId)
-      .single();
-
-    if (siteError || !site) {
-      console.error('[Website Leads] Site lookup failed:', siteError?.message || 'Site not found', { siteId });
-      return NextResponse.json({ error: 'Site not found' }, { status: 404, headers: corsHeaders });
     }
 
     const trimmedName = name.trim();
@@ -64,6 +52,8 @@ export async function POST(request) {
     const leadSource = source || 'website_contact_form';
 
     let saved = false;
+    let resolvedCompanyId = bodyCompanyId || null;
+    let resolvedSiteId = siteId || null;
 
     // Helper: try insert, if FK violation on company_id retry without it
     async function tryInsert(table, record) {
@@ -92,36 +82,53 @@ export async function POST(request) {
       return { success: false };
     }
 
-    // 1. Try website_leads table
-    const websiteLeadRecord = {
-      site_id: site.id,
-      name: trimmedName,
-      email: trimmedEmail,
-      phone: trimmedPhone,
-      message: trimmedMessage,
-      service_requested: trimmedService,
-      source: leadSource,
-      status: 'new',
-    };
-    if (site.company_id) {
-      websiteLeadRecord.company_id = site.company_id;
+    // If siteId provided, fetch site to get company_id
+    if (siteId) {
+      const { data: site, error: siteError } = await supabase
+        .from('website_sites')
+        .select('id, company_id, user_id, business_name')
+        .eq('id', siteId)
+        .single();
+
+      if (siteError || !site) {
+        console.error('[Website Leads] Site lookup failed:', siteError?.message || 'Site not found', { siteId });
+        return NextResponse.json({ error: 'Site not found' }, { status: 404, headers: corsHeaders });
+      }
+
+      resolvedCompanyId = site.company_id || resolvedCompanyId;
+      resolvedSiteId = site.id;
+
+      // 1. Try website_leads table (only when we have a siteId)
+      const websiteLeadRecord = {
+        site_id: resolvedSiteId,
+        name: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone,
+        message: trimmedMessage,
+        service_requested: trimmedService,
+        source: leadSource,
+        status: 'new',
+      };
+      if (resolvedCompanyId) {
+        websiteLeadRecord.company_id = resolvedCompanyId;
+      }
+
+      const wlResult = await tryInsert('website_leads', websiteLeadRecord);
+      if (wlResult.success) saved = true;
     }
 
-    const wlResult = await tryInsert('website_leads', websiteLeadRecord);
-    if (wlResult.success) saved = true;
-
-    // 2. Also try CRM leads table
+    // 2. Also save to CRM leads table (works with siteId or companyId)
     const crmRecord = {
       name: trimmedName,
       email: trimmedEmail,
       phone: trimmedPhone,
       message: trimmedMessage,
       service_requested: trimmedService,
-      source: 'website',
+      source: leadSource === 'jenny_ai_chat' ? 'jenny_ai_chat' : 'website',
       status: 'new',
     };
-    if (site.company_id) {
-      crmRecord.company_id = site.company_id;
+    if (resolvedCompanyId) {
+      crmRecord.company_id = resolvedCompanyId;
     }
 
     const crmResult = await tryInsert('leads', crmRecord);

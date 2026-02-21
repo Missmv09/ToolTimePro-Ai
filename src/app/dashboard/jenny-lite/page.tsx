@@ -88,6 +88,7 @@ export default function JennyLitePage() {
     phone: ${JSON.stringify(settings.phone)},
     accentColor: ${JSON.stringify(settings.accentColor)},
     position: ${JSON.stringify(settings.position)},
+    companyId: ${JSON.stringify(company?.id || null)},
     faqs: ${JSON.stringify(settings.faqs.filter(f => f.question && f.answer), null, 2)}
   };
 </script>
