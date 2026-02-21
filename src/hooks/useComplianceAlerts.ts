@@ -82,7 +82,7 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
         .from('compliance_alerts')
         .select(`
           *,
-          user:users(full_name, email)
+          user:users!compliance_alerts_user_id_fkey(full_name, email)
         `)
         .eq('company_id', company.id)
         .gte('created_at', `${startDate}T00:00:00`)
@@ -172,10 +172,13 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
       setTimeEntries(entriesWithHours as TimeEntryWithCompliance[]);
     } catch (err: unknown) {
       console.error('Error fetching compliance data:', err);
-      // If tables or columns don't exist yet, show empty state instead of error
+      // If tables, columns, or relationships don't exist yet, show empty state instead of error
       const msg = err instanceof Error ? err.message : String(err);
       const isSchemaMissing =
-        msg.includes('does not exist') || msg.includes('undefined');
+        msg.includes('does not exist') ||
+        msg.includes('undefined') ||
+        msg.includes('could not find') ||
+        msg.includes('more than one relationship');
       if (!isSchemaMissing) {
         setError('Failed to load compliance data');
       }
