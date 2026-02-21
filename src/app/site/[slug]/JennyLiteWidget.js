@@ -272,17 +272,22 @@ export default function JennyLiteWidget({
               notes: `Preferred time: ${finalData.time} (booked via Jenny AI chat)`,
             }),
           })
-            .then((res) => {
+            .then((res) => res.json().then((data) => {
               if (!res.ok) {
-                return res.json().then((data) => {
-                  console.error('Booking API error:', data);
-                  setMessages((prev) => [
-                    ...prev,
-                    { sender: 'bot', text: `⚠️ There was an issue saving your booking: ${data.error || 'please try again'}. Your request has been noted — the team will follow up.` },
-                  ]);
-                });
+                console.error('Booking API error:', data);
+                setMessages((prev) => [
+                  ...prev,
+                  { sender: 'bot', text: `⚠️ There was an issue saving your booking: ${data.error || 'please try again'}. Your request has been noted — the team will follow up.` },
+                ]);
+                return;
               }
-            })
+              if (data.smsStatus === 'sent') {
+                setMessages((prev) => [
+                  ...prev,
+                  { sender: 'bot', text: t.bookSmsNote(finalData, businessName) },
+                ]);
+              }
+            }))
             .catch((err) => {
               console.error('Booking save error:', err);
               setMessages((prev) => [
@@ -290,10 +295,6 @@ export default function JennyLiteWidget({
                 { sender: 'bot', text: '⚠️ We had trouble confirming your booking online. Don\'t worry — our team has your info and will reach out to confirm.' },
               ]);
             });
-
-          if (hasPro) {
-            msg += t.bookSmsNote(finalData, businessName);
-          }
         }
         return msg;
       }
