@@ -834,6 +834,12 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
     notes: quote?.notes || '',
     valid_until: quote?.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   })
+  const [isNewCustomer, setIsNewCustomer] = useState(false)
+  const [newCustomerInfo, setNewCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+  })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
@@ -902,6 +908,12 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isNewCustomer && !newCustomerInfo.name.trim()) {
+      alert('Please enter a name for the new customer.')
+      return
+    }
+
     setSaving(true)
 
     // Refresh session to ensure auth token is still valid
@@ -914,9 +926,58 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
 
     const token = sessionData.session.access_token
 
+    // If creating a quote for a new customer, create the customer first
+    let customerId = formData.customer_id || null
+    if (isNewCustomer && newCustomerInfo.name) {
+      // Check if a customer with this phone or email already exists
+      let existingCustomer = null
+
+      if (newCustomerInfo.phone) {
+        const { data } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('company_id', companyId)
+          .eq('phone', newCustomerInfo.phone)
+          .single()
+        existingCustomer = data
+      }
+
+      if (!existingCustomer && newCustomerInfo.email) {
+        const { data } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('company_id', companyId)
+          .eq('email', newCustomerInfo.email)
+          .single()
+        existingCustomer = data
+      }
+
+      if (existingCustomer) {
+        customerId = existingCustomer.id
+      } else {
+        const { data: newCust, error: custError } = await supabase
+          .from('customers')
+          .insert({
+            company_id: companyId,
+            name: newCustomerInfo.name,
+            email: newCustomerInfo.email || null,
+            phone: newCustomerInfo.phone || null,
+          })
+          .select()
+          .single()
+
+        if (custError) {
+          alert('Failed to create customer: ' + custError.message)
+          setSaving(false)
+          return
+        }
+        customerId = newCust.id
+      }
+    }
+
     const quoteData: Record<string, unknown> = {
       company_id: companyId,
-      customer_id: formData.customer_id || null,
+      customer_id: customerId,
       notes: formData.notes,
       valid_until: formData.valid_until,
       subtotal: Number(subtotal) || 0,
@@ -1015,14 +1076,23 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
               <select
-                value={formData.customer_id}
-                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                value={isNewCustomer ? '__new__' : formData.customer_id}
+                onChange={(e) => {
+                  if (e.target.value === '__new__') {
+                    setIsNewCustomer(true)
+                    setFormData({ ...formData, customer_id: '' })
+                  } else {
+                    setIsNewCustomer(false)
+                    setFormData({ ...formData, customer_id: e.target.value })
+                  }
+                }}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select customer...</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
+                <option value="__new__">+ New Customer</option>
               </select>
             </div>
             <div>
@@ -1035,6 +1105,48 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
               />
             </div>
           </div>
+
+          {/* New Customer Fields */}
+          {isNewCustomer && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-medium text-blue-800">New Customer Info</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newCustomerInfo.name}
+                    onChange={(e) => setNewCustomerInfo({ ...newCustomerInfo, name: e.target.value })}
+                    placeholder="John Smith"
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    value={newCustomerInfo.phone}
+                    onChange={(e) => setNewCustomerInfo({ ...newCustomerInfo, phone: e.target.value })}
+                    placeholder="(555) 123-4567"
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={newCustomerInfo.email}
+                    onChange={(e) => setNewCustomerInfo({ ...newCustomerInfo, email: e.target.value })}
+                    placeholder="john@email.com"
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-blue-600">This person will be added to your customer list automatically.</p>
+            </div>
+          )}
 
           {/* Line Items */}
           <div>
