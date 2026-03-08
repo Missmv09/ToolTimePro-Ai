@@ -29,9 +29,36 @@ interface Quote {
   created_by: string | null
   sent_by: string | null
   created_at: string
+  sent_at: string | null
+  follow_up_date: string | null
+  last_followed_up_at: string | null
   items?: QuoteItem[]
   creator?: { full_name: string } | null
   sender?: { full_name: string } | null
+}
+
+function getFollowUpStatus(quote: Quote): 'overdue' | 'due_today' | 'upcoming' | 'auto_stale' | null {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  // Check explicit follow-up date first
+  if (quote.follow_up_date && ['sent', 'viewed'].includes(quote.status)) {
+    const followUp = new Date(quote.follow_up_date + 'T00:00:00')
+    if (followUp < today) return 'overdue'
+    if (followUp.getTime() === today.getTime()) return 'due_today'
+    const threeDaysOut = new Date(today)
+    threeDaysOut.setDate(threeDaysOut.getDate() + 3)
+    if (followUp <= threeDaysOut) return 'upcoming'
+  }
+
+  // Auto-detect stale sent/viewed quotes (sent 3+ days ago, no follow-up date set)
+  if (['sent', 'viewed'].includes(quote.status) && !quote.follow_up_date) {
+    const sentDate = quote.sent_at ? new Date(quote.sent_at) : new Date(quote.created_at)
+    const daysSinceSent = Math.floor((now.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24))
+    if (daysSinceSent >= 3) return 'auto_stale'
+  }
+
+  return null
 }
 
 function Loading() {
@@ -74,7 +101,7 @@ function QuotesContent() {
       .eq('company_id', compId)
       .order('created_at', { ascending: false })
 
-    if (filter !== 'all') {
+    if (filter !== 'all' && filter !== 'needs_follow_up') {
       query = query.eq('status', filter)
     }
 
@@ -93,7 +120,7 @@ function QuotesContent() {
         .eq('company_id', compId)
         .order('created_at', { ascending: false })
 
-      if (filter !== 'all') {
+      if (filter !== 'all' && filter !== 'needs_follow_up') {
         fallbackQuery = fallbackQuery.eq('status', filter)
       }
       if (customerFilter) {
@@ -520,6 +547,34 @@ function QuotesContent() {
     setDeletingQuoteId(null)
   }
 
+  const markAsFollowedUp = async (quote: Quote) => {
+    if (!companyId) return
+    const { error } = await supabase
+      .from('quotes')
+      .update({ last_followed_up_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq('id', quote.id)
+
+    if (error) {
+      alert('Failed to update follow-up status: ' + error.message)
+      return
+    }
+    if (companyId) fetchQuotes(companyId)
+  }
+
+  const setFollowUpDate = async (quoteId: string, date: string | null) => {
+    if (!companyId) return
+    const { error } = await supabase
+      .from('quotes')
+      .update({ follow_up_date: date, updated_at: new Date().toISOString() })
+      .eq('id', quoteId)
+
+    if (error) {
+      alert('Failed to set follow-up date: ' + error.message)
+      return
+    }
+    if (companyId) fetchQuotes(companyId)
+  }
+
   const canDeleteQuote = (quote: Quote) => {
     // Approved quotes cannot be deleted by anyone
     if (quote.status === 'approved') return false
@@ -605,20 +660,68 @@ function QuotesContent() {
 
       {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {['all', 'draft', 'pending_approval', 'sent', 'viewed', 'approved', 'rejected'].map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === status
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {status === 'all' ? 'All' : statusLabels[status] || status}
-          </button>
-        ))}
+        {['all', 'needs_follow_up', 'draft', 'pending_approval', 'sent', 'viewed', 'approved', 'rejected'].map((status) => {
+          const needsFollowUpCount = status === 'needs_follow_up'
+            ? quotes.filter(q => getFollowUpStatus(q) !== null).length
+            : 0
+          return (
+            <button
+              key={status}
+              onClick={() => setFilter(status)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === status
+                  ? status === 'needs_follow_up' ? 'bg-amber-600 text-white' : 'bg-blue-600 text-white'
+                  : status === 'needs_follow_up' && needsFollowUpCount > 0
+                    ? 'bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {status === 'all' ? 'All' : status === 'needs_follow_up' ? `Needs Follow-up${needsFollowUpCount > 0 ? ` (${needsFollowUpCount})` : ''}` : statusLabels[status] || status}
+            </button>
+          )
+        })}
       </div>
+
+      {/* Follow-up Alert Banner */}
+      {(() => {
+        const followUpQuotes = quotes.filter(q => {
+          const status = getFollowUpStatus(q)
+          return status === 'overdue' || status === 'due_today'
+        })
+        if (followUpQuotes.length === 0) return null
+        const overdueCount = followUpQuotes.filter(q => getFollowUpStatus(q) === 'overdue').length
+        const dueTodayCount = followUpQuotes.filter(q => getFollowUpStatus(q) === 'due_today').length
+        return (
+          <div className="mb-6 bg-amber-50 border border-amber-300 rounded-xl p-4 flex items-start gap-3">
+            <div className="text-amber-600 text-xl mt-0.5">&#9888;</div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-800">Quotes Need Follow-up</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                {overdueCount > 0 && <span className="font-medium">{overdueCount} overdue</span>}
+                {overdueCount > 0 && dueTodayCount > 0 && ' and '}
+                {dueTodayCount > 0 && <span className="font-medium">{dueTodayCount} due today</span>}
+                {' '}&mdash; follow up to close the deal!
+              </p>
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {followUpQuotes.slice(0, 5).map(q => (
+                  <span key={q.id} className="inline-flex items-center gap-1 bg-white border border-amber-200 rounded-lg px-2 py-1 text-xs text-amber-800">
+                    {q.quote_number || `Q-${q.id.slice(0, 8)}`} &middot; {q.customer?.name || 'Unknown'} &middot; ${q.total?.toLocaleString()}
+                  </span>
+                ))}
+                {followUpQuotes.length > 5 && (
+                  <span className="text-xs text-amber-600 py-1">+{followUpQuotes.length - 5} more</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setFilter('needs_follow_up')}
+              className="bg-amber-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-amber-700 whitespace-nowrap"
+            >
+              View All
+            </button>
+          </div>
+        )
+      })()}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -649,6 +752,11 @@ function QuotesContent() {
       </div>
 
       {/* Quotes Table */}
+      {(() => {
+        const displayQuotes = filter === 'needs_follow_up'
+          ? quotes.filter(q => getFollowUpStatus(q) !== null)
+          : quotes
+        return (
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -658,23 +766,36 @@ function QuotesContent() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created By</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valid Until</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Follow-up</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {quotes.length === 0 ? (
+            {displayQuotes.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                  No quotes found. Create your first quote to get started.
+                  {filter === 'needs_follow_up' ? 'No quotes need follow-up right now.' : 'No quotes found. Create your first quote to get started.'}
                 </td>
               </tr>
             ) : (
-              quotes.map((quote) => (
-                <tr key={quote.id} className="hover:bg-gray-50">
+              displayQuotes.map((quote) => {
+                const followUpStatus = getFollowUpStatus(quote)
+                const rowHighlight = followUpStatus === 'overdue' ? 'bg-red-50' : followUpStatus === 'due_today' ? 'bg-amber-50' : ''
+                return (
+                <tr key={quote.id} className={`hover:bg-gray-50 ${rowHighlight}`}>
                   <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{quote.quote_number || `Q-${quote.id.slice(0, 8)}`}</p>
-                    <p className="text-sm text-gray-500">{new Date(quote.created_at).toLocaleDateString()}</p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <p className="font-medium text-gray-900">{quote.quote_number || `Q-${quote.id.slice(0, 8)}`}</p>
+                        <p className="text-sm text-gray-500">{new Date(quote.created_at).toLocaleDateString()}</p>
+                      </div>
+                      {followUpStatus === 'overdue' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">Overdue</span>
+                      )}
+                      {followUpStatus === 'due_today' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Today</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <p className="text-sm text-gray-900">{quote.customer?.name || '-'}</p>
@@ -705,8 +826,33 @@ function QuotesContent() {
                       <p className="text-xs text-gray-500">Sent by: {quote.sender.full_name}</p>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : '-'}
+                  <td className="px-6 py-4">
+                    {['sent', 'viewed'].includes(quote.status) ? (
+                      <div>
+                        <input
+                          type="date"
+                          value={quote.follow_up_date || ''}
+                          onChange={(e) => setFollowUpDate(quote.id, e.target.value || null)}
+                          className={`text-xs px-2 py-1 border rounded w-32 ${
+                            followUpStatus === 'overdue' ? 'border-red-300 bg-red-50 text-red-700' :
+                            followUpStatus === 'due_today' ? 'border-amber-300 bg-amber-50 text-amber-700' :
+                            'border-gray-200'
+                          }`}
+                        />
+                        {followUpStatus === 'auto_stale' && !quote.follow_up_date && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            Sent {Math.floor((Date.now() - new Date(quote.sent_at || quote.created_at).getTime()) / (1000 * 60 * 60 * 24))}d ago
+                          </p>
+                        )}
+                        {quote.last_followed_up_at && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            Last: {new Date(quote.last_followed_up_at).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2 flex-wrap">
@@ -773,6 +919,14 @@ function QuotesContent() {
                           Invoice
                         </button>
                       )}
+                      {['sent', 'viewed'].includes(quote.status) && followUpStatus && (
+                        <button
+                          onClick={() => markAsFollowedUp(quote)}
+                          className="text-amber-600 hover:text-amber-800 text-sm font-medium"
+                        >
+                          Followed Up
+                        </button>
+                      )}
                       <Link
                         href={`/quote/${quote.id}`}
                         className="text-purple-600 hover:text-purple-800 text-sm"
@@ -792,11 +946,14 @@ function QuotesContent() {
                     </div>
                   </td>
                 </tr>
-              ))
+                )
+              })
             )}
           </tbody>
         </table>
       </div>
+        )
+      })()}
 
       {/* Add/Edit Modal */}
       {showModal && (
