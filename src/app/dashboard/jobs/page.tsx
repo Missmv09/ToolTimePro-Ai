@@ -39,13 +39,14 @@ function JobsContent() {
   const [workers, setWorkers] = useState<{ id: string; full_name: string }[]>([])
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<string>('all')
-  const [showModal, setShowModal] = useState(false)
-  const [editingJob, setEditingJob] = useState<Job | null>(null)
-
   const router = useRouter()
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
+  const initialFilter = searchParams.get('filter') || 'all'
+
+  const [filter, setFilter] = useState<string>(initialFilter)
+  const [showModal, setShowModal] = useState(false)
+  const [editingJob, setEditingJob] = useState<Job | null>(null)
   const { user, dbUser, isLoading: authLoading } = useAuth()
 
   // Get company_id from AuthContext
@@ -100,7 +101,10 @@ function JobsContent() {
       .order('scheduled_date', { ascending: false })
       .limit(5000)
 
-    if (filter !== 'all') {
+    if (filter === 'overdue') {
+      const today = new Date().toISOString().split('T')[0]
+      query = query.in('status', ['scheduled', 'in_progress']).lt('scheduled_date', today)
+    } else if (filter !== 'all') {
       query = query.eq('status', filter)
     }
 
@@ -198,6 +202,13 @@ function JobsContent() {
     if (companyId) fetchJobs(companyId)
   }
 
+  const isJobOverdue = (job: Job) => {
+    if (job.status === 'completed' || job.status === 'cancelled') return false
+    if (!job.scheduled_date) return false
+    const today = new Date().toISOString().split('T')[0]
+    return job.scheduled_date < today
+  }
+
   const statusColors: Record<string, string> = {
     scheduled: 'bg-blue-100 text-blue-700',
     in_progress: 'bg-yellow-100 text-yellow-700',
@@ -237,17 +248,17 @@ function JobsContent() {
 
       {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {['all', 'scheduled', 'in_progress', 'completed', 'cancelled'].map((status) => (
+        {['all', 'scheduled', 'in_progress', 'completed', 'cancelled', 'overdue'].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === status
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? status === 'overdue' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'
+                : status === 'overdue' ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {status === 'all' ? 'All' : status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1)}
+            {status === 'all' ? 'All' : status === 'overdue' ? 'Overdue' : status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1)}
           </button>
         ))}
       </div>
@@ -275,9 +286,16 @@ function JobsContent() {
               </tr>
             ) : (
               jobs.map((job) => (
-                <tr key={job.id} className="hover:bg-gray-50">
+                <tr key={job.id} className={`hover:bg-gray-50 ${isJobOverdue(job) ? 'bg-red-50' : ''}`}>
                   <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{job.title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900">{job.title}</p>
+                      {isJobOverdue(job) && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">
+                          OVERDUE
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500 truncate max-w-xs">{job.address}</p>
                     {job.priority !== 'normal' && (
                       <span className={`text-xs ${priorityColors[job.priority]}`}>
