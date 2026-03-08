@@ -99,9 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mountedRef.current = true;
     initCompleteRef.current = false;
 
-    // If Supabase isn't configured, skip auth entirely
+    // If Supabase isn't configured, stop loading but do NOT grant access.
+    // ProtectedRoute will block unauthenticated users regardless.
     if (!isSupabaseConfigured) {
-      console.warn('Supabase not configured - running without authentication');
+      console.error('Supabase not configured - authentication is unavailable. Dashboard access will be blocked.');
       setIsLoading(false);
       initCompleteRef.current = true;
       return;

@@ -29,12 +29,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   });
 
   useEffect(() => {
-    // If Supabase isn't configured, allow access (demo mode)
-    if (!isConfigured) {
-      return;
-    }
-
-    // Only redirect if auth has finished loading and there's no user
+    // Always redirect to login if auth has finished loading and there's no user
     if (!isLoading && !user) {
       router.push('/auth/login');
     }
@@ -56,8 +51,8 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     return null;
   }
 
-  // Show loading spinner while auth is initializing (but only if Supabase is configured)
-  if (isLoading && isConfigured) {
+  // Show loading spinner while auth is initializing
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -68,9 +63,16 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     );
   }
 
-  // If Supabase isn't configured, show content (demo mode)
+  // If Supabase isn't configured, show configuration error instead of granting access
   if (!isConfigured) {
-    return <>{children}</>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Authentication Not Configured</h2>
+          <p className="text-gray-600">The authentication system is not properly configured. Please contact the administrator.</p>
+        </div>
+      </div>
+    );
   }
 
   // If no user after loading, return null (redirect will happen in useEffect)
