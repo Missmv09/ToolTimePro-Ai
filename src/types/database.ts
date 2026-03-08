@@ -147,6 +147,8 @@ export interface Database {
           notes: string | null
           source: string | null
           qbo_id: string | null
+          sms_consent: boolean
+          sms_consent_date: string | null
           created_at: string
           updated_at: string
         }
@@ -163,6 +165,8 @@ export interface Database {
           notes?: string | null
           source?: string | null
           qbo_id?: string | null
+          sms_consent?: boolean
+          sms_consent_date?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -179,6 +183,8 @@ export interface Database {
           notes?: string | null
           source?: string | null
           qbo_id?: string | null
+          sms_consent?: boolean
+          sms_consent_date?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -95,7 +95,7 @@ function QuotesContent() {
       .from('quotes')
       .select(`
         *,
-        customer:customers(id, name, email, phone),
+        customer:customers(id, name, email, phone, sms_consent),
         items:quote_items(id, description, quantity, unit_price, total_price, sort_order)
       `)
       .eq('company_id', compId)
@@ -268,8 +268,8 @@ function QuotesContent() {
 
     const quoteLink = `${window.location.origin}/quote/${quote.id}`
 
-    // Send SMS if customer has phone
-    if (quote.customer?.phone) {
+    // Send SMS if customer has phone and has consented
+    if (quote.customer?.phone && quote.customer?.sms_consent) {
       try {
         await fetch('/api/sms', {
           method: 'POST',
@@ -283,6 +283,7 @@ function QuotesContent() {
               quoteLink,
             },
             companyId: companyId,
+            customerId: quote.customer.id,
           }),
         })
       } catch {
