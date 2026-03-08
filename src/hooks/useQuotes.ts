@@ -73,7 +73,7 @@ export function useQuotes(): UseQuotesReturn {
         .from('quotes')
         .select(`
           *,
-          customer:customers(id, name, email, phone),
+          customer:customers(id, name, email, phone, sms_consent),
           lead:leads(id, name, service_requested)
         `)
         .eq('company_id', company.id)
@@ -204,8 +204,8 @@ export function useQuotes(): UseQuotesReturn {
       const quote = quotes.find((q) => q.id === id);
       const quoteLink = `${window.location.origin}/quote/${id}`;
 
-      // Send SMS notification if customer has phone number
-      if (quote?.customer?.phone && company?.id) {
+      // Send SMS notification if customer has phone number and has consented
+      if (quote?.customer?.phone && quote?.customer?.sms_consent && company?.id) {
         try {
           await fetch('/api/sms', {
             method: 'POST',
@@ -219,6 +219,7 @@ export function useQuotes(): UseQuotesReturn {
                 quoteLink,
               },
               companyId: company.id,
+              customerId: quote.customer.id,
             }),
           });
         } catch {

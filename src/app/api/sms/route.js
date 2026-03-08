@@ -69,7 +69,7 @@ const TEMPLATES = {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { to, template, data, companyId, customMessage } = body;
+    const { to, template, data, companyId, customMessage, customerId } = body;
 
     // Validate required fields
     if (!to) {
@@ -78,6 +78,28 @@ export async function POST(request) {
 
     if (!template && !customMessage) {
       return NextResponse.json({ error: 'Template or customMessage required' }, { status: 400 });
+    }
+
+    // Check SMS consent if customerId is provided (customer-facing messages)
+    if (customerId) {
+      try {
+        const supabase = getSupabase();
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('sms_consent')
+          .eq('id', customerId)
+          .single();
+
+        if (customer && !customer.sms_consent) {
+          return NextResponse.json(
+            { error: 'Customer has not opted in to receive text messages', code: 'NO_SMS_CONSENT' },
+            { status: 403 }
+          );
+        }
+      } catch {
+        // If consent check fails (e.g. column doesn't exist yet), log and continue
+        console.log('SMS consent check skipped for customer:', customerId);
+      }
     }
 
     // Get Twilio client

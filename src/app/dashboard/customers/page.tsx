@@ -17,6 +17,8 @@ interface Customer {
   zip: string
   notes: string
   source: string
+  sms_consent: boolean
+  sms_consent_date: string | null
   created_at: string
   jobs?: { id: string; status: string }[]
   invoices?: { id: string; status: string; total: number }[]
@@ -279,6 +281,7 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
     state: customer?.state || '',
     zip: customer?.zip || '',
     notes: customer?.notes || '',
+    sms_consent: customer?.sms_consent || false,
   })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; phone?: string }>({})
@@ -321,7 +324,13 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
 
     setSaving(true)
 
-    const data = { ...formData, company_id: companyId }
+    // Track consent date when sms_consent changes
+    const consentChanged = customer ? formData.sms_consent !== customer.sms_consent : formData.sms_consent
+    const data = {
+      ...formData,
+      company_id: companyId,
+      ...(consentChanged ? { sms_consent_date: new Date().toISOString() } : {}),
+    }
 
     try {
       if (customer) {
@@ -443,6 +452,29 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
               rows={3}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* SMS Consent */}
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.sms_consent}
+                onChange={(e) => setFormData({ ...formData, sms_consent: e.target.checked })}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-700">Customer agrees to receive text messages</span>
+                <p className="text-xs text-gray-500 mt-1">
+                  Required for sending SMS notifications (quotes, invoices, appointment reminders). The customer can opt out at any time by replying STOP.
+                </p>
+                {customer?.sms_consent_date && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Consent {customer.sms_consent ? 'given' : 'revoked'}: {new Date(customer.sms_consent_date).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </label>
           </div>
 
           <div className="flex gap-3 pt-4">

@@ -42,7 +42,7 @@ export default function InvoicesPage() {
       .from('invoices')
       .select(`
         *,
-        customer:customers(id, name, email, phone, address, city, state, zip),
+        customer:customers(id, name, email, phone, address, city, state, zip, sms_consent),
         items:invoice_items(*)
       `)
       .eq('company_id', compId)
@@ -203,8 +203,8 @@ export default function InvoicesPage() {
         }
       }
 
-      // Send SMS if customer has phone
-      if (phone) {
+      // Send SMS if customer has phone and has consented
+      if (phone && invoice.customer?.sms_consent) {
         try {
           const res = await fetch('/api/sms', {
             method: 'POST',
@@ -218,6 +218,7 @@ export default function InvoicesPage() {
                 invoiceLink,
               },
               companyId,
+              customerId: invoice.customer?.id,
             }),
           })
           if (res.ok) smsSent = true
@@ -246,6 +247,10 @@ export default function InvoicesPage() {
       alert(`Cannot send reminder: no phone number on file for ${invoice.customer?.name || 'this customer'}. Please add a phone number in the customer record.`)
       return
     }
+    if (!invoice.customer?.sms_consent) {
+      alert(`Cannot send reminder: ${invoice.customer?.name || 'this customer'} has not opted in to receive text messages. Update their consent in the customer record.`)
+      return
+    }
 
     try {
       const res = await fetch('/api/sms', {
@@ -255,6 +260,7 @@ export default function InvoicesPage() {
           to: phone,
           customMessage: `Hi ${invoice.customer?.name}, this is a friendly reminder that invoice ${invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`} for $${invoice.total.toLocaleString()} is due${invoice.due_date ? ` on ${new Date(invoice.due_date).toLocaleDateString()}` : ''}. Please contact us if you have any questions.`,
           companyId,
+          customerId: invoice.customer?.id,
         }),
       })
 

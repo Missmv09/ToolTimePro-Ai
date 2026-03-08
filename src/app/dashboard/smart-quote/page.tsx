@@ -26,6 +26,7 @@ interface Customer {
   email: string | null;
   address: string | null;
   state: string | null;
+  sms_consent?: boolean;
 }
 
 // US state sales tax rates (2024 averages including state + avg local)
@@ -214,7 +215,7 @@ export default function SmartQuotingPage() {
       const fetchCustomers = async () => {
         const { data: customersData } = await supabase
           .from('customers')
-          .select('id, name, phone, email, address, state')
+          .select('id, name, phone, email, address, state, sms_consent')
           .eq('company_id', companyId)
           .order('name');
 
@@ -791,8 +792,9 @@ export default function SmartQuotingPage() {
 
       const sendErrors: string[] = [];
 
-      // Send SMS notification
-      if (customerPhone && (sendMethod === 'sms' || sendMethod === 'both')) {
+      // Send SMS notification (only if customer has consented)
+      const hasConsent = selectedCustomer?.sms_consent;
+      if (customerPhone && hasConsent && (sendMethod === 'sms' || sendMethod === 'both')) {
         try {
           const smsRes = await fetch('/api/sms', {
             method: 'POST',
@@ -806,6 +808,7 @@ export default function SmartQuotingPage() {
                 quoteLink,
               },
               companyId: companyId,
+              customerId: selectedCustomer?.id,
             }),
           });
           if (!smsRes.ok) {

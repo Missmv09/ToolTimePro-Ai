@@ -89,7 +89,7 @@ export function useDispatch(): UseDispatchReturn {
         .from('jobs')
         .select(`
           *,
-          customer:customers(name, phone),
+          customer:customers(name, phone, id, sms_consent),
           assignments:job_assignments(
             user:users(id, full_name)
           )
@@ -290,6 +290,9 @@ export function useDispatch(): UseDispatchReturn {
     if (!job || !job.customer?.phone) {
       return { success: false, error: 'No customer phone number' };
     }
+    if (!job.customer?.sms_consent) {
+      return { success: false, error: 'Customer has not opted in to receive text messages' };
+    }
 
     try {
       const response = await fetch('/api/sms', {
@@ -304,6 +307,7 @@ export function useDispatch(): UseDispatchReturn {
             estimatedArrival: '15-20 minutes',
           },
           companyId: company?.id,
+          customerId: job.customer.id,
         }),
       });
 
