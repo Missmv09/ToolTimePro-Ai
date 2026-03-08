@@ -26,8 +26,12 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Skip middleware if Supabase isn't configured
+  // If Supabase isn't configured, block access to protected routes
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder')) {
+    const pathname = request.nextUrl.pathname
+    if (pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
     return supabaseResponse
   }
 

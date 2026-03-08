@@ -153,13 +153,6 @@ export default function DashboardPage() {
       }
     }, DASHBOARD_TIMEOUT_MS)
 
-    // If Supabase isn't configured, show empty dashboard
-    if (!isConfigured) {
-      setLoading(false)
-      clearTimeout(timeoutId)
-      return
-    }
-
     // Wait for auth to finish loading
     if (authLoading) {
       return () => {
@@ -168,7 +161,8 @@ export default function DashboardPage() {
       }
     }
 
-    // If no user after auth loading, redirect to login
+    // If no user after auth loading (including when Supabase isn't configured),
+    // always redirect to login — never show dashboard without authentication
     if (!user) {
       router.push('/auth/login')
       clearTimeout(timeoutId)
