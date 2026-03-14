@@ -22,7 +22,7 @@ export interface DispatchJob {
   id: string;
   title: string;
   customer_id: string | null;
-  customer: { name: string; phone: string | null } | null;
+  customer: { id: string; name: string; phone: string | null; sms_consent?: boolean } | null;
   address: string | null;
   city: string | null;
   scheduled_date: string | null;
