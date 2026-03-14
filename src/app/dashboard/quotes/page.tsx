@@ -18,7 +18,7 @@ interface Quote {
   id: string
   quote_number: string
   customer_id: string
-  customer: { id: string; name: string; email: string; phone: string | null } | null
+  customer: { id: string; name: string; email: string; phone: string | null; sms_consent?: boolean } | null
   status: string
   subtotal: number
   tax_rate: number

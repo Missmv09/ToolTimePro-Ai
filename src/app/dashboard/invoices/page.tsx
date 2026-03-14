@@ -9,7 +9,7 @@ interface Invoice {
   id: string
   invoice_number: string
   customer_id: string
-  customer: { id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string } | null
+  customer: { id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string; sms_consent?: boolean } | null
   status: string
   subtotal: number
   tax_rate: number
