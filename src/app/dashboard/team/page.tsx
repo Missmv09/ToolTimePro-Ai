@@ -169,13 +169,20 @@ interface TeamMember {
   worker_notes?: WorkerNote[]
 }
 
-type UserRole = 'owner' | 'admin' | 'worker'
+type UserRole = 'owner' | 'admin' | 'worker' | 'worker_admin'
 
-const ROLE_OPTIONS: { value: UserRole; label: string; color: string }[] = [
+const ROLE_OPTIONS: { value: UserRole; label: string; color: string; description?: string }[] = [
   { value: 'owner', label: 'Owner', color: 'bg-navy-100 text-navy-700' },
   { value: 'admin', label: 'Admin', color: 'bg-gold-100 text-gold-700' },
   { value: 'worker', label: 'Field Worker', color: 'bg-green-100 text-green-700' },
+  { value: 'worker_admin', label: 'Team Member + Admin', color: 'bg-purple-100 text-purple-700', description: 'Field worker with admin privileges — ideal for smaller teams' },
 ]
+
+/** Check whether a role has admin-level privileges */
+const hasAdminAccess = (role: string) => ['owner', 'admin', 'worker_admin'].includes(role)
+
+/** Check whether a role does field work */
+const isFieldWorker = (role: string) => ['worker', 'worker_admin'].includes(role)
 
 export default function TeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -201,8 +208,8 @@ export default function TeamPage() {
 
   const companyId = dbUser?.company_id || null
   const userRole = dbUser?.role || 'worker'
-  const canManageTeam = userRole === 'owner' || userRole === 'admin'
-  const canManageNotes = userRole === 'owner' || userRole === 'admin'
+  const canManageTeam = hasAdminAccess(userRole)
+  const canManageNotes = hasAdminAccess(userRole)
 
   useEffect(() => {
     if (authLoading) return
@@ -309,7 +316,9 @@ export default function TeamPage() {
       member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.phone?.includes(searchTerm)
 
-    const matchesRole = filterRole === 'all' || member.role === filterRole
+    const matchesRole = filterRole === 'all' || member.role === filterRole ||
+      (filterRole === 'admin' && member.role === 'worker_admin') ||
+      (filterRole === 'worker' && member.role === 'worker_admin')
 
     return matchesSearch && matchesRole
   })
@@ -486,7 +495,7 @@ export default function TeamPage() {
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
           <p className="text-sm text-gray-500">Field Workers</p>
           <p className="text-2xl font-bold text-navy-500">
-            {teamMembers.filter(m => m.role === 'worker').length}
+            {teamMembers.filter(m => isFieldWorker(m.role)).length}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
@@ -529,9 +538,20 @@ export default function TeamPage() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-navy-500">{member.full_name}</h3>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleInfo.color}`}>
-                            {roleInfo.label}
-                          </span>
+                          {member.role === 'worker_admin' ? (
+                            <>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                Field Worker
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gold-100 text-gold-700">
+                                Admin
+                              </span>
+                            </>
+                          ) : (
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleInfo.color}`}>
+                              {roleInfo.label}
+                            </span>
+                          )}
                           {!member.is_active && (
                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
                               Inactive
@@ -1242,6 +1262,11 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
                   <option key={role.value} value={role.value}>{role.label}</option>
                 ))}
               </select>
+              {formData.role === 'worker_admin' && (
+                <p className="text-xs text-purple-600 mt-1">
+                  This person will work in the field and also manage team members, notes, and settings.
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate ($)</label>

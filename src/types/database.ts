@@ -96,7 +96,7 @@ export interface Database {
           email: string
           full_name: string
           phone: string | null
-          role: 'owner' | 'admin' | 'worker'
+          role: 'owner' | 'admin' | 'worker' | 'worker_admin'
           hourly_rate: number | null
           is_active: boolean
           avatar_url: string | null
@@ -110,7 +110,7 @@ export interface Database {
           email: string
           full_name: string
           phone?: string | null
-          role?: 'owner' | 'admin' | 'worker'
+          role?: 'owner' | 'admin' | 'worker' | 'worker_admin'
           hourly_rate?: number | null
           is_active?: boolean
           avatar_url?: string | null
@@ -124,7 +124,7 @@ export interface Database {
           email?: string
           full_name?: string
           phone?: string | null
-          role?: 'owner' | 'admin' | 'worker'
+          role?: 'owner' | 'admin' | 'worker' | 'worker_admin'
           hourly_rate?: number | null
           is_active?: boolean
           avatar_url?: string | null

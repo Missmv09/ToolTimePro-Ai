@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Permission check based on role
-    const isOwnerOrAdmin = callerProfile.role === 'owner' || callerProfile.role === 'admin'
+    const isOwnerOrAdmin = callerProfile.role === 'owner' || callerProfile.role === 'admin' || callerProfile.role === 'worker_admin'
 
     if (!isOwnerOrAdmin) {
       // Workers can only delete their own draft or pending_approval quotes

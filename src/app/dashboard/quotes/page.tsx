@@ -468,7 +468,7 @@ function QuotesContent() {
     fetchQuotes(companyId)
   }
 
-  const isOwnerOrAdmin = dbUser?.role === 'owner' || dbUser?.role === 'admin'
+  const isOwnerOrAdmin = dbUser?.role === 'owner' || dbUser?.role === 'admin' || dbUser?.role === 'worker_admin'
 
   const submitForApproval = async (quote: Quote) => {
     if (!companyId) return
@@ -499,7 +499,7 @@ function QuotesContent() {
         .from('users')
         .select('phone, full_name, email')
         .eq('company_id', companyId)
-        .in('role', ['owner', 'admin'])
+        .in('role', ['owner', 'admin', 'worker_admin'])
 
       if (owners) {
         for (const owner of owners) {

@@ -133,7 +133,7 @@ export default function OnboardingPage() {
   // Step 3: Team member
   const [memberName, setMemberName] = useState('')
   const [memberEmail, setMemberEmail] = useState('')
-  const [memberRole, setMemberRole] = useState<'admin' | 'worker'>('worker')
+  const [memberRole, setMemberRole] = useState<'admin' | 'worker' | 'worker_admin'>('worker')
 
   const handleSaveCompany = async () => {
     if (!company) {
@@ -670,11 +670,12 @@ export default function OnboardingPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                   <select
                     value={memberRole}
-                    onChange={(e) => setMemberRole(e.target.value as 'admin' | 'worker')}
+                    onChange={(e) => setMemberRole(e.target.value as 'admin' | 'worker' | 'worker_admin')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="worker">Worker</option>
                     <option value="admin">Admin</option>
+                    <option value="worker_admin">Team Member + Admin</option>
                   </select>
                 </div>
               </div>

@@ -36,7 +36,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
 
     // Check role if required
     if (!isLoading && user && dbUser && requiredRole) {
-      const roleHierarchy = { owner: 3, admin: 2, worker: 1 };
+      const roleHierarchy = { owner: 3, admin: 2, worker_admin: 2, worker: 1 };
       const userRoleLevel = roleHierarchy[dbUser.role as keyof typeof roleHierarchy] || 0;
       const requiredRoleLevel = roleHierarchy[requiredRole] || 0;
 

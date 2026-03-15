@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (
       !callerProfile ||
       callerProfile.company_id !== companyId ||
-      !['owner', 'admin'].includes(callerProfile.role)
+      !['owner', 'admin', 'worker_admin'].includes(callerProfile.role)
     ) {
       return NextResponse.json({ error: 'Only admins and owners can change member status' }, { status: 403 })
     }
