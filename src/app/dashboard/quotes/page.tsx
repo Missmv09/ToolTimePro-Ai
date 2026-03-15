@@ -1139,8 +1139,25 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Validation
+    const errors: string[] = []
+
+    if (!isNewCustomer && !formData.customer_id) {
+      errors.push('Please select a customer.')
+    }
+
     if (isNewCustomer && !newCustomerInfo.name.trim()) {
-      alert('Please enter a name for the new customer.')
+      errors.push('Please enter a name for the new customer.')
+    }
+
+    const hasValidItems = items.some(item => item.description.trim() !== '')
+    if (!hasValidItems) {
+      errors.push('Please add at least one line item with a description.')
+    }
+
+    if (errors.length > 0) {
+      alert(errors.join('\n'))
+      sendAfterSaveRef.current = false
       return
     }
 
