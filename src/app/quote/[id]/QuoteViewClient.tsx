@@ -207,6 +207,25 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           const data = await res.json();
           throw new Error(data.error || 'Failed to approve');
         }
+
+        // Notify company owner that customer approved the quote
+        try {
+          await fetch('/api/quote/notify-approval', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: quote.company?.email,
+              ownerName: quote.company?.name || 'Team',
+              quoteNumber: quote.quote_number || quote.id.slice(0, 8),
+              customerName: quote.customer?.name || 'Customer',
+              total: quote.total || 0,
+              itemCount: items.length,
+              dashboardLink: `${window.location.origin}/dashboard/quotes`,
+            }),
+          });
+        } catch {
+          // Notification is best-effort, don't block approval
+        }
       }
 
       setQuoteStatus('approved');
@@ -445,6 +464,20 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
               </div>
             </div>
           )}
+
+          {/* Terms & Conditions */}
+          {(() => {
+            const terms = (quote as unknown as Record<string, unknown>).terms as string | undefined
+            if (!terms) return null
+            return (
+              <div className="px-6 pb-6">
+                <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+                  <div className="text-sm font-medium text-blue-800 mb-1">Terms & Conditions</div>
+                  <div className="text-sm text-blue-700 whitespace-pre-line">{terms}</div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {/* Signature Section */}

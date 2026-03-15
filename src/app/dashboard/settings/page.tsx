@@ -15,6 +15,7 @@ interface CompanyForm {
   state: string
   zip: string
   website: string
+  default_quote_terms: string
 }
 
 // Plan display configuration mapping plan IDs to human-readable names and prices
@@ -50,6 +51,7 @@ function SettingsContent() {
     state: '',
     zip: '',
     website: '',
+    default_quote_terms: '',
   })
 
   // Initialize form when company data loads
@@ -64,6 +66,7 @@ function SettingsContent() {
         state: company.state || '',
         zip: company.zip || '',
         website: company.website || '',
+        default_quote_terms: (company as unknown as Record<string, unknown>).default_quote_terms as string || '',
       })
     }
   }, [company])
@@ -125,6 +128,7 @@ function SettingsContent() {
           state: companyForm.state,
           zip: companyForm.zip,
           website: companyForm.website,
+          default_quote_terms: companyForm.default_quote_terms,
           updated_at: new Date().toISOString(),
         })
         .eq('id', company.id)
@@ -338,6 +342,22 @@ function SettingsContent() {
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="https://yourcompany.com"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Default Quote Terms & Conditions
+                  </label>
+                  <textarea
+                    value={companyForm.default_quote_terms}
+                    onChange={(e) => setCompanyForm({ ...companyForm, default_quote_terms: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. Net 30 payment terms. 50% deposit required before work begins. All work guaranteed for 90 days. Cancellation fee of $50 applies within 24 hours of scheduled service."
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    These terms will auto-populate on new quotes. You can edit them per quote.
+                  </p>
                 </div>
 
                 <div className="pt-4">

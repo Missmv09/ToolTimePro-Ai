@@ -79,6 +79,7 @@ function QuotesContent() {
   const [showNewQuoteDropdown, setShowNewQuoteDropdown] = useState(false)
   const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null)
+  const [pendingSendQuoteId, setPendingSendQuoteId] = useState<string | null>(null)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -116,7 +117,7 @@ function QuotesContent() {
       console.error('Error fetching quotes with joins:', error)
       let fallbackQuery = supabase
         .from('quotes')
-        .select(`*, customer:customers(id, name, email, phone)`)
+        .select(`*, customer:customers(id, name, email, phone, sms_consent)`)
         .eq('company_id', compId)
         .order('created_at', { ascending: false })
 
@@ -250,6 +251,18 @@ function QuotesContent() {
     if (companyId) fetchQuotes(companyId)
   }
 
+  // Auto-send quote after Save & Send (waits for quotes state to update)
+  useEffect(() => {
+    if (pendingSendQuoteId && quotes.length > 0) {
+      const quoteToSend = quotes.find(q => q.id === pendingSendQuoteId)
+      if (quoteToSend) {
+        setPendingSendQuoteId(null)
+        sendQuote(quoteToSend)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSendQuoteId, quotes])
+
   const sendQuote = async (quote: Quote) => {
     if (!companyId) return
 
@@ -279,10 +292,12 @@ function QuotesContent() {
 
     const quoteLink = `${window.location.origin}/quote/${quote.id}`
 
+    const notifications: string[] = []
+
     // Send SMS if customer has phone and has consented
     if (quote.customer?.phone && quote.customer?.sms_consent) {
       try {
-        await fetch('/api/sms', {
+        const smsRes = await fetch('/api/sms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -297,15 +312,25 @@ function QuotesContent() {
             customerId: quote.customer.id,
           }),
         })
-      } catch {
-        console.log('SMS notification skipped or failed for quote:', quote.id)
+        if (smsRes.ok) {
+          notifications.push('SMS sent')
+        } else {
+          const smsData = await smsRes.json().catch(() => ({}))
+          console.error('SMS failed:', smsData.error || smsRes.status)
+          notifications.push('SMS failed: ' + (smsData.error || 'check Twilio config'))
+        }
+      } catch (err) {
+        console.error('SMS error:', err)
+        notifications.push('SMS failed: network error')
       }
+    } else if (quote.customer?.phone && !quote.customer?.sms_consent) {
+      notifications.push('SMS skipped: customer has not consented to texts')
     }
 
     // Send email if customer has email
     if (quote.customer?.email) {
       try {
-        await fetch('/api/quote/send', {
+        const emailRes = await fetch('/api/quote/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -328,13 +353,23 @@ function QuotesContent() {
             companyName: company?.name,
           }),
         })
+        if (emailRes.ok) {
+          notifications.push('Email sent')
+        } else {
+          notifications.push('Email failed')
+        }
       } catch {
-        console.log('Email notification skipped or failed for quote:', quote.id)
+        notifications.push('Email failed: network error')
       }
     }
 
     setSendingQuoteId(null)
     if (companyId) fetchQuotes(companyId)
+
+    // Show notification summary
+    if (notifications.length > 0) {
+      alert('Quote sent!\n\n' + notifications.join('\n'))
+    }
   }
 
   const convertToInvoice = async (quote: Quote) => {
@@ -981,6 +1016,8 @@ function QuotesContent() {
           companyId={companyId!}
           userId={user?.id || null}
           customers={customers}
+          defaultQuoteTerms={(company as unknown as Record<string, unknown>)?.default_quote_terms as string || ''}
+          isOwnerOrAdmin={isOwnerOrAdmin}
           onClose={() => {
             setShowModal(false)
             setEditingQuote(null)
@@ -990,23 +1027,33 @@ function QuotesContent() {
             setEditingQuote(null)
             if (companyId) fetchQuotes(companyId)
           }}
+          onSaveAndSend={(quoteId: string) => {
+            setShowModal(false)
+            setEditingQuote(null)
+            setPendingSendQuoteId(quoteId)
+            if (companyId) fetchQuotes(companyId)
+          }}
         />
       )}
     </div>
   )
 }
 
-function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
+function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, isOwnerOrAdmin, onClose, onSave, onSaveAndSend }: {
   quote: Quote | null
   companyId: string
   userId: string | null
   customers: { id: string; name: string; email: string }[]
+  defaultQuoteTerms: string
+  isOwnerOrAdmin: boolean
   onClose: () => void
   onSave: () => void
+  onSaveAndSend: (quoteId: string) => void
 }) {
   const [formData, setFormData] = useState({
     customer_id: quote?.customer_id || '',
     notes: quote?.notes || '',
+    terms: (quote as unknown as Record<string, unknown>)?.terms as string || defaultQuoteTerms || '',
     valid_until: quote?.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   })
   const [isNewCustomer, setIsNewCustomer] = useState(false)
@@ -1019,6 +1066,7 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
   const [saving, setSaving] = useState(false)
+  const [sendAfterSave, setSendAfterSave] = useState(false)
   const [loadingItems, setLoadingItems] = useState(false)
 
   // Always fetch items directly from the database when editing an existing quote.
@@ -1154,6 +1202,7 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
       company_id: companyId,
       customer_id: customerId,
       notes: formData.notes,
+      terms: formData.terms,
       valid_until: formData.valid_until,
       subtotal: Number(subtotal) || 0,
       tax_rate: 8.75,
@@ -1207,7 +1256,11 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
       }
 
       setSaving(false)
-      onSave()
+      if (sendAfterSave && result.quote?.id) {
+        onSaveAndSend(result.quote.id)
+      } else {
+        onSave()
+      }
       return
     }
 
@@ -1238,7 +1291,11 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
     }
 
     setSaving(false)
-    onSave()
+    if (sendAfterSave && quoteId) {
+      onSaveAndSend(quoteId)
+    } else {
+      onSave()
+    }
   }
 
   return (
@@ -1398,9 +1455,31 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={2}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Special conditions, internal notes..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Terms & Conditions
+              {defaultQuoteTerms && !formData.terms && (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, terms: defaultQuoteTerms })}
+                  className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Load defaults
+                </button>
+              )}
+            </label>
+            <textarea
+              value={formData.terms}
+              onChange={(e) => setFormData({ ...formData, terms: e.target.value })}
               rows={3}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="Payment terms, special conditions..."
+              placeholder="Payment terms, warranty info, cancellation policy..."
             />
           </div>
 
@@ -1419,6 +1498,20 @@ function QuoteModal({ quote, companyId, userId, customers, onClose, onSave }: {
             >
               {saving ? 'Saving...' : 'Save Quote'}
             </button>
+            {isOwnerOrAdmin && (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => {
+                  setSendAfterSave(true)
+                  const form = document.querySelector('form')
+                  if (form) form.requestSubmit()
+                }}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {saving && sendAfterSave ? 'Sending...' : 'Save & Send'}
+              </button>
+            )}
           </div>
         </form>
       </div>
