@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
@@ -13,6 +13,13 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  // 2FA state
+  const [twoFaRequired, setTwoFaRequired] = useState(false)
+  const [twoFaCode, setTwoFaCode] = useState('')
+  const [twoFaPhoneLast4, setTwoFaPhoneLast4] = useState('')
+  const [trustDevice, setTrustDevice] = useState(true)
+  const [verifying2FA, setVerifying2FA] = useState(false)
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const { authError, signIn, isConfigured } = useAuth()
@@ -22,6 +29,78 @@ function LoginContent() {
 
   // Display either local error or auth context error
   const displayError = error || authError
+
+  // Get device token from cookie
+  const getDeviceToken = () => {
+    const match = document.cookie.match(/ttp_2fa_device=([^;]+)/)
+    return match ? match[1] : null
+  }
+
+  // Save device token as cookie (90 days)
+  const saveDeviceToken = (token: string) => {
+    const maxAge = 90 * 24 * 60 * 60 // 90 days in seconds
+    document.cookie = `ttp_2fa_device=${token};max-age=${maxAge};path=/;samesite=strict`
+  }
+
+  // Navigate to the correct destination after login
+  const navigateAfterLogin = useCallback(async () => {
+    // Determine the correct destination after login:
+    //   needs_password -> /auth/set-password
+    //   onboarding not done -> /onboarding
+    //   otherwise -> /dashboard
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        const pwRes = await fetch('/api/auth/check-needs-password', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (pwRes.ok) {
+          const { needsPassword } = await pwRes.json()
+          if (needsPassword) {
+            router.push('/auth/set-password')
+            return
+          }
+        }
+      }
+    } catch {
+      // If the check fails, fall through to dashboard
+    }
+
+    // Check user role and onboarding status
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser?.id) {
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('company_id, role')
+          .eq('id', authUser.id)
+          .single()
+
+        if (userRow?.role === 'worker') {
+          router.push('/worker')
+          return
+        }
+
+        if (userRow?.company_id) {
+          const { data: comp } = await supabase
+            .from('companies')
+            .select('onboarding_completed')
+            .eq('id', userRow.company_id)
+            .single()
+          if (comp && !comp.onboarding_completed) {
+            router.push('/onboarding')
+            return
+          }
+        }
+      }
+    } catch {
+      // If the check fails, fall through to dashboard
+    }
+
+    const redirectTo = searchParams.get('redirect')
+    router.push(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/dashboard')
+    router.refresh()
+  }, [router, searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,68 +123,46 @@ function LoginContent() {
         }
         setLoading(false)
       } else {
-        // Register this browser as the single active session.
-        // Any other browser logged in as this user will be signed out.
+        // Register this browser as the single active session
         await registerSession()
 
-        // Determine the correct destination after login:
-        //   needs_password → /auth/set-password
-        //   onboarding not done → /onboarding
-        //   otherwise → /dashboard
+        // Check if 2FA is required
         try {
           const { data: { session } } = await supabase.auth.getSession()
           if (session?.access_token) {
-            // Server-side password check (reads app_metadata directly)
-            const pwRes = await fetch('/api/auth/check-needs-password', {
-              headers: { Authorization: `Bearer ${session.access_token}` },
+            const deviceToken = getDeviceToken()
+            const checkRes = await fetch('/api/auth/2fa/check-device', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ deviceToken }),
             })
-            if (pwRes.ok) {
-              const { needsPassword } = await pwRes.json()
-              if (needsPassword) {
-                router.push('/auth/set-password')
+
+            if (checkRes.ok) {
+              const { required, trusted } = await checkRes.json()
+              if (required && !trusted) {
+                // Send 2FA code
+                const sendRes = await fetch('/api/auth/2fa/send-code', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${session.access_token}` },
+                })
+                if (sendRes.ok) {
+                  const { phoneLast4 } = await sendRes.json()
+                  setTwoFaPhoneLast4(phoneLast4)
+                }
+                setTwoFaRequired(true)
+                setLoading(false)
                 return
               }
             }
           }
         } catch {
-          // If the check fails, fall through to dashboard
+          // If 2FA check fails, proceed without it (fail-open)
         }
 
-        // Check user role and onboarding status
-        try {
-          const { data: { user: authUser } } = await supabase.auth.getUser()
-          if (authUser?.id) {
-            const { data: userRow } = await supabase
-              .from('users')
-              .select('company_id, role')
-              .eq('id', authUser.id)
-              .single()
-
-            // Workers should be redirected to the worker app
-            if (userRow?.role === 'worker') {
-              router.push('/worker')
-              return
-            }
-
-            if (userRow?.company_id) {
-              const { data: comp } = await supabase
-                .from('companies')
-                .select('onboarding_completed')
-                .eq('id', userRow.company_id)
-                .single()
-              if (comp && !comp.onboarding_completed) {
-                router.push('/onboarding')
-                return
-              }
-            }
-          }
-        } catch {
-          // If the check fails, fall through to dashboard
-        }
-
-        const redirectTo = searchParams.get('redirect')
-        router.push(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/dashboard')
-        router.refresh()
+        await navigateAfterLogin()
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
@@ -116,6 +173,166 @@ function LoginContent() {
       }
       setLoading(false)
     }
+  }
+
+  const handleVerify2FA = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setVerifying2FA(true)
+    setError(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setError('Session expired. Please log in again.')
+        setTwoFaRequired(false)
+        setVerifying2FA(false)
+        return
+      }
+
+      const res = await fetch('/api/auth/2fa/verify-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          code: twoFaCode,
+          trustDevice,
+          deviceLabel: navigator.userAgent.substring(0, 100),
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Verification failed')
+        setVerifying2FA(false)
+        return
+      }
+
+      // Save device token if trusting this device
+      if (data.deviceToken) {
+        saveDeviceToken(data.deviceToken)
+      }
+
+      await navigateAfterLogin()
+    } catch {
+      setError('Verification failed. Please try again.')
+      setVerifying2FA(false)
+    }
+  }
+
+  const handleResend2FA = async () => {
+    setError(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const res = await fetch('/api/auth/2fa/send-code', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (res.ok) {
+        const { phoneLast4 } = await res.json()
+        setTwoFaPhoneLast4(phoneLast4)
+        setError(null)
+      } else {
+        setError('Failed to resend code. Please try again.')
+      }
+    } catch {
+      setError('Failed to resend code.')
+    }
+  }
+
+  const handleCancel2FA = async () => {
+    await supabase.auth.signOut()
+    setTwoFaRequired(false)
+    setTwoFaCode('')
+    setError(null)
+  }
+
+  // 2FA verification screen
+  if (twoFaRequired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold text-center text-gray-900">ToolTime Pro</h1>
+            <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900">
+              Two-Factor Verification
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Enter the 6-digit code sent to ***-{twoFaPhoneLast4 || '****'}
+            </p>
+          </div>
+
+          <form className="mt-8 space-y-6" onSubmit={handleVerify2FA}>
+            {displayError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {displayError}
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="twofa-code" className="block text-sm font-medium text-gray-700">
+                Verification Code
+              </label>
+              <input
+                id="twofa-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                required
+                value={twoFaCode}
+                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="000000"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="trust-device"
+                type="checkbox"
+                checked={trustDevice}
+                onChange={(e) => setTrustDevice(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="trust-device" className="ml-2 block text-sm text-gray-700">
+                Trust this device for 90 days
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={verifying2FA || twoFaCode.length !== 6}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {verifying2FA ? 'Verifying...' : 'Verify'}
+            </button>
+
+            <div className="flex items-center justify-between text-sm">
+              <button
+                type="button"
+                onClick={handleResend2FA}
+                className="text-blue-600 hover:text-blue-500"
+              >
+                Resend code
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel2FA}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
   }
 
   return (
