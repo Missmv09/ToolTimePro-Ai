@@ -1,13 +1,13 @@
 /**
  * Tests for the customer-facing quote view & approval/rejection flow.
  *
- * QuoteViewClient.tsx talks directly to Supabase (no API route) when a
- * customer views, approves, or rejects a quote. This test suite validates
- * those Supabase interactions and the resulting UI state changes.
+ * QuoteViewClient.tsx uses API routes (/api/quote/public and /api/quote/respond)
+ * for fetching and responding to quotes. This test suite validates those
+ * interactions and the resulting UI state changes.
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // ── Canvas mock (jsdom has no canvas support) ────────────────────────────────
@@ -28,52 +28,10 @@ const mockContext = {
 HTMLCanvasElement.prototype.getContext = jest.fn(() => mockContext);
 HTMLCanvasElement.prototype.toDataURL = jest.fn(() => 'data:image/png;base64,fakesignature');
 
-// ── Supabase mock ────────────────────────────────────────────────────────────
-
-const mockUpdate = jest.fn();
-const mockEq = jest.fn();
-const mockSelect = jest.fn();
-const mockSingle = jest.fn();
-const mockOrder = jest.fn();
-
-// Chainable query builder
-function chainableQuery(resolvedData, resolvedError = null) {
-  const chain = {
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({ data: resolvedData, error: resolvedError }),
-    order: jest.fn().mockResolvedValue({ data: resolvedData, error: resolvedError }),
-    update: jest.fn().mockReturnThis(),
-  };
-  return chain;
-}
-
-// Build a fresh mock per test
-let mockQuoteQuery;
-let mockItemsQuery;
-let mockUpdateQuery;
-
-function buildSupabaseMock() {
-  return {
-    from: jest.fn((table) => {
-      if (table === 'quotes') {
-        // Return different chains depending on whether it's a read or update
-        return mockQuoteQuery;
-      }
-      if (table === 'quote_items') {
-        return mockItemsQuery;
-      }
-      return chainableQuery(null, { message: 'unknown table' });
-    }),
-  };
-}
-
-let mockSupabase;
+// ── Supabase mock (still imported but no longer used for fetching) ───────────
 
 jest.mock('@/lib/supabase', () => ({
-  get supabase() {
-    return mockSupabase;
-  },
+  supabase: {},
 }));
 
 // ── Mock next/image (jsdom can't render) ─────────────────────────────────────
@@ -143,29 +101,54 @@ const sampleItems = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function setupQuoteQuery(quoteData, quoteError = null) {
-  // The component tries .eq('id', ...).single() first, then falls back to
-  // .eq('quote_number', ...).single(). We simulate the primary lookup succeeding.
-  mockQuoteQuery = {
-    select: jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        single: jest.fn().mockResolvedValue({ data: quoteData, error: quoteError }),
-      }),
-    }),
-    update: jest.fn().mockReturnValue({
-      eq: jest.fn().mockResolvedValue({ data: null, error: null }),
-    }),
-  };
+let fetchMock;
+
+function mockFetchSuccess(quote = sampleQuote, items = sampleItems) {
+  fetchMock = jest.fn((url) => {
+    if (typeof url === 'string' && url.includes('/api/quote/public')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ quote, lineItems: items }),
+      });
+    }
+    if (typeof url === 'string' && url.includes('/api/quote/respond')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true }),
+      });
+    }
+    return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'unknown' }) });
+  });
+  global.fetch = fetchMock;
 }
 
-function setupItemsQuery(itemsData) {
-  mockItemsQuery = {
-    select: jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        order: jest.fn().mockResolvedValue({ data: itemsData, error: null }),
-      }),
-    }),
-  };
+function mockFetchNotFound() {
+  fetchMock = jest.fn(() =>
+    Promise.resolve({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Quote not found' }),
+    })
+  );
+  global.fetch = fetchMock;
+}
+
+function mockFetchRespondError() {
+  fetchMock = jest.fn((url) => {
+    if (typeof url === 'string' && url.includes('/api/quote/public')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ quote: sampleQuote, lineItems: sampleItems }),
+      });
+    }
+    if (typeof url === 'string' && url.includes('/api/quote/respond')) {
+      return Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'DB error' }),
+      });
+    }
+    return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'unknown' }) });
+  });
+  global.fetch = fetchMock;
 }
 
 function renderQuoteView(id = 'q-real-123') {
@@ -175,23 +158,22 @@ function renderQuoteView(id = 'q-real-123') {
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('CustomerQuoteView – customer flow', () => {
+  const originalFetch = global.fetch;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    setupQuoteQuery(sampleQuote);
-    setupItemsQuery(sampleItems);
-    mockSupabase = buildSupabaseMock();
+    mockFetchSuccess();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   // ── Loading & Fetching ──────────────────────────────────────────────────
 
   it('shows a loading spinner while fetching the quote', () => {
     // Override to never resolve
-    mockQuoteQuery.select = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        single: jest.fn().mockReturnValue(new Promise(() => {})),
-      }),
-    });
-    mockSupabase = buildSupabaseMock();
+    global.fetch = jest.fn(() => new Promise(() => {}));
 
     renderQuoteView();
     expect(screen.getByTestId('loader')).toBeInTheDocument();
@@ -212,14 +194,7 @@ describe('CustomerQuoteView – customer flow', () => {
   });
 
   it('shows "Quote Not Found" on fetch error', async () => {
-    setupQuoteQuery(null, { message: 'not found' });
-    // Also make the fallback (quote_number lookup) fail
-    mockQuoteQuery.select = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'not found' } }),
-      }),
-    });
-    mockSupabase = buildSupabaseMock();
+    mockFetchNotFound();
 
     renderQuoteView('nonexistent-id');
 
@@ -228,42 +203,19 @@ describe('CustomerQuoteView – customer flow', () => {
     });
   });
 
-  // ── Auto "viewed" status update ─────────────────────────────────────────
-
-  it('marks a "sent" quote as "viewed" on load', async () => {
-    renderQuoteView();
+  it('calls the public API with the correct quote ID', async () => {
+    renderQuoteView('my-quote-id');
 
     await waitFor(() => {
-      expect(screen.getByText('Acme Services')).toBeInTheDocument();
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/api/quote/public?id=my-quote-id')
+      );
     });
-
-    // The component should have called update on the quotes table
-    expect(mockSupabase.from).toHaveBeenCalledWith('quotes');
-    expect(mockQuoteQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 'viewed',
-        viewed_at: expect.any(String),
-      })
-    );
-  });
-
-  it('does NOT mark quote as viewed if status is not "sent"', async () => {
-    const viewedQuote = { ...sampleQuote, status: 'viewed' };
-    setupQuoteQuery(viewedQuote);
-    mockSupabase = buildSupabaseMock();
-
-    renderQuoteView();
-
-    await waitFor(() => {
-      expect(screen.getByText('Acme Services')).toBeInTheDocument();
-    });
-
-    expect(mockQuoteQuery.update).not.toHaveBeenCalled();
   });
 
   // ── Demo quote handling ─────────────────────────────────────────────────
 
-  it('renders demo quote without hitting Supabase', async () => {
+  it('renders demo quote without hitting the API', async () => {
     renderQuoteView('demo');
 
     await waitFor(() => {
@@ -271,8 +223,8 @@ describe('CustomerQuoteView – customer flow', () => {
     });
 
     expect(screen.getByText('John Smith')).toBeInTheDocument();
-    // Supabase should not have been called for demo
-    expect(mockSupabase.from).not.toHaveBeenCalled();
+    // API should not have been called for demo
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   // ── Approval flow ──────────────────────────────────────────────────────
@@ -284,7 +236,6 @@ describe('CustomerQuoteView – customer flow', () => {
       expect(screen.getByText('Acme Services')).toBeInTheDocument();
     });
 
-    // Click approve without a signature → should show signature modal
     const approveBtn = screen.getByText(/Sign & Approve/);
     fireEvent.click(approveBtn);
 
@@ -293,7 +244,7 @@ describe('CustomerQuoteView – customer flow', () => {
     });
   });
 
-  it('approves quote with signature and updates Supabase', async () => {
+  it('approves quote with signature and calls respond API', async () => {
     renderQuoteView();
 
     await waitFor(() => {
@@ -307,18 +258,12 @@ describe('CustomerQuoteView – customer flow', () => {
       expect(screen.getByText('Sign to Approve')).toBeInTheDocument();
     });
 
-    // Save signature (canvas.toDataURL returns empty in jsdom, but the flow still works)
+    // Save signature
     fireEvent.click(screen.getByText('Save'));
 
     // Now the approve button should show with the total
     await waitFor(() => {
       expect(screen.getByText(/Approve Quote/)).toBeInTheDocument();
-    });
-
-    // Reset update mock to track the approval call specifically
-    mockQuoteQuery.update.mockClear();
-    mockQuoteQuery.update.mockReturnValue({
-      eq: jest.fn().mockResolvedValue({ data: null, error: null }),
     });
 
     // Click the final approve
@@ -328,26 +273,27 @@ describe('CustomerQuoteView – customer flow', () => {
       expect(screen.getByText('Quote Approved!')).toBeInTheDocument();
     });
 
-    // Verify Supabase was called with correct approval data
-    expect(mockQuoteQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 'approved',
-        approved_at: expect.any(String),
-        signature_url: expect.any(String),
-      })
+    // Verify respond API was called with correct data
+    const respondCall = fetchMock.mock.calls.find(
+      (call) => typeof call[0] === 'string' && call[0].includes('/api/quote/respond')
     );
+    expect(respondCall).toBeTruthy();
+
+    const body = JSON.parse(respondCall[1].body);
+    expect(body.quoteId).toBe('q-real-123');
+    expect(body.action).toBe('approve');
+    expect(body.signature).toBe('data:image/png;base64,fakesignature');
   });
 
-  it('does NOT call Supabase for demo quotes (renders without DB calls)', async () => {
+  it('does NOT call respond API for demo quotes', async () => {
     renderQuoteView('demo');
 
     await waitFor(() => {
       expect(screen.getByText('Green Valley Landscaping')).toBeInTheDocument();
     });
 
-    // Demo quote has a past valid_until date, so it shows as expired.
-    // The key assertion: Supabase was never called for demo data.
-    expect(mockSupabase.from).not.toHaveBeenCalled();
+    // Demo quote should not call API
+    expect(fetchMock).not.toHaveBeenCalled();
 
     // Verify demo data rendered correctly
     expect(screen.getByText('John Smith')).toBeInTheDocument();
@@ -369,7 +315,6 @@ describe('CustomerQuoteView – customer flow', () => {
       expect(screen.getByText('Why are you declining?')).toBeInTheDocument();
     });
 
-    // All predefined reasons should be shown
     expect(screen.getByText('Price too high')).toBeInTheDocument();
     expect(screen.getByText('Found another provider')).toBeInTheDocument();
     expect(screen.getByText('Project cancelled')).toBeInTheDocument();
@@ -377,7 +322,7 @@ describe('CustomerQuoteView – customer flow', () => {
     expect(screen.getByText('Other')).toBeInTheDocument();
   });
 
-  it('rejects quote with a reason and updates Supabase', async () => {
+  it('rejects quote with a reason and calls respond API', async () => {
     renderQuoteView();
 
     await waitFor(() => {
@@ -391,12 +336,6 @@ describe('CustomerQuoteView – customer flow', () => {
     // Pick a reason
     fireEvent.click(screen.getByText('Price too high'));
 
-    // Reset update mock to only track the rejection call
-    mockQuoteQuery.update.mockClear();
-    mockQuoteQuery.update.mockReturnValue({
-      eq: jest.fn().mockResolvedValue({ data: null, error: null }),
-    });
-
     // Confirm decline
     fireEvent.click(screen.getByText('Decline Quote'));
 
@@ -404,41 +343,16 @@ describe('CustomerQuoteView – customer flow', () => {
       expect(screen.getByText('Quote Declined')).toBeInTheDocument();
     });
 
-    // Verify Supabase was called with rejection data
-    expect(mockQuoteQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 'rejected',
-        notes: expect.stringContaining('Price too high'),
-      })
+    // Verify respond API was called with rejection data
+    const respondCall = fetchMock.mock.calls.find(
+      (call) => typeof call[0] === 'string' && call[0].includes('/api/quote/respond')
     );
-  });
+    expect(respondCall).toBeTruthy();
 
-  it('appends rejection reason to existing notes', async () => {
-    renderQuoteView();
-
-    await waitFor(() => {
-      expect(screen.getByText('Acme Services')).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByText('Decline'));
-    await waitFor(() => expect(screen.getByText('Why are you declining?')).toBeInTheDocument());
-    fireEvent.click(screen.getByText('Project cancelled'));
-
-    mockQuoteQuery.update.mockClear();
-    mockQuoteQuery.update.mockReturnValue({
-      eq: jest.fn().mockResolvedValue({ data: null, error: null }),
-    });
-
-    fireEvent.click(screen.getByText('Decline Quote'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Quote Declined')).toBeInTheDocument();
-    });
-
-    // The notes field should contain the original note + rejection reason
-    const updateCall = mockQuoteQuery.update.mock.calls[0][0];
-    expect(updateCall.notes).toContain('Please call before arriving');
-    expect(updateCall.notes).toContain('Rejection reason: Project cancelled');
+    const body = JSON.parse(respondCall[1].body);
+    expect(body.quoteId).toBe('q-real-123');
+    expect(body.action).toBe('reject');
+    expect(body.rejectReason).toBe('Price too high');
   });
 
   it('cancels rejection and returns to action buttons', async () => {
@@ -464,8 +378,7 @@ describe('CustomerQuoteView – customer flow', () => {
 
   it('shows expired notice and hides action buttons for expired quotes', async () => {
     const expiredQuote = { ...sampleQuote, status: 'viewed', valid_until: '2020-01-01' };
-    setupQuoteQuery(expiredQuote);
-    mockSupabase = buildSupabaseMock();
+    mockFetchSuccess(expiredQuote);
 
     renderQuoteView();
 
@@ -473,14 +386,15 @@ describe('CustomerQuoteView – customer flow', () => {
       expect(screen.getByText('This quote has expired')).toBeInTheDocument();
     });
 
-    // Approve/Decline buttons should NOT be present
     expect(screen.queryByText(/Sign & Approve/)).not.toBeInTheDocument();
     expect(screen.queryByText('Decline')).not.toBeInTheDocument();
   });
 
   // ── Error handling during approval ──────────────────────────────────────
 
-  it('shows alert when Supabase update fails during approval', async () => {
+  it('shows alert when respond API fails during approval', async () => {
+    mockFetchRespondError();
+
     renderQuoteView();
 
     await waitFor(() => {
@@ -493,11 +407,6 @@ describe('CustomerQuoteView – customer flow', () => {
     fireEvent.click(screen.getByText('Save'));
     await waitFor(() => expect(screen.getByText(/Approve Quote/)).toBeInTheDocument());
 
-    // Make update fail
-    mockQuoteQuery.update.mockReturnValue({
-      eq: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
-    });
-
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
 
     fireEvent.click(screen.getByText(/Approve Quote/));
@@ -509,7 +418,9 @@ describe('CustomerQuoteView – customer flow', () => {
     alertSpy.mockRestore();
   });
 
-  it('shows alert when Supabase update fails during rejection', async () => {
+  it('shows alert when respond API fails during rejection', async () => {
+    mockFetchRespondError();
+
     renderQuoteView();
 
     await waitFor(() => {
@@ -519,11 +430,6 @@ describe('CustomerQuoteView – customer flow', () => {
     fireEvent.click(screen.getByText('Decline'));
     await waitFor(() => expect(screen.getByText('Why are you declining?')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Other'));
-
-    // Make update fail
-    mockQuoteQuery.update.mockReturnValue({
-      eq: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
-    });
 
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
 
