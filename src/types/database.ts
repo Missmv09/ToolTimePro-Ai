@@ -27,6 +27,8 @@ export interface Database {
           plan: string
           addons: string[]
           stripe_customer_id: string | null
+          stripe_connect_account_id: string | null
+          stripe_connect_onboarded: boolean
           booking_settings: Json | null
           trial_starts_at: string | null
           trial_ends_at: string | null
@@ -52,6 +54,8 @@ export interface Database {
           plan?: string
           addons?: string[]
           stripe_customer_id?: string | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_onboarded?: boolean
           booking_settings?: Json | null
           trial_starts_at?: string | null
           trial_ends_at?: string | null
@@ -77,6 +81,8 @@ export interface Database {
           plan?: string
           addons?: string[]
           stripe_customer_id?: string | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_onboarded?: boolean
           booking_settings?: Json | null
           trial_starts_at?: string | null
           trial_ends_at?: string | null
@@ -477,6 +483,12 @@ export interface Database {
           notes: string | null
           created_by: string | null
           sent_by: string | null
+          deposit_required: boolean
+          deposit_amount: number | null
+          deposit_percentage: number | null
+          deposit_paid: boolean
+          deposit_paid_at: string | null
+          deposit_stripe_payment_id: string | null
           created_at: string
           updated_at: string
         }
@@ -502,6 +514,12 @@ export interface Database {
           notes?: string | null
           created_by?: string | null
           sent_by?: string | null
+          deposit_required?: boolean
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
+          deposit_stripe_payment_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -527,6 +545,12 @@ export interface Database {
           notes?: string | null
           created_by?: string | null
           sent_by?: string | null
+          deposit_required?: boolean
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
+          deposit_stripe_payment_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -553,6 +577,7 @@ export interface Database {
           stripe_payment_intent_id: string | null
           qbo_id: string | null
           notes: string | null
+          deposit_amount: number
           created_at: string
           updated_at: string
         }
@@ -577,6 +602,7 @@ export interface Database {
           stripe_payment_intent_id?: string | null
           qbo_id?: string | null
           notes?: string | null
+          deposit_amount?: number
           created_at?: string
           updated_at?: string
         }
@@ -601,6 +627,7 @@ export interface Database {
           stripe_payment_intent_id?: string | null
           qbo_id?: string | null
           notes?: string | null
+          deposit_amount?: number
           created_at?: string
           updated_at?: string
         }

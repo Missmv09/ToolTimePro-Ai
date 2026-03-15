@@ -32,6 +32,10 @@ interface Quote {
   sent_at: string | null
   follow_up_date: string | null
   last_followed_up_at: string | null
+  deposit_required?: boolean
+  deposit_amount?: number | null
+  deposit_percentage?: number | null
+  deposit_paid?: boolean
   items?: QuoteItem[]
   creator?: { full_name: string } | null
   sender?: { full_name: string } | null
@@ -1072,6 +1076,13 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
+  const [depositRequired, setDepositRequired] = useState(quote?.deposit_required || false)
+  const [depositType, setDepositType] = useState<'fixed' | 'percentage'>(
+    quote?.deposit_percentage ? 'percentage' : 'fixed'
+  )
+  const [depositValue, setDepositValue] = useState(
+    quote?.deposit_percentage ? String(quote.deposit_percentage) : quote?.deposit_amount ? String(quote.deposit_amount) : ''
+  )
   const [saving, setSaving] = useState(false)
   const sendAfterSaveRef = useRef(false)
   const [loadingItems, setLoadingItems] = useState(false)
@@ -1233,6 +1244,9 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       tax_amount: Number(tax_amount) || 0,
       total: Number(total) || 0,
       status: quote?.status || 'draft',
+      deposit_required: depositRequired,
+      deposit_amount: depositRequired && depositType === 'fixed' ? Number(depositValue) || null : null,
+      deposit_percentage: depositRequired && depositType === 'percentage' ? Number(depositValue) || null : null,
     }
     if (!quote && userId) {
       quoteData.created_by = userId
@@ -1364,6 +1378,51 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+
+          {/* Deposit */}
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={depositRequired}
+                onChange={(e) => setDepositRequired(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Require deposit before scheduling</span>
+            </label>
+            {depositRequired && (
+              <div className="mt-3 flex gap-3 items-end">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Deposit Amount</label>
+                  <div className="flex">
+                    <select
+                      value={depositType}
+                      onChange={(e) => setDepositType(e.target.value as 'fixed' | 'percentage')}
+                      className="px-2 py-2 border border-r-0 rounded-l-lg bg-white text-sm focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="fixed">$</option>
+                      <option value="percentage">%</option>
+                    </select>
+                    <input
+                      type="number"
+                      min="0"
+                      step={depositType === 'percentage' ? '1' : '0.01'}
+                      max={depositType === 'percentage' ? '100' : undefined}
+                      value={depositValue}
+                      onChange={(e) => setDepositValue(e.target.value)}
+                      placeholder={depositType === 'percentage' ? '50' : '100.00'}
+                      className="flex-1 px-3 py-2 border rounded-r-lg text-sm focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                {depositType === 'percentage' && Number(depositValue) > 0 && Number(total) > 0 && (
+                  <p className="text-sm text-gray-500 pb-2">
+                    = ${((Number(depositValue) / 100) * Number(total)).toFixed(2)}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* New Customer Fields */}
