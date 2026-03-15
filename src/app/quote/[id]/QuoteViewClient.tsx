@@ -464,6 +464,20 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
               </div>
             </div>
           )}
+
+          {/* Terms & Conditions */}
+          {(() => {
+            const terms = (quote as unknown as Record<string, unknown>).terms as string | undefined
+            if (!terms) return null
+            return (
+              <div className="px-6 pb-6">
+                <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+                  <div className="text-sm font-medium text-blue-800 mb-1">Terms & Conditions</div>
+                  <div className="text-sm text-blue-700 whitespace-pre-line">{terms}</div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {/* Signature Section */}
