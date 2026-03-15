@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -1073,7 +1073,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
   const [saving, setSaving] = useState(false)
-  const [sendAfterSave, setSendAfterSave] = useState(false)
+  const sendAfterSaveRef = useRef(false)
   const [loadingItems, setLoadingItems] = useState(false)
 
   // Always fetch items directly from the database when editing an existing quote.
@@ -1263,9 +1263,11 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       }
 
       setSaving(false)
-      if (sendAfterSave && result.quote?.id) {
+      if (sendAfterSaveRef.current && result.quote?.id) {
+        sendAfterSaveRef.current = false
         onSaveAndSend(result.quote.id)
       } else {
+        sendAfterSaveRef.current = false
         onSave()
       }
       return
@@ -1298,9 +1300,11 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     }
 
     setSaving(false)
-    if (sendAfterSave && quoteId) {
+    if (sendAfterSaveRef.current && quoteId) {
+      sendAfterSaveRef.current = false
       onSaveAndSend(quoteId)
     } else {
+      sendAfterSaveRef.current = false
       onSave()
     }
   }
@@ -1510,13 +1514,13 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
                 type="button"
                 disabled={saving}
                 onClick={() => {
-                  setSendAfterSave(true)
+                  sendAfterSaveRef.current = true
                   const form = document.querySelector('form')
                   if (form) form.requestSubmit()
                 }}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
-                {saving && sendAfterSave ? 'Sending...' : 'Save & Send'}
+                {saving && sendAfterSaveRef.current ? 'Sending...' : 'Save & Send'}
               </button>
             )}
           </div>
