@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { Quote, Company, Customer } from '@/types/database';
 
@@ -94,64 +93,16 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
         return;
       }
 
-      // Fetch quote with company and customer details
-      const { data, error: fetchError } = await supabase
-        .from('quotes')
-        .select(`
-          *,
-          company:companies(*),
-          customer:customers(*)
-        `)
-        .eq('id', params.id)
-        .single();
+      // Fetch quote via server-side API (bypasses RLS for public access)
+      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(params.id)}`);
 
-      if (fetchError) {
-        // Try by quote_number
-        const { data: byNumber, error: numberError } = await supabase
-          .from('quotes')
-          .select(`
-            *,
-            company:companies(*),
-            customer:customers(*)
-          `)
-          .eq('quote_number', params.id)
-          .single();
-
-        if (numberError) throw fetchError;
-
-        setQuote(byNumber as unknown as QuoteWithDetails);
-
-        // Fetch line items
-        const { data: lineItems } = await supabase
-          .from('quote_items')
-          .select('*')
-          .eq('quote_id', byNumber.id)
-          .order('created_at', { ascending: true });
-
-        setItems((lineItems as QuoteLineItem[]) || []);
-      } else {
-        setQuote(data as unknown as QuoteWithDetails);
-
-        // Fetch line items
-        const { data: lineItems } = await supabase
-          .from('quote_items')
-          .select('*')
-          .eq('quote_id', data.id)
-          .order('created_at', { ascending: true });
-
-        setItems((lineItems as QuoteLineItem[]) || []);
-
-        // Mark as viewed if not already
-        if (data.status === 'sent') {
-          await supabase
-            .from('quotes')
-            .update({
-              status: 'viewed',
-              viewed_at: new Date().toISOString()
-            })
-            .eq('id', data.id);
-        }
+      if (!res.ok) {
+        throw new Error('Quote not found');
       }
+
+      const { quote: fetchedQuote, lineItems } = await res.json();
+      setQuote(fetchedQuote as QuoteWithDetails);
+      setItems((lineItems as QuoteLineItem[]) || []);
     } catch (err) {
       console.error('Error fetching quote:', err);
       setError('Quote not found');
@@ -246,16 +197,16 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     try {
       // Update quote in database (skip for demo)
       if (quote.id !== 'demo' && quote.id !== 'QT-2024-001') {
-        const { error: updateError } = await supabase
-          .from('quotes')
-          .update({
-            status: 'approved',
-            approved_at: new Date().toISOString(),
-            signature_url: signature,
-          })
-          .eq('id', quote.id);
+        const res = await fetch('/api/quote/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quoteId: quote.id, action: 'approve', signature }),
+        });
 
-        if (updateError) throw updateError;
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to approve');
+        }
       }
 
       setQuoteStatus('approved');
@@ -281,15 +232,16 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     try {
       // Update quote in database (skip for demo)
       if (quote.id !== 'demo' && quote.id !== 'QT-2024-001') {
-        const { error: updateError } = await supabase
-          .from('quotes')
-          .update({
-            status: 'rejected',
-            notes: quote.notes ? `${quote.notes}\n\nRejection reason: ${rejectReason}` : `Rejection reason: ${rejectReason}`,
-          })
-          .eq('id', quote.id);
+        const res = await fetch('/api/quote/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quoteId: quote.id, action: 'reject', rejectReason }),
+        });
 
-        if (updateError) throw updateError;
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to decline');
+        }
       }
 
       setQuoteStatus('rejected');
