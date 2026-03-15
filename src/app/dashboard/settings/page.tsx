@@ -405,13 +405,8 @@ function SettingsContent() {
             />
           </div>
 
-          {/* Future Integrations Placeholder */}
-          <div className="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6">
-            <h3 className="text-lg font-medium text-gray-700 mb-2">More Integrations Coming Soon</h3>
-            <p className="text-gray-500 text-sm">
-              We&apos;re working on integrations with Stripe, Square, Google Calendar, and more.
-            </p>
-          </div>
+          {/* Stripe Payments Integration */}
+          <StripeConnectCard />
         </div>
       )}
 
@@ -880,6 +875,166 @@ function TwoFactorCard() {
 }
 
 // Loading fallback for Suspense
+function StripeConnectCard() {
+  const [loading, setLoading] = useState(true)
+  const [connected, setConnected] = useState(false)
+  const [onboarded, setOnboarded] = useState(false)
+  const [connecting, setConnecting] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) return
+
+        // Check URL params for return from Stripe
+        const urlParams = new URLSearchParams(window.location.search)
+        const stripeParam = urlParams.get('stripe')
+
+        if (stripeParam === 'connected') {
+          // Verify onboarding completed
+          const cbRes = await fetch('/api/stripe/connect/callback', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+          if (cbRes.ok) {
+            const cbData = await cbRes.json()
+            if (cbData.onboarded) {
+              setConnected(true)
+              setOnboarded(true)
+              setMessage({ type: 'success', text: 'Stripe connected! You can now accept online payments.' })
+              setTimeout(() => setMessage(null), 8000)
+            } else {
+              setConnected(true)
+              setMessage({ type: 'error', text: 'Stripe onboarding incomplete. Please try again to finish setup.' })
+            }
+          }
+          // Clean URL
+          window.history.replaceState({}, '', window.location.pathname + '?tab=integrations')
+          setLoading(false)
+          return
+        }
+
+        const res = await fetch('/api/stripe/connect/status', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setConnected(data.connected)
+          setOnboarded(data.onboarded)
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false)
+      }
+    }
+    checkStatus()
+  }, [])
+
+  const handleConnect = async () => {
+    setConnecting(true)
+    setMessage(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const res = await fetch('/api/stripe/connect', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+
+      const data = await res.json()
+      if (res.ok && data.url) {
+        window.location.href = data.url
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to start Stripe setup' })
+        setConnecting(false)
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to connect to Stripe' })
+      setConnecting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Stripe Payments</h2>
+        <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-xl border p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Stripe Payments</h2>
+            <p className="text-sm text-gray-500">Accept online payments from your customers</p>
+          </div>
+        </div>
+        {connected && onboarded && (
+          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+            Connected
+          </span>
+        )}
+      </div>
+
+      {message && (
+        <div
+          className={`p-3 rounded-lg text-sm mb-4 ${
+            message.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {connected && onboarded ? (
+        <p className="text-sm text-gray-600">
+          Your Stripe account is connected. Customers can pay invoices and deposits online. Payments go directly to your Stripe account.
+        </p>
+      ) : connected && !onboarded ? (
+        <div className="space-y-3">
+          <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+            Your Stripe account is created but onboarding is incomplete. Please finish setup to start accepting payments.
+          </p>
+          <button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+          >
+            {connecting ? 'Redirecting...' : 'Complete Stripe Setup'}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">
+            Connect your Stripe account to accept credit card payments on invoices and collect deposits on quotes. Payments go directly to your bank account.
+          </p>
+          <button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+          >
+            {connecting ? 'Redirecting to Stripe...' : 'Connect Stripe'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SettingsLoading() {
   return (
     <div className="max-w-4xl mx-auto">
