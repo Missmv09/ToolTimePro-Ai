@@ -352,9 +352,10 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
 
       // Retry without sms_consent if column doesn't exist yet
       if (error?.message?.includes('sms_consent')) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { sms_consent, sms_consent_date, ...dataWithoutConsent } = data as Record<string, unknown>
-        const retry = await saveData(dataWithoutConsent as typeof data)
+        const stripped = Object.fromEntries(
+          Object.entries(data).filter(([k]) => k !== 'sms_consent' && k !== 'sms_consent_date')
+        )
+        const retry = await saveData(stripped as typeof data)
         error = retry.error
       }
 
