@@ -1032,13 +1032,21 @@ function QuotesContent() {
           onSave={() => {
             setShowModal(false)
             setEditingQuote(null)
-            if (companyId) fetchQuotes(companyId)
+            if (customerFilter) {
+              router.replace('/dashboard/quotes')
+            } else if (companyId) {
+              fetchQuotes(companyId)
+            }
           }}
           onSaveAndSend={async (quoteId: string) => {
             setShowModal(false)
             setEditingQuote(null)
             await fetchAndSendQuote(quoteId)
-            if (companyId) fetchQuotes(companyId)
+            if (customerFilter) {
+              router.replace('/dashboard/quotes')
+            } else if (companyId) {
+              fetchQuotes(companyId)
+            }
           }}
         />
       )}
