@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
+import {
+  AdminPermissions,
+  PERMISSION_DEFS,
+  allPermissionsGranted,
+  hasAdminAccess as hasAdminRole,
+} from '@/lib/permissions'
 import {
   Phone,
   Mail,
@@ -29,7 +36,8 @@ import {
   AlertCircle,
   Clock,
   CheckCircle,
-  Trash2
+  Trash2,
+  ShieldCheck
 } from 'lucide-react'
 
 // Generate a random secure temporary password
@@ -163,6 +171,7 @@ interface TeamMember {
   is_active: boolean
   avatar_url: string | null
   notes: string | null
+  admin_permissions: AdminPermissions | null
   created_at: string
   last_login_at: string | null
   job_assignments?: { job_id: string }[]
@@ -205,11 +214,11 @@ export default function TeamPage() {
 
   const router = useRouter()
   const { user, dbUser, isLoading: authLoading } = useAuth()
+  const { can, isOwner, role: userRole } = usePermissions()
 
   const companyId = dbUser?.company_id || null
-  const userRole = dbUser?.role || 'worker'
-  const canManageTeam = hasAdminAccess(userRole)
-  const canManageNotes = hasAdminAccess(userRole)
+  const canManageTeam = can('team_management')
+  const canManageNotes = can('hr_notes')
 
   useEffect(() => {
     if (authLoading) return
@@ -676,7 +685,7 @@ export default function TeamPage() {
                             {member.is_active ? 'Active' : 'Inactive'}
                           </button>
                         )}
-                        {userRole === 'owner' && member.id !== dbUser?.id && (
+                        {isOwner && member.id !== dbUser?.id && (
                           <button
                             onClick={() => setShowDeleteConfirm(member)}
                             disabled={(member.job_assignments?.length || 0) > 0}
@@ -888,6 +897,7 @@ export default function TeamPage() {
         <TeamMemberModal
           member={editingMember}
           companyId={companyId!}
+          callerRole={userRole}
           onClose={() => setShowMemberModal(false)}
           onSave={() => {
             setShowMemberModal(false)
@@ -1026,9 +1036,10 @@ const isValidPhone = (phone: string): boolean => {
 }
 
 // Team Member Modal Component
-function TeamMemberModal({ member, companyId, onClose, onSave }: {
+function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
   member: TeamMember | null
   companyId: string
+  callerRole: string
   onClose: () => void
   onSave: () => void
 }) {
@@ -1041,6 +1052,9 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
     is_active: member?.is_active ?? true,
     notes: member?.notes || '',
   })
+  const [adminPerms, setAdminPerms] = useState<AdminPermissions>(
+    member?.admin_permissions ?? allPermissionsGranted()
+  )
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; phone?: string; full_name?: string }>({})
 
@@ -1088,13 +1102,22 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
 
     if (member) {
       // Update existing member
-      const updateData = {
+      const updateData: Record<string, unknown> = {
         full_name: formData.full_name,
         phone: formData.phone || null,
         role: formData.role,
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
         is_active: formData.is_active,
         notes: formData.notes || null,
+      }
+
+      // Only owners can set admin permissions
+      if (callerRole === 'owner' && hasAdminRole(formData.role)) {
+        updateData.admin_permissions = adminPerms
+      }
+      // Clear permissions when switching to worker role
+      if (formData.role === 'worker') {
+        updateData.admin_permissions = null
       }
 
       const { error } = await supabase
@@ -1159,6 +1182,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
             hourly_rate: formData.hourly_rate,
             is_active: formData.is_active,
             notes: formData.notes,
+            admin_permissions: callerRole === 'owner' && hasAdminRole(formData.role) ? adminPerms : null,
             companyId,
           }),
         })
@@ -1281,6 +1305,40 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
               />
             </div>
           </div>
+
+          {/* Admin Permissions — only visible to owners when role is admin or worker_admin */}
+          {callerRole === 'owner' && hasAdminRole(formData.role) && formData.role !== 'owner' && (
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck size={18} className="text-navy-500" />
+                <h3 className="text-sm font-semibold text-navy-500">Admin Permissions</h3>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Choose which features this admin can access. Toggle off any areas you want to restrict.
+              </p>
+              <div className="space-y-2">
+                {PERMISSION_DEFS.map((perm) => (
+                  <label
+                    key={perm.key}
+                    className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">{perm.label}</span>
+                      <p className="text-xs text-gray-400">{perm.description}</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={adminPerms[perm.key]}
+                      onChange={(e) =>
+                        setAdminPerms({ ...adminPerms, [perm.key]: e.target.checked })
+                      }
+                      className="w-4 h-4 text-navy-500 border-gray-300 rounded focus:ring-navy-500"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <input

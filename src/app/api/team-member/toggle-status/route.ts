@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     // Verify the caller is an admin/owner for this company
     const { data: callerProfile } = await adminClient
       .from('users')
-      .select('role, company_id')
+      .select('role, company_id, admin_permissions')
       .eq('id', user.id)
       .single()
 
@@ -52,6 +52,10 @@ export async function POST(request: NextRequest) {
       !['owner', 'admin', 'worker_admin'].includes(callerProfile.role)
     ) {
       return NextResponse.json({ error: 'Only admins and owners can change member status' }, { status: 403 })
+    }
+
+    if (callerProfile.role !== 'owner' && callerProfile.admin_permissions?.team_management === false) {
+      return NextResponse.json({ error: 'You do not have permission to manage team members' }, { status: 403 })
     }
 
     // Prevent self-deactivation

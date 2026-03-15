@@ -101,6 +101,7 @@ export interface Database {
           is_active: boolean
           avatar_url: string | null
           pin: string | null
+          admin_permissions: Record<string, boolean> | null
           created_at: string
           updated_at: string
         }
@@ -115,6 +116,7 @@ export interface Database {
           is_active?: boolean
           avatar_url?: string | null
           pin?: string | null
+          admin_permissions?: Record<string, boolean> | null
           created_at?: string
           updated_at?: string
         }
@@ -129,6 +131,7 @@ export interface Database {
           is_active?: boolean
           avatar_url?: string | null
           pin?: string | null
+          admin_permissions?: Record<string, boolean> | null
           created_at?: string
           updated_at?: string
         }

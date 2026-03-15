@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 
 interface QuoteItem {
   id: string
@@ -468,7 +469,8 @@ function QuotesContent() {
     fetchQuotes(companyId)
   }
 
-  const isOwnerOrAdmin = dbUser?.role === 'owner' || dbUser?.role === 'admin' || dbUser?.role === 'worker_admin'
+  const { can } = usePermissions()
+  const isOwnerOrAdmin = can('quotes')
 
   const submitForApproval = async (quote: Quote) => {
     if (!companyId) return
