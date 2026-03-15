@@ -96,11 +96,12 @@ export interface Database {
           email: string
           full_name: string
           phone: string | null
-          role: 'owner' | 'admin' | 'worker'
+          role: 'owner' | 'admin' | 'worker' | 'worker_admin'
           hourly_rate: number | null
           is_active: boolean
           avatar_url: string | null
           pin: string | null
+          admin_permissions: Record<string, boolean> | null
           created_at: string
           updated_at: string
         }
@@ -110,11 +111,12 @@ export interface Database {
           email: string
           full_name: string
           phone?: string | null
-          role?: 'owner' | 'admin' | 'worker'
+          role?: 'owner' | 'admin' | 'worker' | 'worker_admin'
           hourly_rate?: number | null
           is_active?: boolean
           avatar_url?: string | null
           pin?: string | null
+          admin_permissions?: Record<string, boolean> | null
           created_at?: string
           updated_at?: string
         }
@@ -124,11 +126,12 @@ export interface Database {
           email?: string
           full_name?: string
           phone?: string | null
-          role?: 'owner' | 'admin' | 'worker'
+          role?: 'owner' | 'admin' | 'worker' | 'worker_admin'
           hourly_rate?: number | null
           is_active?: boolean
           avatar_url?: string | null
           pin?: string | null
+          admin_permissions?: Record<string, boolean> | null
           created_at?: string
           updated_at?: string
         }

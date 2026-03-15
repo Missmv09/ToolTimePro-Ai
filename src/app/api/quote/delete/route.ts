@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     // Get caller's profile (role + company)
     const { data: callerProfile } = await adminClient
       .from('users')
-      .select('role, company_id')
+      .select('role, company_id, admin_permissions')
       .eq('id', user.id)
       .single()
 
@@ -86,8 +86,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Permission check based on role
-    const isOwnerOrAdmin = callerProfile.role === 'owner' || callerProfile.role === 'admin'
+    // Permission check based on role and granular permissions
+    const hasQuotePerm = callerProfile.role === 'owner' ||
+      ((['admin', 'worker_admin'].includes(callerProfile.role)) &&
+        callerProfile.admin_permissions?.quotes !== false)
+    const isOwnerOrAdmin = hasQuotePerm
 
     if (!isOwnerOrAdmin) {
       // Workers can only delete their own draft or pending_approval quotes

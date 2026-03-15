@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 
 interface QuoteItem {
   id: string
@@ -468,7 +469,8 @@ function QuotesContent() {
     fetchQuotes(companyId)
   }
 
-  const isOwnerOrAdmin = dbUser?.role === 'owner' || dbUser?.role === 'admin'
+  const { can } = usePermissions()
+  const isOwnerOrAdmin = can('quotes')
 
   const submitForApproval = async (quote: Quote) => {
     if (!companyId) return
@@ -499,7 +501,7 @@ function QuotesContent() {
         .from('users')
         .select('phone, full_name, email')
         .eq('company_id', companyId)
-        .in('role', ['owner', 'admin'])
+        .in('role', ['owner', 'admin', 'worker_admin'])
 
       if (owners) {
         for (const owner of owners) {

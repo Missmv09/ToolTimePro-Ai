@@ -36,7 +36,7 @@ function generateTempPassword(length = 12): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, full_name, phone, role, hourly_rate, is_active, notes, companyId } =
+    const { email, full_name, phone, role, hourly_rate, is_active, notes, admin_permissions, companyId } =
       await request.json()
 
     if (!email || !full_name || !role || !companyId) {
@@ -74,16 +74,21 @@ export async function POST(request: NextRequest) {
     // Verify the caller is an admin/owner for this company
     const { data: callerProfile } = await adminClient
       .from('users')
-      .select('role, company_id')
+      .select('role, company_id, admin_permissions')
       .eq('id', user.id)
       .single()
 
     if (
       !callerProfile ||
       callerProfile.company_id !== companyId ||
-      !['owner', 'admin'].includes(callerProfile.role)
+      !['owner', 'admin', 'worker_admin'].includes(callerProfile.role)
     ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Check granular team_management permission for non-owners
+    if (callerProfile.role !== 'owner' && callerProfile.admin_permissions?.team_management === false) {
+      return NextResponse.json({ error: 'You do not have permission to manage team members' }, { status: 403 })
     }
 
     const tempPassword = generateTempPassword()
@@ -134,6 +139,7 @@ export async function POST(request: NextRequest) {
         hourly_rate: hourly_rate ? parseFloat(hourly_rate) : null,
         is_active: is_active ?? true,
         notes: notes || null,
+        admin_permissions: admin_permissions || null,
         company_id: companyId,
       })
 

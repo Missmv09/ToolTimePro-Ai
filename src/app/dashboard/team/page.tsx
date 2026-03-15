@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
+import {
+  AdminPermissions,
+  PERMISSION_DEFS,
+  allPermissionsGranted,
+  hasAdminAccess as hasAdminRole,
+} from '@/lib/permissions'
 import {
   Phone,
   Mail,
@@ -29,7 +36,8 @@ import {
   AlertCircle,
   Clock,
   CheckCircle,
-  Trash2
+  Trash2,
+  ShieldCheck
 } from 'lucide-react'
 
 // Generate a random secure temporary password
@@ -163,19 +171,27 @@ interface TeamMember {
   is_active: boolean
   avatar_url: string | null
   notes: string | null
+  admin_permissions: AdminPermissions | null
   created_at: string
   last_login_at: string | null
   job_assignments?: { job_id: string }[]
   worker_notes?: WorkerNote[]
 }
 
-type UserRole = 'owner' | 'admin' | 'worker'
+type UserRole = 'owner' | 'admin' | 'worker' | 'worker_admin'
 
-const ROLE_OPTIONS: { value: UserRole; label: string; color: string }[] = [
+const ROLE_OPTIONS: { value: UserRole; label: string; color: string; description?: string }[] = [
   { value: 'owner', label: 'Owner', color: 'bg-navy-100 text-navy-700' },
   { value: 'admin', label: 'Admin', color: 'bg-gold-100 text-gold-700' },
   { value: 'worker', label: 'Field Worker', color: 'bg-green-100 text-green-700' },
+  { value: 'worker_admin', label: 'Team Member + Admin', color: 'bg-purple-100 text-purple-700', description: 'Field worker with admin privileges — ideal for smaller teams' },
 ]
+
+/** Check whether a role has admin-level privileges */
+const hasAdminAccess = (role: string) => ['owner', 'admin', 'worker_admin'].includes(role)
+
+/** Check whether a role does field work */
+const isFieldWorker = (role: string) => ['worker', 'worker_admin'].includes(role)
 
 export default function TeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -198,11 +214,11 @@ export default function TeamPage() {
 
   const router = useRouter()
   const { user, dbUser, isLoading: authLoading } = useAuth()
+  const { can, isOwner, role: userRole } = usePermissions()
 
   const companyId = dbUser?.company_id || null
-  const userRole = dbUser?.role || 'worker'
-  const canManageTeam = userRole === 'owner' || userRole === 'admin'
-  const canManageNotes = userRole === 'owner' || userRole === 'admin'
+  const canManageTeam = can('team_management')
+  const canManageNotes = can('hr_notes')
 
   useEffect(() => {
     if (authLoading) return
@@ -309,7 +325,9 @@ export default function TeamPage() {
       member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.phone?.includes(searchTerm)
 
-    const matchesRole = filterRole === 'all' || member.role === filterRole
+    const matchesRole = filterRole === 'all' || member.role === filterRole ||
+      (filterRole === 'admin' && member.role === 'worker_admin') ||
+      (filterRole === 'worker' && member.role === 'worker_admin')
 
     return matchesSearch && matchesRole
   })
@@ -486,7 +504,7 @@ export default function TeamPage() {
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
           <p className="text-sm text-gray-500">Field Workers</p>
           <p className="text-2xl font-bold text-navy-500">
-            {teamMembers.filter(m => m.role === 'worker').length}
+            {teamMembers.filter(m => isFieldWorker(m.role)).length}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-card">
@@ -529,9 +547,20 @@ export default function TeamPage() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-navy-500">{member.full_name}</h3>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleInfo.color}`}>
-                            {roleInfo.label}
-                          </span>
+                          {member.role === 'worker_admin' ? (
+                            <>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                Field Worker
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gold-100 text-gold-700">
+                                Admin
+                              </span>
+                            </>
+                          ) : (
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleInfo.color}`}>
+                              {roleInfo.label}
+                            </span>
+                          )}
                           {!member.is_active && (
                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
                               Inactive
@@ -656,7 +685,7 @@ export default function TeamPage() {
                             {member.is_active ? 'Active' : 'Inactive'}
                           </button>
                         )}
-                        {userRole === 'owner' && member.id !== dbUser?.id && (
+                        {isOwner && member.id !== dbUser?.id && (
                           <button
                             onClick={() => setShowDeleteConfirm(member)}
                             disabled={(member.job_assignments?.length || 0) > 0}
@@ -868,6 +897,7 @@ export default function TeamPage() {
         <TeamMemberModal
           member={editingMember}
           companyId={companyId!}
+          callerRole={userRole}
           onClose={() => setShowMemberModal(false)}
           onSave={() => {
             setShowMemberModal(false)
@@ -1006,9 +1036,10 @@ const isValidPhone = (phone: string): boolean => {
 }
 
 // Team Member Modal Component
-function TeamMemberModal({ member, companyId, onClose, onSave }: {
+function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
   member: TeamMember | null
   companyId: string
+  callerRole: string
   onClose: () => void
   onSave: () => void
 }) {
@@ -1021,6 +1052,9 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
     is_active: member?.is_active ?? true,
     notes: member?.notes || '',
   })
+  const [adminPerms, setAdminPerms] = useState<AdminPermissions>(
+    member?.admin_permissions ?? allPermissionsGranted()
+  )
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; phone?: string; full_name?: string }>({})
 
@@ -1068,13 +1102,22 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
 
     if (member) {
       // Update existing member
-      const updateData = {
+      const updateData: Record<string, unknown> = {
         full_name: formData.full_name,
         phone: formData.phone || null,
         role: formData.role,
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
         is_active: formData.is_active,
         notes: formData.notes || null,
+      }
+
+      // Only owners can set admin permissions
+      if (callerRole === 'owner' && hasAdminRole(formData.role)) {
+        updateData.admin_permissions = adminPerms
+      }
+      // Clear permissions when switching to worker role
+      if (formData.role === 'worker') {
+        updateData.admin_permissions = null
       }
 
       const { error } = await supabase
@@ -1139,6 +1182,7 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
             hourly_rate: formData.hourly_rate,
             is_active: formData.is_active,
             notes: formData.notes,
+            admin_permissions: callerRole === 'owner' && hasAdminRole(formData.role) ? adminPerms : null,
             companyId,
           }),
         })
@@ -1242,6 +1286,11 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
                   <option key={role.value} value={role.value}>{role.label}</option>
                 ))}
               </select>
+              {formData.role === 'worker_admin' && (
+                <p className="text-xs text-purple-600 mt-1">
+                  This person will work in the field and also manage team members, notes, and settings.
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate ($)</label>
@@ -1256,6 +1305,40 @@ function TeamMemberModal({ member, companyId, onClose, onSave }: {
               />
             </div>
           </div>
+
+          {/* Admin Permissions — only visible to owners when role is admin or worker_admin */}
+          {callerRole === 'owner' && hasAdminRole(formData.role) && formData.role !== 'owner' && (
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck size={18} className="text-navy-500" />
+                <h3 className="text-sm font-semibold text-navy-500">Admin Permissions</h3>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Choose which features this admin can access. Toggle off any areas you want to restrict.
+              </p>
+              <div className="space-y-2">
+                {PERMISSION_DEFS.map((perm) => (
+                  <label
+                    key={perm.key}
+                    className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">{perm.label}</span>
+                      <p className="text-xs text-gray-400">{perm.description}</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={adminPerms[perm.key]}
+                      onChange={(e) =>
+                        setAdminPerms({ ...adminPerms, [perm.key]: e.target.checked })
+                      }
+                      className="w-4 h-4 text-navy-500 border-gray-300 rounded focus:ring-navy-500"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <input
