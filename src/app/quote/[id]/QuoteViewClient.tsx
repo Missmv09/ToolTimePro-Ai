@@ -207,6 +207,25 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           const data = await res.json();
           throw new Error(data.error || 'Failed to approve');
         }
+
+        // Notify company owner that customer approved the quote
+        try {
+          await fetch('/api/quote/notify-approval', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: quote.company?.email,
+              ownerName: quote.company?.name || 'Team',
+              quoteNumber: quote.quote_number || quote.id.slice(0, 8),
+              customerName: quote.customer?.name || 'Customer',
+              total: quote.total || 0,
+              itemCount: items.length,
+              dashboardLink: `${window.location.origin}/dashboard/quotes`,
+            }),
+          });
+        } catch {
+          // Notification is best-effort, don't block approval
+        }
       }
 
       setQuoteStatus('approved');

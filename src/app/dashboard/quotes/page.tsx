@@ -116,7 +116,7 @@ function QuotesContent() {
       console.error('Error fetching quotes with joins:', error)
       let fallbackQuery = supabase
         .from('quotes')
-        .select(`*, customer:customers(id, name, email, phone)`)
+        .select(`*, customer:customers(id, name, email, phone, sms_consent)`)
         .eq('company_id', compId)
         .order('created_at', { ascending: false })
 

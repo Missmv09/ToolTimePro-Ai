@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendQuoteAcceptedEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,10 +23,14 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Verify quote exists and is in a respondable state
+    // Fetch quote with company and customer details for notifications
     const { data: quote, error: fetchError } = await supabase
       .from('quotes')
-      .select('id, status, notes')
+      .select(`
+        id, status, notes, quote_number, total,
+        company:companies(id, name, email, phone),
+        customer:customers(id, name, email, phone)
+      `)
       .eq('id', quoteId)
       .single()
 
@@ -49,6 +54,25 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         return NextResponse.json({ error: updateError.message }, { status: 500 })
+      }
+
+      // Send confirmation email to customer
+      const customer = quote.customer as { name?: string; email?: string } | null
+      const company = quote.company as { name?: string; phone?: string } | null
+      if (customer?.email) {
+        try {
+          await sendQuoteAcceptedEmail({
+            to: customer.email,
+            customerName: customer.name || 'Customer',
+            quoteNumber: quote.quote_number || quoteId.slice(0, 8),
+            total: quote.total || 0,
+            companyName: company?.name || 'Our team',
+            companyPhone: company?.phone || undefined,
+          })
+        } catch (emailErr) {
+          // Don't fail the approval if email fails
+          console.error('Failed to send quote accepted email:', emailErr)
+        }
       }
     } else {
       const notes = quote.notes
