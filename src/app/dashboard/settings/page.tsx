@@ -252,6 +252,9 @@ function SettingsContent() {
           {/* Change Password */}
           <ChangePasswordCard />
 
+          {/* Two-Factor Authentication */}
+          <TwoFactorCard />
+
           {/* Company Info (editable) */}
           <div className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h2>
@@ -675,6 +678,203 @@ function ChangePasswordCard() {
           {saving ? 'Updating...' : 'Update Password'}
         </button>
       </form>
+    </div>
+  )
+}
+
+function TwoFactorCard() {
+  const [loading, setLoading] = useState(true)
+  const [enabled, setEnabled] = useState(false)
+  const [phone, setPhone] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [showSetup, setShowSetup] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [disabling, setDisabling] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  useEffect(() => {
+    const load2FASettings = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) return
+
+        const res = await fetch('/api/auth/2fa/settings', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setEnabled(data.enabled)
+          setPhone(data.phone || '')
+          setEditPhone(data.phone || '')
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false)
+      }
+    }
+    load2FASettings()
+  }, [])
+
+  const handleEnable = async (e: FormEvent) => {
+    e.preventDefault()
+    setMessage(null)
+
+    const digits = editPhone.replace(/\D/g, '')
+    if (digits.length < 10) {
+      setMessage({ type: 'error', text: 'Please enter a valid 10-digit phone number.' })
+      return
+    }
+
+    setSaving(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const res = await fetch('/api/auth/2fa/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ phone: editPhone }),
+      })
+
+      const data = await res.json()
+      if (res.ok) {
+        setEnabled(true)
+        setPhone(editPhone)
+        setShowSetup(false)
+        setMessage({ type: 'success', text: 'Two-factor authentication enabled! You will receive a code on your next login from a new device.' })
+        setTimeout(() => setMessage(null), 8000)
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to enable 2FA' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to enable 2FA' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDisable = async () => {
+    if (!confirm('Are you sure you want to disable two-factor authentication? This will remove all trusted devices.')) return
+
+    setDisabling(true)
+    setMessage(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const res = await fetch('/api/auth/2fa/settings', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+
+      if (res.ok) {
+        setEnabled(false)
+        setPhone('')
+        setEditPhone('')
+        setMessage({ type: 'success', text: 'Two-factor authentication disabled.' })
+        setTimeout(() => setMessage(null), 5000)
+      } else {
+        setMessage({ type: 'error', text: 'Failed to disable 2FA' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to disable 2FA' })
+    } finally {
+      setDisabling(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Two-Factor Authentication</h2>
+        <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-xl border p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Two-Factor Authentication</h2>
+        {enabled && (
+          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+            Enabled
+          </span>
+        )}
+      </div>
+
+      <p className="text-sm text-gray-600 mb-4">
+        Add an extra layer of security by requiring a verification code sent to your phone when logging in from a new device.
+      </p>
+
+      {message && (
+        <div
+          className={`p-3 rounded-lg text-sm mb-4 ${
+            message.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {enabled ? (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-700">
+            Verification codes are sent to: <strong>***-***-{phone.slice(-4)}</strong>
+          </p>
+          <button
+            onClick={handleDisable}
+            disabled={disabling}
+            className="px-4 py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+          >
+            {disabling ? 'Disabling...' : 'Disable 2FA'}
+          </button>
+        </div>
+      ) : showSetup ? (
+        <form onSubmit={handleEnable} className="space-y-4 max-w-md">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number for Verification Codes</label>
+            <input
+              type="tel"
+              value={editPhone}
+              onChange={(e) => setEditPhone(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="(555) 123-4567"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">We&apos;ll send a 6-digit code to this number when you log in from an unrecognized device.</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {saving ? 'Enabling...' : 'Enable 2FA'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowSetup(false); setMessage(null) }}
+              className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          onClick={() => setShowSetup(true)}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Set Up 2FA
+        </button>
+      )}
     </div>
   )
 }
