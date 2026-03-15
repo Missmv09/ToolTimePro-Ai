@@ -129,18 +129,23 @@ export async function POST(request) {
 
     // Log the SMS if we have a company ID
     if (companyId) {
-      const supabase = getSupabase();
-      await supabase.from('sms_logs').insert({
-        company_id: companyId,
-        to_phone: formatPhone(to),
-        message: messageBody,
-        template: template || 'custom',
-        status: 'sent',
-        twilio_sid: message.sid,
-      }).catch((err) => {
-        // Don't fail if logging fails - sms_logs table may not exist yet
-        console.log('SMS log insert skipped:', err.message);
-      });
+      try {
+        const supabase = getSupabase();
+        const { error: logError } = await supabase.from('sms_logs').insert({
+          company_id: companyId,
+          to_phone: formatPhone(to),
+          message: messageBody,
+          template: template || 'custom',
+          status: 'sent',
+          twilio_sid: message.sid,
+        });
+        if (logError) {
+          // Don't fail if logging fails - sms_logs table may not exist yet
+          console.log('SMS log insert skipped:', logError.message);
+        }
+      } catch (logErr) {
+        console.log('SMS log insert skipped:', logErr.message);
+      }
     }
 
     return NextResponse.json({
