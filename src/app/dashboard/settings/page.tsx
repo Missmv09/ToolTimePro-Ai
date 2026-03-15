@@ -117,9 +117,7 @@ function SettingsContent() {
     setSaveMessage(null)
 
     try {
-      const { error } = await supabase
-        .from('companies')
-        .update({
+      const updateData: Record<string, unknown> = {
           name: companyForm.name,
           email: companyForm.email,
           phone: companyForm.phone,
@@ -130,8 +128,19 @@ function SettingsContent() {
           website: companyForm.website,
           default_quote_terms: companyForm.default_quote_terms,
           updated_at: new Date().toISOString(),
-        })
+        }
+
+      let { error } = await supabase
+        .from('companies')
+        .update(updateData)
         .eq('id', company.id)
+
+      // Retry without default_quote_terms if column doesn't exist
+      if (error?.message?.includes('default_quote_terms')) {
+        delete updateData.default_quote_terms
+        const retry = await supabase.from('companies').update(updateData).eq('id', company.id)
+        error = retry.error
+      }
 
       if (error) {
         setSaveMessage({ type: 'error', text: 'Error saving: ' + error.message })

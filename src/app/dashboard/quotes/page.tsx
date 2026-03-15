@@ -79,7 +79,6 @@ function QuotesContent() {
   const [showNewQuoteDropdown, setShowNewQuoteDropdown] = useState(false)
   const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null)
-  const [pendingSendQuoteId, setPendingSendQuoteId] = useState<string | null>(null)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -251,17 +250,24 @@ function QuotesContent() {
     if (companyId) fetchQuotes(companyId)
   }
 
-  // Auto-send quote after Save & Send (waits for quotes state to update)
-  useEffect(() => {
-    if (pendingSendQuoteId && quotes.length > 0) {
-      const quoteToSend = quotes.find(q => q.id === pendingSendQuoteId)
-      if (quoteToSend) {
-        setPendingSendQuoteId(null)
-        sendQuote(quoteToSend)
-      }
+  // Fetch a single quote by ID and send it (used by Save & Send)
+  const fetchAndSendQuote = async (quoteId: string) => {
+    if (!companyId) return
+
+    const { data, error } = await supabase
+      .from('quotes')
+      .select(`*, customer:customers(id, name, email, phone, sms_consent), items:quote_items(*)`)
+      .eq('id', quoteId)
+      .single()
+
+    if (error || !data) {
+      alert('Quote saved but failed to send: Could not reload quote')
+      if (companyId) fetchQuotes(companyId)
+      return
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingSendQuoteId, quotes])
+
+    await sendQuote(data as Quote)
+  }
 
   const sendQuote = async (quote: Quote) => {
     if (!companyId) return
@@ -316,8 +322,9 @@ function QuotesContent() {
           notifications.push('SMS sent')
         } else {
           const smsData = await smsRes.json().catch(() => ({}))
-          console.error('SMS failed:', smsData.error || smsRes.status)
-          notifications.push('SMS failed: ' + (smsData.error || 'check Twilio config'))
+          console.error('SMS failed:', smsData)
+          const smsError = smsData.details || smsData.error || 'check Twilio config'
+          notifications.push('SMS failed: ' + smsError)
         }
       } catch (err) {
         console.error('SMS error:', err)
@@ -1027,10 +1034,10 @@ function QuotesContent() {
             setEditingQuote(null)
             if (companyId) fetchQuotes(companyId)
           }}
-          onSaveAndSend={(quoteId: string) => {
+          onSaveAndSend={async (quoteId: string) => {
             setShowModal(false)
             setEditingQuote(null)
-            setPendingSendQuoteId(quoteId)
+            await fetchAndSendQuote(quoteId)
             if (companyId) fetchQuotes(companyId)
           }}
         />

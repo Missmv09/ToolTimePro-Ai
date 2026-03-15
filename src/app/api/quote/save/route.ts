@@ -68,9 +68,10 @@ export async function POST(request: NextRequest) {
 
       // If the error is about created_by/sent_by columns not existing,
       // retry without those fields
-      if (quoteError.message?.includes('created_by') || quoteError.message?.includes('sent_by') || quoteError.code === '42703') {
+      if (quoteError.message?.includes('created_by') || quoteError.message?.includes('sent_by') || quoteError.message?.includes('terms') || quoteError.code === '42703') {
         const retryData = { ...quoteData }
         delete retryData.created_by
+        delete retryData.terms
         delete retryData.sent_by
 
         const { data: retryQuote, error: retryError } = await adminClient
