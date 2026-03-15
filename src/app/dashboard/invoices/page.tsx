@@ -176,12 +176,19 @@ export default function InvoicesPage() {
       let emailSent = false
       let smsSent = false
 
+      // Get auth token for API call
+      const { data: sessionData } = await supabase.auth.getSession()
+      const authToken = sessionData?.session?.access_token
+
       // Send email if customer has email
       if (email) {
         try {
           const res = await fetch('/api/invoice/send', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+            },
             body: JSON.stringify({
               to: email,
               customerName: invoice.customer?.name || 'Customer',
