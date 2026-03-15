@@ -190,6 +190,12 @@ export function useQuotes(): UseQuotesReturn {
 
   const sendQuote = async (id: string) => {
     try {
+      const quote = quotes.find((q) => q.id === id);
+
+      if (!quote?.customer_id) {
+        return { error: new Error('Cannot send quote: No customer attached. Please select a customer first.') };
+      }
+
       const { error: updateError } = await supabase
         .from('quotes')
         .update({
@@ -201,8 +207,6 @@ export function useQuotes(): UseQuotesReturn {
       if (updateError) {
         return { error: updateError };
       }
-
-      const quote = quotes.find((q) => q.id === id);
       const quoteLink = `${window.location.origin}/quote/${id}`;
 
       // Send SMS notification if customer has phone number and has consented

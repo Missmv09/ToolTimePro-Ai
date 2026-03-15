@@ -252,6 +252,17 @@ function QuotesContent() {
 
   const sendQuote = async (quote: Quote) => {
     if (!companyId) return
+
+    if (!quote.customer_id || !quote.customer) {
+      alert('Cannot send quote: No customer attached. Please edit the quote and select a customer first.')
+      return
+    }
+
+    if (!quote.customer.email && !quote.customer.phone) {
+      alert('Cannot send quote: Customer has no email or phone number. Please update the customer contact info first.')
+      return
+    }
+
     setSendingQuoteId(quote.id)
 
     // Update quote status to sent
@@ -419,6 +430,12 @@ function QuotesContent() {
 
   const submitForApproval = async (quote: Quote) => {
     if (!companyId) return
+
+    if (!quote.customer_id || !quote.customer) {
+      alert('Cannot submit quote: No customer attached. Please edit the quote and select a customer first.')
+      return
+    }
+
     setSendingQuoteId(quote.id)
 
     const { error } = await supabase
