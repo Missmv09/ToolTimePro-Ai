@@ -222,6 +222,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              quoteId: quote.id,
               to: quote.company?.email,
               ownerName: quote.company?.name || 'Team',
               quoteNumber: quote.quote_number || quote.id.slice(0, 8),

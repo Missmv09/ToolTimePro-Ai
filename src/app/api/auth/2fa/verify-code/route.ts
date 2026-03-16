@@ -4,6 +4,35 @@ import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
+// Rate limiting: max 5 failed attempts per user per 15 minutes
+const failedAttempts = new Map<string, { count: number; resetAt: number }>()
+
+function checkRateLimit(userId: string): { limited: boolean; remaining: number } {
+  const now = Date.now()
+  const entry = failedAttempts.get(userId)
+  if (!entry || now > entry.resetAt) {
+    return { limited: false, remaining: 5 }
+  }
+  if (entry.count >= 5) {
+    return { limited: true, remaining: 0 }
+  }
+  return { limited: false, remaining: 5 - entry.count }
+}
+
+function recordFailedAttempt(userId: string) {
+  const now = Date.now()
+  const entry = failedAttempts.get(userId)
+  if (!entry || now > entry.resetAt) {
+    failedAttempts.set(userId, { count: 1, resetAt: now + 15 * 60 * 1000 })
+  } else {
+    entry.count++
+  }
+}
+
+function clearFailedAttempts(userId: string) {
+  failedAttempts.delete(userId)
+}
+
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -29,6 +58,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
+    // Check rate limit before processing
+    const rateCheck = checkRateLimit(user.id)
+    if (rateCheck.limited) {
+      return NextResponse.json({
+        error: 'Too many failed attempts. Please wait 15 minutes and request a new code.',
+      }, { status: 429 })
+    }
+
     const { code, trustDevice, deviceLabel } = await request.json()
 
     if (!code || typeof code !== 'string') {
@@ -47,12 +84,20 @@ export async function POST(request: Request) {
       .single()
 
     if (!codeRow) {
+      recordFailedAttempt(user.id)
       return NextResponse.json({ error: 'Code expired or invalid. Please request a new code.' }, { status: 400 })
     }
 
     if (codeRow.code !== code.trim()) {
-      return NextResponse.json({ error: 'Incorrect code. Please try again.' }, { status: 400 })
+      recordFailedAttempt(user.id)
+      const remaining = checkRateLimit(user.id).remaining
+      return NextResponse.json({
+        error: `Incorrect code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`,
+      }, { status: 400 })
     }
+
+    // Successful verification - clear failed attempts
+    clearFailedAttempts(user.id)
 
     // Mark code as used
     await supabase

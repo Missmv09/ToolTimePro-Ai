@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,8 +40,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '2FA not configured' }, { status: 400 })
     }
 
-    // Generate 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    // Generate 6-digit code using cryptographically secure random
+    const code = (crypto.randomInt(100000, 999999 + 1)).toString()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
     // Invalidate any existing unused codes for this user

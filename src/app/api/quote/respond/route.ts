@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendQuoteAcceptedEmail } from '@/lib/email'
 
+// Simple in-memory rate limiter for quote responses (per quote ID)
+const responseAttempts = new Map<string, { count: number; resetAt: number }>()
+
+function isRateLimited(quoteId: string): boolean {
+  const now = Date.now()
+  const entry = responseAttempts.get(quoteId)
+  if (!entry || now > entry.resetAt) {
+    responseAttempts.set(quoteId, { count: 1, resetAt: now + 15 * 60 * 1000 }) // 15 min window
+    return false
+  }
+  entry.count++
+  if (entry.count > 10) return true // Max 10 attempts per 15 min per quote
+  return false
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { quoteId, action, signature, rejectReason } = await request.json()
@@ -12,6 +27,17 @@ export async function POST(request: NextRequest) {
 
     if (action !== 'approve' && action !== 'reject') {
       return NextResponse.json({ error: 'Action must be "approve" or "reject"' }, { status: 400 })
+    }
+
+    // Rate limit per quote ID to prevent abuse
+    if (isRateLimited(quoteId)) {
+      return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
+    }
+
+    // Validate quoteId is a valid UUID format to prevent enumeration
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(quoteId)) {
+      return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

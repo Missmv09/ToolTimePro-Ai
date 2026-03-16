@@ -20,6 +20,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 })
     }
 
+    // Validate UUID format to prevent enumeration
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(invoiceId)) {
+      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
+    }
+
     const supabase = getSupabaseAdmin()
     if (!supabase) {
       return NextResponse.json({ error: 'Server config error' }, { status: 500 })

@@ -43,6 +43,14 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
     setError(null);
 
     try {
+      // Only look up by UUID — do not fallback to invoice_number to prevent enumeration
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(params.id)) {
+        setError('Invoice not found');
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('invoices')
         .select(`
@@ -53,50 +61,31 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
         .eq('id', params.id)
         .single();
 
-      if (fetchError) {
-        // Try by invoice_number
-        const { data: byNumber, error: numberError } = await supabase
+      if (fetchError || !data) {
+        setError('Invoice not found');
+        setIsLoading(false);
+        return;
+      }
+
+      setInvoice(data as unknown as InvoiceWithDetails);
+
+      const { data: lineItems } = await supabase
+        .from('invoice_items')
+        .select('*')
+        .eq('invoice_id', data.id)
+        .order('sort_order', { ascending: true });
+
+      setItems((lineItems as InvoiceItem[]) || []);
+
+      // Mark as viewed if sent
+      if (data.status === 'sent') {
+        await supabase
           .from('invoices')
-          .select(`
-            *,
-            company:companies(*),
-            customer:customers(*)
-          `)
-          .eq('invoice_number', params.id)
-          .single();
-
-        if (numberError) throw fetchError;
-
-        setInvoice(byNumber as unknown as InvoiceWithDetails);
-
-        const { data: lineItems } = await supabase
-          .from('invoice_items')
-          .select('*')
-          .eq('invoice_id', byNumber.id)
-          .order('sort_order', { ascending: true });
-
-        setItems((lineItems as InvoiceItem[]) || []);
-      } else {
-        setInvoice(data as unknown as InvoiceWithDetails);
-
-        const { data: lineItems } = await supabase
-          .from('invoice_items')
-          .select('*')
-          .eq('invoice_id', data.id)
-          .order('sort_order', { ascending: true });
-
-        setItems((lineItems as InvoiceItem[]) || []);
-
-        // Mark as viewed if sent
-        if (data.status === 'sent') {
-          await supabase
-            .from('invoices')
-            .update({
-              status: 'viewed',
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', data.id);
-        }
+          .update({
+            status: 'viewed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', data.id);
       }
     } catch (err) {
       console.error('Error fetching invoice:', err);
