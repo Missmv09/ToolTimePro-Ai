@@ -17,15 +17,16 @@ function getSupabaseAdmin() {
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const { email: rawEmail } = await request.json();
 
-    if (!email) {
+    if (!rawEmail) {
       return NextResponse.json(
         { error: 'Email is required' },
         { status: 400 }
       );
     }
 
+    const email = rawEmail.trim().toLowerCase();
     const supabaseAdmin = getSupabaseAdmin();
 
     const baseUrl =
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
       });
 
     if (linkError || !linkData?.properties?.hashed_token) {
-      console.error('Error generating recovery link:', linkError);
+      console.error(`[reset-password] Failed to generate recovery link for ${email}:`, linkError?.message || 'No hashed_token returned');
       // Still return success to avoid leaking user existence
       return NextResponse.json({ success: true });
     }
@@ -79,16 +80,25 @@ export async function POST(request: Request) {
     const resetUrl = `${baseUrl}/auth/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
 
     // Send the branded password reset email via Resend
-    await sendPasswordResetEmail({
-      to: email,
-      name,
-      resetUrl,
-    });
+    try {
+      await sendPasswordResetEmail({
+        to: email,
+        name,
+        resetUrl,
+      });
+    } catch (emailErr) {
+      const emailMessage = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
+      console.error(`[reset-password] Failed to send reset email to ${email}:`, emailMessage);
+      // Still return success to prevent email enumeration, but the error
+      // is logged above so it can be diagnosed in server logs.
+      return NextResponse.json({ success: true });
+    }
 
+    console.log(`[reset-password] Reset email sent successfully to ${email}`);
     return NextResponse.json({ success: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Password reset API error:', message);
+    console.error('[reset-password] Unexpected error:', message);
     // Always return success to prevent email enumeration
     return NextResponse.json({ success: true });
   }
