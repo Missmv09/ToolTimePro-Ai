@@ -691,7 +691,6 @@ export default function BookingPage() {
                     placeholder="Any special instructions or details about the job..."
                   />
                 </div>
-              </div>
 
                 {/* SMS Consent */}
                 <div className="bg-[#fef3d6] rounded-xl p-4 mt-2">
