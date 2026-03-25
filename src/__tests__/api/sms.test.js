@@ -8,6 +8,7 @@
  */
 
 const mockMessageCreate = jest.fn();
+const mockSingle = jest.fn();
 
 jest.mock('twilio', () => {
   return jest.fn(() => ({
@@ -17,11 +18,23 @@ jest.mock('twilio', () => {
 
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      insert: jest.fn().mockReturnValue({
-        catch: jest.fn(),
-      }),
-    })),
+    from: jest.fn((table) => {
+      if (table === 'customers') {
+        return {
+          select: jest.fn(() => ({
+            eq: jest.fn(() => ({
+              single: mockSingle,
+            })),
+          })),
+        };
+      }
+      // sms_logs or other tables
+      return {
+        insert: jest.fn().mockReturnValue({
+          catch: jest.fn(),
+        }),
+      };
+    }),
   })),
 }));
 
@@ -45,6 +58,7 @@ describe('/api/sms', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMessageCreate.mockResolvedValue({ sid: 'SM123', status: 'sent' });
+    mockSingle.mockResolvedValue({ data: { sms_consent: true } });
   });
 
   describe('POST - Send SMS', () => {
@@ -162,6 +176,86 @@ describe('/api/sms', () => {
       expect(response.status).toBe(400);
       const body = await response.json();
       expect(body.error).toBe('Invalid phone number format');
+    });
+  });
+
+  describe('POST - SMS consent gating', () => {
+    it('returns 403 when customer has not consented to SMS', async () => {
+      mockSingle.mockResolvedValue({ data: { sms_consent: false } });
+
+      const request = makePostRequest({
+        to: '5551234567',
+        customMessage: 'Your quote is ready!',
+        customerId: 'cust-123',
+      });
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(body.code).toBe('NO_SMS_CONSENT');
+      expect(body.error).toContain('not opted in');
+      expect(mockMessageCreate).not.toHaveBeenCalled();
+    });
+
+    it('sends SMS when customer has consented', async () => {
+      mockSingle.mockResolvedValue({ data: { sms_consent: true } });
+
+      const request = makePostRequest({
+        to: '5551234567',
+        customMessage: 'Your quote is ready!',
+        customerId: 'cust-456',
+      });
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(mockMessageCreate).toHaveBeenCalled();
+    });
+
+    it('skips consent check when no customerId is provided', async () => {
+      const request = makePostRequest({
+        to: '5551234567',
+        customMessage: 'Internal notification',
+      });
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(mockSingle).not.toHaveBeenCalled();
+    });
+
+    it('continues sending if consent check throws (graceful fallback)', async () => {
+      mockSingle.mockRejectedValue(new Error('column does not exist'));
+
+      const request = makePostRequest({
+        to: '5551234567',
+        customMessage: 'Your quote is ready!',
+        customerId: 'cust-789',
+      });
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(mockMessageCreate).toHaveBeenCalled();
+    });
+
+    it('continues sending if customer not found in database', async () => {
+      mockSingle.mockResolvedValue({ data: null });
+
+      const request = makePostRequest({
+        to: '5551234567',
+        customMessage: 'Your quote is ready!',
+        customerId: 'nonexistent',
+      });
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(mockMessageCreate).toHaveBeenCalled();
     });
   });
 
