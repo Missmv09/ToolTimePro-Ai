@@ -290,6 +290,21 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           .eq('id', quote.id);
 
         if (updateError) throw updateError;
+
+        // Notify owner(s) about the declined quote
+        try {
+          await fetch('/api/quote/notify-cancellation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quoteId: quote.id,
+              reason: rejectReason || undefined,
+            }),
+          });
+        } catch {
+          // Notification failure should not block the decline flow
+          console.log('Owner cancellation notification skipped or failed');
+        }
       }
 
       setQuoteStatus('rejected');
