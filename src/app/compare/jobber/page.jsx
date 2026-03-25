@@ -280,9 +280,9 @@ export default function CompareJobber() {
             <Image
               src="/logo-01262026.png"
               alt="ToolTime Pro"
-              width={250}
-              height={56}
-              className="h-14 w-auto"
+              width={180}
+              height={40}
+              className="h-10 w-auto"
               priority
             />
           </Link>
@@ -845,9 +845,9 @@ export default function CompareJobber() {
                 <Image
                   src="/logo-horizontal-white-01262026.png"
                   alt="ToolTime Pro"
-                  width={250}
-                  height={56}
-                  className="h-14 w-auto"
+                  width={180}
+                  height={40}
+                  className="h-10 w-auto"
                 />
               </Link>
               <p className="text-white/50 text-[0.9375rem] leading-relaxed max-w-[300px]">

@@ -126,9 +126,9 @@ export default function ChecklistPage() {
                 <Image
                   src="/logo-01262026.png"
                   alt="ToolTime Pro"
-                  width={180}
-                  height={40}
-                  className="h-10 w-auto"
+                  width={140}
+                  height={32}
+                  className="h-8 w-auto"
                 />
               </Link>
               <Link href="/tools" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
