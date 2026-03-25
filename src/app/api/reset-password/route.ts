@@ -48,9 +48,24 @@ export async function POST(request: Request) {
       });
 
     if (linkError || !linkData?.properties?.hashed_token) {
-      console.error(`[reset-password] Failed to generate recovery link for ${email}:`, linkError?.message || 'No hashed_token returned');
-      // Still return success to avoid leaking user existence
-      return NextResponse.json({ success: true });
+      const errMsg = linkError?.message || 'No hashed_token returned';
+      console.error(`[reset-password] Failed to generate recovery link for ${email}:`, errMsg);
+
+      // "User not found" means the email doesn't exist — return success
+      // to prevent email enumeration.  Any other error (Supabase down,
+      // network issue, paused project) is an infrastructure problem the
+      // user should know about so they can retry later.
+      const isUserNotFound =
+        /user not found|unable to validate|no user/i.test(errMsg);
+
+      if (isUserNotFound) {
+        return NextResponse.json({ success: true });
+      }
+
+      return NextResponse.json(
+        { error: 'Our server is temporarily unavailable. Please try again in a few minutes.' },
+        { status: 503 }
+      );
     }
 
     // Look up the user's display name for a personalised email.
@@ -89,9 +104,10 @@ export async function POST(request: Request) {
     } catch (emailErr) {
       const emailMessage = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
       console.error(`[reset-password] Failed to send reset email to ${email}:`, emailMessage);
-      // Still return success to prevent email enumeration, but the error
-      // is logged above so it can be diagnosed in server logs.
-      return NextResponse.json({ success: true });
+      return NextResponse.json(
+        { error: 'We could not send the reset email right now. Please try again in a few minutes.' },
+        { status: 503 }
+      );
     }
 
     console.log(`[reset-password] Reset email sent successfully to ${email}`);
@@ -99,7 +115,9 @@ export async function POST(request: Request) {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('[reset-password] Unexpected error:', message);
-    // Always return success to prevent email enumeration
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { error: 'Something went wrong. Please try again later.' },
+      { status: 500 }
+    );
   }
 }
