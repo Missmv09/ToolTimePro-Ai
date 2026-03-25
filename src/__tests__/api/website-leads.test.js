@@ -73,7 +73,7 @@ describe('/api/website-builder/leads', () => {
       const body = await response.json();
 
       expect(response.status).toBe(400);
-      expect(body.error).toBe('siteId is required');
+      expect(body.error).toBe('siteId or companyId is required');
     });
 
     it('returns 400 when name is missing', async () => {
