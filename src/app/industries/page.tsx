@@ -114,9 +114,9 @@ export default function IndustriesPage() {
             <Image
               src="/logo-01262026.png"
               alt="ToolTime Pro"
-              width={180}
-              height={40}
-              className="h-10 w-auto"
+              width={250}
+              height={56}
+              className="h-14 w-auto"
               priority
             />
           </Link>
@@ -344,9 +344,9 @@ export default function IndustriesPage() {
                 <Image
                   src="/logo-horizontal-white-01262026.png"
                   alt="ToolTime Pro"
-                  width={180}
-                  height={40}
-                  className="h-10 w-auto"
+                  width={250}
+                  height={56}
+                  className="h-14 w-auto"
                 />
               </Link>
               <p className="text-white/50 text-base leading-relaxed max-w-[300px]">

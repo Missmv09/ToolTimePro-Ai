@@ -182,9 +182,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Image
                 src="/logo-01262026.png"
                 alt="ToolTime Pro"
-                width={160}
-                height={36}
-                className="h-9 w-auto"
+                width={200}
+                height={45}
+                className="h-12 w-auto"
                 priority
               />
             </Link>
