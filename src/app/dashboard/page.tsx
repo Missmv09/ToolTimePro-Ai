@@ -7,6 +7,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
 import GettingStartedChecklist from '@/components/dashboard/GettingStartedChecklist'
+import OverdueJobsAlert from '@/components/dashboard/OverdueJobsAlert'
 
 const DASHBOARD_TIMEOUT_MS = 10000
 
@@ -270,6 +271,9 @@ export default function DashboardPage() {
 
       {/* Getting Started Checklist */}
       <GettingStartedChecklist />
+
+      {/* Overdue Jobs Alert */}
+      <OverdueJobsAlert />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

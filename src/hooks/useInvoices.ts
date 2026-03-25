@@ -11,6 +11,7 @@ export interface InvoiceWithDetails extends Invoice {
     name: string;
     email: string | null;
     phone: string | null;
+    sms_consent?: boolean;
   } | null;
   job: {
     id: string;
@@ -67,7 +68,7 @@ export function useInvoices(): UseInvoicesReturn {
         .from('invoices')
         .select(`
           *,
-          customer:customers(id, name, email, phone),
+          customer:customers(id, name, email, phone, sms_consent),
           job:jobs(id, title)
         `)
         .eq('company_id', company.id)
@@ -188,9 +189,9 @@ export function useInvoices(): UseInvoicesReturn {
         return { error: updateError };
       }
 
-      // Send SMS notification if customer has phone number
+      // Send SMS notification if customer has phone number and has consented
       const invoice = invoices.find((i) => i.id === id);
-      if (invoice?.customer?.phone && company?.id) {
+      if (invoice?.customer?.phone && invoice?.customer?.sms_consent && company?.id) {
         const invoiceLink = `${window.location.origin}/invoice/${id}`;
         try {
           await fetch('/api/sms', {
@@ -205,6 +206,7 @@ export function useInvoices(): UseInvoicesReturn {
                 invoiceLink,
               },
               companyId: company.id,
+              customerId: invoice.customer.id,
             }),
           });
         } catch {

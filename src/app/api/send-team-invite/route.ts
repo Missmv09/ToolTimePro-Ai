@@ -39,16 +39,20 @@ export async function POST(request: NextRequest) {
     // Verify the caller is an admin/owner for this company
     const { data: callerProfile } = await supabase
       .from('users')
-      .select('role, company_id')
+      .select('role, company_id, admin_permissions')
       .eq('id', user.id)
       .single()
 
     if (
       !callerProfile ||
       callerProfile.company_id !== companyId ||
-      !['owner', 'admin'].includes(callerProfile.role)
+      !['owner', 'admin', 'worker_admin'].includes(callerProfile.role)
     ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (callerProfile.role !== 'owner' && callerProfile.admin_permissions?.team_management === false) {
+      return NextResponse.json({ error: 'You do not have permission to manage team members' }, { status: 403 })
     }
 
     // Get company name for the email

@@ -17,6 +17,8 @@ interface Customer {
   zip: string
   notes: string
   source: string
+  sms_consent: boolean
+  sms_consent_date: string | null
   created_at: string
   jobs?: { id: string; status: string }[]
   invoices?: { id: string; status: string; total: number }[]
@@ -279,6 +281,7 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
     state: customer?.state || '',
     zip: customer?.zip || '',
     notes: customer?.notes || '',
+    sms_consent: customer?.sms_consent || false,
   })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; phone?: string }>({})
@@ -321,23 +324,45 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
 
     setSaving(true)
 
-    const data = { ...formData, company_id: companyId }
+    // Track consent date when sms_consent changes
+    const consentChanged = customer ? formData.sms_consent !== customer.sms_consent : formData.sms_consent
+    const data = {
+      ...formData,
+      company_id: companyId,
+      ...(consentChanged ? { sms_consent_date: new Date().toISOString() } : {}),
+    }
 
     try {
-      if (customer) {
-        const { error } = await supabase.from('customers').update(data).eq('id', customer.id)
-        if (error) {
-          alert('Error updating customer: ' + error.message)
-          setSaving(false)
-          return
+      const saveData = async (payload: typeof data) => {
+        if (customer) {
+          return await supabase.from('customers').update(payload).eq('id', customer.id)
+        } else {
+          return await supabase.from('customers').insert(payload)
         }
-      } else {
-        const { error } = await supabase.from('customers').insert(data)
-        if (error) {
-          alert('Error creating customer: ' + error.message)
-          setSaving(false)
-          return
-        }
+      }
+
+      let { error } = await saveData(data)
+
+      // Retry without sms_consent_date if column doesn't exist yet
+      if (error?.message?.includes('sms_consent_date')) {
+        const { sms_consent_date: _, ...dataWithoutConsentDate } = data as typeof data & { sms_consent_date?: string }
+        const retry = await saveData(dataWithoutConsentDate)
+        error = retry.error
+      }
+
+      // Retry without sms_consent if column doesn't exist yet
+      if (error?.message?.includes('sms_consent')) {
+        const stripped = Object.fromEntries(
+          Object.entries(data).filter(([k]) => k !== 'sms_consent' && k !== 'sms_consent_date')
+        )
+        const retry = await saveData(stripped as typeof data)
+        error = retry.error
+      }
+
+      if (error) {
+        alert((customer ? 'Error updating' : 'Error creating') + ' customer: ' + error.message)
+        setSaving(false)
+        return
       }
     } catch (err) {
       alert('An unexpected error occurred. Please try again.')
@@ -443,6 +468,29 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
               rows={3}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* SMS Consent */}
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.sms_consent}
+                onChange={(e) => setFormData({ ...formData, sms_consent: e.target.checked })}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-700">Customer agrees to receive text messages</span>
+                <p className="text-xs text-gray-500 mt-1">
+                  Required for sending SMS notifications (quotes, invoices, appointment reminders). The customer can opt out at any time by replying STOP.
+                </p>
+                {customer?.sms_consent_date && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Consent {customer.sms_consent ? 'given' : 'revoked'}: {new Date(customer.sms_consent_date).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </label>
           </div>
 
           <div className="flex gap-3 pt-4">

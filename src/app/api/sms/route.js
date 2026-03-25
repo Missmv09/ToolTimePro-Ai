@@ -69,7 +69,7 @@ const TEMPLATES = {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { to, template, data, companyId, customMessage } = body;
+    const { to, template, data, companyId, customMessage, customerId } = body;
 
     // Validate required fields
     if (!to) {
@@ -78,6 +78,28 @@ export async function POST(request) {
 
     if (!template && !customMessage) {
       return NextResponse.json({ error: 'Template or customMessage required' }, { status: 400 });
+    }
+
+    // Check SMS consent if customerId is provided (customer-facing messages)
+    if (customerId) {
+      try {
+        const supabase = getSupabase();
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('sms_consent')
+          .eq('id', customerId)
+          .single();
+
+        if (customer && !customer.sms_consent) {
+          return NextResponse.json(
+            { error: 'Customer has not opted in to receive text messages', code: 'NO_SMS_CONSENT' },
+            { status: 403 }
+          );
+        }
+      } catch {
+        // If consent check fails (e.g. column doesn't exist yet), log and continue
+        console.log('SMS consent check skipped for customer:', customerId);
+      }
     }
 
     // Get Twilio client
@@ -107,18 +129,23 @@ export async function POST(request) {
 
     // Log the SMS if we have a company ID
     if (companyId) {
-      const supabase = getSupabase();
-      await supabase.from('sms_logs').insert({
-        company_id: companyId,
-        to_phone: formatPhone(to),
-        message: messageBody,
-        template: template || 'custom',
-        status: 'sent',
-        twilio_sid: message.sid,
-      }).catch((err) => {
-        // Don't fail if logging fails - sms_logs table may not exist yet
-        console.log('SMS log insert skipped:', err.message);
-      });
+      try {
+        const supabase = getSupabase();
+        const { error: logError } = await supabase.from('sms_logs').insert({
+          company_id: companyId,
+          to_phone: formatPhone(to),
+          message: messageBody,
+          template: template || 'custom',
+          status: 'sent',
+          twilio_sid: message.sid,
+        });
+        if (logError) {
+          // Don't fail if logging fails - sms_logs table may not exist yet
+          console.log('SMS log insert skipped:', logError.message);
+        }
+      } catch (logErr) {
+        console.log('SMS log insert skipped:', logErr.message);
+      }
     }
 
     return NextResponse.json({

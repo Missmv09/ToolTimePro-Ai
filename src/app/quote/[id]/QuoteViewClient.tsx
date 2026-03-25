@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { Quote, Company, Customer } from '@/types/database';
 
@@ -76,6 +75,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [depositPaid, setDepositPaid] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -94,64 +94,16 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
         return;
       }
 
-      // Fetch quote with company and customer details
-      const { data, error: fetchError } = await supabase
-        .from('quotes')
-        .select(`
-          *,
-          company:companies(*),
-          customer:customers(*)
-        `)
-        .eq('id', params.id)
-        .single();
+      // Fetch quote via server-side API (bypasses RLS for public access)
+      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(params.id)}`);
 
-      if (fetchError) {
-        // Try by quote_number
-        const { data: byNumber, error: numberError } = await supabase
-          .from('quotes')
-          .select(`
-            *,
-            company:companies(*),
-            customer:customers(*)
-          `)
-          .eq('quote_number', params.id)
-          .single();
-
-        if (numberError) throw fetchError;
-
-        setQuote(byNumber as unknown as QuoteWithDetails);
-
-        // Fetch line items
-        const { data: lineItems } = await supabase
-          .from('quote_items')
-          .select('*')
-          .eq('quote_id', byNumber.id)
-          .order('created_at', { ascending: true });
-
-        setItems((lineItems as QuoteLineItem[]) || []);
-      } else {
-        setQuote(data as unknown as QuoteWithDetails);
-
-        // Fetch line items
-        const { data: lineItems } = await supabase
-          .from('quote_items')
-          .select('*')
-          .eq('quote_id', data.id)
-          .order('created_at', { ascending: true });
-
-        setItems((lineItems as QuoteLineItem[]) || []);
-
-        // Mark as viewed if not already
-        if (data.status === 'sent') {
-          await supabase
-            .from('quotes')
-            .update({
-              status: 'viewed',
-              viewed_at: new Date().toISOString()
-            })
-            .eq('id', data.id);
-        }
+      if (!res.ok) {
+        throw new Error('Quote not found');
       }
+
+      const { quote: fetchedQuote, lineItems } = await res.json();
+      setQuote(fetchedQuote as QuoteWithDetails);
+      setItems((lineItems as QuoteLineItem[]) || []);
     } catch (err) {
       console.error('Error fetching quote:', err);
       setError('Quote not found');
@@ -162,6 +114,13 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
   useEffect(() => {
     fetchQuote();
+    // Check for deposit paid return
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('deposit_paid') === 'true') {
+      setDepositPaid(true);
+      setQuoteStatus('approved');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, [fetchQuote]);
 
   // Initialize canvas for signature
@@ -246,16 +205,54 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     try {
       // Update quote in database (skip for demo)
       if (quote.id !== 'demo' && quote.id !== 'QT-2024-001') {
-        const { error: updateError } = await supabase
-          .from('quotes')
-          .update({
-            status: 'approved',
-            approved_at: new Date().toISOString(),
-            signature_url: signature,
-          })
-          .eq('id', quote.id);
+        const res = await fetch('/api/quote/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quoteId: quote.id, action: 'approve', signature }),
+        });
 
-        if (updateError) throw updateError;
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to approve');
+        }
+
+        // Notify company owner that customer approved the quote
+        try {
+          await fetch('/api/quote/notify-approval', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quoteId: quote.id,
+              to: quote.company?.email,
+              ownerName: quote.company?.name || 'Team',
+              quoteNumber: quote.quote_number || quote.id.slice(0, 8),
+              customerName: quote.customer?.name || 'Customer',
+              total: quote.total || 0,
+              itemCount: items.length,
+              dashboardLink: `${window.location.origin}/dashboard/quotes`,
+            }),
+          });
+        } catch {
+          // Notification is best-effort, don't block approval
+        }
+      }
+
+      // If deposit required, redirect to payment
+      if (quote.deposit_required && !quote.deposit_paid && quote.id !== 'demo') {
+        try {
+          const payRes = await fetch('/api/quote/deposit-pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quoteId: quote.id }),
+          });
+          const payData = await payRes.json();
+          if (payRes.ok && payData.url) {
+            window.location.href = payData.url;
+            return;
+          }
+        } catch {
+          // If deposit payment fails, still show approval success
+        }
       }
 
       setQuoteStatus('approved');
@@ -281,15 +278,16 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     try {
       // Update quote in database (skip for demo)
       if (quote.id !== 'demo' && quote.id !== 'QT-2024-001') {
-        const { error: updateError } = await supabase
-          .from('quotes')
-          .update({
-            status: 'rejected',
-            notes: quote.notes ? `${quote.notes}\n\nRejection reason: ${rejectReason}` : `Rejection reason: ${rejectReason}`,
-          })
-          .eq('id', quote.id);
+        const res = await fetch('/api/quote/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quoteId: quote.id, action: 'reject', rejectReason }),
+        });
 
-        if (updateError) throw updateError;
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to decline');
+        }
 
         // Notify owner(s) about the declined quote
         try {
@@ -392,9 +390,13 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
         {quoteStatus === 'approved' && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center">
             <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-green-700 mb-2">Quote Approved!</h2>
+            <h2 className="text-2xl font-bold text-green-700 mb-2">
+              {depositPaid ? 'Quote Approved & Deposit Paid!' : 'Quote Approved!'}
+            </h2>
             <p className="text-green-600 mb-4">
-              Thank you for your business! We&apos;ll be in touch shortly to schedule your service.
+              {depositPaid
+                ? 'Thank you! Your deposit has been received. We\'ll be in touch shortly to schedule your service.'
+                : 'Thank you for your business! We\'ll be in touch shortly to schedule your service.'}
             </p>
             {signature && (
               <div className="inline-block p-2 bg-white rounded border border-green-200">
@@ -494,6 +496,20 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                     <span className="text-navy-500">Total</span>
                     <span className="text-gold-600">${(quote.total || 0).toFixed(2)}</span>
                   </div>
+                  {quote.deposit_required && (
+                    <div className="flex justify-between text-sm pt-2 mt-2 border-t border-dashed border-gray-200">
+                      <span className="text-gray-600 font-medium">Deposit Required</span>
+                      <span className="text-gray-800 font-bold">
+                        ${(quote.deposit_amount || (quote.deposit_percentage ? (quote.deposit_percentage / 100) * (quote.total || 0) : 0)).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {quote.deposit_paid && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Deposit Paid</span>
+                      <span>&#10003;</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -508,6 +524,20 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
               </div>
             </div>
           )}
+
+          {/* Terms & Conditions */}
+          {(() => {
+            const terms = (quote as unknown as Record<string, unknown>).terms as string | undefined
+            if (!terms) return null
+            return (
+              <div className="px-6 pb-6">
+                <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+                  <div className="text-sm font-medium text-blue-800 mb-1">Terms & Conditions</div>
+                  <div className="text-sm text-blue-700 whitespace-pre-line">{terms}</div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {/* Signature Section */}

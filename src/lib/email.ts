@@ -911,6 +911,69 @@ export async function sendQuoteApprovalEmail({
   return data;
 }
 
+// Quote Accepted Confirmation Email (sent to customer after they approve)
+export async function sendQuoteAcceptedEmail({
+  to,
+  customerName,
+  quoteNumber,
+  total,
+  companyName,
+  companyPhone,
+}: {
+  to: string;
+  customerName: string;
+  quoteNumber: string;
+  total: number;
+  companyName: string;
+  companyPhone?: string;
+}) {
+  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Quote ${quoteNumber} Confirmed - Thank you!`,
+    html: emailLayout(`
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 48px; margin-bottom: 8px;">&#10003;</div>
+        <h2 style="color: #16a34a; margin: 0 0 8px 0; font-size: 24px;">Quote Accepted!</h2>
+      </div>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Hi ${customerName}, thank you for accepting the quote! This email confirms your approval.
+      </p>
+
+      <div style="background: #f0fdf4; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #22c55e;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Quote #</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${quoteNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">From</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${companyName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0 4px 0; color: #6b7280; font-size: 14px; border-top: 1px solid #bbf7d0;">Total</td>
+            <td style="padding: 8px 0 4px 0; color: #111827; font-size: 20px; font-weight: 700; text-align: right; border-top: 1px solid #bbf7d0;">${formattedTotal}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #4b5563; font-size: 15px; line-height: 1.6;">
+        We'll be in touch shortly to schedule your service.${companyPhone ? ` If you have any questions, call us at <a href="tel:${companyPhone}" style="color: #3b82f6; font-weight: 600;">${companyPhone}</a>.` : ''}
+      </p>
+
+      <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 24px;">
+        Please keep this email for your records.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
 // ============================================
 // Quote Cancellation / Decline Alert (sent to owner/admin)
 // ============================================

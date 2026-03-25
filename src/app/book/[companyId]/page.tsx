@@ -20,6 +20,7 @@ interface BookingData {
   customerState: string;
   customerZip: string;
   notes: string;
+  smsConsent: boolean;
 }
 
 type BookingStep = 'service' | 'datetime' | 'info' | 'confirm' | 'success';
@@ -144,6 +145,7 @@ export default function BookingPage() {
     customerState: '',
     customerZip: '',
     notes: '',
+    smsConsent: false,
   });
 
   // Get booking settings from company or use defaults
@@ -288,6 +290,7 @@ export default function BookingPage() {
           customerState: booking.customerState,
           customerZip: booking.customerZip,
           notes: booking.notes,
+          smsConsent: booking.smsConsent,
         }),
       });
 
@@ -687,6 +690,37 @@ export default function BookingPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all resize-none"
                     placeholder="Any special instructions or details about the job..."
                   />
+                </div>
+
+                {/* SMS Consent */}
+                <div className="bg-[#fef3d6] rounded-xl p-4 mt-2">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={booking.smsConsent}
+                      onChange={(e) =>
+                        setBooking((prev) => ({ ...prev, smsConsent: e.target.checked }))
+                      }
+                      className="mt-1 w-5 h-5 rounded border-gray-300 text-[#f5a623] focus:ring-[#f5a623] cursor-pointer"
+                    />
+                    <span className="text-sm text-[#1a1a2e]">
+                      I agree to receive SMS/text message notifications about my appointment
+                      (confirmations, reminders, and updates) from {company?.name} via ToolTime Pro.
+                      Message and data rates may apply. Message frequency varies. Reply <strong>STOP</strong> to
+                      opt out or <strong>HELP</strong> for help at any time.
+                    </span>
+                  </label>
+                  <p className="text-xs text-[#5c5c70] mt-2 ml-8">
+                    By checking this box, you consent to receive service-related text messages.
+                    View our{' '}
+                    <Link href="/privacy" target="_blank" className="text-[#f5a623] underline">
+                      Privacy Policy
+                    </Link>{' '}
+                    and{' '}
+                    <Link href="/terms" target="_blank" className="text-[#f5a623] underline">
+                      Terms &amp; Conditions
+                    </Link>.
+                  </p>
                 </div>
               </div>
 

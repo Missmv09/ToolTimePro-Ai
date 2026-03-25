@@ -17,15 +17,16 @@ function getSupabaseAdmin() {
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const { email: rawEmail } = await request.json();
 
-    if (!email) {
+    if (!rawEmail) {
       return NextResponse.json(
         { error: 'Email is required' },
         { status: 400 }
       );
     }
 
+    const email = rawEmail.trim().toLowerCase();
     const supabaseAdmin = getSupabaseAdmin();
 
     const baseUrl =
@@ -47,9 +48,24 @@ export async function POST(request: Request) {
       });
 
     if (linkError || !linkData?.properties?.hashed_token) {
-      console.error('Error generating recovery link:', linkError);
-      // Still return success to avoid leaking user existence
-      return NextResponse.json({ success: true });
+      const errMsg = linkError?.message || 'No hashed_token returned';
+      console.error(`[reset-password] Failed to generate recovery link for ${email}:`, errMsg);
+
+      // "User not found" means the email doesn't exist — return success
+      // to prevent email enumeration.  Any other error (Supabase down,
+      // network issue, paused project) is an infrastructure problem the
+      // user should know about so they can retry later.
+      const isUserNotFound =
+        /user not found|unable to validate|no user/i.test(errMsg);
+
+      if (isUserNotFound) {
+        return NextResponse.json({ success: true });
+      }
+
+      return NextResponse.json(
+        { error: 'Our server is temporarily unavailable. Please try again in a few minutes.' },
+        { status: 503 }
+      );
     }
 
     // Look up the user's display name for a personalised email.
@@ -79,17 +95,29 @@ export async function POST(request: Request) {
     const resetUrl = `${baseUrl}/auth/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
 
     // Send the branded password reset email via Resend
-    await sendPasswordResetEmail({
-      to: email,
-      name,
-      resetUrl,
-    });
+    try {
+      await sendPasswordResetEmail({
+        to: email,
+        name,
+        resetUrl,
+      });
+    } catch (emailErr) {
+      const emailMessage = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
+      console.error(`[reset-password] Failed to send reset email to ${email}:`, emailMessage);
+      return NextResponse.json(
+        { error: 'We could not send the reset email right now. Please try again in a few minutes.' },
+        { status: 503 }
+      );
+    }
 
+    console.log(`[reset-password] Reset email sent successfully to ${email}`);
     return NextResponse.json({ success: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Password reset API error:', message);
-    // Always return success to prevent email enumeration
-    return NextResponse.json({ success: true });
+    console.error('[reset-password] Unexpected error:', message);
+    return NextResponse.json(
+      { error: 'Something went wrong. Please try again later.' },
+      { status: 500 }
+    );
   }
 }

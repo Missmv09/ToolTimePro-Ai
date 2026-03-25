@@ -4,13 +4,14 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Building2, Wrench, Users, Check, ArrowRight, ArrowLeft, Search, Plus, X } from 'lucide-react'
+import { Building2, Wrench, Users, Shield, Check, ArrowRight, ArrowLeft, Search, Plus, X } from 'lucide-react'
 import { industries, type Industry } from '@/lib/industries'
 
 const STEPS = [
   { id: 1, title: 'Company Details', icon: Building2 },
   { id: 2, title: 'Your Industry', icon: Wrench },
   { id: 3, title: 'Invite Your Team', icon: Users },
+  { id: 4, title: 'Security', icon: Shield },
 ]
 
 export default function OnboardingPage() {
@@ -132,8 +133,12 @@ export default function OnboardingPage() {
 
   // Step 3: Team member
   const [memberName, setMemberName] = useState('')
+  // Step 4: 2FA
+  const [twoFaPhone, setTwoFaPhone] = useState('')
+  const [twoFaEnabled, setTwoFaEnabled] = useState(false)
+  const [twoFaSaving, setTwoFaSaving] = useState(false)
   const [memberEmail, setMemberEmail] = useState('')
-  const [memberRole, setMemberRole] = useState<'admin' | 'worker'>('worker')
+  const [memberRole, setMemberRole] = useState<'admin' | 'worker' | 'worker_admin'>('worker')
 
   const handleSaveCompany = async () => {
     if (!company) {
@@ -230,6 +235,49 @@ export default function OnboardingPage() {
     return true
   }
 
+  const handleEnable2FA = async () => {
+    const digits = twoFaPhone.replace(/\D/g, '')
+    if (digits.length < 10) {
+      setError('Please enter a valid 10-digit phone number.')
+      return false
+    }
+
+    setTwoFaSaving(true)
+    setError(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setError('Session expired. Please refresh.')
+        setTwoFaSaving(false)
+        return false
+      }
+
+      const res = await fetch('/api/auth/2fa/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ phone: twoFaPhone }),
+      })
+
+      if (res.ok) {
+        setTwoFaEnabled(true)
+        setTwoFaSaving(false)
+        return true
+      } else {
+        const data = await res.json()
+        setError(data.error || 'Failed to enable 2FA')
+        setTwoFaSaving(false)
+        return false
+      }
+    } catch {
+      setError('Failed to enable 2FA')
+      setTwoFaSaving(false)
+      return false
+    }
+  }
+
   const handleNext = async () => {
     setError(null)
 
@@ -240,12 +288,20 @@ export default function OnboardingPage() {
       const success = await handleSaveIndustryAndServices()
       if (success) setCurrentStep(3)
     } else if (currentStep === 3) {
-      await handleFinish()
+      setCurrentStep(4)
+    } else if (currentStep === 4) {
+      // If they entered a phone number but haven't enabled yet, enable it
+      if (twoFaPhone.trim() && !twoFaEnabled) {
+        const success = await handleEnable2FA()
+        if (success) await handleFinish()
+      } else {
+        await handleFinish()
+      }
     }
   }
 
   const handleSkip = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
     } else {
       handleFinish()
@@ -670,11 +726,12 @@ export default function OnboardingPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                   <select
                     value={memberRole}
-                    onChange={(e) => setMemberRole(e.target.value as 'admin' | 'worker')}
+                    onChange={(e) => setMemberRole(e.target.value as 'admin' | 'worker' | 'worker_admin')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="worker">Worker</option>
                     <option value="admin">Admin</option>
+                    <option value="worker_admin">Team Member + Admin</option>
                   </select>
                 </div>
               </div>
@@ -684,6 +741,53 @@ export default function OnboardingPage() {
                   You can invite more team members anytime from <strong>Dashboard &rarr; Team</strong>.
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* Step 4: Security */}
+          {currentStep === 4 && (
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <Shield size={20} className="text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Secure Your Account</h2>
+                  <p className="text-sm text-gray-500">Add two-factor authentication for extra security when logging in.</p>
+                </div>
+              </div>
+
+              {twoFaEnabled ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                  <div className="text-3xl mb-2">&#10003;</div>
+                  <h3 className="text-lg font-semibold text-green-700">2FA Enabled!</h3>
+                  <p className="text-sm text-green-600 mt-1">
+                    You&apos;ll receive a verification code via SMS each time you log in from a new device.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Phone Number</label>
+                    <input
+                      type="tel"
+                      value={twoFaPhone}
+                      onChange={(e) => setTwoFaPhone(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="(555) 123-4567"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      We&apos;ll send a 6-digit code to this number when you log in from an unrecognized device.
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-700">
+                      Two-factor authentication adds an extra layer of security. You can also set this up later from <strong>Settings</strong>.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -706,7 +810,7 @@ export default function OnboardingPage() {
                 onClick={handleSkip}
                 className="text-sm text-gray-500 hover:text-gray-700 font-medium"
               >
-                {currentStep === 3 ? 'Skip & go to dashboard' : 'Skip'}
+                {currentStep === 4 ? 'Skip & go to dashboard' : 'Skip'}
               </button>
               <button
                 onClick={handleNext}
@@ -715,7 +819,7 @@ export default function OnboardingPage() {
               >
                 {saving ? (
                   'Saving...'
-                ) : currentStep === 3 ? (
+                ) : currentStep === 4 ? (
                   'Finish setup'
                 ) : (
                   <>

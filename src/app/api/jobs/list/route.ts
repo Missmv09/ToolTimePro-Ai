@@ -51,7 +51,10 @@ export async function GET(request: NextRequest) {
       .order('scheduled_date', { ascending: false })
       .limit(5000)
 
-    if (filter !== 'all') {
+    if (filter === 'overdue') {
+      const today = new Date().toISOString().split('T')[0]
+      query = query.in('status', ['scheduled', 'in_progress']).lt('scheduled_date', today)
+    } else if (filter !== 'all') {
       query = query.eq('status', filter)
     }
 

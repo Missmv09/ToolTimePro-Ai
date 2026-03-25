@@ -11,6 +11,7 @@ export interface QuoteWithDetails extends Quote {
     name: string;
     email: string | null;
     phone: string | null;
+    sms_consent?: boolean;
   } | null;
   lead: {
     id: string;
@@ -73,7 +74,7 @@ export function useQuotes(): UseQuotesReturn {
         .from('quotes')
         .select(`
           *,
-          customer:customers(id, name, email, phone),
+          customer:customers(id, name, email, phone, sms_consent),
           lead:leads(id, name, service_requested)
         `)
         .eq('company_id', company.id)
@@ -189,6 +190,12 @@ export function useQuotes(): UseQuotesReturn {
 
   const sendQuote = async (id: string) => {
     try {
+      const quote = quotes.find((q) => q.id === id);
+
+      if (!quote?.customer_id) {
+        return { error: new Error('Cannot send quote: No customer attached. Please select a customer first.') };
+      }
+
       const { error: updateError } = await supabase
         .from('quotes')
         .update({
@@ -200,12 +207,10 @@ export function useQuotes(): UseQuotesReturn {
       if (updateError) {
         return { error: updateError };
       }
-
-      const quote = quotes.find((q) => q.id === id);
       const quoteLink = `${window.location.origin}/quote/${id}`;
 
-      // Send SMS notification if customer has phone number
-      if (quote?.customer?.phone && company?.id) {
+      // Send SMS notification if customer has phone number and has consented
+      if (quote?.customer?.phone && quote?.customer?.sms_consent && company?.id) {
         try {
           await fetch('/api/sms', {
             method: 'POST',
@@ -219,6 +224,7 @@ export function useQuotes(): UseQuotesReturn {
                 quoteLink,
               },
               companyId: company.id,
+              customerId: quote.customer.id,
             }),
           });
         } catch {

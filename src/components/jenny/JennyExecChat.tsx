@@ -59,8 +59,18 @@ const MODE_STYLE = {
   },
 };
 
-function formatMarkdown(text: string): string {
+function escapeHtml(text: string): string {
   return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function formatMarkdown(text: string): string {
+  // Escape HTML first to prevent XSS, then apply safe formatting
+  return escapeHtml(text)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n- /g, '\n• ')
     .replace(/\n(\d+)\. /g, '\n$1. ')
