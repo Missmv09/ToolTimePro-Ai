@@ -112,11 +112,14 @@ function LoginContent() {
 
       if (error) {
         const message = error.message || 'An unexpected error occurred'
-        if (message.toLowerCase().includes('failed to fetch')) {
+        const msgLower = message.toLowerCase()
+        if (msgLower.includes('failed to fetch')) {
           setError('Unable to connect to the server. Please check your internet connection and try again.')
-        } else if (message.toLowerCase().includes('invalid login credentials')) {
+        } else if (msgLower.includes('temporarily unavailable') || msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
+          setError('too_many_attempts')
+        } else if (msgLower.includes('invalid login credentials')) {
           setError('invalid_credentials')
-        } else if (message.toLowerCase().includes('email not confirmed')) {
+        } else if (msgLower.includes('email not confirmed')) {
           setError('email_not_confirmed')
         } else {
           setError(message)
@@ -166,8 +169,11 @@ function LoginContent() {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
-      if (message.toLowerCase().includes('failed to fetch')) {
+      const msgLower = message.toLowerCase()
+      if (msgLower.includes('failed to fetch')) {
         setError('Unable to connect to the server. Please check your internet connection and try again.')
+      } else if (msgLower.includes('temporarily unavailable') || msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
+        setError('too_many_attempts')
       } else {
         setError(message)
       }
@@ -361,7 +367,12 @@ function LoginContent() {
 
           {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {displayError === 'invalid_credentials' ? (
+              {displayError === 'too_many_attempts' ? (
+                <>
+                  Too many sign-in attempts. Our server is temporarily unavailable — please wait a few minutes and try again.
+                  If this persists, please contact support.
+                </>
+              ) : displayError === 'invalid_credentials' ? (
                 <>
                   Incorrect email or password. If you signed up recently but never set a password, please{' '}
                   <Link href="/auth/forgot-password" className="underline font-medium text-red-800 hover:text-red-900">
