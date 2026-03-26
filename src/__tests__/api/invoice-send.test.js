@@ -16,6 +16,24 @@ jest.mock('@/lib/email', () => ({
   sendInvoiceEmail: (...args) => mockSendInvoiceEmail(...args),
 }));
 
+// ── Supabase mock ─────────────────────────────────────────────────────────────
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: { user: { id: 'user-1' } },
+        error: null,
+      }),
+    },
+  })),
+}));
+
+// ── Env vars ──────────────────────────────────────────────────────────────────
+
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+
 // ── Import route AFTER mocks ──────────────────────────────────────────────────
 
 const { POST } = require('@/app/api/invoice/send/route');
@@ -25,7 +43,10 @@ const { POST } = require('@/app/api/invoice/send/route');
 function makeRequest(body) {
   return new Request('http://localhost/api/invoice/send', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer test-token',
+    },
     body: JSON.stringify(body),
   });
 }

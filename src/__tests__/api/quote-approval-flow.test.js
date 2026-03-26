@@ -21,6 +21,27 @@ jest.mock('@/lib/email', () => ({
   sendQuoteApprovalEmail: (...args) => mockSendQuoteApprovalEmail(...args),
 }));
 
+// ── Supabase mock ─────────────────────────────────────────────────────────────
+
+const mockSingle = jest.fn();
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: mockSingle,
+        })),
+      })),
+    })),
+  })),
+}));
+
+// ── Env vars ──────────────────────────────────────────────────────────────────
+
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+
 // ── Import routes AFTER mocks ──────────────────────────────────────────────────
 
 const { POST: sendQuote } = require('@/app/api/quote/send/route');
@@ -142,10 +163,15 @@ describe('/api/quote/notify-approval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSendQuoteApprovalEmail.mockResolvedValue({ id: 'msg-789' });
+    mockSingle.mockResolvedValue({
+      data: { id: 'q-1', status: 'pending_approval', company: { email: 'owner@company.com' } },
+      error: null,
+    });
   });
 
   it('sends an approval notification to the admin', async () => {
     const request = makeRequest({
+      quoteId: 'q-1',
       to: 'owner@company.com',
       ownerName: 'Mike',
       quoteNumber: 'QT-2026-001',
@@ -174,6 +200,7 @@ describe('/api/quote/notify-approval', () => {
 
   it('returns 400 when recipient email is missing', async () => {
     const request = makeRequest({
+      quoteId: 'q-1',
       ownerName: 'Mike',
       quoteNumber: 'QT-001',
     });
@@ -189,6 +216,7 @@ describe('/api/quote/notify-approval', () => {
     mockSendQuoteApprovalEmail.mockRejectedValue(new Error('Email service error'));
 
     const request = makeRequest({
+      quoteId: 'q-1',
       to: 'owner@company.com',
     });
 
@@ -203,6 +231,7 @@ describe('/api/quote/notify-approval', () => {
     mockSendQuoteApprovalEmail.mockResolvedValue({ id: 'msg-000' });
 
     const request = makeRequest({
+      quoteId: 'q-1',
       to: 'owner@company.com',
     });
 
