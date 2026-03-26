@@ -26,12 +26,17 @@ export async function POST(request: Request) {
     // Fetch quote with customer and company details
     const { data: quote, error: quoteError } = await adminClient
       .from('quotes')
-      .select('id, quote_number, total, company_id, customer:customers(name)')
+      .select('id, quote_number, total, status, company_id, customer:customers(name)')
       .eq('id', quoteId)
       .single()
 
     if (quoteError || !quote) {
       return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
+    }
+
+    // Only send cancellation alerts for rejected quotes
+    if (quote.status !== 'rejected') {
+      return NextResponse.json({ error: 'Quote is not in rejected status' }, { status: 400 })
     }
 
     const customerName = (quote.customer as { name: string } | null)?.name || 'Customer'

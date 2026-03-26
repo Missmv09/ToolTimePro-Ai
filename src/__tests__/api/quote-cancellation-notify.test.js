@@ -77,6 +77,7 @@ const sampleQuote = {
   id: 'q-123',
   quote_number: 'QT-2026-050',
   total: 550,
+  status: 'rejected',
   company_id: 'comp-1',
   customer: { name: 'Alice Johnson' },
 };
