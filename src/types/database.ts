@@ -35,6 +35,7 @@ export interface Database {
           welcome_email_sent_at: string | null
           is_beta_tester: boolean
           beta_notes: string | null
+          quote_reminder_settings: Json | null
           created_at: string
           updated_at: string
         }
@@ -60,6 +61,7 @@ export interface Database {
           welcome_email_sent_at?: string | null
           is_beta_tester?: boolean
           beta_notes?: string | null
+          quote_reminder_settings?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -85,6 +87,7 @@ export interface Database {
           welcome_email_sent_at?: string | null
           is_beta_tester?: boolean
           beta_notes?: string | null
+          quote_reminder_settings?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -471,6 +474,8 @@ export interface Database {
           notes: string | null
           created_by: string | null
           sent_by: string | null
+          follow_up_date: string | null
+          last_followed_up_at: string | null
           created_at: string
           updated_at: string
         }
@@ -496,6 +501,8 @@ export interface Database {
           notes?: string | null
           created_by?: string | null
           sent_by?: string | null
+          follow_up_date?: string | null
+          last_followed_up_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -521,6 +528,8 @@ export interface Database {
           notes?: string | null
           created_by?: string | null
           sent_by?: string | null
+          follow_up_date?: string | null
+          last_followed_up_at?: string | null
           created_at?: string
           updated_at?: string
         }

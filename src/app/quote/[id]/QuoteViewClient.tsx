@@ -150,6 +150,13 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
               viewed_at: new Date().toISOString()
             })
             .eq('id', data.id);
+
+          // Send real-time view alert to company owner
+          fetch('/api/quote/notify-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quoteId: data.id }),
+          }).catch(() => {}); // Fire-and-forget, don't block the customer
         }
       }
     } catch (err) {

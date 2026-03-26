@@ -124,4 +124,18 @@ export const SMS_TEMPLATES = {
     companyName: string;
     estimatedArrival: string;
   }) => `Hi ${data.customerName}, ${data.companyName} here. Our team is running a bit late - estimated arrival: ${data.estimatedArrival}. We apologize for any inconvenience.`,
+
+  quoteFollowUpAlert: (data: {
+    urgentCount: number;
+    totalCount: number;
+    highestValue: string;
+    dashboardLink: string;
+  }) => `ToolTime Pro: ${data.urgentCount} urgent quote${data.urgentCount !== 1 ? 's' : ''} need follow-up (${data.totalCount} total). Highest value: $${data.highestValue}. View: ${data.dashboardLink}`,
+
+  quoteViewedAlert: (data: {
+    customerName: string;
+    total: string;
+    quoteNumber: string;
+    customerPhone?: string;
+  }) => `${data.customerName} just opened your $${data.total} quote (#${data.quoteNumber}). Now's a great time to call!${data.customerPhone ? ` Their number: ${data.customerPhone}` : ''}`,
 };

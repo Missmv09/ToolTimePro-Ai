@@ -910,3 +910,113 @@ export async function sendQuoteApprovalEmail({
   if (error) throw new Error(`Failed to send email: ${error.message}`);
   return data;
 }
+
+// ============================================
+// Quote Follow-Up Daily Digest Email
+// ============================================
+
+interface DigestQuote {
+  quoteNumber: string;
+  customerName: string;
+  total: number;
+  daysSinceSent: number;
+  action: string;
+  validUntil?: string;
+}
+
+function digestSection(
+  title: string,
+  quotes: DigestQuote[],
+  bgColor: string,
+  borderColor: string,
+  textColor: string,
+  maxItems: number = 10
+): string {
+  if (quotes.length === 0) return '';
+
+  const shown = quotes.slice(0, maxItems);
+  const remaining = quotes.length - maxItems;
+
+  const rows = shown.map(q => `
+    <tr>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6; color: #111827; font-size: 14px; font-weight: 600;">#${q.quoteNumber}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 14px;">${q.customerName}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6; color: #111827; font-size: 14px; text-align: right; font-weight: 600;">$${q.total.toLocaleString()}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6; color: ${textColor}; font-size: 13px;">${q.action}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <div style="margin: 24px 0;">
+      <div style="background: ${bgColor}; border-left: 4px solid ${borderColor}; border-radius: 8px; padding: 16px; margin-bottom: 8px;">
+        <p style="margin: 0; color: ${textColor}; font-weight: 700; font-size: 15px;">${title} (${quotes.length})</p>
+      </div>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse;">
+        <tr style="background: #f9fafb;">
+          <th style="padding: 8px 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase;">Quote</th>
+          <th style="padding: 8px 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase;">Customer</th>
+          <th style="padding: 8px 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase;">Value</th>
+          <th style="padding: 8px 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase;">Action</th>
+        </tr>
+        ${rows}
+      </table>
+      ${remaining > 0 ? `<p style="color: #6b7280; font-size: 13px; margin: 8px 0 0 12px;">and ${remaining} more...</p>` : ''}
+    </div>
+  `;
+}
+
+export async function sendQuoteFollowUpDigestEmail({
+  to,
+  ownerName,
+  companyName,
+  hotQuotes,
+  warmQuotes,
+  staleQuotes,
+  expiringQuotes,
+  dashboardLink,
+}: {
+  to: string;
+  ownerName: string;
+  companyName: string;
+  hotQuotes: DigestQuote[];
+  warmQuotes: DigestQuote[];
+  staleQuotes: DigestQuote[];
+  expiringQuotes: DigestQuote[];
+  dashboardLink: string;
+}) {
+  const totalCount = hotQuotes.length + warmQuotes.length + staleQuotes.length + expiringQuotes.length;
+  const totalValue = [...hotQuotes, ...warmQuotes, ...staleQuotes, ...expiringQuotes]
+    .reduce((sum, q) => sum + q.total, 0);
+
+  const subject = hotQuotes.length > 0
+    ? `${hotQuotes.length} urgent quote${hotQuotes.length !== 1 ? 's' : ''} need follow-up - Daily Summary`
+    : `${totalCount} quote${totalCount !== 1 ? 's' : ''} need follow-up - Daily Summary`;
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Hey ${ownerName},</h2>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        You have <strong>${totalCount} quote${totalCount !== 1 ? 's' : ''}</strong> worth
+        <strong>$${totalValue.toLocaleString()}</strong> that need attention for ${companyName}.
+      </p>
+
+      ${digestSection('Hot — Act Now', hotQuotes, '#fef2f2', '#ef4444', '#991b1b')}
+      ${digestSection('Warm — Follow Up Today', warmQuotes, '#fff7ed', '#f97316', '#9a3412')}
+      ${digestSection('Stale — May Be Lost', staleQuotes, '#fffbeb', '#f59e0b', '#92400e')}
+      ${digestSection('Expiring Soon', expiringQuotes, '#fefce8', '#eab308', '#854d0e')}
+
+      ${ctaButton('View All Quotes', dashboardLink)}
+
+      <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 24px;">
+        You're receiving this because quote follow-up reminders are enabled. Manage this in Dashboard &rarr; Settings.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
