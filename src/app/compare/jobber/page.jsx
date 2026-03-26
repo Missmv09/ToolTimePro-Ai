@@ -352,7 +352,7 @@ export default function CompareJobber() {
             </div>
 
             <span className="text-[#5c5c70] text-sm flex items-center gap-1">
-              📞 1-888-555-0123
+              📞 (888) 980-TOOL
             </span>
             <Link
               href="/auth/signup"
