@@ -39,7 +39,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Quote is not in rejected status' }, { status: 400 })
     }
 
-    const customerName = (quote.customer as { name: string } | null)?.name || 'Customer'
+    const customer = Array.isArray(quote.customer) ? quote.customer[0] : quote.customer
+    const customerName = (customer as { name: string } | null)?.name || 'Customer'
     const quoteNumber = quote.quote_number || `Q-${quote.id.slice(0, 8)}`
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com'
     const dashboardLink = `${appUrl}/dashboard/quotes`
