@@ -318,6 +318,21 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           const data = await res.json();
           throw new Error(data.error || 'Failed to decline');
         }
+
+        // Notify owner(s) about the declined quote
+        try {
+          await fetch('/api/quote/notify-cancellation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quoteId: quote.id,
+              reason: rejectReason || undefined,
+            }),
+          });
+        } catch {
+          // Notification failure should not block the decline flow
+          console.log('Owner cancellation notification skipped or failed');
+        }
       }
 
       setQuoteStatus('rejected');

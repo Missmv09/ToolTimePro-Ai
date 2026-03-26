@@ -22,15 +22,19 @@ jest.mock('@/lib/email', () => ({
 }));
 
 // Mock Supabase for auth validation in notify-approval
+const mockSingle = jest.fn().mockResolvedValue({
+  data: { id: 'q-1', status: 'pending_approval', company: { email: 'owner@company.com' } },
+  error: null,
+});
 const mockGetUser = jest.fn();
 jest.mock('@supabase/supabase-js', () => ({
   createClient: () => ({
     from: () => ({
       select: () => ({
         eq: () => ({
-          single: () => Promise.resolve({ data: { id: 'q-1', status: 'approved', company_id: 'c-1' } }),
+          single: (...args) => mockSingle(...args),
           eq: () => ({
-            single: () => Promise.resolve({ data: { id: 'q-1', status: 'approved', company_id: 'c-1' } }),
+            single: (...args) => mockSingle(...args),
           }),
         }),
       }),
@@ -38,6 +42,10 @@ jest.mock('@supabase/supabase-js', () => ({
     auth: { getUser: (...args) => mockGetUser(...args) },
   }),
 }));
+
+// Ensure env vars are set
+process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'test-service-key';
 
 // ── Import routes AFTER mocks ──────────────────────────────────────────────────
 
@@ -160,6 +168,10 @@ describe('/api/quote/notify-approval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSendQuoteApprovalEmail.mockResolvedValue({ id: 'msg-789' });
+    mockSingle.mockResolvedValue({
+      data: { id: 'q-1', status: 'pending_approval', company: { email: 'owner@company.com' } },
+      error: null,
+    });
   });
 
   it('sends an approval notification to the admin', async () => {
@@ -193,6 +205,7 @@ describe('/api/quote/notify-approval', () => {
 
   it('returns 400 when recipient email is missing', async () => {
     const request = makeRequest({
+      quoteId: 'q-1',
       ownerName: 'Mike',
       quoteNumber: 'QT-001',
     });

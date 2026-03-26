@@ -1066,3 +1066,72 @@ export async function sendQuoteAcceptedEmail({
   if (error) throw new Error(`Failed to send email: ${error.message}`);
   return data;
 }
+
+// ============================================
+// Quote Cancellation / Decline Alert (sent to owner/admin)
+// ============================================
+
+export async function sendQuoteCancellationEmail({
+  to,
+  ownerName,
+  quoteNumber,
+  customerName,
+  total,
+  reason,
+  dashboardLink,
+}: {
+  to: string;
+  ownerName: string;
+  quoteNumber: string;
+  customerName: string;
+  total: number;
+  reason?: string;
+  dashboardLink: string;
+}) {
+  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Quote ${quoteNumber} was declined by ${customerName}`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Quote Declined</h2>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Hi ${ownerName}, your customer has declined a quote. You may want to follow up with them.
+      </p>
+
+      <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #ef4444;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Quote #</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${quoteNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Customer</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: 600; text-align: right;">${customerName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0 4px 0; color: #6b7280; font-size: 14px; border-top: 1px solid #fecaca;">Total</td>
+            <td style="padding: 8px 0 4px 0; color: #111827; font-size: 20px; font-weight: 700; text-align: right; border-top: 1px solid #fecaca;">${formattedTotal}</td>
+          </tr>
+          ${reason ? `
+          <tr>
+            <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Reason</td>
+            <td style="padding: 4px 0; color: #dc2626; font-size: 14px; font-weight: 500; text-align: right;">${reason}</td>
+          </tr>
+          ` : ''}
+        </table>
+      </div>
+
+      ${ctaButton('View Quote', dashboardLink, '#ef4444')}
+
+      <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 24px;">
+        Consider reaching out to the customer to discuss alternative options.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}

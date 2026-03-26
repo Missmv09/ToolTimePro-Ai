@@ -214,7 +214,7 @@ describe('/api/bookings', () => {
   });
 
   it('reports SMS status in the response', async () => {
-    const request = makeRequest(validBooking);
+    const request = makeRequest({ ...validBooking, smsConsent: true });
     const response = await POST(request);
     const body = await response.json();
 
