@@ -21,6 +21,24 @@ jest.mock('@/lib/email', () => ({
   sendQuoteApprovalEmail: (...args) => mockSendQuoteApprovalEmail(...args),
 }));
 
+// Mock Supabase for auth validation in notify-approval
+const mockGetUser = jest.fn();
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: () => Promise.resolve({ data: { id: 'q-1', status: 'approved', company_id: 'c-1' } }),
+          eq: () => ({
+            single: () => Promise.resolve({ data: { id: 'q-1', status: 'approved', company_id: 'c-1' } }),
+          }),
+        }),
+      }),
+    }),
+    auth: { getUser: (...args) => mockGetUser(...args) },
+  }),
+}));
+
 // ── Import routes AFTER mocks ──────────────────────────────────────────────────
 
 const { POST: sendQuote } = require('@/app/api/quote/send/route');
@@ -146,6 +164,7 @@ describe('/api/quote/notify-approval', () => {
 
   it('sends an approval notification to the admin', async () => {
     const request = makeRequest({
+      quoteId: 'q-1',
       to: 'owner@company.com',
       ownerName: 'Mike',
       quoteNumber: 'QT-2026-001',
@@ -189,6 +208,7 @@ describe('/api/quote/notify-approval', () => {
     mockSendQuoteApprovalEmail.mockRejectedValue(new Error('Email service error'));
 
     const request = makeRequest({
+      quoteId: 'q-1',
       to: 'owner@company.com',
     });
 
@@ -203,6 +223,7 @@ describe('/api/quote/notify-approval', () => {
     mockSendQuoteApprovalEmail.mockResolvedValue({ id: 'msg-000' });
 
     const request = makeRequest({
+      quoteId: 'q-1',
       to: 'owner@company.com',
     });
 
@@ -215,5 +236,14 @@ describe('/api/quote/notify-approval', () => {
     expect(emailArgs.customerName).toBe('Customer');
     expect(emailArgs.total).toBe(0);
     expect(emailArgs.itemCount).toBe(0);
+  });
+
+  it('returns 401 when no quoteId and no auth token provided', async () => {
+    const request = makeRequest({
+      to: 'owner@company.com',
+    });
+
+    const response = await notifyApproval(request);
+    expect(response.status).toBe(401);
   });
 });

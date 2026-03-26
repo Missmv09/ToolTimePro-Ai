@@ -978,12 +978,26 @@ function QuotesContent() {
                         Copy
                       </button>
                       {quote.status === 'approved' && (
-                        <button
-                          onClick={() => convertToInvoice(quote)}
-                          className="text-green-600 hover:text-green-800 text-sm"
-                        >
-                          Invoice
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              const params = new URLSearchParams({
+                                fromQuote: quote.id,
+                                customer: quote.customer_id,
+                              })
+                              router.push(`/dashboard/jobs?${params.toString()}`)
+                            }}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            Schedule Job
+                          </button>
+                          <button
+                            onClick={() => convertToInvoice(quote)}
+                            className="text-green-600 hover:text-green-800 text-sm"
+                          >
+                            Invoice
+                          </button>
+                        </>
                       )}
                       {['sent', 'viewed'].includes(quote.status) && followUpStatus && (
                         <button

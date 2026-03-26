@@ -75,6 +75,9 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [schedulingRequested, setSchedulingRequested] = useState(false);
+  const [requestingSchedule, setRequestingSchedule] = useState(false);
+  const [preferredContact, setPreferredContact] = useState<string>('');
   const [depositPaid, setDepositPaid] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -264,6 +267,33 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     }
   };
 
+  // Request scheduling - notifies the business owner
+  const requestScheduling = async () => {
+    if (!quote) return;
+    setRequestingSchedule(true);
+    try {
+      await fetch('/api/quote/request-scheduling', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quoteId: quote.id,
+          quoteNumber: quote.quote_number || quote.id.slice(0, 8),
+          customerName: quote.customer?.name || 'Customer',
+          customerPhone: quote.customer?.phone || '',
+          customerEmail: quote.customer?.email || '',
+          companyId: quote.company?.id,
+          total: quote.total,
+          preferredContact: preferredContact || 'anytime',
+        }),
+      });
+      setSchedulingRequested(true);
+    } catch (err) {
+      console.error('Error requesting scheduling:', err);
+    } finally {
+      setRequestingSchedule(false);
+    }
+  };
+
   // Reject quote
   const rejectQuote = async () => {
     if (!showRejectReason) {
@@ -380,12 +410,84 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             </h2>
             <p className="text-green-600 mb-4">
               {depositPaid
-                ? 'Thank you! Your deposit has been received. We\'ll be in touch shortly to schedule your service.'
-                : 'Thank you for your business! We\'ll be in touch shortly to schedule your service.'}
+                ? 'Thank you! Your deposit has been received.'
+                : 'Thank you for your business!'}
             </p>
             {signature && (
-              <div className="inline-block p-2 bg-white rounded border border-green-200">
+              <div className="inline-block p-2 bg-white rounded border border-green-200 mb-4">
                 <Image src={signature} alt="Your signature" className="h-16 w-auto" width={200} height={64} />
+              </div>
+            )}
+
+            {/* Scheduling Request Section */}
+            {!schedulingRequested ? (
+              <div className="mt-6 bg-white rounded-xl border border-green-200 p-6 text-left max-w-md mx-auto">
+                <h3 className="font-semibold text-gray-800 text-center mb-2">Ready to schedule?</h3>
+                <p className="text-sm text-gray-600 text-center mb-4">
+                  Let us know the best time to reach you and we&apos;ll call to set up your service date.
+                </p>
+                <div className="space-y-2 mb-4">
+                  {[
+                    { value: 'morning', label: 'Morning (8am - 12pm)' },
+                    { value: 'afternoon', label: 'Afternoon (12pm - 5pm)' },
+                    { value: 'evening', label: 'Evening (5pm - 7pm)' },
+                    { value: 'anytime', label: 'Anytime works' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setPreferredContact(option.value)}
+                      className={`w-full p-3 text-left rounded-lg border transition-colors text-sm ${
+                        preferredContact === option.value
+                          ? 'border-blue-500 bg-blue-50 text-blue-800'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={requestScheduling}
+                  disabled={requestingSchedule}
+                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {requestingSchedule ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Request a Call to Schedule'
+                  )}
+                </button>
+                {quote.company?.phone && (
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    Or call us directly at{' '}
+                    <a href={`tel:${quote.company.phone}`} className="text-blue-600 font-medium">
+                      {quote.company.phone}
+                    </a>
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="mt-6 bg-white rounded-xl border border-green-200 p-6 max-w-md mx-auto">
+                <div className="text-3xl mb-2">&#10003;</div>
+                <h3 className="font-semibold text-green-700 mb-2">Scheduling Request Sent!</h3>
+                <p className="text-sm text-gray-600">
+                  We&apos;ve notified {quote.company?.name || 'the team'} and they&apos;ll reach out
+                  {preferredContact && preferredContact !== 'anytime'
+                    ? ` during your preferred time (${preferredContact})`
+                    : ' shortly'
+                  } to schedule your service.
+                </p>
+                {quote.company?.phone && (
+                  <p className="text-sm text-gray-500 mt-3">
+                    Need to reach us sooner? Call{' '}
+                    <a href={`tel:${quote.company.phone}`} className="text-blue-600 font-medium">
+                      {quote.company.phone}
+                    </a>
+                  </p>
+                )}
               </div>
             )}
           </div>
