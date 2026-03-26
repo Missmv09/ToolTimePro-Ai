@@ -400,8 +400,8 @@ export default function Home() {
               </button>
             </div>
 
-            <a href="tel:1-888-555-0123" className="text-[#5c5c70] text-base flex items-center gap-2 whitespace-nowrap hover:text-[#1a1a2e] transition-colors no-underline">
-              📞 <span>1-888-555-0123</span>
+            <a href="tel:1-888-980-8665" className="text-[#5c5c70] text-base flex items-center gap-2 whitespace-nowrap hover:text-[#1a1a2e] transition-colors no-underline">
+              📞 <span>(888) 980-TOOL</span>
             </a>
             <Link
               href="/auth/signup"
