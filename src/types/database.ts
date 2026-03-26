@@ -849,6 +849,225 @@ export interface Database {
           created_at?: string
         }
       }
+      worker_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          company_id: string
+          classification: 'w2_employee' | '1099_contractor'
+          hourly_rate: number | null
+          overtime_eligible: boolean
+          pay_frequency: 'weekly' | 'biweekly' | 'semimonthly' | 'monthly' | null
+          withholding_allowances: number | null
+          filing_status: 'single' | 'married' | 'head_of_household' | null
+          business_name: string | null
+          ein_or_ssn_on_file: boolean
+          w9_received: boolean
+          w9_received_date: string | null
+          contractor_rate: number | null
+          contractor_rate_type: 'hourly' | 'per_job' | 'daily' | null
+          payment_method: 'invoice' | 'direct_deposit' | 'check' | null
+          payment_terms_days: number | null
+          insurance_verified: boolean
+          insurance_expiry: string | null
+          license_number: string | null
+          license_verified: boolean
+          contract_start_date: string | null
+          contract_end_date: string | null
+          classified_at: string
+          classified_by: string | null
+          classification_method: 'abc_test' | 'manual' | 'imported'
+          last_review_date: string | null
+          next_review_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          company_id: string
+          classification: 'w2_employee' | '1099_contractor'
+          hourly_rate?: number | null
+          overtime_eligible?: boolean
+          pay_frequency?: 'weekly' | 'biweekly' | 'semimonthly' | 'monthly' | null
+          withholding_allowances?: number | null
+          filing_status?: 'single' | 'married' | 'head_of_household' | null
+          business_name?: string | null
+          ein_or_ssn_on_file?: boolean
+          w9_received?: boolean
+          w9_received_date?: string | null
+          contractor_rate?: number | null
+          contractor_rate_type?: 'hourly' | 'per_job' | 'daily' | null
+          payment_method?: 'invoice' | 'direct_deposit' | 'check' | null
+          payment_terms_days?: number | null
+          insurance_verified?: boolean
+          insurance_expiry?: string | null
+          license_number?: string | null
+          license_verified?: boolean
+          contract_start_date?: string | null
+          contract_end_date?: string | null
+          classified_at?: string
+          classified_by?: string | null
+          classification_method?: 'abc_test' | 'manual' | 'imported'
+          last_review_date?: string | null
+          next_review_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          company_id?: string
+          classification?: 'w2_employee' | '1099_contractor'
+          hourly_rate?: number | null
+          overtime_eligible?: boolean
+          pay_frequency?: 'weekly' | 'biweekly' | 'semimonthly' | 'monthly' | null
+          withholding_allowances?: number | null
+          filing_status?: 'single' | 'married' | 'head_of_household' | null
+          business_name?: string | null
+          ein_or_ssn_on_file?: boolean
+          w9_received?: boolean
+          w9_received_date?: string | null
+          contractor_rate?: number | null
+          contractor_rate_type?: 'hourly' | 'per_job' | 'daily' | null
+          payment_method?: 'invoice' | 'direct_deposit' | 'check' | null
+          payment_terms_days?: number | null
+          insurance_verified?: boolean
+          insurance_expiry?: string | null
+          license_number?: string | null
+          license_verified?: boolean
+          contract_start_date?: string | null
+          contract_end_date?: string | null
+          classified_at?: string
+          classified_by?: string | null
+          classification_method?: 'abc_test' | 'manual' | 'imported'
+          last_review_date?: string | null
+          next_review_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      classification_guardrails: {
+        Row: {
+          id: string
+          company_id: string
+          worker_id: string
+          worker_name: string
+          rule_code: string
+          rule_name: string
+          severity: 'info' | 'warning' | 'violation'
+          description: string
+          recommendation: string
+          detected_at: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          resolution_notes: string | null
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          worker_id: string
+          worker_name: string
+          rule_code: string
+          rule_name: string
+          severity?: 'info' | 'warning' | 'violation'
+          description: string
+          recommendation: string
+          detected_at?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_notes?: string | null
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          worker_id?: string
+          worker_name?: string
+          rule_code?: string
+          rule_name?: string
+          severity?: 'info' | 'warning' | 'violation'
+          description?: string
+          recommendation?: string
+          detected_at?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_notes?: string | null
+        }
+      }
+      contractor_invoices: {
+        Row: {
+          id: string
+          company_id: string
+          contractor_id: string
+          contractor_name: string
+          invoice_number: string
+          description: string
+          hours_worked: number | null
+          rate: number
+          rate_type: 'hourly' | 'per_job' | 'daily'
+          subtotal: number
+          total: number
+          status: 'draft' | 'submitted' | 'approved' | 'paid' | 'disputed'
+          submitted_date: string | null
+          approved_date: string | null
+          paid_date: string | null
+          payment_method: 'invoice' | 'direct_deposit' | 'check' | null
+          period_start: string
+          period_end: string
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          contractor_id: string
+          contractor_name: string
+          invoice_number?: string
+          description: string
+          hours_worked?: number | null
+          rate: number
+          rate_type?: 'hourly' | 'per_job' | 'daily'
+          subtotal: number
+          total: number
+          status?: 'draft' | 'submitted' | 'approved' | 'paid' | 'disputed'
+          submitted_date?: string | null
+          approved_date?: string | null
+          paid_date?: string | null
+          payment_method?: 'invoice' | 'direct_deposit' | 'check' | null
+          period_start: string
+          period_end: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          contractor_id?: string
+          contractor_name?: string
+          invoice_number?: string
+          description?: string
+          hours_worked?: number | null
+          rate?: number
+          rate_type?: 'hourly' | 'per_job' | 'daily'
+          subtotal?: number
+          total?: number
+          status?: 'draft' | 'submitted' | 'approved' | 'paid' | 'disputed'
+          submitted_date?: string | null
+          approved_date?: string | null
+          paid_date?: string | null
+          payment_method?: 'invoice' | 'direct_deposit' | 'check' | null
+          period_start?: string
+          period_end?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -903,6 +1122,17 @@ export type ComplianceAlertUpdate = Database['public']['Tables']['compliance_ale
 export type ReviewRequestUpdate = Database['public']['Tables']['review_requests']['Update']
 export type QBOConnectionUpdate = Database['public']['Tables']['qbo_connections']['Update']
 export type QBOSyncLogUpdate = Database['public']['Tables']['qbo_sync_log']['Update']
+
+// Workforce management types
+export type WorkerProfileRow = Database['public']['Tables']['worker_profiles']['Row']
+export type WorkerProfileInsert = Database['public']['Tables']['worker_profiles']['Insert']
+export type WorkerProfileUpdate = Database['public']['Tables']['worker_profiles']['Update']
+export type ClassificationGuardrailRow = Database['public']['Tables']['classification_guardrails']['Row']
+export type ClassificationGuardrailInsert = Database['public']['Tables']['classification_guardrails']['Insert']
+export type ClassificationGuardrailUpdate = Database['public']['Tables']['classification_guardrails']['Update']
+export type ContractorInvoiceRow = Database['public']['Tables']['contractor_invoices']['Row']
+export type ContractorInvoiceInsert = Database['public']['Tables']['contractor_invoices']['Insert']
+export type ContractorInvoiceUpdate = Database['public']['Tables']['contractor_invoices']['Update']
 
 // Location type for GPS tracking
 export interface GeoLocation {
