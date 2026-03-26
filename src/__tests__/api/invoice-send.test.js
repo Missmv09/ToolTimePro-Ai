@@ -16,23 +16,18 @@ jest.mock('@/lib/email', () => ({
   sendInvoiceEmail: (...args) => mockSendInvoiceEmail(...args),
 }));
 
-// ── Supabase mock ─────────────────────────────────────────────────────────────
-
+// Mock Supabase for auth validation
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
+  createClient: () => ({
     auth: {
-      getUser: jest.fn().mockResolvedValue({
-        data: { user: { id: 'user-1' } },
-        error: null,
-      }),
+      getUser: () => Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
     },
-  })),
+  }),
 }));
 
-// ── Env vars ──────────────────────────────────────────────────────────────────
-
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+// Ensure env vars are set for the route's config check
+process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'test-service-key';
 
 // ── Import route AFTER mocks ──────────────────────────────────────────────────
 
@@ -132,6 +127,21 @@ describe('/api/invoice/send', () => {
     expect(response.status).toBe(400);
     const body = await response.json();
     expect(body.error).toBe('Invoice link required');
+  });
+
+  // ── Auth ────────────────────────────────────────────────────────────────────
+
+  it('returns 401 when no auth token is provided', async () => {
+    const request = new Request('http://localhost/api/invoice/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fullInvoicePayload),
+    });
+    const response = await POST(request);
+
+    expect(response.status).toBe(401);
+    const body = await response.json();
+    expect(body.error).toBe('Unauthorized');
   });
 
   // ── Default values ────────────────────────────────────────────────────────

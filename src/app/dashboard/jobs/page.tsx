@@ -42,6 +42,7 @@ function JobsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
+  const fromQuoteId = searchParams.get('fromQuote')
   const initialFilter = searchParams.get('filter') || 'all'
 
   const [filter, setFilter] = useState<string>(initialFilter)
@@ -176,6 +177,17 @@ function JobsContent() {
       fetchJobs(companyId)
     }
   }, [companyId, fetchJobs])
+
+  // Auto-open create job modal when coming from an approved quote
+  useEffect(() => {
+    if (fromQuoteId && !loading && quotes.length > 0) {
+      const quote = quotes.find(q => q.id === fromQuoteId)
+      if (quote) {
+        setEditingJob(null)
+        setShowModal(true)
+      }
+    }
+  }, [fromQuoteId, loading, quotes])
 
   const updateJobStatus = async (jobId: string, newStatus: string) => {
     const { error } = await supabase
@@ -364,6 +376,7 @@ function JobsContent() {
           customers={customers}
           workers={workers}
           quotes={quotes}
+          initialQuoteId={fromQuoteId || undefined}
           onClose={() => setShowModal(false)}
           onSave={() => {
             setShowModal(false)
@@ -375,29 +388,34 @@ function JobsContent() {
   )
 }
 
-function JobModal({ job, companyId, customers, workers, quotes, onClose, onSave }: {
+function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, onClose, onSave }: {
   job: Job | null
   companyId: string
   customers: { id: string; name: string }[]
   workers: { id: string; full_name: string }[]
   quotes: Quote[]
+  initialQuoteId?: string
   onClose: () => void
   onSave: () => void
 }) {
+  // If creating from a quote, pre-fill from the quote data
+  const initialQuote = initialQuoteId && !job ? quotes.find(q => q.id === initialQuoteId) : null
+  const initialCustomer = initialQuote?.customer?.[0]
+
   const [formData, setFormData] = useState({
-    title: job?.title || '',
+    title: job?.title || initialQuote?.title || '',
     description: job?.description || '',
-    customer_id: job?.customer?.id || '',
-    quote_id: job?.quote_id || '',
-    address: job?.address || '',
-    city: job?.city || '',
-    state: job?.state || '',
-    zip: job?.zip || '',
+    customer_id: job?.customer?.id || initialQuote?.customer_id || '',
+    quote_id: job?.quote_id || initialQuoteId || '',
+    address: job?.address || initialCustomer?.address || '',
+    city: job?.city || initialCustomer?.city || '',
+    state: job?.state || initialCustomer?.state || '',
+    zip: job?.zip || initialCustomer?.zip || '',
     scheduled_date: job?.scheduled_date || '',
     scheduled_time_start: job?.scheduled_time_start || '',
     scheduled_time_end: job?.scheduled_time_end || '',
     priority: job?.priority || 'normal',
-    price: job?.total_amount?.toString() || '',
+    price: job?.total_amount?.toString() || initialQuote?.total?.toString() || '',
     assigned_worker_id: job?.assigned_users?.[0]?.user?.id || '',
   })
   const [saving, setSaving] = useState(false)

@@ -90,6 +90,7 @@ const validBooking = {
   customerState: 'CA',
   customerZip: '95814',
   notes: 'Please use the side gate',
+  smsConsent: true,
 };
 
 // ── Helpers for setting up table-level mocks ───────────────────────────────────

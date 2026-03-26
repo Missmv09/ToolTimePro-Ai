@@ -21,26 +21,31 @@ jest.mock('@/lib/email', () => ({
   sendQuoteApprovalEmail: (...args) => mockSendQuoteApprovalEmail(...args),
 }));
 
-// ── Supabase mock ─────────────────────────────────────────────────────────────
-
-const mockSingle = jest.fn();
-
+// Mock Supabase for auth validation in notify-approval
+const mockSingle = jest.fn().mockResolvedValue({
+  data: { id: 'q-1', status: 'pending_approval', company: { email: 'owner@company.com' } },
+  error: null,
+});
+const mockGetUser = jest.fn();
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          single: mockSingle,
-        })),
-      })),
-    })),
-  })),
+  createClient: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: (...args) => mockSingle(...args),
+          eq: () => ({
+            single: (...args) => mockSingle(...args),
+          }),
+        }),
+      }),
+    }),
+    auth: { getUser: (...args) => mockGetUser(...args) },
+  }),
 }));
 
-// ── Env vars ──────────────────────────────────────────────────────────────────
-
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+// Ensure env vars are set
+process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'test-service-key';
 
 // ── Import routes AFTER mocks ──────────────────────────────────────────────────
 
@@ -244,5 +249,14 @@ describe('/api/quote/notify-approval', () => {
     expect(emailArgs.customerName).toBe('Customer');
     expect(emailArgs.total).toBe(0);
     expect(emailArgs.itemCount).toBe(0);
+  });
+
+  it('returns 401 when no quoteId and no auth token provided', async () => {
+    const request = makeRequest({
+      to: 'owner@company.com',
+    });
+
+    const response = await notifyApproval(request);
+    expect(response.status).toBe(401);
   });
 });
