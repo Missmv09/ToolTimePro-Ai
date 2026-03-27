@@ -25,6 +25,7 @@ import {
   RefreshCw,
   Activity,
   AlertCircle,
+  Tag,
 } from 'lucide-react';
 
 const ACTION_ICONS: Record<string, typeof Zap> = {
@@ -168,6 +169,37 @@ export default function JennyActionsPage() {
           </div>
         </div>
       )}
+
+      {/* Price Staleness Alert */}
+      {actionLog.some(a => a.action_type === 'price_staleness') && (() => {
+        const priceAlert = actionLog.find(a => a.action_type === 'price_staleness');
+        if (!priceAlert) return null;
+        const metadata = priceAlert.metadata as Record<string, unknown> | null;
+        const isStale = metadata?.is_stale === true;
+        return (
+          <div className={`card border-2 ${isStale ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50'}`}>
+            <div className="flex items-start gap-4">
+              <Tag className={`w-6 h-6 flex-shrink-0 mt-0.5 ${isStale ? 'text-red-500' : 'text-amber-500'}`} />
+              <div className="flex-1">
+                <h3 className={`font-semibold ${isStale ? 'text-red-800' : 'text-amber-800'}`}>
+                  {priceAlert.title}
+                </h3>
+                <p className={`text-sm mt-1 ${isStale ? 'text-red-700' : 'text-amber-700'}`}>
+                  {priceAlert.description}
+                </p>
+                <div className="flex items-center gap-3 mt-3">
+                  <span className="text-xs text-gray-500">
+                    {metadata?.total_materials as number || 0} materials across {metadata?.total_trades as number || 0} trades
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    Last updated: {String(metadata?.price_base_date || 'Jan 2026')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Pending Actions (need approval) */}
       {pendingActions.length > 0 && (

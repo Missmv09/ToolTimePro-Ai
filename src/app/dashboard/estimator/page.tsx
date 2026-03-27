@@ -4,8 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { TRADE_ESTIMATORS, getEstimatorByTrade } from '@/lib/material-estimator';
 import type { PriceTier, EstimateResult } from '@/lib/materials-database';
-import type { SupplierComparison, SupplierKey } from '@/lib/supplier-pricing';
-import { SUPPLIER_INFO } from '@/lib/supplier-pricing';
+import { calculateMarkup, DEFAULT_TRADE_MARKUPS, type MarkupResult } from '@/lib/supplier-pricing';
 import {
   Calculator,
   Paintbrush,
@@ -15,7 +14,6 @@ import {
   Layers,
   Hammer,
   ArrowLeft,
-  ArrowRight,
   DollarSign,
   Package,
   Clock,
@@ -32,12 +30,9 @@ import {
   Thermometer,
   Sun,
   DoorOpen,
-  ExternalLink,
-  TrendingDown,
-  Store,
-  Wifi,
-  WifiOff,
-  RefreshCw,
+  TrendingUp,
+  Percent,
+  Users,
 } from 'lucide-react';
 
 const TRADE_ICONS: Record<string, typeof Calculator> = {
@@ -50,15 +45,6 @@ const TIER_LABELS: Record<PriceTier, { label: string; description: string; color
   premium: { label: 'Best', description: 'Top brands, longest lasting', color: 'border-purple-300 bg-purple-50' },
 };
 
-const SUPPLIER_COLORS: Record<SupplierKey, { bg: string; text: string; border: string; badge: string }> = {
-  home_depot: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', badge: 'bg-orange-100 text-orange-700' },
-  lowes: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700' },
-  sherwin_williams: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', badge: 'bg-indigo-100 text-indigo-700' },
-  ferguson: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', badge: 'bg-gray-100 text-gray-700' },
-  grainger: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', badge: 'bg-red-100 text-red-700' },
-  static: { bg: 'bg-gray-50', text: 'text-gray-500', border: 'border-gray-200', badge: 'bg-gray-100 text-gray-500' },
-};
-
 export default function EstimatorPage() {
   const [selectedTrade, setSelectedTrade] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
@@ -67,13 +53,10 @@ export default function EstimatorPage() {
   const [step, setStep] = useState<'trade' | 'specs' | 'results'>('trade');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  // Supplier pricing state
-  const [supplierComparisons, setSupplierComparisons] = useState<SupplierComparison[]>([]);
-  const [supplierLoading, setSupplierLoading] = useState(false);
-  const [hasLivePricing, setHasLivePricing] = useState(false);
-  const [supplierSavings, setSupplierSavings] = useState<{ savedAmount: number; savedPercent: number } | null>(null);
-  const [expandedSupplierItem, setExpandedSupplierItem] = useState<string | null>(null);
-  const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, SupplierKey>>({});
+  // Markup state
+  const [markupResult, setMarkupResult] = useState<MarkupResult | null>(null);
+  const [customMarkup, setCustomMarkup] = useState<number | null>(null);
+  const [showMarkup, setShowMarkup] = useState(true);
 
   const estimator = selectedTrade ? getEstimatorByTrade(selectedTrade) : null;
 
@@ -90,62 +73,38 @@ export default function EstimatorPage() {
     setAnswers(defaults);
     setSelectedTrade(trade);
     setResult(null);
-    setSupplierComparisons([]);
-    setSupplierSavings(null);
+    setMarkupResult(null);
+    setCustomMarkup(null);
     setStep('specs');
   };
 
-  // Fetch supplier pricing for the estimate items
-  const fetchSupplierPricing = useCallback(async (estimateResult: EstimateResult, tier: PriceTier) => {
-    setSupplierLoading(true);
-    try {
-      const items = estimateResult.items.map(item => ({
-        materialId: item.materialId,
-        materialName: item.name,
-        unit: item.unit,
-        quantity: item.quantity,
-        tier,
-        staticPrice: item.unitPrice,
-        staticBrand: item.brand,
-      }));
-
-      const response = await fetch('/api/supplier-pricing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, tier }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSupplierComparisons(data.comparisons || []);
-        setHasLivePricing(data.hasLivePricing || false);
-        setSupplierSavings(data.savings || null);
-
-        // Set default selected suppliers (lowest price)
-        const defaults: Record<string, SupplierKey> = {};
-        for (const comp of data.comparisons || []) {
-          defaults[comp.materialId] = comp.selectedSupplier;
-        }
-        setSelectedSuppliers(defaults);
-      }
-    } catch {
-      // Supplier pricing is optional — fall back to static prices
-      console.warn('Supplier pricing unavailable, using static prices');
-    } finally {
-      setSupplierLoading(false);
-    }
+  // Calculate markup whenever result or markup % changes
+  const recalcMarkup = useCallback((estimateResult: EstimateResult, trade: string, overrideMarkup?: number | null) => {
+    const markup = calculateMarkup(
+      estimateResult.materialTotal,
+      estimateResult.laborEstimate,
+      trade,
+      overrideMarkup != null ? { trade, materialMarkupPercent: overrideMarkup, laborMarkupPercent: 0 } : null,
+    );
+    setMarkupResult(markup);
   }, []);
 
   const handleCalculate = () => {
-    if (!estimator) return;
+    if (!estimator || !selectedTrade) return;
     const res = estimator.calculate(answers, selectedTier);
     setResult(res);
     setStep('results');
-    // Fetch supplier pricing in parallel
-    fetchSupplierPricing(res, selectedTier);
+    recalcMarkup(res, selectedTrade, customMarkup);
   };
 
-  const shouldShowQuestion = (q: typeof estimator extends null ? never : NonNullable<typeof estimator>['questions'][0]) => {
+  const handleMarkupChange = (percent: number) => {
+    setCustomMarkup(percent);
+    if (result && selectedTrade) {
+      recalcMarkup(result, selectedTrade, percent);
+    }
+  };
+
+  const shouldShowQuestion = (q: NonNullable<typeof estimator>['questions'][0]) => {
     if (!q.showWhen) return true;
     return answers[q.showWhen.field] === q.showWhen.value ||
       String(answers[q.showWhen.field]) === String(q.showWhen.value);
@@ -174,14 +133,10 @@ export default function EstimatorPage() {
     });
   };
 
-  // Get the best price for a material from supplier comparisons
-  const getSupplierPriceForItem = (materialId: string) => {
-    return supplierComparisons.find(c => c.materialId === materialId);
-  };
-
-  const handleSupplierSelect = (materialId: string, supplierKey: SupplierKey) => {
-    setSelectedSuppliers(prev => ({ ...prev, [materialId]: supplierKey }));
-  };
+  // Get default markup for current trade
+  const defaultMarkup = selectedTrade
+    ? (DEFAULT_TRADE_MARKUPS[selectedTrade] || DEFAULT_TRADE_MARKUPS._default).material
+    : 20;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -197,8 +152,8 @@ export default function EstimatorPage() {
           </div>
         </div>
         <p className="text-white/80 max-w-2xl">
-          Tell us about the job, and we&apos;ll calculate exactly what materials you need, how much they cost,
-          and estimated labor — with Good / Better / Best pricing tiers. Compare prices across suppliers and buy direct.
+          Calculate material costs, add your markup, and generate a customer-ready quote.
+          Good / Better / Best pricing tiers with built-in profit margin.
         </p>
       </div>
 
@@ -342,56 +297,136 @@ export default function EstimatorPage() {
             }`}>
               {TIER_LABELS[selectedTier].label} Tier
             </span>
-            {/* Live pricing badge */}
-            {hasLivePricing ? (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                <Wifi className="w-3 h-3" /> Live Prices
-              </span>
-            ) : (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                <WifiOff className="w-3 h-3" /> Estimated Prices
-              </span>
-            )}
           </div>
 
-          {/* Savings Banner (shows when live pricing finds lower prices) */}
-          {supplierSavings && supplierSavings.savedAmount > 0 && hasLivePricing && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-              <TrendingDown className="w-6 h-6 text-green-600 flex-shrink-0" />
-              <div>
-                <p className="font-semibold text-green-800">
-                  Save ${supplierSavings.savedAmount.toFixed(2)} ({supplierSavings.savedPercent.toFixed(1)}%) with live supplier pricing
+          {/* Cost Summary — Your Cost (what you pay) */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Your Cost (what you pay)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="card border-2 border-orange-100 text-center">
+                <Package className="w-6 h-6 text-orange-500 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-orange-600">
+                  ${result.materialTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-sm text-green-600">
-                  Prices compared across all connected suppliers. Lowest price selected by default.
+                <p className="text-sm text-gray-500">Materials</p>
+              </div>
+              <div className="card border-2 border-blue-100 text-center">
+                <Clock className="w-6 h-6 text-blue-500 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-blue-600">
+                  ${result.laborEstimate.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </p>
+                <p className="text-sm text-gray-500">Labor ({result.laborHours}h est.)</p>
+              </div>
+              <div className="card border-2 border-gray-200 text-center">
+                <DollarSign className="w-6 h-6 text-gray-500 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-gray-700">
+                  ${result.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-sm text-gray-500">Your Total Cost</p>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Cost Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="card border-2 border-orange-100 text-center">
-              <Package className="w-6 h-6 text-orange-500 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-orange-600">
-                ${result.materialTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
-              <p className="text-sm text-gray-500">Materials</p>
+          {/* Markup Controls + Customer Price */}
+          <div className="card border-2 border-green-200 bg-green-50/50">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-green-800 flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Customer Price (what they pay)
+              </h3>
+              <button
+                onClick={() => setShowMarkup(!showMarkup)}
+                className="text-sm text-green-600 hover:text-green-700"
+              >
+                {showMarkup ? 'Hide markup' : 'Show markup'}
+              </button>
             </div>
-            <div className="card border-2 border-blue-100 text-center">
-              <Clock className="w-6 h-6 text-blue-500 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-blue-600">
-                ${result.laborEstimate.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
-              <p className="text-sm text-gray-500">Labor ({result.laborHours}h est.)</p>
-            </div>
-            <div className="card border-2 border-navy-100 text-center">
-              <DollarSign className="w-6 h-6 text-navy-500 mx-auto mb-1" />
-              <p className="text-3xl font-bold text-navy-500">
-                ${result.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
-              <p className="text-sm text-gray-500">Total Estimate</p>
-            </div>
+
+            {showMarkup && (
+              <div className="mb-4 p-4 bg-white rounded-xl border border-green-200">
+                <div className="flex items-center gap-4 mb-3">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Material Markup
+                  </label>
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      value={customMarkup ?? defaultMarkup}
+                      onChange={e => handleMarkupChange(Number(e.target.value))}
+                      className="flex-1 accent-green-600"
+                    />
+                    <div className="flex items-center gap-1 min-w-[80px]">
+                      <input
+                        type="number"
+                        min="0"
+                        max="200"
+                        value={customMarkup ?? defaultMarkup}
+                        onChange={e => handleMarkupChange(Number(e.target.value) || 0)}
+                        className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm font-medium"
+                      />
+                      <Percent className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {[10, 15, 20, 25, 30, 40, 50].map(pct => (
+                    <button
+                      key={pct}
+                      onClick={() => handleMarkupChange(pct)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                        (customMarkup ?? defaultMarkup) === pct
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  Industry default for {estimator.name}: {defaultMarkup}% material markup
+                </p>
+              </div>
+            )}
+
+            {/* Customer totals */}
+            {markupResult && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="bg-white rounded-xl p-3 border border-green-200 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Materials + Markup</p>
+                  <p className="text-xl font-bold text-green-700">
+                    ${markupResult.customerMaterialTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-green-200 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Labor</p>
+                  <p className="text-xl font-bold text-green-700">
+                    ${markupResult.customerLaborTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-green-300 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Quote Customer</p>
+                  <p className="text-2xl font-bold text-green-800">
+                    ${markupResult.customerGrandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-green-200 text-center">
+                  <p className="text-xs text-gray-500 mb-1 flex items-center justify-center gap-1">
+                    <TrendingUp className="w-3 h-3" /> Your Profit
+                  </p>
+                  <p className="text-xl font-bold text-green-600">
+                    ${markupResult.totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-green-500">{markupResult.profitMarginPercent}% margin</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Compare Tiers */}
@@ -400,6 +435,12 @@ export default function EstimatorPage() {
             <div className="grid grid-cols-3 gap-4 text-center">
               {(['economy', 'standard', 'premium'] as PriceTier[]).map(tier => {
                 const tierResult = estimator.calculate(answers, tier);
+                const tierMarkup = calculateMarkup(
+                  tierResult.materialTotal,
+                  tierResult.laborEstimate,
+                  selectedTrade || '',
+                  customMarkup != null ? { trade: selectedTrade || '', materialMarkupPercent: customMarkup, laborMarkupPercent: 0 } : null,
+                );
                 const info = TIER_LABELS[tier];
                 const isActive = tier === selectedTier;
                 return (
@@ -409,170 +450,23 @@ export default function EstimatorPage() {
                       setSelectedTier(tier);
                       const newResult = estimator.calculate(answers, tier);
                       setResult(newResult);
-                      fetchSupplierPricing(newResult, tier);
+                      recalcMarkup(newResult, selectedTrade || '', customMarkup);
                     }}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       isActive ? info.color + ' ring-2 ring-gold-400' : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                   >
                     <p className="font-semibold text-sm">{info.label}</p>
-                    <p className="text-xl font-bold text-navy-500 mt-1">
-                      ${tierResult.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    <p className="text-xs text-gray-400 mt-1">Cost: ${tierResult.grandTotal.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-green-700 mt-1">
+                      Quote: ${tierMarkup.customerGrandTotal.toFixed(2)}
                     </p>
-                    <p className="text-xs text-gray-400">materials: ${tierResult.materialTotal.toFixed(2)}</p>
+                    <p className="text-xs text-green-500">+${tierMarkup.totalProfit.toFixed(2)} profit</p>
                   </button>
                 );
               })}
             </div>
           </div>
-
-          {/* Supplier Price Comparison */}
-          {supplierComparisons.length > 0 && (
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-navy-500 flex items-center gap-2">
-                  <Store className="w-5 h-5" />
-                  Supplier Price Comparison
-                </h3>
-                {supplierLoading ? (
-                  <span className="flex items-center gap-1 text-sm text-gray-400">
-                    <RefreshCw className="w-4 h-4 animate-spin" /> Checking prices...
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => result && fetchSupplierPricing(result, selectedTier)}
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    <RefreshCw className="w-4 h-4" /> Refresh Prices
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                {supplierComparisons.map(comp => {
-                  const isExpanded = expandedSupplierItem === comp.materialId;
-                  const selected = selectedSuppliers[comp.materialId] || comp.selectedSupplier;
-                  const selectedProduct = comp.suppliers.find(s => s.supplierKey === selected);
-                  const lowestProduct = comp.suppliers.find(s => s.supplierKey === comp.lowestSupplier);
-
-                  return (
-                    <div key={comp.materialId} className="border border-gray-200 rounded-lg overflow-hidden">
-                      {/* Summary row */}
-                      <button
-                        onClick={() => setExpandedSupplierItem(isExpanded ? null : comp.materialId)}
-                        className="w-full flex items-center justify-between p-3 hover:bg-gray-50 text-left"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-800 text-sm truncate">{comp.materialName}</p>
-                          <p className="text-xs text-gray-400">{comp.quantity} {comp.unit} needed</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {selectedProduct && (
-                            <div className="text-right">
-                              <p className="font-semibold text-navy-500">
-                                ${(selectedProduct.price * comp.quantity).toFixed(2)}
-                              </p>
-                              <div className="flex items-center gap-1">
-                                <span className={`text-xs px-1.5 py-0.5 rounded ${SUPPLIER_COLORS[selected]?.badge || 'bg-gray-100 text-gray-500'}`}>
-                                  {SUPPLIER_INFO[selected]?.name || 'Estimated'}
-                                </span>
-                                {selected === comp.lowestSupplier && comp.suppliers.filter(s => s.isLive).length > 0 && (
-                                  <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700">Lowest</span>
-                                )}
-                                {selectedProduct.isLive && (
-                                  <Wifi className="w-3 h-3 text-green-500" />
-                                )}
-                              </div>
-                            </div>
-                          )}
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          )}
-                        </div>
-                      </button>
-
-                      {/* Expanded supplier comparison */}
-                      {isExpanded && (
-                        <div className="border-t bg-gray-50 p-3 space-y-2">
-                          {comp.suppliers.map(supplier => {
-                            const colors = SUPPLIER_COLORS[supplier.supplierKey] || SUPPLIER_COLORS.static;
-                            const isSelected = selected === supplier.supplierKey;
-                            const isLowest = supplier.supplierKey === comp.lowestSupplier;
-                            const effectivePrice = supplier.salePrice || supplier.price;
-                            const totalPrice = effectivePrice * comp.quantity;
-
-                            return (
-                              <button
-                                key={supplier.supplierKey}
-                                onClick={() => handleSupplierSelect(comp.materialId, supplier.supplierKey)}
-                                className={`w-full flex items-center justify-between p-3 rounded-lg border-2 transition-all text-left ${
-                                  isSelected
-                                    ? `${colors.border} ${colors.bg} ring-2 ring-gold-400`
-                                    : 'border-gray-200 bg-white hover:border-gray-300'
-                                }`}
-                              >
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <span className="text-lg">{SUPPLIER_INFO[supplier.supplierKey]?.logo}</span>
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <p className="font-medium text-sm text-gray-800">{supplier.supplierName}</p>
-                                      {isLowest && comp.suppliers.filter(s => s.isLive).length > 1 && (
-                                        <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-medium">
-                                          Lowest
-                                        </span>
-                                      )}
-                                      {supplier.saleLabel && (
-                                        <span className="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">
-                                          {supplier.saleLabel}
-                                        </span>
-                                      )}
-                                      {supplier.isLive ? (
-                                        <Wifi className="w-3 h-3 text-green-500" />
-                                      ) : (
-                                        <WifiOff className="w-3 h-3 text-gray-300" />
-                                      )}
-                                    </div>
-                                    <p className="text-xs text-gray-500 truncate">
-                                      {supplier.brand} — {supplier.productName}
-                                    </p>
-                                    {supplier.inStock ? (
-                                      <span className="text-xs text-green-600">In Stock</span>
-                                    ) : (
-                                      <span className="text-xs text-red-500">Check Availability</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="text-right flex-shrink-0 ml-3">
-                                  <p className="font-semibold text-navy-500">${effectivePrice.toFixed(2)}/{supplier.unit}</p>
-                                  {supplier.salePrice && (
-                                    <p className="text-xs text-gray-400 line-through">${supplier.price.toFixed(2)}</p>
-                                  )}
-                                  <p className="text-sm text-gray-600">${totalPrice.toFixed(2)} total</p>
-                                  {supplier.productUrl && (
-                                    <a
-                                      href={supplier.productUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={e => e.stopPropagation()}
-                                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-1"
-                                    >
-                                      Buy Now <ExternalLink className="w-3 h-3" />
-                                    </a>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* Material List */}
           <div className="card">
@@ -613,27 +507,18 @@ export default function EstimatorPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {items.map((item, idx) => {
-                          const supplierMatch = getSupplierPriceForItem(item.materialId);
-                          const hasLivePrice = supplierMatch?.suppliers.some(s => s.isLive);
-                          return (
-                            <tr key={idx} className="border-b border-gray-100">
-                              <td className="py-2 pr-2">
-                                <p className="font-medium text-gray-800">{item.name}</p>
-                                <p className="text-xs text-gray-400">{item.description}</p>
-                              </td>
-                              <td className="py-2 pr-2 text-xs text-gray-500">
-                                {item.brand}
-                                {hasLivePrice && (
-                                  <Wifi className="w-3 h-3 text-green-500 inline ml-1" />
-                                )}
-                              </td>
-                              <td className="py-2 pr-2 text-right text-gray-700">{item.quantity} {item.unit}</td>
-                              <td className="py-2 pr-2 text-right text-gray-500">${item.unitPrice.toFixed(2)}</td>
-                              <td className="py-2 text-right font-medium text-gray-900">${item.total.toFixed(2)}</td>
-                            </tr>
-                          );
-                        })}
+                        {items.map((item, idx) => (
+                          <tr key={idx} className="border-b border-gray-100">
+                            <td className="py-2 pr-2">
+                              <p className="font-medium text-gray-800">{item.name}</p>
+                              <p className="text-xs text-gray-400">{item.description}</p>
+                            </td>
+                            <td className="py-2 pr-2 text-xs text-gray-500">{item.brand}</td>
+                            <td className="py-2 pr-2 text-right text-gray-700">{item.quantity} {item.unit}</td>
+                            <td className="py-2 pr-2 text-right text-gray-500">${item.unitPrice.toFixed(2)}</td>
+                            <td className="py-2 text-right font-medium text-gray-900">${item.total.toFixed(2)}</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -664,39 +549,32 @@ export default function EstimatorPage() {
             </div>
           )}
 
-          {/* Price Source Info */}
+          {/* Pricing Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <h3 className="font-medium text-blue-800 text-sm mb-2 flex items-center gap-2">
-              <Store className="w-4 h-4" />
-              About Pricing
-            </h3>
-            <div className="text-sm text-blue-700 space-y-1">
-              {hasLivePricing ? (
-                <>
-                  <p className="flex items-center gap-1">
-                    <Wifi className="w-3 h-3 text-green-500" /> <strong>Live prices</strong> from connected suppliers (updated hourly)
-                  </p>
-                  <p className="flex items-center gap-1">
-                    <WifiOff className="w-3 h-3 text-gray-400" /> <strong>Estimated prices</strong> for items without live data
-                  </p>
-                </>
-              ) : (
-                <p>
-                  All prices are estimates based on 2026 retail pricing. Connect your Home Depot API key in
-                  Settings to enable live pricing, stock availability, and direct purchase links.
-                </p>
-              )}
-            </div>
+            <h3 className="font-medium text-blue-800 text-sm mb-2">About Pricing</h3>
+            <p className="text-sm text-blue-700">
+              Material prices are based on 2026 retail pricing from Home Depot, Lowe&apos;s, and specialty suppliers.
+              Your markup is applied on top to calculate the customer quote price. You can adjust markup per estimate
+              or set company-wide defaults in Settings.
+            </p>
           </div>
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href={`/dashboard/smart-quote?materials=${encodeURIComponent(JSON.stringify(result.items.map(i => ({ description: `${i.name} (${i.brand})`, quantity: i.quantity, unit_price: i.unitPrice }))))}`}
+              href={`/dashboard/smart-quote?materials=${encodeURIComponent(JSON.stringify(
+                result.items.map(i => ({
+                  description: `${i.name} (${i.brand})`,
+                  quantity: i.quantity,
+                  unit_price: markupResult
+                    ? Math.round(i.unitPrice * (1 + markupResult.materialMarkupPercent / 100) * 100) / 100
+                    : i.unitPrice,
+                }))
+              ))}`}
               className="btn-primary flex items-center justify-center gap-2 flex-1"
             >
               <FileText className="w-4 h-4" />
-              Add to Quote
+              Add to Quote {markupResult ? `($${markupResult.customerGrandTotal.toFixed(2)})` : ''}
             </Link>
             <button
               onClick={() => setStep('specs')}
@@ -706,7 +584,7 @@ export default function EstimatorPage() {
               Adjust Specs
             </button>
             <button
-              onClick={() => { setStep('trade'); setSelectedTrade(null); setResult(null); setSupplierComparisons([]); }}
+              onClick={() => { setStep('trade'); setSelectedTrade(null); setResult(null); setMarkupResult(null); }}
               className="btn-outline flex items-center justify-center gap-2"
             >
               New Estimate
