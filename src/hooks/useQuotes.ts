@@ -11,6 +11,7 @@ export interface QuoteWithDetails extends Quote {
     name: string;
     email: string | null;
     phone: string | null;
+    sms_consent?: boolean;
   } | null;
   lead: {
     id: string;
