@@ -6,7 +6,8 @@ export type JennyActionType =
   | 'lead_follow_up'
   | 'cash_flow_alert'
   | 'job_costing'
-  | 'review_request';
+  | 'review_request'
+  | 'price_staleness';
 
 export type ActionStatus = 'pending' | 'executed' | 'skipped' | 'failed';
 
@@ -133,6 +134,10 @@ export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unkn
   review_request: {
     enabled: false,
   },
+
+  price_staleness: {
+    enabled: true,
+  },
 };
 
 // Action descriptions for the dashboard
@@ -161,5 +166,10 @@ export const ACTION_DESCRIPTIONS: Record<JennyActionType, { title: string; descr
     title: 'Review Requests',
     description: 'Automatically request Google reviews from happy customers after job completion.',
     icon: 'Star',
+  },
+  price_staleness: {
+    title: 'Price Staleness Check',
+    description: 'Monthly check of material pricing freshness. Alerts when prices are approaching 1 year old and need refreshing.',
+    icon: 'Tag',
   },
 };
