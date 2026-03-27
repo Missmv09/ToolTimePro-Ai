@@ -124,6 +124,26 @@ export default function OnboardPage() {
     setSaving(true);
     setError(null);
 
+    // Validate required fields
+    if (classification === 'w2_employee') {
+      if (!hourlyRate || parseFloat(hourlyRate) <= 0) {
+        setError('Hourly rate is required.');
+        setSaving(false);
+        return;
+      }
+      if (parseFloat(hourlyRate) < minWage) {
+        setError(`Hourly rate must be at least $${minWage.toFixed(2)}/hr (${stateRules?.stateName || companyState} minimum wage).`);
+        setSaving(false);
+        return;
+      }
+    } else {
+      if (!contractorRate || parseFloat(contractorRate) <= 0) {
+        setError('Contractor rate is required.');
+        setSaving(false);
+        return;
+      }
+    }
+
     const profileData: Record<string, unknown> = {};
 
     if (classification === 'w2_employee') {
@@ -155,14 +175,19 @@ export default function OnboardPage() {
       profileData.pay_frequency = null;
     }
 
-    const result = await saveWorkerProfile(selectedWorker.id, classification, profileData);
+    try {
+      const result = await saveWorkerProfile(selectedWorker.id, classification, profileData);
 
-    if (result.error) {
-      setError(result.error);
-    } else {
-      router.push('/dashboard/workforce');
+      if (result.error) {
+        setError(result.error);
+      } else {
+        router.push('/dashboard/workforce');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save worker profile.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   return (
@@ -385,7 +410,7 @@ export default function OnboardPage() {
                 <input
                   type="number"
                   step="0.01"
-                  min="16"
+                  min={minWage}
                   value={hourlyRate}
                   onChange={e => setHourlyRate(e.target.value)}
                   placeholder={`e.g. 25.00 (${companyState} min: $${minWage.toFixed(2)})`}
