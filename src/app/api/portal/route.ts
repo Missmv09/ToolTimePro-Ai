@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { randomBytes, createHash } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,15 +11,21 @@ function getSupabaseAdmin() {
 }
 
 // ============================================================
-// SECURITY: Crypto-secure token generation
+// SECURITY: Crypto-secure token generation (Web Crypto API)
 // ============================================================
 function generateSecureToken(): string {
-  return randomBytes(48).toString('base64url'); // 48 bytes = 64 chars, URL-safe
+  const bytes = new Uint8Array(48);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Hash token for storage (never store raw tokens in DB)
-function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+// Hash token for storage using Web Crypto API
+async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ============================================================
@@ -64,7 +69,7 @@ function isValidUUID(id: string): boolean {
 // SECURITY: Validate session with hashed token lookup
 // ============================================================
 async function validateSession(supabase: any, rawToken: string) {
-  const hashedToken = hashToken(rawToken);
+  const hashedToken = await hashToken(rawToken);
 
   const { data } = await supabase
     .from('customer_sessions')
@@ -276,7 +281,7 @@ export async function POST(request: NextRequest) {
 
     // Generate crypto-secure token
     const rawToken = generateSecureToken();
-    const hashedToken = hashToken(rawToken);
+    const hashedToken = await hashToken(rawToken);
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
@@ -362,7 +367,7 @@ export async function POST(request: NextRequest) {
 
   // Logout — deactivate session
   if (action === 'logout') {
-    const hashedToken = hashToken(rawToken);
+    const hashedToken = await hashToken(rawToken);
     await (supabase as any).from('customer_sessions').update({ is_active: false }).eq('token', hashedToken);
     await logPortalAccess(supabase, session.company_id, session.customer_id, 'logout', clientIp);
     return NextResponse.json({ success: true });
