@@ -39,7 +39,7 @@ const STATUS_STYLES: Record<string, { icon: typeof CheckCircle; color: string; l
 };
 
 export default function JennyActionsPage() {
-  const { actionLog, stats, isLoading, error, isEnabled, getConfig, saveConfig, refetch } = useJennyActions();
+  const { actionLog, stats, lastRunAt, isLoading, error, isEnabled, getConfig, saveConfig, refetch } = useJennyActions();
   const [expandedAction, setExpandedAction] = useState<JennyActionType | null>(null);
   const [running, setRunning] = useState(false);
   const [savingConfig, setSavingConfig] = useState<string | null>(null);
@@ -207,8 +207,24 @@ export default function JennyActionsPage() {
         </div>
       )}
 
-      {/* Run All Button */}
-      <div className="flex justify-end">
+      {/* Run Status + Button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`w-2.5 h-2.5 rounded-full ${lastRunAt ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+          <div className="text-sm text-gray-500">
+            {lastRunAt ? (
+              <>
+                <span className="font-medium text-gray-700">Jenny last ran:</span>{' '}
+                {new Date(lastRunAt).toLocaleString()}
+                <span className="text-xs text-gray-400 ml-2">
+                  (runs automatically every 15 min)
+                </span>
+              </>
+            ) : (
+              <span>Jenny has not run yet. Click &quot;Run All Actions Now&quot; or wait for the next scheduled run.</span>
+            )}
+          </div>
+        </div>
         <button
           onClick={handleRunAll}
           disabled={running}

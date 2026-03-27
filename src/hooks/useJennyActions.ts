@@ -31,6 +31,7 @@ export function useJennyActions() {
     cashFlowAlerts: 0,
     jobsCostCalculated: 0,
   });
+  const [lastRunAt, setLastRunAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +69,17 @@ export function useJennyActions() {
 
       const logs = (logData || []) as JennyActionLog[];
       setActionLog(logs);
+
+      // Fetch last cron run time
+      const { data: cronRun } = await supabase
+        .from('jenny_cron_runs')
+        .select('ran_at')
+        .eq('company_id', company.id)
+        .single();
+
+      if (cronRun) {
+        setLastRunAt(cronRun.ran_at);
+      }
 
       // Calculate stats
       const today = new Date().toISOString().split('T')[0];
@@ -152,6 +164,7 @@ export function useJennyActions() {
     actionLog,
     configs,
     stats,
+    lastRunAt,
     isLoading,
     error,
     getConfig,

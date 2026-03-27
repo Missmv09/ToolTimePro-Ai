@@ -79,9 +79,16 @@ export async function GET(request: NextRequest) {
             break;
         }
       }
+
+      // Update last-run timestamp for this company
+      await supabase.from('jenny_cron_runs').upsert({
+        company_id: companyId,
+        ran_at: new Date().toISOString(),
+        results,
+      }, { onConflict: 'company_id' });
     }
 
-    return NextResponse.json({ message: 'Jenny actions complete', results });
+    return NextResponse.json({ message: 'Jenny actions complete', results, ran_at: new Date().toISOString() });
   } catch (err: unknown) {
     console.error('Jenny actions cron error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

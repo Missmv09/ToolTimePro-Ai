@@ -93,6 +93,22 @@ CREATE POLICY "job_costs_company_access" ON job_costs
 CREATE POLICY "lead_follow_ups_company_access" ON lead_follow_ups
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+-- Jenny cron run log: tracks when the cron last ran per company
+CREATE TABLE IF NOT EXISTS jenny_cron_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  ran_at TIMESTAMPTZ DEFAULT now(),
+  results JSONB,
+  UNIQUE (company_id)
+);
+
+ALTER TABLE jenny_cron_runs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "jenny_cron_runs_company_access" ON jenny_cron_runs
+  FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
+
+CREATE INDEX IF NOT EXISTS idx_jenny_cron_runs_company ON jenny_cron_runs(company_id);
+
 -- Auto-update timestamp on config changes
 CREATE TRIGGER jenny_action_config_updated
   BEFORE UPDATE ON jenny_action_configs
