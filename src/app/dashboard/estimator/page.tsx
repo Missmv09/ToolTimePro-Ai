@@ -22,10 +22,18 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  Home,
+  Fence,
+  Square,
+  Droplets,
+  Waves,
+  Thermometer,
+  Sun,
+  DoorOpen,
 } from 'lucide-react';
 
 const TRADE_ICONS: Record<string, typeof Calculator> = {
-  Paintbrush, Wrench, Zap, TreePine, Layers, Hammer,
+  Paintbrush, Wrench, Zap, TreePine, Layers, Hammer, Home, Fence, Square, Droplets, Waves, Thermometer, Sun, DoorOpen,
 };
 
 const TIER_LABELS: Record<PriceTier, { label: string; description: string; color: string }> = {
