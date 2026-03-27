@@ -602,7 +602,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <div className="flex items-center gap-4 mb-6">
             <span className="text-6xl">{displayIndustry.icon}</span>
             <div>
-              <h1 className="text-4xl md:text-5xl font-extrabold">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white">
                 {displayIndustry.name} Software
               </h1>
               <p className="text-xl text-[#f5a623] mt-2">Scheduling, Quoting & Invoicing Made Easy</p>
