@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,8 +58,19 @@ export default function PaymentsPage() {
   const [invoicePeriodEnd, setInvoicePeriodEnd] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const contractors = profiles.filter(p => p.classification === '1099_contractor');
-  const w2Workers = profiles.filter(p => p.classification === 'w2_employee');
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showNewInvoice) {
+        setShowNewInvoice(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showNewInvoice]);
+
+  const contractors = useMemo(() => profiles.filter(p => p.classification === '1099_contractor'), [profiles]);
+  const w2Workers = useMemo(() => profiles.filter(p => p.classification === 'w2_employee'), [profiles]);
 
   // Calculate pay period summary
   const calculateSummary = useCallback(async () => {
@@ -159,6 +170,14 @@ export default function PaymentsPage() {
     }
   }, [isLoading, calculateSummary]);
 
+  // Helper: calculate invoice total based on rate type
+  const getInvoiceTotal = useCallback((hours: string, rate: string, rateType: string | null) => {
+    const h = parseFloat(hours) || 0;
+    const r = parseFloat(rate) || 0;
+    if (rateType === 'per_job' || rateType === 'daily') return r;
+    return h * r; // hourly
+  }, []);
+
   const handleCreateInvoice = async () => {
     if (!company?.id || !selectedContractor) return;
     setSaving(true);
@@ -166,9 +185,10 @@ export default function PaymentsPage() {
     const contractor = contractors.find(c => c.user_id === selectedContractor);
     if (!contractor) { setSaving(false); return; }
 
-    const hours = parseFloat(invoiceHours) || 0;
     const rate = parseFloat(invoiceRate) || contractor.contractor_rate || 0;
-    const subtotal = contractor.contractor_rate_type === 'hourly' ? hours * rate : rate;
+    const rateType = contractor.contractor_rate_type || 'hourly';
+    const hours = parseFloat(invoiceHours) || 0;
+    const subtotal = getInvoiceTotal(invoiceHours, invoiceRate, rateType);
 
     const invoiceNum = `CI-${Date.now().toString(36).toUpperCase()}`;
 
@@ -180,7 +200,7 @@ export default function PaymentsPage() {
       description: invoiceDescription,
       hours_worked: hours || null,
       rate,
-      rate_type: contractor.contractor_rate_type || 'hourly',
+      rate_type: rateType,
       subtotal,
       total: subtotal,
       status: 'draft',
@@ -197,6 +217,8 @@ export default function PaymentsPage() {
       setInvoiceRate('');
       setInvoicePeriodStart('');
       setInvoicePeriodEnd('');
+      // Refresh data so summary updates
+      calculateSummary();
     }
     setSaving(false);
   };
@@ -397,8 +419,8 @@ export default function PaymentsPage() {
 
       {/* New Contractor Invoice Modal */}
       {showNewInvoice && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowNewInvoice(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-navy-500">New Contractor Invoice</h3>
               <button onClick={() => setShowNewInvoice(false)} className="p-1 hover:bg-gray-100 rounded">
@@ -481,11 +503,15 @@ export default function PaymentsPage() {
                 </div>
               </div>
 
-              {invoiceHours && invoiceRate && (
+              {invoiceRate && (
                 <div className="bg-gray-50 rounded-lg p-3 text-sm">
                   <p className="text-gray-500">Estimated Total:</p>
                   <p className="text-xl font-bold text-navy-500">
-                    ${(parseFloat(invoiceHours) * parseFloat(invoiceRate)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${getInvoiceTotal(
+                      invoiceHours,
+                      invoiceRate,
+                      contractors.find(c => c.user_id === selectedContractor)?.contractor_rate_type || 'hourly'
+                    ).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               )}
@@ -497,7 +523,7 @@ export default function PaymentsPage() {
               </button>
               <button
                 onClick={handleCreateInvoice}
-                disabled={!selectedContractor || !invoiceDescription || !invoicePeriodStart || !invoicePeriodEnd || saving}
+                disabled={!selectedContractor || !invoiceDescription || !invoiceRate || !invoicePeriodStart || !invoicePeriodEnd || saving}
                 className="btn-primary disabled:opacity-50 flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" />

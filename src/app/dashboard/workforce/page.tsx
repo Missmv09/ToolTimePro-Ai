@@ -12,7 +12,6 @@ import {
   ArrowRight,
   Briefcase,
   DollarSign,
-  ClipboardCheck,
   TrendingUp,
   AlertCircle,
   CheckCircle,
@@ -21,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function WorkforcePage() {
-  const { profiles, guardrails, stats, isLoading } = useWorkforce();
+  const { profiles, guardrails, stats, isLoading, error } = useWorkforce();
   const [filter, setFilter] = useState<'all' | 'w2' | '1099'>('all');
 
   const filteredProfiles = profiles.filter(p => {
@@ -124,6 +123,16 @@ export default function WorkforcePage() {
           <p className="text-sm text-gray-500">Reviews Due</p>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Active Guardrails Banner */}
       {stats.activeGuardrails > 0 && (

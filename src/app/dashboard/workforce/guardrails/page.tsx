@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useWorkforce } from '@/hooks/useWorkforce';
 import {
@@ -22,6 +22,18 @@ export default function GuardrailsPage() {
   const [resolving, setResolving] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [filterSeverity, setFilterSeverity] = useState<'all' | 'violation' | 'warning' | 'info'>('all');
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && resolveId) {
+        setResolveId(null);
+        setResolveNotes('');
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [resolveId]);
 
   const filteredGuardrails = guardrails.filter(g => {
     if (filterSeverity === 'all') return true;
@@ -237,8 +249,8 @@ export default function GuardrailsPage() {
 
       {/* Resolve Modal */}
       {resolveId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setResolveId(null); setResolveNotes(''); }}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-navy-500">Resolve Guardrail</h3>
               <button onClick={() => { setResolveId(null); setResolveNotes(''); }} className="p-1 hover:bg-gray-100 rounded">
