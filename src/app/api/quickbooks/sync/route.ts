@@ -3,8 +3,8 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseServerClient, createSupabaseAdminClient } from '@/lib/supabase-server'
 
 // QuickBooks API configuration
-const QUICKBOOKS_CLIENT_ID = process.env.QUICKBOOKS_CLIENT_ID || ''
-const QUICKBOOKS_CLIENT_SECRET = process.env.QUICKBOOKS_CLIENT_SECRET || ''
+const QUICKBOOKS_CLIENT_ID = process.env.QUICKBOOKS_CLIENT_ID
+const QUICKBOOKS_CLIENT_SECRET = process.env.QUICKBOOKS_CLIENT_SECRET
 const QUICKBOOKS_ENVIRONMENT = process.env.QUICKBOOKS_ENVIRONMENT || 'sandbox'
 
 // QuickBooks API base URL
@@ -112,6 +112,13 @@ async function fetchQBOData(
 
 export async function POST() {
   try {
+    if (!QUICKBOOKS_CLIENT_ID || !QUICKBOOKS_CLIENT_SECRET) {
+      return NextResponse.json(
+        { error: 'QuickBooks integration not configured' },
+        { status: 500 }
+      )
+    }
+
     // Get current user using SSR client
     const userSupabase = await createSupabaseServerClient()
 

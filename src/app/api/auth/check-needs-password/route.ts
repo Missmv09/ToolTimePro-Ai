@@ -46,7 +46,8 @@ export async function GET(request: Request) {
       user.user_metadata?.needs_password === true;
 
     return NextResponse.json({ needsPassword });
-  } catch {
+  } catch (error) {
+    console.error('Check needs password error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

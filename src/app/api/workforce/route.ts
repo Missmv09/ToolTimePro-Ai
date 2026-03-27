@@ -12,33 +12,32 @@ function getSupabaseAdmin() {
 }
 
 export async function GET(request: NextRequest) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server config error' }, { status: 500 });
-  }
-
-  // Get auth user from header (passed by middleware) or query param
-  const authHeader = request.headers.get('x-user-id');
-  if (!authHeader) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Get user's company
-  const { data: dbUser } = await supabase
-    .from('users')
-    .select('company_id, role')
-    .eq('id', authHeader)
-    .single();
-
-  if (!dbUser?.company_id) {
-    return NextResponse.json({ error: 'No company found' }, { status: 404 });
-  }
-
-  const companyId = dbUser.company_id;
-  const url = new URL(request.url);
-  const action = url.searchParams.get('action');
-
   try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Server config error' }, { status: 500 });
+    }
+
+    // Get auth user from header (passed by middleware) or query param
+    const authHeader = request.headers.get('x-user-id');
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user's company
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('company_id, role')
+      .eq('id', authHeader)
+      .single();
+
+    if (!dbUser?.company_id) {
+      return NextResponse.json({ error: 'No company found' }, { status: 404 });
+    }
+
+    const companyId = dbUser.company_id;
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
     if (action === 'stats') {
       const { data: profiles } = await supabase
         .from('worker_profiles')
@@ -140,31 +139,30 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server config error' }, { status: 500 });
-  }
-
-  const authHeader = request.headers.get('x-user-id');
-  if (!authHeader) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const { data: dbUser } = await supabase
-    .from('users')
-    .select('company_id, role')
-    .eq('id', authHeader)
-    .single();
-
-  if (!dbUser?.company_id) {
-    return NextResponse.json({ error: 'No company found' }, { status: 404 });
-  }
-
-  if (!['owner', 'admin'].includes(dbUser.role)) {
-    return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
-  }
-
   try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Server config error' }, { status: 500 });
+    }
+
+    const authHeader = request.headers.get('x-user-id');
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('company_id, role')
+      .eq('id', authHeader)
+      .single();
+
+    if (!dbUser?.company_id) {
+      return NextResponse.json({ error: 'No company found' }, { status: 404 });
+    }
+
+    if (!['owner', 'admin'].includes(dbUser.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
     const body = await request.json();
     const { action } = body;
 

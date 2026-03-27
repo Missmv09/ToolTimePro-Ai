@@ -51,7 +51,8 @@ export async function POST(request: Request) {
       .eq('id', user.id);
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error('Sign out all sessions error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
