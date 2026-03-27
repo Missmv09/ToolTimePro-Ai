@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { TRADE_ESTIMATORS, getEstimatorByTrade } from '@/lib/material-estimator';
 import type { PriceTier, EstimateResult } from '@/lib/materials-database';
+import { calculateMarkup, DEFAULT_TRADE_MARKUPS, type MarkupResult } from '@/lib/supplier-pricing';
 import {
   Calculator,
   Paintbrush,
@@ -13,7 +14,6 @@ import {
   Layers,
   Hammer,
   ArrowLeft,
-  ArrowRight,
   DollarSign,
   Package,
   Clock,
@@ -30,6 +30,9 @@ import {
   Thermometer,
   Sun,
   DoorOpen,
+  TrendingUp,
+  Percent,
+  Users,
 } from 'lucide-react';
 
 const TRADE_ICONS: Record<string, typeof Calculator> = {
@@ -50,6 +53,11 @@ export default function EstimatorPage() {
   const [step, setStep] = useState<'trade' | 'specs' | 'results'>('trade');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
+  // Markup state
+  const [markupResult, setMarkupResult] = useState<MarkupResult | null>(null);
+  const [customMarkup, setCustomMarkup] = useState<number | null>(null);
+  const [showMarkup, setShowMarkup] = useState(true);
+
   const estimator = selectedTrade ? getEstimatorByTrade(selectedTrade) : null;
 
   // Initialize defaults when trade is selected
@@ -65,17 +73,38 @@ export default function EstimatorPage() {
     setAnswers(defaults);
     setSelectedTrade(trade);
     setResult(null);
+    setMarkupResult(null);
+    setCustomMarkup(null);
     setStep('specs');
   };
 
+  // Calculate markup whenever result or markup % changes
+  const recalcMarkup = useCallback((estimateResult: EstimateResult, trade: string, overrideMarkup?: number | null) => {
+    const markup = calculateMarkup(
+      estimateResult.materialTotal,
+      estimateResult.laborEstimate,
+      trade,
+      overrideMarkup != null ? { trade, materialMarkupPercent: overrideMarkup, laborMarkupPercent: 0 } : null,
+    );
+    setMarkupResult(markup);
+  }, []);
+
   const handleCalculate = () => {
-    if (!estimator) return;
+    if (!estimator || !selectedTrade) return;
     const res = estimator.calculate(answers, selectedTier);
     setResult(res);
     setStep('results');
+    recalcMarkup(res, selectedTrade, customMarkup);
   };
 
-  const shouldShowQuestion = (q: typeof estimator extends null ? never : NonNullable<typeof estimator>['questions'][0]) => {
+  const handleMarkupChange = (percent: number) => {
+    setCustomMarkup(percent);
+    if (result && selectedTrade) {
+      recalcMarkup(result, selectedTrade, percent);
+    }
+  };
+
+  const shouldShowQuestion = (q: NonNullable<typeof estimator>['questions'][0]) => {
     if (!q.showWhen) return true;
     return answers[q.showWhen.field] === q.showWhen.value ||
       String(answers[q.showWhen.field]) === String(q.showWhen.value);
@@ -104,6 +133,11 @@ export default function EstimatorPage() {
     });
   };
 
+  // Get default markup for current trade
+  const defaultMarkup = selectedTrade
+    ? (DEFAULT_TRADE_MARKUPS[selectedTrade] || DEFAULT_TRADE_MARKUPS._default).material
+    : 20;
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -118,8 +152,8 @@ export default function EstimatorPage() {
           </div>
         </div>
         <p className="text-white/80 max-w-2xl">
-          Tell us about the job, and we&apos;ll calculate exactly what materials you need, how much they cost,
-          and estimated labor — with Good / Better / Best pricing tiers. Add the estimate directly to a quote.
+          Calculate material costs, add your markup, and generate a customer-ready quote.
+          Good / Better / Best pricing tiers with built-in profit margin.
         </p>
       </div>
 
@@ -265,29 +299,134 @@ export default function EstimatorPage() {
             </span>
           </div>
 
-          {/* Cost Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="card border-2 border-orange-100 text-center">
-              <Package className="w-6 h-6 text-orange-500 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-orange-600">
-                ${result.materialTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
-              <p className="text-sm text-gray-500">Materials</p>
+          {/* Cost Summary — Your Cost (what you pay) */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Your Cost (what you pay)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="card border-2 border-orange-100 text-center">
+                <Package className="w-6 h-6 text-orange-500 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-orange-600">
+                  ${result.materialTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-sm text-gray-500">Materials</p>
+              </div>
+              <div className="card border-2 border-blue-100 text-center">
+                <Clock className="w-6 h-6 text-blue-500 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-blue-600">
+                  ${result.laborEstimate.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-sm text-gray-500">Labor ({result.laborHours}h est.)</p>
+              </div>
+              <div className="card border-2 border-gray-200 text-center">
+                <DollarSign className="w-6 h-6 text-gray-500 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-gray-700">
+                  ${result.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-sm text-gray-500">Your Total Cost</p>
+              </div>
             </div>
-            <div className="card border-2 border-blue-100 text-center">
-              <Clock className="w-6 h-6 text-blue-500 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-blue-600">
-                ${result.laborEstimate.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
-              <p className="text-sm text-gray-500">Labor ({result.laborHours}h est.)</p>
+          </div>
+
+          {/* Markup Controls + Customer Price */}
+          <div className="card border-2 border-green-200 bg-green-50/50">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-green-800 flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Customer Price (what they pay)
+              </h3>
+              <button
+                onClick={() => setShowMarkup(!showMarkup)}
+                className="text-sm text-green-600 hover:text-green-700"
+              >
+                {showMarkup ? 'Hide markup' : 'Show markup'}
+              </button>
             </div>
-            <div className="card border-2 border-navy-100 text-center">
-              <DollarSign className="w-6 h-6 text-navy-500 mx-auto mb-1" />
-              <p className="text-3xl font-bold text-navy-500">
-                ${result.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
-              <p className="text-sm text-gray-500">Total Estimate</p>
-            </div>
+
+            {showMarkup && (
+              <div className="mb-4 p-4 bg-white rounded-xl border border-green-200">
+                <div className="flex items-center gap-4 mb-3">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Material Markup
+                  </label>
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      value={customMarkup ?? defaultMarkup}
+                      onChange={e => handleMarkupChange(Number(e.target.value))}
+                      className="flex-1 accent-green-600"
+                    />
+                    <div className="flex items-center gap-1 min-w-[80px]">
+                      <input
+                        type="number"
+                        min="0"
+                        max="200"
+                        value={customMarkup ?? defaultMarkup}
+                        onChange={e => handleMarkupChange(Number(e.target.value) || 0)}
+                        className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm font-medium"
+                      />
+                      <Percent className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {[10, 15, 20, 25, 30, 40, 50].map(pct => (
+                    <button
+                      key={pct}
+                      onClick={() => handleMarkupChange(pct)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                        (customMarkup ?? defaultMarkup) === pct
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  Industry default for {estimator.name}: {defaultMarkup}% material markup
+                </p>
+              </div>
+            )}
+
+            {/* Customer totals */}
+            {markupResult && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="bg-white rounded-xl p-3 border border-green-200 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Materials + Markup</p>
+                  <p className="text-xl font-bold text-green-700">
+                    ${markupResult.customerMaterialTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-green-200 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Labor</p>
+                  <p className="text-xl font-bold text-green-700">
+                    ${markupResult.customerLaborTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-green-300 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Quote Customer</p>
+                  <p className="text-2xl font-bold text-green-800">
+                    ${markupResult.customerGrandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-green-200 text-center">
+                  <p className="text-xs text-gray-500 mb-1 flex items-center justify-center gap-1">
+                    <TrendingUp className="w-3 h-3" /> Your Profit
+                  </p>
+                  <p className="text-xl font-bold text-green-600">
+                    ${markupResult.totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-green-500">{markupResult.profitMarginPercent}% margin</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Compare Tiers */}
@@ -296,6 +435,12 @@ export default function EstimatorPage() {
             <div className="grid grid-cols-3 gap-4 text-center">
               {(['economy', 'standard', 'premium'] as PriceTier[]).map(tier => {
                 const tierResult = estimator.calculate(answers, tier);
+                const tierMarkup = calculateMarkup(
+                  tierResult.materialTotal,
+                  tierResult.laborEstimate,
+                  selectedTrade || '',
+                  customMarkup != null ? { trade: selectedTrade || '', materialMarkupPercent: customMarkup, laborMarkupPercent: 0 } : null,
+                );
                 const info = TIER_LABELS[tier];
                 const isActive = tier === selectedTier;
                 return (
@@ -303,17 +448,20 @@ export default function EstimatorPage() {
                     key={tier}
                     onClick={() => {
                       setSelectedTier(tier);
-                      setResult(estimator.calculate(answers, tier));
+                      const newResult = estimator.calculate(answers, tier);
+                      setResult(newResult);
+                      recalcMarkup(newResult, selectedTrade || '', customMarkup);
                     }}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       isActive ? info.color + ' ring-2 ring-gold-400' : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                   >
                     <p className="font-semibold text-sm">{info.label}</p>
-                    <p className="text-xl font-bold text-navy-500 mt-1">
-                      ${tierResult.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    <p className="text-xs text-gray-400 mt-1">Cost: ${tierResult.grandTotal.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-green-700 mt-1">
+                      Quote: ${tierMarkup.customerGrandTotal.toFixed(2)}
                     </p>
-                    <p className="text-xs text-gray-400">materials: ${tierResult.materialTotal.toFixed(2)}</p>
+                    <p className="text-xs text-green-500">+${tierMarkup.totalProfit.toFixed(2)} profit</p>
                   </button>
                 );
               })}
@@ -401,14 +549,32 @@ export default function EstimatorPage() {
             </div>
           )}
 
+          {/* Pricing Info */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h3 className="font-medium text-blue-800 text-sm mb-2">About Pricing</h3>
+            <p className="text-sm text-blue-700">
+              Material prices are based on 2026 retail pricing from Home Depot, Lowe&apos;s, and specialty suppliers.
+              Your markup is applied on top to calculate the customer quote price. You can adjust markup per estimate
+              or set company-wide defaults in Settings.
+            </p>
+          </div>
+
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href={`/dashboard/smart-quote?materials=${encodeURIComponent(JSON.stringify(result.items.map(i => ({ description: `${i.name} (${i.brand})`, quantity: i.quantity, unit_price: i.unitPrice }))))}`}
+              href={`/dashboard/smart-quote?materials=${encodeURIComponent(JSON.stringify(
+                result.items.map(i => ({
+                  description: `${i.name} (${i.brand})`,
+                  quantity: i.quantity,
+                  unit_price: markupResult
+                    ? Math.round(i.unitPrice * (1 + markupResult.materialMarkupPercent / 100) * 100) / 100
+                    : i.unitPrice,
+                }))
+              ))}`}
               className="btn-primary flex items-center justify-center gap-2 flex-1"
             >
               <FileText className="w-4 h-4" />
-              Add to Quote
+              Add to Quote {markupResult ? `($${markupResult.customerGrandTotal.toFixed(2)})` : ''}
             </Link>
             <button
               onClick={() => setStep('specs')}
@@ -418,7 +584,7 @@ export default function EstimatorPage() {
               Adjust Specs
             </button>
             <button
-              onClick={() => { setStep('trade'); setSelectedTrade(null); setResult(null); }}
+              onClick={() => { setStep('trade'); setSelectedTrade(null); setResult(null); setMarkupResult(null); }}
               className="btn-outline flex items-center justify-center gap-2"
             >
               New Estimate

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { pricesNeedAttention } from '@/lib/supplier-pricing';
+import { getMaterialsByTrade, type TradeType } from '@/lib/materials-database';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +33,7 @@ export async function GET(request: NextRequest) {
     lead_follow_up: { checked: 0, acted: 0 },
     cash_flow_alert: { checked: 0, acted: 0 },
     job_costing: { checked: 0, acted: 0 },
+    price_staleness: { checked: 0, acted: 0 },
   };
 
   try {
@@ -87,6 +90,12 @@ export async function GET(request: NextRequest) {
         results,
       }, { onConflict: 'company_id' });
     }
+
+    // ============================================================
+    // PRICE STALENESS CHECK (runs monthly, not per-company)
+    // ============================================================
+    results.price_staleness.checked = 1;
+    results.price_staleness.acted = await runPriceStalenessCheck(supabase);
 
     return NextResponse.json({ message: 'Jenny actions complete', results, ran_at: new Date().toISOString() });
   } catch (err: unknown) {
@@ -513,6 +522,85 @@ async function runJobCosting(
   return acted;
 }
 
+// ============================================================
+// PRICE STALENESS: Monthly check if material prices need refreshing
+// ============================================================
+async function runPriceStalenessCheck(supabase: SB): Promise<number> {
+  const priceStatus = pricesNeedAttention();
+
+  // Only run once per month — check if we already alerted this month
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01T00:00:00`;
+
+  const { data: existingAlert } = await supabase
+    .from('jenny_action_log')
+    .select('id')
+    .eq('action_type', 'price_staleness')
+    .gte('created_at', monthStart)
+    .limit(1);
+
+  if (existingAlert && existingAlert.length > 0) return 0; // Already ran this month
+
+  // Only alert if prices need attention (within 30 days of stale or already stale)
+  if (!priceStatus.needsUpdate) return 0;
+
+  // Count materials per trade for the report
+  const ALL_TRADES: TradeType[] = [
+    'painting', 'plumbing', 'electrical', 'landscaping', 'handyman', 'flooring',
+    'lawn_care', 'pool_service', 'hvac', 'roofing', 'fencing', 'concrete',
+    'carpentry', 'irrigation', 'pressure_washing', 'insulation', 'siding',
+    'drywall', 'tree_service', 'solar', 'garage_door',
+  ];
+
+  let totalMaterials = 0;
+  for (const trade of ALL_TRADES) {
+    const materials = getMaterialsByTrade(trade);
+    totalMaterials += materials.length;
+  }
+
+  const isStale = priceStatus.daysUntilStale === 0;
+  const title = isStale
+    ? `Material prices are outdated (${priceStatus.daysSinceUpdate} days old)`
+    : `Material prices expiring in ${priceStatus.daysUntilStale} days`;
+
+  const description = isStale
+    ? `The material pricing database has not been updated in ${priceStatus.daysSinceUpdate} days. ${totalMaterials} materials across ${ALL_TRADES.length} trades are using estimated prices from January 2026. Prices should be reviewed and refreshed to ensure accurate customer quotes.`
+    : `Material prices were last set in January 2026 (${priceStatus.daysSinceUpdate} days ago). They will be flagged as stale in ${priceStatus.daysUntilStale} days. Consider scheduling a price review to keep customer quotes accurate.`;
+
+  // Log as a platform-wide alert (no company_id — visible to all)
+  await supabase.from('jenny_action_log').insert({
+    company_id: null,
+    action_type: 'price_staleness',
+    title,
+    description,
+    status: 'executed',
+    target_id: null,
+    target_type: 'material_pricing',
+    target_name: `${totalMaterials} materials across ${ALL_TRADES.length} trades`,
+    metadata: {
+      days_since_update: priceStatus.daysSinceUpdate,
+      days_until_stale: priceStatus.daysUntilStale,
+      total_materials: totalMaterials,
+      total_trades: ALL_TRADES.length,
+      price_base_date: '2026-01-01',
+      is_stale: isStale,
+    },
+    executed_at: now.toISOString(),
+  });
+
+  // Also create a staleness alert record for the dashboard
+  await supabase.from('price_staleness_alerts').insert({
+    company_id: null, // platform-wide
+    trade: '_all',
+    material_count: totalMaterials,
+    stale_count: isStale ? totalMaterials : 0,
+    avg_price_age_days: priceStatus.daysSinceUpdate,
+    status: 'pending',
+  });
+
+  return 1;
+}
+
 // POST — Manual trigger for a specific company (from dashboard)
 export async function POST(request: NextRequest) {
   const supabase = getSupabaseAdmin();
@@ -566,6 +654,10 @@ export async function POST(request: NextRequest) {
             break;
         }
       }
+
+      // Also run price staleness check on manual trigger
+      const priceResult = await runPriceStalenessCheck(supabase);
+      results.price_staleness = priceResult;
 
       return NextResponse.json({ success: true, results });
     }
