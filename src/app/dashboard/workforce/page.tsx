@@ -17,6 +17,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  Globe,
 } from 'lucide-react';
 
 export default function WorkforcePage() {
@@ -56,11 +57,11 @@ export default function WorkforcePage() {
       color: 'bg-green-500',
     },
     {
-      id: 'classification',
-      title: 'ABC Test Flowchart',
-      description: 'Interactive California AB5 classification test. Determine if a worker should be W-2 or 1099 in minutes.',
-      icon: ClipboardCheck,
-      href: '/dashboard/shield/classification',
+      id: 'compliance-rules',
+      title: 'State Compliance Rules',
+      description: 'Classification tests, wage rules, break requirements, and contractor laws for CA, TX, FL, NY, and IL — with last-verified dates.',
+      icon: Globe,
+      href: '/dashboard/workforce/compliance-rules',
       color: 'bg-purple-500',
     },
   ];

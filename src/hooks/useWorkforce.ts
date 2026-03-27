@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { WorkerProfileRow, ClassificationGuardrailRow, ContractorInvoiceRow } from '@/types/database';
 import type { WorkforceStats, WorkerClassification } from '@/types/workforce';
 import { GUARDRAIL_RULES } from '@/types/workforce';
+import { getStateRules } from '@/lib/state-compliance';
 
 interface WorkerProfileWithUser extends WorkerProfileRow {
   user?: {
@@ -126,19 +127,24 @@ export function useWorkforce() {
   }, [company?.id]);
 
   // Run guardrail checks against a specific worker profile
+  // Uses the company's state to apply the correct rules
   const runGuardrailChecks = useCallback(async (profile: WorkerProfileWithUser) => {
     if (!company?.id || profile.classification !== '1099_contractor') return [];
 
     const detectedIssues: { rule_code: string; rule_name: string; severity: 'info' | 'warning' | 'violation'; description: string; recommendation: string }[] = [];
     const now = new Date();
 
-    // Check: Missing W-9
+    // Get state-specific rules
+    const companyState = company.state || 'CA';
+    const stateRules = getStateRules(companyState);
+
+    // Check: Missing W-9 (required in all states)
     if (!profile.w9_received) {
       detectedIssues.push(GUARDRAIL_RULES.NO_W9);
     }
 
-    // Check: Missing contract
-    if (!profile.contract_start_date) {
+    // Check: Missing contract (required in some states, recommended in all)
+    if (!profile.contract_start_date && (stateRules?.contractor.writtenContractRequired !== false)) {
       detectedIssues.push(GUARDRAIL_RULES.NO_CONTRACT);
     }
 

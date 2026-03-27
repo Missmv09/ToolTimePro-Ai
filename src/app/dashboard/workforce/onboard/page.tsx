@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkforce } from '@/hooks/useWorkforce';
 import type { WorkerClassification } from '@/types/workforce';
+import { getStateRules } from '@/lib/state-compliance';
+import type { StateComplianceRules } from '@/lib/state-compliance';
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,6 +20,7 @@ import {
   Shield,
   Save,
   Users,
+  Globe,
 } from 'lucide-react';
 
 interface TeamMember {
@@ -44,6 +47,12 @@ export default function OnboardPage() {
   const [classification, setClassification] = useState<WorkerClassification | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // State-specific compliance rules
+  const companyState = company?.state || 'CA';
+  const stateRules = getStateRules(companyState);
+  const minWage = stateRules?.wage.minimumWage || 7.25;
+  const classificationTest = stateRules?.classification || null;
 
   // W-2 fields
   const [hourlyRate, setHourlyRate] = useState('');
@@ -251,12 +260,39 @@ export default function OnboardPage() {
           <h2 className="text-lg font-semibold text-navy-500 mb-2">
             Classify: {selectedWorker?.full_name}
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-500 mb-4">
             How should this worker be classified? If unsure,{' '}
             <Link href="/dashboard/shield/classification" className="text-gold-600 hover:text-gold-700 font-medium">
-              run the ABC test first
+              run the classification test first
             </Link>.
           </p>
+
+          {classificationTest && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Globe className="w-4 h-4 text-navy-500" />
+                <p className="text-sm font-medium text-navy-500">
+                  {stateRules?.stateName} uses the {classificationTest.testName}
+                </p>
+              </div>
+              <p className="text-xs text-gray-600">{classificationTest.description}</p>
+              {classificationTest.prongs.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {classificationTest.prongs.map(prong => (
+                    <p key={prong.letter} className="text-xs text-gray-500">
+                      <span className="font-medium">Prong {prong.letter}:</span> {prong.title}
+                    </p>
+                  ))}
+                </div>
+              )}
+              <Link
+                href="/dashboard/workforce/compliance-rules"
+                className="text-xs text-gold-600 hover:text-gold-700 font-medium mt-2 inline-block"
+              >
+                View full {stateRules?.stateName} compliance rules
+              </Link>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <button
@@ -308,9 +344,10 @@ export default function OnboardPage() {
               <div className="text-sm text-yellow-700">
                 <p className="font-medium text-yellow-800">When in doubt, classify as W-2</p>
                 <p className="mt-1">
-                  California&apos;s AB5 law presumes all workers are employees. The burden is on you to prove
-                  a worker qualifies as an independent contractor under the ABC test. Misclassification
-                  penalties can reach $25,000 per worker.
+                  {stateRules?.stateName || 'Most states'} presume{stateRules ? 's' : ''} all workers are employees.
+                  The burden is on you to prove a worker qualifies as an independent contractor
+                  under the {classificationTest?.testName || 'applicable classification test'}.
+                  {stateRules && ` Misclassification penalties: ${stateRules.classification.penaltyRange}.`}
                 </p>
               </div>
             </div>
@@ -351,11 +388,11 @@ export default function OnboardPage() {
                   min="16"
                   value={hourlyRate}
                   onChange={e => setHourlyRate(e.target.value)}
-                  placeholder="e.g. 25.00 (CA min: $16.00)"
+                  placeholder={`e.g. 25.00 (${companyState} min: $${minWage.toFixed(2)})`}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                 />
-                {hourlyRate && parseFloat(hourlyRate) < 16 && (
-                  <p className="text-red-500 text-xs mt-1">Below California minimum wage ($16.00/hr)</p>
+                {hourlyRate && parseFloat(hourlyRate) < minWage && (
+                  <p className="text-red-500 text-xs mt-1">Below {stateRules?.stateName || companyState} minimum wage (${minWage.toFixed(2)}/hr)</p>
                 )}
               </div>
               <div>
