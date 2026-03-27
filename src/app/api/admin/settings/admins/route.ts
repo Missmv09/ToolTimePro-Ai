@@ -8,12 +8,11 @@ export const dynamic = 'force-dynamic';
  * Returns all platform admins from the database.
  */
 export async function GET(request: Request) {
-  const admin = await verifyPlatformAdmin(request);
-  if (!admin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-  }
-
   try {
+    const admin = await verifyPlatformAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
     const supabase = getAdminClient();
     const { data, error } = await supabase
       .from('platform_admins')
@@ -26,7 +25,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ admins: data || [] });
-  } catch {
+  } catch (error) {
+    console.error('Admin settings list error:', error);
     return NextResponse.json({ admins: [] });
   }
 }
@@ -37,12 +37,11 @@ export async function GET(request: Request) {
  * Body: { email: string }
  */
 export async function POST(request: Request) {
-  const admin = await verifyPlatformAdmin(request);
-  if (!admin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-  }
-
   try {
+    const admin = await verifyPlatformAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
     const supabase = getAdminClient();
     const { email } = await request.json();
 
@@ -91,12 +90,11 @@ export async function POST(request: Request) {
  * Removes a platform admin.
  */
 export async function DELETE(request: Request) {
-  const admin = await verifyPlatformAdmin(request);
-  if (!admin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-  }
-
   try {
+    const admin = await verifyPlatformAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
     const supabase = getAdminClient();
     const url = new URL(request.url);
     const id = url.searchParams.get('id');

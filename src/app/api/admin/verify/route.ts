@@ -8,11 +8,16 @@ export const dynamic = 'force-dynamic';
  * Verifies if the current user is a platform admin.
  */
 export async function GET(request: Request) {
-  const admin = await verifyPlatformAdmin(request);
+  try {
+    const admin = await verifyPlatformAdmin(request);
 
-  if (!admin) {
-    return NextResponse.json({ isAdmin: false }, { status: 403 });
+    if (!admin) {
+      return NextResponse.json({ isAdmin: false }, { status: 403 });
+    }
+
+    return NextResponse.json({ isAdmin: true, email: admin.email });
+  } catch (error) {
+    console.error('Admin verify error:', error);
+    return NextResponse.json({ error: 'Failed to verify admin status' }, { status: 500 });
   }
-
-  return NextResponse.json({ isAdmin: true, email: admin.email });
 }

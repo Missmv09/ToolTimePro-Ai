@@ -49,7 +49,8 @@ export async function GET(request: Request) {
       connected: !!company?.stripe_connect_account_id,
       onboarded: company?.stripe_connect_onboarded || false,
     })
-  } catch {
+  } catch (error) {
+    console.error('Stripe connect status error:', error);
     return NextResponse.json({ connected: false })
   }
 }

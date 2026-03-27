@@ -43,7 +43,8 @@ export async function GET(request: Request) {
       enabled: userData?.two_fa_enabled || false,
       phone: userData?.two_fa_phone || null,
     })
-  } catch {
+  } catch (error) {
+    console.error('2FA settings error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
@@ -87,7 +88,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, enabled: true })
-  } catch {
+  } catch (error) {
+    console.error('2FA settings error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
@@ -129,7 +131,8 @@ export async function DELETE(request: Request) {
       .eq('user_id', user.id)
 
     return NextResponse.json({ success: true, enabled: false })
-  } catch {
+  } catch (error) {
+    console.error('2FA settings error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
