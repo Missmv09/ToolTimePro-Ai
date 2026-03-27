@@ -134,28 +134,33 @@ export function useWorkforce() {
     const detectedIssues: { rule_code: string; rule_name: string; severity: 'info' | 'warning' | 'violation'; description: string; recommendation: string }[] = [];
     const now = new Date();
 
+    // Helper to convert GUARDRAIL_RULES entry to detectedIssues format
+    const pushRule = (rule: { code: string; name: string; severity: 'info' | 'warning' | 'violation'; description: string; recommendation: string }) => {
+      detectedIssues.push({ rule_code: rule.code, rule_name: rule.name, severity: rule.severity, description: rule.description, recommendation: rule.recommendation });
+    };
+
     // Get state-specific rules
     const companyState = company.state || 'CA';
     const stateRules = getStateRules(companyState);
 
     // Check: Missing W-9 (required in all states)
     if (!profile.w9_received) {
-      detectedIssues.push(GUARDRAIL_RULES.NO_W9);
+      pushRule(GUARDRAIL_RULES.NO_W9);
     }
 
     // Check: Missing contract (required in some states, recommended in all)
     if (!profile.contract_start_date && (stateRules?.contractor.writtenContractRequired !== false)) {
-      detectedIssues.push(GUARDRAIL_RULES.NO_CONTRACT);
+      pushRule(GUARDRAIL_RULES.NO_CONTRACT);
     }
 
     // Check: Expired insurance
     if (profile.insurance_expiry && new Date(profile.insurance_expiry) < now) {
-      detectedIssues.push(GUARDRAIL_RULES.INSURANCE_EXPIRED);
+      pushRule(GUARDRAIL_RULES.INSURANCE_EXPIRED);
     }
 
     // Check: Classification review overdue
     if (profile.next_review_date && new Date(profile.next_review_date) <= now) {
-      detectedIssues.push(GUARDRAIL_RULES.REVIEW_OVERDUE);
+      pushRule(GUARDRAIL_RULES.REVIEW_OVERDUE);
     }
 
     // Check time entries for schedule/hours patterns
@@ -182,7 +187,7 @@ export function useWorkforce() {
       const avgWeeklyHours = totalHours / weeksSpan;
 
       if (avgWeeklyHours >= 40) {
-        detectedIssues.push(GUARDRAIL_RULES.EXCESSIVE_HOURS);
+        pushRule(GUARDRAIL_RULES.EXCESSIVE_HOURS);
       }
     }
 

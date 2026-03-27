@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 import { GUARDRAIL_RULES } from '@/types/workforce';
 
-export async function GET(request: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies });
-  const { data: { user } } = await supabase.auth.getUser();
+export const dynamic = 'force-dynamic';
 
-  if (!user) {
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
+export async function GET(request: NextRequest) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Server config error' }, { status: 500 });
+  }
+
+  // Get auth user from header (passed by middleware) or query param
+  const authHeader = request.headers.get('x-user-id');
+  if (!authHeader) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -15,7 +27,7 @@ export async function GET(request: NextRequest) {
   const { data: dbUser } = await supabase
     .from('users')
     .select('company_id, role')
-    .eq('id', user.id)
+    .eq('id', authHeader)
     .single();
 
   if (!dbUser?.company_id) {
@@ -28,7 +40,6 @@ export async function GET(request: NextRequest) {
 
   try {
     if (action === 'stats') {
-      // Return workforce statistics
       const { data: profiles } = await supabase
         .from('worker_profiles')
         .select('classification, w9_received, insurance_expiry, next_review_date')
@@ -63,7 +74,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'scan') {
-      // Run guardrail checks for all 1099 contractors
       const { data: profiles } = await supabase
         .from('worker_profiles')
         .select('*, user:users!worker_profiles_user_id_fkey(id, full_name)')
@@ -130,24 +140,26 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies });
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Server config error' }, { status: 500 });
+  }
 
-  if (!user) {
+  const authHeader = request.headers.get('x-user-id');
+  if (!authHeader) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { data: dbUser } = await supabase
     .from('users')
     .select('company_id, role')
-    .eq('id', user.id)
+    .eq('id', authHeader)
     .single();
 
   if (!dbUser?.company_id) {
     return NextResponse.json({ error: 'No company found' }, { status: 404 });
   }
 
-  // Only owners and admins can modify workforce profiles
   if (!['owner', 'admin'].includes(dbUser.role)) {
     return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
   }
@@ -170,7 +182,7 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         company_id: dbUser.company_id,
         classification,
-        classified_by: user.id,
+        classified_by: authHeader,
         classified_at: new Date().toISOString(),
         last_review_date: new Date().toISOString(),
         next_review_date: sixMonthsFromNow.toISOString(),
@@ -208,7 +220,7 @@ export async function POST(request: NextRequest) {
         .update({
           resolved: true,
           resolved_at: new Date().toISOString(),
-          resolved_by: user.id,
+          resolved_by: authHeader,
           resolution_notes: notes,
         })
         .eq('id', guardrailId)
