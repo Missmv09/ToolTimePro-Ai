@@ -400,8 +400,8 @@ export default function Home() {
               </button>
             </div>
 
-            <a href="tel:1-888-555-0123" className="text-[#5c5c70] text-base flex items-center gap-2 whitespace-nowrap hover:text-[#1a1a2e] transition-colors no-underline">
-              📞 <span>1-888-555-0123</span>
+            <a href="tel:1-888-980-8665" className="text-[#5c5c70] text-base flex items-center gap-2 whitespace-nowrap hover:text-[#1a1a2e] transition-colors no-underline">
+              📞 <span>(888) 980-TOOL</span>
             </a>
             <Link
               href="/auth/signup"
@@ -1042,6 +1042,9 @@ export default function Home() {
                 <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Login</Link>
                 <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
                 <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+                <Link href="/privacy" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Privacy Policy</Link>
+                <Link href="/terms" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Terms & Conditions</Link>
+                <Link href="/sms" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">SMS Terms</Link>
               </div>
             </div>
           </div>

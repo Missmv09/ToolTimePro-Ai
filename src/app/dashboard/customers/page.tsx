@@ -333,20 +333,36 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
     }
 
     try {
-      if (customer) {
-        const { error } = await supabase.from('customers').update(data).eq('id', customer.id)
-        if (error) {
-          alert('Error updating customer: ' + error.message)
-          setSaving(false)
-          return
+      const saveData = async (payload: typeof data) => {
+        if (customer) {
+          return await supabase.from('customers').update(payload).eq('id', customer.id)
+        } else {
+          return await supabase.from('customers').insert(payload)
         }
-      } else {
-        const { error } = await supabase.from('customers').insert(data)
-        if (error) {
-          alert('Error creating customer: ' + error.message)
-          setSaving(false)
-          return
-        }
+      }
+
+      let { error } = await saveData(data)
+
+      // Retry without sms_consent_date if column doesn't exist yet
+      if (error?.message?.includes('sms_consent_date')) {
+        const { sms_consent_date: _, ...dataWithoutConsentDate } = data as typeof data & { sms_consent_date?: string }
+        const retry = await saveData(dataWithoutConsentDate)
+        error = retry.error
+      }
+
+      // Retry without sms_consent if column doesn't exist yet
+      if (error?.message?.includes('sms_consent')) {
+        const stripped = Object.fromEntries(
+          Object.entries(data).filter(([k]) => k !== 'sms_consent' && k !== 'sms_consent_date')
+        )
+        const retry = await saveData(stripped as typeof data)
+        error = retry.error
+      }
+
+      if (error) {
+        alert((customer ? 'Error updating' : 'Error creating') + ' customer: ' + error.message)
+        setSaving(false)
+        return
       }
     } catch (err) {
       alert('An unexpected error occurred. Please try again.')

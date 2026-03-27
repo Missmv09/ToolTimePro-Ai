@@ -110,6 +110,7 @@ export async function POST(request) {
       customerState,
       customerZip,
       notes,
+      smsConsent,
     } = body;
 
     // Validate required fields (email & address optional for chatbot bookings)
@@ -201,6 +202,10 @@ export async function POST(request) {
       if (customerCity) updateData.city = customerCity;
       if (customerState) updateData.state = customerState;
       if (customerZip) updateData.zip = customerZip;
+      if (smsConsent) {
+        updateData.sms_consent = true;
+        updateData.sms_consent_date = new Date().toISOString();
+      }
 
       await supabase
         .from('customers')
@@ -213,6 +218,8 @@ export async function POST(request) {
           name: customerName,
           phone: customerPhone,
           source: 'online_booking',
+          sms_consent: !!smsConsent,
+          sms_consent_date: smsConsent ? new Date().toISOString() : null,
         };
       if (customerEmail) newCustomerRow.email = customerEmail;
       if (customerAddress) newCustomerRow.address = customerAddress;
@@ -298,15 +305,18 @@ export async function POST(request) {
 
     const companyName = companyResult.data?.name || 'Our team';
 
-    // Await SMS so we can report real status
-    const smsResult = await sendConfirmationSMS({
-      to: customerPhone,
-      customerName,
-      serviceName,
-      date: finalDate,
-      time: finalTimeStart,
-      companyName,
-    });
+    // Only send SMS if customer consented
+    let smsResult = { sent: false, reason: 'no_consent' };
+    if (smsConsent) {
+      smsResult = await sendConfirmationSMS({
+        to: customerPhone,
+        customerName,
+        serviceName,
+        date: finalDate,
+        time: finalTimeStart,
+        companyName,
+      });
+    }
 
     return NextResponse.json({
       success: true,

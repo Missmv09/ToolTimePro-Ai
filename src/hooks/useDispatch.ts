@@ -9,7 +9,7 @@ export interface Worker {
   full_name: string;
   email: string;
   phone: string | null;
-  role: 'owner' | 'admin' | 'worker';
+  role: 'owner' | 'admin' | 'worker' | 'worker_admin';
   avatar_url: string | null;
   is_active: boolean;
   status: 'available' | 'on_site' | 'en_route' | 'offline';
@@ -22,7 +22,7 @@ export interface DispatchJob {
   id: string;
   title: string;
   customer_id: string | null;
-  customer: { name: string; phone: string | null; id?: string; sms_consent?: boolean } | null;
+  customer: { id: string; name: string; phone: string | null; sms_consent?: boolean } | null;
   address: string | null;
   city: string | null;
   scheduled_date: string | null;
@@ -69,7 +69,7 @@ export function useDispatch(): UseDispatchReturn {
         .select('*')
         .eq('company_id', company.id)
         .eq('is_active', true)
-        .in('role', ['worker', 'admin']);
+        .in('role', ['worker', 'admin', 'worker_admin']);
 
       if (usersError) throw usersError;
 

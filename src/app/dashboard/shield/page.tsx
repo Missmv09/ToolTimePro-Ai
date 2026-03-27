@@ -16,6 +16,15 @@ import {
 
 const tools = [
   {
+    id: 'workforce',
+    title: 'Blended Workforce Management',
+    description: 'Manage W-2 employees and 1099 contractors in one place. Separate workflows, compliance guardrails, and payment flows.',
+    icon: Users,
+    href: '/dashboard/workforce',
+    color: 'bg-gold-500',
+    isNew: true,
+  },
+  {
     id: 'classification',
     title: 'Worker Classification Flowchart',
     description: 'Interactive ABC test flowchart to determine if a worker is an employee or independent contractor under California AB5.',
@@ -125,8 +134,11 @@ export default function ShieldPage() {
           {tools.map((tool) => (
             <Link key={tool.id} href={tool.href} className="card-hover group">
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 ${tool.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                <div className={`w-12 h-12 ${tool.color} rounded-lg flex items-center justify-center flex-shrink-0 relative`}>
                   <tool.icon className="w-6 h-6 text-white" />
+                  {'isNew' in tool && tool.isNew && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
+                  )}
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-navy-500 group-hover:text-gold-600 transition-colors">

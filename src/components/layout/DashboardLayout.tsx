@@ -29,6 +29,8 @@ import {
   CalendarCheck,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PermissionKey } from '@/lib/permissions';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import TrialBanner from '@/components/trial/TrialBanner';
 import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning';
@@ -42,11 +44,13 @@ interface NavItemOptions {
   isBetaTester: boolean;
   hasJennyExec: boolean;
   isOwner: boolean;
+  can: (perm: PermissionKey) => boolean;
 }
 
-const getNavItems = ({ isBetaTester, hasJennyExec, isOwner }: NavItemOptions) => {
+const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can }: NavItemOptions) => {
   const showExecFeatures = isOwner && (isBetaTester || hasJennyExec);
 
+  // Core items visible to all authenticated users
   const items = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/dispatch', label: 'Dispatch Board', icon: Radio },
@@ -54,16 +58,22 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner }: NavItemOptions) =>
     { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
     { href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route },
     { href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck },
-    { href: '/dashboard/team', label: 'Team', icon: UsersRound },
-    { href: '/dashboard/customers', label: 'Customers', icon: UserCircle },
-    { href: '/dashboard/leads', label: 'Leads', icon: Users },
+  ];
+
+  // Permission-gated admin features
+  if (can('team_management')) items.push({ href: '/dashboard/team', label: 'Team', icon: UsersRound });
+  if (can('customers')) items.push({ href: '/dashboard/customers', label: 'Customers', icon: UserCircle });
+  if (can('leads')) items.push({ href: '/dashboard/leads', label: 'Leads', icon: Users });
+
+  // Quotes and invoices — always visible (workers can view their own), but admin actions are gated in-page
+  items.push(
     { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
     { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
     { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
     { href: '/dashboard/jenny-lite', label: isBetaTester ? 'Jenny AI' : 'Jenny Lite', icon: MessageCircle },
     { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
     { href: '/dashboard/blog', label: 'Blog', icon: BookOpen },
-  ];
+  );
 
   // Owner-facing Jenny Exec Admin features: only visible to owners with the addon or beta testers
   if (showExecFeatures) {
@@ -73,7 +83,7 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner }: NavItemOptions) =>
     );
   }
 
-  items.push({ href: '/dashboard/settings', label: 'Settings', icon: Settings });
+  if (can('settings')) items.push({ href: '/dashboard/settings', label: 'Settings', icon: Settings });
 
   return items;
 };
@@ -82,6 +92,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, dbUser, company, signOut, isLoading } = useAuth();
+  const { can } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -142,6 +153,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Format role for display
   const formatRole = (role: string | undefined) => {
     if (!role) return 'User';
+    if (role === 'worker_admin') return 'Team Member + Admin';
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
@@ -192,6 +204,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               isBetaTester: !!company?.is_beta_tester,
               hasJennyExec: (company?.addons || []).includes('jenny_exec_admin'),
               isOwner: dbUser?.role === 'owner',
+              can,
             }).map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (

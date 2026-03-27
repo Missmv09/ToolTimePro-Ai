@@ -127,7 +127,7 @@ export default function IndustriesPage() {
             <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Pricing</Link>
             <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Free Tools</Link>
             <span className="text-[#5c5c70] text-base flex items-center gap-1">
-              📞 1-888-555-0123
+              📞 (888) 980-TOOL
             </span>
             <Link
               href="/auth/login"

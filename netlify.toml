@@ -13,3 +13,20 @@
 
 # Note: API routes are handled automatically by @netlify/plugin-nextjs
 # Do NOT add redirects for /api/* as they interfere with Next.js App Router
+
+# ============================================================
+# Scheduled Functions (Cron Jobs)
+# These call internal API routes on a schedule.
+# Netlify runs them as background functions.
+# ============================================================
+
+# Jenny Autonomous Actions — runs every 15 minutes
+# Checks for: unassigned jobs, cold leads to follow up,
+# overdue invoices, completed jobs needing cost analysis
+[functions."jenny-actions-cron"]
+  schedule = "*/15 * * * *"
+
+# Trial Reminders — runs once per day at 9am UTC
+# Sends trial welcome, reminder, and expiration emails
+[functions."trial-reminders-cron"]
+  schedule = "0 9 * * *"

@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import Head from 'next/head'
 import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning'
 import { useSessionTimeout } from '@/hooks/useSessionTimeout'
 import { WorkerAuthProvider } from '@/contexts/WorkerAuthContext'
+import { OfflineIndicator, OfflineStatusDot } from '@/components/worker/OfflineIndicator'
 
 interface WorkerUser {
   id: string
@@ -48,6 +50,15 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
     }
 
     checkAuth()
+
+    // Register service worker for offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        console.log('[SW] Registered:', registration.scope)
+      }).catch((err) => {
+        console.warn('[SW] Registration failed:', err)
+      })
+    }
   }, [pathname, router])
 
   const handleSignOut = async () => {
@@ -98,6 +109,9 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   return (
     <WorkerAuthProvider>
     <div className="min-h-screen bg-gray-100 pb-20">
+      {/* Offline Status Banner */}
+      <OfflineIndicator />
+
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="px-4 py-3 flex items-center justify-between">
@@ -105,12 +119,15 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
             <p className="text-sm text-gray-500">{getCompanyName(user.company)}</p>
             <p className="font-semibold text-gray-900">{user.full_name}</p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            Sign Out
-          </button>
+          <div className="flex items-center gap-3">
+            <OfflineStatusDot />
+            <button
+              onClick={handleSignOut}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
 

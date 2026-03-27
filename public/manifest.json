@@ -1,0 +1,38 @@
+{
+  "name": "ToolTime Pro Worker",
+  "short_name": "ToolTime",
+  "description": "Clock in, track jobs, and manage your work day — even offline",
+  "start_url": "/worker/",
+  "display": "standalone",
+  "background_color": "#1a2332",
+  "theme_color": "#d4a843",
+  "orientation": "portrait",
+  "scope": "/worker/",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Clock In",
+      "url": "/worker/timeclock/",
+      "description": "Go to time clock"
+    },
+    {
+      "name": "My Jobs",
+      "url": "/worker/job/",
+      "description": "View assigned jobs"
+    }
+  ]
+}

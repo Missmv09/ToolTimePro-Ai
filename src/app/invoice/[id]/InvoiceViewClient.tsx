@@ -34,12 +34,23 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
 
   const fetchInvoice = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Only look up by UUID — do not fallback to invoice_number to prevent enumeration
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(params.id)) {
+        setError('Invoice not found');
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('invoices')
         .select(`
@@ -50,50 +61,31 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
         .eq('id', params.id)
         .single();
 
-      if (fetchError) {
-        // Try by invoice_number
-        const { data: byNumber, error: numberError } = await supabase
+      if (fetchError || !data) {
+        setError('Invoice not found');
+        setIsLoading(false);
+        return;
+      }
+
+      setInvoice(data as unknown as InvoiceWithDetails);
+
+      const { data: lineItems } = await supabase
+        .from('invoice_items')
+        .select('*')
+        .eq('invoice_id', data.id)
+        .order('sort_order', { ascending: true });
+
+      setItems((lineItems as InvoiceItem[]) || []);
+
+      // Mark as viewed if sent
+      if (data.status === 'sent') {
+        await supabase
           .from('invoices')
-          .select(`
-            *,
-            company:companies(*),
-            customer:customers(*)
-          `)
-          .eq('invoice_number', params.id)
-          .single();
-
-        if (numberError) throw fetchError;
-
-        setInvoice(byNumber as unknown as InvoiceWithDetails);
-
-        const { data: lineItems } = await supabase
-          .from('invoice_items')
-          .select('*')
-          .eq('invoice_id', byNumber.id)
-          .order('sort_order', { ascending: true });
-
-        setItems((lineItems as InvoiceItem[]) || []);
-      } else {
-        setInvoice(data as unknown as InvoiceWithDetails);
-
-        const { data: lineItems } = await supabase
-          .from('invoice_items')
-          .select('*')
-          .eq('invoice_id', data.id)
-          .order('sort_order', { ascending: true });
-
-        setItems((lineItems as InvoiceItem[]) || []);
-
-        // Mark as viewed if sent
-        if (data.status === 'sent') {
-          await supabase
-            .from('invoices')
-            .update({
-              status: 'viewed',
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', data.id);
-        }
+          .update({
+            status: 'viewed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', data.id);
       }
     } catch (err) {
       console.error('Error fetching invoice:', err);
@@ -105,7 +97,35 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
 
   useEffect(() => {
     fetchInvoice();
+    // Check for payment success return
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('paid') === 'true') {
+      setPaymentSuccess(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, [fetchInvoice]);
+
+  const handlePay = async () => {
+    setPaying(true);
+    setPayError(null);
+    try {
+      const res = await fetch('/api/invoice/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: invoice?.id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        setPayError(data.error || 'Failed to start payment');
+        setPaying(false);
+      }
+    } catch {
+      setPayError('Failed to connect to payment service');
+      setPaying(false);
+    }
+  };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'N/A';
@@ -183,6 +203,17 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Payment Success Banner */}
+        {paymentSuccess && invoice.status !== 'paid' && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center">
+            <div className="text-4xl mb-2">&#10003;</div>
+            <h2 className="text-xl font-bold text-green-700">Payment Submitted!</h2>
+            <p className="text-green-600 text-sm mt-1">
+              Your payment is being processed. This page will update once confirmed.
+            </p>
+          </div>
+        )}
+
         {/* Paid Banner */}
         {invoice.status === 'paid' && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center">
@@ -311,6 +342,27 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
               </div>
             </div>
           </div>
+
+          {/* Pay Now Button */}
+          {invoice.status !== 'paid' && balanceDue > 0 && !paymentSuccess && (
+            <div className="px-6 pb-6">
+              {payError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-lg mb-3">
+                  {payError}
+                </div>
+              )}
+              <button
+                onClick={handlePay}
+                disabled={paying}
+                className="w-full py-4 bg-green-600 text-white text-lg font-bold rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {paying ? 'Redirecting to payment...' : `Pay Now - $${balanceDue.toFixed(2)}`}
+              </button>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                Secure payment powered by Stripe
+              </p>
+            </div>
+          )}
 
           {/* Notes */}
           {invoice.notes && (
