@@ -50,7 +50,7 @@ export default function JennyActionsPage() {
 
   useEffect(() => {
     // Initialize local configs from fetched configs
-    const actionTypes: JennyActionType[] = ['auto_dispatch', 'lead_follow_up', 'cash_flow_alert', 'job_costing'];
+    const actionTypes: JennyActionType[] = ['auto_dispatch', 'lead_follow_up', 'cash_flow_alert', 'job_costing', 'review_request'];
     const initial: Record<string, Record<string, unknown>> = {};
     for (const type of actionTypes) {
       initial[type] = getConfig(type);
@@ -113,7 +113,7 @@ export default function JennyActionsPage() {
     await refetch();
   };
 
-  const actionTypes: JennyActionType[] = ['auto_dispatch', 'lead_follow_up', 'cash_flow_alert', 'job_costing'];
+  const actionTypes: JennyActionType[] = ['auto_dispatch', 'lead_follow_up', 'cash_flow_alert', 'job_costing', 'review_request'];
   const pendingActions = actionLog.filter(a => a.status === 'pending');
 
   return (
@@ -436,6 +436,42 @@ export default function JennyActionsPage() {
                           <input type="checkbox" id="include_labor" checked={config.include_labor !== false}
                             onChange={e => updateLocalConfig(actionType, 'include_labor', e.target.checked)} className="w-4 h-4 text-gold-500 rounded" />
                           <label htmlFor="include_labor" className="text-sm text-gray-700">Include labor costs (from time tracking)</label>
+                        </div>
+                      </>
+                    )}
+
+                    {actionType === 'review_request' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Google Review Link</label>
+                          <input
+                            type="url"
+                            value={(config.google_review_link as string) || ''}
+                            onChange={e => updateLocalConfig(actionType, 'google_review_link', e.target.value)}
+                            placeholder="https://g.page/r/YOUR-ID/review"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+                          />
+                          <p className="text-xs text-gray-400 mt-1">
+                            Get this from Google Business Profile → Share → &quot;Ask for reviews&quot;
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Send review request after job completion</label>
+                          <select
+                            value={(config.delay_hours as number) || 2}
+                            onChange={e => updateLocalConfig(actionType, 'delay_hours', parseInt(e.target.value))}
+                            className="w-48 px-3 py-2 border border-gray-300 rounded-lg"
+                          >
+                            <option value={1}>1 hour later</option>
+                            <option value={2}>2 hours later (recommended)</option>
+                            <option value={4}>4 hours later</option>
+                            <option value={24}>Next day</option>
+                            <option value={48}>2 days later</option>
+                          </select>
+                        </div>
+                        <div className="bg-amber-50 rounded-lg p-3 text-sm text-amber-700">
+                          <p className="font-medium text-amber-800 mb-1">How it works:</p>
+                          <p>After a job is marked complete, Jenny waits the configured delay, then sends the customer an SMS with a tracked link to your Google review page. You can see click rates and review status in your Reviews dashboard.</p>
                         </div>
                       </>
                     )}
