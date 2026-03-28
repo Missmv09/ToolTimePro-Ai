@@ -36,6 +36,15 @@ export async function GET(request: NextRequest) {
     job_costing: { checked: 0, acted: 0 },
     price_staleness: { checked: 0, acted: 0 },
     hr_law_update: { checked: 0, acted: 0 },
+    cert_expiration: { checked: 0, acted: 0 },
+    insurance_expiry: { checked: 0, acted: 0 },
+    w9_compliance: { checked: 0, acted: 0 },
+    classification_review: { checked: 0, acted: 0 },
+    compliance_escalation: { checked: 0, acted: 0 },
+    quote_expiration: { checked: 0, acted: 0 },
+    contractor_payment: { checked: 0, acted: 0 },
+    contract_end_date: { checked: 0, acted: 0 },
+    review_request: { checked: 0, acted: 0 },
   };
 
   try {
@@ -81,6 +90,51 @@ export async function GET(request: NextRequest) {
           case 'job_costing':
             results.job_costing.checked++;
             results.job_costing.acted += await runJobCosting(supabase, companyId, config);
+            break;
+
+          case 'cert_expiration':
+            results.cert_expiration.checked++;
+            results.cert_expiration.acted += await runCertExpirationCheck(supabase, companyId, config);
+            break;
+
+          case 'insurance_expiry':
+            results.insurance_expiry.checked++;
+            results.insurance_expiry.acted += await runInsuranceExpiryCheck(supabase, companyId, config);
+            break;
+
+          case 'w9_compliance':
+            results.w9_compliance.checked++;
+            results.w9_compliance.acted += await runW9ComplianceCheck(supabase, companyId);
+            break;
+
+          case 'classification_review':
+            results.classification_review.checked++;
+            results.classification_review.acted += await runClassificationReviewCheck(supabase, companyId, config);
+            break;
+
+          case 'compliance_escalation':
+            results.compliance_escalation.checked++;
+            results.compliance_escalation.acted += await runComplianceEscalation(supabase, companyId, config);
+            break;
+
+          case 'quote_expiration':
+            results.quote_expiration.checked++;
+            results.quote_expiration.acted += await runQuoteExpirationCheck(supabase, companyId, config);
+            break;
+
+          case 'contractor_payment':
+            results.contractor_payment.checked++;
+            results.contractor_payment.acted += await runContractorPaymentCheck(supabase, companyId, config);
+            break;
+
+          case 'contract_end_date':
+            results.contract_end_date.checked++;
+            results.contract_end_date.acted += await runContractEndDateCheck(supabase, companyId, config);
+            break;
+
+          case 'review_request':
+            results.review_request.checked++;
+            results.review_request.acted += await runReviewRequest(supabase, companyId, config);
             break;
         }
       }
@@ -610,6 +664,642 @@ async function runPriceStalenessCheck(supabase: SB): Promise<number> {
 }
 
 // ============================================================
+// CERT EXPIRATION: Check for expiring worker certifications
+// ============================================================
+async function runCertExpirationCheck(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  let acted = 0;
+  const warnDays = (config.warn_days_before as number[]) || [60, 30, 14];
+  const maxWarnDays = Math.max(...warnDays);
+
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() + maxWarnDays * 86400000).toISOString().split('T')[0];
+
+  // Find active certifications expiring within the warning window
+  const { data: expiringCerts } = await supabase
+    .from('worker_certifications')
+    .select('id, worker_id, cert_type, cert_name, expiration_date, worker:users(full_name)')
+    .eq('company_id', companyId)
+    .eq('is_active', true)
+    .not('expiration_date', 'is', null)
+    .lte('expiration_date', cutoffDate);
+
+  if (!expiringCerts || expiringCerts.length === 0) return 0;
+
+  // Check which certs we already alerted about today
+  const today = now.toISOString().split('T')[0];
+  const { data: todayAlerts } = await supabase
+    .from('jenny_action_log')
+    .select('target_id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'cert_expiration')
+    .gte('created_at', `${today}T00:00:00`);
+
+  const alreadyAlerted = new Set((todayAlerts || []).map((a: { target_id: string }) => a.target_id));
+
+  for (const cert of expiringCerts) {
+    if (alreadyAlerted.has(cert.id)) continue;
+
+    const expirationDate = new Date(cert.expiration_date);
+    const daysUntilExpiry = Math.floor((expirationDate.getTime() - now.getTime()) / 86400000);
+    const isExpired = daysUntilExpiry < 0;
+    const worker = Array.isArray(cert.worker) ? cert.worker[0] : cert.worker;
+    const workerName = (worker as { full_name: string } | null)?.full_name || 'Unknown Worker';
+
+    const title = isExpired
+      ? `${workerName}'s ${cert.cert_name} has EXPIRED`
+      : `${workerName}'s ${cert.cert_name} expires in ${daysUntilExpiry} days`;
+
+    await supabase.from('jenny_action_log').insert({
+      company_id: companyId,
+      action_type: 'cert_expiration',
+      title,
+      description: `${workerName}'s ${cert.cert_name} (${cert.cert_type}) ${isExpired ? 'expired on' : 'expires on'} ${cert.expiration_date}. ${isExpired ? 'This worker should not be assigned to jobs requiring this certification until renewed.' : 'Renew before expiration to avoid work stoppages.'}`,
+      status: 'executed',
+      target_id: cert.id,
+      target_type: 'certification',
+      target_name: `${cert.cert_name} — ${workerName}`,
+      metadata: { worker_id: cert.worker_id, cert_type: cert.cert_type, expiration_date: cert.expiration_date, days_until_expiry: daysUntilExpiry, is_expired: isExpired },
+      executed_at: now.toISOString(),
+    });
+
+    acted++;
+  }
+
+  return acted;
+}
+
+// ============================================================
+// INSURANCE EXPIRY: Check for 1099 contractors with expiring insurance
+// ============================================================
+async function runInsuranceExpiryCheck(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  let acted = 0;
+  const warnDays = (config.warn_days_before as number) || 14;
+
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() + warnDays * 86400000).toISOString();
+
+  // Find 1099 contractors with insurance expiring soon or already expired
+  const { data: contractors } = await supabase
+    .from('worker_profiles')
+    .select('id, user_id, business_name, insurance_expiry, insurance_verified, user:users(full_name)')
+    .eq('company_id', companyId)
+    .eq('classification', '1099_contractor')
+    .not('insurance_expiry', 'is', null)
+    .lte('insurance_expiry', cutoffDate);
+
+  if (!contractors || contractors.length === 0) return 0;
+
+  // Check for existing alerts this week
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+
+  const { data: existingAlerts } = await supabase
+    .from('jenny_action_log')
+    .select('target_id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'insurance_expiry')
+    .gte('created_at', weekStart.toISOString());
+
+  const alreadyAlerted = new Set((existingAlerts || []).map((a: { target_id: string }) => a.target_id));
+
+  for (const contractor of contractors) {
+    if (alreadyAlerted.has(contractor.id)) continue;
+
+    const expiryDate = new Date(contractor.insurance_expiry);
+    const daysUntilExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / 86400000);
+    const isExpired = daysUntilExpiry < 0;
+    const user = Array.isArray(contractor.user) ? contractor.user[0] : contractor.user;
+    const name = (user as { full_name: string } | null)?.full_name || contractor.business_name || 'Unknown Contractor';
+
+    await supabase.from('jenny_action_log').insert({
+      company_id: companyId,
+      action_type: 'insurance_expiry',
+      title: isExpired
+        ? `${name}: Insurance EXPIRED ${Math.abs(daysUntilExpiry)} days ago`
+        : `${name}: Insurance expires in ${daysUntilExpiry} days`,
+      description: isExpired
+        ? `${name}'s insurance coverage expired on ${contractor.insurance_expiry.split('T')[0]}. Do not assign additional work until updated proof of insurance is provided — this exposes your business to liability.`
+        : `${name}'s insurance coverage expires on ${contractor.insurance_expiry.split('T')[0]}. Request updated proof of insurance before expiration.`,
+      status: 'executed',
+      target_id: contractor.id,
+      target_type: 'worker_profile',
+      target_name: name,
+      metadata: { user_id: contractor.user_id, insurance_expiry: contractor.insurance_expiry, days_until_expiry: daysUntilExpiry, is_expired: isExpired },
+      executed_at: now.toISOString(),
+    });
+
+    acted++;
+  }
+
+  return acted;
+}
+
+// ============================================================
+// W-9 COMPLIANCE: Find 1099 contractors missing W-9 forms
+// ============================================================
+async function runW9ComplianceCheck(
+  supabase: SB,
+  companyId: string
+): Promise<number> {
+  const now = new Date();
+
+  // Only run once per week
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+
+  const { data: existingAlert } = await supabase
+    .from('jenny_action_log')
+    .select('id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'w9_compliance')
+    .gte('created_at', weekStart.toISOString())
+    .limit(1);
+
+  if (existingAlert && existingAlert.length > 0) return 0;
+
+  // Find 1099 contractors without W-9
+  const { data: missingW9 } = await supabase
+    .from('worker_profiles')
+    .select('id, user_id, business_name, classified_at, user:users(full_name)')
+    .eq('company_id', companyId)
+    .eq('classification', '1099_contractor')
+    .eq('w9_received', false);
+
+  if (!missingW9 || missingW9.length === 0) return 0;
+
+  const names = missingW9.map((c: { user: unknown; business_name: string | null }) => {
+    const user = Array.isArray(c.user) ? c.user[0] : c.user;
+    return (user as { full_name: string } | null)?.full_name || c.business_name || 'Unknown';
+  });
+
+  await supabase.from('jenny_action_log').insert({
+    company_id: companyId,
+    action_type: 'w9_compliance',
+    title: `${missingW9.length} contractor${missingW9.length > 1 ? 's' : ''} missing W-9 forms`,
+    description: `The following 1099 contractors do not have a W-9 on file: ${names.join(', ')}. A W-9 is required before issuing any payments and for 1099-NEC tax reporting at year end.`,
+    status: 'executed',
+    target_id: null,
+    target_type: 'worker_profile',
+    target_name: `${missingW9.length} contractors`,
+    metadata: {
+      contractors: missingW9.map((c: { id: string; user_id: string; business_name: string | null }) => ({
+        profile_id: c.id,
+        user_id: c.user_id,
+        business_name: c.business_name,
+      })),
+      count: missingW9.length,
+    },
+    executed_at: now.toISOString(),
+  });
+
+  return 1;
+}
+
+// ============================================================
+// CLASSIFICATION REVIEW: Check for overdue worker classification reviews
+// ============================================================
+async function runClassificationReviewCheck(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  const now = new Date();
+
+  // Only run once per week
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+
+  const { data: existingAlert } = await supabase
+    .from('jenny_action_log')
+    .select('id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'classification_review')
+    .gte('created_at', weekStart.toISOString())
+    .limit(1);
+
+  if (existingAlert && existingAlert.length > 0) return 0;
+
+  // Find workers with overdue next_review_date
+  const { data: overdueReviews } = await supabase
+    .from('worker_profiles')
+    .select('id, user_id, classification, last_review_date, next_review_date, classification_method, user:users(full_name)')
+    .eq('company_id', companyId)
+    .not('next_review_date', 'is', null)
+    .lte('next_review_date', now.toISOString());
+
+  if (!overdueReviews || overdueReviews.length === 0) return 0;
+
+  for (const worker of overdueReviews) {
+    const user = Array.isArray(worker.user) ? worker.user[0] : worker.user;
+    const name = (user as { full_name: string } | null)?.full_name || 'Unknown Worker';
+    const reviewDate = new Date(worker.next_review_date);
+    const daysOverdue = Math.floor((now.getTime() - reviewDate.getTime()) / 86400000);
+
+    await supabase.from('jenny_action_log').insert({
+      company_id: companyId,
+      action_type: 'classification_review',
+      title: `${name}: Classification review ${daysOverdue} days overdue`,
+      description: `${name}'s worker classification (${worker.classification}) was due for review on ${worker.next_review_date.split('T')[0]}. Last reviewed: ${worker.last_review_date ? worker.last_review_date.split('T')[0] : 'Never'}. Re-run the ${worker.classification === '1099_contractor' ? 'ABC test' : 'classification assessment'} to confirm status and maintain your audit trail.`,
+      status: 'executed',
+      target_id: worker.id,
+      target_type: 'worker_profile',
+      target_name: name,
+      metadata: { user_id: worker.user_id, classification: worker.classification, last_review_date: worker.last_review_date, next_review_date: worker.next_review_date, days_overdue: daysOverdue },
+      executed_at: now.toISOString(),
+    });
+  }
+
+  return overdueReviews.length > 0 ? 1 : 0;
+}
+
+// ============================================================
+// COMPLIANCE ESCALATION: Escalate unacknowledged violations
+// ============================================================
+async function runComplianceEscalation(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  const now = new Date();
+  const escalateAfterDays = (config.escalate_after_days as number) || 3;
+  const escalateSeverity = (config.escalate_severity as string[]) || ['violation'];
+
+  // Only run once per day
+  const today = now.toISOString().split('T')[0];
+  const { data: existingAlert } = await supabase
+    .from('jenny_action_log')
+    .select('id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'compliance_escalation')
+    .gte('created_at', `${today}T00:00:00`)
+    .limit(1);
+
+  if (existingAlert && existingAlert.length > 0) return 0;
+
+  // Find unacknowledged compliance alerts older than threshold
+  const cutoffDate = new Date(now.getTime() - escalateAfterDays * 86400000).toISOString();
+
+  const { data: unacknowledged } = await supabase
+    .from('compliance_alerts')
+    .select('id, user_id, alert_type, severity, title, description, hours_worked, created_at, user:users(full_name)')
+    .eq('company_id', companyId)
+    .eq('acknowledged', false)
+    .in('severity', escalateSeverity)
+    .lte('created_at', cutoffDate);
+
+  if (!unacknowledged || unacknowledged.length === 0) return 0;
+
+  // Group by severity for the summary
+  const bySeverity: Record<string, number> = {};
+  for (const alert of unacknowledged) {
+    bySeverity[alert.severity] = (bySeverity[alert.severity] || 0) + 1;
+  }
+
+  const severitySummary = Object.entries(bySeverity)
+    .map(([sev, count]) => `${count} ${sev}${count > 1 ? 's' : ''}`)
+    .join(', ');
+
+  await supabase.from('jenny_action_log').insert({
+    company_id: companyId,
+    action_type: 'compliance_escalation',
+    title: `${unacknowledged.length} compliance alert${unacknowledged.length > 1 ? 's' : ''} need attention`,
+    description: `There are ${unacknowledged.length} unacknowledged compliance alerts older than ${escalateAfterDays} days (${severitySummary}). These include missed meal breaks, overtime warnings, and other labor law violations that require review. Unresolved violations increase audit risk.`,
+    status: 'executed',
+    target_id: null,
+    target_type: 'compliance_alert',
+    target_name: `${unacknowledged.length} unacknowledged alerts`,
+    metadata: {
+      total: unacknowledged.length,
+      by_severity: bySeverity,
+      escalate_after_days: escalateAfterDays,
+      oldest_alert: unacknowledged[unacknowledged.length - 1]?.created_at,
+      alert_types: [...new Set(unacknowledged.map((a: { alert_type: string }) => a.alert_type))],
+    },
+    executed_at: now.toISOString(),
+  });
+
+  return 1;
+}
+
+// ============================================================
+// QUOTE EXPIRATION: Alert when quotes are about to expire
+// ============================================================
+async function runQuoteExpirationCheck(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  let acted = 0;
+  const warnDays = (config.warn_days_before as number[]) || [7, 3, 1];
+  const maxWarnDays = Math.max(...warnDays);
+  const autoExpire = config.auto_expire !== false;
+
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const cutoffDate = new Date(now.getTime() + maxWarnDays * 86400000).toISOString().split('T')[0];
+
+  // Find quotes expiring within window that are still active
+  const { data: expiringQuotes } = await supabase
+    .from('quotes')
+    .select('id, customer_id, total, status, valid_until, customer:customers(name, phone, email)')
+    .eq('company_id', companyId)
+    .in('status', ['sent', 'viewed', 'draft'])
+    .not('valid_until', 'is', null)
+    .lte('valid_until', cutoffDate);
+
+  if (!expiringQuotes || expiringQuotes.length === 0) return 0;
+
+  // Check for existing alerts today
+  const { data: todayAlerts } = await supabase
+    .from('jenny_action_log')
+    .select('target_id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'quote_expiration')
+    .gte('created_at', `${today}T00:00:00`);
+
+  const alreadyAlerted = new Set((todayAlerts || []).map((a: { target_id: string }) => a.target_id));
+
+  for (const quote of expiringQuotes) {
+    if (alreadyAlerted.has(quote.id)) continue;
+
+    const validUntil = new Date(quote.valid_until);
+    const daysUntilExpiry = Math.floor((validUntil.getTime() - now.getTime()) / 86400000);
+    const isExpired = daysUntilExpiry < 0;
+    const customer = Array.isArray(quote.customer) ? quote.customer[0] : quote.customer;
+    const customerName = (customer as { name: string } | null)?.name || 'Unknown Customer';
+
+    // Auto-expire quotes past their valid_until date
+    if (isExpired && autoExpire && quote.status !== 'draft') {
+      await supabase.from('quotes').update({ status: 'expired' }).eq('id', quote.id);
+    }
+
+    await supabase.from('jenny_action_log').insert({
+      company_id: companyId,
+      action_type: 'quote_expiration',
+      title: isExpired
+        ? `Quote for ${customerName} expired ${Math.abs(daysUntilExpiry)} days ago ($${quote.total})`
+        : `Quote for ${customerName} expires in ${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''} ($${quote.total})`,
+      description: isExpired
+        ? `A $${quote.total} quote for ${customerName} expired on ${quote.valid_until}.${autoExpire ? ' Jenny has marked it as expired.' : ''} Consider sending a refreshed quote to re-engage the customer.`
+        : `A $${quote.total} quote for ${customerName} expires on ${quote.valid_until}. Follow up to close the deal before it expires.`,
+      status: 'executed',
+      target_id: quote.id,
+      target_type: 'quote',
+      target_name: `Quote for ${customerName}`,
+      metadata: { customer_name: customerName, total: quote.total, valid_until: quote.valid_until, days_until_expiry: daysUntilExpiry, auto_expired: isExpired && autoExpire },
+      executed_at: now.toISOString(),
+    });
+
+    acted++;
+  }
+
+  return acted;
+}
+
+// ============================================================
+// CONTRACTOR PAYMENT: Alert on submitted invoices awaiting approval
+// ============================================================
+async function runContractorPaymentCheck(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  let acted = 0;
+  const remindAfterDays = (config.remind_after_days as number) || 3;
+
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const cutoffDate = new Date(now.getTime() - remindAfterDays * 86400000).toISOString();
+
+  // Find submitted invoices awaiting approval that are older than the remind threshold
+  const { data: pendingInvoices } = await supabase
+    .from('contractor_invoices')
+    .select('id, contractor_id, contractor_name, invoice_number, total, submitted_date, period_start, period_end, status')
+    .eq('company_id', companyId)
+    .in('status', ['submitted', 'approved'])
+    .lte('submitted_date', cutoffDate);
+
+  if (!pendingInvoices || pendingInvoices.length === 0) return 0;
+
+  // Check for existing alerts today
+  const { data: todayAlerts } = await supabase
+    .from('jenny_action_log')
+    .select('target_id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'contractor_payment')
+    .gte('created_at', `${today}T00:00:00`);
+
+  const alreadyAlerted = new Set((todayAlerts || []).map((a: { target_id: string }) => a.target_id));
+
+  const submitted = pendingInvoices.filter((inv: { status: string }) => inv.status === 'submitted');
+  const approved = pendingInvoices.filter((inv: { status: string }) => inv.status === 'approved');
+
+  // Summary alert for submitted invoices
+  if (submitted.length > 0) {
+    const totalAmount = submitted.reduce((sum: number, inv: { total: number }) => sum + inv.total, 0);
+    const newInvoices = submitted.filter((inv: { id: string }) => !alreadyAlerted.has(inv.id));
+
+    if (newInvoices.length > 0) {
+      await supabase.from('jenny_action_log').insert({
+        company_id: companyId,
+        action_type: 'contractor_payment',
+        title: `${submitted.length} contractor invoice${submitted.length > 1 ? 's' : ''} awaiting approval ($${totalAmount.toFixed(2)})`,
+        description: `${submitted.length} contractor invoices totaling $${totalAmount.toFixed(2)} have been submitted and are awaiting your approval. Oldest submitted ${remindAfterDays}+ days ago. Review and approve to keep contractors paid on time.`,
+        status: 'executed',
+        target_id: null,
+        target_type: 'contractor_invoice',
+        target_name: `${submitted.length} submitted invoices`,
+        metadata: {
+          submitted_count: submitted.length,
+          total_amount: totalAmount,
+          invoices: submitted.map((inv: { id: string; contractor_name: string; invoice_number: string; total: number }) => ({
+            id: inv.id, contractor: inv.contractor_name, number: inv.invoice_number, total: inv.total,
+          })),
+        },
+        executed_at: now.toISOString(),
+      });
+      acted++;
+    }
+  }
+
+  // Summary alert for approved but unpaid invoices
+  if (approved.length > 0) {
+    const totalApproved = approved.reduce((sum: number, inv: { total: number }) => sum + inv.total, 0);
+    const newApproved = approved.filter((inv: { id: string }) => !alreadyAlerted.has(inv.id));
+
+    if (newApproved.length > 0) {
+      await supabase.from('jenny_action_log').insert({
+        company_id: companyId,
+        action_type: 'contractor_payment',
+        title: `${approved.length} approved invoice${approved.length > 1 ? 's' : ''} awaiting payment ($${totalApproved.toFixed(2)})`,
+        description: `${approved.length} contractor invoices totaling $${totalApproved.toFixed(2)} have been approved but not yet paid. Process payments to maintain good contractor relationships.`,
+        status: 'executed',
+        target_id: null,
+        target_type: 'contractor_invoice',
+        target_name: `${approved.length} approved invoices`,
+        metadata: {
+          approved_count: approved.length,
+          total_amount: totalApproved,
+          invoices: approved.map((inv: { id: string; contractor_name: string; invoice_number: string; total: number }) => ({
+            id: inv.id, contractor: inv.contractor_name, number: inv.invoice_number, total: inv.total,
+          })),
+        },
+        executed_at: now.toISOString(),
+      });
+      acted++;
+    }
+  }
+
+  return acted;
+}
+
+// ============================================================
+// CONTRACT END DATE: Alert when contractor agreements are ending
+// ============================================================
+async function runContractEndDateCheck(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  let acted = 0;
+  const warnDays = (config.warn_days_before as number[]) || [30, 14, 7];
+  const maxWarnDays = Math.max(...warnDays);
+
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() + maxWarnDays * 86400000).toISOString();
+
+  // Find contractors with contracts ending within the warning window
+  const { data: endingContracts } = await supabase
+    .from('worker_profiles')
+    .select('id, user_id, business_name, contract_start_date, contract_end_date, classification, user:users(full_name)')
+    .eq('company_id', companyId)
+    .eq('classification', '1099_contractor')
+    .not('contract_end_date', 'is', null)
+    .lte('contract_end_date', cutoffDate);
+
+  if (!endingContracts || endingContracts.length === 0) return 0;
+
+  // Check for existing alerts this week
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+
+  const { data: existingAlerts } = await supabase
+    .from('jenny_action_log')
+    .select('target_id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'contract_end_date')
+    .gte('created_at', weekStart.toISOString());
+
+  const alreadyAlerted = new Set((existingAlerts || []).map((a: { target_id: string }) => a.target_id));
+
+  for (const contractor of endingContracts) {
+    if (alreadyAlerted.has(contractor.id)) continue;
+
+    const endDate = new Date(contractor.contract_end_date);
+    const daysUntilEnd = Math.floor((endDate.getTime() - now.getTime()) / 86400000);
+    const isExpired = daysUntilEnd < 0;
+    const user = Array.isArray(contractor.user) ? contractor.user[0] : contractor.user;
+    const name = (user as { full_name: string } | null)?.full_name || contractor.business_name || 'Unknown Contractor';
+
+    await supabase.from('jenny_action_log').insert({
+      company_id: companyId,
+      action_type: 'contract_end_date',
+      title: isExpired
+        ? `${name}: Contract ended ${Math.abs(daysUntilEnd)} days ago`
+        : `${name}: Contract ends in ${daysUntilEnd} days`,
+      description: isExpired
+        ? `${name}'s contractor agreement ended on ${contractor.contract_end_date.split('T')[0]}. No new work should be assigned without a renewed contract. Consider offboarding or contract renewal.`
+        : `${name}'s contractor agreement ends on ${contractor.contract_end_date.split('T')[0]}. Plan for contract renewal or begin offboarding preparations.`,
+      status: 'executed',
+      target_id: contractor.id,
+      target_type: 'worker_profile',
+      target_name: name,
+      metadata: { user_id: contractor.user_id, contract_end_date: contractor.contract_end_date, days_until_end: daysUntilEnd, is_expired: isExpired },
+      executed_at: now.toISOString(),
+    });
+
+    acted++;
+  }
+
+  return acted;
+}
+
+// ============================================================
+// REVIEW REQUEST: Auto-request Google reviews after job completion
+// ============================================================
+async function runReviewRequest(
+  supabase: SB,
+  companyId: string,
+  _config: Record<string, unknown>
+): Promise<number> {
+  let acted = 0;
+  const now = new Date();
+
+  // Find jobs completed in the last 24-48 hours (sweet spot for review requests)
+  const oneDayAgo = new Date(now.getTime() - 86400000).toISOString();
+  const twoDaysAgo = new Date(now.getTime() - 2 * 86400000).toISOString();
+
+  const { data: recentlyCompleted } = await supabase
+    .from('jobs')
+    .select('id, title, customer_id, completed_at, customer:customers(name, phone, email)')
+    .eq('company_id', companyId)
+    .eq('status', 'completed')
+    .gte('completed_at', twoDaysAgo)
+    .lte('completed_at', oneDayAgo);
+
+  if (!recentlyCompleted || recentlyCompleted.length === 0) return 0;
+
+  // Check for existing review requests
+  const jobIds = recentlyCompleted.map((j: { id: string }) => j.id);
+  const { data: existingRequests } = await supabase
+    .from('jenny_action_log')
+    .select('target_id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'review_request')
+    .in('target_id', jobIds);
+
+  const alreadyRequested = new Set((existingRequests || []).map((r: { target_id: string }) => r.target_id));
+
+  for (const job of recentlyCompleted) {
+    if (alreadyRequested.has(job.id)) continue;
+
+    const customer = Array.isArray(job.customer) ? job.customer[0] : job.customer;
+    const customerName = (customer as { name: string } | null)?.name || 'Customer';
+    const customerPhone = (customer as { phone: string } | null)?.phone;
+
+    if (!customerPhone) continue; // Need phone for SMS review request
+
+    await supabase.from('jenny_action_log').insert({
+      company_id: companyId,
+      action_type: 'review_request',
+      title: `Request review from ${customerName} for "${job.title}"`,
+      description: `"${job.title}" was completed for ${customerName}. Send a review request SMS to ${customerPhone} to boost your Google reviews.`,
+      status: 'pending', // Pending owner approval before sending
+      target_id: job.id,
+      target_type: 'job',
+      target_name: job.title,
+      metadata: { customer_name: customerName, customer_phone: customerPhone, customer_id: job.customer_id, completed_at: job.completed_at },
+    });
+
+    acted++;
+  }
+
+  return acted;
+}
+
+// ============================================================
 // HR LAW UPDATE CHECK: Weekly check if state compliance rules are stale
 // ============================================================
 async function runHrLawUpdateCheck(supabase: SB): Promise<number> {
@@ -774,6 +1464,33 @@ export async function POST(request: NextRequest) {
             break;
           case 'job_costing':
             results.job_costing = await runJobCosting(supabase, dbUser.company_id, c);
+            break;
+          case 'cert_expiration':
+            results.cert_expiration = await runCertExpirationCheck(supabase, dbUser.company_id, c);
+            break;
+          case 'insurance_expiry':
+            results.insurance_expiry = await runInsuranceExpiryCheck(supabase, dbUser.company_id, c);
+            break;
+          case 'w9_compliance':
+            results.w9_compliance = await runW9ComplianceCheck(supabase, dbUser.company_id);
+            break;
+          case 'classification_review':
+            results.classification_review = await runClassificationReviewCheck(supabase, dbUser.company_id, c);
+            break;
+          case 'compliance_escalation':
+            results.compliance_escalation = await runComplianceEscalation(supabase, dbUser.company_id, c);
+            break;
+          case 'quote_expiration':
+            results.quote_expiration = await runQuoteExpirationCheck(supabase, dbUser.company_id, c);
+            break;
+          case 'contractor_payment':
+            results.contractor_payment = await runContractorPaymentCheck(supabase, dbUser.company_id, c);
+            break;
+          case 'contract_end_date':
+            results.contract_end_date = await runContractEndDateCheck(supabase, dbUser.company_id, c);
+            break;
+          case 'review_request':
+            results.review_request = await runReviewRequest(supabase, dbUser.company_id, c);
             break;
         }
       }

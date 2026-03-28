@@ -8,7 +8,15 @@ export type JennyActionType =
   | 'job_costing'
   | 'review_request'
   | 'price_staleness'
-  | 'hr_law_update';
+  | 'hr_law_update'
+  | 'cert_expiration'
+  | 'insurance_expiry'
+  | 'w9_compliance'
+  | 'classification_review'
+  | 'compliance_escalation'
+  | 'quote_expiration'
+  | 'contractor_payment'
+  | 'contract_end_date';
 
 export type ActionStatus = 'pending' | 'executed' | 'skipped' | 'failed';
 
@@ -87,6 +95,59 @@ export interface HrLawUpdateConfig {
   states: string[]; // Empty = check all enabled states
 }
 
+// Cert/License Expiration Config
+export interface CertExpirationConfig {
+  enabled: boolean;
+  warn_days_before: number[]; // e.g. [60, 30, 14] days before expiry
+  notify_owner: boolean;
+  notify_worker: boolean;
+}
+
+// Contractor Insurance Expiry Config
+export interface InsuranceExpiryConfig {
+  enabled: boolean;
+  warn_days_before: number; // Alert X days before expiry
+  block_assignments: boolean; // Block job assignments if expired
+}
+
+// W-9 Compliance Config
+export interface W9ComplianceConfig {
+  enabled: boolean;
+  block_payments: boolean; // Block payments until W-9 received
+}
+
+// Classification Review Config
+export interface ClassificationReviewConfig {
+  enabled: boolean;
+  review_interval_months: number; // Default 6 months
+}
+
+// Compliance Escalation Config
+export interface ComplianceEscalationConfig {
+  enabled: boolean;
+  escalate_after_days: number; // Auto-escalate unacknowledged violations after X days
+  escalate_severity: ('warning' | 'violation')[]; // Which severities to escalate
+}
+
+// Quote Expiration Config
+export interface QuoteExpirationConfig {
+  enabled: boolean;
+  warn_days_before: number[]; // e.g. [7, 3, 1] days before expiry
+  auto_expire: boolean; // Auto-mark as expired
+}
+
+// Contractor Payment Config
+export interface ContractorPaymentConfig {
+  enabled: boolean;
+  remind_after_days: number; // Remind owner X days after invoice submitted
+}
+
+// Contract End Date Config
+export interface ContractEndDateConfig {
+  enabled: boolean;
+  warn_days_before: number[]; // e.g. [30, 14, 7] days before end
+}
+
 // Default configs for new companies
 export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unknown>> = {
   auto_dispatch: {
@@ -154,6 +215,51 @@ export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unkn
     notify_owner: true,
     states: [], // Empty = all enabled states
   } satisfies HrLawUpdateConfig,
+
+  cert_expiration: {
+    enabled: true,
+    warn_days_before: [60, 30, 14],
+    notify_owner: true,
+    notify_worker: true,
+  } satisfies CertExpirationConfig,
+
+  insurance_expiry: {
+    enabled: true,
+    warn_days_before: 14,
+    block_assignments: true,
+  } satisfies InsuranceExpiryConfig,
+
+  w9_compliance: {
+    enabled: true,
+    block_payments: true,
+  } satisfies W9ComplianceConfig,
+
+  classification_review: {
+    enabled: true,
+    review_interval_months: 6,
+  } satisfies ClassificationReviewConfig,
+
+  compliance_escalation: {
+    enabled: true,
+    escalate_after_days: 3,
+    escalate_severity: ['violation'],
+  } satisfies ComplianceEscalationConfig,
+
+  quote_expiration: {
+    enabled: true,
+    warn_days_before: [7, 3, 1],
+    auto_expire: true,
+  } satisfies QuoteExpirationConfig,
+
+  contractor_payment: {
+    enabled: true,
+    remind_after_days: 3,
+  } satisfies ContractorPaymentConfig,
+
+  contract_end_date: {
+    enabled: true,
+    warn_days_before: [30, 14, 7],
+  } satisfies ContractEndDateConfig,
 };
 
 // Action descriptions for the dashboard
@@ -192,5 +298,45 @@ export const ACTION_DESCRIPTIONS: Record<JennyActionType, { title: string; descr
     title: 'HR Law Update Check',
     description: 'Weekly check of state employment law freshness. Alerts when compliance rules (wages, classification tests, break requirements) are older than 6 months and may need review.',
     icon: 'Scale',
+  },
+  cert_expiration: {
+    title: 'Certification Expiration Alerts',
+    description: 'Monthly check of worker certifications (OSHA, EPA, journeyman licenses). Alerts 60, 30, and 14 days before expiration to prevent work stoppages.',
+    icon: 'Award',
+  },
+  insurance_expiry: {
+    title: 'Contractor Insurance Expiry',
+    description: 'Weekly check for 1099 contractors with insurance expiring within 14 days. Prevents liability exposure from uninsured workers.',
+    icon: 'Shield',
+  },
+  w9_compliance: {
+    title: 'W-9 Compliance Check',
+    description: 'Weekly scan for 1099 contractors missing W-9 forms. Required before any payments can be issued — critical for tax reporting.',
+    icon: 'FileText',
+  },
+  classification_review: {
+    title: 'Classification Review Cycle',
+    description: 'Quarterly check for workers whose classification review is overdue. Essential for AB5 compliance and audit trail documentation.',
+    icon: 'UserCheck',
+  },
+  compliance_escalation: {
+    title: 'Compliance Alert Escalation',
+    description: 'Weekly digest of unacknowledged compliance violations (missed breaks, overtime). Auto-escalates critical violations unresolved after 3 days.',
+    icon: 'AlertTriangle',
+  },
+  quote_expiration: {
+    title: 'Quote Expiration Alerts',
+    description: 'Daily check for quotes expiring within 7 days. Nudges the sales team to close or refresh quotes before they go stale.',
+    icon: 'Clock',
+  },
+  contractor_payment: {
+    title: 'Contractor Payment Reminders',
+    description: 'Daily check for submitted contractor invoices awaiting approval. Alerts owners so payments are processed on time.',
+    icon: 'CreditCard',
+  },
+  contract_end_date: {
+    title: 'Contract End Date Alerts',
+    description: 'Weekly check for contractor agreements ending within 30 days. Triggers offboarding planning or contract renewal conversations.',
+    icon: 'Calendar',
   },
 };
