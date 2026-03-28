@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { pricesNeedAttention } from '@/lib/supplier-pricing';
-import { getMaterialsByTrade, type TradeType } from '@/lib/materials-database';
+import { pricesNeedAttention, calculatePriceIntelligence, type CategoryStalenessStatus } from '@/lib/supplier-pricing';
+import { getMaterialsByTrade, getMaterialById, type TradeType } from '@/lib/materials-database';
 import { getEnabledStates, isRulesStale, type StateComplianceRules } from '@/lib/state-compliance';
 
 export const dynamic = 'force-dynamic';
@@ -631,11 +631,9 @@ async function runReviewRequests(
 }
 
 // ============================================================
-// PRICE STALENESS: Monthly check if material prices need refreshing
+// PRICE STALENESS: Per-category volatility check + crowd-sourced drift
 // ============================================================
 async function runPriceStalenessCheck(supabase: SB): Promise<number> {
-  const priceStatus = pricesNeedAttention();
-
   // Only run once per month — check if we already alerted this month
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01T00:00:00`;
@@ -649,64 +647,156 @@ async function runPriceStalenessCheck(supabase: SB): Promise<number> {
 
   if (existingAlert && existingAlert.length > 0) return 0; // Already ran this month
 
-  // Only alert if prices need attention (within 30 days of stale or already stale)
-  if (!priceStatus.needsUpdate) return 0;
+  let acted = 0;
 
-  // Count materials per trade for the report
-  const ALL_TRADES: TradeType[] = [
-    'painting', 'plumbing', 'electrical', 'landscaping', 'handyman', 'flooring',
-    'lawn_care', 'pool_service', 'hvac', 'roofing', 'fencing', 'concrete',
-    'carpentry', 'irrigation', 'pressure_washing', 'insulation', 'siding',
-    'drywall', 'tree_service', 'solar', 'garage_door',
-  ];
+  // --- PHASE 2: Per-category volatility check ---
+  const priceStatus = pricesNeedAttention();
 
-  let totalMaterials = 0;
-  for (const trade of ALL_TRADES) {
-    const materials = getMaterialsByTrade(trade);
-    totalMaterials += materials.length;
+  if (priceStatus.needsUpdate) {
+    const ALL_TRADES: TradeType[] = [
+      'painting', 'plumbing', 'electrical', 'landscaping', 'handyman', 'flooring',
+      'lawn_care', 'pool_service', 'hvac', 'roofing', 'fencing', 'concrete',
+      'carpentry', 'irrigation', 'pressure_washing', 'insulation', 'siding',
+      'drywall', 'tree_service', 'solar', 'garage_door',
+    ];
+
+    let totalMaterials = 0;
+    for (const trade of ALL_TRADES) {
+      totalMaterials += getMaterialsByTrade(trade).length;
+    }
+
+    const staleCount = priceStatus.staleCategories.length;
+    const warningCount = priceStatus.warningCategories.length;
+
+    // Build category-specific details
+    const formatCategory = (c: CategoryStalenessStatus) =>
+      `${c.category} (${c.volatilityTier} volatility): ${c.isStale ? `STALE — ${c.daysSinceUpdate} days old` : `${c.daysUntilStale} days until stale`}`;
+
+    const staleList = priceStatus.staleCategories.map(formatCategory);
+    const warningList = priceStatus.warningCategories.map(formatCategory);
+
+    const hasStale = staleCount > 0;
+    const title = hasStale
+      ? `${staleCount} material ${staleCount === 1 ? 'category' : 'categories'} have stale prices`
+      : `${warningCount} material ${warningCount === 1 ? 'category' : 'categories'} approaching staleness`;
+
+    const description = [
+      hasStale
+        ? `${staleCount} high-volatility material ${staleCount === 1 ? 'category has' : 'categories have'} exceeded ${staleCount === 1 ? 'its' : 'their'} refresh threshold. Quotes using these materials may be inaccurate.`
+        : `${warningCount} material ${warningCount === 1 ? 'category is' : 'categories are'} approaching ${warningCount === 1 ? 'its' : 'their'} refresh threshold.`,
+      '',
+      staleList.length > 0 ? `STALE:\n${staleList.map(s => `  - ${s}`).join('\n')}` : '',
+      warningList.length > 0 ? `WARNING:\n${warningList.map(s => `  - ${s}`).join('\n')}` : '',
+    ].filter(Boolean).join('\n');
+
+    await supabase.from('jenny_action_log').insert({
+      company_id: null,
+      action_type: 'price_staleness',
+      title,
+      description,
+      status: 'executed',
+      target_id: null,
+      target_type: 'material_pricing',
+      target_name: `${totalMaterials} materials across ${ALL_TRADES.length} trades`,
+      metadata: {
+        days_since_update: priceStatus.daysSinceUpdate,
+        total_materials: totalMaterials,
+        total_trades: ALL_TRADES.length,
+        price_base_date: '2026-01-01',
+        stale_categories: priceStatus.staleCategories.map(c => ({ category: c.category, tier: c.volatilityTier, days: c.daysSinceUpdate })),
+        warning_categories: priceStatus.warningCategories.map(c => ({ category: c.category, tier: c.volatilityTier, daysLeft: c.daysUntilStale })),
+        is_stale: hasStale,
+      },
+      executed_at: now.toISOString(),
+    });
+
+    // Create per-category staleness alert records
+    for (const cat of [...priceStatus.staleCategories, ...priceStatus.warningCategories]) {
+      await supabase.from('price_staleness_alerts').insert({
+        company_id: null,
+        trade: cat.category,
+        material_count: totalMaterials,
+        stale_count: cat.isStale ? 1 : 0,
+        avg_price_age_days: cat.daysSinceUpdate,
+        status: 'pending',
+      });
+    }
+
+    acted++;
   }
 
-  const isStale = priceStatus.daysUntilStale === 0;
-  const title = isStale
-    ? `Material prices are outdated (${priceStatus.daysSinceUpdate} days old)`
-    : `Material prices expiring in ${priceStatus.daysUntilStale} days`;
+  // --- PHASE 3: Crowd-sourced price drift check ---
+  // Check if contractors have logged actual prices that differ significantly from estimates
+  const { data: recentPriceLogs } = await supabase
+    .from('material_price_logs')
+    .select('material_id, estimated_price, actual_price, created_at')
+    .not('actual_price', 'is', null)
+    .gte('created_at', new Date(now.getTime() - 90 * 86400000).toISOString()); // Last 90 days
 
-  const description = isStale
-    ? `The material pricing database has not been updated in ${priceStatus.daysSinceUpdate} days. ${totalMaterials} materials across ${ALL_TRADES.length} trades are using estimated prices from January 2026. Prices should be reviewed and refreshed to ensure accurate customer quotes.`
-    : `Material prices were last set in January 2026 (${priceStatus.daysSinceUpdate} days ago). They will be flagged as stale in ${priceStatus.daysUntilStale} days. Consider scheduling a price review to keep customer quotes accurate.`;
+  if (recentPriceLogs && recentPriceLogs.length >= 5) {
+    // Build material name lookup
+    const materialNames: Record<string, string> = {};
+    const uniqueIds = [...new Set(recentPriceLogs.map(l => l.material_id))];
+    for (const id of uniqueIds) {
+      const mat = getMaterialById(id);
+      if (mat) materialNames[id] = mat.name;
+    }
 
-  // Log as a platform-wide alert (no company_id — visible to all)
-  await supabase.from('jenny_action_log').insert({
-    company_id: null,
-    action_type: 'price_staleness',
-    title,
-    description,
-    status: 'executed',
-    target_id: null,
-    target_type: 'material_pricing',
-    target_name: `${totalMaterials} materials across ${ALL_TRADES.length} trades`,
-    metadata: {
-      days_since_update: priceStatus.daysSinceUpdate,
-      days_until_stale: priceStatus.daysUntilStale,
-      total_materials: totalMaterials,
-      total_trades: ALL_TRADES.length,
-      price_base_date: '2026-01-01',
-      is_stale: isStale,
-    },
-    executed_at: now.toISOString(),
-  });
+    const intel = calculatePriceIntelligence(recentPriceLogs, materialNames);
 
-  // Also create a staleness alert record for the dashboard
-  await supabase.from('price_staleness_alerts').insert({
-    company_id: null, // platform-wide
-    trade: '_all',
-    material_count: totalMaterials,
-    stale_count: isStale ? totalMaterials : 0,
-    avg_price_age_days: priceStatus.daysSinceUpdate,
-    status: 'pending',
-  });
+    if (intel.significantDrifts.length > 0) {
+      const underpricedCount = intel.topUnderpriced.length;
+      const overpricedCount = intel.topOverpriced.length;
 
-  return 1;
+      const driftTitle = underpricedCount > 0
+        ? `${underpricedCount} material${underpricedCount === 1 ? '' : 's'} priced below market — contractors are paying more`
+        : `${overpricedCount} material${overpricedCount === 1 ? '' : 's'} priced above market — your quotes may be too high`;
+
+      const driftLines: string[] = [];
+      if (intel.topUnderpriced.length > 0) {
+        driftLines.push('UNDERPRICED (your quotes may be too low):');
+        for (const item of intel.topUnderpriced.slice(0, 5)) {
+          driftLines.push(`  - ${item.materialName}: estimated $${item.estimatedPrice}, actual avg $${item.avgActualPrice} (+${item.priceDriftPercent}%, ${item.sampleSize} reports)`);
+        }
+      }
+      if (intel.topOverpriced.length > 0) {
+        driftLines.push('OVERPRICED (your quotes may be too high):');
+        for (const item of intel.topOverpriced.slice(0, 5)) {
+          driftLines.push(`  - ${item.materialName}: estimated $${item.estimatedPrice}, actual avg $${item.avgActualPrice} (${item.priceDriftPercent}%, ${item.sampleSize} reports)`);
+        }
+      }
+
+      await supabase.from('jenny_action_log').insert({
+        company_id: null,
+        action_type: 'price_staleness',
+        title: driftTitle,
+        description: `Based on ${recentPriceLogs.length} price reports from contractors in the last 90 days, ${intel.significantDrifts.length} materials have prices that differ >10% from estimates.\n\n${driftLines.join('\n')}`,
+        status: 'executed',
+        target_id: null,
+        target_type: 'price_intelligence',
+        target_name: `${intel.significantDrifts.length} materials with price drift`,
+        metadata: {
+          total_reports: recentPriceLogs.length,
+          materials_with_data: intel.materialsWithData,
+          avg_drift_percent: intel.avgDriftPercent,
+          underpriced_count: underpricedCount,
+          overpriced_count: overpricedCount,
+          top_drifts: intel.significantDrifts.slice(0, 10).map(d => ({
+            material: d.materialName,
+            estimated: d.estimatedPrice,
+            actual: d.avgActualPrice,
+            drift: d.priceDriftPercent,
+            samples: d.sampleSize,
+          })),
+        },
+        executed_at: now.toISOString(),
+      });
+
+      acted++;
+    }
+  }
+
+  return acted;
 }
 
 // ============================================================

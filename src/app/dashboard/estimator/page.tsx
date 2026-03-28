@@ -33,6 +33,9 @@ import {
   TrendingUp,
   Percent,
   Users,
+  Receipt,
+  Save,
+  Loader2,
 } from 'lucide-react';
 
 const TRADE_ICONS: Record<string, typeof Calculator> = {
@@ -58,6 +61,13 @@ export default function EstimatorPage() {
   const [customMarkup, setCustomMarkup] = useState<number | null>(null);
   const [showMarkup, setShowMarkup] = useState(true);
 
+  // "What I Actually Paid" state
+  const [showPriceLog, setShowPriceLog] = useState(false);
+  const [actualPrices, setActualPrices] = useState<Record<string, string>>({});
+  const [storeName, setStoreName] = useState('');
+  const [savingPrices, setSavingPrices] = useState(false);
+  const [pricesSaved, setPricesSaved] = useState(false);
+
   const estimator = selectedTrade ? getEstimatorByTrade(selectedTrade) : null;
 
   // Initialize defaults when trade is selected
@@ -75,6 +85,10 @@ export default function EstimatorPage() {
     setResult(null);
     setMarkupResult(null);
     setCustomMarkup(null);
+    setActualPrices({});
+    setStoreName('');
+    setPricesSaved(false);
+    setShowPriceLog(false);
     setStep('specs');
   };
 
@@ -101,6 +115,40 @@ export default function EstimatorPage() {
     setCustomMarkup(percent);
     if (result && selectedTrade) {
       recalcMarkup(result, selectedTrade, percent);
+    }
+  };
+
+  // Submit actual prices
+  const handleSavePrices = async () => {
+    if (!result || !selectedTrade) return;
+    const items = result.items
+      .filter(item => actualPrices[item.materialId] && Number(actualPrices[item.materialId]) > 0)
+      .map(item => ({
+        materialId: item.materialId,
+        trade: selectedTrade,
+        tier: selectedTier,
+        estimatedPrice: item.unitPrice,
+        actualPrice: Number(actualPrices[item.materialId]),
+        storeName: storeName || undefined,
+      }));
+
+    if (items.length === 0) return;
+
+    setSavingPrices(true);
+    try {
+      const response = await fetch('/api/material-price-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+      if (response.ok) {
+        setPricesSaved(true);
+        setTimeout(() => setPricesSaved(false), 3000);
+      }
+    } catch {
+      console.error('Failed to save price logs');
+    } finally {
+      setSavingPrices(false);
     }
   };
 
@@ -549,13 +597,135 @@ export default function EstimatorPage() {
             </div>
           )}
 
+          {/* What I Actually Paid */}
+          <div className="card border border-purple-200">
+            <button
+              onClick={() => setShowPriceLog(!showPriceLog)}
+              className="flex items-center justify-between w-full"
+            >
+              <h3 className="font-semibold text-purple-800 flex items-center gap-2">
+                <Receipt className="w-5 h-5" />
+                What I Actually Paid
+              </h3>
+              <div className="flex items-center gap-2">
+                {pricesSaved && (
+                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Saved
+                  </span>
+                )}
+                {showPriceLog ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </div>
+            </button>
+
+            {showPriceLog && (
+              <div className="mt-4 space-y-4">
+                <p className="text-sm text-gray-600">
+                  After buying materials, log what you actually paid. Over time, this builds a real-world price
+                  database that helps keep your quotes accurate — and alerts you when prices drift.
+                </p>
+
+                {/* Store name */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Store</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Home Depot Riverside"
+                    value={storeName}
+                    onChange={e => setStoreName(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+
+                {/* Price entry table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-gray-400 border-b">
+                        <th className="pb-2 pr-2">Item</th>
+                        <th className="pb-2 pr-2 text-right">Estimated</th>
+                        <th className="pb-2 pr-2 text-right">Actual Price</th>
+                        <th className="pb-2 text-right">Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.items.map((item, idx) => {
+                        const actual = Number(actualPrices[item.materialId]) || 0;
+                        const diff = actual > 0 ? actual - item.unitPrice : 0;
+                        const diffPct = actual > 0 && item.unitPrice > 0
+                          ? ((diff / item.unitPrice) * 100).toFixed(1)
+                          : null;
+
+                        return (
+                          <tr key={idx} className="border-b border-gray-100">
+                            <td className="py-2 pr-2">
+                              <p className="font-medium text-gray-800 text-xs">{item.name}</p>
+                              <p className="text-xs text-gray-400">{item.brand}</p>
+                            </td>
+                            <td className="py-2 pr-2 text-right text-gray-500">
+                              ${item.unitPrice.toFixed(2)}
+                            </td>
+                            <td className="py-2 pr-2 text-right">
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="$0.00"
+                                value={actualPrices[item.materialId] || ''}
+                                onChange={e => setActualPrices(prev => ({
+                                  ...prev,
+                                  [item.materialId]: e.target.value,
+                                }))}
+                                className="w-24 px-2 py-1 border border-gray-300 rounded text-right text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                              />
+                            </td>
+                            <td className="py-2 text-right">
+                              {diffPct !== null && (
+                                <span className={`text-xs font-medium ${
+                                  diff > 0 ? 'text-red-600' : diff < 0 ? 'text-green-600' : 'text-gray-400'
+                                }`}>
+                                  {diff > 0 ? '+' : ''}{diffPct}%
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-gray-400">
+                    Only items with prices entered will be logged
+                  </p>
+                  <button
+                    onClick={handleSavePrices}
+                    disabled={savingPrices || Object.values(actualPrices).filter(v => Number(v) > 0).length === 0}
+                    className="btn-primary flex items-center gap-2 text-sm px-4 py-2 disabled:opacity-50"
+                  >
+                    {savingPrices ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    Save Actual Prices
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Pricing Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <h3 className="font-medium text-blue-800 text-sm mb-2">About Pricing</h3>
             <p className="text-sm text-blue-700">
               Material prices are based on 2026 retail pricing from Home Depot, Lowe&apos;s, and specialty suppliers.
-              Your markup is applied on top to calculate the customer quote price. You can adjust markup per estimate
-              or set company-wide defaults in Settings.
+              Your markup is applied on top to calculate the customer quote price. Log what you actually paid to
+              help ToolTime keep prices accurate for all contractors.
             </p>
           </div>
 
@@ -584,7 +754,7 @@ export default function EstimatorPage() {
               Adjust Specs
             </button>
             <button
-              onClick={() => { setStep('trade'); setSelectedTrade(null); setResult(null); setMarkupResult(null); }}
+              onClick={() => { setStep('trade'); setSelectedTrade(null); setResult(null); setMarkupResult(null); setActualPrices({}); setShowPriceLog(false); }}
               className="btn-outline flex items-center justify-center gap-2"
             >
               New Estimate
