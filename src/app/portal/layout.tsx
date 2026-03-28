@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, FileText, Home, LogOut, User } from 'lucide-react';
+import { Calendar, FileText, Home, LogOut } from 'lucide-react';
 
 interface PortalSession {
   token: string;
@@ -11,7 +11,7 @@ interface PortalSession {
   companyName: string;
 }
 
-export default function PortalLayout({ children }: { children: React.ReactNode }) {
+function PortalLayoutInner({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<PortalSession | null>(null);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
@@ -19,9 +19,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Check for token in URL (magic link) or localStorage
     const urlToken = searchParams.get('token');
-    const storedToken = localStorage.getItem('portal_token');
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('portal_token') : null;
     const token = urlToken || storedToken;
 
     if (!token) {
@@ -32,7 +31,6 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       return;
     }
 
-    // Validate token
     fetch(`/api/portal?action=profile&token=${token}`)
       .then(res => {
         if (!res.ok) throw new Error('Invalid session');
@@ -40,7 +38,6 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       })
       .then(data => {
         localStorage.setItem('portal_token', token);
-        // Clean token from URL
         if (urlToken) {
           window.history.replaceState({}, '', pathname);
         }
@@ -73,7 +70,6 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     router.push('/portal/login');
   };
 
-  // Don't show layout on login page
   if (pathname === '/portal/login') {
     return <>{children}</>;
   }
@@ -96,7 +92,6 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
@@ -110,12 +105,10 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
       </header>
 
-      {/* Content */}
       <main className="max-w-3xl mx-auto p-4">
         {children}
       </main>
 
-      {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div className="max-w-3xl mx-auto flex justify-around">
           {navItems.map(item => {
@@ -134,5 +127,17 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
       </nav>
     </div>
+  );
+}
+
+export default function PortalLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-navy-500"></div>
+      </div>
+    }>
+      <PortalLayoutInner>{children}</PortalLayoutInner>
+    </Suspense>
   );
 }
