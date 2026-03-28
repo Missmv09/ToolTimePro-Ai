@@ -451,10 +451,54 @@ export default function JennyActionsPage() {
                             placeholder="https://g.page/r/YOUR-ID/review"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
                           />
+                        </div>
+
+                        {/* How to get your Google Review link */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                          <p className="font-medium text-blue-800 text-sm mb-3">How to get your Google Review link:</p>
+                          <ol className="space-y-2 text-sm text-blue-700">
+                            <li className="flex items-start gap-2">
+                              <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5">1</span>
+                              <span>Go to <strong>Google Business Profile</strong> (search &quot;my business&quot; on Google while signed in, or visit business.google.com)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5">2</span>
+                              <span>Click <strong>&quot;Ask for reviews&quot;</strong> (or go to Home → &quot;Get more reviews&quot;)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5">3</span>
+                              <span>Click <strong>&quot;Share review form&quot;</strong> → Copy the link</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5">4</span>
+                              <span>Paste it above. It should look like: <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs">https://g.page/r/CdXyZ.../review</code></span>
+                            </li>
+                          </ol>
+                          <div className="mt-3 pt-3 border-t border-blue-200">
+                            <p className="text-xs text-blue-600">
+                              <strong>Don&apos;t have a Google Business Profile?</strong> It&apos;s free to create one at{' '}
+                              <a href="https://business.google.com" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                                business.google.com
+                              </a>
+                              . It takes about 5 minutes and helps customers find you on Google Maps and Search. You&apos;ll need to verify your business address (Google mails you a postcard with a code, or you can verify by phone for some businesses).
+                            </p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Yelp Review Link (optional)</label>
+                          <input
+                            type="url"
+                            value={(config.yelp_review_link as string) || ''}
+                            onChange={e => updateLocalConfig(actionType, 'yelp_review_link', e.target.value)}
+                            placeholder="https://www.yelp.com/writeareview/biz/YOUR-BIZ-ID"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+                          />
                           <p className="text-xs text-gray-400 mt-1">
-                            Get this from Google Business Profile → Share → &quot;Ask for reviews&quot;
+                            Optional — if set, Jenny will alternate between Google and Yelp review requests
                           </p>
                         </div>
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Send review request after job completion</label>
                           <select
