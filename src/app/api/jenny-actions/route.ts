@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { pricesNeedAttention, calculatePriceIntelligence, type CategoryStalenessStatus } from '@/lib/supplier-pricing';
 import { getMaterialsByTrade, getMaterialById, type TradeType } from '@/lib/materials-database';
+import { getEnabledStates, isRulesStale, type StateComplianceRules } from '@/lib/state-compliance';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
     cash_flow_alert: { checked: 0, acted: 0 },
     job_costing: { checked: 0, acted: 0 },
     price_staleness: { checked: 0, acted: 0 },
+    hr_law_update: { checked: 0, acted: 0 },
   };
 
   try {
@@ -96,6 +98,12 @@ export async function GET(request: NextRequest) {
     // ============================================================
     results.price_staleness.checked = 1;
     results.price_staleness.acted = await runPriceStalenessCheck(supabase);
+
+    // ============================================================
+    // HR LAW UPDATE CHECK (runs weekly, not per-company)
+    // ============================================================
+    results.hr_law_update.checked = 1;
+    results.hr_law_update.acted = await runHrLawUpdateCheck(supabase);
 
     return NextResponse.json({ message: 'Jenny actions complete', results, ran_at: new Date().toISOString() });
   } catch (err: unknown) {
@@ -691,6 +699,121 @@ async function runPriceStalenessCheck(supabase: SB): Promise<number> {
   return acted;
 }
 
+// ============================================================
+// HR LAW UPDATE CHECK: Weekly check if state compliance rules are stale
+// ============================================================
+async function runHrLawUpdateCheck(supabase: SB): Promise<number> {
+  // Only run once per week — check if we already alerted this week
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
+  weekStart.setHours(0, 0, 0, 0);
+
+  const { data: existingAlert } = await supabase
+    .from('jenny_action_log')
+    .select('id')
+    .eq('action_type', 'hr_law_update')
+    .gte('created_at', weekStart.toISOString())
+    .limit(1);
+
+  if (existingAlert && existingAlert.length > 0) return 0; // Already ran this week
+
+  const enabledStates = getEnabledStates();
+  const staleStates: StateComplianceRules[] = [];
+
+  for (const state of enabledStates) {
+    if (isRulesStale(state.stateCode)) {
+      staleStates.push(state);
+    }
+  }
+
+  // If no states are stale, log a clean check and exit
+  if (staleStates.length === 0) {
+    await supabase.from('jenny_action_log').insert({
+      company_id: null,
+      action_type: 'hr_law_update',
+      title: `All ${enabledStates.length} state compliance rules are current`,
+      description: `Weekly HR law check completed. All ${enabledStates.length} enabled states have up-to-date employment law rules. Next check in 1 week.`,
+      status: 'executed',
+      target_id: null,
+      target_type: 'compliance',
+      target_name: `${enabledStates.length} states checked`,
+      metadata: {
+        total_states: enabledStates.length,
+        stale_count: 0,
+        states_checked: enabledStates.map(s => s.stateCode),
+      },
+      executed_at: now.toISOString(),
+    });
+
+    return 0;
+  }
+
+  // Build details for stale states
+  const staleDetails = staleStates.map(state => {
+    const lastUpdated = new Date(state.lastUpdated);
+    const daysSinceUpdate = Math.floor((now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
+    return {
+      stateCode: state.stateCode,
+      stateName: state.stateName,
+      lastUpdated: state.lastUpdated,
+      daysSinceUpdate,
+      sourceUrl: state.sourceUrl,
+      minimumWage: state.wage.minimumWage,
+      classificationTest: state.classification.testName,
+    };
+  });
+
+  const staleNames = staleStates.map(s => s.stateName).join(', ');
+  const title = staleStates.length === 1
+    ? `${staleStates[0].stateName} employment law rules are outdated`
+    : `${staleStates.length} states have outdated employment law rules`;
+
+  const description = `Weekly HR law check found ${staleStates.length} state${staleStates.length > 1 ? 's' : ''} with compliance rules older than 6 months: ${staleNames}. ` +
+    `These rules cover worker classification tests, minimum wage rates, break requirements, and final pay deadlines. ` +
+    `Outdated rules may lead to misclassification penalties or wage violations. Please review and update state compliance data.`;
+
+  // Log the alert
+  await supabase.from('jenny_action_log').insert({
+    company_id: null, // platform-wide alert
+    action_type: 'hr_law_update',
+    title,
+    description,
+    status: 'executed',
+    target_id: null,
+    target_type: 'compliance',
+    target_name: `${staleStates.length} stale states: ${staleNames}`,
+    metadata: {
+      total_states: enabledStates.length,
+      stale_count: staleStates.length,
+      stale_states: staleDetails,
+      states_checked: enabledStates.map(s => s.stateCode),
+      areas_affected: ['classification_tests', 'minimum_wage', 'overtime_rules', 'break_requirements', 'contractor_rules', 'final_pay'],
+    },
+    executed_at: now.toISOString(),
+  });
+
+  // Also log individual state alerts for granularity
+  for (const detail of staleDetails) {
+    await supabase.from('jenny_action_log').insert({
+      company_id: null,
+      action_type: 'hr_law_update',
+      title: `${detail.stateName} (${detail.stateCode}): Rules are ${detail.daysSinceUpdate} days old`,
+      description: `${detail.stateName} employment rules were last updated on ${detail.lastUpdated} (${detail.daysSinceUpdate} days ago). ` +
+        `Current minimum wage: $${detail.minimumWage.toFixed(2)}. Classification test: ${detail.classificationTest}. ` +
+        `Review the latest rules at ${detail.sourceUrl}`,
+      status: 'executed',
+      target_id: null,
+      target_type: 'compliance',
+      target_name: `${detail.stateName} compliance rules`,
+      metadata: detail,
+      executed_at: now.toISOString(),
+    });
+  }
+
+  return 1;
+}
+
 // POST — Manual trigger for a specific company (from dashboard)
 export async function POST(request: NextRequest) {
   const supabase = getSupabaseAdmin();
@@ -748,6 +871,10 @@ export async function POST(request: NextRequest) {
       // Also run price staleness check on manual trigger
       const priceResult = await runPriceStalenessCheck(supabase);
       results.price_staleness = priceResult;
+
+      // Also run HR law update check on manual trigger
+      const hrResult = await runHrLawUpdateCheck(supabase);
+      results.hr_law_update = hrResult;
 
       return NextResponse.json({ success: true, results });
     }
