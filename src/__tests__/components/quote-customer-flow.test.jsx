@@ -390,9 +390,71 @@ describe('CustomerQuoteView – customer flow', () => {
     expect(screen.queryByText('Decline')).not.toBeInTheDocument();
   });
 
-  // ── Error handling during approval ──────────────────────────────────────
+  // ── Already-approved / already-rejected quotes ────────────────────────
 
-  it('shows alert when respond API fails during approval', async () => {
+  it('shows approved state and hides action buttons for already-approved quotes', async () => {
+    const approvedQuote = { ...sampleQuote, status: 'approved', approved_at: '2026-03-15' };
+    mockFetchSuccess(approvedQuote);
+
+    renderQuoteView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Quote Approved!')).toBeInTheDocument();
+    });
+
+    // Action buttons should not be visible
+    expect(screen.queryByText(/Sign & Approve/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Decline')).not.toBeInTheDocument();
+
+    // Status badge should show approved
+    expect(screen.getByText('✓ Approved')).toBeInTheDocument();
+  });
+
+  it('shows declined state and hides action buttons for already-rejected quotes', async () => {
+    const rejectedQuote = { ...sampleQuote, status: 'rejected' };
+    mockFetchSuccess(rejectedQuote);
+
+    renderQuoteView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Quote Declined')).toBeInTheDocument();
+    });
+
+    // Action buttons should not be visible
+    expect(screen.queryByText(/Sign & Approve/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Decline')).not.toBeInTheDocument();
+  });
+
+  // ── Timezone-safe expiration ───────────────────────────────────────────
+
+  it('does not falsely expire a quote valid until today', async () => {
+    // valid_until = today → should NOT be expired
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    const todayQuote = { ...sampleQuote, valid_until: todayStr };
+    mockFetchSuccess(todayQuote);
+
+    renderQuoteView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Acme Services')).toBeInTheDocument();
+    });
+
+    // Should NOT show expired notice
+    expect(screen.queryByText('This quote has expired')).not.toBeInTheDocument();
+
+    // Action buttons should still be visible
+    expect(screen.getByText(/Sign & Approve/)).toBeInTheDocument();
+    expect(screen.getByText('Decline')).toBeInTheDocument();
+  });
+
+  // ── Inline error handling during approval ──────────────────────────────
+
+  it('shows inline error when respond API fails during approval', async () => {
     mockFetchRespondError();
 
     renderQuoteView();
@@ -407,18 +469,15 @@ describe('CustomerQuoteView – customer flow', () => {
     fireEvent.click(screen.getByText('Save'));
     await waitFor(() => expect(screen.getByText(/Approve Quote/)).toBeInTheDocument());
 
-    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
     fireEvent.click(screen.getByText(/Approve Quote/));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Failed to approve quote. Please try again.');
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText('Failed to approve quote. Please try again.')).toBeInTheDocument();
     });
-
-    alertSpy.mockRestore();
   });
 
-  it('shows alert when respond API fails during rejection', async () => {
+  it('shows inline error when respond API fails during rejection', async () => {
     mockFetchRespondError();
 
     renderQuoteView();
@@ -431,14 +490,40 @@ describe('CustomerQuoteView – customer flow', () => {
     await waitFor(() => expect(screen.getByText('Why are you declining?')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Other'));
 
-    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
     fireEvent.click(screen.getByText('Decline Quote'));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Failed to decline quote. Please try again.');
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText('Failed to decline quote. Please try again.')).toBeInTheDocument();
+    });
+  });
+
+  it('dismisses inline error when dismiss button is clicked', async () => {
+    mockFetchRespondError();
+
+    renderQuoteView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Acme Services')).toBeInTheDocument();
     });
 
-    alertSpy.mockRestore();
+    // Trigger an error
+    fireEvent.click(screen.getByText(/Sign & Approve/));
+    await waitFor(() => expect(screen.getByText('Sign to Approve')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Save'));
+    await waitFor(() => expect(screen.getByText(/Approve Quote/)).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText(/Approve Quote/));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    // Dismiss the error
+    fireEvent.click(screen.getByLabelText('Dismiss error'));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
   });
 });
