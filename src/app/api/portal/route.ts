@@ -203,6 +203,229 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ quotes: quotes || [] });
   }
 
+  // ============================================================
+  // PORTAL PRO: Job tracker with crew + status updates
+  // ============================================================
+  if (action === 'tracker') {
+    const { data: activeJobs } = await supabase
+      .from('jobs')
+      .select('id, title, description, scheduled_date, scheduled_time_start, scheduled_time_end, status, address, city, state')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .in('status', ['scheduled', 'in_progress'])
+      .order('scheduled_date', { ascending: true });
+
+    // Get crew assignments for active jobs
+    const jobIds = (activeJobs || []).map((j: { id: string }) => j.id);
+    let assignments: { job_id: string; user: { full_name: string } | { full_name: string }[] | null }[] = [];
+    if (jobIds.length > 0) {
+      const { data } = await supabase
+        .from('job_assignments')
+        .select('job_id, user:users(full_name)')
+        .in('job_id', jobIds);
+      assignments = data || [];
+    }
+
+    // Get latest note per job (non-internal only)
+    let latestNotes: { job_id: string; note_text: string; created_at: string }[] = [];
+    if (jobIds.length > 0) {
+      const { data } = await supabase
+        .from('job_notes')
+        .select('job_id, note_text, created_at')
+        .in('job_id', jobIds)
+        .eq('is_internal', false)
+        .order('created_at', { ascending: false });
+      latestNotes = data || [];
+    }
+
+    // Merge crew + notes into jobs
+    const enrichedJobs = (activeJobs || []).map((job: { id: string }) => {
+      const crew = assignments
+        .filter(a => a.job_id === job.id)
+        .map(a => {
+          const user = Array.isArray(a.user) ? a.user[0] : a.user;
+          return user?.full_name || 'Team member';
+        });
+      const notes = latestNotes.filter(n => n.job_id === job.id).slice(0, 3);
+      return { ...job, crew, statusUpdates: notes };
+    });
+
+    return NextResponse.json({ jobs: enrichedJobs });
+  }
+
+  // ============================================================
+  // PORTAL PRO: Job photos (before/during/after)
+  // ============================================================
+  if (action === 'photos') {
+    const jobId = request.nextUrl.searchParams.get('jobId');
+
+    if (jobId) {
+      // Photos for a specific job
+      if (!isValidUUID(jobId)) return NextResponse.json({ error: 'Invalid job ID' }, { status: 400 });
+
+      const { data: photos } = await supabase
+        .from('job_photos')
+        .select('id, photo_url, photo_type, caption, created_at')
+        .eq('job_id', jobId)
+        .order('created_at', { ascending: true });
+
+      // Verify job belongs to customer
+      const { data: job } = await supabase
+        .from('jobs')
+        .select('id, title')
+        .eq('id', jobId)
+        .eq('customer_id', session.customer_id)
+        .single();
+
+      if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+
+      return NextResponse.json({ photos: photos || [], job });
+    }
+
+    // All jobs with photos for this customer
+    const { data: jobs } = await supabase
+      .from('jobs')
+      .select('id, title, scheduled_date, status')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .in('status', ['in_progress', 'completed'])
+      .order('scheduled_date', { ascending: false })
+      .limit(20);
+
+    const allJobIds = (jobs || []).map((j: { id: string }) => j.id);
+    let photos: { job_id: string; id: string; photo_url: string; photo_type: string; caption: string | null; created_at: string }[] = [];
+    if (allJobIds.length > 0) {
+      const { data } = await supabase
+        .from('job_photos')
+        .select('job_id, id, photo_url, photo_type, caption, created_at')
+        .in('job_id', allJobIds)
+        .order('created_at', { ascending: false });
+      photos = data || [];
+    }
+
+    // Group photos by job
+    const jobsWithPhotos = (jobs || [])
+      .map((job: { id: string }) => ({
+        ...job,
+        photos: photos.filter(p => p.job_id === job.id),
+      }))
+      .filter((j: { photos: unknown[] }) => j.photos.length > 0);
+
+    return NextResponse.json({ jobs: jobsWithPhotos });
+  }
+
+  // ============================================================
+  // PORTAL PRO: Messages
+  // ============================================================
+  if (action === 'messages') {
+    const jobId = request.nextUrl.searchParams.get('jobId');
+
+    let query = supabase
+      .from('portal_messages')
+      .select('id, job_id, sender_type, sender_name, message, is_read, created_at')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .order('created_at', { ascending: true });
+
+    if (jobId) {
+      if (!isValidUUID(jobId)) return NextResponse.json({ error: 'Invalid job ID' }, { status: 400 });
+      query = query.eq('job_id', jobId);
+    }
+
+    const { data: messages } = await query;
+
+    // Get unread count
+    const { count: unreadCount } = await supabase
+      .from('portal_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .eq('sender_type', 'contractor')
+      .eq('is_read', false);
+
+    // Get jobs that have message threads
+    const { data: threadJobs } = await supabase
+      .from('jobs')
+      .select('id, title, status, scheduled_date')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .order('scheduled_date', { ascending: false })
+      .limit(20);
+
+    return NextResponse.json({
+      messages: messages || [],
+      unreadCount: unreadCount || 0,
+      jobs: threadJobs || [],
+    });
+  }
+
+  // ============================================================
+  // PORTAL PRO: Documents vault
+  // ============================================================
+  if (action === 'documents') {
+    const { data: documents } = await supabase
+      .from('portal_documents')
+      .select('id, job_id, title, description, document_type, file_url, file_name, file_size, created_at')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .order('created_at', { ascending: false });
+
+    return NextResponse.json({ documents: documents || [] });
+  }
+
+  // ============================================================
+  // PORTAL PRO: Service history (full timeline)
+  // ============================================================
+  if (action === 'history') {
+    const { data: allJobs } = await supabase
+      .from('jobs')
+      .select('id, title, description, scheduled_date, status, total_amount, address')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .order('scheduled_date', { ascending: false })
+      .limit(50);
+
+    // Get totals
+    const { data: invoiceTotals } = await supabase
+      .from('invoices')
+      .select('total, amount_paid, status')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id);
+
+    const totalSpent = (invoiceTotals || [])
+      .filter((i: { status: string }) => i.status === 'paid')
+      .reduce((sum: number, i: { total: number }) => sum + i.total, 0);
+
+    const totalJobs = (allJobs || []).length;
+    const completedJobs = (allJobs || []).filter((j: { status: string }) => j.status === 'completed').length;
+
+    return NextResponse.json({
+      jobs: allJobs || [],
+      stats: {
+        totalJobs,
+        completedJobs,
+        totalSpent,
+        memberSince: null, // Could compute from first job date
+      },
+    });
+  }
+
+  // ============================================================
+  // PORTAL PRO: Check if company has Portal Pro addon
+  // ============================================================
+  if (action === 'check_pro') {
+    const { data: company } = await supabase
+      .from('companies')
+      .select('addons, plan')
+      .eq('id', session.company_id)
+      .single();
+
+    const addons = (company?.addons || []) as string[];
+    const hasPro = addons.includes('portal_pro') || company?.plan === 'elite';
+
+    return NextResponse.json({ hasPortalPro: hasPro });
+  }
+
   // Dashboard summary
   const [jobsRes, invoicesRes, quotesRes] = await Promise.all([
     supabase.from('jobs').select('id, title, scheduled_date, scheduled_time_start, status')
@@ -361,6 +584,54 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     await logPortalAccess(supabase, session.company_id, session.customer_id, 'reschedule_requested', clientIp, `Reschedule requested for job ${jobId}`);
+
+    return NextResponse.json({ success: true });
+  }
+
+  // PORTAL PRO: Send a message
+  if (action === 'send_message') {
+    const { jobId, message } = body;
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    }
+    if (jobId && !isValidUUID(jobId)) {
+      return NextResponse.json({ error: 'Invalid job ID' }, { status: 400 });
+    }
+
+    // Get customer name
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('name')
+      .eq('id', session.customer_id)
+      .single();
+
+    const { error } = await (supabase as any).from('portal_messages').insert({
+      company_id: session.company_id,
+      customer_id: session.customer_id,
+      job_id: jobId || null,
+      sender_type: 'customer',
+      sender_name: customer?.name || 'Customer',
+      message: message.substring(0, 2000), // Limit message length
+    });
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await logPortalAccess(supabase, session.company_id, session.customer_id, 'message_sent', clientIp);
+    return NextResponse.json({ success: true });
+  }
+
+  // PORTAL PRO: Mark messages as read
+  if (action === 'mark_messages_read') {
+    const { jobId } = body;
+    let query = (supabase as any)
+      .from('portal_messages')
+      .update({ is_read: true })
+      .eq('customer_id', session.customer_id)
+      .eq('sender_type', 'contractor')
+      .eq('is_read', false);
+
+    if (jobId) query = query.eq('job_id', jobId);
+    await query;
 
     return NextResponse.json({ success: true });
   }
