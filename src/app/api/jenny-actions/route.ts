@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     lead_follow_up: { checked: 0, acted: 0 },
     cash_flow_alert: { checked: 0, acted: 0 },
     job_costing: { checked: 0, acted: 0 },
+    review_request: { checked: 0, acted: 0 },
     price_staleness: { checked: 0, acted: 0 },
     hr_law_update: { checked: 0, acted: 0 },
     cert_expiration: { checked: 0, acted: 0 },
@@ -44,7 +45,6 @@ export async function GET(request: NextRequest) {
     quote_expiration: { checked: 0, acted: 0 },
     contractor_payment: { checked: 0, acted: 0 },
     contract_end_date: { checked: 0, acted: 0 },
-    review_request: { checked: 0, acted: 0 },
   };
 
   try {
@@ -575,6 +575,100 @@ async function runJobCosting(
       target_type: 'job',
       target_name: job.title,
       metadata: { quoted: quotedAmount, labor_cost: laborCost, labor_hours: laborHours, profit, margin: profitMargin, below_threshold: isUnprofitable },
+      executed_at: new Date().toISOString(),
+    });
+
+    acted++;
+  }
+
+  return acted;
+}
+
+// ============================================================
+// REVIEW REQUESTS (legacy wrapper — main uses runReviewRequest below)
+// ============================================================
+async function runReviewRequests(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  let acted = 0;
+  const delayHours = (config.delay_hours as number) || 2;
+
+  // Get company info and review link
+  const { data: company } = await supabase
+    .from('companies')
+    .select('name, phone, google_review_link')
+    .eq('id', companyId)
+    .single();
+
+  const googleLink = (company as any)?.google_review_link;
+  if (!googleLink) return 0; // Can't send review requests without a Google link
+
+  // Find completed jobs from the last 7 days that haven't had review requests sent
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const delayThreshold = new Date();
+  delayThreshold.setHours(delayThreshold.getHours() - delayHours);
+
+  const { data: completedJobs } = await supabase
+    .from('jobs')
+    .select('id, title, customer_id, updated_at, customer:customers(id, name, phone, email, sms_consent)')
+    .eq('company_id', companyId)
+    .eq('status', 'completed')
+    .gte('updated_at', sevenDaysAgo.toISOString())
+    .lte('updated_at', delayThreshold.toISOString()); // Only jobs completed at least X hours ago
+
+  if (!completedJobs || completedJobs.length === 0) return 0;
+
+  // Check which jobs already have review requests
+  const jobIds = completedJobs.map((j: any) => j.id);
+  const { data: existingRequests } = await (supabase as any)
+    .from('review_requests')
+    .select('job_id')
+    .in('job_id', jobIds);
+
+  const alreadyRequested = new Set((existingRequests || []).map((r: any) => r.job_id));
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com';
+
+  for (const job of completedJobs) {
+    if (alreadyRequested.has(job.id)) continue;
+
+    const customer = Array.isArray(job.customer) ? job.customer[0] : job.customer;
+    if (!customer?.phone) continue;
+
+    // Generate tracking token
+    const trackingToken = `rv-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 8)}`;
+    const trackingUrl = `${siteUrl}/r/${trackingToken}`;
+
+    // Create review request record
+    await (supabase as any).from('review_requests').insert({
+      company_id: companyId,
+      job_id: job.id,
+      customer_id: customer.id,
+      customer_name: customer.name,
+      customer_phone: customer.phone,
+      customer_email: customer.email,
+      review_link: googleLink,
+      status: 'sent',
+      channel: 'sms',
+      sent_at: new Date().toISOString(),
+      tracking_token: trackingToken,
+    });
+
+    // Log the action
+    await (supabase as any).from('jenny_action_log').insert({
+      company_id: companyId,
+      action_type: 'review_request',
+      title: `Review request sent to ${customer.name}`,
+      description: `Jenny sent a Google review request to ${customer.name} (${customer.phone}) after completing "${job.title}".`,
+      status: 'executed',
+      target_id: job.id,
+      target_type: 'job',
+      target_name: job.title,
+      metadata: { customer_name: customer.name, phone: customer.phone, tracking_token: trackingToken },
       executed_at: new Date().toISOString(),
     });
 
