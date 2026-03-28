@@ -7,7 +7,8 @@ export type JennyActionType =
   | 'cash_flow_alert'
   | 'job_costing'
   | 'review_request'
-  | 'price_staleness';
+  | 'price_staleness'
+  | 'hr_law_update';
 
 export type ActionStatus = 'pending' | 'executed' | 'skipped' | 'failed';
 
@@ -78,6 +79,14 @@ export interface JobCostingConfig {
   notify_owner: boolean;
 }
 
+// HR Law Update Config
+export interface HrLawUpdateConfig {
+  enabled: boolean;
+  stale_threshold_months: number; // Alert when rules older than X months
+  notify_owner: boolean;
+  states: string[]; // Empty = check all enabled states
+}
+
 // Default configs for new companies
 export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unknown>> = {
   auto_dispatch: {
@@ -138,6 +147,13 @@ export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unkn
   price_staleness: {
     enabled: true,
   },
+
+  hr_law_update: {
+    enabled: true,
+    stale_threshold_months: 6,
+    notify_owner: true,
+    states: [], // Empty = all enabled states
+  } satisfies HrLawUpdateConfig,
 };
 
 // Action descriptions for the dashboard
@@ -171,5 +187,10 @@ export const ACTION_DESCRIPTIONS: Record<JennyActionType, { title: string; descr
     title: 'Price Staleness Check',
     description: 'Monthly check of material pricing freshness. Alerts when prices are approaching 1 year old and need refreshing.',
     icon: 'Tag',
+  },
+  hr_law_update: {
+    title: 'HR Law Update Check',
+    description: 'Weekly check of state employment law freshness. Alerts when compliance rules (wages, classification tests, break requirements) are older than 6 months and may need review.',
+    icon: 'Scale',
   },
 };
