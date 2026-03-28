@@ -32,6 +32,18 @@
 [functions."hr-law-update-cron"]
   schedule = "0 8 * * 1"
 
+# Workforce Compliance — runs every Monday at 7am UTC
+# Checks: cert expirations, insurance expiry, missing W-9s,
+# classification review cycles, contract end dates
+[functions."workforce-compliance-cron"]
+  schedule = "0 7 * * 1"
+
+# Daily Business Checks — runs every day at 7am UTC
+# Checks: quote expirations, contractor payment approvals,
+# compliance alert escalation, review requests
+[functions."daily-business-cron"]
+  schedule = "0 7 * * *"
+
 # Trial Reminders — runs once per day at 9am UTC
 # Sends trial welcome, reminder, and expiration emails
 [functions."trial-reminders-cron"]

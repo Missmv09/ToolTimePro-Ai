@@ -75,6 +75,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [schedulingRequested, setSchedulingRequested] = useState(false);
   const [requestingSchedule, setRequestingSchedule] = useState(false);
   const [preferredContact, setPreferredContact] = useState<string>('');
@@ -107,6 +108,13 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
       const { quote: fetchedQuote, lineItems } = await res.json();
       setQuote(fetchedQuote as QuoteWithDetails);
       setItems((lineItems as QuoteLineItem[]) || []);
+
+      // Reflect already-decided quotes from the database
+      if (fetchedQuote.status === 'approved') {
+        setQuoteStatus('approved');
+      } else if (fetchedQuote.status === 'rejected') {
+        setQuoteStatus('rejected');
+      }
     } catch (err) {
       console.error('Error fetching quote:', err);
       setError('Quote not found');
@@ -204,6 +212,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     if (!quote) return;
 
     setIsProcessing(true);
+    setActionError(null);
 
     try {
       // Update quote in database (skip for demo)
@@ -261,7 +270,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
       setQuoteStatus('approved');
     } catch (err) {
       console.error('Error approving quote:', err);
-      alert('Failed to approve quote. Please try again.');
+      setActionError('Failed to approve quote. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -304,6 +313,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     if (!quote) return;
 
     setIsProcessing(true);
+    setActionError(null);
 
     try {
       // Update quote in database (skip for demo)
@@ -338,7 +348,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
       setQuoteStatus('rejected');
     } catch (err) {
       console.error('Error rejecting quote:', err);
-      alert('Failed to decline quote. Please try again.');
+      setActionError('Failed to decline quote. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -374,8 +384,17 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     );
   }
 
-  // Check if quote is expired
-  const isExpired = quote.valid_until ? new Date(quote.valid_until) < new Date() : false;
+  // Check if quote is expired – compare dates only (ignore time-of-day / timezone).
+  // Parsing "YYYY-MM-DD" with the Date constructor can shift by ±1 day depending
+  // on the browser timezone, so we split and compare date parts explicitly.
+  const isExpired = (() => {
+    if (!quote.valid_until) return false;
+    const [y, m, d] = quote.valid_until.split('-').map(Number);
+    const now = new Date();
+    const todayUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const validUntilUTC = new Date(Date.UTC(y, m - 1, d));
+    return validUntilUTC < todayUTC;
+  })();
   const companyAddress = [quote.company?.address, quote.company?.city, quote.company?.state, quote.company?.zip]
     .filter(Boolean)
     .join(', ');
@@ -748,6 +767,23 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                 {isProcessing ? 'Processing...' : 'Decline Quote'}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Inline Error Banner */}
+        {actionError && quoteStatus === 'viewing' && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3" role="alert">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-red-700 font-medium">{actionError}</p>
+            </div>
+            <button
+              onClick={() => setActionError(null)}
+              className="text-red-400 hover:text-red-600 text-sm font-medium"
+              aria-label="Dismiss error"
+            >
+              ✕
+            </button>
           </div>
         )}
 
