@@ -56,11 +56,12 @@ export async function POST(request: Request) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
     if (owners && owners.length > 0) {
-      for (const owner of owners) {
-        // Send SMS notification
+      const notificationPromises = owners.flatMap((owner) => {
+        const promises: Promise<unknown>[] = [];
+
         if (owner.phone) {
-          try {
-            await fetch(`${appUrl}/api/sms`, {
+          promises.push(
+            fetch(`${appUrl}/api/sms`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -71,16 +72,13 @@ export async function POST(request: Request) {
                 },
                 companyId,
               }),
-            });
-          } catch {
-            console.log('SMS notification skipped for scheduling request');
-          }
+            }).catch(() => console.log('SMS notification skipped for scheduling request'))
+          );
         }
 
-        // Send email notification
         if (owner.email) {
-          try {
-            await fetch(`${appUrl}/api/quote/notify-scheduling`, {
+          promises.push(
+            fetch(`${appUrl}/api/quote/notify-scheduling`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -95,12 +93,14 @@ export async function POST(request: Request) {
                 preferredContact: contactLabel,
                 dashboardLink: `${appUrl}/dashboard/quotes?status=approved`,
               }),
-            });
-          } catch {
-            console.log('Email notification skipped for scheduling request');
-          }
+            }).catch(() => console.log('Email notification skipped for scheduling request'))
+          );
         }
-      }
+
+        return promises;
+      });
+
+      await Promise.allSettled(notificationPromises);
     }
 
     return NextResponse.json({ success: true });

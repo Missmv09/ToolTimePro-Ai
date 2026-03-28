@@ -269,7 +269,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
   // Request scheduling - notifies the business owner
   const requestScheduling = async () => {
-    if (!quote) return;
+    if (!quote || requestingSchedule || schedulingRequested) return;
     setRequestingSchedule(true);
     try {
       await fetch('/api/quote/request-scheduling', {
