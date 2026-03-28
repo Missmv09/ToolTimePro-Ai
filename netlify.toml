@@ -26,6 +26,12 @@
 [functions."jenny-actions-cron"]
   schedule = "*/15 * * * *"
 
+# HR Law Update Check — runs every Monday at 8am UTC
+# Checks state employment law freshness (wages, classification, breaks)
+# Alerts when compliance rules are older than 6 months
+[functions."hr-law-update-cron"]
+  schedule = "0 8 * * 1"
+
 # Trial Reminders — runs once per day at 9am UTC
 # Sends trial welcome, reminder, and expiration emails
 [functions."trial-reminders-cron"]
