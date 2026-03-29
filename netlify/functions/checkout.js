@@ -33,6 +33,7 @@ exports.handler = async (event, context) => {
       extraWorker: allPrices.extra_worker?.monthly,
       websiteBuilder: allPrices.website_builder?.monthly,
       quickbooksSync: allPrices.quickbooks_sync?.monthly,
+      customerPortalPro: allPrices.customer_portal_pro?.monthly,
     };
 
     const lineItems = [];
