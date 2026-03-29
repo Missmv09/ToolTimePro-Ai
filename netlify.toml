@@ -48,3 +48,8 @@
 # Sends trial welcome, reminder, and expiration emails
 [functions."trial-reminders-cron"]
   schedule = "0 9 * * *"
+
+# Supabase Keep-Alive — runs every 3 days at 6am UTC
+# Pings Supabase to prevent free-tier project from pausing (7-day inactivity limit)
+[functions."supabase-keepalive-cron"]
+  schedule = "0 6 */3 * *"
