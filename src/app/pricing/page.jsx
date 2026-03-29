@@ -246,6 +246,10 @@ const ADDONS = [
     hasAnnual: true,
     highlight: true,
     isCustomerFacing: true,
+    paymentLinks: {
+      monthly: 'https://buy.stripe.com/8x200k7vubNP9Am8A7bwk0r',
+      annual: 'https://buy.stripe.com/28E5kE9DC2dfeUG03Bbwk0q',
+    },
   },
 ];
 
@@ -586,6 +590,17 @@ export default function PricingPage() {
                 <h4>{addon.name}</h4>
                 <p className="addon-price">+${addon.monthlyPrice}/mo</p>
                 <p className="addon-desc">{addon.description}</p>
+                {addon.paymentLinks && (
+                  <a
+                    href={isAnnual ? addon.paymentLinks.annual : addon.paymentLinks.monthly}
+                    onClick={(e) => e.stopPropagation()}
+                    className="addon-buy-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Buy standalone →
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -1113,6 +1128,17 @@ export default function PricingPage() {
           font-size: 0.8rem;
           color: var(--gray-600);
           margin: 0;
+        }
+        .addon-buy-link {
+          display: inline-block;
+          margin-top: 0.75rem;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: var(--gold);
+          text-decoration: none;
+        }
+        .addon-buy-link:hover {
+          text-decoration: underline;
         }
         .extra-workers {
           background: white;

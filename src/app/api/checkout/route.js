@@ -72,6 +72,10 @@ const PRICE_IDS = {
     monthly: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_MONTHLY,
     annual: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_ANNUAL,
   },
+  portal_pro: {
+    monthly: process.env.STRIPE_PRICE_PORTAL_PRO_MONTHLY,
+    annual: process.env.STRIPE_PRICE_PORTAL_PRO_ANNUAL,
+  },
   // Onboarding
   assisted_onboarding: process.env.STRIPE_PRICE_ASSISTED_ONBOARDING,
   white_glove: process.env.STRIPE_PRICE_WHITE_GLOVE,
