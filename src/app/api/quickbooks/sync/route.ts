@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseServerClient, createSupabaseAdminClient } from '@/lib/supabase-server'
 
+export const dynamic = 'force-dynamic'
+
 // QuickBooks API configuration
 const QUICKBOOKS_CLIENT_ID = process.env.QUICKBOOKS_CLIENT_ID
 const QUICKBOOKS_CLIENT_SECRET = process.env.QUICKBOOKS_CLIENT_SECRET

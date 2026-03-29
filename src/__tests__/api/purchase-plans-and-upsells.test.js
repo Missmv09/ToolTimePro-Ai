@@ -37,42 +37,23 @@ process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
 
-// Base tiers
-process.env.STRIPE_PRICE_STARTER_MONTHLY = 'price_starter_m';
-process.env.STRIPE_PRICE_STARTER_ANNUAL = 'price_starter_a';
-process.env.STRIPE_PRICE_PRO_MONTHLY = 'price_pro_m';
-process.env.STRIPE_PRICE_PRO_ANNUAL = 'price_pro_a';
-process.env.STRIPE_PRICE_ELITE_MONTHLY = 'price_elite_m';
-process.env.STRIPE_PRICE_ELITE_ANNUAL = 'price_elite_a';
-
-// Standalone
-process.env.STRIPE_PRICE_BOOKING_ONLY_MONTHLY = 'price_booking_m';
-process.env.STRIPE_PRICE_BOOKING_ONLY_ANNUAL = 'price_booking_a';
-process.env.STRIPE_PRICE_INVOICING_ONLY_MONTHLY = 'price_invoicing_m';
-process.env.STRIPE_PRICE_INVOICING_ONLY_ANNUAL = 'price_invoicing_a';
-
-// Jenny AI
-process.env.STRIPE_PRICE_JENNY_LITE_MONTHLY = 'price_jenny_lite_m';
-process.env.STRIPE_PRICE_JENNY_LITE_ANNUAL = 'price_jenny_lite_a';
-process.env.STRIPE_PRICE_JENNY_PRO_MONTHLY = 'price_jenny_pro_m';
-process.env.STRIPE_PRICE_JENNY_PRO_ANNUAL = 'price_jenny_pro_a';
-process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_MONTHLY = 'price_jenny_exec_m';
-process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_ANNUAL = 'price_jenny_exec_a';
-
-// Add-ons
-process.env.STRIPE_PRICE_WEBSITE_BUILDER_MONTHLY = 'price_wb_m';
-process.env.STRIPE_PRICE_WEBSITE_BUILDER_ANNUAL = 'price_wb_a';
-process.env.STRIPE_PRICE_KEEP_ME_LEGAL_MONTHLY = 'price_kml_m';
-process.env.STRIPE_PRICE_KEEP_ME_LEGAL_ANNUAL = 'price_kml_a';
-process.env.STRIPE_PRICE_EXTRA_PAGE_MONTHLY = 'price_page_m';
-process.env.STRIPE_PRICE_EXTRA_PAGE_ANNUAL = 'price_page_a';
-process.env.STRIPE_PRICE_EXTRA_WORKER = 'price_worker';
-process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_MONTHLY = 'price_qb_m';
-process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_ANNUAL = 'price_qb_a';
-
-// Onboarding
-process.env.STRIPE_PRICE_ASSISTED_ONBOARDING = 'price_onboard';
-process.env.STRIPE_PRICE_WHITE_GLOVE = 'price_wg';
+process.env.NEXT_PUBLIC_STRIPE_PRICES = JSON.stringify({
+  starter: { monthly: 'price_starter_m', annual: 'price_starter_a' },
+  pro: { monthly: 'price_pro_m', annual: 'price_pro_a' },
+  elite: { monthly: 'price_elite_m', annual: 'price_elite_a' },
+  booking_only: { monthly: 'price_booking_m', annual: 'price_booking_a' },
+  invoicing_only: { monthly: 'price_invoicing_m', annual: 'price_invoicing_a' },
+  jenny_lite: { monthly: 'price_jenny_lite_m', annual: 'price_jenny_lite_a' },
+  jenny_pro: { monthly: 'price_jenny_pro_m', annual: 'price_jenny_pro_a' },
+  jenny_exec_admin: { monthly: 'price_jenny_exec_m', annual: 'price_jenny_exec_a' },
+  website_builder: { monthly: 'price_wb_m', annual: 'price_wb_a' },
+  keep_me_legal: { monthly: 'price_kml_m', annual: 'price_kml_a' },
+  extra_page: { monthly: 'price_page_m', annual: 'price_page_a' },
+  extra_worker: { monthly: 'price_worker' },
+  quickbooks_sync: { monthly: 'price_qb_m', annual: 'price_qb_a' },
+  assisted_onboarding: 'price_onboard',
+  white_glove: 'price_wg',
+});
 
 const { GET: checkoutGET } = require('@/app/api/checkout/route');
 const { POST: webhookPOST } = require('@/app/api/webhook/stripe/route');
