@@ -67,6 +67,10 @@ const PRICE_IDS = {
     monthly: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_MONTHLY,
     annual: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_ANNUAL,
   },
+  portal_pro: {
+    monthly: process.env.STRIPE_PRICE_PORTAL_PRO_MONTHLY,
+    annual: process.env.STRIPE_PRICE_PORTAL_PRO_ANNUAL,
+  },
   // Onboarding
   assisted_onboarding: process.env.STRIPE_PRICE_ASSISTED_ONBOARDING,
   white_glove: process.env.STRIPE_PRICE_WHITE_GLOVE,
@@ -133,6 +137,7 @@ const TIERS = [
       'Local/city compliance rules',
       '5-page website',
       'Compliance alerts',
+      'Customer Portal Pro included',
       'Priority support',
     ],
     notIncluded: [],
@@ -230,6 +235,21 @@ const ADDONS = [
     icon: '📗',
     description: 'Two-way sync with QuickBooks Online',
     hasAnnual: true,
+  },
+  {
+    id: 'portal_pro',
+    name: 'Customer Portal Pro',
+    monthlyPrice: 24,
+    annualPrice: 240,
+    icon: '🏠',
+    description: 'Job tracker, photo gallery, messaging, documents & service history for your customers',
+    hasAnnual: true,
+    highlight: true,
+    isCustomerFacing: true,
+    paymentLinks: {
+      monthly: 'https://buy.stripe.com/8x200k7vubNP9Am8A7bwk0r',
+      annual: 'https://buy.stripe.com/28E5kE9DC2dfeUG03Bbwk0q',
+    },
   },
 ];
 
@@ -570,6 +590,17 @@ export default function PricingPage() {
                 <h4>{addon.name}</h4>
                 <p className="addon-price">+${addon.monthlyPrice}/mo</p>
                 <p className="addon-desc">{addon.description}</p>
+                {addon.paymentLinks && (
+                  <a
+                    href={isAnnual ? addon.paymentLinks.annual : addon.paymentLinks.monthly}
+                    onClick={(e) => e.stopPropagation()}
+                    className="addon-buy-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Buy standalone →
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -1097,6 +1128,17 @@ export default function PricingPage() {
           font-size: 0.8rem;
           color: var(--gray-600);
           margin: 0;
+        }
+        .addon-buy-link {
+          display: inline-block;
+          margin-top: 0.75rem;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: var(--gold);
+          text-decoration: none;
+        }
+        .addon-buy-link:hover {
+          text-decoration: underline;
         }
         .extra-workers {
           background: white;
