@@ -177,6 +177,9 @@ export async function POST(request: Request) {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('Signup API error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    const userMessage = message.includes('environment variables')
+      ? 'Authentication service is temporarily unavailable. Please try again later or contact support.'
+      : message;
+    return NextResponse.json({ error: userMessage }, { status: 500 });
   }
 }
