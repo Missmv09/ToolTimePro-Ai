@@ -3,78 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-// ============================================
-// STRIPE PRICE IDS - Using environment variables
-// ============================================
-
-const PRICE_IDS = {
-  // Base Tiers
-  // Starter: $30/mo, $300/yr - Owner + 2 workers
-  // Pro: $59/mo, $590/yr - Up to 15 workers
-  // Elite: $99/mo, $990/yr - Up to 20 workers
-  starter: {
-    monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY,
-    annual: process.env.STRIPE_PRICE_STARTER_ANNUAL,
-  },
-  pro: {
-    monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
-    annual: process.env.STRIPE_PRICE_PRO_ANNUAL,
-  },
-  elite: {
-    monthly: process.env.STRIPE_PRICE_ELITE_MONTHLY,
-    annual: process.env.STRIPE_PRICE_ELITE_ANNUAL,
-  },
-  // Standalone Lite
-  booking_only: {
-    monthly: process.env.STRIPE_PRICE_BOOKING_ONLY_MONTHLY,
-    annual: process.env.STRIPE_PRICE_BOOKING_ONLY_ANNUAL,
-  },
-  invoicing_only: {
-    monthly: process.env.STRIPE_PRICE_INVOICING_ONLY_MONTHLY,
-    annual: process.env.STRIPE_PRICE_INVOICING_ONLY_ANNUAL,
-  },
-  // Jenny AI - Three Tiers
-  jenny_lite: {
-    monthly: process.env.STRIPE_PRICE_JENNY_LITE_MONTHLY,
-    annual: process.env.STRIPE_PRICE_JENNY_LITE_ANNUAL,
-  },
-  jenny_pro: {
-    monthly: process.env.STRIPE_PRICE_JENNY_PRO_MONTHLY,
-    annual: process.env.STRIPE_PRICE_JENNY_PRO_ANNUAL,
-  },
-  jenny_exec_admin: {
-    monthly: process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_MONTHLY,
-    annual: process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_ANNUAL,
-  },
-  // Other Add-ons
-  website_builder: {
-    monthly: process.env.STRIPE_PRICE_WEBSITE_BUILDER_MONTHLY,
-    annual: process.env.STRIPE_PRICE_WEBSITE_BUILDER_ANNUAL,
-  },
-  keep_me_legal: {
-    monthly: process.env.STRIPE_PRICE_KEEP_ME_LEGAL_MONTHLY,
-    annual: process.env.STRIPE_PRICE_KEEP_ME_LEGAL_ANNUAL,
-  },
-  extra_page: {
-    monthly: process.env.STRIPE_PRICE_EXTRA_PAGE_MONTHLY,
-    annual: process.env.STRIPE_PRICE_EXTRA_PAGE_ANNUAL,
-  },
-  extra_worker: {
-    monthly: process.env.STRIPE_PRICE_EXTRA_WORKER,
-  },
-  quickbooks_sync: {
-    monthly: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_MONTHLY,
-    annual: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_ANNUAL,
-  },
-  portal_pro: {
-    monthly: process.env.STRIPE_PRICE_PORTAL_PRO_MONTHLY,
-    annual: process.env.STRIPE_PRICE_PORTAL_PRO_ANNUAL,
-  },
-  // Onboarding
-  assisted_onboarding: process.env.STRIPE_PRICE_ASSISTED_ONBOARDING,
-  white_glove: process.env.STRIPE_PRICE_WHITE_GLOVE,
-};
+import { PRICE_IDS } from '@/lib/stripe-prices';
 
 // ============================================
 // PRICING DATA

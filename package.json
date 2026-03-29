@@ -9,7 +9,10 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:e2e": "cypress run"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",
@@ -31,7 +34,7 @@
   },
   "devDependencies": {
     "@jest/types": "^29.6.3",
-    "@netlify/plugin-nextjs": "^5.15.7",
+    "@netlify/plugin-nextjs": "^5.15.8",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -39,6 +42,7 @@
     "@types/node": "25.2.2",
     "@types/react": "19.2.8",
     "autoprefixer": "^10.4.17",
+    "cypress": "^15.13.0",
     "eslint": "^8.0.0",
     "eslint-config-next": "14.0.0",
     "eslint-config-prettier": "^10.1.8",
