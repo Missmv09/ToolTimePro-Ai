@@ -151,6 +151,8 @@
         .worker-job p{font-size:0.8125rem;color:var(--text-muted)}
         .worker-job .time{color:var(--primary);font-weight:600;margin-top:6px}
         .clock-btn{width:100%;padding:16px;background:var(--success);border:none;border-radius:var(--radius);color:var(--white);font-weight:700;font-size:1rem;cursor:pointer}
+        @media(max-width:968px){#jenny .container>div:nth-child(2){grid-template-columns:repeat(2,1fr)!important}}
+        @media(max-width:480px){#jenny .container>div:nth-child(2){grid-template-columns:1fr!important}}
         @media(max-width:768px){.feature-content{grid-template-columns:1fr;gap:48px}.feature-showcase{order:-1}}
 
         /* ToolTime HR Section */
@@ -355,9 +357,10 @@
         <div class="container">
             <a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a>
             <div class="nav-links" id="navLinks">
+                <a href="#jenny" style="color:var(--accent);font-weight:700">🤖 Jenny AI</a>
                 <a href="#features">Features</a>
                 <a href="#demos">Demos</a>
-                <a href="#hr">🛡️ HR & Compliance</a>
+                <a href="#hr">🛡️ Compliance</a>
                 <a href="#pricing">Pricing</a>
                 <a href="#contact" class="nav-cta">Get Started</a>
             </div>
@@ -390,15 +393,15 @@
                         </div>
                         <div class="dashboard-cards">
                             <div class="dash-card"><div class="dash-card-label">Jobs Today</div><div class="dash-card-value">8</div></div>
-                            <div class="dash-card"><div class="dash-card-label">Revenue</div><div class="dash-card-value money">2,450</div></div>
+                            <div class="dash-card"><div class="dash-card-label">Revenue</div><div class="dash-card-value money">12,480</div></div>
                             <div class="dash-card"><div class="dash-card-label">Active Crew</div><div class="dash-card-value">5</div></div>
                             <div class="dash-card"><div class="dash-card-label">New Leads</div><div class="dash-card-value">12</div></div>
                         </div>
-                        <div class="dashboard-jobs">
-                            <div class="dashboard-jobs-title">Upcoming Jobs</div>
-                            <div class="job-item"><div class="job-info"><h4>🏠 Martinez Residence</h4><span>Lawn care • 9:00 AM</span></div><span class="job-status status-active">Active</span></div>
-                            <div class="job-item"><div class="job-info"><h4>🏢 Oak Valley HOA</h4><span>Landscaping • 11:30 AM</span></div><span class="job-status status-pending">Next</span></div>
-                            <div class="job-item"><div class="job-info"><h4>🏊 Thompson Pool</h4><span>Pool service • 2:00 PM</span></div><span class="job-status status-pending">Later</span></div>
+                        <div class="dashboard-jobs" style="margin-bottom:12px">
+                            <div class="dashboard-jobs-title">🤖 Jenny AI — Live</div>
+                            <div class="job-item"><div class="job-info"><h4>📞 Answered call</h4><span>Robert Wilson — booked estimate</span></div><span class="job-status status-active">10m ago</span></div>
+                            <div class="job-item"><div class="job-info"><h4>📝 Sent quote</h4><span>Amanda Foster — $2,400</span></div><span class="job-status status-pending">1h ago</span></div>
+                            <div class="job-item"><div class="job-info"><h4>⭐ Got review</h4><span>Martinez — 5 stars on Google</span></div><span class="job-status status-active">2h ago</span></div>
                         </div>
                     </div>
                 </div>
@@ -415,11 +418,49 @@
             </div>
             <div class="pain-grid">
                 <div class="pain-card animate-on-scroll"><div class="pain-icon">📵</div><h3>No Website = Invisible</h3><p>Customers can't find you online. You're losing jobs to competitors who show up on Google.</p><div class="pain-solution">Done-for-you branded website</div></div>
-                <div class="pain-card animate-on-scroll"><div class="pain-icon">📞</div><h3>Missed Calls = Lost Money</h3><p>You're on a job, phone rings, you miss it. That lead goes to someone who answered.</p><div class="pain-solution">AI auto-responder + missed call texts</div></div>
+                <div class="pain-card animate-on-scroll"><div class="pain-icon">📞</div><h3>Missed Calls = Lost Money</h3><p>You're on a job, phone rings, you miss it. That lead goes to someone who answered.</p><div class="pain-solution">Jenny AI answers 24/7 + books appointments</div></div>
                 <div class="pain-card animate-on-scroll"><div class="pain-icon">📅</div><h3>Scheduling Chaos</h3><p>Double-bookings, forgotten appointments, confused crews. Your calendar is a disaster.</p><div class="pain-solution">Smart scheduler + customer booking</div></div>
                 <div class="pain-card animate-on-scroll"><div class="pain-icon">👷</div><h3>Worker Time Tracking</h3><p>No idea when crew clocked in, where they are, or if they took their breaks.</p><div class="pain-solution">Worker app with GPS clock-in</div></div>
                 <div class="pain-card animate-on-scroll"><div class="pain-icon">⚖️</div><h3>Legal Landmines</h3><p>Final pay rules, worker classification, compliance headaches. One mistake = lawsuit.</p><div class="pain-solution">ToolTime Shield compliance toolkit</div></div>
                 <div class="pain-card animate-on-scroll"><div class="pain-icon">⭐</div><h3>Zero Reviews</h3><p>Happy customers never leave reviews. Your competitor has 100+, you have 3.</p><div class="pain-solution">Automated review request system</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Jenny AI Section -->
+    <section id="jenny" style="background:linear-gradient(145deg,#1a1a2e 0%,#2d2d44 100%);color:white;padding:80px 0;position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 30% 70%,rgba(245,166,35,0.15) 0%,transparent 50%),radial-gradient(circle at 70% 30%,rgba(245,166,35,0.1) 0%,transparent 50%)"></div>
+        <div class="container" style="position:relative;z-index:1">
+            <div style="text-align:center;margin-bottom:56px">
+                <span style="display:inline-block;background:rgba(245,166,35,0.2);color:#f5a623;padding:8px 18px;border-radius:100px;font-size:0.875rem;font-weight:700;margin-bottom:20px">🤖 Meet Jenny AI</span>
+                <h2 style="color:white;margin-bottom:16px">Your AI Employee That Never Sleeps</h2>
+                <p style="color:rgba(255,255,255,0.7);max-width:600px;margin:0 auto;font-size:1.0625rem">Jenny answers your phone 24/7, generates quotes, captures leads via chatbot, and automates 5-star review requests. She works nights, weekends, and holidays.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-bottom:48px">
+                <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:28px;text-align:center;border:1px solid rgba(255,255,255,0.1)">
+                    <div style="font-size:2.5rem;margin-bottom:12px">📞</div>
+                    <h3 style="color:white;font-size:1.125rem;margin-bottom:8px">AI Phone Receptionist</h3>
+                    <p style="color:rgba(255,255,255,0.6);font-size:0.9375rem">Answers calls 24/7, captures lead info, books appointments, handles emergencies</p>
+                </div>
+                <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:28px;text-align:center;border:1px solid rgba(255,255,255,0.1)">
+                    <div style="font-size:2.5rem;margin-bottom:12px">📝</div>
+                    <h3 style="color:white;font-size:1.125rem;margin-bottom:8px">Auto-Generates Quotes</h3>
+                    <p style="color:rgba(255,255,255,0.6);font-size:0.9375rem">Creates professional quotes from call details, sends for e-signature instantly</p>
+                </div>
+                <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:28px;text-align:center;border:1px solid rgba(255,255,255,0.1)">
+                    <div style="font-size:2.5rem;margin-bottom:12px">⭐</div>
+                    <h3 style="color:white;font-size:1.125rem;margin-bottom:8px">Review Machine</h3>
+                    <p style="color:rgba(255,255,255,0.6);font-size:0.9375rem">Automatically requests 5-star reviews after jobs, responds to reviews with AI</p>
+                </div>
+                <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:28px;text-align:center;border:1px solid rgba(255,255,255,0.1)">
+                    <div style="font-size:2.5rem;margin-bottom:12px">💬</div>
+                    <h3 style="color:white;font-size:1.125rem;margin-bottom:8px">Website Chatbot</h3>
+                    <p style="color:rgba(255,255,255,0.6);font-size:0.9375rem">Jenny Lite captures leads on your site 24/7, books appointments while you sleep</p>
+                </div>
+            </div>
+            <div style="text-align:center">
+                <a href="chatbot.html" class="btn btn-primary btn-large" style="margin-right:16px">Try Jenny Live →</a>
+                <a href="#demos" class="btn btn-secondary" style="border-color:white;color:white">See All Demos</a>
             </div>
         </div>
     </section>
@@ -432,25 +473,31 @@
                 <p>Website, scheduling, worker management, HR & compliance — all in one place. Finally.</p>
             </div>
             <div class="feature-tabs">
-                <a href="#demos" class="feature-tab active">🌐 Website</a>
+                <a href="#jenny" class="feature-tab" style="background:var(--accent);color:var(--primary);border-color:var(--accent)">🤖 Jenny AI</a>
+                <a href="quote.html" class="feature-tab">📝 Smart Quoting</a>
+                <a href="reviews.html" class="feature-tab">⭐ Reviews</a>
                 <a href="scheduler.html" class="feature-tab">📅 Scheduling</a>
-                <a href="quote.html" class="feature-tab">📝 Quoting</a>
+                <a href="dashboard.html" class="feature-tab">🗺️ Dispatch</a>
                 <a href="worker.html" class="feature-tab">👷 Worker App</a>
-                <a href="hr-compliance.html" class="feature-tab">🛡️ Compliance & HR</a>
-                <a href="#demos" class="feature-tab">💰 Payments</a>
-                <a href="payroll.html" class="feature-tab coming-soon-tab">💰 Payroll <span class="coming-soon-badge">COMING SOON</span></a>
+                <a href="#demos" class="feature-tab">💰 Invoicing</a>
+                <a href="#demos" class="feature-tab">🚗 Routes</a>
+                <a href="hr-compliance.html" class="feature-tab">🛡️ Shield</a>
+                <a href="#demos" class="feature-tab">📗 QuickBooks</a>
+                <a href="#demos" class="feature-tab">🌐 Website</a>
             </div>
             <div class="feature-content">
                 <div class="feature-details">
                     <ul class="feature-list">
-                        <li><div class="feature-check">✓</div><div><h4>Professional Website — Built For You</h4><p>We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.</p></div></li>
-                        <li><div class="feature-check">✓</div><div><h4>24/7 ToolTime Assistant</h4><p>Never miss a lead. Our AI answers questions and captures contact info even at 2am on Sunday.</p></div></li>
-                        <li><div class="feature-check">✓</div><div><h4>Smart Quoting — Win More Jobs</h4><p>Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature.</p></div></li>
-                        <li><div class="feature-check">✓</div><div><h4>Worker App with GPS Clock-In</h4><p>Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues.</p></div></li>
-                        <li><div class="feature-check">✓</div><div><h4>ToolTime Shield — Legal Protection</h4><p>Worker classification quiz, final wage calculator, CA compliance checklists. Protect yourself from lawsuits.</p></div></li>
-                        <li><div class="feature-check">✓</div><div><h4>HR Document Library</h4><p>10+ templates: offer letters, termination checklists, I-9 links, and more. All CA-compliant.</p></div></li>
-                        <li><div class="feature-check">✓</div><div><h4>Review Machine — Get More 5-Star Reviews</h4><p>Automatically request reviews via SMS after jobs. Generate AI responses to reviews. Build your reputation.</p></div></li>
-                        <li><div class="feature-check">✓</div><div><h4>Admin Dashboard</h4><p>See jobs, revenue, and crew status at a glance. Track performance and make smarter business decisions.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Jenny AI — Your 24/7 AI Employee</h4><p>Answers phone calls, auto-generates quotes, captures leads via chatbot, and requests 5-star reviews. Works nights and weekends.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Smart Quoting with E-Signatures</h4><p>Create professional quotes in seconds. Send via text, get e-signatures same day. Close deals 3x faster.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Invoicing & Card Payments</h4><p>Send professional invoices, accept credit cards with low fees, get paid faster with automated payment reminders.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Dispatch Board & Route Optimization</h4><p>See all crews on a map in real-time. Drag-and-drop jobs. Auto-plan the most efficient routes. Save on gas.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Worker App with GPS Clock-In</h4><p>Your crew sees jobs, clocks in/out with location proof, uploads photos, tracks breaks for CA compliance.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Review Machine — Automate 5-Star Reviews</h4><p>Auto-request reviews via SMS after jobs. AI-generated responses to reviews. More reviews = more customers.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Online Booking & Smart Scheduling</h4><p>Let customers book online 24/7. Drag-and-drop calendar. Auto reminders reduce no-shows.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>QuickBooks Sync</h4><p>Two-way sync with QuickBooks Online. Invoices, payments, and customers sync automatically. No double entry.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>ToolTime Shield — CA Compliance</h4><p>Worker classification, final pay calculator, AB5 compliance, break tracking alerts, HR document library.</p></div></li>
+                        <li><div class="feature-check">✓</div><div><h4>Professional Website — Built For You</h4><p>We create your branded site with online booking. Mobile-optimized, designed to convert visitors into customers.</p></div></li>
                     </ul>
                 </div>
                 <div class="feature-showcase">
@@ -478,53 +525,83 @@
                 <p>Click any feature below to see exactly how ToolTime Pro works. No signup required.</p>
             </div>
             <div class="demos-grid">
-                <a href="website.html" class="demo-card animate-on-scroll">
-                    <div class="demo-icon">🌐</div>
-                    <h3>Website Builder</h3>
-                    <p>See a sample site we'd build for your business</p>
-                    <span class="demo-link">Try Demo →</span>
+                <a href="chatbot.html" class="demo-card animate-on-scroll" style="border-color:var(--accent);box-shadow:0 0 0 2px rgba(245,166,35,0.2)">
+                    <div class="demo-icon">🤖</div>
+                    <h3>Jenny AI — Chatbot</h3>
+                    <p>Try our AI chatbot live — it captures leads and books jobs 24/7</p>
+                    <span class="demo-link" style="color:var(--accent)">Try Live →</span>
+                </a>
+                <a href="chatbot.html" class="demo-card animate-on-scroll" style="border-color:var(--accent);box-shadow:0 0 0 2px rgba(245,166,35,0.2)">
+                    <div class="demo-icon">📞</div>
+                    <h3>AI Phone Receptionist</h3>
+                    <p>See how Jenny answers calls, captures info, and books appointments</p>
+                    <span class="demo-link" style="color:var(--accent)">Try Demo →</span>
                 </a>
                 <a href="quote.html" class="demo-card animate-on-scroll">
                     <div class="demo-icon">📝</div>
                     <h3>Smart Quoting</h3>
-                    <p>Create professional quotes in seconds with live preview</p>
-                    <span class="demo-link">Try Demo →</span>
-                </a>
-                <a href="scheduler.html" class="demo-card animate-on-scroll">
-                    <div class="demo-icon">📅</div>
-                    <h3>Online Booking</h3>
-                    <p>Let customers book online + manage your calendar</p>
-                    <span class="demo-link">Try Demo →</span>
-                </a>
-                <a href="chatbot.html" class="demo-card animate-on-scroll">
-                    <div class="demo-icon">🤖</div>
-                    <h3>ToolTime Assistant</h3>
-                    <p>24/7 lead capture that never misses a customer</p>
+                    <p>Create professional quotes in seconds with e-signatures</p>
                     <span class="demo-link">Try Demo →</span>
                 </a>
                 <a href="reviews.html" class="demo-card animate-on-scroll">
                     <div class="demo-icon">⭐</div>
                     <h3>Review Machine</h3>
-                    <p>Automate 5-star reviews with SMS follow-ups</p>
+                    <p>Automate 5-star review requests via SMS after every job</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="dashboard.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">🗺️</div>
+                    <h3>Dispatch Board</h3>
+                    <p>Real-time crew tracking, map view, drag-and-drop job assignment</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="dashboard.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">🚗</div>
+                    <h3>Route Optimization</h3>
+                    <p>Auto-plan the most efficient routes — save gas and fit more jobs</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="scheduler.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">📅</div>
+                    <h3>Online Booking</h3>
+                    <p>Let customers book online 24/7 with smart scheduling</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="quote.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">💰</div>
+                    <h3>Invoicing & Payments</h3>
+                    <p>Send invoices, accept credit cards, get paid faster</p>
                     <span class="demo-link">Try Demo →</span>
                 </a>
                 <a href="worker.html" class="demo-card animate-on-scroll">
                     <div class="demo-icon">👷</div>
-                    <h3>Worker App</h3>
-                    <p>GPS clock-in, job details, and compliance tracking</p>
+                    <h3>Worker Mobile App</h3>
+                    <p>GPS clock-in, photos, break tracking, compliance built-in</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="dashboard.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">📗</div>
+                    <h3>QuickBooks Sync</h3>
+                    <p>Two-way sync — invoices, payments, and customers auto-sync</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="hr-compliance.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">🛡️</div>
+                    <h3>ToolTime Shield</h3>
+                    <p>CA compliance, worker classification, final pay, break tracking</p>
+                    <span class="demo-link">Try Demo →</span>
+                </a>
+                <a href="website.html" class="demo-card animate-on-scroll">
+                    <div class="demo-icon">🌐</div>
+                    <h3>Business Website</h3>
+                    <p>See a sample professional site we'd build for your business</p>
                     <span class="demo-link">Try Demo →</span>
                 </a>
                 <a href="dashboard.html" class="demo-card animate-on-scroll">
                     <div class="demo-icon">📊</div>
                     <h3>Admin Dashboard</h3>
-                    <p>See jobs, revenue, crew status at a glance</p>
+                    <p>Full command center — jobs, revenue, Jenny AI, compliance</p>
                     <span class="demo-link">Try Demo →</span>
-                </a>
-                <a href="#hr" class="demo-card animate-on-scroll">
-                    <div class="demo-icon">🛡️</div>
-                    <h3>HR & Compliance</h3>
-                    <p>Worker classification, final pay calculator, HR docs</p>
-                    <span class="demo-link">Learn More →</span>
                 </a>
             </div>
         </div>
@@ -700,9 +777,9 @@
                     <div class="switch-arrow"><span>↓</span></div>
                     <div class="switch-after">
                         <h4>After</h4>
-                        <p>AI chatbot catches every lead 24/7, auto-texts missed calls, books appointments for me.</p>
+                        <p>Jenny AI answers every call 24/7, captures lead info, books appointments, and follows up automatically.</p>
                     </div>
-                    <div class="switch-solution"><span>ToolTime Assistant + Auto SMS</span></div>
+                    <div class="switch-solution"><span>Jenny AI Phone Receptionist + Chatbot</span></div>
                 </div>
 
                 <div class="switch-card animate-on-scroll">
@@ -790,17 +867,20 @@
                     <ul class="pricing-features">
                         <li>Owner + 2 workers included</li>
                         <li>+$7/user/mo for additional workers</li>
-                        <li>Online scheduling & booking</li>
-                        <li>Smart quoting & invoicing</li>
-                        <li>GPS clock-in</li>
-                        <li class="hr-feature">Federal compliance (ToolTime Shield)</li>
-                        <li>1-page website</li>
+                        <li>Professional 1-page website</li>
+                        <li>Online booking page</li>
+                        <li>Basic scheduling</li>
+                        <li>Smart quoting with e-signatures</li>
+                        <li>Invoicing + card payments</li>
+                        <li>GPS clock-in (worker app)</li>
+                        <li class="hr-feature">ToolTime Shield (compliance tools)</li>
+                        <li>HR document library (10+ templates)</li>
                         <li>Spanish language support</li>
                         <li>Chat & email support</li>
                     </ul>
                     <div class="pricing-addons">
                         <p class="addons-title">Add-Ons:</p>
-                        <label class="addon-option"><input type="checkbox" name="addon_starter" value="jennyLite"><span>Jenny Lite - $19/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_starter" value="jennyLite"><span>Jenny Lite (chatbot) - $19/mo</span></label>
                         <label class="addon-option"><input type="checkbox" name="addon_starter" value="keepMeLegal"><span>Keep Me Legal - $19/mo</span></label>
                         <label class="addon-option"><input type="checkbox" name="addon_starter" value="extraPage"><span>Extra Website Page - $10/mo</span></label>
                     </div>
@@ -820,13 +900,17 @@
                         <li>Up to 15 workers</li>
                         <li>+$7/user/mo for additional workers</li>
                         <li class="highlight">Everything in Starter, plus:</li>
-                        <li>California state compliance rules</li>
+                        <li>Review Machine (auto 5-star requests)</li>
+                        <li>Jenny Lite chatbot (lead capture)</li>
+                        <li>Break tracking + CA compliance alerts</li>
+                        <li>Team scheduling + dispatch</li>
+                        <li>QuickBooks sync</li>
                         <li>3-page website</li>
                         <li>Phone support</li>
                     </ul>
                     <div class="pricing-addons">
                         <p class="addons-title">Add-Ons:</p>
-                        <label class="addon-option"><input type="checkbox" name="addon_pro" value="jennyLite"><span>Jenny Lite - $19/mo</span></label>
+                        <label class="addon-option"><input type="checkbox" name="addon_pro" value="jennyAI"><span>Jenny AI (phone + quotes) - $29/mo</span></label>
                         <label class="addon-option"><input type="checkbox" name="addon_pro" value="keepMeLegal"><span>Keep Me Legal - $19/mo</span></label>
                         <label class="addon-option"><input type="checkbox" name="addon_pro" value="extraPage"><span>Extra Website Page - $10/mo</span></label>
                     </div>
@@ -845,13 +929,17 @@
                         <li>Up to 20 workers</li>
                         <li>+$7/user/mo for additional workers</li>
                         <li class="highlight">Everything in Pro, plus:</li>
+                        <li>Jenny AI (phone receptionist + auto-quotes)</li>
+                        <li>Dispatch Board + Route Optimization</li>
+                        <li>Advanced reporting + analytics</li>
+                        <li>Photo verification (clock-in selfies)</li>
+                        <li>Compliance dashboard</li>
                         <li>Local/city compliance rules</li>
                         <li>5-page website</li>
-                        <li>Priority support</li>
+                        <li>Priority support + account manager</li>
                     </ul>
                     <div class="pricing-addons">
                         <p class="addons-title">Add-Ons:</p>
-                        <label class="addon-option"><input type="checkbox" name="addon_elite" value="jennyLite"><span>Jenny Lite - $19/mo</span></label>
                         <label class="addon-option"><input type="checkbox" name="addon_elite" value="keepMeLegal"><span>Keep Me Legal - $19/mo</span></label>
                         <label class="addon-option"><input type="checkbox" name="addon_elite" value="extraPage"><span>Extra Website Page - $10/mo</span></label>
                     </div>
@@ -948,9 +1036,9 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand"><a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a><p>The all-in-one platform for service pros. Website, scheduling, worker management, HR & compliance — we handle it all so you can focus on your craft.</p></div>
-                <div class="footer-links"><h4>Platform</h4><a href="#features">Features</a><a href="#demos">Demos</a><a href="#hr">HR & Compliance</a><a href="#pricing">Pricing</a><a href="payroll.html">Payroll (Coming Soon)</a></div>
-                <div class="footer-links"><h4>Try Demos</h4><a href="dashboard.html">Dashboard</a><a href="quote.html">Smart Quoting</a><a href="scheduler.html">Booking</a><a href="worker.html">Worker App</a></div>
-                <div class="footer-links"><h4>Resources</h4><a href="hr-compliance.html">HR & Compliance</a><a href="chatbot.html">ToolTime Assistant</a><a href="reviews.html">Reviews</a><a href="#">Blog</a></div>
+                <div class="footer-links"><h4>Platform</h4><a href="#jenny">Jenny AI</a><a href="#features">Features</a><a href="#demos">Demos</a><a href="#hr">HR & Compliance</a><a href="#pricing">Pricing</a></div>
+                <div class="footer-links"><h4>Try Demos</h4><a href="chatbot.html">Jenny AI Chatbot</a><a href="quote.html">Smart Quoting</a><a href="reviews.html">Review Machine</a><a href="dashboard.html">Dashboard</a><a href="scheduler.html">Booking</a><a href="worker.html">Worker App</a></div>
+                <div class="footer-links"><h4>More Features</h4><a href="dashboard.html">Dispatch Board</a><a href="dashboard.html">Route Optimization</a><a href="dashboard.html">QuickBooks Sync</a><a href="hr-compliance.html">ToolTime Shield</a><a href="website.html">Website Builder</a></div>
                 <div class="footer-links"><h4>Company</h4><a href="#">About Us</a><a href="#contact">Contact</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
             </div>
             <div class="footer-bottom"><p>© 2026 ToolTime Pro. All rights reserved. Built with 💛 for service pros who hate software.</p></div>
