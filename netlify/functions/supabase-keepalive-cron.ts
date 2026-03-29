@@ -38,7 +38,3 @@ export default async function handler() {
     });
   }
 }
-
-export const config = {
-  schedule: "0 6 */3 * *",
-};
