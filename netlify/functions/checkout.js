@@ -5,38 +5,34 @@ exports.handler = async (event, context) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  // Debug: log what env vars we have
-  console.log('PRO_MONTHLY:', process.env.STRIPE_PRICE_PRO_MONTHLY);
-
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+  // Parse consolidated Stripe prices from single env var
+  let allPrices = {};
+  try {
+    allPrices = JSON.parse(process.env.NEXT_PUBLIC_STRIPE_PRICES || '{}');
+  } catch (e) {
+    console.error('Failed to parse NEXT_PUBLIC_STRIPE_PRICES:', e);
+  }
 
   try {
     const { plan, billing, addOns } = JSON.parse(event.body);
 
     const prices = {
-      starter: {
-        monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY,
-        annual: process.env.STRIPE_PRICE_STARTER_ANNUAL
-      },
-      pro: {
-        monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
-        annual: process.env.STRIPE_PRICE_PRO_ANNUAL
-      },
-      elite: {
-        monthly: process.env.STRIPE_PRICE_ELITE_MONTHLY,
-        annual: process.env.STRIPE_PRICE_ELITE_ANNUAL
-      }
+      starter: allPrices.starter || {},
+      pro: allPrices.pro || {},
+      elite: allPrices.elite || {},
     };
 
     const addOnPrices = {
-      keepMeLegal: process.env.STRIPE_PRICE_KEEP_ME_LEGAL_MONTHLY,
-      jennyLite: process.env.STRIPE_PRICE_JENNY_LITE_MONTHLY,
-      jennyPro: process.env.STRIPE_PRICE_JENNY_PRO_MONTHLY,
-      jennyExecAdmin: process.env.STRIPE_PRICE_JENNY_EXEC_ADMIN_MONTHLY,
-      extraPage: process.env.STRIPE_PRICE_EXTRA_PAGE_MONTHLY,
-      extraWorker: process.env.STRIPE_PRICE_EXTRA_WORKER,
-      websiteBuilder: process.env.STRIPE_PRICE_WEBSITE_BUILDER_MONTHLY,
-      quickbooksSync: process.env.STRIPE_PRICE_QUICKBOOKS_SYNC_MONTHLY
+      keepMeLegal: allPrices.keep_me_legal?.monthly,
+      jennyLite: allPrices.jenny_lite?.monthly,
+      jennyPro: allPrices.jenny_pro?.monthly,
+      jennyExecAdmin: allPrices.jenny_exec_admin?.monthly,
+      extraPage: allPrices.extra_page?.monthly,
+      extraWorker: allPrices.extra_worker?.monthly,
+      websiteBuilder: allPrices.website_builder?.monthly,
+      quickbooksSync: allPrices.quickbooks_sync?.monthly,
     };
 
     const lineItems = [];
