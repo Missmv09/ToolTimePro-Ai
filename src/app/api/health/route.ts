@@ -29,11 +29,18 @@ export async function GET() {
     }
   }
 
+  // Find ALL env vars containing "SUPABASE" to check for typos/naming issues
+  const allSupabaseVars = Object.keys(process.env)
+    .filter(k => k.toUpperCase().includes('SUPABASE'))
+    .map(k => k);
+
   const allSet = supabaseUrl && supabaseAnonKey && supabaseServiceKey;
 
   return NextResponse.json({
     status: allSet ? 'ok' : 'missing_vars',
     checks,
+    all_supabase_env_var_names: allSupabaseVars,
+    total_env_var_count: Object.keys(process.env).length,
     timestamp: new Date().toISOString(),
   });
 }
