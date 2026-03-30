@@ -1,0 +1,39 @@
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  const checks: Record<string, unknown> = {
+    NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? `set (${supabaseUrl.substring(0, 30)}...)` : 'MISSING',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey ? `set (${supabaseAnonKey.substring(0, 10)}...)` : 'MISSING',
+    SUPABASE_SERVICE_ROLE_KEY: supabaseServiceKey ? `set (${supabaseServiceKey.substring(0, 10)}...)` : 'MISSING',
+  };
+
+  // Try to actually connect to Supabase
+  if (supabaseUrl && supabaseServiceKey) {
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/`, {
+        method: 'HEAD',
+        headers: {
+          'apikey': supabaseServiceKey,
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+        },
+      });
+      checks.supabase_connection = `HTTP ${res.status}`;
+    } catch (err) {
+      checks.supabase_connection = `FAILED: ${err instanceof Error ? err.message : 'unknown'}`;
+    }
+  }
+
+  const allSet = supabaseUrl && supabaseAnonKey && supabaseServiceKey;
+
+  return NextResponse.json({
+    status: allSet ? 'ok' : 'missing_vars',
+    checks,
+    timestamp: new Date().toISOString(),
+  });
+}
