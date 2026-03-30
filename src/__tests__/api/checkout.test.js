@@ -21,16 +21,15 @@ jest.mock('stripe', () => {
 
 // Set env vars before import
 process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
-process.env.STRIPE_PRICE_STARTER_MONTHLY = 'price_starter_m';
-process.env.STRIPE_PRICE_STARTER_ANNUAL = 'price_starter_a';
-process.env.STRIPE_PRICE_PRO_MONTHLY = 'price_pro_m';
-process.env.STRIPE_PRICE_PRO_ANNUAL = 'price_pro_a';
-process.env.STRIPE_PRICE_ELITE_MONTHLY = 'price_elite_m';
-process.env.STRIPE_PRICE_EXTRA_WORKER = 'price_worker';
-process.env.STRIPE_PRICE_WEBSITE_BUILDER_MONTHLY = 'price_wb_m';
-process.env.STRIPE_PRICE_WEBSITE_BUILDER_ANNUAL = 'price_wb_a';
-process.env.STRIPE_PRICE_ASSISTED_ONBOARDING = 'price_onboard';
-process.env.STRIPE_PRICE_WHITE_GLOVE = 'price_wg';
+process.env.NEXT_PUBLIC_STRIPE_PRICES = JSON.stringify({
+  starter: { monthly: 'price_starter_m', annual: 'price_starter_a' },
+  pro: { monthly: 'price_pro_m', annual: 'price_pro_a' },
+  elite: { monthly: 'price_elite_m' },
+  extra_worker: { monthly: 'price_worker' },
+  website_builder: { monthly: 'price_wb_m', annual: 'price_wb_a' },
+  assisted_onboarding: 'price_onboard',
+  white_glove: 'price_wg',
+});
 
 const { GET } = require('@/app/api/checkout/route');
 
