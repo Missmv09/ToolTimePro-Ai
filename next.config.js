@@ -1,8 +1,46 @@
 /** @type {import('next').NextConfig} */
+
+// Server-side env vars that Netlify isn't injecting into the function runtime.
+// These get inlined at build time via webpack DefinePlugin (server bundles only).
+const serverEnvVars = [
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+  'OPENAI_API_KEY',
+  'RESEND_API_KEY',
+  'TWILIO_ACCOUNT_SID',
+  'TWILIO_AUTH_TOKEN',
+  'TWILIO_PHONE_NUMBER',
+  'CRON_SECRET',
+  'PLATFORM_ADMIN_EMAILS',
+  'QUICKBOOKS_CLIENT_ID',
+  'QUICKBOOKS_CLIENT_SECRET',
+  'QUICKBOOKS_REDIRECT_URI',
+  'QUICKBOOKS_ENVIRONMENT',
+  'DATABASE_URL',
+  'NAMECOM_USERNAME',
+  'NAMECOM_TEST_USERNAME',
+  'NAMECOM_TOKEN',
+  'NAMECOM_TEST_TOKEN',
+];
+
 const nextConfig = {
   trailingSlash: true,
   images: {
     unoptimized: true,
+  },
+  webpack(config, { isServer }) {
+    if (isServer) {
+      const { DefinePlugin } = require('webpack');
+      const definitions = {};
+      for (const name of serverEnvVars) {
+        if (process.env[name]) {
+          definitions[`process.env.${name}`] = JSON.stringify(process.env[name]);
+        }
+      }
+      config.plugins.push(new DefinePlugin(definitions));
+    }
+    return config;
   },
   async headers() {
     return [
