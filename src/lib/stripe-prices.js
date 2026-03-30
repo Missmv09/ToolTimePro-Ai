@@ -16,6 +16,7 @@
  *   "extra_page": { "monthly": "price_...", "annual": "price_..." },
  *   "extra_worker": { "monthly": "price_..." },
  *   "quickbooks_sync": { "monthly": "price_...", "annual": "price_..." },
+ *   "customer_portal_pro": { "monthly": "price_...", "annual": "price_..." },
  *   "assisted_onboarding": "price_...",
  *   "white_glove": "price_..."
  * }
