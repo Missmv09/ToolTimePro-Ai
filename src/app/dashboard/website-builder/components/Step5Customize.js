@@ -22,7 +22,7 @@ const fontOptions = [
   'Nunito', 'Source Sans Pro', 'Nunito Sans', 'Archivo', 'Quicksand',
 ];
 
-export default function Step5Customize({ wizardData, setWizardData }) {
+export default function Step5Customize({ wizardData, setWizardData, pageLimit }) {
   const [activeTab, setActiveTab] = useState('colors');
   const [photos, setPhotos] = useState({ hero: [], gallery: [] });
 
@@ -269,6 +269,7 @@ export default function Step5Customize({ wizardData, setWizardData }) {
             <SectionToggle
               enabledSections={wizardData.enabledSections}
               onChange={(sections) => setWizardData((prev) => ({ ...prev, enabledSections: sections }))}
+              pageLimit={pageLimit}
             />
           )}
 

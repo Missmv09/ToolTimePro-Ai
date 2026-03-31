@@ -141,7 +141,7 @@ const defaultWizardData = {
   publishStatus: 'draft',
 };
 
-export default function WebsiteWizard() {
+export default function WebsiteWizard({ pageLimit }) {
   const { company, user, dbUser } = useAuth();
 
   // Restore state from sessionStorage to survive auth-triggered remounts
@@ -284,7 +284,7 @@ export default function WebsiteWizard() {
       case 4:
         return <Step4DomainSearch wizardData={wizardData} setWizardData={setWizardData} />;
       case 5:
-        return <Step5Customize wizardData={wizardData} setWizardData={setWizardData} />;
+        return <Step5Customize wizardData={wizardData} setWizardData={setWizardData} pageLimit={pageLimit} />;
       case 6:
         return <Step6ReviewLaunch wizardData={wizardData} setWizardData={setWizardData} onGoToStep={handleStepClick} />;
       default:

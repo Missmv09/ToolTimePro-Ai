@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlanGating } from '@/hooks/usePlanGating';
 import { Globe, ExternalLink, Calendar, Users, Settings, RefreshCw, Edit2, Trash2 } from 'lucide-react';
 import WebsiteWizard from './components/WebsiteWizard';
 import WebsiteEditor from './components/WebsiteEditor';
@@ -16,6 +17,7 @@ export default function WebsiteBuilderPage() {
   const checkedRef = useRef(false);
   const router = useRouter();
   const { user, dbUser, isLoading: authLoading } = useAuth();
+  const { websitePageLimit } = usePlanGating();
 
   // Only check for existing site once after auth loads — not on every user
   // reference change (which happens on token refreshes and can cause the
@@ -89,14 +91,14 @@ export default function WebsiteBuilderPage() {
 
   // State B: Site exists — show dashboard
   if (existingSite) {
-    return <WebsiteDashboard site={existingSite} leadCount={leadCount} onRefresh={checkExistingSite} />;
+    return <WebsiteDashboard site={existingSite} leadCount={leadCount} onRefresh={checkExistingSite} pageLimit={websitePageLimit} />;
   }
 
   // State A: No site — show wizard
-  return <WebsiteWizard />;
+  return <WebsiteWizard pageLimit={websitePageLimit} />;
 }
 
-function WebsiteDashboard({ site, leadCount, onRefresh }) {
+function WebsiteDashboard({ site, leadCount, onRefresh, pageLimit }) {
   const [editing, setEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -308,6 +310,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh }) {
           onSaved={() => {
             onRefresh();
           }}
+          pageLimit={pageLimit}
         />
       )}
     </div>

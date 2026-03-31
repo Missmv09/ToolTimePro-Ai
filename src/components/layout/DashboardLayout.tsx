@@ -27,10 +27,13 @@ import {
   CalendarDays,
   Route,
   CalendarCheck,
+  Phone,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
+import { usePlanGating } from '@/hooks/usePlanGating';
 import { PermissionKey } from '@/lib/permissions';
+import { FeatureKey } from '@/lib/plan-features';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import TrialBanner from '@/components/trial/TrialBanner';
 import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning';
@@ -45,35 +48,43 @@ interface NavItemOptions {
   hasJennyExec: boolean;
   isOwner: boolean;
   can: (perm: PermissionKey) => boolean;
+  canAccessFeature: (feature: FeatureKey) => boolean;
 }
 
-const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can }: NavItemOptions) => {
+const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeature }: NavItemOptions) => {
   const showExecFeatures = isOwner && (isBetaTester || hasJennyExec);
 
   // Core items visible to all authenticated users
   const items = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/dispatch', label: 'Dispatch Board', icon: Radio },
-    { href: '/dashboard/schedule', label: 'Schedule', icon: CalendarDays },
-    { href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList },
-    { href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route },
-    { href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck },
   ];
 
-  // Permission-gated admin features
-  if (can('team_management')) items.push({ href: '/dashboard/team', label: 'Team', icon: UsersRound });
-  if (can('customers')) items.push({ href: '/dashboard/customers', label: 'Customers', icon: UserCircle });
-  if (can('leads')) items.push({ href: '/dashboard/leads', label: 'Leads', icon: Users });
+  if (canAccessFeature('dispatch_board')) items.push({ href: '/dashboard/dispatch', label: 'Dispatch Board', icon: Radio });
+  if (canAccessFeature('schedule')) items.push({ href: '/dashboard/schedule', label: 'Schedule', icon: CalendarDays });
 
-  // Quotes and invoices — always visible (workers can view their own), but admin actions are gated in-page
+  items.push({ href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList });
+
+  if (canAccessFeature('route_optimizer')) items.push({ href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route });
+  if (canAccessFeature('booking')) items.push({ href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck });
+
+  // Permission-gated admin features
+  if (can('team_management') && canAccessFeature('team_management')) items.push({ href: '/dashboard/team', label: 'Team', icon: UsersRound });
+  if (can('customers') && canAccessFeature('customers')) items.push({ href: '/dashboard/customers', label: 'Customers', icon: UserCircle });
+  if (can('leads') && canAccessFeature('leads')) items.push({ href: '/dashboard/leads', label: 'Leads', icon: Users });
+
+  // Quotes and invoices — plan-gated
+  if (canAccessFeature('quoting')) items.push({ href: '/dashboard/quotes', label: 'Quotes', icon: Quote });
+  if (canAccessFeature('invoicing')) items.push({ href: '/dashboard/invoices', label: 'Invoices', icon: Receipt });
+  if (canAccessFeature('time_tracking')) items.push({ href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock });
+
   items.push(
-    { href: '/dashboard/quotes', label: 'Quotes', icon: Quote },
-    { href: '/dashboard/invoices', label: 'Invoices', icon: Receipt },
-    { href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock },
     { href: '/dashboard/jenny-lite', label: isBetaTester ? 'Jenny AI' : 'Jenny Lite', icon: MessageCircle },
-    { href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe },
-    { href: '/dashboard/blog', label: 'Blog', icon: BookOpen },
   );
+
+  if (canAccessFeature('jenny_pro')) items.push({ href: '/dashboard/jenny-pro', label: 'Jenny Pro', icon: Phone });
+
+  if (canAccessFeature('website_builder')) items.push({ href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe });
+  if (canAccessFeature('blog')) items.push({ href: '/dashboard/blog', label: 'Blog', icon: BookOpen });
 
   // Owner-facing Jenny Exec Admin features: only visible to owners with the addon or beta testers
   if (showExecFeatures) {
@@ -93,6 +104,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const { user, dbUser, company, signOut, isLoading } = useAuth();
   const { can } = usePermissions();
+  const { canAccess: canAccessFeature } = usePlanGating();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -205,6 +217,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               hasJennyExec: (company?.addons || []).includes('jenny_exec_admin'),
               isOwner: dbUser?.role === 'owner',
               can,
+              canAccessFeature,
             }).map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (

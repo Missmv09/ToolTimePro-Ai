@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { authenticateRequest } from '@/lib/server-auth';
+import { PLAN_PAGE_LIMITS } from '@/lib/plan-features';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,26 @@ export async function PUT(request) {
 
     if (siteError || !site) {
       return NextResponse.json({ error: 'Site not found or access denied' }, { status: 404 });
+    }
+
+    // Enforce section/page limit based on plan
+    if (updates.enabledSections) {
+      const { data: dbUser } = await supabase.from('users').select('company_id').eq('id', user.id).single();
+      if (dbUser?.company_id) {
+        const { data: company } = await supabase.from('companies').select('plan, addons, is_beta_tester').eq('id', dbUser.company_id).single();
+        if (company && !company.is_beta_tester) {
+          const plan = company.plan || 'starter';
+          const baseLimit = PLAN_PAGE_LIMITS[plan] || 1;
+          const extraPages = (company.addons || []).filter(a => a === 'extra_page').length;
+          const maxSections = baseLimit + extraPages;
+          if (updates.enabledSections.length > maxSections) {
+            return NextResponse.json(
+              { error: `Your ${plan} plan allows ${maxSections} section(s). Upgrade your plan or add Extra Pages.` },
+              { status: 403 }
+            );
+          }
+        }
+      }
     }
 
     // Build update object
