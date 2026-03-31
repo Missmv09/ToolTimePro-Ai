@@ -1,5 +1,6 @@
 // Netlify Function for AI-powered photo analysis of job sites
-// Uses OpenAI Vision API to analyze photos and suggest services with pricing
+// Uses Claude Vision (primary) / OpenAI Vision (fallback) to analyze photos and suggest services with pricing
+const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -100,62 +101,31 @@ Return a JSON object with this exact format:
 Be thorough - identify EVERY service opportunity visible in the photo.
 Return ONLY the JSON, no other text.`;
 
-    // Call OpenAI Vision API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: userPrompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Data}`,
-                  detail: 'auto'
-                }
+    // Call AI Vision (Claude primary, OpenAI fallback)
+    const aiResult = await aiComplete({
+      systemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: userPrompt },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Data}`,
+                detail: 'auto'
               }
-            ]
-          }
-        ],
-        max_tokens: 1500,
-        temperature: 0.5,
-      }),
+            }
+          ]
+        }
+      ],
+      maxTokens: 1500,
+      temperature: 0.5,
+      tier: 'high',
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI Vision error:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI vision service error' }),
-      };
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
-
     // Parse the JSON response
-    let result;
-    try {
-      result = JSON.parse(content);
-    } catch {
-      // Try to extract JSON from the response
-      const match = content.match(/\{[\s\S]*\}/);
-      if (match) {
-        result = JSON.parse(match[0]);
-      } else {
-        throw new Error('Could not parse AI response');
-      }
-    }
+    let result = parseAIJson(aiResult.content);
 
     // Validate and sanitize the response
     if (!result.services || !Array.isArray(result.services)) {

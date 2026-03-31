@@ -1,5 +1,7 @@
-// Netlify Function for AI-powered California Labor Law Compliance Assistant
+// Netlify Function for AI-powered Multi-State Labor Law Compliance Assistant
 // Answers questions about employment law and analyzes workplace situations
+const { aiComplete } = require('../../src/lib/ai-client');
+const { getComplianceKnowledge, getSupportedStates } = require('../../src/lib/compliance-knowledge');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -23,7 +25,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { question, companySize, context: userContext } = JSON.parse(event.body);
+    const { question, companySize, context: userContext, state: stateCode } = JSON.parse(event.body);
 
     if (!question || question.trim().length < 5) {
       return {
@@ -33,80 +35,55 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Build the system prompt with California labor law knowledge
-    const systemPrompt = `You are an expert California employment law compliance assistant for small service businesses (landscaping, HVAC, plumbing, etc.).
+    // Default to CA for backwards compatibility, but support all states
+    const effectiveState = (stateCode || 'CA').toUpperCase();
 
-Your knowledge includes:
-- California minimum wage: $16.50/hour statewide (2025), higher in many cities
-- Overtime: 1.5x after 8 hours/day or 40 hours/week, 2x after 12 hours/day
-- Meal breaks: 30 min unpaid after 5 hours, second after 10 hours
-- Rest breaks: 10 min paid per 4 hours worked
-- Final pay: Immediate if fired, within 72 hours if quit (or immediate with 72hr notice)
-- Sick leave: Minimum 5 days/40 hours per year (2024 law)
-- Heat illness prevention: Required for outdoor workers
-- Workers' comp: Required for all employers with employees
+    // Inject authoritative compliance knowledge for the user's state + federal
+    const complianceKnowledge = getComplianceKnowledge(effectiveState);
 
-Company size thresholds:
-- 1-4 employees: Basic requirements
-- 5+ employees: Sexual harassment training required
-- 15+ employees: FEHA discrimination laws apply
-- 25+ employees: Must provide sick leave for family care
-- 50+ employees: FMLA/CFRA leave requirements
+    const systemPrompt = `You are an expert employment law compliance assistant for small service businesses (landscaping, HVAC, plumbing, etc.).
 
-Local minimum wages (2025) - many cities have higher rates:
-- Los Angeles: $17.28
-- San Francisco: $18.67
-- San Jose: $17.55
-- Oakland: $16.50
-- Berkeley: $18.67
+You have access to AUTHORITATIVE legal reference data below. You MUST use this data — do NOT rely on your own knowledge for specific statutes, penalty amounts, or deadlines. If the answer is not covered in the reference data, say so and recommend consulting an attorney.
+
+${complianceKnowledge}
+
+Company size thresholds (federal):
+- 1-14 employees: Basic federal requirements
+- 15+ employees: Title VII, ADA apply
+- 20+ employees: ADEA applies
+- 25+ employees: E-Verify may be required (state-dependent)
+- 50+ employees: FMLA/CFRA, ACA employer mandate
 
 Guidelines:
-1. Give clear, actionable answers
-2. Mention specific dollar amounts or timeframes when relevant
+1. Give clear, actionable answers with specific statute citations
+2. Mention specific dollar amounts or timeframes from the reference data
 3. Flag potential violations with "⚠️ WARNING"
-4. If the question involves penalties, estimate potential costs
+4. If the question involves penalties, cite the exact penalty from the reference data
 5. Always recommend consulting an employment attorney for complex situations
 6. Keep answers concise but complete (2-3 paragraphs max)
 7. Format with bullet points when listing multiple items
+8. Always specify which state's law you are referencing
 
-IMPORTANT: You provide general information, not legal advice. Always include a disclaimer for complex situations.`;
+IMPORTANT: You provide general information, not legal advice. Always include a disclaimer.
+Supported states: ${getSupportedStates().join(', ')}`;
 
-    const userPrompt = `Company Size: ${companySize || 'Unknown'}
+    const userPrompt = `State: ${effectiveState}
+Company Size: ${companySize || 'Unknown'}
 ${userContext ? `Additional Context: ${userContext}\n` : ''}
 Question: ${question}
 
-Provide a helpful, accurate response about California labor law compliance.`;
+Provide a helpful, accurate response citing specific statutes and penalty amounts from the reference data.`;
 
-    // Call OpenAI
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 600,
-        temperature: 0.7,
-      }),
+    // Call AI (Claude primary — better for nuanced legal guidance)
+    const aiResult = await aiComplete({
+      systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      maxTokens: 800,
+      temperature: 0.3, // Lower temperature for factual accuracy
+      tier: 'high',
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI error:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI service error' }),
-      };
-    }
-
-    const data = await response.json();
-    const answer = data.choices[0].message.content.trim();
+    const answer = aiResult.content;
 
     // Check if the answer contains warnings
     const hasWarning = answer.includes('WARNING') || answer.includes('⚠️') ||

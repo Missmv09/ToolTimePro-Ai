@@ -1,5 +1,6 @@
-// Netlify Function to call OpenAI for AI-assisted content generation
-// Uses native fetch (Node 18+)
+// Netlify Function for AI-assisted content generation
+// Uses Claude (primary) / OpenAI (fallback)
+const { aiComplete } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -67,42 +68,16 @@ Return ONLY a JSON array of 3 strings. Example: ["Name 1", "Name 2", "Name 3"]`;
         };
     }
 
-    // Call OpenAI
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful assistant for small business owners. You provide concise, professional marketing content. Always follow the exact output format requested.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 200,
-        temperature: 0.8,
-      }),
+    // Call AI (Claude primary, OpenAI fallback)
+    const aiResult = await aiComplete({
+      systemPrompt: 'You are a helpful assistant for small business owners. You provide concise, professional marketing content. Always follow the exact output format requested.',
+      messages: [{ role: 'user', content: prompt }],
+      maxTokens: 200,
+      temperature: 0.8,
+      tier: 'fast',
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI error:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI service error' }),
-      };
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
+    const content = aiResult.content;
 
     // Parse response based on type
     let result;

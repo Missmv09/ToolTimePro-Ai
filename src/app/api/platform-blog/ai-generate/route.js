@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const { aiComplete, parseAIJson } = require('@/lib/ai-client');
 
 export async function POST(request) {
   try {
-    if (!OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'AI service not configured. Add OPENAI_API_KEY to your environment.' },
-        { status: 500 }
-      );
-    }
-
     const body = await request.json();
     const { topic, category, audience } = body;
 
@@ -51,45 +44,22 @@ Target audience: ${audience || 'Home service business owners and contractors'}
 
 The post should provide genuine value to contractors and business owners while positioning ToolTime Pro as the go-to platform for managing their business.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 2500,
-        temperature: 0.7,
-      }),
+    const aiResult = await aiComplete({
+      systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      maxTokens: 2500,
+      temperature: 0.7,
+      tier: 'high',
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('[Platform Blog AI] OpenAI error:', response.status, errorData);
-      return NextResponse.json({ error: 'AI generation failed. Please try again.' }, { status: 502 });
-    }
-
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content?.trim();
-
-    if (!raw) {
-      return NextResponse.json({ error: 'No content generated.' }, { status: 500 });
-    }
 
     let parsed;
     try {
-      const cleaned = raw.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
-      parsed = JSON.parse(cleaned);
+      parsed = parseAIJson(aiResult.content);
     } catch {
       parsed = {
         title: topic,
         excerpt: '',
-        content: raw,
+        content: aiResult.content,
         metaTitle: topic.substring(0, 60),
         metaDescription: '',
         metaKeywords: '',
