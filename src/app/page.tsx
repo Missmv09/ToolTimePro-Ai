@@ -523,9 +523,9 @@ export default function Home() {
           <div className="hidden lg:flex justify-center">
             <div className="bg-white rounded-[20px] p-5 shadow-[0_24px_60px_rgba(26,26,46,0.16)] transform perspective-[1000px] hover:rotate-y-[-2deg] transition-transform duration-500 max-w-[420px]">
               <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 text-white min-h-[380px]">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="text-[1.125rem] font-bold">📊 {text.todaysOverview}</div>
-                  <div className="text-[0.8125rem] opacity-70 font-mono">{language === 'es' ? '25 Ene, 2026' : 'Jan 25, 2026'}</div>
+                <div className="flex justify-between items-center mb-6 gap-4">
+                  <div className="text-[1.125rem] font-bold whitespace-nowrap">📊 {text.todaysOverview}</div>
+                  <div className="text-[0.75rem] opacity-70 font-mono whitespace-nowrap">{language === 'es' ? '25 Ene, 2026' : 'Jan 25, 2026'}</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-5">
@@ -631,18 +631,18 @@ export default function Home() {
             </div>
 
             {/* Phone Mockup */}
-            <div className="flex justify-center">
-              <div className="relative max-w-[300px]">
+            <div className="flex justify-center items-center">
+              <div className="relative max-w-[300px] w-full">
                 {/* Glow effect behind phone */}
-                <div className="absolute -inset-4 bg-gradient-to-b from-[#f5a623]/20 to-[#00c853]/20 rounded-[52px] blur-2xl opacity-60" />
-                <div className="relative bg-gradient-to-b from-[#1c1c2e] to-[#0e0e1a] rounded-[44px] p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.06)]">
+                <div className="absolute -inset-6 bg-gradient-to-b from-[#f5a623]/30 to-[#00c853]/25 rounded-[52px] blur-2xl opacity-80" />
+                <div className="relative bg-gradient-to-b from-[#3a3a55] to-[#1a1a2e] rounded-[44px] p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.45),0_0_0_2px_rgba(255,255,255,0.15)]">
                   {/* Notch */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-[#1c1c2e] rounded-b-[16px] z-10" />
+                  <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-[#3a3a55] rounded-b-[16px] z-10" />
                   <div className="bg-white rounded-[38px] overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-10 pb-5">
-                      <h4 className="font-extrabold text-[1.0625rem] tracking-wide">👷 Worker App</h4>
-                      <p className="text-white/50 text-[0.75rem] mt-1">Today&apos;s Schedule</p>
+                    <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-12 pb-5">
+                      <h4 className="font-extrabold text-[1.125rem] tracking-wide">👷 Worker App</h4>
+                      <p className="text-white/60 text-[0.8125rem] mt-1">Today&apos;s Schedule</p>
                     </div>
                     {/* Body */}
                     <div className="p-4 space-y-3">
