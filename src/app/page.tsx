@@ -144,6 +144,11 @@ const pricingAddOns = [
   { id: 'website_builder', name: 'Website Builder', price: 15, icon: '🌐', description: 'Custom landing page built for you' },
   { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19, icon: '🛡️', description: 'Automated compliance monitoring, law-change alerts & cert reminders' },
   { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
+  { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12, icon: '📊', description: 'Two-way sync with QuickBooks Online' },
+  { id: 'customer_portal_pro', name: 'Customer Portal Pro', price: 24, icon: '🏠', description: 'Branded portal for customers to book, pay & track jobs' },
+  { id: 'extra_worker', name: 'Extra Worker', price: 7, icon: '👷', description: 'Add more team members to your plan' },
+  { id: 'jenny_pro', name: 'Jenny AI Pro', price: 49, icon: '🤖', description: 'Advanced AI assistant for scheduling, estimates & follow-ups' },
+  { id: 'jenny_exec_admin', name: 'Jenny AI Exec Admin', price: 79, icon: '🧠', description: 'Full AI office manager — handles calls, emails & admin tasks' },
 ];
 
 export default function Home() {
