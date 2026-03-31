@@ -75,6 +75,29 @@ const TIERS = [
   },
 ];
 
+// Add-ons shown inline inside each plan card
+const PLAN_INLINE_ADDONS = {
+  starter: [
+    { id: 'portal_pro', name: 'Customer Portal Pro', price: 24 },
+    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19 },
+    { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12 },
+    { id: 'website_builder', name: 'Website Builder', price: 15 },
+    { id: 'extra_page', name: 'Extra Website Page', price: 10 },
+  ],
+  pro: [
+    { id: 'portal_pro', name: 'Customer Portal Pro', price: 24 },
+    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19 },
+    { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12 },
+    { id: 'website_builder', name: 'Website Builder', price: 15 },
+    { id: 'extra_page', name: 'Extra Website Page', price: 10 },
+  ],
+  elite: [
+    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19 },
+    { id: 'website_builder', name: 'Website Builder', price: 15 },
+    { id: 'extra_page', name: 'Extra Website Page', price: 10 },
+  ],
+};
+
 const STANDALONE = [
   {
     id: 'booking_only',
@@ -357,6 +380,45 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Jenny Lite included */}
+                <div className="tier-included">
+                  <span className="check">✓</span>
+                  <span>Jenny Lite — AI Chat & Lead Capture</span>
+                  <span className="included-badge">Included</span>
+                </div>
+
+                {/* Inline optional add-ons */}
+                {PLAN_INLINE_ADDONS[tier.id] && (
+                  <div className="tier-addons" onClick={(e) => e.stopPropagation()}>
+                    <p className="tier-addons-title">Optional Add-ons:</p>
+                    {tier.id === 'elite' && (
+                      <div className="tier-addon-row included">
+                        <span className="check">✓</span>
+                        <span>Customer Portal Pro</span>
+                        <span className="included-badge">Included</span>
+                      </div>
+                    )}
+                    {tier.id === 'elite' && (
+                      <div className="tier-addon-row included">
+                        <span className="check">✓</span>
+                        <span>QuickBooks Sync</span>
+                        <span className="included-badge">Included</span>
+                      </div>
+                    )}
+                    {PLAN_INLINE_ADDONS[tier.id].map((addon) => (
+                      <label key={addon.id} className="tier-addon-row">
+                        <input
+                          type="checkbox"
+                          checked={selectedAddons.includes(addon.id)}
+                          onChange={() => toggleAddon(addon.id)}
+                        />
+                        <span>{addon.name}</span>
+                        <span className="tier-addon-price">${addon.price}/mo</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
 
                 <button className={`select-btn ${selectedTier === tier.id ? 'selected' : ''}`}>
                   {selectedTier === tier.id ? '✓ Selected' : 'Select Plan'}
@@ -925,6 +987,58 @@ export default function PricingPage() {
         .check { color: var(--success); }
         .tier-card.popular .check { color: var(--gold-light); }
         .x { color: #ccc; }
+        .tier-included {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 0;
+          border-top: 1px solid rgba(255,255,255,0.1);
+          font-size: 0.875rem;
+          color: var(--text-muted);
+        }
+        .tier-card.popular .tier-included { border-color: rgba(255,255,255,0.15); }
+        .included-badge {
+          margin-left: auto;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #22c55e;
+        }
+        .tier-addons {
+          padding: 12px 0;
+          border-top: 1px solid rgba(0,0,0,0.08);
+          margin-top: 4px;
+        }
+        .tier-card.popular .tier-addons { border-color: rgba(255,255,255,0.15); }
+        .tier-addons-title {
+          font-weight: 700;
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          margin-bottom: 8px;
+        }
+        .tier-addon-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 0;
+          font-size: 0.85rem;
+          cursor: pointer;
+        }
+        .tier-addon-row.included {
+          cursor: default;
+          opacity: 0.8;
+        }
+        .tier-addon-row input[type="checkbox"] {
+          width: 16px;
+          height: 16px;
+          accent-color: var(--gold);
+          cursor: pointer;
+        }
+        .tier-addon-price {
+          margin-left: auto;
+          font-weight: 600;
+          font-size: 0.8rem;
+          color: var(--text-muted);
+        }
         .select-btn {
           width: 100%;
           padding: 0.75rem;
