@@ -52,8 +52,10 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-xl font-bold mb-3">4. SMS/Text Messaging Terms</h2>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">4a. Customer Service Notifications</h3>
             <p className="mb-2">
-              By using our SMS features, you agree to the following:
+              By using our SMS features to communicate with your customers, you agree to the following:
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>Program Name:</strong> ToolTime Pro Service Notifications</li>
@@ -69,9 +71,24 @@ export default function TermsPage() {
               before enabling text message notifications. You must clearly inform customers that they will
               receive service-related text messages and provide them the option to opt in or opt out.
             </p>
-            <p className="mt-2">
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">4b. Transactional &amp; Security Messages</h3>
+            <p className="mb-2">
+              By enabling two-factor authentication (2FA) or other security features, you agree to the following:
+            </p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li><strong>Program Name:</strong> ToolTime Pro Account Security</li>
+              <li><strong>Message Types:</strong> Two-factor authentication (2FA) verification codes, password reset confirmations, and account security alerts.</li>
+              <li><strong>Message Frequency:</strong> Messages are sent only when triggered by a login attempt or security event. Typically 1-3 messages per login session.</li>
+              <li><strong>Message and Data Rates:</strong> Standard message and data rates may apply depending on your mobile carrier.</li>
+              <li><strong>Opt-Out:</strong> You may disable 2FA at any time from your account settings. You may also reply STOP to any message to stop receiving security codes.</li>
+              <li><strong>Help:</strong> Reply HELP to any message for assistance, or contact support@tooltimepro.com.</li>
+              <li><strong>Consent:</strong> By enabling 2FA and providing your phone number in account settings, you consent to receive verification codes via SMS.</li>
+            </ul>
+
+            <p className="mt-3">
               SMS data and phone numbers are not shared with third parties for marketing purposes.
-              Phone numbers are only used for delivering service notifications on behalf of your business.
+              Phone numbers are only used for delivering service notifications and security codes on behalf of your business.
             </p>
           </section>
 

@@ -58,6 +58,8 @@ export default function PrivacyPolicyPage() {
 
           <section>
             <h2 className="text-xl font-bold mb-3">4. SMS/Text Messaging</h2>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">4a. Customer Notifications</h3>
             <p className="mb-2">
               We use SMS messaging to send service-related notifications to customers on behalf of businesses
               using our platform. These messages may include:
@@ -77,7 +79,30 @@ export default function PrivacyPolicyPage() {
               Reply HELP for assistance. Message and data rates may apply. Message frequency varies based on
               service activity.
             </p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">4b. Transactional &amp; Security Messages</h3>
+            <p className="mb-2">
+              We also use SMS to send transactional and security-related messages directly to platform users
+              (business owners, administrators, and team members). These messages may include:
+            </p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Two-factor authentication (2FA) verification codes for account login.</li>
+              <li>Password reset confirmations.</li>
+              <li>Account security alerts and notifications.</li>
+            </ul>
+            <p className="mt-3">
+              <strong>Consent:</strong> Transactional SMS messages are sent when a user enables two-factor
+              authentication in their account settings and provides their phone number. By enabling 2FA,
+              you consent to receive verification codes via SMS each time you sign in from an untrusted device.
+            </p>
             <p className="mt-2">
+              <strong>Opt-out:</strong> You may disable two-factor authentication at any time from your account
+              settings to stop receiving verification codes. You may also reply STOP to any transactional message.
+              Reply HELP for assistance. Message and data rates may apply. Message frequency is limited to
+              login and security events only.
+            </p>
+
+            <p className="mt-3">
               <strong>We do not sell, share, or use phone numbers or SMS data for marketing or advertising purposes.</strong>
             </p>
           </section>
