@@ -47,24 +47,24 @@ export default function ReviewRedirect() {
       <div className="max-w-md w-full text-center">
         {status === 'loading' && (
           <>
-            <Loader2 className="w-10 h-10 text-amber-500 mx-auto mb-4 animate-spin" />
+            <Loader2 className="w-10 h-10 text-[#f5a623] mx-auto mb-4 animate-spin" />
             <p className="text-gray-500">Loading...</p>
           </>
         )}
 
         {status === 'redirecting' && (
           <>
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Star className="w-8 h-8 text-amber-500" />
+            <div className="w-16 h-16 bg-[#fef3d6] rounded-full flex items-center justify-center mx-auto mb-6">
+              <Star className="w-8 h-8 text-[#f5a623]" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h1>
             <p className="text-gray-500 mb-6">
               Taking you to leave a review for <strong>{companyName}</strong>...
             </p>
-            <Loader2 className="w-6 h-6 text-amber-500 mx-auto animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#f5a623] mx-auto animate-spin" />
             <p className="text-sm text-gray-400 mt-4">
               Not redirected?{' '}
-              <a href={reviewUrl} className="text-blue-600 hover:text-blue-700 font-medium">
+              <a href={reviewUrl} className="text-[#f5a623] hover:text-[#e6991a] font-medium">
                 Click here
               </a>
             </p>
@@ -73,8 +73,8 @@ export default function ReviewRedirect() {
 
         {status === 'no_link' && (
           <>
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Star className="w-8 h-8 text-amber-500" />
+            <div className="w-16 h-16 bg-[#fef3d6] rounded-full flex items-center justify-center mx-auto mb-6">
+              <Star className="w-8 h-8 text-[#f5a623]" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Thanks for Your Feedback!

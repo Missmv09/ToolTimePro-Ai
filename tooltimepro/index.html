@@ -141,16 +141,21 @@
         .feature-check{width:36px;height:36px;min-width:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:bold}
         .feature-list h4{color:var(--white);margin-bottom:6px;font-size:1.0625rem}
         .feature-list p{font-size:0.9375rem;color:rgba(255,255,255,0.65);line-height:1.5}
-        .phone-mockup{background:#0a0a12;border-radius:40px;padding:12px;box-shadow:var(--shadow-xl);max-width:300px;margin:0 auto}
-        .phone-screen{background:var(--white);border-radius:32px;overflow:hidden}
-        .phone-header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:var(--white);padding:20px}
-        .phone-header h4{color:var(--white);font-size:1.0625rem}
-        .phone-body{padding:16px}
-        .worker-job{background:var(--bg);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+        .phone-mockup{position:relative;max-width:300px;margin:0 auto}
+        .phone-mockup::before{content:'';position:absolute;inset:-16px;background:linear-gradient(to bottom,rgba(245,166,35,0.2),rgba(0,200,83,0.2));border-radius:52px;filter:blur(24px);opacity:0.6}
+        .phone-mockup-inner{position:relative;background:linear-gradient(to bottom,#1c1c2e,#0e0e1a);border-radius:44px;padding:6px;box-shadow:0 32px 80px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.06)}
+        .phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#1c1c2e;border-radius:0 0 16px 16px;z-index:10}
+        .phone-screen{background:var(--white);border-radius:38px;overflow:hidden}
+        .phone-header{background:linear-gradient(135deg,var(--primary) 0%,#252542 50%,var(--primary-light) 100%);color:var(--white);padding:40px 20px 20px}
+        .phone-header h4{color:var(--white);font-size:1.0625rem;letter-spacing:0.02em}
+        .phone-header .subtitle{color:rgba(255,255,255,0.5);font-size:0.75rem;margin-top:4px}
+        .phone-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+        .worker-job{background:var(--white);border-radius:16px;padding:16px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(26,26,46,0.08)}
         .worker-job h5{color:var(--primary);font-size:0.9375rem;font-weight:700;margin-bottom:4px}
         .worker-job p{font-size:0.8125rem;color:var(--text-muted)}
-        .worker-job .time{color:var(--primary);font-weight:600;margin-top:6px}
-        .clock-btn{width:100%;padding:16px;background:var(--success);border:none;border-radius:var(--radius);color:var(--white);font-weight:700;font-size:1rem;cursor:pointer}
+        .worker-job .time{color:#f5a623;font-weight:600;margin-top:6px}
+        .clock-btn{width:100%;padding:16px;background:linear-gradient(to right,#00c853,#00e676);border:none;border-radius:16px;color:var(--white);font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,200,83,0.35);transition:box-shadow 0.2s}
+        .clock-btn:hover{box-shadow:0 6px 28px rgba(0,200,83,0.45)}
         @media(max-width:968px){#jenny .container>div:nth-child(2){grid-template-columns:repeat(2,1fr)!important}}
         @media(max-width:480px){#jenny .container>div:nth-child(2){grid-template-columns:1fr!important}}
         @media(max-width:768px){.feature-content{grid-template-columns:1fr;gap:48px}.feature-showcase{order:-1}}
@@ -537,12 +542,15 @@
                 </div>
                 <div class="feature-showcase">
                     <div class="phone-mockup">
-                        <div class="phone-screen">
-                            <div class="phone-header"><h4>👷 Worker App</h4></div>
-                            <div class="phone-body">
-                                <div class="worker-job"><h5>🏠 Martinez Residence</h5><p>123 Oak Street</p><p class="time">9:00 AM - 11:00 AM</p></div>
-                                <div class="worker-job"><h5>🏢 Oak Valley HOA</h5><p>456 Pine Avenue</p><p class="time">11:30 AM - 2:00 PM</p></div>
-                                <button class="clock-btn">⏰ Clock In Now</button>
+                        <div class="phone-mockup-inner">
+                            <div class="phone-notch"></div>
+                            <div class="phone-screen">
+                                <div class="phone-header"><h4>👷 Worker App</h4><p class="subtitle">Today's Schedule</p></div>
+                                <div class="phone-body">
+                                    <div class="worker-job"><h5>🏠 Martinez Residence</h5><p>123 Oak Street</p><p class="time">9:00 AM - 11:00 AM</p></div>
+                                    <div class="worker-job"><h5>🏢 Oak Valley HOA</h5><p>456 Pine Avenue</p><p class="time">11:30 AM - 2:00 PM</p></div>
+                                    <button class="clock-btn">⏰ Clock In Now</button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -169,7 +169,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen bg-navy-gradient flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6" />
+          <div className="w-12 h-12 border-4 border-[#f5a623]/30 border-t-[#f5a623] rounded-full animate-spin mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-navy-500 mb-2">Verifying your link...</h1>
           <p className="text-gray-600">Just a moment while we verify your reset link.</p>
         </div>

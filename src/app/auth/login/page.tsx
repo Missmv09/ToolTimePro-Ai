@@ -292,7 +292,7 @@ function LoginContent() {
                 required
                 value={twoFaCode}
                 onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
                 placeholder="000000"
                 autoFocus
               />
@@ -304,7 +304,7 @@ function LoginContent() {
                 type="checkbox"
                 checked={trustDevice}
                 onChange={(e) => setTrustDevice(e.target.checked)}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4 text-[#f5a623] border-gray-300 rounded focus:ring-[#f5a623]"
               />
               <label htmlFor="trust-device" className="ml-2 block text-sm text-gray-700">
                 Trust this device for 90 days
@@ -314,7 +314,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={verifying2FA || twoFaCode.length !== 6}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {verifying2FA ? 'Verifying...' : 'Verify'}
             </button>
@@ -323,7 +323,7 @@ function LoginContent() {
               <button
                 type="button"
                 onClick={handleResend2FA}
-                className="text-blue-600 hover:text-blue-500"
+                className="text-[#f5a623] hover:text-[#e6991a]"
               >
                 Resend code
               </button>
@@ -407,7 +407,7 @@ function LoginContent() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
                 placeholder="you@example.com"
               />
             </div>
@@ -425,7 +425,7 @@ function LoginContent() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
                   placeholder="••••••••"
                 />
                 <button
@@ -453,7 +453,7 @@ function LoginContent() {
 
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <Link href="/auth/forgot-password" className="text-blue-600 hover:text-blue-500">
+              <Link href="/auth/forgot-password" className="text-[#f5a623] hover:text-[#e6991a]">
                 Forgot your password?
               </Link>
             </div>
@@ -462,7 +462,7 @@ function LoginContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
@@ -470,7 +470,7 @@ function LoginContent() {
 
         <p className="mt-4 text-center text-sm text-gray-600">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/signup" className="text-blue-600 hover:text-blue-500 font-medium">
+          <Link href="/auth/signup" className="text-[#f5a623] hover:text-[#e6991a] font-medium">
             Sign up
           </Link>
         </p>
@@ -484,7 +484,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[#f5a623] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>

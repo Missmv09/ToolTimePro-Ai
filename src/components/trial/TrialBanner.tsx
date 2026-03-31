@@ -51,7 +51,7 @@ export default function TrialBanner() {
       }`}
     >
       <div className="flex items-center gap-3">
-        <Sparkles size={18} className={isUrgent ? 'text-amber-500' : 'text-blue-500'} />
+        <Sparkles size={18} className={isUrgent ? 'text-[#f5a623]' : 'text-blue-500'} />
         <p className={`text-sm ${isUrgent ? 'text-amber-700' : 'text-blue-700'}`}>
           <strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''}</strong> left in your Pro trial.
           {isUrgent && ' Subscribe now to avoid losing access.'}
@@ -61,7 +61,7 @@ export default function TrialBanner() {
         href="/pricing"
         className={`px-4 py-1.5 text-white text-sm font-medium rounded-lg whitespace-nowrap ${
           isUrgent
-            ? 'bg-amber-600 hover:bg-amber-700'
+            ? 'bg-[#f5a623] hover:bg-[#e6991a]'
             : 'bg-blue-600 hover:bg-blue-700'
         }`}
       >
