@@ -503,7 +503,7 @@ export default function JennyPage() {
           <div className="flex justify-center gap-6 mt-4">
             <Link href="/" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Home</Link>
             <Link href="/pricing" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Pricing</Link>
-            <Link href="/compare/jobber" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Compare vs Jobber</Link>
+            <Link href="/compare" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Compare Plans</Link>
             <Link href="/auth/signup" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Sign Up</Link>
           </div>
           <div className="mt-6 text-[#f5a623] text-sm">
