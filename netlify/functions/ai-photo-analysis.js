@@ -1,5 +1,6 @@
 // Netlify Function for AI-powered photo analysis of job sites
-// Uses OpenAI Vision API to analyze photos and suggest services with pricing
+// Anthropic primary, OpenAI fallback — analyzes photos and suggests services with pricing
+const { visionCompletion, isAIConfigured } = require('./lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -100,48 +101,21 @@ Return a JSON object with this exact format:
 Be thorough - identify EVERY service opportunity visible in the photo.
 Return ONLY the JSON, no other text.`;
 
-    // Call OpenAI Vision API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: userPrompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Data}`,
-                  detail: 'auto'
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 1500,
-        temperature: 0.5,
-      }),
+    const { text: content } = await visionCompletion({
+      systemPrompt,
+      userPrompt,
+      imageBase64: base64Data,
+      maxTokens: 1500,
+      temperature: 0.5,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI Vision error:', error);
+    if (!content) {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'AI vision service error' }),
+        body: JSON.stringify({ error: 'AI vision service unavailable. Please try again.' }),
       };
     }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
 
     // Parse the JSON response
     let result;

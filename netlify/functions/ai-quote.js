@@ -1,5 +1,6 @@
 // Netlify Function for AI-powered quote suggestions
 // Analyzes job descriptions, voice transcripts, and generates tiered pricing
+const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -164,41 +165,27 @@ Return a JSON object with this exact format:
 
 Return ONLY the JSON, no other text.`;
 
-    // Use gpt-4o for voice transcripts and tiered quotes (needs stronger reasoning),
-    // gpt-4o-mini for standard text quotes (much faster, lower cost)
-    const needsFullModel = inputType === 'voice' || generateTiers;
-    const model = needsFullModel ? 'gpt-4o' : 'gpt-4o-mini';
+    // Use advanced tier for voice transcripts and tiered quotes (needs stronger reasoning),
+    // standard tier for simple text quotes (faster, lower cost)
+    const needsAdvanced = inputType === 'voice' || generateTiers;
+    const tier = needsAdvanced ? 'advanced' : 'standard';
     const maxTokens = generateTiers ? 2000 : 1200;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: maxTokens,
-        temperature: 0.5,
-      }),
+    const { text: content } = await chatCompletion({
+      systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      tier,
+      maxTokens,
+      temperature: 0.5,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI error:', error);
+    if (!content) {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'AI service error' }),
+        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
       };
     }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
 
     // Parse the JSON response
     let result;

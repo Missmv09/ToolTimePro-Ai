@@ -1,5 +1,6 @@
 // Netlify Function for AI-powered California Labor Law Compliance Assistant
 // Answers questions about employment law and analyzes workplace situations
+const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -77,36 +78,21 @@ Question: ${question}
 
 Provide a helpful, accurate response about California labor law compliance.`;
 
-    // Call OpenAI
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 600,
-        temperature: 0.7,
-      }),
+    const { text: answer } = await chatCompletion({
+      systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      tier: 'advanced',
+      maxTokens: 600,
+      temperature: 0.7,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI error:', error);
+    if (!answer) {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'AI service error' }),
+        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
       };
     }
-
-    const data = await response.json();
-    const answer = data.choices[0].message.content.trim();
 
     // Check if the answer contains warnings
     const hasWarning = answer.includes('WARNING') || answer.includes('⚠️') ||

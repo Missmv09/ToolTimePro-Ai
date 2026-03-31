@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+import { visionCompletion, isAIConfigured } from '@/lib/ai-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +13,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If no OpenAI key, return smart defaults
-    if (!OPENAI_API_KEY) {
+    // If no AI provider configured, return smart defaults
+    if (!isAIConfigured()) {
       return NextResponse.json(getFallbackAnalysis());
     }
 
@@ -71,44 +70,17 @@ Return a JSON object with this exact format:
 Be thorough - identify EVERY service opportunity visible in the photo.
 Return ONLY the JSON, no other text.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: userPrompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Data}`,
-                  detail: 'high',
-                },
-              },
-            ],
-          },
-        ],
-        max_tokens: 1500,
-        temperature: 0.5,
-      }),
+    const { text: content } = await visionCompletion({
+      systemPrompt,
+      userPrompt,
+      imageBase64: base64Data,
+      maxTokens: 1500,
+      temperature: 0.5,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI Vision error:', errorText);
-      // Fall back to defaults on API error
+    if (!content) {
       return NextResponse.json(getFallbackAnalysis());
     }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
 
     // Parse the JSON response
     let result;
@@ -209,6 +181,6 @@ function getFallbackAnalysis() {
         price: 60,
       },
     ],
-    notes: 'Set OPENAI_API_KEY in your environment to enable real AI-powered photo analysis. These are default recommendations.',
+    notes: 'Set ANTHROPIC_API_KEY (or OPENAI_API_KEY as fallback) in your environment to enable AI-powered photo analysis. These are default recommendations.',
   };
 }

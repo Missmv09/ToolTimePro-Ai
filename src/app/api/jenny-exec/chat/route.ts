@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+import { chatCompletion, isAIConfigured } from '@/lib/ai-client';
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -286,7 +285,7 @@ function getFallbackResponse(mode: string, userMessage: string, language: string
 - "¿Mi trabajador es contratista o empleado?"
 - "¿Cuáles son las multas por descansos perdidos?"
 
-Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la ANTHROPIC_API_KEY en la configuración del entorno.`
       : `I'm Jenny, your CA compliance advisor. I can help with meal/rest break rules, overtime calculations, worker classification (AB5), final pay requirements, and more.
 
 **Common questions I can help with:**
@@ -295,7 +294,7 @@ Para obtener respuestas personalizadas con IA, pide a tu administrador que confi
 - "Is my worker a contractor or employee?"
 - "What are the penalties for missed breaks?"
 
-To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_KEY in your environment settings.`;
+To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_API_KEY in your environment settings.`;
   }
 
   if (mode === 'hr') {
@@ -378,7 +377,7 @@ To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_
 - "¿Necesito un manual del empleado?"
 - "¿Cuál es la diferencia entre W-2 y 1099?"
 
-Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la ANTHROPIC_API_KEY en la configuración del entorno.`
       : `I'm Jenny, your HR advisor for home service businesses. I can help with hiring, onboarding, managing employees, terminations, and CA employment law.
 
 **Common questions I can help with:**
@@ -387,7 +386,7 @@ Para obtener respuestas personalizadas con IA, pide a tu administrador que confi
 - "Do I need an employee handbook?"
 - "What's the difference between W-2 and 1099?"
 
-To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_KEY in your environment settings.`;
+To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_API_KEY in your environment settings.`;
   }
 
   // Insights fallback
@@ -400,7 +399,7 @@ To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_
 - "¿Cómo puedo mejorar la rentabilidad?"
 - "¿Qué KPIs debo seguir?"
 
-Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la ANTHROPIC_API_KEY en la configuración del entorno.`
     : `I'm Jenny, your business insights advisor. I can help analyze your revenue, crew productivity, job profitability, and more.
 
 **Ask me things like:**
@@ -409,7 +408,7 @@ Para obtener respuestas personalizadas con IA, pide a tu administrador que confi
 - "How can I improve profitability?"
 - "What KPIs should I track?"
 
-To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_KEY in your environment settings.`;
+To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_API_KEY in your environment settings.`;
 }
 
 export async function POST(request: NextRequest) {
@@ -467,47 +466,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // If no OpenAI key, return smart fallback
-    if (!OPENAI_API_KEY) {
+    // If no AI provider configured, return smart fallback
+    if (!isAIConfigured()) {
       return NextResponse.json({
         message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
       });
     }
 
-    // Build message history for OpenAI
-    const apiMessages: ChatMessage[] = [
-      { role: 'system', content: systemPrompt },
-      ...messages.slice(-10).map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
-    ];
+    // Build message history
+    const apiMessages = messages.slice(-10).map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }));
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: apiMessages,
-        max_tokens: 800,
-        temperature: 0.4,
-      }),
+    const { text: content } = await chatCompletion({
+      systemPrompt,
+      messages: apiMessages,
+      tier: 'advanced',
+      maxTokens: 800,
+      temperature: 0.4,
     });
-
-    if (!response.ok) {
-      console.error('OpenAI error:', await response.text());
-      return NextResponse.json({
-        message: getFallbackResponse(mode, lastUserMessage, language),
-        fallback: true,
-      });
-    }
-
-    const data = await response.json();
-    const content = data.choices[0]?.message?.content?.trim();
 
     if (!content) {
       return NextResponse.json({

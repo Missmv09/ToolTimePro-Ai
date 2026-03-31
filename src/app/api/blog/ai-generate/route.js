@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+import { chatCompletion, isAIConfigured } from '@/lib/ai-client';
 
 export async function POST(request) {
   try {
-    if (!OPENAI_API_KEY) {
+    if (!isAIConfigured()) {
       return NextResponse.json(
-        { error: 'AI service not configured. Add OPENAI_API_KEY to your environment.' },
+        { error: 'AI service not configured. Add ANTHROPIC_API_KEY or OPENAI_API_KEY to your environment.' },
         { status: 500 }
       );
     }
@@ -50,34 +49,13 @@ Tone: ${tone || 'professional and helpful'}
 
 The post should help homeowners understand this topic and encourage them to hire a professional.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      }),
+    const { text: raw } = await chatCompletion({
+      systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      tier: 'standard',
+      maxTokens: 2000,
+      temperature: 0.7,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('[Blog AI] OpenAI error:', response.status, errorData);
-      return NextResponse.json(
-        { error: 'AI generation failed. Please try again.' },
-        { status: 502 }
-      );
-    }
-
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content?.trim();
 
     if (!raw) {
       return NextResponse.json({ error: 'No content generated.' }, { status: 500 });

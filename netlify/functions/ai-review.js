@@ -1,5 +1,6 @@
 // Netlify Function for AI-powered review response generation
-// Analyzes customer reviews and generates professional responses
+// Anthropic primary, OpenAI fallback — generates professional responses to reviews
+const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -65,36 +66,21 @@ Business: ${businessName || 'Pro Landscaping'}
 
 Write ONLY the response text, ready to be copied and pasted. Sign it from "The ${businessName || 'Pro Landscaping'} Team"`;
 
-    // Call OpenAI
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 300,
-        temperature: 0.8,
-      }),
+    const { text: generatedResponse } = await chatCompletion({
+      systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      tier: 'standard',
+      maxTokens: 300,
+      temperature: 0.8,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI error:', error);
+    if (!generatedResponse) {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'AI service error' }),
+        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
       };
     }
-
-    const data = await response.json();
-    const generatedResponse = data.choices[0].message.content.trim();
 
     return {
       statusCode: 200,

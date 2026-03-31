@@ -1,6 +1,7 @@
 // Netlify Function for ToolTime Assistant conversations
-// Uses OpenAI to power real conversations for service businesses
+// Anthropic primary, OpenAI fallback — powers real conversations for service businesses
 // Includes in-chat booking flow for seamless appointment scheduling
+const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -59,9 +60,8 @@ Guidelines:
 
 Never make up specific appointment times - guide them to use the booking option instead.`;
 
-    // Build messages array
-    const messages = [
-      { role: 'system', content: systemPrompt },
+    // Build messages array (without system prompt — that goes separately)
+    const chatMessages = [
       ...conversationHistory.map(msg => ({
         role: msg.isUser ? 'user' : 'assistant',
         content: msg.text
@@ -69,33 +69,21 @@ Never make up specific appointment times - guide them to use the booking option 
       { role: 'user', content: message }
     ];
 
-    // Call OpenAI
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: messages,
-        max_tokens: 250,
-        temperature: 0.7,
-      }),
+    const { text: reply } = await chatCompletion({
+      systemPrompt,
+      messages: chatMessages,
+      tier: 'standard',
+      maxTokens: 250,
+      temperature: 0.7,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI error:', error);
+    if (!reply) {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'AI service error' }),
+        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
       };
     }
-
-    const data = await response.json();
-    const reply = data.choices[0].message.content.trim();
 
     // Check if a lead was captured (phone number mentioned)
     const phonePattern = /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\d{10}/;
