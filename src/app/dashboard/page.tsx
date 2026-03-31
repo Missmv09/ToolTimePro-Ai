@@ -55,7 +55,7 @@ export default function DashboardPage() {
     syncStatus: string
   } | null>(null)
   const router = useRouter()
-  const { user, dbUser, isLoading: authLoading, isConfigured } = useAuth()
+  const { user, dbUser, company, isLoading: authLoading, isConfigured } = useAuth()
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -346,6 +346,34 @@ export default function DashboardPage() {
           </div>
         </Link>
       </div>
+
+      {/* Customer Portal Pro Upsell — show for non-Elite users who don't have it */}
+      {company && company.plan !== 'elite' && !company.is_beta_tester &&
+       !(company.addons as string[] || []).includes('portal_pro') && (
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-2xl">👤</span>
+                <h3 className="text-lg font-bold">Customer Portal Pro</h3>
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-medium">NEW</span>
+              </div>
+              <p className="text-white/80 text-sm mb-3">
+                Give your customers a branded portal with live job tracker, before/after photos, messaging, document vault, and service history.
+              </p>
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/pricing#addons"
+                  className="inline-flex items-center px-4 py-2 bg-white text-indigo-700 font-semibold rounded-lg hover:bg-indigo-50 transition-colors text-sm"
+                >
+                  Add for $24/mo
+                </Link>
+                <span className="text-white/60 text-xs">or included free with Elite</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Revenue Card */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white mb-8">

@@ -425,6 +425,7 @@ function SettingsContent() {
           website_builder: { name: 'Website Builder', description: 'Custom business website' },
           keep_me_legal: { name: 'Keep Me Legal', description: 'Ongoing compliance monitoring' },
           quickbooks_sync: { name: 'QuickBooks Sync', description: 'Two-way QuickBooks integration' },
+          portal_pro: { name: 'Customer Portal Pro', description: 'Branded customer portal with job tracker, photos, messaging & documents' },
         }
 
         return (
