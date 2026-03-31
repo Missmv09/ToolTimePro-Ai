@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 
-// Server-side env vars that Netlify isn't injecting into the function runtime.
-// These get inlined at build time via webpack DefinePlugin (server bundles only).
+// ⚠️  IMPORTANT — READ THIS IF YOU ADD A NEW ENV VAR IN NETLIFY
+// ⚠️  Netlify does NOT pass server-side env vars to the function runtime.
+// ⚠️  If you add a new env var in Netlify that your API routes need,
+// ⚠️  you MUST also add its name to this list, then redeploy.
+// ⚠️  (NEXT_PUBLIC_ vars are fine — they don't need to be listed here.)
 const serverEnvVars = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'STRIPE_SECRET_KEY',
