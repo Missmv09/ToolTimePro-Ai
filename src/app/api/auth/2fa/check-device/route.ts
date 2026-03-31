@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ required: true, trusted: false })
   } catch (err) {
     console.error('2FA check-device error:', err)
-    // Fail open — don't lock users out if check fails
-    return NextResponse.json({ required: false })
+    // Fail closed — require 2FA if check fails to prevent bypass
+    return NextResponse.json({ error: 'Device check failed' }, { status: 500 })
   }
 }

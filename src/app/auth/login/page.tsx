@@ -143,26 +143,42 @@ function LoginContent() {
               body: JSON.stringify({ deviceToken }),
             })
 
-            if (checkRes.ok) {
-              const { required, trusted } = await checkRes.json()
-              if (required && !trusted) {
-                // Send 2FA code
-                const sendRes = await fetch('/api/auth/2fa/send-code', {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${session.access_token}` },
-                })
-                if (sendRes.ok) {
-                  const { phoneLast4 } = await sendRes.json()
-                  setTwoFaPhoneLast4(phoneLast4)
-                }
+            if (!checkRes.ok) {
+              // 2FA check failed — fail closed, don't let user through
+              await supabase.auth.signOut()
+              setError('Unable to verify your identity. Please try again.')
+              setLoading(false)
+              return
+            }
+
+            const { required, trusted } = await checkRes.json()
+            if (required && !trusted) {
+              // Send 2FA code
+              const sendRes = await fetch('/api/auth/2fa/send-code', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${session.access_token}` },
+              })
+              if (sendRes.ok) {
+                const { phoneLast4 } = await sendRes.json()
+                setTwoFaPhoneLast4(phoneLast4)
                 setTwoFaRequired(true)
+                setLoading(false)
+                return
+              } else {
+                // SMS failed to send — sign out and show error
+                await supabase.auth.signOut()
+                setError('Unable to send verification code. SMS service may be unavailable. Please contact support or try again later.')
                 setLoading(false)
                 return
               }
             }
           }
         } catch {
-          // If 2FA check fails, proceed without it (fail-open)
+          // 2FA check failed — fail closed, sign out
+          await supabase.auth.signOut()
+          setError('Unable to verify your identity. Please try again.')
+          setLoading(false)
+          return
         }
 
         await navigateAfterLogin()
