@@ -10,10 +10,9 @@ type Language = 'en' | 'es';
 
 // Features data - ordered by key money makers first
 const features = [
-  { title: 'Jenny AI — 15 Autonomous Actions', description: 'Jenny doesn\'t just answer questions — she runs your back office. Auto-dispatch crews, follow up cold leads, request Google reviews, track compliance, calculate job profitability, and more. 3 tiers: Lite (free), Pro ($49/mo), Exec Admin ($79/mo).', badge: '🤖 AI-Powered', highlight: true },
+  { title: 'Jenny AI — Your Back-Office Employee', description: 'One AI, three tiers. Jenny Lite (free): website chatbot that captures leads 24/7. Jenny Pro ($49/mo): answers phone calls with bilingual voice, books appointments, sends SMS. Jenny Exec ($79/mo): compliance monitoring, HR law updates, business analytics. Plus 15 autonomous actions that run your back office automatically.', badge: '🤖 AI-Powered', highlight: true },
   { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
-  { title: 'AI Phone Receptionist', description: 'Never miss a call. Jenny Pro answers 24/7 with bilingual voice, captures lead details, books appointments, handles emergencies, sends SMS confirmations.', badge: '💰 Top Revenue Driver', highlight: true },
-  { title: 'Google Reviews Automation', description: 'Jenny auto-requests Google & Yelp reviews via SMS after every job. Configurable delay, click tracking, and AI-generated responses to reviews. More reviews = more customers.', badge: '💰 Top Revenue Driver', highlight: true },
+  { title: 'Review Machine — Powered by Jenny', description: 'Auto-requests Google & Yelp reviews via SMS after every job. Configurable delay, click tracking, and AI-generated responses. Included with all plans.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Smart Material Estimator — 21 Trades', description: 'Describe a job and get exact material lists with Good/Better/Best pricing. Supports painting, plumbing, electrical, roofing, fencing, concrete, and 15 more trades. Contractor markup engine included.', badge: '🌟 NEW', highlight: true },
   { title: 'Customer Portal Pro', description: 'Give customers a branded portal: live job tracker, before/after photo gallery, messaging, document vault, service history, and invoice payments. $24/mo or included with Elite.', badge: '🌟 NEW', highlight: true },
   { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues. Full compliance tracking built-in.', highlight: true },
@@ -29,11 +28,9 @@ const features = [
 
 // Feature tabs - key money makers highlighted
 const featureTabs = [
-  { name: 'Jenny AI', icon: '🎧', href: '/jenny', highlight: true },
+  { name: 'Jenny AI', icon: '🤖', href: '/jenny', highlight: true },
   { name: 'Smart Quoting', icon: '📝', href: '/dashboard/smart-quote', highlight: true },
-  { name: 'AI Receptionist', icon: '📞', href: '/demo/phone-receptionist', highlight: true },
   { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
-  { name: 'Jenny Lite', icon: '🤖', href: '/demo/chatbot', highlight: true },
   { name: 'Worker App', icon: '👷', href: '/demo/worker' },
   { name: 'Legal Protection', icon: '🛡️', href: '/demo/shield' },
   { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
@@ -45,11 +42,9 @@ const featureTabs = [
 
 // Demo cards - reordered by key money makers first, aligned with actual demo pages
 const demoCards = [
-  { icon: '🎧', name: 'Jenny AI', description: 'Meet Jenny — your AI that answers calls, writes quotes, and handles reviews 24/7', href: '/jenny', badge: '🌟 NEW' },
+  { icon: '🤖', name: 'Jenny AI', description: 'Meet Jenny — your AI that answers calls, writes quotes, captures leads, and requests reviews 24/7', href: '/jenny', badge: '🌟 NEW' },
   { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/dashboard/smart-quote', badge: '💰 Top Revenue' },
-  { icon: '📞', name: 'AI Phone Receptionist', description: 'Never miss a call. AI answers 24/7, captures leads, books jobs', href: '/demo/phone-receptionist', badge: '💰 Top Revenue' },
-  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — more reviews = more customers', href: '/demo/reviews', badge: '💰 Top Revenue' },
-  { icon: '🤖', name: 'AI Lead Capture', description: '24/7 chatbot that captures leads while you sleep', href: '/demo/chatbot', badge: '💰 Top Revenue' },
+  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — powered by Jenny, more reviews = more customers', href: '/demo/reviews', badge: '💰 Top Revenue' },
   { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/demo/worker', badge: 'Must Have' },
   { icon: '🧮', name: 'Material Estimator', description: '21 trades — exact material lists with Good/Better/Best pricing', href: '/dashboard/estimator', badge: '🌟 NEW' },
   { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/demo/shield', badge: 'Legal Protection' },

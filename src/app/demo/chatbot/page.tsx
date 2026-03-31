@@ -49,7 +49,7 @@ const translations = {
   },
   es: {
     backToHome: '← Volver al Inicio',
-    title: 'Demo del Asistente ToolTime',
+    title: 'Demo de Jenny Lite',
     subtitle: 'Vea cómo nuestro asistente de IA 24/7 captura clientes mientras duerme',
     neverMiss: 'Nunca Pierda Otro Cliente',
     neverMissDesc: 'Su chatbot de IA trabaja las 24 horas para responder preguntas, capturar clientes y agendar citas — incluso cuando usted no está trabajando.',
