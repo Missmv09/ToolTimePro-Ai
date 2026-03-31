@@ -11,6 +11,20 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/auto-pr-hook.sh",
+            "if": "Bash(git push:*)",
+            "timeout": 10,
+            "statusMessage": "Checking for auto-PR..."
+          }
+        ]
+      }
     ]
   }
 }
