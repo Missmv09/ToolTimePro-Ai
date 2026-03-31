@@ -13,8 +13,8 @@ const TIERS = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 30,
-    annualPrice: 300,
+    monthlyPrice: 49,
+    annualPrice: 490,
     description: 'For small teams',
     workers: 'Owner + 2 workers',
     features: [
@@ -34,8 +34,8 @@ const TIERS = [
   {
     id: 'pro',
     name: 'Pro',
-    monthlyPrice: 59,
-    annualPrice: 590,
+    monthlyPrice: 79,
+    annualPrice: 790,
     description: 'For growing teams who need more tools',
     workers: 'Up to 15 workers',
     features: [
@@ -54,8 +54,8 @@ const TIERS = [
   {
     id: 'elite',
     name: 'Elite',
-    monthlyPrice: 99,
-    annualPrice: 990,
+    monthlyPrice: 129,
+    annualPrice: 1290,
     description: 'Full operations suite for serious businesses',
     workers: 'Up to 20 workers',
     features: [
@@ -79,21 +79,21 @@ const TIERS = [
 const PLAN_INLINE_ADDONS = {
   starter: [
     { id: 'portal_pro', name: 'Customer Portal Pro', price: 24 },
-    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19 },
+    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 29 },
     { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12 },
-    { id: 'website_builder', name: 'Website Builder', price: 15 },
+    { id: 'website_builder', name: 'Website Builder', price: 25 },
     { id: 'extra_page', name: 'Extra Website Page', price: 10 },
   ],
   pro: [
     { id: 'portal_pro', name: 'Customer Portal Pro', price: 24 },
-    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19 },
+    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 29 },
     { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12 },
-    { id: 'website_builder', name: 'Website Builder', price: 15 },
+    { id: 'website_builder', name: 'Website Builder', price: 25 },
     { id: 'extra_page', name: 'Extra Website Page', price: 10 },
   ],
   elite: [
-    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19 },
-    { id: 'website_builder', name: 'Website Builder', price: 15 },
+    { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 29 },
+    { id: 'website_builder', name: 'Website Builder', price: 25 },
     { id: 'extra_page', name: 'Extra Website Page', price: 10 },
   ],
 };
@@ -155,8 +155,8 @@ const ADDONS = [
   {
     id: 'website_builder',
     name: 'Website Builder',
-    monthlyPrice: 15,
-    annualPrice: 150,
+    monthlyPrice: 25,
+    annualPrice: 250,
     icon: '🌐',
     description: 'Custom landing page built for you',
     hasAnnual: true,
@@ -173,8 +173,8 @@ const ADDONS = [
   {
     id: 'keep_me_legal',
     name: 'Compliance Autopilot',
-    monthlyPrice: 19,
-    annualPrice: 190,
+    monthlyPrice: 29,
+    annualPrice: 290,
     icon: '🛡️',
     description: 'Automated compliance monitoring, law-change alerts & cert reminders',
     hasAnnual: true,
@@ -209,14 +209,14 @@ const ONBOARDING = [
   {
     id: 'assisted_onboarding',
     name: 'Assisted Onboarding',
-    price: 149,
+    price: 199,
     description: 'We help you set up your account',
     features: ['Account setup assistance', 'Import your customer list', '30-min training call'],
   },
   {
     id: 'white_glove',
     name: 'White Glove Setup',
-    price: 349,
+    price: 499,
     description: 'We do everything for you',
     features: ['Full done-for-you setup', 'Website design & copy', 'Import all data', '1-hour training', '30-day priority support'],
     recommended: true,
