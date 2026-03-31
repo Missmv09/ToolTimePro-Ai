@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { COMPETITORS } from '@/lib/competitor-data';
-import { ArrowRight, Shield, Bot, DollarSign, Globe, CheckCircle } from 'lucide-react';
+import { ArrowRight, Shield, Bot, DollarSign, Globe } from 'lucide-react';
 
 const competitors = Object.values(COMPETITORS);
 
@@ -31,7 +31,7 @@ export default function ComparePage() {
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-4">
             The only platform that&apos;s AI-native + compliance-built + affordable + bilingual.
-            See how we stack up against every major FSM platform.
+            See how we stack up against {competitors.length} major FSM platforms.
           </p>
         </div>
       </section>
@@ -97,25 +97,6 @@ export default function ComparePage() {
                 </div>
               </Link>
             ))}
-
-            {/* Jobber (existing page) */}
-            <Link
-              href="/compare/jobber"
-              className="block bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-[#f5a623] transition-all p-6 no-underline"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-[#1a1a2e]">ToolTime Pro vs Jobber</h3>
-                  <p className="text-gray-500 mt-1">See why contractors are switching — same features at a fraction of the price.</p>
-                  <div className="flex items-center gap-4 mt-3">
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                      Save $2,000-$3,000+/year
-                    </span>
-                  </div>
-                </div>
-                <ArrowRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
-              </div>
-            </Link>
           </div>
         </div>
       </section>
