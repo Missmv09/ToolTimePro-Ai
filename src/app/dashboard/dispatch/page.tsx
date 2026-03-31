@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useDispatch, Worker, DispatchJob } from '@/hooks/useDispatch';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,6 @@ import {
   Phone,
   MessageSquare,
   User,
-  Truck,
   CheckCircle,
   AlertCircle,
   RefreshCw,
@@ -45,6 +44,94 @@ function formatTime(timeStr: string | null): string {
 function formatCurrency(amount: number | null): string {
   if (!amount) return '$0';
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount);
+}
+
+// Dynamic Leaflet map for dispatch board
+function DispatchMap({
+  workers,
+  jobs,
+  onSelectWorker,
+  onSelectJob,
+}: {
+  workers: Worker[];
+  jobs: DispatchJob[];
+  onSelectWorker: (w: Worker) => void;
+  onSelectJob: (j: DispatchJob) => void;
+}) {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const layerGroupRef = useRef<L.LayerGroup | null>(null);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    let isMounted = true;
+
+    Promise.all([
+      import('leaflet'),
+      // @ts-ignore - CSS import for leaflet styles
+      import('leaflet/dist/leaflet.css'),
+    ]).then(([L]) => {
+      if (!isMounted || !mapContainerRef.current) return;
+
+      if (!mapRef.current) {
+        mapRef.current = L.default.map(mapContainerRef.current).setView([39.8283, -98.5795], 4);
+        L.default.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+        }).addTo(mapRef.current);
+        layerGroupRef.current = L.default.layerGroup().addTo(mapRef.current);
+      }
+
+      const layerGroup = layerGroupRef.current!;
+      layerGroup.clearLayers();
+
+      const bounds: [number, number][] = [];
+
+      // Add worker markers (truck icons)
+      workers.filter((w) => w.location).forEach((worker) => {
+        const statusColor = WORKER_STATUS_CONFIG[worker.status]?.color || '#9E9E9E';
+        const icon = L.default.divIcon({
+          className: 'dispatch-worker-marker',
+          html: `<div style="
+            width: 36px; height: 36px; border-radius: 50%;
+            background: ${statusColor}; color: white;
+            display: flex; align-items: center; justify-content: center;
+            border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-size: 16px;
+          ">&#x1F69A;</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        });
+
+        const marker = L.default.marker([worker.location!.lat, worker.location!.lng], { icon });
+        marker.bindPopup(`<strong>${worker.full_name}</strong><br/>${WORKER_STATUS_CONFIG[worker.status]?.label || 'Unknown'}<br/>${worker.jobsToday} jobs today`);
+        marker.on('click', () => onSelectWorker(worker));
+        layerGroup.addLayer(marker);
+        bounds.push([worker.location!.lat, worker.location!.lng]);
+      });
+
+      // Note: Jobs don't have lat/lng in the database yet.
+      // We show a message if no markers are available.
+      if (bounds.length > 0) {
+        mapRef.current!.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      }
+    });
+
+    return () => { isMounted = false; };
+  }, [workers, jobs, onSelectWorker, onSelectJob]);
+
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <div ref={mapContainerRef} className="w-full h-full min-h-[400px] rounded-xl overflow-hidden" style={{ zIndex: 0 }} />
+  );
 }
 
 export default function DispatchBoardPage() {
@@ -266,41 +353,21 @@ export default function DispatchBoardPage() {
         {/* Main Content */}
         <main className="lg:col-span-6 bg-gray-100 overflow-auto p-4">
           {viewMode === 'map' ? (
-            <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-xl h-full min-h-[400px] relative">
-              <div className="absolute top-4 left-4 bg-white rounded-lg px-3 py-2 shadow text-sm">
-                <p className="font-medium">📍 Service Area</p>
-                <p className="text-xs text-gray-500">Live tracking</p>
-              </div>
-              {/* Simulated map markers */}
-              {workers.filter((w) => w.location).map((worker, i) => (
-                <div
-                  key={worker.id}
-                  className="absolute cursor-pointer transform -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: `${20 + i * 25}%`, top: `${30 + (i % 2) * 30}%` }}
-                  onClick={() => setSelectedWorker(worker)}
-                >
-                  <div className="relative">
-                    <Truck className="w-8 h-8 text-[#1a1a2e]" style={{ color: WORKER_STATUS_CONFIG[worker.status]?.color }} />
-                    <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white px-1 rounded text-xs font-medium whitespace-nowrap shadow">
-                      {worker.full_name.split(' ')[0]}
-                    </span>
-                    {worker.status === 'en_route' && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-ping" />
-                    )}
+            <div className="rounded-xl h-full min-h-[400px] relative">
+              <DispatchMap
+                workers={workers}
+                jobs={jobs}
+                onSelectWorker={(w) => setSelectedWorker(w)}
+                onSelectJob={(j) => setSelectedJob(j)}
+              />
+              {workers.filter((w) => w.location).length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl pointer-events-none">
+                  <div className="bg-white rounded-lg px-4 py-3 shadow text-center">
+                    <p className="font-medium text-gray-700">No live worker locations</p>
+                    <p className="text-xs text-gray-500 mt-1">Workers with GPS clock-in will appear on the map</p>
                   </div>
                 </div>
-              ))}
-              {/* Job markers */}
-              {jobs.filter((j) => j.status !== 'completed').map((job, i) => (
-                <div
-                  key={job.id}
-                  className="absolute cursor-pointer"
-                  style={{ left: `${15 + i * 18}%`, top: `${55 + (i % 3) * 12}%` }}
-                  onClick={() => setSelectedJob(job)}
-                >
-                  <MapPin className="w-6 h-6 text-red-500" />
-                </div>
-              ))}
+              )}
             </div>
           ) : jobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
