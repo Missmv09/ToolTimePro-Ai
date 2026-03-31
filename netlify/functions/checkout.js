@@ -24,16 +24,17 @@ exports.handler = async (event, context) => {
       elite: allPrices.elite || {},
     };
 
+    // Keys must match what the frontend sends (snake_case addon IDs)
     const addOnPrices = {
-      keepMeLegal: allPrices.keep_me_legal?.monthly,
-      jennyLite: allPrices.jenny_lite?.monthly,
-      jennyPro: allPrices.jenny_pro?.monthly,
-      jennyExecAdmin: allPrices.jenny_exec_admin?.monthly,
-      extraPage: allPrices.extra_page?.monthly,
-      extraWorker: allPrices.extra_worker?.monthly,
-      websiteBuilder: allPrices.website_builder?.monthly,
-      quickbooksSync: allPrices.quickbooks_sync?.monthly,
-      customerPortalPro: allPrices.customer_portal_pro?.monthly,
+      keep_me_legal: allPrices.keep_me_legal?.monthly,
+      jenny_lite: allPrices.jenny_lite?.monthly,
+      jenny_pro: allPrices.jenny_pro?.monthly,
+      jenny_exec_admin: allPrices.jenny_exec_admin?.monthly,
+      extra_page: allPrices.extra_page?.monthly,
+      extra_worker: allPrices.extra_worker?.monthly,
+      website_builder: allPrices.website_builder?.monthly,
+      quickbooks_sync: allPrices.quickbooks_sync?.monthly,
+      customer_portal_pro: allPrices.customer_portal_pro?.monthly,
     };
 
     const lineItems = [];
