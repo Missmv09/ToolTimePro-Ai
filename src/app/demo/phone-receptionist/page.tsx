@@ -173,7 +173,7 @@ export default function PhoneReceptionistDemo() {
         <Link href="/auth/signup?plan=pro" className="underline ml-1 font-bold">
           Get Pro Plan
         </Link>
-        {' '}for AI Phone Receptionist
+        {' '}for Jenny Pro — Phone Receptionist
       </div>
 
       {/* Header */}
@@ -187,7 +187,7 @@ export default function PhoneReceptionistDemo() {
               📞
             </div>
             <div>
-              <h1 className="text-3xl font-bold">AI Phone Receptionist</h1>
+              <h1 className="text-3xl font-bold">Jenny Pro — Phone Receptionist</h1>
               <p className="text-white/70 mt-1">Never miss another call. Your AI answers 24/7.</p>
             </div>
             <span className="ml-auto bg-[#f5a623] text-[#1a1a2e] px-4 py-1.5 rounded-full text-sm font-bold">
@@ -288,7 +288,7 @@ export default function PhoneReceptionistDemo() {
                               : 'bg-[#f5a623] text-[#1a1a2e] rounded-br-none'
                           }`}>
                             <div className="text-[10px] font-semibold mb-1 opacity-70">
-                              {message.speaker === 'ai' ? '🤖 AI Receptionist' : '👤 Customer'}
+                              {message.speaker === 'ai' ? '🤖 Jenny Pro' : '👤 Customer'}
                             </div>
                             {message.text}
                           </div>
@@ -342,7 +342,7 @@ export default function PhoneReceptionistDemo() {
                   <span className="text-2xl">{selectedScenario.icon}</span>
                   <div>
                     <h3 className="font-bold">New Lead Captured!</h3>
-                    <p className="text-white/60 text-sm">via AI Phone Receptionist</p>
+                    <p className="text-white/60 text-sm">via Jenny Pro — Phone Receptionist</p>
                   </div>
                 </div>
                 {selectedScenario.leadCaptured.priority && (
@@ -430,7 +430,7 @@ export default function PhoneReceptionistDemo() {
         <div className="mb-16">
           <div className="text-center mb-10">
             <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
-              Why Choose AI Receptionist?
+              Why Choose Jenny Pro?
             </span>
             <h2 className="text-3xl font-bold text-[#1a1a2e]">Every Call Handled Professionally</h2>
           </div>
@@ -460,7 +460,7 @@ export default function PhoneReceptionistDemo() {
               href="/auth/signup?plan=pro"
               className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors no-underline"
             >
-              Get AI Receptionist →
+              Get Jenny Pro →
             </Link>
             <Link
               href="/#get-started"

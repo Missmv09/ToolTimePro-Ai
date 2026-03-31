@@ -49,7 +49,7 @@ const translations = {
   },
   es: {
     backToHome: '← Volver al Inicio',
-    title: 'Demo del Asistente ToolTime',
+    title: 'Demo de Jenny Lite',
     subtitle: 'Vea cómo nuestro asistente de IA 24/7 captura clientes mientras duerme',
     neverMiss: 'Nunca Pierda Otro Cliente',
     neverMissDesc: 'Su chatbot de IA trabaja las 24 horas para responder preguntas, capturar clientes y agendar citas — incluso cuando usted no está trabajando.',
@@ -65,7 +65,7 @@ const translations = {
     alwaysOnline: 'Siempre en Línea',
     responseTime: 'Tiempo de Respuesta',
     moreLeads: 'Más Clientes',
-    getCTA: 'Obtenga Su Asistente ToolTime →',
+    getCTA: 'Obtenga Jenny Lite →',
     includedFree: 'Incluido gratis con todos los planes ToolTime Pro',
     onlineNow: 'En línea ahora',
     typeMessage: 'Escribe un mensaje...',
@@ -173,7 +173,7 @@ export default function ChatbotDemoPage() {
             {/* CTA */}
             <div className="pt-4">
               <Link
-                href="/auth/register"
+                href="/pricing"
                 className="inline-block px-8 py-4 bg-[#f5a623] hover:bg-[#e09000] text-[#1a1a2e] font-bold rounded-lg transition-colors text-lg"
               >
                 {t.getCTA}
@@ -300,7 +300,7 @@ export default function ChatbotDemoPage() {
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">{t.readyCaptureDesc}</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="/auth/register"
+              href="/pricing"
               className="px-8 py-4 bg-[#f5a623] hover:bg-[#e09000] text-[#1a1a2e] font-bold rounded-lg transition-colors"
             >
               {t.startFreeTrial}

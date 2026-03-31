@@ -114,7 +114,7 @@ export default function DemoReviewsPage() {
           <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
-          This is a preview of the Review Machine.{' '}
+          This is a preview of the Review Machine — powered by Jenny AI.{' '}
           <Link href="/auth/signup" className="text-[#f5a623] underline">
             Sign up
           </Link>{' '}
@@ -338,7 +338,7 @@ export default function DemoReviewsPage() {
             Automate Your Reviews
           </h3>
           <p className="text-[#5c5c70] mb-6 max-w-lg mx-auto">
-            Stop chasing customers for reviews. The Review Machine automatically sends SMS requests
+            Stop chasing customers for reviews. Jenny automatically sends SMS review requests
             after every completed job, helping you build your online reputation on autopilot.
           </p>
           <Link
