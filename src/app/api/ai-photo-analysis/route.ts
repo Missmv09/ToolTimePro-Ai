@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const { aiComplete, parseAIJson } = require('@/lib/ai-client');
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
 export async function POST(request: NextRequest) {
@@ -14,8 +17,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If no OpenAI key, return smart defaults
-    if (!OPENAI_API_KEY) {
+    // If no AI keys at all, return smart defaults
+    if (!ANTHROPIC_API_KEY && !OPENAI_API_KEY) {
       return NextResponse.json(getFallbackAnalysis());
     }
 
@@ -71,16 +74,12 @@ Return a JSON object with this exact format:
 Be thorough - identify EVERY service opportunity visible in the photo.
 Return ONLY the JSON, no other text.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
+    let result;
+    try {
+      // Call AI Vision (Claude primary, OpenAI fallback)
+      const aiResult = await aiComplete({
+        systemPrompt,
         messages: [
-          { role: 'system', content: systemPrompt },
           {
             role: 'user',
             content: [
@@ -95,34 +94,15 @@ Return ONLY the JSON, no other text.`;
             ],
           },
         ],
-        max_tokens: 1500,
+        maxTokens: 1500,
         temperature: 0.5,
-      }),
-    });
+        tier: 'high',
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI Vision error:', errorText);
-      // Fall back to defaults on API error
+      result = parseAIJson(aiResult.content);
+    } catch (aiError) {
+      console.error('AI vision error:', aiError);
       return NextResponse.json(getFallbackAnalysis());
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
-
-    // Parse the JSON response
-    let result;
-    try {
-      result = JSON.parse(content);
-    } catch {
-      // Try to extract JSON from the response
-      const match = content.match(/\{[\s\S]*\}/);
-      if (match) {
-        result = JSON.parse(match[0]);
-      } else {
-        console.error('Could not parse AI response:', content);
-        return NextResponse.json(getFallbackAnalysis());
-      }
     }
 
     // Validate and sanitize services

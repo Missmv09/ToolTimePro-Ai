@@ -1,5 +1,6 @@
 // Netlify Function for AI-powered quote suggestions
 // Analyzes job descriptions, voice transcripts, and generates tiered pricing
+const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -164,55 +165,22 @@ Return a JSON object with this exact format:
 
 Return ONLY the JSON, no other text.`;
 
-    // Use gpt-4o for voice transcripts and tiered quotes (needs stronger reasoning),
-    // gpt-4o-mini for standard text quotes (much faster, lower cost)
+    // Use high tier for voice transcripts and tiered quotes (needs stronger reasoning),
+    // fast tier for standard text quotes (faster, lower cost)
     const needsFullModel = inputType === 'voice' || generateTiers;
-    const model = needsFullModel ? 'gpt-4o' : 'gpt-4o-mini';
+    const tier = needsFullModel ? 'high' : 'fast';
     const maxTokens = generateTiers ? 2000 : 1200;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: maxTokens,
-        temperature: 0.5,
-      }),
+    const aiResult = await aiComplete({
+      systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      maxTokens,
+      temperature: 0.5,
+      tier,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI error:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI service error' }),
-      };
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
-
     // Parse the JSON response
-    let result;
-    try {
-      result = JSON.parse(content);
-    } catch {
-      // Try to extract JSON from the response
-      const match = content.match(/\{[\s\S]*\}/);
-      if (match) {
-        result = JSON.parse(match[0]);
-      } else {
-        throw new Error('Could not parse AI response');
-      }
-    }
+    let result = parseAIJson(aiResult.content);
 
     // Validate the response structure
     if (!result.services || !Array.isArray(result.services)) {

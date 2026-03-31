@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const { aiComplete } = require('@/lib/ai-client');
+const { getComplianceKnowledge, getSupportedStates } = require('@/lib/compliance-knowledge');
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
 interface ChatMessage {
@@ -429,6 +433,7 @@ export async function POST(request: NextRequest) {
         companyPlan?: string;
         employeeCount?: number;
         industry?: string;
+        state?: string;
         complianceStats?: {
           totalViolations: number;
           mealBreakViolations: number;
@@ -450,6 +455,13 @@ export async function POST(request: NextRequest) {
     // Build system prompt with context
     let systemPrompt = getSystemPrompt(mode, language);
 
+    // For compliance mode, inject authoritative legal reference data
+    if (mode === 'compliance') {
+      const stateCode = (body as { state?: string }).state || context?.state || 'CA';
+      const complianceKnowledge = getComplianceKnowledge(stateCode.toUpperCase());
+      systemPrompt += `\n\nAUTHORITATIVE LEGAL REFERENCE DATA (you MUST cite these statutes — do NOT use your own knowledge for specific numbers):\n${complianceKnowledge}`;
+    }
+
     if (context) {
       const contextParts: string[] = [];
       if (context.companyName) contextParts.push(`Business: ${context.companyName}`);
@@ -467,56 +479,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // If no OpenAI key, return smart fallback
-    if (!OPENAI_API_KEY) {
+    // If no AI keys at all, return smart fallback
+    if (!ANTHROPIC_API_KEY && !OPENAI_API_KEY) {
       return NextResponse.json({
         message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
       });
     }
 
-    // Build message history for OpenAI
-    const apiMessages: ChatMessage[] = [
-      { role: 'system', content: systemPrompt },
-      ...messages.slice(-10).map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
-    ];
+    // Build message history
+    const apiMessages = messages.slice(-10).map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }));
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
+    try {
+      const aiResult = await aiComplete({
+        systemPrompt,
         messages: apiMessages,
-        max_tokens: 800,
-        temperature: 0.4,
-      }),
-    });
+        maxTokens: 800,
+        temperature: mode === 'compliance' ? 0.3 : 0.4,
+        tier: 'high',
+      });
 
-    if (!response.ok) {
-      console.error('OpenAI error:', await response.text());
+      return NextResponse.json({ message: aiResult.content, fallback: false, provider: aiResult.provider });
+    } catch {
+      // Both providers failed — return smart fallback
       return NextResponse.json({
         message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
       });
     }
-
-    const data = await response.json();
-    const content = data.choices[0]?.message?.content?.trim();
-
-    if (!content) {
-      return NextResponse.json({
-        message: getFallbackResponse(mode, lastUserMessage, language),
-        fallback: true,
-      });
-    }
-
-    return NextResponse.json({ message: content, fallback: false });
   } catch (error) {
     console.error('jenny-exec chat API error:', error);
     return NextResponse.json(
