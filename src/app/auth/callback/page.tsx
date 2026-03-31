@@ -133,7 +133,7 @@ function AuthCallbackContent() {
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Verification Failed</h2>
         <p className="text-gray-500 mb-6">{errorMessage || 'Your link may have expired or already been used.'}</p>
         <div className="space-y-3">
-          <a href="/auth/signup" className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <a href="/auth/signup" className="block w-full px-4 py-2 bg-[#f5a623] text-[#1a1a2e] font-bold rounded-lg hover:bg-[#e6991a] transition-colors">
             Sign Up Again
           </a>
           <a href="/auth/login" className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
@@ -146,7 +146,7 @@ function AuthCallbackContent() {
 
   return (
     <div className="text-center">
-      <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6" />
+      <div className="w-12 h-12 border-4 border-[#f5a623]/30 border-t-[#f5a623] rounded-full animate-spin mx-auto mb-6" />
       {status === 'confirming' ? (
         <>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Confirming your email...</h2>
@@ -167,7 +167,7 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Suspense fallback={
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6" />
+          <div className="w-12 h-12 border-4 border-[#f5a623]/30 border-t-[#f5a623] rounded-full animate-spin mx-auto mb-6" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Confirming your email...</h2>
           <p className="text-gray-500">Just a moment while we verify your account.</p>
         </div>

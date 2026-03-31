@@ -632,25 +632,34 @@ export default function Home() {
 
             {/* Phone Mockup */}
             <div className="flex justify-center">
-              <div className="bg-[#0a0a12] rounded-[40px] p-3 shadow-[0_24px_60px_rgba(26,26,46,0.16)] max-w-[300px]">
-                <div className="bg-white rounded-[32px] overflow-hidden">
-                  <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] text-white p-5">
-                    <h4 className="font-extrabold text-[1.0625rem]">👷 Worker App</h4>
-                  </div>
-                  <div className="p-4">
-                    <div className="bg-[#fafafa] rounded-xl p-4 mb-3 border border-gray-200">
-                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏠 Martinez Residence</h5>
-                      <p className="text-[0.8125rem] text-[#8e8e9f]">123 Oak Street</p>
-                      <p className="text-[#1a1a2e] font-semibold text-[0.8125rem] mt-1.5">9:00 AM - 11:00 AM</p>
+              <div className="relative max-w-[300px]">
+                {/* Glow effect behind phone */}
+                <div className="absolute -inset-4 bg-gradient-to-b from-[#f5a623]/20 to-[#00c853]/20 rounded-[52px] blur-2xl opacity-60" />
+                <div className="relative bg-gradient-to-b from-[#1c1c2e] to-[#0e0e1a] rounded-[44px] p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.06)]">
+                  {/* Notch */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-[#1c1c2e] rounded-b-[16px] z-10" />
+                  <div className="bg-white rounded-[38px] overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-10 pb-5">
+                      <h4 className="font-extrabold text-[1.0625rem] tracking-wide">👷 Worker App</h4>
+                      <p className="text-white/50 text-[0.75rem] mt-1">Today&apos;s Schedule</p>
                     </div>
-                    <div className="bg-[#fafafa] rounded-xl p-4 mb-3 border border-gray-200">
-                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏢 Oak Valley HOA</h5>
-                      <p className="text-[0.8125rem] text-[#8e8e9f]">456 Pine Avenue</p>
-                      <p className="text-[#1a1a2e] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
+                    {/* Body */}
+                    <div className="p-4 space-y-3">
+                      <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
+                        <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏠 Martinez Residence</h5>
+                        <p className="text-[0.8125rem] text-[#8e8e9f]">123 Oak Street</p>
+                        <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">9:00 AM - 11:00 AM</p>
+                      </div>
+                      <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
+                        <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏢 Oak Valley HOA</h5>
+                        <p className="text-[0.8125rem] text-[#8e8e9f]">456 Pine Avenue</p>
+                        <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
+                      </div>
+                      <button className="w-full py-4 bg-gradient-to-r from-[#00c853] to-[#00e676] text-white font-bold rounded-2xl shadow-[0_4px_20px_rgba(0,200,83,0.35)] hover:shadow-[0_6px_28px_rgba(0,200,83,0.45)] transition-shadow">
+                        ⏰ Clock In Now
+                      </button>
                     </div>
-                    <button className="w-full py-4 bg-[#00c853] text-white font-bold rounded-xl">
-                      ⏰ Clock In Now
-                    </button>
                   </div>
                 </div>
               </div>

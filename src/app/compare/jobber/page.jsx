@@ -397,9 +397,9 @@ export default function CompareJobber() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-[#1a2e44] text-white py-16 px-4">
+      <section className="bg-[#1a1a2e] text-white py-16 px-4">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-amber-400 font-medium mb-4 tracking-wide uppercase text-sm">
+          <p className="text-[#f5a623] font-medium mb-4 tracking-wide uppercase text-sm">
             {t.comparisonGuide}
           </p>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -411,7 +411,7 @@ export default function CompareJobber() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/pricing"
-              className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
+              className="bg-[#f5a623] hover:bg-[#e6991a] text-[#1a1a2e] font-semibold py-3 px-8 rounded-lg transition-colors"
             >
               {t.startTrial}
             </Link>
@@ -429,19 +429,19 @@ export default function CompareJobber() {
       <section className="bg-[#f8f9fa] border-b py-8 px-4">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
-            <p className="text-3xl font-bold text-[#1a2e44]">50-77%</p>
+            <p className="text-3xl font-bold text-[#1a1a2e]">50-77%</p>
             <p className="text-gray-600 text-sm">{t.typicalSavings}</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-[#1a2e44]">$7</p>
+            <p className="text-3xl font-bold text-[#1a1a2e]">$7</p>
             <p className="text-gray-600 text-sm">{t.perExtraUser}</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-[#1a2e44]">2x</p>
+            <p className="text-3xl font-bold text-[#1a1a2e]">2x</p>
             <p className="text-gray-600 text-sm">{t.moreUsersPerPlan}</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-[#1a2e44]">14 {language === 'es' ? 'Días' : 'Days'}</p>
+            <p className="text-3xl font-bold text-[#1a1a2e]">14 {language === 'es' ? 'Días' : 'Days'}</p>
             <p className="text-gray-600 text-sm">{t.freeTrial}</p>
           </div>
         </div>
@@ -450,7 +450,7 @@ export default function CompareJobber() {
       {/* Main Comparison Section */}
       <section id="comparison" className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-[#1a2e44] mb-4">
+          <h2 className="text-3xl font-bold text-center text-[#1a1a2e] mb-4">
             {t.pricingComparison}
           </h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
@@ -462,8 +462,8 @@ export default function CompareJobber() {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  <th className="text-left p-4 bg-gray-50 font-semibold text-[#1a2e44] rounded-tl-lg">{t.planTier}</th>
-                  <th className="p-4 bg-[#1a2e44] text-white font-semibold">
+                  <th className="text-left p-4 bg-gray-50 font-semibold text-[#1a1a2e] rounded-tl-lg">{t.planTier}</th>
+                  <th className="p-4 bg-[#1a1a2e] text-white font-semibold">
                     <div className="flex items-center justify-center gap-2">
                       <span>🛠️</span>
                       <span>ToolTime Pro</span>
@@ -540,7 +540,7 @@ export default function CompareJobber() {
           {/* Savings Callout */}
           <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
             <p className="text-lg">
-              <span className="font-bold text-[#1a2e44]">{t.savingsCallout}</span>
+              <span className="font-bold text-[#1a1a2e]">{t.savingsCallout}</span>
               <span className="text-gray-600"> {t.savingsCalloutSuffix}</span>
             </p>
           </div>
@@ -550,7 +550,7 @@ export default function CompareJobber() {
       {/* Feature Comparison */}
       <section className="py-16 px-4 bg-[#f8f9fa]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-[#1a2e44] mb-4">
+          <h2 className="text-3xl font-bold text-center text-[#1a1a2e] mb-4">
             {t.featureComparison}
           </h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
@@ -561,8 +561,8 @@ export default function CompareJobber() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left p-4 font-semibold text-[#1a2e44]">{t.feature}</th>
-                  <th className="p-4 font-semibold text-[#1a2e44] text-center w-48">ToolTime Pro</th>
+                  <th className="text-left p-4 font-semibold text-[#1a1a2e]">{t.feature}</th>
+                  <th className="p-4 font-semibold text-[#1a1a2e] text-center w-48">ToolTime Pro</th>
                   <th className="p-4 font-semibold text-gray-500 text-center w-48">Jobber*</th>
                 </tr>
               </thead>
@@ -651,44 +651,44 @@ export default function CompareJobber() {
       {/* Why Switch Section */}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-[#1a2e44] mb-12">
+          <h2 className="text-3xl font-bold text-center text-[#1a1a2e] mb-12">
             {t.whyContractorsSwitch}
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">🎤</div>
-              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.smartQuotingWithAI}</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t.smartQuotingWithAI}</h3>
               <p className="text-gray-600">{t.smartQuotingWithAIDesc}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">💰</div>
-              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.save50_77}</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t.save50_77}</h3>
               <p className="text-gray-600">{t.save50_77Desc}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">📱</div>
-              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.smsBuiltIn}</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t.smsBuiltIn}</h3>
               <p className="text-gray-600">{t.smsBuiltInDesc}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">👥</div>
-              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.affordableTeamGrowth}</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t.affordableTeamGrowth}</h3>
               <p className="text-gray-600">{t.affordableTeamGrowthDesc}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">🛡️</div>
-              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.complianceIncluded}</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t.complianceIncluded}</h3>
               <p className="text-gray-600">{t.complianceIncludedDesc}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">🤖</div>
-              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.toolTimeAssistantTitle}</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t.toolTimeAssistantTitle}</h3>
               <p className="text-gray-600">{t.toolTimeAssistantDesc}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">🚀</div>
-              <h3 className="text-xl font-bold text-[#1a2e44] mb-2">{t.builtForGrowingTeams}</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t.builtForGrowingTeams}</h3>
               <p className="text-gray-600">{t.builtForGrowingTeamsDesc}</p>
             </div>
           </div>
@@ -696,7 +696,7 @@ export default function CompareJobber() {
       </section>
 
       {/* Real Cost Scenarios */}
-      <section className="py-16 px-4 bg-[#1a2e44] text-white">
+      <section className="py-16 px-4 bg-[#1a1a2e] text-white">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">
             {t.realWorldCost}
@@ -718,7 +718,7 @@ export default function CompareJobber() {
                   <span className="text-gray-300">$50-70{t.perMo}</span>
                 </p>
               </div>
-              <div className="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg">
+              <div className="bg-[#f5a623] text-[#1a1a2e] font-bold py-2 px-4 rounded-lg">
                 {t.savePerYear} $240-480{t.perYear}
               </div>
             </div>
@@ -734,7 +734,7 @@ export default function CompareJobber() {
                   <span className="text-gray-300">$150-200{t.perMo}</span>
                 </p>
               </div>
-              <div className="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg">
+              <div className="bg-[#f5a623] text-[#1a1a2e] font-bold py-2 px-4 rounded-lg">
                 {t.savePerYear} $800-1,400{t.perYear}
               </div>
             </div>
@@ -750,7 +750,7 @@ export default function CompareJobber() {
                   <span className="text-gray-300">$350-500{t.perMo}</span>
                 </p>
               </div>
-              <div className="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg">
+              <div className="bg-[#f5a623] text-[#1a1a2e] font-bold py-2 px-4 rounded-lg">
                 {t.savePerYear} $2,400-4,200{t.perYear}
               </div>
             </div>
@@ -761,33 +761,33 @@ export default function CompareJobber() {
       {/* FAQ Section */}
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-[#1a2e44] mb-12">
+          <h2 className="text-3xl font-bold text-center text-[#1a1a2e] mb-12">
             {t.faq}
           </h2>
 
           <div className="space-y-6">
             <div className="border border-gray-200 rounded-xl p-6">
-              <h3 className="font-bold text-[#1a2e44] mb-2">{t.faqMigrate}</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t.faqMigrate}</h3>
               <p className="text-gray-600">{t.faqMigrateAnswer}</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-6">
-              <h3 className="font-bold text-[#1a2e44] mb-2">{t.faqMobileApp}</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t.faqMobileApp}</h3>
               <p className="text-gray-600">{t.faqMobileAppAnswer}</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-6">
-              <h3 className="font-bold text-[#1a2e44] mb-2">{t.faqAssistant}</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t.faqAssistant}</h3>
               <p className="text-gray-600">{t.faqAssistantAnswer}</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-6">
-              <h3 className="font-bold text-[#1a2e44] mb-2">{t.faqFreeTrial}</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t.faqFreeTrial}</h3>
               <p className="text-gray-600">{t.faqFreeTrialAnswer}</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-6">
-              <h3 className="font-bold text-[#1a2e44] mb-2">{t.faqHelp}</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t.faqHelp}</h3>
               <p className="text-gray-600">{t.faqHelpAnswer}</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-6">
-              <h3 className="font-bold text-[#1a2e44] mb-2">{t.faqQuickbooks}</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t.faqQuickbooks}</h3>
               <p className="text-gray-600">{t.faqQuickbooksAnswer}</p>
             </div>
           </div>
@@ -795,7 +795,7 @@ export default function CompareJobber() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 px-4 bg-amber-500">
+      <section className="py-16 px-4 bg-[#f5a623]">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             {t.readyToSave}
@@ -806,13 +806,13 @@ export default function CompareJobber() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/pricing"
-              className="bg-[#1a2e44] hover:bg-[#0f1d2d] text-white font-semibold py-4 px-8 rounded-lg transition-colors text-lg"
+              className="bg-[#1a1a2e] hover:bg-[#0f1d2d] text-white font-semibold py-4 px-8 rounded-lg transition-colors text-lg"
             >
               {t.startYourFreeTrial}
             </Link>
             <Link
               href="/contact"
-              className="bg-white hover:bg-gray-100 text-[#1a2e44] font-semibold py-4 px-8 rounded-lg transition-colors text-lg"
+              className="bg-white hover:bg-gray-100 text-[#1a1a2e] font-semibold py-4 px-8 rounded-lg transition-colors text-lg"
             >
               {t.scheduleDemo}
             </Link>

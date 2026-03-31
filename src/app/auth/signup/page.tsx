@@ -63,7 +63,7 @@ export default function SignupPage() {
                 Didn&apos;t get the email? Check your spam folder or{' '}
                 <button
                   onClick={() => setSuccess(false)}
-                  className="text-blue-600 hover:text-blue-500 font-medium"
+                  className="text-[#f5a623] hover:text-[#e6991a] font-medium"
                 >
                   try again
                 </button>
@@ -100,7 +100,7 @@ export default function SignupPage() {
               {error}
               {error.includes('already exists') && (
                 <div className="mt-2">
-                  <Link href="/auth/login" className="text-blue-600 hover:text-blue-500 font-medium underline">
+                  <Link href="/auth/login" className="text-[#f5a623] hover:text-[#e6991a] font-medium underline">
                     Go to sign in
                   </Link>
                 </div>
@@ -120,7 +120,7 @@ export default function SignupPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
                 placeholder="John Smith"
               />
             </div>
@@ -136,7 +136,7 @@ export default function SignupPage() {
                 required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
                 placeholder="Smith Plumbing LLC"
               />
             </div>
@@ -153,7 +153,7 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
                 placeholder="you@example.com"
               />
             </div>
@@ -163,7 +163,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading || !isConfigured}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
@@ -175,7 +175,7 @@ export default function SignupPage() {
 
         <p className="mt-4 text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <Link href="/auth/login" className="text-blue-600 hover:text-blue-500 font-medium">
+          <Link href="/auth/login" className="text-[#f5a623] hover:text-[#e6991a] font-medium">
             Sign in
           </Link>
         </p>

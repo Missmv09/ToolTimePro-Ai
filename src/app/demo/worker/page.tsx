@@ -56,7 +56,7 @@ export default function WorkerDemoPage() {
   const [selectedJob, setSelectedJob] = useState<typeof demoJobs[0] | null>(null);
 
   return (
-    <main className="min-h-screen bg-gray-100 pb-20">
+    <main className="min-h-screen bg-[#fafafa] pb-20">
       {/* Demo Banner */}
       <div className="bg-[#f5a623] text-[#1a1a2e] py-2 px-4 text-center">
         <p className="text-sm font-medium">
