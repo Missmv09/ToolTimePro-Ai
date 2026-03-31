@@ -72,9 +72,10 @@ export async function POST(request) {
 
     const supabase = getSupabase();
 
-    // Get company name and review link if not provided
+    // Get company name and review links
     let companyName = 'Our team';
     let finalReviewLink = reviewLink;
+    let reviewPlatform = 'google';
 
     const { data: company } = await supabase
       .from('companies')
@@ -84,8 +85,55 @@ export async function POST(request) {
 
     if (company) {
       companyName = company.name;
+
       if (!finalReviewLink) {
-        finalReviewLink = company.google_review_link || company.yelp_review_link;
+        const googleLink = company.google_review_link || '';
+        const yelpLink = company.yelp_review_link || '';
+
+        // Also check Jenny config for links (config may be stored there instead)
+        let configGoogle = googleLink;
+        let configYelp = yelpLink;
+        try {
+          const { data: jennyConfig } = await supabase
+            .from('jenny_action_configs')
+            .select('config')
+            .eq('company_id', companyId)
+            .eq('action_type', 'review_request')
+            .single();
+          if (jennyConfig?.config) {
+            configGoogle = jennyConfig.config.google_review_link || googleLink;
+            configYelp = jennyConfig.config.yelp_review_link || yelpLink;
+          }
+        } catch (_e) { /* config table may not exist */ }
+
+        if (configGoogle && configYelp) {
+          // Alternate between Google and Yelp based on last sent request
+          try {
+            const { data: lastReq } = await supabase
+              .from('review_requests')
+              .select('review_platform')
+              .eq('company_id', companyId)
+              .order('created_at', { ascending: false })
+              .limit(1);
+            const lastPlatform = lastReq?.[0]?.review_platform;
+            if (lastPlatform === 'google') {
+              finalReviewLink = configYelp;
+              reviewPlatform = 'yelp';
+            } else {
+              finalReviewLink = configGoogle;
+              reviewPlatform = 'google';
+            }
+          } catch (_e) {
+            finalReviewLink = configGoogle;
+            reviewPlatform = 'google';
+          }
+        } else if (configGoogle) {
+          finalReviewLink = configGoogle;
+          reviewPlatform = 'google';
+        } else if (configYelp) {
+          finalReviewLink = configYelp;
+          reviewPlatform = 'yelp';
+        }
       }
     }
 
@@ -107,6 +155,7 @@ export async function POST(request) {
           customer_phone: customerPhone || null,
           customer_email: customerEmail || null,
           review_link: finalReviewLink || null,
+          review_platform: reviewPlatform,
           status: 'pending',
           channel: customerPhone ? 'sms' : 'email',
         })

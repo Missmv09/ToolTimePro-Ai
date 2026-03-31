@@ -152,6 +152,19 @@ export function useJennyActions() {
       if (error) return { error: error.message };
     }
 
+    // Sync review links to companies table so all code paths can find them
+    if (actionType === 'review_request') {
+      const updates: Record<string, unknown> = {};
+      if (config.google_review_link !== undefined) updates.google_review_link = config.google_review_link || null;
+      if (config.yelp_review_link !== undefined) updates.yelp_review_link = config.yelp_review_link || null;
+      if (Object.keys(updates).length > 0) {
+        await supabase
+          .from('companies')
+          .update(updates)
+          .eq('id', company.id);
+      }
+    }
+
     await fetchData();
     return { error: null };
   }, [company?.id, fetchData]);

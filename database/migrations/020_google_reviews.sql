@@ -26,8 +26,12 @@ CREATE TABLE IF NOT EXISTS review_requests (
   clicked_at TIMESTAMPTZ,
   reviewed_at TIMESTAMPTZ,
   tracking_token TEXT UNIQUE,
+  review_platform VARCHAR(50) DEFAULT 'google', -- google, yelp, facebook
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Add review_platform if table already exists
+ALTER TABLE review_requests ADD COLUMN IF NOT EXISTS review_platform VARCHAR(50) DEFAULT 'google';
 
 CREATE INDEX IF NOT EXISTS idx_review_requests_company ON review_requests(company_id);
 CREATE INDEX IF NOT EXISTS idx_review_requests_customer ON review_requests(customer_id);
