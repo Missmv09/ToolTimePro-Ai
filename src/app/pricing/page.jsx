@@ -65,7 +65,7 @@ const TIERS = [
       'Route optimization',
       'Local/city compliance rules',
       '5-page website',
-      'Compliance alerts',
+      'Compliance dashboard & rules',
       'Customer Portal Pro included',
       'Priority support',
     ],
@@ -149,11 +149,11 @@ const ADDONS = [
   },
   {
     id: 'keep_me_legal',
-    name: 'Keep Me Legal',
+    name: 'Compliance Autopilot',
     monthlyPrice: 19,
     annualPrice: 190,
     icon: '🛡️',
-    description: 'Compliance monitoring & alerts',
+    description: 'Automated compliance monitoring, law-change alerts & cert reminders',
     hasAnnual: true,
   },
   {

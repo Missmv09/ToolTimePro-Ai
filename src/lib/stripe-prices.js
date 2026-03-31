@@ -12,7 +12,7 @@
  *   "jenny_pro": { "monthly": "price_...", "annual": "price_..." },
  *   "jenny_exec_admin": { "monthly": "price_...", "annual": "price_..." },
  *   "website_builder": { "monthly": "price_...", "annual": "price_..." },
- *   "keep_me_legal": { "monthly": "price_...", "annual": "price_..." },
+ *   "keep_me_legal": { "monthly": "price_...", "annual": "price_..." },  // Compliance Autopilot
  *   "extra_page": { "monthly": "price_...", "annual": "price_..." },
  *   "extra_worker": { "monthly": "price_..." },
  *   "quickbooks_sync": { "monthly": "price_...", "annual": "price_..." },
