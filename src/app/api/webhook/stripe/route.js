@@ -127,6 +127,25 @@ async function handleCheckoutComplete(session) {
     console.error('No user/company found for email:', customerEmail);
   }
 
+  // Create setup service order if onboarding was purchased
+  const onboarding = metadata.onboarding;
+  if (onboarding && existingUser?.company_id && ['assisted_onboarding', 'white_glove'].includes(onboarding)) {
+    try {
+      await getSupabase()
+        .from('setup_service_orders')
+        .insert({
+          company_id: existingUser.company_id,
+          service_type: onboarding,
+          status: 'pending',
+          stripe_payment_intent_id: session.payment_intent || session.id,
+          checklist: [],
+          purchased_at: new Date().toISOString(),
+        });
+    } catch (err) {
+      console.error('Error creating setup service order:', err.message);
+    }
+  }
+
   // Send welcome/confirmation email
   if (customerEmail) {
     try {

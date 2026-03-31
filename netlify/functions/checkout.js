@@ -16,12 +16,14 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { plan, billing, addOns } = JSON.parse(event.body);
+    const { plan, billing, addOns, onboarding } = JSON.parse(event.body);
 
     const prices = {
       starter: allPrices.starter || {},
       pro: allPrices.pro || {},
       elite: allPrices.elite || {},
+      booking_only: allPrices.booking_only || {},
+      invoicing_only: allPrices.invoicing_only || {},
     };
 
     // Keys must match what the frontend sends (snake_case addon IDs)
@@ -37,23 +39,28 @@ exports.handler = async (event, context) => {
       customer_portal_pro: allPrices.customer_portal_pro?.monthly,
     };
 
+    // One-time setup service prices
+    const onboardingPrices = {
+      assisted_onboarding: allPrices.assisted_onboarding,
+      white_glove: allPrices.white_glove,
+    };
+
     const lineItems = [];
 
     const planPrice = prices[plan]?.[billing];
-    
-    // Debug: return what we're seeing
+
     if (!planPrice) {
-      return { 
-        statusCode: 400, 
-        body: JSON.stringify({ 
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
           error: 'Price ID not configured for this plan',
           debug: {
             plan,
             billing,
             planPrice,
-            allPrices: prices
+            availablePlans: Object.keys(prices)
           }
-        }) 
+        })
       };
     }
 
@@ -65,6 +72,11 @@ exports.handler = async (event, context) => {
           lineItems.push({ price: addOnPrices[addOn], quantity: 1 });
         }
       }
+    }
+
+    // One-time setup service (assisted_onboarding or white_glove)
+    if (onboarding && onboardingPrices[onboarding]) {
+      lineItems.push({ price: onboardingPrices[onboarding], quantity: 1 });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -81,7 +93,8 @@ exports.handler = async (event, context) => {
       metadata: {
         plan,
         billing,
-        addOns: addOns ? addOns.join(',') : ''
+        addOns: addOns ? addOns.join(',') : '',
+        onboarding: onboarding || ''
       }
     });
 

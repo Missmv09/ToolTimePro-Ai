@@ -23,7 +23,7 @@ const fontOptions = [
   'Nunito', 'Source Sans Pro', 'Nunito Sans', 'Archivo', 'Quicksand',
 ];
 
-export default function WebsiteEditor({ site, template = {}, onClose, onSaved }) {
+export default function WebsiteEditor({ site, template = {}, onClose, onSaved, pageLimit }) {
   const content = site.site_content || {};
   const layout = template.layout_config || {};
 
@@ -535,6 +535,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved })
                   <SectionToggle
                     enabledSections={form.enabledSections}
                     onChange={(sections) => updateField('enabledSections', sections)}
+                    pageLimit={pageLimit}
                   />
                 </div>
               )}
