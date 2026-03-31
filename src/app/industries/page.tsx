@@ -359,7 +359,7 @@ export default function IndustriesPage() {
                 <Link href="/#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Features</Link>
                 <Link href="/pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
                 <Link href="/#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
-                <Link href="/compare/jobber" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Compare vs Jobber</Link>
+                <Link href="/compare" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Compare Plans</Link>
               </div>
             </div>
             <div>

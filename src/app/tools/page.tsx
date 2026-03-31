@@ -262,8 +262,8 @@ export default function FreeToolsPage() {
                   <Link href="/#demos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
                     🎮 Demos
                   </Link>
-                  <Link href="/compare/jobber" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
-                    ⚖️ Compare vs Jobber
+                  <Link href="/compare" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                    ⚖️ Compare Plans
                   </Link>
                 </div>
               )}
@@ -317,7 +317,7 @@ export default function FreeToolsPage() {
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">{t.resources}</p>
               <Link href="/tools" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Free Tools</Link>
               <Link href="/#demos" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Demos</Link>
-              <Link href="/compare/jobber" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Compare vs Jobber</Link>
+              <Link href="/compare" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Compare Plans</Link>
             </div>
             <div className="flex gap-2 pt-2 border-t border-gray-100">
               <button
