@@ -640,9 +640,9 @@ export default function Home() {
                   <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-[#3a3a55] rounded-b-[16px] z-10" />
                   <div className="bg-white rounded-[38px] overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-12 pb-5">
-                      <h4 className="font-extrabold text-[1.125rem] tracking-wide">👷 Worker App</h4>
-                      <p className="text-white/60 text-[0.8125rem] mt-1">Today&apos;s Schedule</p>
+                    <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-16 pb-5">
+                      <h4 className="font-extrabold text-[1.25rem] tracking-wide text-[#f5a623]">👷 Worker App</h4>
+                      <p className="text-[rgba(255,255,255,0.85)] text-[0.875rem] mt-1">Today&apos;s Schedule</p>
                     </div>
                     {/* Body */}
                     <div className="p-4 space-y-3">
