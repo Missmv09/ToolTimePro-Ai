@@ -227,7 +227,7 @@ describe('Individual Add-ons', () => {
     { id: 'jenny_exec_admin', name: 'Jenny Exec Admin ($79/mo)', monthlyPrice: 'price_jenny_exec_m', annualPrice: 'price_jenny_exec_a' },
     { id: 'website_builder', name: 'Website Builder ($15/mo)', monthlyPrice: 'price_wb_m', annualPrice: 'price_wb_a' },
     { id: 'extra_page', name: 'Extra Website Page ($10/mo)', monthlyPrice: 'price_page_m', annualPrice: 'price_page_a' },
-    { id: 'keep_me_legal', name: 'Keep Me Legal ($19/mo)', monthlyPrice: 'price_kml_m', annualPrice: 'price_kml_a' },
+    { id: 'keep_me_legal', name: 'Compliance Autopilot ($19/mo)', monthlyPrice: 'price_kml_m', annualPrice: 'price_kml_a' },
     { id: 'quickbooks_sync', name: 'QuickBooks Sync ($12/mo)', monthlyPrice: 'price_qb_m', annualPrice: 'price_qb_a' },
   ];
 
@@ -375,7 +375,7 @@ describe('Realistic Customer Scenarios', () => {
     expect(config.metadata.billing).toBe('annual');
   });
 
-  it('Large plumbing company: Elite + Jenny Pro + Jenny Exec + Website + Keep Me Legal + 8 workers + white glove (monthly)', async () => {
+  it('Large plumbing company: Elite + Jenny Pro + Jenny Exec + Website + Compliance Autopilot + 8 workers + white glove (monthly)', async () => {
     await checkoutGET(makeRequest({
       tier: 'elite',
       billing: 'monthly',
@@ -440,7 +440,7 @@ describe('Realistic Customer Scenarios', () => {
     expect(config.line_items[3]).toEqual({ price: 'price_jenny_lite_a', quantity: 1 });
   });
 
-  it('Compliance-focused: Starter + Keep Me Legal + Jenny Exec Admin (monthly)', async () => {
+  it('Compliance-focused: Starter + Compliance Autopilot + Jenny Exec Admin (monthly)', async () => {
     await checkoutGET(makeRequest({
       tier: 'starter',
       billing: 'monthly',

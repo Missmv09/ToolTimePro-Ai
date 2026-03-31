@@ -36,7 +36,7 @@ When adding new products or add-ons:
 ### Current Product Catalog (keep in sync)
 **Plans:** Starter ($30), Pro ($59), Elite ($99), Booking Only ($15), Invoicing Only ($15)
 **Jenny AI:** Lite (free/included), Pro ($49), Exec Admin ($79)
-**Add-ons:** Website Builder ($15), Keep Me Legal ($19), Extra Page ($10), QuickBooks Sync ($12), Customer Portal Pro ($24), Extra Worker ($7/user)
+**Add-ons:** Website Builder ($15), Compliance Autopilot ($19), Extra Page ($10), QuickBooks Sync ($12), Customer Portal Pro ($24), Extra Worker ($7/user)
 **Setup:** Assisted Onboarding ($149), White Glove ($349)
 
 ### Branch & PR Workflow

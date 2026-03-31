@@ -423,7 +423,7 @@ function SettingsContent() {
           jenny_pro: { name: 'Jenny Pro', description: 'AI phone answering, SMS, and direct booking' },
           jenny_exec_admin: { name: 'Jenny Exec Admin', description: 'Compliance advisor, HR guidance, business insights' },
           website_builder: { name: 'Website Builder', description: 'Custom business website' },
-          keep_me_legal: { name: 'Keep Me Legal', description: 'Ongoing compliance monitoring' },
+          keep_me_legal: { name: 'Compliance Autopilot', description: 'Automated compliance monitoring, law-change alerts & cert reminders' },
           quickbooks_sync: { name: 'QuickBooks Sync', description: 'Two-way QuickBooks integration' },
           portal_pro: { name: 'Customer Portal Pro', description: 'Branded customer portal with job tracker, photos, messaging & documents' },
         }

@@ -106,8 +106,8 @@ const PRODUCTS = [
   },
   {
     id: 'keep_me_legal',
-    name: 'Keep Me Legal Add-on',
-    description: 'Compliance monitoring and alerts. Stay on top of CA labor law changes.',
+    name: 'Compliance Autopilot Add-on',
+    description: 'Automated compliance monitoring, law-change alerts, and cert renewal reminders.',
     prices: [
       { key: 'monthly', amount: 1900, interval: 'month' },
       { key: 'annual', amount: 19000, interval: 'year' },

@@ -142,7 +142,7 @@ const standalonePlans = [
 // Add-ons
 const pricingAddOns = [
   { id: 'website_builder', name: 'Website Builder', price: 15, icon: '🌐', description: 'Custom landing page built for you' },
-  { id: 'keep_me_legal', name: 'Keep Me Legal', price: 19, icon: '🛡️', description: 'Compliance monitoring & alerts' },
+  { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19, icon: '🛡️', description: 'Automated compliance monitoring, law-change alerts & cert reminders' },
   { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
 ];
 
@@ -809,7 +809,7 @@ export default function Home() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Keep Me Legal</span>
+                      <span className="text-[#5c5c70]">Compliance Autopilot</span>
                       <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
