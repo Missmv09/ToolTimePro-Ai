@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/user/ToolTimePro-Ai && git diff --cached --name-only --diff-filter=d 2>/dev/null | grep -qE '\\.(ts|tsx|js|jsx)$' && { echo 'Running build check...' >&2; npm run build 2>&1 | tail -5; EXIT=$?; if [ $EXIT -ne 0 ]; then echo '{\"stopReason\": \"Build failed! Fix TypeScript/lint errors before pushing.\"}'; exit 1; fi; } || true",
+            "timeout": 300,
+            "statusMessage": "Checking build..."
+          }
+        ]
+      }
+    ]
+  }
+}
