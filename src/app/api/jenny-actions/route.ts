@@ -595,15 +595,46 @@ async function runReviewRequests(
   let acted = 0;
   const delayHours = (config.delay_hours as number) || 2;
 
-  // Get company info and review link
+  // Read review links from config first, fall back to companies table
+  let googleLink = (config.google_review_link as string) || '';
+  let yelpLink = (config.yelp_review_link as string) || '';
+
   const { data: company } = await supabase
     .from('companies')
-    .select('name, phone, google_review_link')
+    .select('name, phone, google_review_link, yelp_review_link')
     .eq('id', companyId)
     .single();
 
-  const googleLink = (company as any)?.google_review_link;
-  if (!googleLink) return 0; // Can't send review requests without a Google link
+  if (company) {
+    if (!googleLink) googleLink = (company as any).google_review_link || '';
+    if (!yelpLink) yelpLink = (company as any).yelp_review_link || '';
+  }
+
+  if (!googleLink && !yelpLink) return 0; // Need at least one review link
+
+  // Determine platform — alternate if both are set
+  let reviewPlatform: 'google' | 'yelp' = 'google';
+  let reviewLink = googleLink;
+
+  if (googleLink && yelpLink) {
+    const { data: lastReq } = await (supabase as any)
+      .from('review_requests')
+      .select('review_platform')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    const lastPlatform = lastReq?.[0]?.review_platform;
+    if (lastPlatform === 'google') {
+      reviewPlatform = 'yelp';
+      reviewLink = yelpLink;
+    } else {
+      reviewPlatform = 'google';
+      reviewLink = googleLink;
+    }
+  } else if (yelpLink && !googleLink) {
+    reviewPlatform = 'yelp';
+    reviewLink = yelpLink;
+  }
 
   // Find completed jobs from the last 7 days that haven't had review requests sent
   const sevenDaysAgo = new Date();
@@ -632,6 +663,7 @@ async function runReviewRequests(
   const alreadyRequested = new Set((existingRequests || []).map((r: any) => r.job_id));
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com';
+  const platformLabel = reviewPlatform === 'google' ? 'Google' : 'Yelp';
 
   for (const job of completedJobs) {
     if (alreadyRequested.has(job.id)) continue;
@@ -651,7 +683,8 @@ async function runReviewRequests(
       customer_name: customer.name,
       customer_phone: customer.phone,
       customer_email: customer.email,
-      review_link: googleLink,
+      review_link: reviewLink,
+      review_platform: reviewPlatform,
       status: 'sent',
       channel: 'sms',
       sent_at: new Date().toISOString(),
@@ -662,13 +695,13 @@ async function runReviewRequests(
     await (supabase as any).from('jenny_action_log').insert({
       company_id: companyId,
       action_type: 'review_request',
-      title: `Review request sent to ${customer.name}`,
-      description: `Jenny sent a Google review request to ${customer.name} (${customer.phone}) after completing "${job.title}".`,
+      title: `${platformLabel} review request sent to ${customer.name}`,
+      description: `Jenny sent a ${platformLabel} review request to ${customer.name} (${customer.phone}) after completing "${job.title}".`,
       status: 'executed',
       target_id: job.id,
       target_type: 'job',
       target_name: job.title,
-      metadata: { customer_name: customer.name, phone: customer.phone, tracking_token: trackingToken },
+      metadata: { customer_name: customer.name, phone: customer.phone, tracking_token: trackingToken, review_platform: reviewPlatform },
       executed_at: new Date().toISOString(),
     });
 
@@ -1421,15 +1454,61 @@ async function runContractEndDateCheck(
 }
 
 // ============================================================
-// REVIEW REQUEST: Auto-request Google reviews after job completion
+// REVIEW REQUEST: Auto-request Google/Yelp reviews after job completion
 // ============================================================
 async function runReviewRequest(
   supabase: SB,
   companyId: string,
-  _config: Record<string, unknown>
+  config: Record<string, unknown>
 ): Promise<number> {
   let acted = 0;
   const now = new Date();
+
+  // Read review links from Jenny config first, fall back to companies table
+  let googleLink = (config.google_review_link as string) || '';
+  let yelpLink = (config.yelp_review_link as string) || '';
+
+  if (!googleLink || !yelpLink) {
+    const { data: company } = await supabase
+      .from('companies')
+      .select('google_review_link, yelp_review_link')
+      .eq('id', companyId)
+      .single();
+    if (company) {
+      if (!googleLink) googleLink = (company as any).google_review_link || '';
+      if (!yelpLink) yelpLink = (company as any).yelp_review_link || '';
+    }
+  }
+
+  // Need at least one review link to send requests
+  if (!googleLink && !yelpLink) return 0;
+
+  // Determine which platform to use next (alternate if both are set)
+  let reviewPlatform: 'google' | 'yelp' = 'google';
+  let reviewLink = googleLink;
+
+  if (googleLink && yelpLink) {
+    // Check the last review request to alternate platforms
+    const { data: lastRequest } = await supabase
+      .from('jenny_action_log')
+      .select('metadata')
+      .eq('company_id', companyId)
+      .eq('action_type', 'review_request')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const lastPlatform = (lastRequest?.[0]?.metadata as Record<string, unknown>)?.review_platform as string;
+    if (lastPlatform === 'google') {
+      reviewPlatform = 'yelp';
+      reviewLink = yelpLink;
+    } else {
+      reviewPlatform = 'google';
+      reviewLink = googleLink;
+    }
+  } else if (yelpLink && !googleLink) {
+    reviewPlatform = 'yelp';
+    reviewLink = yelpLink;
+  }
 
   // Find jobs completed in the last 24-48 hours (sweet spot for review requests)
   const oneDayAgo = new Date(now.getTime() - 86400000).toISOString();
@@ -1456,6 +1535,8 @@ async function runReviewRequest(
 
   const alreadyRequested = new Set((existingRequests || []).map((r: { target_id: string }) => r.target_id));
 
+  const platformLabel = reviewPlatform === 'google' ? 'Google' : 'Yelp';
+
   for (const job of recentlyCompleted) {
     if (alreadyRequested.has(job.id)) continue;
 
@@ -1468,13 +1549,20 @@ async function runReviewRequest(
     await supabase.from('jenny_action_log').insert({
       company_id: companyId,
       action_type: 'review_request',
-      title: `Request review from ${customerName} for "${job.title}"`,
-      description: `"${job.title}" was completed for ${customerName}. Send a review request SMS to ${customerPhone} to boost your Google reviews.`,
+      title: `Request ${platformLabel} review from ${customerName} for "${job.title}"`,
+      description: `"${job.title}" was completed for ${customerName}. Send a ${platformLabel} review request SMS to ${customerPhone}.`,
       status: 'pending', // Pending owner approval before sending
       target_id: job.id,
       target_type: 'job',
       target_name: job.title,
-      metadata: { customer_name: customerName, customer_phone: customerPhone, customer_id: job.customer_id, completed_at: job.completed_at },
+      metadata: {
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_id: job.customer_id,
+        completed_at: job.completed_at,
+        review_platform: reviewPlatform,
+        review_link: reviewLink,
+      },
     });
 
     acted++;
