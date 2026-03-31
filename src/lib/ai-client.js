@@ -1,270 +1,221 @@
-// Shared AI client — Anthropic (Claude) primary, OpenAI fallback
-// Uses raw fetch (no SDK dependencies) for both providers
+// Centralized AI Client — Claude (primary) + OpenAI (fallback)
+// All AI routes should use this instead of calling APIs directly.
+//
+// Environment variables:
+//   ANTHROPIC_API_KEY  — required for Claude (primary)
+//   OPENAI_API_KEY     — required for OpenAI (fallback)
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-// Model tiers — pick the right tool for the job
-const MODELS = {
-  // Complex reasoning: compliance, HR, insights, vision, tiered quotes, voice transcripts
-  advanced: {
-    anthropic: 'claude-sonnet-4-20250514',
-    openai: 'gpt-4o',
-  },
-  // Simple tasks: content gen, chatbot, review responses, helper text
-  standard: {
-    anthropic: 'claude-haiku-4-5-20251001',
-    openai: 'gpt-3.5-turbo',
-  },
+// Map task types to optimal Claude models
+const CLAUDE_MODELS = {
+  // Complex reasoning, vision, compliance, content generation
+  high: 'claude-sonnet-4-6',
+  // Fast tasks: chatbot, helper, review responses
+  fast: 'claude-haiku-4-5-20251001',
+};
+
+// OpenAI fallback models
+const OPENAI_MODELS = {
+  high: 'gpt-4o',
+  fast: 'gpt-4o-mini',
 };
 
 /**
- * Send a chat completion request. Tries Anthropic first, falls back to OpenAI.
- *
- * @param {object} opts
- * @param {string} opts.systemPrompt - System instructions
- * @param {Array<{role: string, content: string|Array}>} opts.messages - Conversation messages
- * @param {'advanced'|'standard'} [opts.tier='advanced'] - Model tier
- * @param {number} [opts.maxTokens=800] - Max response tokens
- * @param {number} [opts.temperature=0.4] - Sampling temperature
- * @returns {Promise<{text: string, provider: 'anthropic'|'openai'|null}>}
+ * Call Claude API (Anthropic Messages API)
+ * @param {object} options
+ * @param {string} options.systemPrompt - System prompt
+ * @param {Array} options.messages - Array of {role, content} messages
+ * @param {number} options.maxTokens - Max tokens for response
+ * @param {number} options.temperature - Temperature (0-1)
+ * @param {string} options.tier - 'high' or 'fast'
+ * @returns {Promise<{content: string, provider: string} | null>}
  */
-export async function chatCompletion({
-  systemPrompt,
-  messages,
-  tier = 'advanced',
-  maxTokens = 800,
-  temperature = 0.4,
-}) {
-  // Try Anthropic first
-  if (ANTHROPIC_API_KEY) {
-    try {
-      const result = await callAnthropic({ systemPrompt, messages, tier, maxTokens, temperature });
-      if (result) return { text: result, provider: 'anthropic' };
-    } catch (err) {
-      console.error('[AI Client] Anthropic error, falling back to OpenAI:', err.message || err);
-    }
-  }
+async function callClaude({ systemPrompt, messages, maxTokens = 1024, temperature = 0.5, tier = 'high' }) {
+  if (!ANTHROPIC_API_KEY) return null;
 
-  // Fallback to OpenAI
-  if (OPENAI_API_KEY) {
-    try {
-      const result = await callOpenAI({ systemPrompt, messages, tier, maxTokens, temperature });
-      if (result) return { text: result, provider: 'openai' };
-    } catch (err) {
-      console.error('[AI Client] OpenAI fallback error:', err.message || err);
-    }
-  }
+  const model = CLAUDE_MODELS[tier] || CLAUDE_MODELS.high;
 
-  // Both failed or no keys configured
-  return { text: null, provider: null };
-}
-
-/**
- * Send a vision request (image + text). Tries Anthropic first, falls back to OpenAI.
- *
- * @param {object} opts
- * @param {string} opts.systemPrompt - System instructions
- * @param {string} opts.userPrompt - Text prompt accompanying the image
- * @param {string} opts.imageBase64 - Base64-encoded image data (no data URL prefix)
- * @param {string} [opts.mediaType='image/jpeg'] - MIME type of the image
- * @param {number} [opts.maxTokens=1500] - Max response tokens
- * @param {number} [opts.temperature=0.5] - Sampling temperature
- * @returns {Promise<{text: string, provider: 'anthropic'|'openai'|null}>}
- */
-export async function visionCompletion({
-  systemPrompt,
-  userPrompt,
-  imageBase64,
-  mediaType = 'image/jpeg',
-  maxTokens = 1500,
-  temperature = 0.5,
-}) {
-  // Try Anthropic first
-  if (ANTHROPIC_API_KEY) {
-    try {
-      const result = await callAnthropicVision({ systemPrompt, userPrompt, imageBase64, mediaType, maxTokens, temperature });
-      if (result) return { text: result, provider: 'anthropic' };
-    } catch (err) {
-      console.error('[AI Client] Anthropic Vision error, falling back to OpenAI:', err.message || err);
-    }
-  }
-
-  // Fallback to OpenAI
-  if (OPENAI_API_KEY) {
-    try {
-      const result = await callOpenAIVision({ systemPrompt, userPrompt, imageBase64, mediaType, maxTokens, temperature });
-      if (result) return { text: result, provider: 'openai' };
-    } catch (err) {
-      console.error('[AI Client] OpenAI Vision fallback error:', err.message || err);
-    }
-  }
-
-  return { text: null, provider: null };
-}
-
-/**
- * Check if any AI provider is configured.
- */
-export function isAIConfigured() {
-  return !!(ANTHROPIC_API_KEY || OPENAI_API_KEY);
-}
-
-// ── Internal: Anthropic Messages API ────────────────────────────────────────
-
-async function callAnthropic({ systemPrompt, messages, tier, maxTokens, temperature }) {
-  const model = MODELS[tier]?.anthropic || MODELS.advanced.anthropic;
-
-  // Convert messages: Anthropic expects {role: 'user'|'assistant', content: string}
-  // and system prompt goes in a separate `system` field
-  const anthropicMessages = messages.map((m) => ({
-    role: m.role === 'system' ? 'user' : m.role,
-    content: m.content,
-  }));
-
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      system: systemPrompt,
-      messages: anthropicMessages,
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Anthropic API ${response.status}: ${errText}`);
-  }
-
-  const data = await response.json();
-  return data.content?.[0]?.text?.trim() || null;
-}
-
-async function callAnthropicVision({ systemPrompt, userPrompt, imageBase64, mediaType, maxTokens, temperature }) {
-  const model = MODELS.advanced.anthropic; // Vision always uses advanced model
-
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
+  // Convert messages to Anthropic format
+  // Anthropic uses system as a top-level param, not in messages array
+  const apiMessages = messages.map((m) => {
+    // Handle vision messages (content as array with image_url)
+    if (Array.isArray(m.content)) {
+      return {
+        role: m.role === 'system' ? 'user' : m.role,
+        content: m.content.map((part) => {
+          if (part.type === 'text') return part;
+          if (part.type === 'image_url') {
+            // Convert OpenAI image format to Anthropic format
+            const url = part.image_url.url;
+            const base64Match = url.match(/^data:(image\/\w+);base64,(.+)$/);
+            if (base64Match) {
+              return {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: base64Match[1],
+                  data: base64Match[2],
+                },
+              };
+            }
+            // URL-based image
+            return {
               type: 'image',
               source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: imageBase64,
+                type: 'url',
+                url: url,
               },
-            },
-            {
-              type: 'text',
-              text: userPrompt,
-            },
-          ],
-        },
-      ],
-    }),
+            };
+          }
+          return part;
+        }),
+      };
+    }
+    return {
+      role: m.role === 'system' ? 'user' : m.role,
+      content: m.content,
+    };
   });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Anthropic Vision API ${response.status}: ${errText}`);
-  }
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        system: systemPrompt,
+        messages: apiMessages,
+        max_tokens: maxTokens,
+        temperature,
+      }),
+    });
 
-  const data = await response.json();
-  return data.content?.[0]?.text?.trim() || null;
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[AI Client] Claude error (${response.status}):`, errText);
+      return null;
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text?.trim();
+    if (!text) return null;
+
+    return { content: text, provider: 'claude', model };
+  } catch (err) {
+    console.error('[AI Client] Claude request failed:', err.message);
+    return null;
+  }
 }
 
-// ── Internal: OpenAI Chat Completions API ───────────────────────────────────
+/**
+ * Call OpenAI API (Chat Completions)
+ * @param {object} options
+ * @param {string} options.systemPrompt - System prompt
+ * @param {Array} options.messages - Array of {role, content} messages
+ * @param {number} options.maxTokens - Max tokens for response
+ * @param {number} options.temperature - Temperature (0-1)
+ * @param {string} options.tier - 'high' or 'fast'
+ * @returns {Promise<{content: string, provider: string} | null>}
+ */
+async function callOpenAI({ systemPrompt, messages, maxTokens = 1024, temperature = 0.5, tier = 'high' }) {
+  if (!OPENAI_API_KEY) return null;
 
-async function callOpenAI({ systemPrompt, messages, tier, maxTokens, temperature }) {
-  const model = MODELS[tier]?.openai || MODELS.advanced.openai;
+  const model = OPENAI_MODELS[tier] || OPENAI_MODELS.high;
 
-  const openaiMessages = [
+  const apiMessages = [
     { role: 'system', content: systemPrompt },
-    ...messages.map((m) => ({ role: m.role, content: m.content })),
+    ...messages,
   ];
 
-  const response = await fetch(OPENAI_API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages: openaiMessages,
-      max_tokens: maxTokens,
-      temperature,
-    }),
-  });
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages: apiMessages,
+        max_tokens: maxTokens,
+        temperature,
+      }),
+    });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`OpenAI API ${response.status}: ${errText}`);
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[AI Client] OpenAI error (${response.status}):`, errText);
+      return null;
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content?.trim();
+    if (!text) return null;
+
+    return { content: text, provider: 'openai', model };
+  } catch (err) {
+    console.error('[AI Client] OpenAI request failed:', err.message);
+    return null;
   }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || null;
 }
 
-async function callOpenAIVision({ systemPrompt, userPrompt, imageBase64, mediaType, maxTokens, temperature }) {
-  const model = MODELS.advanced.openai; // Vision always uses advanced model
+/**
+ * Unified AI completion — Claude first, OpenAI fallback.
+ *
+ * @param {object} options
+ * @param {string} options.systemPrompt - System instruction
+ * @param {Array}  options.messages     - [{role: 'user'|'assistant', content: string|array}]
+ * @param {number} [options.maxTokens=1024]
+ * @param {number} [options.temperature=0.5]
+ * @param {string} [options.tier='high'] - 'high' (complex reasoning/vision) or 'fast' (simple tasks)
+ * @returns {Promise<{content: string, provider: string, model: string}>}
+ * @throws {Error} if both providers fail
+ */
+async function aiComplete({ systemPrompt, messages, maxTokens = 1024, temperature = 0.5, tier = 'high' }) {
+  // Try Claude first
+  const claudeResult = await callClaude({ systemPrompt, messages, maxTokens, temperature, tier });
+  if (claudeResult) return claudeResult;
 
-  const response = await fetch(OPENAI_API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: userPrompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${mediaType};base64,${imageBase64}`,
-                detail: 'high',
-              },
-            },
-          ],
-        },
-      ],
-      max_tokens: maxTokens,
-      temperature,
-    }),
-  });
+  // Fallback to OpenAI
+  const openaiResult = await callOpenAI({ systemPrompt, messages, maxTokens, temperature, tier });
+  if (openaiResult) return openaiResult;
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`OpenAI Vision API ${response.status}: ${errText}`);
-  }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || null;
+  throw new Error('All AI providers unavailable. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.');
 }
+
+/**
+ * Parse JSON from AI response content, with fallback regex extraction.
+ * @param {string} content - Raw AI response text
+ * @returns {object} Parsed JSON object
+ * @throws {Error} if JSON cannot be extracted
+ */
+function parseAIJson(content) {
+  // Strip markdown fences if present
+  const cleaned = content.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Try to extract JSON object from the response
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+    throw new Error('Could not parse AI response as JSON');
+  }
+}
+
+module.exports = {
+  aiComplete,
+  callClaude,
+  callOpenAI,
+  parseAIJson,
+  CLAUDE_MODELS,
+  OPENAI_MODELS,
+};

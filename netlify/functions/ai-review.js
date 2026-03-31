@@ -1,6 +1,6 @@
 // Netlify Function for AI-powered review response generation
-// Anthropic primary, OpenAI fallback — generates professional responses to reviews
-const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
+// Analyzes customer reviews and generates professional responses
+const { aiComplete } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -66,21 +66,16 @@ Business: ${businessName || 'Pro Landscaping'}
 
 Write ONLY the response text, ready to be copied and pasted. Sign it from "The ${businessName || 'Pro Landscaping'} Team"`;
 
-    const { text: generatedResponse } = await chatCompletion({
+    // Call AI (Claude primary, OpenAI fallback)
+    const aiResult = await aiComplete({
       systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
-      tier: 'standard',
       maxTokens: 300,
       temperature: 0.8,
+      tier: 'fast',
     });
 
-    if (!generatedResponse) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
-      };
-    }
+    const generatedResponse = aiResult.content;
 
     return {
       statusCode: 200,

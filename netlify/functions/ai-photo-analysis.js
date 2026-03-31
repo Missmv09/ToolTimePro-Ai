@@ -1,6 +1,6 @@
 // Netlify Function for AI-powered photo analysis of job sites
-// Anthropic primary, OpenAI fallback — analyzes photos and suggests services with pricing
-const { visionCompletion, isAIConfigured } = require('./lib/ai-client');
+// Uses Claude Vision (primary) / OpenAI Vision (fallback) to analyze photos and suggest services with pricing
+const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -101,35 +101,31 @@ Return a JSON object with this exact format:
 Be thorough - identify EVERY service opportunity visible in the photo.
 Return ONLY the JSON, no other text.`;
 
-    const { text: content } = await visionCompletion({
+    // Call AI Vision (Claude primary, OpenAI fallback)
+    const aiResult = await aiComplete({
       systemPrompt,
-      userPrompt,
-      imageBase64: base64Data,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: userPrompt },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Data}`,
+                detail: 'auto'
+              }
+            }
+          ]
+        }
+      ],
       maxTokens: 1500,
       temperature: 0.5,
+      tier: 'high',
     });
 
-    if (!content) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI vision service unavailable. Please try again.' }),
-      };
-    }
-
     // Parse the JSON response
-    let result;
-    try {
-      result = JSON.parse(content);
-    } catch {
-      // Try to extract JSON from the response
-      const match = content.match(/\{[\s\S]*\}/);
-      if (match) {
-        result = JSON.parse(match[0]);
-      } else {
-        throw new Error('Could not parse AI response');
-      }
-    }
+    let result = parseAIJson(aiResult.content);
 
     // Validate and sanitize the response
     if (!result.services || !Array.isArray(result.services)) {

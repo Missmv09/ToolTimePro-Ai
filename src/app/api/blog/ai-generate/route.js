@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
-import { chatCompletion, isAIConfigured } from '@/lib/ai-client';
+
+const { aiComplete, parseAIJson } = require('@/lib/ai-client');
 
 export async function POST(request) {
   try {
-    if (!isAIConfigured()) {
-      return NextResponse.json(
-        { error: 'AI service not configured. Add ANTHROPIC_API_KEY or OPENAI_API_KEY to your environment.' },
-        { status: 500 }
-      );
-    }
-
     const body = await request.json();
     const { trade, location, topic, businessName, tone } = body;
 
@@ -49,29 +43,24 @@ Tone: ${tone || 'professional and helpful'}
 
 The post should help homeowners understand this topic and encourage them to hire a professional.`;
 
-    const { text: raw } = await chatCompletion({
+    const aiResult = await aiComplete({
       systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
-      tier: 'standard',
       maxTokens: 2000,
       temperature: 0.7,
+      tier: 'high',
     });
 
-    if (!raw) {
-      return NextResponse.json({ error: 'No content generated.' }, { status: 500 });
-    }
-
-    // Parse the JSON response (strip markdown fences if present)
+    // Parse the JSON response
     let parsed;
     try {
-      const cleaned = raw.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
-      parsed = JSON.parse(cleaned);
+      parsed = parseAIJson(aiResult.content);
     } catch {
       // If JSON parsing fails, wrap the raw content
       parsed = {
         title: topic,
         excerpt: '',
-        content: raw,
+        content: aiResult.content,
         metaTitle: topic.substring(0, 60),
         metaDescription: '',
         metaKeywords: trade,

@@ -1,7 +1,7 @@
 // Netlify Function for ToolTime Assistant conversations
-// Anthropic primary, OpenAI fallback — powers real conversations for service businesses
+// Uses Claude (primary) / OpenAI (fallback) for real conversations for service businesses
 // Includes in-chat booking flow for seamless appointment scheduling
-const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
+const { aiComplete } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -60,30 +60,22 @@ Guidelines:
 
 Never make up specific appointment times - guide them to use the booking option instead.`;
 
-    // Build messages array (without system prompt — that goes separately)
-    const chatMessages = [
-      ...conversationHistory.map(msg => ({
-        role: msg.isUser ? 'user' : 'assistant',
-        content: msg.text
-      })),
-      { role: 'user', content: message }
-    ];
-
-    const { text: reply } = await chatCompletion({
+    // Call AI (Claude primary, OpenAI fallback)
+    const aiResult = await aiComplete({
       systemPrompt,
-      messages: chatMessages,
-      tier: 'standard',
+      messages: [
+        ...conversationHistory.map(msg => ({
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.text
+        })),
+        { role: 'user', content: message }
+      ],
       maxTokens: 250,
       temperature: 0.7,
+      tier: 'fast',
     });
 
-    if (!reply) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
-      };
-    }
+    const reply = aiResult.content;
 
     // Check if a lead was captured (phone number mentioned)
     const phonePattern = /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\d{10}/;

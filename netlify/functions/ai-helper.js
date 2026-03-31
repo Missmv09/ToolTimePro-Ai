@@ -1,6 +1,6 @@
 // Netlify Function for AI-assisted content generation
-// Anthropic primary, OpenAI fallback
-const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
+// Uses Claude (primary) / OpenAI (fallback)
+const { aiComplete } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -68,21 +68,16 @@ Return ONLY a JSON array of 3 strings. Example: ["Name 1", "Name 2", "Name 3"]`;
         };
     }
 
-    const { text: content } = await chatCompletion({
+    // Call AI (Claude primary, OpenAI fallback)
+    const aiResult = await aiComplete({
       systemPrompt: 'You are a helpful assistant for small business owners. You provide concise, professional marketing content. Always follow the exact output format requested.',
       messages: [{ role: 'user', content: prompt }],
-      tier: 'standard',
       maxTokens: 200,
       temperature: 0.8,
+      tier: 'fast',
     });
 
-    if (!content) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
-      };
-    }
+    const content = aiResult.content;
 
     // Parse response based on type
     let result;

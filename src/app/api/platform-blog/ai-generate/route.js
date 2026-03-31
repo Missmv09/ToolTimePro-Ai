@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
-import { chatCompletion, isAIConfigured } from '@/lib/ai-client';
+
+const { aiComplete, parseAIJson } = require('@/lib/ai-client');
 
 export async function POST(request) {
   try {
-    if (!isAIConfigured()) {
-      return NextResponse.json(
-        { error: 'AI service not configured. Add ANTHROPIC_API_KEY or OPENAI_API_KEY to your environment.' },
-        { status: 500 }
-      );
-    }
-
     const body = await request.json();
     const { topic, category, audience } = body;
 
@@ -50,27 +44,22 @@ Target audience: ${audience || 'Home service business owners and contractors'}
 
 The post should provide genuine value to contractors and business owners while positioning ToolTime Pro as the go-to platform for managing their business.`;
 
-    const { text: raw } = await chatCompletion({
+    const aiResult = await aiComplete({
       systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
-      tier: 'standard',
       maxTokens: 2500,
       temperature: 0.7,
+      tier: 'high',
     });
-
-    if (!raw) {
-      return NextResponse.json({ error: 'No content generated.' }, { status: 500 });
-    }
 
     let parsed;
     try {
-      const cleaned = raw.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
-      parsed = JSON.parse(cleaned);
+      parsed = parseAIJson(aiResult.content);
     } catch {
       parsed = {
         title: topic,
         excerpt: '',
-        content: raw,
+        content: aiResult.content,
         metaTitle: topic.substring(0, 60),
         metaDescription: '',
         metaKeywords: '',

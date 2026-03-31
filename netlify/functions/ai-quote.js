@@ -1,6 +1,6 @@
 // Netlify Function for AI-powered quote suggestions
 // Analyzes job descriptions, voice transcripts, and generates tiered pricing
-const { chatCompletion, isAIConfigured } = require('./lib/ai-client');
+const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -165,41 +165,22 @@ Return a JSON object with this exact format:
 
 Return ONLY the JSON, no other text.`;
 
-    // Use advanced tier for voice transcripts and tiered quotes (needs stronger reasoning),
-    // standard tier for simple text quotes (faster, lower cost)
-    const needsAdvanced = inputType === 'voice' || generateTiers;
-    const tier = needsAdvanced ? 'advanced' : 'standard';
+    // Use high tier for voice transcripts and tiered quotes (needs stronger reasoning),
+    // fast tier for standard text quotes (faster, lower cost)
+    const needsFullModel = inputType === 'voice' || generateTiers;
+    const tier = needsFullModel ? 'high' : 'fast';
     const maxTokens = generateTiers ? 2000 : 1200;
 
-    const { text: content } = await chatCompletion({
+    const aiResult = await aiComplete({
       systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
-      tier,
       maxTokens,
       temperature: 0.5,
+      tier,
     });
 
-    if (!content) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'AI service unavailable. Please try again.' }),
-      };
-    }
-
     // Parse the JSON response
-    let result;
-    try {
-      result = JSON.parse(content);
-    } catch {
-      // Try to extract JSON from the response
-      const match = content.match(/\{[\s\S]*\}/);
-      if (match) {
-        result = JSON.parse(match[0]);
-      } else {
-        throw new Error('Could not parse AI response');
-      }
-    }
+    let result = parseAIJson(aiResult.content);
 
     // Validate the response structure
     if (!result.services || !Array.isArray(result.services)) {

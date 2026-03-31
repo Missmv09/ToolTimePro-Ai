@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { chatCompletion, isAIConfigured } from '@/lib/ai-client';
+
+const { aiComplete } = require('@/lib/ai-client');
+const { getComplianceKnowledge, getSupportedStates } = require('@/lib/compliance-knowledge');
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -285,7 +290,7 @@ function getFallbackResponse(mode: string, userMessage: string, language: string
 - "¿Mi trabajador es contratista o empleado?"
 - "¿Cuáles son las multas por descansos perdidos?"
 
-Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la ANTHROPIC_API_KEY en la configuración del entorno.`
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
       : `I'm Jenny, your CA compliance advisor. I can help with meal/rest break rules, overtime calculations, worker classification (AB5), final pay requirements, and more.
 
 **Common questions I can help with:**
@@ -294,7 +299,7 @@ Para obtener respuestas personalizadas con IA, pide a tu administrador que confi
 - "Is my worker a contractor or employee?"
 - "What are the penalties for missed breaks?"
 
-To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_API_KEY in your environment settings.`;
+To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_KEY in your environment settings.`;
   }
 
   if (mode === 'hr') {
@@ -377,7 +382,7 @@ To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_A
 - "¿Necesito un manual del empleado?"
 - "¿Cuál es la diferencia entre W-2 y 1099?"
 
-Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la ANTHROPIC_API_KEY en la configuración del entorno.`
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
       : `I'm Jenny, your HR advisor for home service businesses. I can help with hiring, onboarding, managing employees, terminations, and CA employment law.
 
 **Common questions I can help with:**
@@ -386,7 +391,7 @@ Para obtener respuestas personalizadas con IA, pide a tu administrador que confi
 - "Do I need an employee handbook?"
 - "What's the difference between W-2 and 1099?"
 
-To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_API_KEY in your environment settings.`;
+To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_KEY in your environment settings.`;
   }
 
   // Insights fallback
@@ -399,7 +404,7 @@ To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_A
 - "¿Cómo puedo mejorar la rentabilidad?"
 - "¿Qué KPIs debo seguir?"
 
-Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la ANTHROPIC_API_KEY en la configuración del entorno.`
+Para obtener respuestas personalizadas con IA, pide a tu administrador que configure la OPENAI_API_KEY en la configuración del entorno.`
     : `I'm Jenny, your business insights advisor. I can help analyze your revenue, crew productivity, job profitability, and more.
 
 **Ask me things like:**
@@ -408,7 +413,7 @@ Para obtener respuestas personalizadas con IA, pide a tu administrador que confi
 - "How can I improve profitability?"
 - "What KPIs should I track?"
 
-To get AI-powered personalized answers, ask your admin to set up the ANTHROPIC_API_KEY in your environment settings.`;
+To get AI-powered personalized answers, ask your admin to set up the OPENAI_API_KEY in your environment settings.`;
 }
 
 export async function POST(request: NextRequest) {
@@ -428,6 +433,7 @@ export async function POST(request: NextRequest) {
         companyPlan?: string;
         employeeCount?: number;
         industry?: string;
+        state?: string;
         complianceStats?: {
           totalViolations: number;
           mealBreakViolations: number;
@@ -449,6 +455,13 @@ export async function POST(request: NextRequest) {
     // Build system prompt with context
     let systemPrompt = getSystemPrompt(mode, language);
 
+    // For compliance mode, inject authoritative legal reference data
+    if (mode === 'compliance') {
+      const stateCode = (body as { state?: string }).state || context?.state || 'CA';
+      const complianceKnowledge = getComplianceKnowledge(stateCode.toUpperCase());
+      systemPrompt += `\n\nAUTHORITATIVE LEGAL REFERENCE DATA (you MUST cite these statutes — do NOT use your own knowledge for specific numbers):\n${complianceKnowledge}`;
+    }
+
     if (context) {
       const contextParts: string[] = [];
       if (context.companyName) contextParts.push(`Business: ${context.companyName}`);
@@ -466,8 +479,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // If no AI provider configured, return smart fallback
-    if (!isAIConfigured()) {
+    // If no AI keys at all, return smart fallback
+    if (!ANTHROPIC_API_KEY && !OPENAI_API_KEY) {
       return NextResponse.json({
         message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
@@ -480,22 +493,23 @@ export async function POST(request: NextRequest) {
       content: m.content,
     }));
 
-    const { text: content } = await chatCompletion({
-      systemPrompt,
-      messages: apiMessages,
-      tier: 'advanced',
-      maxTokens: 800,
-      temperature: 0.4,
-    });
+    try {
+      const aiResult = await aiComplete({
+        systemPrompt,
+        messages: apiMessages,
+        maxTokens: 800,
+        temperature: mode === 'compliance' ? 0.3 : 0.4,
+        tier: 'high',
+      });
 
-    if (!content) {
+      return NextResponse.json({ message: aiResult.content, fallback: false, provider: aiResult.provider });
+    } catch {
+      // Both providers failed — return smart fallback
       return NextResponse.json({
         message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
       });
     }
-
-    return NextResponse.json({ message: content, fallback: false });
   } catch (error) {
     console.error('jenny-exec chat API error:', error);
     return NextResponse.json(
