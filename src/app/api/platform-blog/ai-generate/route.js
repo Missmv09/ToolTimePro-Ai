@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-
-const { aiComplete, parseAIJson } = require('@/lib/ai-client');
+import { aiComplete, parseAIJson } from '@/lib/ai-client';
 
 export async function POST(request) {
   try {
