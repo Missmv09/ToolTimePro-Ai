@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const { aiComplete, parseAIJson } = require('@/lib/ai-client');
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -18,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If no AI keys at all, return smart defaults
-    if (!ANTHROPIC_API_KEY && !OPENAI_API_KEY) {
+    if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
       return NextResponse.json(getFallbackAnalysis());
     }
 
@@ -133,8 +130,9 @@ Return ONLY the JSON, no other text.`;
     return NextResponse.json(result);
   } catch (error) {
     console.error('ai-photo-analysis API error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to process photo analysis request';
     return NextResponse.json(
-      { error: 'Failed to process photo analysis request' },
+      { error: message },
       { status: 500 },
     );
   }

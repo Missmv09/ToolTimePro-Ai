@@ -114,7 +114,7 @@ Never make up specific appointment times - guide them to use the booking option 
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
     };
   }
 };

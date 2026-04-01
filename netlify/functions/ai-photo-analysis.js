@@ -164,7 +164,7 @@ Return ONLY the JSON, no other text.`;
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Failed to analyze photo' }),
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to analyze photo' }),
     };
   }
 };

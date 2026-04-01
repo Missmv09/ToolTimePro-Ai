@@ -3,9 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 const { aiComplete } = require('@/lib/ai-client');
 const { getComplianceKnowledge, getSupportedStates } = require('@/lib/compliance-knowledge');
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -480,7 +477,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If no AI keys at all, return smart fallback
-    if (!ANTHROPIC_API_KEY && !OPENAI_API_KEY) {
+    if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
       return NextResponse.json({
         message: getFallbackResponse(mode, lastUserMessage, language),
         fallback: true,
@@ -512,8 +509,9 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('jenny-exec chat API error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to process chat request';
     return NextResponse.json(
-      { error: 'Failed to process chat request' },
+      { error: message },
       { status: 500 },
     );
   }
