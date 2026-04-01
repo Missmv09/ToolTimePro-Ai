@@ -10,7 +10,7 @@ type Language = 'en' | 'es';
 
 // Features data - ordered by key money makers first
 const features = [
-  { title: 'Jenny AI — Your Back-Office Employee', description: 'One AI, three tiers. Jenny Lite (free): website chatbot that captures leads 24/7. Jenny Pro ($49/mo): answers phone calls with bilingual voice, books appointments, sends SMS. Jenny Exec ($79/mo): compliance monitoring, HR law updates, business analytics. Plus 15 autonomous actions that run your back office automatically.', badge: '🤖 AI-Powered', highlight: true },
+  { title: 'Jenny AI — Your Back-Office Employee', description: 'One AI, three tiers. Jenny Lite (free): website chatbot that captures leads 24/7. Jenny Pro ($49/mo): answers phone calls with bilingual voice, books appointments, sends SMS. Jenny Exec ($79/mo): compliance monitoring, HR law updates, business analytics. Plus 15 autonomous actions that run your back office automatically.', badge: '\u{1F916} AI-Powered', highlight: true },
   { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Review Machine — Powered by Jenny', description: 'Auto-requests Google & Yelp reviews via SMS after every job. Configurable delay, click tracking, and AI-generated responses. Included with all plans.', badge: '💰 Top Revenue Driver', highlight: true },
   { title: 'Smart Material Estimator — 21 Trades', description: 'Describe a job and get exact material lists with Good/Better/Best pricing. Supports painting, plumbing, electrical, roofing, fencing, concrete, and 15 more trades. Contractor markup engine included.', badge: '🌟 NEW', highlight: true },
@@ -60,8 +60,8 @@ const demoCards = [
 const pricingPlans = [
   {
     name: 'Starter',
-    price: 30,
-    annualPrice: 300,
+    price: 49,
+    annualPrice: 490,
     workers: 'Owner + 2',
     description: 'For small teams',
     features: [
@@ -79,8 +79,8 @@ const pricingPlans = [
   },
   {
     name: 'Pro',
-    price: 59,
-    annualPrice: 590,
+    price: 79,
+    annualPrice: 790,
     workers: 15,
     description: 'For growing teams who need more tools',
     popular: true,
@@ -98,8 +98,8 @@ const pricingPlans = [
   },
   {
     name: 'Elite',
-    price: 99,
-    annualPrice: 990,
+    price: 129,
+    annualPrice: 1290,
     workers: 20,
     description: 'Full operations suite for serious businesses',
     features: [
@@ -141,8 +141,8 @@ const standalonePlans = [
 
 // Add-ons
 const pricingAddOns = [
-  { id: 'website_builder', name: 'Website Builder', price: 15, icon: '🌐', description: 'Custom landing page built for you' },
-  { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 19, icon: '🛡️', description: 'Automated compliance monitoring, law-change alerts & cert reminders' },
+  { id: 'website_builder', name: 'Website Builder', price: 25, icon: '🌐', description: 'Custom landing page built for you' },
+  { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 29, icon: '🛡️', description: 'Automated compliance monitoring, law-change alerts & cert reminders' },
   { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
   { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12, icon: '📊', description: 'Two-way sync with QuickBooks Online' },
   { id: 'customer_portal_pro', name: 'Customer Portal Pro', price: 24, icon: '🏠', description: 'Branded portal for customers to book, pay & track jobs' },
@@ -510,7 +510,7 @@ export default function Home() {
             {/* Stats */}
             <div className="flex gap-12 pt-8 border-t border-gray-200">
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$30</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$49</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat1}</div>
               </div>
               <div>
@@ -815,12 +815,12 @@ export default function Home() {
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
                       <span className="text-[#5c5c70]">Compliance Autopilot</span>
-                      <span className="text-[#8e8e9f] ml-auto">$19/mo</span>
+                      <span className="text-[#8e8e9f] ml-auto">$29/mo</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
                       <span className="text-[#5c5c70]">Website Builder</span>
-                      <span className="text-[#8e8e9f] ml-auto">$15/mo</span>
+                      <span className="text-[#8e8e9f] ml-auto">$25/mo</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />

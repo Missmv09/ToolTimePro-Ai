@@ -4,22 +4,22 @@ import Stripe from 'stripe';
 export const dynamic = 'force-dynamic';
 
 const PRODUCTS = [
-  { id: 'starter', name: 'ToolTime Pro — Starter', description: 'Owner + 2 workers. Website, booking, quoting, invoicing, GPS, Shield, Jenny Lite.', prices: [{ key: 'monthly', amount: 3000, interval: 'month' }, { key: 'annual', amount: 30000, interval: 'year' }] },
-  { id: 'pro', name: 'ToolTime Pro — Pro', description: 'Up to 15 workers. Everything in Starter + Reviews, Jenny Lite, dispatch, QuickBooks.', prices: [{ key: 'monthly', amount: 5900, interval: 'month' }, { key: 'annual', amount: 59000, interval: 'year' }] },
-  { id: 'elite', name: 'ToolTime Pro — Elite', description: 'Up to 20 workers. Everything in Pro + Jenny Pro, Dispatch, Routes, Portal Pro, QB.', prices: [{ key: 'monthly', amount: 9900, interval: 'month' }, { key: 'annual', amount: 99000, interval: 'year' }] },
+  { id: 'starter', name: 'ToolTime Pro — Starter', description: 'Owner + 2 workers. Website, booking, quoting, invoicing, GPS, Shield, Jenny Lite.', prices: [{ key: 'monthly', amount: 4900, interval: 'month' }, { key: 'annual', amount: 49000, interval: 'year' }] },
+  { id: 'pro', name: 'ToolTime Pro — Pro', description: 'Up to 15 workers. Everything in Starter + Reviews, Jenny Lite, dispatch, QuickBooks.', prices: [{ key: 'monthly', amount: 7900, interval: 'month' }, { key: 'annual', amount: 79000, interval: 'year' }] },
+  { id: 'elite', name: 'ToolTime Pro — Elite', description: 'Up to 20 workers. Everything in Pro + Jenny Pro, Dispatch, Routes, Portal Pro, QB.', prices: [{ key: 'monthly', amount: 12900, interval: 'month' }, { key: 'annual', amount: 129000, interval: 'year' }] },
   { id: 'booking_only', name: 'ToolTime Pro — Booking Only', description: 'Online booking page only.', prices: [{ key: 'monthly', amount: 1500, interval: 'month' }, { key: 'annual', amount: 15000, interval: 'year' }] },
   { id: 'invoicing_only', name: 'ToolTime Pro — Invoicing Only', description: 'Invoicing and card payments only.', prices: [{ key: 'monthly', amount: 1500, interval: 'month' }, { key: 'annual', amount: 15000, interval: 'year' }] },
   { id: 'jenny_lite', name: 'Jenny Lite — AI Chatbot', description: '24/7 chatbot. Lead capture, FAQ, booking. Bilingual. Included free with all plans.', prices: [{ key: 'monthly', amount: 1900, interval: 'month' }, { key: 'annual', amount: 19000, interval: 'year' }] },
   { id: 'jenny_pro', name: 'Jenny Pro — AI Phone Receptionist', description: 'AI phone 24/7, bilingual voice, SMS, booking, emergencies. Included with Elite.', prices: [{ key: 'monthly', amount: 4900, interval: 'month' }, { key: 'annual', amount: 49000, interval: 'year' }] },
   { id: 'jenny_exec_admin', name: 'Jenny Exec Admin — Business Intelligence', description: 'Compliance advisor, HR law monitoring, workforce analytics.', prices: [{ key: 'monthly', amount: 7900, interval: 'month' }, { key: 'annual', amount: 79000, interval: 'year' }] },
-  { id: 'website_builder', name: 'Website Builder Add-on', description: 'Custom landing page built for your business.', prices: [{ key: 'monthly', amount: 1500, interval: 'month' }, { key: 'annual', amount: 15000, interval: 'year' }] },
-  { id: 'keep_me_legal', name: 'Compliance Autopilot Add-on', description: 'Automated compliance monitoring, law-change alerts, and cert renewal reminders.', prices: [{ key: 'monthly', amount: 1900, interval: 'month' }, { key: 'annual', amount: 19000, interval: 'year' }] },
+  { id: 'website_builder', name: 'Website Builder Add-on', description: 'Custom landing page built for your business.', prices: [{ key: 'monthly', amount: 2500, interval: 'month' }, { key: 'annual', amount: 25000, interval: 'year' }] },
+  { id: 'keep_me_legal', name: 'Compliance Autopilot Add-on', description: 'Automated compliance monitoring, law-change alerts, and cert renewal reminders.', prices: [{ key: 'monthly', amount: 2900, interval: 'month' }, { key: 'annual', amount: 29000, interval: 'year' }] },
   { id: 'extra_page', name: 'Extra Website Page Add-on', description: 'Add pages to your site.', prices: [{ key: 'monthly', amount: 1000, interval: 'month' }, { key: 'annual', amount: 10000, interval: 'year' }] },
   { id: 'quickbooks_sync', name: 'QuickBooks Sync Add-on', description: 'Two-way sync with QuickBooks Online.', prices: [{ key: 'monthly', amount: 1200, interval: 'month' }, { key: 'annual', amount: 12000, interval: 'year' }] },
   { id: 'customer_portal_pro', name: 'Customer Portal Pro Add-on', description: 'Job tracker, photos, messaging, docs, history. Included with Elite.', prices: [{ key: 'monthly', amount: 2400, interval: 'month' }, { key: 'annual', amount: 24000, interval: 'year' }] },
   { id: 'extra_worker', name: 'Extra Worker/Technician', description: '$7/user/month beyond plan limit.', prices: [{ key: 'monthly', amount: 700, interval: 'month' }] },
-  { id: 'assisted_onboarding', name: 'Assisted Onboarding', description: 'Guided setup, customer import, 30-min training.', prices: [{ key: 'one_time', amount: 14900 }] },
-  { id: 'white_glove', name: 'White Glove Setup', description: 'Full done-for-you setup, website, training, 30-day support.', prices: [{ key: 'one_time', amount: 34900 }] },
+  { id: 'assisted_onboarding', name: 'Assisted Onboarding', description: 'Guided setup, customer import, 30-min training.', prices: [{ key: 'one_time', amount: 19900 }] },
+  { id: 'white_glove', name: 'White Glove Setup', description: 'Full done-for-you setup, website, training, 30-day support.', prices: [{ key: 'one_time', amount: 49900 }] },
 ];
 
 // GET /api/stripe/setup-products → shows what exists vs what's missing
