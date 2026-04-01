@@ -84,7 +84,7 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1024, temperatur
       method: 'POST',
       headers: {
         'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': '2024-10-22',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -99,17 +99,19 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1024, temperatur
     if (!response.ok) {
       const errText = await response.text();
       console.error(`[AI Client] Claude error (${response.status}):`, errText);
-      return null;
+      let detail = '';
+      try { detail = JSON.parse(errText)?.error?.message || errText; } catch { detail = errText; }
+      return { error: `Claude API error ${response.status}: ${detail}` };
     }
 
     const data = await response.json();
     const text = data.content?.[0]?.text?.trim();
-    if (!text) return null;
+    if (!text) return { error: 'Claude returned empty response' };
 
     return { content: text, provider: 'claude', model };
   } catch (err) {
     console.error('[AI Client] Claude request failed:', err.message);
-    return null;
+    return { error: `Claude request failed: ${err.message}` };
   }
 }
 
@@ -151,17 +153,19 @@ async function callOpenAI({ systemPrompt, messages, maxTokens = 1024, temperatur
     if (!response.ok) {
       const errText = await response.text();
       console.error(`[AI Client] OpenAI error (${response.status}):`, errText);
-      return null;
+      let detail = '';
+      try { detail = JSON.parse(errText)?.error?.message || errText; } catch { detail = errText; }
+      return { error: `OpenAI API error ${response.status}: ${detail}` };
     }
 
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content?.trim();
-    if (!text) return null;
+    if (!text) return { error: 'OpenAI returned empty response' };
 
     return { content: text, provider: 'openai', model };
   } catch (err) {
     console.error('[AI Client] OpenAI request failed:', err.message);
-    return null;
+    return { error: `OpenAI request failed: ${err.message}` };
   }
 }
 
@@ -178,15 +182,21 @@ async function callOpenAI({ systemPrompt, messages, maxTokens = 1024, temperatur
  * @throws {Error} if both providers fail
  */
 async function aiComplete({ systemPrompt, messages, maxTokens = 1024, temperature = 0.5, tier = 'high' }) {
+  const errors = [];
+
   // Try Claude first
   const claudeResult = await callClaude({ systemPrompt, messages, maxTokens, temperature, tier });
-  if (claudeResult) return claudeResult;
+  if (claudeResult && claudeResult.content) return claudeResult;
+  if (claudeResult?.error) errors.push(claudeResult.error);
 
   // Fallback to OpenAI
   const openaiResult = await callOpenAI({ systemPrompt, messages, maxTokens, temperature, tier });
-  if (openaiResult) return openaiResult;
+  if (openaiResult && openaiResult.content) return openaiResult;
+  if (openaiResult?.error) errors.push(openaiResult.error);
 
-  throw new Error('All AI providers unavailable. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.');
+  throw new Error(errors.length > 0
+    ? errors.join(' | ')
+    : 'All AI providers unavailable. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.');
 }
 
 /**
