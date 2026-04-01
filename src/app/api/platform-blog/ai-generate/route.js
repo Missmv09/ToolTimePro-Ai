@@ -10,6 +10,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Topic is required.' }, { status: 400 });
     }
 
+    // Check AI keys are configured
+    if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: 'AI not configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY in environment variables.' },
+        { status: 503 },
+      );
+    }
+
     const systemPrompt = `You are an expert content writer for ToolTime Pro, a SaaS platform that helps home service businesses (painters, plumbers, electricians, HVAC, landscapers, cleaners, roofers, etc.) manage their operations.
 
 You write blog posts for the ToolTime Pro marketing site that:
@@ -75,6 +83,7 @@ The post should provide genuine value to contractors and business owners while p
     });
   } catch (error) {
     console.error('[Platform Blog AI] Error:', error);
-    return NextResponse.json({ error: 'Failed to generate blog post.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to generate blog post.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

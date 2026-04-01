@@ -13,6 +13,13 @@ export async function POST(request) {
       );
     }
 
+    if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: 'AI not configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY in environment variables.' },
+        { status: 503 },
+      );
+    }
+
     const systemPrompt = `You are an expert SEO content writer for home service and trade businesses. You write blog posts that:
 - Are optimized for local SEO (mention the location/region 2-3 times total, not in every paragraph)
 - When a location includes "surrounding areas", refer broadly to the service area (e.g. "the [city] area", "our service area", "[city] and nearby communities") rather than repeating the exact city name throughout
@@ -78,8 +85,9 @@ The post should help homeowners understand this topic and encourage them to hire
     });
   } catch (error) {
     console.error('[Blog AI] Error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to generate blog post. Please try again.';
     return NextResponse.json(
-      { error: 'Failed to generate blog post. Please try again.' },
+      { error: message },
       { status: 500 }
     );
   }
