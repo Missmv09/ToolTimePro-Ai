@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+import { DollarSign, Package, Plus, RefreshCw, Pencil, History } from 'lucide-react'
 
 interface StripeProduct {
   stripe_id: string
@@ -24,24 +23,12 @@ interface StripePrice {
   recurring: { interval: string; interval_count: number } | null
 }
 
-interface AuditEntry {
-  id: string
-  admin_email: string
-  action: string
-  target_type: string
-  target_id: string
-  details: Record<string, unknown>
-  created_at: string
-}
-
 type ModalMode = 'create_product' | 'update_product' | 'create_price' | 'update_price' | null
 
 export default function AdminPricingPage() {
   const [products, setProducts] = useState<StripeProduct[]>([])
   const [prices, setPrices] = useState<StripePrice[]>([])
-  const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([])
   const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [modalMode, setModalMode] = useState<ModalMode>(null)
@@ -71,11 +58,7 @@ export default function AdminPricingPage() {
     interval: 'month',
   })
 
-  // Selected product for context
   const [selectedProduct, setSelectedProduct] = useState<StripeProduct | null>(null)
-
-  const router = useRouter()
-  const { user, isLoading: authLoading } = useAuth()
 
   const getToken = useCallback(async (): Promise<string | null> => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -102,45 +85,22 @@ export default function AdminPricingPage() {
 
   const fetchProducts = useCallback(async () => {
     try {
+      setLoading(true)
       const data = await callApi({ action: 'list_products' })
       setProducts(data.products || [])
       setPrices(data.prices || [])
-      setIsAdmin(true)
       setError(null)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load'
-      if (message.includes('Forbidden') || message.includes('403')) {
-        setIsAdmin(false)
-        setError('You do not have platform admin access.')
-      } else {
-        setError(message)
-      }
+      setError(message)
     } finally {
       setLoading(false)
     }
   }, [callApi])
 
-  const fetchAuditLogs = useCallback(async () => {
-    try {
-      const token = await getToken()
-      if (!token) return
-
-      // Audit logs are in Supabase — read via service role is not available client-side,
-      // so we read through the anon client (RLS blocks this). Show a note instead.
-      setAuditLogs([])
-    } catch {
-      // Audit logs not accessible from client — expected
-    }
-  }, [getToken])
-
   useEffect(() => {
-    if (authLoading) return
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
     fetchProducts()
-  }, [authLoading, user, router, fetchProducts])
+  }, [fetchProducts])
 
   // --- Handlers ---
 
@@ -310,99 +270,123 @@ export default function AdminPricingPage() {
 
   // --- Render ---
 
-  if (loading || authLoading) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
-  if (!isAdmin || error) {
+  if (error) {
     return (
-      <div className="p-6 max-w-3xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
-          <p className="text-red-600">{error || 'Platform admin access required.'}</p>
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
+          <p className="text-red-400">{error}</p>
+          <button
+            onClick={fetchProducts}
+            className="mt-4 px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 text-sm"
+          >
+            Retry
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Stripe Price Management</h1>
-          <p className="text-gray-500 mt-1">
-            Manage products and prices in your Stripe account
-          </p>
+          <h1 className="text-2xl font-bold text-white">Stripe Price Management</h1>
+          <p className="text-gray-400 mt-1">Manage products and prices in your Stripe account</p>
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => {
-              setShowAuditLog(!showAuditLog)
-              if (!showAuditLog) fetchAuditLogs()
-            }}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            onClick={fetchProducts}
+            className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors"
+            title="Refresh"
           >
-            {showAuditLog ? 'Hide' : 'Show'} Audit Log
+            <RefreshCw size={20} />
+          </button>
+          <button
+            onClick={() => setShowAuditLog(!showAuditLog)}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 text-sm"
+          >
+            <History size={16} />
+            Audit Log
           </button>
           <button
             onClick={openCreateProduct}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
           >
-            <span>+</span> New Product
+            <Plus size={16} />
+            New Product
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border p-4">
-          <p className="text-sm text-gray-500">Products</p>
-          <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm">Products</p>
+              <p className="text-2xl font-bold text-white mt-1">{products.length}</p>
+            </div>
+            <Package size={22} className="text-blue-400" />
+          </div>
         </div>
-        <div className="bg-white rounded-xl border p-4">
-          <p className="text-sm text-gray-500">Active Prices</p>
-          <p className="text-2xl font-bold text-green-600">
-            {prices.filter((p) => p.active).length}
-          </p>
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm">Active Prices</p>
+              <p className="text-2xl font-bold text-green-400 mt-1">
+                {prices.filter((p) => p.active).length}
+              </p>
+            </div>
+            <DollarSign size={22} className="text-green-400" />
+          </div>
         </div>
-        <div className="bg-white rounded-xl border p-4">
-          <p className="text-sm text-gray-500">Inactive Products</p>
-          <p className="text-2xl font-bold text-gray-400">
-            {products.filter((p) => !p.active).length}
-          </p>
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm">Inactive Products</p>
+              <p className="text-2xl font-bold text-gray-500 mt-1">
+                {products.filter((p) => !p.active).length}
+              </p>
+            </div>
+            <Package size={22} className="text-gray-500" />
+          </div>
         </div>
       </div>
 
       {/* Audit Log Panel */}
       {showAuditLog && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-          <h3 className="text-sm font-semibold text-amber-800 mb-2">Audit Log</h3>
-          <p className="text-sm text-amber-700">
-            Audit logs are stored in the <code className="bg-amber-100 px-1 rounded">stripe_audit_logs</code> table
-            and accessible via Supabase dashboard (Table Editor) or SQL Editor. Client-side access is
-            blocked by RLS for security.
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6">
+          <h3 className="text-sm font-semibold text-amber-400 mb-2">Audit Log</h3>
+          <p className="text-sm text-amber-300/80">
+            Audit logs are stored in the <code className="bg-gray-800 px-1.5 py-0.5 rounded text-amber-400 text-xs">stripe_audit_logs</code> table
+            and accessible via Supabase dashboard (Table Editor) or SQL Editor.
           </p>
-          <p className="text-xs text-amber-600 mt-2">
-            Query: <code className="bg-amber-100 px-1 rounded">SELECT * FROM stripe_audit_logs ORDER BY created_at DESC LIMIT 50;</code>
+          <p className="text-xs text-gray-500 mt-2 font-mono">
+            SELECT * FROM stripe_audit_logs ORDER BY created_at DESC LIMIT 50;
           </p>
         </div>
       )}
 
-      {/* Products Table */}
+      {/* Products */}
       {products.length === 0 ? (
-        <div className="bg-white rounded-xl border p-12 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-          <p className="text-gray-500 mb-4">
-            No ToolTime products exist in Stripe yet. Create one or run the setup-products endpoint first.
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-12 text-center">
+          <Package size={40} className="text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No products found</h3>
+          <p className="text-gray-400 mb-4">
+            No ToolTime products exist in Stripe yet.
           </p>
           <button
             onClick={openCreateProduct}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
           >
             Create First Product
           </button>
@@ -414,22 +398,22 @@ export default function AdminPricingPage() {
             return (
               <div
                 key={product.stripe_id}
-                className={`bg-white rounded-xl border overflow-hidden ${!product.active ? 'opacity-60' : ''}`}
+                className={`bg-gray-800 rounded-xl border border-gray-700 overflow-hidden ${!product.active ? 'opacity-50' : ''}`}
               >
                 {/* Product header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
                   <div className="flex items-center gap-3">
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         product.active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                          : 'bg-gray-700 text-gray-400 border border-gray-600'
                       }`}
                     >
                       {product.active ? 'Active' : 'Inactive'}
                     </span>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{product.name}</h3>
+                      <h3 className="font-semibold text-white">{product.name}</h3>
                       <p className="text-xs text-gray-500">
                         {product.tooltime_id} &middot; {product.stripe_id}
                       </p>
@@ -438,27 +422,27 @@ export default function AdminPricingPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => openCreatePrice(product)}
-                      className="text-sm px-3 py-1 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+                      className="flex items-center gap-1 text-sm px-3 py-1.5 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700"
                     >
-                      + Price
+                      <Plus size={14} /> Price
                     </button>
                     <button
                       onClick={() => openEditProduct(product)}
-                      className="text-sm px-3 py-1 text-blue-600 hover:text-blue-800 font-medium"
+                      className="flex items-center gap-1 text-sm px-3 py-1.5 text-orange-400 hover:text-orange-300 font-medium"
                     >
-                      Edit
+                      <Pencil size={14} /> Edit
                     </button>
                   </div>
                 </div>
 
-                {/* Product description */}
+                {/* Description */}
                 {product.description && (
-                  <div className="px-6 py-2 text-sm text-gray-500 border-b">
+                  <div className="px-6 py-2 text-sm text-gray-400 border-b border-gray-700/50">
                     {product.description}
                   </div>
                 )}
 
-                {/* Prices table */}
+                {/* Prices */}
                 {productPrices.length > 0 ? (
                   <table className="w-full">
                     <thead>
@@ -470,27 +454,25 @@ export default function AdminPricingPage() {
                         <th className="px-6 py-2 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-700/50">
                       {productPrices.map((price) => (
-                        <tr key={price.stripe_id} className="hover:bg-gray-50">
-                          <td className="px-6 py-3 text-sm font-medium text-gray-900">
+                        <tr key={price.stripe_id} className="hover:bg-gray-700/30">
+                          <td className="px-6 py-3 text-sm font-medium text-white">
                             {price.tooltime_key}
                           </td>
-                          <td className="px-6 py-3 text-sm text-gray-900">
+                          <td className="px-6 py-3 text-sm text-green-400 font-semibold">
                             {formatAmount(price.unit_amount)}
                           </td>
-                          <td className="px-6 py-3 text-sm text-gray-500">
-                            {price.recurring
-                              ? `per ${price.recurring.interval}`
-                              : 'One-time'}
+                          <td className="px-6 py-3 text-sm text-gray-400">
+                            {price.recurring ? `per ${price.recurring.interval}` : 'One-time'}
                           </td>
-                          <td className="px-6 py-3 text-xs text-gray-400 font-mono">
+                          <td className="px-6 py-3 text-xs text-gray-500 font-mono">
                             {price.stripe_id}
                           </td>
                           <td className="px-6 py-3 text-right">
                             <button
                               onClick={() => openUpdatePrice(product, price)}
-                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                              className="text-sm text-orange-400 hover:text-orange-300 font-medium"
                             >
                               Change Price
                             </button>
@@ -500,7 +482,7 @@ export default function AdminPricingPage() {
                     </tbody>
                   </table>
                 ) : (
-                  <div className="px-6 py-4 text-sm text-gray-400">No active prices</div>
+                  <div className="px-6 py-4 text-sm text-gray-500">No active prices</div>
                 )}
               </div>
             )
@@ -512,68 +494,50 @@ export default function AdminPricingPage() {
 
       {/* Create Product Modal */}
       {modalMode === 'create_product' && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Create New Product</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-white mb-4">Create New Product</h2>
             <form onSubmit={handleCreateProduct} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ToolTime ID *
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">ToolTime ID *</label>
                 <input
                   type="text"
                   required
                   value={productForm.tooltime_id}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, tooltime_id: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => setProductForm({ ...productForm, tooltime_id: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="e.g., starter, jenny_pro, extra_worker"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Snake_case identifier used in NEXT_PUBLIC_STRIPE_PRICES
-                </p>
+                <p className="text-xs text-gray-500 mt-1">Snake_case identifier for NEXT_PUBLIC_STRIPE_PRICES</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name *
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Product Name *</label>
                 <input
                   type="text"
                   required
                   value={productForm.name}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, name: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="e.g., ToolTime Pro — Starter"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
                 <textarea
                   value={productForm.description}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, description: e.target.value })
-                  }
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
 
               {/* Price rows */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Prices *</label>
-                  <button
-                    type="button"
-                    onClick={addPriceRow}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
+                  <label className="block text-sm font-medium text-gray-300">Prices *</label>
+                  <button type="button" onClick={addPriceRow} className="text-sm text-orange-400 hover:text-orange-300">
                     + Add price tier
                   </button>
                 </div>
@@ -588,11 +552,11 @@ export default function AdminPricingPage() {
                         updated[i] = { ...updated[i], key: e.target.value }
                         setProductForm({ ...productForm, prices: updated })
                       }}
-                      className="w-28 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                      className="w-28 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-orange-500"
                       placeholder="Key"
                     />
                     <div className="relative flex-1">
-                      <span className="absolute left-3 top-2 text-gray-400">$</span>
+                      <span className="absolute left-3 top-2 text-gray-500">$</span>
                       <input
                         type="number"
                         required
@@ -604,7 +568,7 @@ export default function AdminPricingPage() {
                           updated[i] = { ...updated[i], amount: e.target.value }
                           setProductForm({ ...productForm, prices: updated })
                         }}
-                        className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-7 pr-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-orange-500"
                         placeholder="0.00"
                       />
                     </div>
@@ -615,18 +579,14 @@ export default function AdminPricingPage() {
                         updated[i] = { ...updated[i], interval: e.target.value }
                         setProductForm({ ...productForm, prices: updated })
                       }}
-                      className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                      className="w-32 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-orange-500"
                     >
                       <option value="month">Monthly</option>
                       <option value="year">Annual</option>
                       <option value="">One-time</option>
                     </select>
                     {productForm.prices.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removePriceRow(i)}
-                        className="text-red-400 hover:text-red-600 px-1"
-                      >
+                      <button type="button" onClick={() => removePriceRow(i)} className="text-red-400 hover:text-red-300 px-1">
                         X
                       </button>
                     )}
@@ -638,14 +598,14 @@ export default function AdminPricingPage() {
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
                 >
                   {saving ? 'Creating...' : 'Create Product'}
                 </button>
@@ -657,36 +617,28 @@ export default function AdminPricingPage() {
 
       {/* Update Product Modal */}
       {modalMode === 'update_product' && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Product</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Edit Product</h2>
             <form onSubmit={handleUpdateProduct} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Product Name</label>
                 <input
                   type="text"
                   required
                   value={productForm.name}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, name: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
                 <textarea
                   value={productForm.description}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, description: e.target.value })
-                  }
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
 
@@ -695,12 +647,10 @@ export default function AdminPricingPage() {
                   <input
                     type="checkbox"
                     checked={productForm.active}
-                    onChange={(e) =>
-                      setProductForm({ ...productForm, active: e.target.checked })
-                    }
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    onChange={(e) => setProductForm({ ...productForm, active: e.target.checked })}
+                    className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500"
                   />
-                  <span className="text-sm text-gray-700">Active</span>
+                  <span className="text-sm text-gray-300">Active</span>
                 </label>
               </div>
 
@@ -708,14 +658,14 @@ export default function AdminPricingPage() {
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -727,31 +677,25 @@ export default function AdminPricingPage() {
 
       {/* Create Price Modal */}
       {modalMode === 'create_price' && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Add Price</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              For: {selectedProduct?.name}
-            </p>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-white mb-1">Add Price</h2>
+            <p className="text-sm text-gray-400 mb-4">For: {selectedProduct?.name}</p>
             <form onSubmit={handleCreatePrice} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price Key *
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Price Key *</label>
                 <input
                   type="text"
                   required
                   value={priceForm.key}
                   onChange={(e) => setPriceForm({ ...priceForm, key: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="e.g., monthly, annual, one_time"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount ($) *
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Amount ($) *</label>
                 <input
                   type="number"
                   required
@@ -759,19 +703,17 @@ export default function AdminPricingPage() {
                   min="0"
                   value={priceForm.amount}
                   onChange={(e) => setPriceForm({ ...priceForm, amount: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="59.00"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Billing Interval
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Billing Interval</label>
                 <select
                   value={priceForm.interval}
                   onChange={(e) => setPriceForm({ ...priceForm, interval: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
                   <option value="month">Monthly</option>
                   <option value="year">Annual</option>
@@ -783,14 +725,14 @@ export default function AdminPricingPage() {
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
                 >
                   {saving ? 'Creating...' : 'Add Price'}
                 </button>
@@ -802,23 +744,21 @@ export default function AdminPricingPage() {
 
       {/* Update Price Modal */}
       {modalMode === 'update_price' && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Change Price</h2>
-            <p className="text-sm text-gray-500 mb-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-white mb-1">Change Price</h2>
+            <p className="text-sm text-gray-400 mb-4">
               For: {selectedProduct?.name} ({priceForm.key})
             </p>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-              <p className="text-xs text-amber-700">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-4">
+              <p className="text-xs text-amber-300/80">
                 Stripe prices are immutable. This will deactivate the old price and create a new one.
                 Existing subscribers stay on the old price until their subscription is updated.
               </p>
             </div>
             <form onSubmit={handleUpdatePrice} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  New Amount ($) *
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">New Amount ($) *</label>
                 <input
                   type="number"
                   required
@@ -826,19 +766,17 @@ export default function AdminPricingPage() {
                   min="0"
                   value={priceForm.amount}
                   onChange={(e) => setPriceForm({ ...priceForm, amount: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="65.00"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Billing Interval
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Billing Interval</label>
                 <select
                   value={priceForm.interval}
                   onChange={(e) => setPriceForm({ ...priceForm, interval: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
                   <option value="month">Monthly</option>
                   <option value="year">Annual</option>
@@ -850,14 +788,14 @@ export default function AdminPricingPage() {
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
                 >
                   {saving ? 'Updating...' : 'Update Price'}
                 </button>

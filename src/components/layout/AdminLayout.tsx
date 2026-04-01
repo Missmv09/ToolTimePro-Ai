@@ -13,6 +13,7 @@ import {
   LogOut,
   Shield,
   FileText,
+  DollarSign,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -26,6 +27,7 @@ interface AdminLayoutProps {
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/companies', label: 'Companies', icon: Building2 },
+  { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
   { href: '/admin/blog', label: 'Blog', icon: FileText },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
