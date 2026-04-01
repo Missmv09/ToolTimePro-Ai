@@ -61,7 +61,7 @@ export default function AdminBlogPage() {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/platform-blog?admin=true');
+      const res = await fetch('/api/platform-blog/?admin=true');
       const data = await res.json();
       setPosts(data.posts || []);
     } catch {
@@ -87,7 +87,7 @@ export default function AdminBlogPage() {
 
     try {
       // Generate with AI
-      const aiRes = await fetch('/api/platform-blog/ai-generate', {
+      const aiRes = await fetch('/api/platform-blog/ai-generate/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: selectedTopic, category }),
@@ -97,7 +97,7 @@ export default function AdminBlogPage() {
       if (!aiRes.ok) throw new Error(aiData.error || 'AI generation failed');
 
       // Save to database
-      const saveRes = await fetch('/api/platform-blog', {
+      const saveRes = await fetch('/api/platform-blog/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +130,7 @@ export default function AdminBlogPage() {
 
   const handlePublish = async (post) => {
     try {
-      const res = await fetch('/api/platform-blog', {
+      const res = await fetch('/api/platform-blog/', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: post.id, status: 'published', published_at: new Date().toISOString() }),
@@ -145,7 +145,7 @@ export default function AdminBlogPage() {
 
   const handleUnpublish = async (post) => {
     try {
-      const res = await fetch('/api/platform-blog', {
+      const res = await fetch('/api/platform-blog/', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: post.id, status: 'draft' }),
@@ -160,7 +160,7 @@ export default function AdminBlogPage() {
 
   const handleFeature = async (post) => {
     try {
-      const res = await fetch('/api/platform-blog', {
+      const res = await fetch('/api/platform-blog/', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: post.id, featured: !post.featured }),
@@ -175,7 +175,7 @@ export default function AdminBlogPage() {
   const handleDelete = async (post) => {
     if (!confirm(`Delete "${post.title}"?`)) return;
     try {
-      const res = await fetch(`/api/platform-blog?id=${post.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/platform-blog/?id=${post.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       fetchPosts();
       if (expandedPost === post.id) setExpandedPost(null);

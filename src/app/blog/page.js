@@ -23,7 +23,7 @@ export default function BlogListingPage() {
       setLoading(true);
       try {
         const params = category !== 'all' ? `?category=${category}` : '';
-        const res = await fetch(`/api/platform-blog${params}`);
+        const res = await fetch(`/api/platform-blog/${params}`);
         const data = await res.json();
         setPosts(data.posts || []);
       } catch {
