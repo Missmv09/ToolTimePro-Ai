@@ -155,7 +155,7 @@ export default function BlogPage() {
 
     try {
       // Step 1: Generate content with AI
-      const aiRes = await fetch('/api/blog/ai-generate', {
+      const aiRes = await fetch('/api/blog/ai-generate/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -173,7 +173,7 @@ export default function BlogPage() {
       }
 
       // Step 2: Save to database
-      const saveRes = await fetch('/api/blog', {
+      const saveRes = await fetch('/api/blog/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
