@@ -360,16 +360,16 @@ describe('Premium Purchase Flow — Buy Everything', () => {
         singleResult: { data: { id: 'company-001' }, error: null },
       });
 
-      // Total: Elite $99 + Jenny Pro $49 + Jenny Exec $79 + Website $15 + Legal $19
-      //        + Extra Page $10 + QB $12 + 5 workers * $7 = $318 + onboarding $349 = $667
-      // In cents: 66700
+      // Total: Elite $129 + Jenny Pro $49 + Jenny Exec $79 + Website $25 + Legal $29
+      //        + Extra Page $10 + QB $12 + 5 workers * $7 = $368 + onboarding $499 = $867
+      // In cents: 86700
       mockConstructEvent.mockReturnValue({
         type: 'invoice.payment_succeeded',
         data: {
           object: {
             customer: 'cus_all_premiums',
             id: 'inv_all_premiums_001',
-            amount_paid: 66700,
+            amount_paid: 86700,
             currency: 'usd',
           },
         },
@@ -383,7 +383,7 @@ describe('Premium Purchase Flow — Buy Everything', () => {
       expect(mockInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           company_id: 'company-001',
-          amount: 667,
+          amount: 867,
           payment_method: 'stripe',
           status: 'completed',
           notes: 'Stripe invoice inv_all_premiums_001',
@@ -411,7 +411,7 @@ describe('Premium Purchase Flow — Buy Everything', () => {
           extraWorkers: '5',
           billing: 'monthly',
         },
-        amount_total: 66700,
+        amount_total: 86700,
         currency: 'usd',
       });
 
@@ -425,7 +425,7 @@ describe('Premium Purchase Flow — Buy Everything', () => {
       expect(body.customer_email).toBe('boss@allpremiums.com');
       expect(body.payment_status).toBe('paid');
       expect(body.status).toBe('complete');
-      expect(body.amount_total).toBe(66700);
+      expect(body.amount_total).toBe(86700);
       expect(body.currency).toBe('usd');
 
       // Metadata carries all premium selections
@@ -529,7 +529,7 @@ describe('Premium Purchase Flow — Buy Everything', () => {
           object: {
             customer: 'cus_all_premiums',
             id: 'inv_failed_001',
-            amount_due: 66700,
+            amount_due: 86700,
             currency: 'usd',
           },
         },
@@ -542,7 +542,7 @@ describe('Premium Purchase Flow — Buy Everything', () => {
       expect(mockInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           company_id: 'company-001',
-          amount: 667,
+          amount: 867,
           payment_method: 'stripe',
           status: 'failed',
           notes: 'Failed: Stripe invoice inv_failed_001',

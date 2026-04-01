@@ -436,7 +436,7 @@ export default function RouteOptimizationDemo() {
               See Dispatch Board Demo
             </Link>
           </div>
-          <p className="text-white/50 text-sm mt-4">Included with Elite Plan ($99/mo) • 14-day free trial</p>
+          <p className="text-white/50 text-sm mt-4">Included with Elite Plan ($129/mo) • 14-day free trial</p>
         </div>
       </div>
     </div>

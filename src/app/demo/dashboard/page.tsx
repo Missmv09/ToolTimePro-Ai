@@ -568,7 +568,7 @@ export default function DashboardDemoPage() {
               <div>
                 <h3 className="text-xl font-bold mb-1">Ready to run your business smarter?</h3>
                 <p className="text-white/70 text-sm">
-                  Smart quoting, AI phone receptionist, automated reviews, crew management, invoicing, compliance — all starting at $30/mo.
+                  Smart quoting, AI phone receptionist, automated reviews, crew management, invoicing, compliance — all starting at $49/mo.
                 </p>
               </div>
               <Link

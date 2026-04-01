@@ -20,9 +20,9 @@ interface CompanyForm {
 
 // Plan display configuration mapping plan IDs to human-readable names and prices
 const PLAN_CONFIG: Record<string, { name: string; price: string; period: string }> = {
-  starter: { name: 'Starter', price: '$30', period: 'Monthly' },
-  pro: { name: 'Pro', price: '$59', period: 'Monthly' },
-  elite: { name: 'Elite', price: '$99', period: 'Monthly' },
+  starter: { name: 'Starter', price: '$49', period: 'Monthly' },
+  pro: { name: 'Pro', price: '$79', period: 'Monthly' },
+  elite: { name: 'Elite', price: '$129', period: 'Monthly' },
   booking_only: { name: 'Booking Only', price: '$15', period: 'Monthly' },
   invoicing_only: { name: 'Invoicing Only', price: '$15', period: 'Monthly' },
   free_trial: { name: 'Free Trial', price: '$0', period: '' },

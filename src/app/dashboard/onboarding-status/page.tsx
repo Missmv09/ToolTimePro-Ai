@@ -65,14 +65,14 @@ const WHITE_GLOVE_CHECKLIST: ChecklistItem[] = [
 const SERVICE_INFO = {
   assisted_onboarding: {
     name: 'Assisted Onboarding',
-    price: '$149',
+    price: '$199',
     description: 'Guided setup with a dedicated specialist',
     icon: Settings,
     color: 'blue',
   },
   white_glove: {
     name: 'White Glove Setup',
-    price: '$349',
+    price: '$499',
     description: 'Full-service setup with website design, training, and 30-day support',
     icon: Sparkles,
     color: 'purple',

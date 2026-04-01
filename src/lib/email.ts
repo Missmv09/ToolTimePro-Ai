@@ -820,11 +820,11 @@ export async function sendTrialExpiredEmail({ to, name }: { to: string; name: st
       </p>
 
       <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
-        <p style="margin: 0 0 8px 0; color: #374151; font-weight: 600;">Plans start at just $30/month:</p>
+        <p style="margin: 0 0 8px 0; color: #374151; font-weight: 600;">Plans start at just $49/month:</p>
         <ul style="color: #4b5563; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-          <li><strong>Starter</strong> - $30/mo (owner + 2 workers)</li>
-          <li><strong>Pro</strong> - $59/mo (up to 15 workers)</li>
-          <li><strong>Elite</strong> - $99/mo (up to 20 workers)</li>
+          <li><strong>Starter</strong> - $49/mo (owner + 2 workers)</li>
+          <li><strong>Pro</strong> - $79/mo (up to 15 workers)</li>
+          <li><strong>Elite</strong> - $129/mo (up to 20 workers)</li>
         </ul>
       </div>
 
