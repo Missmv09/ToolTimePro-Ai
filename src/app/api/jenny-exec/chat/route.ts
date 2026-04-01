@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const { aiComplete } = require('@/lib/ai-client');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { getComplianceKnowledge, getSupportedStates } = require('@/lib/compliance-knowledge');
 
 interface ChatMessage {

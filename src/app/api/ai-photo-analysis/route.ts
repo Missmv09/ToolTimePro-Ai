@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const { aiComplete, parseAIJson } = require('@/lib/ai-client');
 
 export async function POST(request: NextRequest) {
