@@ -285,7 +285,7 @@ describe('Onboarding Upsells', () => {
     mockSessionCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
   });
 
-  describe('Assisted Onboarding ($149 one-time)', () => {
+  describe('Assisted Onboarding ($199 one-time)', () => {
     it('adds assisted onboarding to a tier plan', async () => {
       await checkoutGET(makeRequest({ tier: 'starter', billing: 'monthly', onboarding: 'assisted_onboarding' }));
       const config = getConfig();
@@ -306,7 +306,7 @@ describe('Onboarding Upsells', () => {
     });
   });
 
-  describe('White Glove Setup ($349 one-time)', () => {
+  describe('White Glove Setup ($499 one-time)', () => {
     it('adds white glove to a tier plan', async () => {
       await checkoutGET(makeRequest({ tier: 'pro', billing: 'monthly', onboarding: 'white_glove' }));
       const config = getConfig();
@@ -682,15 +682,15 @@ describe('Webhook — payment events per plan', () => {
   });
 
   const paymentCases = [
-    { name: 'Starter monthly', amount: 3000, expected: 30 },
-    { name: 'Pro monthly', amount: 5900, expected: 59 },
-    { name: 'Elite monthly', amount: 9900, expected: 99 },
+    { name: 'Starter monthly', amount: 4900, expected: 49 },
+    { name: 'Pro monthly', amount: 7900, expected: 79 },
+    { name: 'Elite monthly', amount: 12900, expected: 129 },
     { name: 'Booking Only monthly', amount: 1500, expected: 15 },
-    { name: 'Starter annual', amount: 30000, expected: 300 },
-    { name: 'Pro annual', amount: 59000, expected: 590 },
-    { name: 'Elite annual', amount: 99000, expected: 990 },
-    { name: 'White Glove one-time', amount: 34900, expected: 349 },
-    { name: 'Assisted Onboarding one-time', amount: 14900, expected: 149 },
+    { name: 'Starter annual', amount: 49000, expected: 490 },
+    { name: 'Pro annual', amount: 79000, expected: 790 },
+    { name: 'Elite annual', amount: 129000, expected: 1290 },
+    { name: 'White Glove one-time', amount: 49900, expected: 499 },
+    { name: 'Assisted Onboarding one-time', amount: 19900, expected: 199 },
   ];
 
   paymentCases.forEach(({ name, amount, expected }) => {
@@ -736,7 +736,7 @@ describe('Webhook — payment events per plan', () => {
         object: {
           customer: 'cus_fail',
           id: 'inv_pro_fail',
-          amount_due: 59000,
+          amount_due: 79000,
           currency: 'usd',
         },
       },
@@ -746,7 +746,7 @@ describe('Webhook — payment events per plan', () => {
     expect(mockInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         company_id: 'company-002',
-        amount: 590,
+        amount: 790,
         status: 'failed',
         notes: 'Failed: Stripe invoice inv_pro_fail',
       })
@@ -764,7 +764,7 @@ describe('Webhook — payment events per plan', () => {
         object: {
           customer: 'cus_unknown',
           id: 'inv_unknown',
-          amount_paid: 3000,
+          amount_paid: 4900,
           currency: 'usd',
         },
       },
