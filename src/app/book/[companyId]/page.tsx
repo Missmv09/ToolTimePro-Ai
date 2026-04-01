@@ -715,10 +715,12 @@ export default function BookingPage() {
                     View our{' '}
                     <Link href="/privacy" target="_blank" className="text-[#f5a623] underline">
                       Privacy Policy
-                    </Link>{' '}
-                    and{' '}
+                    </Link>,{' '}
                     <Link href="/terms" target="_blank" className="text-[#f5a623] underline">
                       Terms &amp; Conditions
+                    </Link>, and{' '}
+                    <Link href="/sms" target="_blank" className="text-[#f5a623] underline">
+                      SMS Terms
                     </Link>.
                   </p>
                 </div>

@@ -48,7 +48,7 @@ async function sendReviewSMS({ to, customerName, companyName, reviewLink }) {
     }
 
     const message = await client.messages.create({
-      body: `Hi ${customerName}! Thanks for choosing ${companyName}. We'd love to hear about your experience! Please leave us a review: ${reviewLink}`,
+      body: `Hi ${customerName}! Thanks for choosing ${companyName}. We'd love to hear about your experience! Please leave us a review: ${reviewLink} Reply STOP to opt out.`,
       to: formatPhone(to),
       from: fromNumber,
     });
@@ -173,8 +173,8 @@ export async function POST(request) {
     let smsResult = { sent: false, reason: 'no_phone' };
     if (customerPhone) {
       const messageText = finalReviewLink
-        ? `Hi ${customerName}! Thanks for choosing ${companyName}. We'd love to hear about your experience! Please leave us a review: ${finalReviewLink}`
-        : `Hi ${customerName}! Thanks for choosing ${companyName}. We hope you're satisfied with our service. Your feedback means the world to us!`;
+        ? `Hi ${customerName}! Thanks for choosing ${companyName}. We'd love to hear about your experience! Please leave us a review: ${finalReviewLink} Reply STOP to opt out.`
+        : `Hi ${customerName}! Thanks for choosing ${companyName}. We hope you're satisfied with our service. Your feedback means the world to us! Reply STOP to opt out.`;
 
       const client = getTwilioClient();
       const fromNumber = process.env.TWILIO_PHONE_NUMBER;

@@ -51,7 +51,7 @@ async function sendConfirmationSMS({ to, customerName, serviceName, date, time, 
     const formattedTime = `${displayHour}:${minutes} ${ampm}`;
 
     const message = await client.messages.create({
-      body: `Hi ${customerName}! Your ${serviceName} appointment with ${companyName} is confirmed for ${formattedDate} at ${formattedTime}. We'll see you then!`,
+      body: `Hi ${customerName}! Your ${serviceName} appointment with ${companyName} is confirmed for ${formattedDate} at ${formattedTime}. We'll see you then! Reply STOP to opt out.`,
       to: formatPhone(to),
       from: fromNumber,
     });

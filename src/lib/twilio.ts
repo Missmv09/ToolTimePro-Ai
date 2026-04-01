@@ -102,15 +102,15 @@ export const SMS_TEMPLATES = {
     date: string;
     time: string;
     companyName: string;
-  }) => `Reminder: Your ${data.serviceName} appointment with ${data.companyName} is tomorrow (${data.date}) at ${data.time}. See you then!`,
+  }) => `Reminder: Your ${data.serviceName} appointment with ${data.companyName} is tomorrow (${data.date}) at ${data.time}. See you then! Reply STOP to opt out.`,
 
   jobComplete: (data: {
     customerName: string;
     companyName: string;
     reviewLink?: string;
   }) => data.reviewLink
-    ? `Hi ${data.customerName}! Thanks for choosing ${data.companyName}. We'd love your feedback: ${data.reviewLink}`
-    : `Hi ${data.customerName}! Thanks for choosing ${data.companyName}. We hope you're satisfied with our service!`,
+    ? `Hi ${data.customerName}! Thanks for choosing ${data.companyName}. We'd love your feedback: ${data.reviewLink} Reply STOP to opt out.`
+    : `Hi ${data.customerName}! Thanks for choosing ${data.companyName}. We hope you're satisfied with our service! Reply STOP to opt out.`,
 
   workerAssignment: (data: {
     workerName: string;
@@ -123,5 +123,5 @@ export const SMS_TEMPLATES = {
     customerName: string;
     companyName: string;
     estimatedArrival: string;
-  }) => `Hi ${data.customerName}, ${data.companyName} here. Our team is running a bit late - estimated arrival: ${data.estimatedArrival}. We apologize for any inconvenience.`,
+  }) => `Hi ${data.customerName}, ${data.companyName} here. Our team is running a bit late - estimated arrival: ${data.estimatedArrival}. We apologize for any inconvenience. Reply STOP to opt out.`,
 };
