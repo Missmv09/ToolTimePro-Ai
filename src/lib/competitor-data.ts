@@ -49,9 +49,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual support for Spanish-speaking crews',
     ],
     plans: [
-      { name: 'Starter / Solo', tooltime: '$30/mo (3 users)', competitor: '$79/mo (1 user)' },
-      { name: 'Small Team', tooltime: '$65/mo (8 users)', competitor: '$189/mo (1-5 users)' },
-      { name: 'Growing Team', tooltime: '$120/mo (20 users)', competitor: '$399/mo (1-15 users)' },
+      { name: 'Starter / Solo', tooltime: '$49/mo (3 users)', competitor: '$79/mo (1 user)' },
+      { name: 'Small Team', tooltime: '$79/mo (15 users)', competitor: '$189/mo (1-5 users)' },
+      { name: 'Growing Team', tooltime: '$129/mo (20 users)', competitor: '$399/mo (1-15 users)' },
       { name: 'Extra Users', tooltime: '$7/user/mo', competitor: '$35/user/mo' },
     ],
     features: [
@@ -104,9 +104,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'Requires dedicated admin staff to manage',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$30/mo (3 users)', competitor: '$245/tech/mo (minimum)' },
-      { name: 'Team', tooltime: '$65/mo (8 users)', competitor: '$398/tech/mo (Pro tier)' },
-      { name: 'Business', tooltime: '$120/mo (20 users)', competitor: 'Custom (Enterprise)' },
+      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$245/tech/mo (minimum)' },
+      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$398/tech/mo (Pro tier)' },
+      { name: 'Business', tooltime: '$129/mo (20 users)', competitor: 'Custom (Enterprise)' },
       { name: 'Contracts', tooltime: 'None — cancel anytime', competitor: '12-month minimum' },
     ],
     features: [
@@ -131,7 +131,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '20 Technicians', tooltime: 2160, competitor: 47760 },
     ],
     switchReasons: [
-      { title: 'Save $10,000-$30,000+ Per Year', description: 'ServiceTitan charges $245-$398 per tech per month. ToolTime Pro gives you the same features for a flat $30-$120/mo. Do the math.' },
+      { title: 'Save $10,000-$30,000+ Per Year', description: 'ServiceTitan charges $245-$398 per tech per month. ToolTime Pro gives you the same features for a flat $49-$129/mo. Do the math.' },
       { title: 'No Contracts. Ever.', description: 'ServiceTitan locks you into 12-month contracts with $15,000+ termination fees. We earn your business every month. Cancel anytime, no questions asked.' },
       { title: 'Set Up Today, Not in 6 Months', description: 'ServiceTitan requires months of implementation and dedicated admin staff. ToolTime Pro: sign up, import your data, start working. Same day.' },
       { title: 'Transparent Pricing', description: 'ServiceTitan won\'t show you pricing until you sit through a sales demo. Our pricing is published online. No surprises.' },
@@ -158,9 +158,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No material estimator or trade-specific tools',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$30/mo (3 users)', competitor: '~$99/mo (estimated, hidden pricing)' },
-      { name: 'Team', tooltime: '$65/mo (8 users)', competitor: '~$199/mo (estimated)' },
-      { name: 'Business', tooltime: '$120/mo (20 users)', competitor: '~$399/mo (estimated)' },
+      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '~$99/mo (estimated, hidden pricing)' },
+      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '~$199/mo (estimated)' },
+      { name: 'Business', tooltime: '$129/mo (20 users)', competitor: '~$399/mo (estimated)' },
       { name: 'Pricing Transparency', tooltime: 'Published online', competitor: 'Hidden — requires demo' },
     ],
     features: [
@@ -187,7 +187,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { title: 'AI-Native Platform', description: 'FieldPulse has no AI features. ToolTime Pro includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
       { title: 'Compliance Protection', description: 'FieldPulse has no labor law compliance tools. ToolTime Shield covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
       { title: 'Material Estimator', description: '21 trade-specific calculators with real Home Depot/Lowe\'s pricing. "Paint a 12x14 room" → instant material list. FieldPulse has nothing like this.' },
-      { title: 'Transparent Pricing', description: 'FieldPulse hides their pricing behind a sales demo. Our pricing is published online — $30/mo starter, $65/mo team, $120/mo business. No surprises.' },
+      { title: 'Transparent Pricing', description: 'FieldPulse hides their pricing behind a sales demo. Our pricing is published online — $49/mo starter, $79/mo pro, $129/mo elite. No surprises.' },
     ],
     faqs: [
       { question: 'Why does FieldPulse hide their pricing?', answer: 'Many FSM platforms hide pricing to qualify leads through sales calls. ToolTime Pro believes in transparency — our pricing is published online with no hidden fees.' },
@@ -211,9 +211,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'Per-user pricing adds up fast for growing teams',
     ],
     plans: [
-      { name: 'Starter / Solo', tooltime: '$30/mo (3 users)', competitor: '$39/mo (1 user, Core)' },
-      { name: 'Small Team', tooltime: '$65/mo (8 users)', competitor: '$119/mo (up to 5 users, Connect)' },
-      { name: 'Growing Team', tooltime: '$120/mo (20 users)', competitor: '$249/mo (up to 15 users, Grow)' },
+      { name: 'Starter / Solo', tooltime: '$49/mo (3 users)', competitor: '$39/mo (1 user, Core)' },
+      { name: 'Small Team', tooltime: '$79/mo (15 users)', competitor: '$119/mo (up to 5 users, Connect)' },
+      { name: 'Growing Team', tooltime: '$129/mo (20 users)', competitor: '$249/mo (up to 15 users, Grow)' },
       { name: 'Extra Users', tooltime: '$7/user/mo', competitor: '$29/user/mo' },
     ],
     features: [
@@ -266,9 +266,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual support for multilingual crews',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$30/mo (3 users)', competitor: '$47/mo (Free tier limited to 1 user)' },
-      { name: 'Team', tooltime: '$65/mo (8 users)', competitor: '$95/mo (Standard, up to 5 users)' },
-      { name: 'Business', tooltime: '$120/mo (20 users)', competitor: '$191/mo (Business, unlimited users)' },
+      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$47/mo (Free tier limited to 1 user)' },
+      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$95/mo (Standard, up to 5 users)' },
+      { name: 'Business', tooltime: '$129/mo (20 users)', competitor: '$191/mo (Business, unlimited users)' },
       { name: 'Extra Users', tooltime: '$7/user/mo', competitor: 'Tier-based pricing' },
     ],
     features: [
@@ -319,9 +319,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual support for Spanish-speaking crews',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$30/mo (3 users)', competitor: '$49/mo (Basic, 1 route)' },
-      { name: 'Team', tooltime: '$65/mo (8 users)', competitor: '$99/mo (Pro, per route pricing)' },
-      { name: 'Business', tooltime: '$120/mo (20 users)', competitor: '$199+/mo (Pro, multiple routes)' },
+      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$49/mo (Basic, 1 route)' },
+      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$99/mo (Pro, per route pricing)' },
+      { name: 'Business', tooltime: '$129/mo (20 users)', competitor: '$199+/mo (Pro, multiple routes)' },
       { name: 'Extra Routes/Users', tooltime: '$7/user/mo', competitor: '$49+/route/mo' },
     ],
     features: [
@@ -372,9 +372,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual interface for Spanish-speaking crews',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$30/mo (3 users)', competitor: '$198/mo (Standard, 5 users)' },
-      { name: 'Team', tooltime: '$65/mo (8 users)', competitor: '$198/mo + $35/user over 5' },
-      { name: 'Business', tooltime: '$120/mo (20 users)', competitor: '$398/mo (Ultimate)' },
+      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$198/mo (Standard, 5 users)' },
+      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$198/mo + $35/user over 5' },
+      { name: 'Business', tooltime: '$129/mo (20 users)', competitor: '$398/mo (Ultimate)' },
       { name: 'AI Features', tooltime: 'Included (Jenny AI)', competitor: 'Genius add-on ($$$)' },
     ],
     features: [
@@ -400,7 +400,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     switchReasons: [
       { title: 'AI Included, Not Add-On', description: 'Workiz charges extra for their Genius AI suite. ToolTime Pro includes Jenny AI in every plan — auto-dispatch, lead follow-up, cash flow alerts, and job costing at no additional cost.' },
       { title: 'Compliance Protection', description: 'Workiz has no labor law tools. ToolTime Shield handles worker classification, break tracking, and multi-state compliance to keep you protected.' },
-      { title: '80% Lower Starting Price', description: 'Workiz Standard starts at $198/mo. ToolTime Pro starts at $30/mo with more features included. That\'s $2,000+/year in savings from day one.' },
+      { title: '80% Lower Starting Price', description: 'Workiz Standard starts at $198/mo. ToolTime Pro starts at $49/mo with more features included. That\'s $1,800+/year in savings from day one.' },
       { title: 'Material Estimator', description: '21 trade-specific calculators with real supplier pricing. Get instant material lists for any job — a feature Workiz simply doesn\'t have.' },
     ],
     faqs: [
@@ -425,9 +425,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'Add-ons (GPS, inventory) push the real cost much higher',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$30/mo (3 users)', competitor: '$225/mo (Starter, unlimited users)' },
-      { name: 'Team', tooltime: '$65/mo (8 users)', competitor: '$350/mo (Plus)' },
-      { name: 'Business', tooltime: '$120/mo (20 users)', competitor: '$575/mo (Pro)' },
+      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$225/mo (Starter, unlimited users)' },
+      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$350/mo (Plus)' },
+      { name: 'Business', tooltime: '$129/mo (20 users)', competitor: '$575/mo (Pro)' },
       { name: 'GPS Tracking', tooltime: 'Included', competitor: '$25/vehicle add-on' },
     ],
     features: [
@@ -452,13 +452,13 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '15-Person Team', tooltime: 1440, competitor: 4200 },
     ],
     switchReasons: [
-      { title: 'Right-Sized Pricing', description: 'Service Fusion starts at $225/mo even for a solo contractor. ToolTime Pro starts at $30/mo. Why pay for unlimited users when you only have 3?' },
+      { title: 'Right-Sized Pricing', description: 'Service Fusion starts at $225/mo even for a solo contractor. ToolTime Pro starts at $49/mo. Why pay for unlimited users when you only have 3?' },
       { title: 'AI-Native Platform', description: 'Service Fusion has no AI features. Jenny AI auto-dispatches crews, follows up leads, manages invoicing alerts, and calculates job profitability automatically.' },
       { title: 'Compliance Built In', description: 'Service Fusion offers no labor law compliance. ToolTime Shield covers worker classification, break tracking, and state-specific rules across CA, TX, FL, NY, and IL.' },
       { title: 'No Nickel-and-Diming', description: 'Service Fusion charges extra for GPS ($25/vehicle), inventory, and other features. ToolTime Pro includes GPS tracking, inventory, and offline mode in every plan.' },
     ],
     faqs: [
-      { question: 'Service Fusion has unlimited users — isn\'t that better?', answer: 'Only if you have a large team. Most contractors have 3-15 workers. At $225/mo minimum, you\'re overpaying if you\'re a small team. ToolTime Pro scales with you — start at $30/mo.' },
+      { question: 'Service Fusion has unlimited users — isn\'t that better?', answer: 'Only if you have a large team. Most contractors have 3-15 workers. At $225/mo minimum, you\'re overpaying if you\'re a small team. ToolTime Pro scales with you — start at $49/mo.' },
       { question: 'Can I migrate from Service Fusion?', answer: 'Yes! Export your customer and job data, and our team handles the import free of charge. Most migrations complete in under 48 hours.' },
       { question: 'Does ToolTime Pro have inventory management?', answer: 'Yes — track parts, materials, and stock levels across all plans. Plus our Material Estimator auto-calculates what you need for any job across 21 trades.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees, no hidden charges.' },
@@ -479,9 +479,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No AI dispatch or autonomous features',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$30/mo (3 users)', competitor: '~$300+/mo (estimated, hidden pricing)' },
-      { name: 'Team', tooltime: '$65/mo (8 users)', competitor: '~$800+/mo (estimated)' },
-      { name: 'Business', tooltime: '$120/mo (20 users)', competitor: '~$2,000+/mo (estimated)' },
+      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '~$300+/mo (estimated, hidden pricing)' },
+      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '~$800+/mo (estimated)' },
+      { name: 'Business', tooltime: '$129/mo (20 users)', competitor: '~$2,000+/mo (estimated)' },
       { name: 'Pricing Transparency', tooltime: 'Published online', competitor: 'Hidden — requires demo' },
     ],
     features: [
@@ -506,7 +506,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '20-Person Team', tooltime: 2160, competitor: 24000 },
     ],
     switchReasons: [
-      { title: 'Transparent Pricing', description: 'FieldEdge hides pricing behind sales demos. ToolTime Pro publishes pricing online — $30/mo starter, $65/mo team, $120/mo business. No surprises, no sales calls.' },
+      { title: 'Transparent Pricing', description: 'FieldEdge hides pricing behind sales demos. ToolTime Pro publishes pricing online — $49/mo starter, $79/mo pro, $129/mo elite. No surprises, no sales calls.' },
       { title: 'AI-Native Platform', description: 'FieldEdge has no AI features. Jenny AI auto-dispatches, follows up on leads, sends payment reminders, and calculates job profitability — all on autopilot.' },
       { title: 'All 21 Trades, Not Just HVAC', description: 'FieldEdge is narrowly focused on HVAC and plumbing. ToolTime Pro supports landscaping, electrical, painting, roofing, and 16 more trades with specialized tools.' },
       { title: 'No Contracts', description: 'FieldEdge often requires long-term contracts. ToolTime Pro is month-to-month. Cancel anytime, no termination fees.' },

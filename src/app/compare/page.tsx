@@ -56,7 +56,7 @@ export default function ComparePage() {
             <div className="bg-white rounded-xl p-6 shadow-sm text-center">
               <DollarSign className="w-10 h-10 text-[#f5a623] mx-auto mb-3" />
               <h3 className="font-bold text-[#1a1a2e]">Affordable</h3>
-              <p className="text-sm text-gray-500 mt-2">Starting at $30/mo. No contracts, no termination fees, transparent pricing published online.</p>
+              <p className="text-sm text-gray-500 mt-2">Starting at $49/mo. No contracts, no termination fees, transparent pricing published online.</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm text-center">
               <Globe className="w-10 h-10 text-[#f5a623] mx-auto mb-3" />

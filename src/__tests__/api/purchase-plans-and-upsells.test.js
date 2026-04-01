@@ -106,7 +106,7 @@ describe('Base Tier Plans', () => {
   });
 
   // ── Starter ──
-  describe('Starter plan ($30/mo, $300/yr)', () => {
+  describe('Starter plan ($49/mo, $490/yr)', () => {
     it('creates monthly subscription with correct price', async () => {
       await checkoutGET(makeRequest({ tier: 'starter', billing: 'monthly' }));
       const config = getConfig();
@@ -125,7 +125,7 @@ describe('Base Tier Plans', () => {
   });
 
   // ── Pro ──
-  describe('Pro plan ($59/mo, $590/yr)', () => {
+  describe('Pro plan ($79/mo, $790/yr)', () => {
     it('creates monthly subscription with correct price', async () => {
       await checkoutGET(makeRequest({ tier: 'pro', billing: 'monthly' }));
       const config = getConfig();
@@ -142,7 +142,7 @@ describe('Base Tier Plans', () => {
   });
 
   // ── Elite ──
-  describe('Elite plan ($99/mo, $990/yr)', () => {
+  describe('Elite plan ($129/mo, $1290/yr)', () => {
     it('creates monthly subscription with correct price', async () => {
       await checkoutGET(makeRequest({ tier: 'elite', billing: 'monthly' }));
       const config = getConfig();

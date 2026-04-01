@@ -452,11 +452,11 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
                 <span className="text-gray-600">Website Builder Add-on</span>
                 {isOnTrial ? (
                   <span className="font-semibold">
-                    <span className="line-through text-gray-400">$15/month</span>{' '}
+                    <span className="line-through text-gray-400">$25/month</span>{' '}
                     <span className="text-green-600">Free during trial</span>
                   </span>
                 ) : (
-                  <span className="font-semibold text-navy-500">$15/month</span>
+                  <span className="font-semibold text-navy-500">$25/month</span>
                 )}
               </div>
               {wizardData.selectedDomain?.type === 'new' && (
@@ -506,8 +506,8 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
               />
               <span className="text-sm text-gray-600">
                 {isOnTrial
-                  ? `I confirm the above information is correct and I agree to the Website Builder terms. The Website Builder is included in my free trial — billing of $15/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''} begins when my trial ends.`
-                  : `I confirm the above information is correct and I agree to the Website Builder terms ($15/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).`
+                  ? `I confirm the above information is correct and I agree to the Website Builder terms. The Website Builder is included in my free trial — billing of $25/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''} begins when my trial ends.`
+                  : `I confirm the above information is correct and I agree to the Website Builder terms ($25/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).`
                 }
               </span>
             </label>
