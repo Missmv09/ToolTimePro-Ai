@@ -165,10 +165,10 @@ export default function IndustriesPage() {
             Works for ANY service business
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
             Built for <span className="text-[#f5a623]">Every</span> Service Business
           </h1>
-          <p className="text-xl text-gray-300 mb-6 max-w-2xl mx-auto">
+          <p className="text-xl text-white/90 mb-6 max-w-2xl mx-auto">
             Unlike competitors who limit you to their list, ToolTime Pro adapts to YOUR business.
             If you schedule jobs and manage workers, we&apos;ve got you covered.
           </p>
@@ -176,7 +176,7 @@ export default function IndustriesPage() {
           {/* Competitive callout */}
           <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-xl mb-8">
             <span className="text-2xl font-bold text-[#f5a623]">60+</span>
-            <span className="text-white/80">Industries supported — and counting</span>
+            <span className="text-white/90">Industries supported — and counting</span>
           </div>
 
           <div className="flex flex-wrap justify-center gap-4">

@@ -588,7 +588,7 @@ export default function Home() {
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
               One Platform. Zero Headaches.
             </h2>
-            <p className="text-[1.0625rem] text-white/70">
+            <p className="text-[1.0625rem] text-white/90">
               Missed calls, scheduling chaos, compliance risks — they cost you real money. ToolTime Pro puts website, scheduling, worker management, HR & compliance all in one place. Finally.
             </p>
           </div>
@@ -602,7 +602,7 @@ export default function Home() {
                 className={`px-6 py-3.5 rounded-full font-semibold text-[0.9375rem] transition-all no-underline ${
                   index === 0
                     ? 'bg-[#f5a623] text-[#1a1a2e] border border-[#f5a623]'
-                    : 'bg-white/10 text-white/80 border border-white/10 hover:bg-white/15 hover:text-white'
+                    : 'bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 hover:text-white'
                 }`}
               >
                 {tab.icon} {tab.name}

@@ -65,10 +65,10 @@ export default function BlogListingPage() {
       </nav>
 
       {/* Hero */}
-      <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4e] text-white py-16">
+      <div className="bg-gradient-to-br from-[#1a1a2e] via-[#2d2d4e] to-[#1a1a2e] text-white py-20">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">ToolTime Pro Blog</h1>
-          <p className="text-xl text-white/70 max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">ToolTime Pro Blog</h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Tips, guides, and insights to help you grow your home service business.
           </p>
         </div>
@@ -190,8 +190,8 @@ export default function BlogListingPage() {
       {/* CTA */}
       <div className="bg-[#1a1a2e] py-16">
         <div className="max-w-[800px] mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to grow your business?</h2>
-          <p className="text-white/60 mb-8">
+          <h2 className="text-3xl font-extrabold text-white mb-4 drop-shadow-lg">Ready to grow your business?</h2>
+          <p className="text-white/90 mb-8">
             Join thousands of contractors using ToolTime Pro to manage jobs, send invoices, and win more customers.
           </p>
           <Link

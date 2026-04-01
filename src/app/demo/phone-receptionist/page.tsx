@@ -179,7 +179,7 @@ export default function PhoneReceptionistDemo() {
       {/* Header */}
       <header className="bg-[#1a1a2e] text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
-          <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-flex items-center gap-1">
+          <Link href="/" className="text-white/90 hover:text-white text-sm mb-4 inline-flex items-center gap-1">
             ← Back to Home
           </Link>
           <div className="flex items-center gap-4 mt-4">
@@ -187,8 +187,8 @@ export default function PhoneReceptionistDemo() {
               📞
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Jenny Pro — Phone Receptionist</h1>
-              <p className="text-white/70 mt-1">Never miss another call. Your AI answers 24/7.</p>
+              <h1 className="text-3xl font-extrabold drop-shadow-lg">Jenny Pro — Phone Receptionist</h1>
+              <p className="text-white/90 mt-1">Never miss another call. Your AI answers 24/7.</p>
             </div>
             <span className="ml-auto bg-[#f5a623] text-[#1a1a2e] px-4 py-1.5 rounded-full text-sm font-bold">
               Pro Feature
