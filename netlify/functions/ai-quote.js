@@ -219,7 +219,7 @@ Return ONLY the JSON, no other text.`;
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Failed to generate suggestions' }),
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to generate suggestions' }),
     };
   }
 };

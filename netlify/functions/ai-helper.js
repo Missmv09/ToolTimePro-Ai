@@ -108,7 +108,7 @@ Return ONLY a JSON array of 3 strings. Example: ["Name 1", "Name 2", "Name 3"]`;
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
     };
   }
 };

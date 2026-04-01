@@ -105,7 +105,7 @@ Provide a helpful, accurate response citing specific statutes and penalty amount
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Failed to process your question' }),
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to process your question' }),
     };
   }
 };

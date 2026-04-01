@@ -92,7 +92,7 @@ Write ONLY the response text, ready to be copied and pasted. Sign it from "The $
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Failed to generate response' }),
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to generate response' }),
     };
   }
 };
