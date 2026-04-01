@@ -14,8 +14,8 @@ export default function SmsPage() {
           <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
             &larr; ToolTime Pro
           </Link>
-          <h1 className="text-3xl font-bold mt-4">SMS Messaging Terms &amp; Opt-In</h1>
-          <p className="text-white/70 mt-2">Last updated: March 26, 2026</p>
+          <h1 className="text-3xl font-extrabold mt-4 drop-shadow-lg">SMS Messaging Terms &amp; Opt-In</h1>
+          <p className="text-white/90 mt-2">Last updated: March 26, 2026</p>
         </div>
       </div>
 

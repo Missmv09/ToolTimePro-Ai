@@ -190,8 +190,8 @@ export default function BlogListingPage() {
       {/* CTA */}
       <div className="bg-[#1a1a2e] py-16">
         <div className="max-w-[800px] mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to grow your business?</h2>
-          <p className="text-white/60 mb-8">
+          <h2 className="text-3xl font-extrabold text-white mb-4 drop-shadow-lg">Ready to grow your business?</h2>
+          <p className="text-white/90 mb-8">
             Join thousands of contractors using ToolTime Pro to manage jobs, send invoices, and win more customers.
           </p>
           <Link

@@ -135,7 +135,7 @@ export default function JennyPage() {
         </div>
 
         <div className="max-w-6xl mx-auto px-4 py-20 relative z-10">
-          <Link href="/" className="text-white/70 hover:text-white text-sm mb-8 inline-flex items-center gap-1">
+          <Link href="/" className="text-white/90 hover:text-white text-sm mb-8 inline-flex items-center gap-1">
             ← Back to Home
           </Link>
 
@@ -150,12 +150,12 @@ export default function JennyPage() {
                 Meet <span className="text-[#f5a623]">Jenny</span>
               </h1>
 
-              <p className="text-xl text-white/80 mb-4 leading-relaxed">
+              <p className="text-xl text-white/90 mb-4 leading-relaxed">
                 Your AI-powered business partner that answers calls, writes quotes,
                 handles reviews, and keeps you compliant — 24/7.
               </p>
 
-              <p className="text-lg text-white/60 mb-8">
+              <p className="text-lg text-white/80 mb-8">
                 While you&apos;re on the job, Jenny&apos;s got your back.
               </p>
 
@@ -174,7 +174,7 @@ export default function JennyPage() {
                 </Link>
               </div>
 
-              <p className="text-white/50 text-sm mt-6">
+              <p className="text-white/70 text-sm mt-6">
                 Jenny Lite included free on all plans • 14-day free trial • Jobber charges $349/mo for this
               </p>
             </div>
@@ -321,7 +321,7 @@ export default function JennyPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">Try Each Feature</h2>
-            <p className="text-white/60">Click any card to see an interactive demo</p>
+            <p className="text-white/80">Click any card to see an interactive demo</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -337,10 +337,10 @@ export default function JennyPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-white">{feature.name}</h3>
-                    <p className="text-white/60 text-sm">{feature.tagline}</p>
+                    <p className="text-white/80 text-sm">{feature.tagline}</p>
                   </div>
                 </div>
-                <p className="text-white/70 text-sm mb-4 line-clamp-2">{feature.description}</p>
+                <p className="text-white/90 text-sm mb-4 line-clamp-2">{feature.description}</p>
                 <span className="text-[#f5a623] font-semibold text-sm group-hover:underline">
                   Try Demo →
                 </span>
