@@ -1,6 +1,7 @@
 import '@/styles/globals.css';
 import { Metadata } from 'next';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { FetchPatch } from '@/lib/patch-fetch';
 
 export const metadata: Metadata = {
   title: 'ToolTime Pro - All-in-One Platform for Service Businesses',
@@ -22,6 +23,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
       </head>
       <body>
+        <FetchPatch />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
