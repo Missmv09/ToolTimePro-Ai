@@ -65,10 +65,10 @@ export default function BlogListingPage() {
       </nav>
 
       {/* Hero */}
-      <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4e] text-white py-16">
+      <div className="bg-gradient-to-br from-[#1a1a2e] via-[#2d2d4e] to-[#1a1a2e] text-white py-20">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">ToolTime Pro Blog</h1>
-          <p className="text-xl text-white/70 max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">ToolTime Pro Blog</h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Tips, guides, and insights to help you grow your home service business.
           </p>
         </div>
