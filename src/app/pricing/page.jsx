@@ -1503,7 +1503,7 @@ export default function PricingPage() {
         }
         .jenny-tiers {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: 1fr 1fr;
           gap: 1rem;
           max-width: 700px;
           margin: 0 auto;
@@ -1591,7 +1591,8 @@ export default function PricingPage() {
           letter-spacing: 0.5px;
         }
         .jenny-tiers.single {
-          max-width: 400px;
+          max-width: 700px;
+          grid-template-columns: 1fr 1fr;
         }
         .jenny-tier.exec {
           background: linear-gradient(135deg, #f8f8ff, #fff);
@@ -1682,6 +1683,9 @@ export default function PricingPage() {
           .tier-price .amount { font-size: 2.5rem; }
           .dispatch-content { flex-direction: column; text-align: center; }
           .summary-card { border-radius: 16px 16px 0 0; }
+          .jenny-tiers, .jenny-tiers.single {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>
