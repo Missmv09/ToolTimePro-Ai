@@ -4,6 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ComplianceAlert } from '@/types/database';
+import { SESSION_ACTIVITY_EVENT } from '@/hooks/useSessionTimeout';
+
+/** Signal that the user's session is active (data fetch / real-time event) */
+function signalSessionActivity() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(SESSION_ACTIVITY_EVENT));
+  }
+}
 
 interface ComplianceStats {
   totalViolations: number;
@@ -182,6 +190,8 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
       if (!isSchemaMissing) {
         setError('Failed to load compliance data');
       }
+      // Signal session activity so the timeout doesn't fire during data operations
+      signalSessionActivity();
     } finally {
       setIsLoading(false);
     }
@@ -230,6 +240,7 @@ export function useComplianceAlerts(dateRange: 'today' | 'week' | 'month' = 'wee
           filter: `company_id=eq.${company.id}`,
         },
         () => {
+          signalSessionActivity();
           fetchComplianceData();
         }
       )

@@ -134,9 +134,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     router.push('/auth/login');
   };
 
+  // Extend timeout to 60 min on data-heavy compliance/HR pages (default 30 min elsewhere)
+  const isComplianceRoute = pathname.startsWith('/dashboard/compliance') || pathname.startsWith('/dashboard/hr-toolkit');
+  const sessionTimeoutMs = isComplianceRoute ? 60 * 60 * 1000 : undefined;
+
   const { showWarning, secondsRemaining, resetTimeout } = useSessionTimeout({
     onTimeout: handleSignOut,
     enabled: !!user,
+    timeoutMs: sessionTimeoutMs,
   });
 
   // Get user initials from name or email

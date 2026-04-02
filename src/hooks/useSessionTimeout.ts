@@ -14,10 +14,14 @@ const ACTIVITY_EVENTS = [
   'scroll',
   'touchstart',
   'click',
+  'focus',
 ] as const;
 
 // Throttle activity resets to once per 30 seconds to avoid performance overhead
 const THROTTLE_MS = 30_000;
+
+// Custom event name that pages can dispatch to signal data-level activity
+export const SESSION_ACTIVITY_EVENT = 'session-activity';
 
 interface UseSessionTimeoutOptions {
   /** Total inactivity duration before auto-logout (ms). Default: 30 min */
@@ -52,10 +56,12 @@ export function useSessionTimeout({
   const warningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  const showWarningRef = useRef(false);
   const onTimeoutRef = useRef(onTimeout);
 
-  // Keep callback ref up to date without re-running effects
+  // Keep refs up to date without re-running effects
   onTimeoutRef.current = onTimeout;
+  showWarningRef.current = showWarning;
 
   const clearAllTimers = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -74,6 +80,7 @@ export function useSessionTimeout({
     const warningDelay = timeoutMs - warningMs;
     warningRef.current = setTimeout(() => {
       setShowWarning(true);
+      showWarningRef.current = true;
       setSecondsRemaining(Math.round(warningMs / 1000));
 
       // Start a 1-second countdown for the remaining time display
@@ -92,21 +99,24 @@ export function useSessionTimeout({
     timeoutRef.current = setTimeout(() => {
       clearAllTimers();
       setShowWarning(false);
+      showWarningRef.current = false;
       onTimeoutRef.current();
     }, timeoutMs);
   }, [timeoutMs, warningMs, clearAllTimers]);
 
   const resetTimeout = useCallback(() => {
     setShowWarning(false);
+    showWarningRef.current = false;
     setSecondsRemaining(0);
     startTimers();
   }, [startTimers]);
 
-  // Set up activity listeners
+  // Set up activity listeners — runs once (no showWarning dependency)
   useEffect(() => {
     if (!enabled) {
       clearAllTimers();
       setShowWarning(false);
+      showWarningRef.current = false;
       return;
     }
 
@@ -122,7 +132,7 @@ export function useSessionTimeout({
       lastThrottled = now;
 
       // Don't reset if warning is already showing — user must explicitly dismiss it
-      if (showWarning) return;
+      if (showWarningRef.current) return;
 
       startTimers();
     };
@@ -131,9 +141,12 @@ export function useSessionTimeout({
       window.addEventListener(event, handleActivity, { passive: true });
     }
 
+    // Listen for custom session-activity events dispatched by data-heavy pages
+    window.addEventListener(SESSION_ACTIVITY_EVENT, handleActivity);
+
     // Also handle visibility change: if user returns to the tab, check if we've exceeded timeout
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !showWarning) {
+      if (document.visibilityState === 'visible' && !showWarningRef.current) {
         const elapsed = Date.now() - lastActivityRef.current;
         if (elapsed >= timeoutMs) {
           // Already past timeout while tab was hidden
@@ -142,6 +155,7 @@ export function useSessionTimeout({
         } else if (elapsed >= timeoutMs - warningMs) {
           // Past warning threshold — show warning with correct remaining time
           setShowWarning(true);
+          showWarningRef.current = true;
           const remaining = Math.round((timeoutMs - elapsed) / 1000);
           setSecondsRemaining(Math.max(remaining, 0));
 
@@ -170,9 +184,10 @@ export function useSessionTimeout({
       for (const event of ACTIVITY_EVENTS) {
         window.removeEventListener(event, handleActivity);
       }
+      window.removeEventListener(SESSION_ACTIVITY_EVENT, handleActivity);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [enabled, showWarning, timeoutMs, warningMs, startTimers, clearAllTimers]);
+  }, [enabled, timeoutMs, warningMs, startTimers, clearAllTimers]);
 
   return { showWarning, secondsRemaining, resetTimeout };
 }
