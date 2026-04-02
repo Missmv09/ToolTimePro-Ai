@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SESSION_ACTIVITY_EVENT } from '@/hooks/useSessionTimeout';
 
 interface Message {
   id: string;
@@ -156,6 +157,11 @@ export default function JennyExecChat({
       });
 
       const data = await res.json();
+
+      // Signal session activity — AI chat responses prove the user is active
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(SESSION_ACTIVITY_EVENT));
+      }
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
