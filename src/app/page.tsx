@@ -199,10 +199,10 @@ export default function Home() {
       resources: 'Resources',
       freeTools: 'Free Tools',
       getStarted: 'Get Started',
-      badge: 'Built for Service Pros',
-      heroTitle1: 'Your Business',
-      heroTitle2: 'On Autopilot',
-      heroSubtitle: "We set it up. You run your business. It's that simple.",
+      badge: 'AI-Powered Field Service Management',
+      heroTitle1: 'Dispatch Smarter.',
+      heroTitle2: 'Grow Faster.',
+      heroSubtitle: 'Jenny AI handles dispatch, scheduling, and customer communication — so you can focus on growing your business.',
       cta1: 'Get Started Free',
       cta2: 'See How It Works',
       stat1: 'Starting at /month',
@@ -231,10 +231,10 @@ export default function Home() {
       resources: 'Recursos',
       freeTools: 'Herramientas Gratis',
       getStarted: 'Comenzar',
-      badge: 'Hecho para Profesionales',
-      heroTitle1: 'Tu Negocio',
-      heroTitle2: 'En Piloto Automático',
-      heroSubtitle: 'Nosotros lo configuramos. Tú manejas tu negocio. Así de simple.',
+      badge: 'Gestión de Servicios Impulsada por IA',
+      heroTitle1: 'Despacha Mejor.',
+      heroTitle2: 'Crece Más Rápido.',
+      heroSubtitle: 'Jenny AI gestiona despacho, programación y comunicación con clientes — para que te enfoques en hacer crecer tu negocio.',
       cta1: 'Empieza Gratis',
       cta2: 'Ver Cómo Funciona',
       stat1: 'Desde /mes',
@@ -514,12 +514,12 @@ export default function Home() {
                 <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat1}</div>
               </div>
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">3x</div>
-                <div className="text-sm text-[#8e8e9f] mt-1.5">More jobs closed</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">AI</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">Powered dispatch</div>
               </div>
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">0</div>
-                <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat3}</div>
+                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">ES/EN</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">Bilingual built-in</div>
               </div>
             </div>
           </div>
@@ -583,13 +583,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
-              Sound Familiar?
+              Powered by Jenny AI
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
               One Platform. Zero Headaches.
             </h2>
             <p className="text-[1.0625rem] text-white/90">
-              Missed calls, scheduling chaos, compliance risks — they cost you real money. ToolTime Pro puts website, scheduling, worker management, HR & compliance all in one place. Finally.
+              Jenny AI handles intelligent dispatch, route optimization, and 24/7 customer communication. Combined with built-in compliance tools, bilingual support, mobile apps, and real-time analytics — everything your growing team needs.
             </p>
           </div>
 
@@ -710,18 +710,75 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Why Choose ToolTime Pro Section */}
+      <section className="py-[100px] bg-[#1a1a2e] text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.08)_0%,transparent_50%)]" />
+        <div className="max-w-[1200px] mx-auto px-6 relative z-10">
+          <div className="text-center max-w-[640px] mx-auto mb-16">
+            <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
+              Why ToolTime Pro
+            </span>
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
+              Built Different. Priced Fair.
+            </h2>
+            <p className="text-[1.0625rem] text-white/80">
+              We built ToolTime Pro for contractors tired of overpaying for enterprise software or choosing between affordability and capability.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: '🤖',
+                title: 'AI-Powered from Day One',
+                description: 'Jenny AI handles intelligent dispatch, route optimization, and workload balancing — included in every plan at no extra cost.',
+              },
+              {
+                icon: '🛡️',
+                title: 'Built-In Compliance & Legal Protection',
+                description: 'ToolTime Shield keeps you compliant with worker classification laws, wage regulations, and HR requirements. No competitor includes this.',
+              },
+              {
+                icon: '💰',
+                title: 'Pricing That Scales with You',
+                description: '$49–$129/month with no surprise per-user fees. Competitors charge $20/vehicle or $250+/tech for the same features.',
+              },
+              {
+                icon: '🌐',
+                title: 'Spanish Language Built In',
+                description: 'Native bilingual interface in every tier. Over 40% of field crews are Spanish-speaking — we built for them from day one.',
+              },
+              {
+                icon: '⚡',
+                title: 'Fast Setup, Real Results',
+                description: 'Running in 1–2 weeks, not 6–12 months. No expensive consultants, no lengthy onboarding. See ROI immediately.',
+              },
+            ].map((card, index) => (
+              <div
+                key={index}
+                className={`bg-white/10 backdrop-blur-sm rounded-[20px] p-8 border border-white/10 hover:border-[#f5a623]/40 transition-all ${index === 4 ? 'sm:col-span-2 lg:col-span-1' : ''}`}
+              >
+                <div className="text-[2.5rem] mb-4">{card.icon}</div>
+                <h3 className="text-[1.25rem] font-extrabold text-white mb-3">{card.title}</h3>
+                <p className="text-white/70 text-[0.9375rem] leading-relaxed">{card.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="py-[100px] bg-[#fafafa]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-12">
             <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
-              Simple Pricing
+              Transparent Pricing
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
               Plans That Grow With You
             </h2>
             <p className="text-[1.0625rem] text-[#5c5c70]">
-              No hidden fees. No contracts. Cancel anytime.
+              No hidden fees. No per-user add-on costs. AI dispatch included in every plan.
             </p>
           </div>
 
