@@ -322,8 +322,8 @@ export default function PricingPage() {
 
       {/* Hero */}
       <header className="hero">
-        <h1>Simple Pricing. Powerful Tools.</h1>
-        <p>Start with what you need. Add more as you grow. No contracts.</p>
+        <h1>Transparent Pricing. Powerful Tools.</h1>
+        <p>AI dispatch, Spanish language support, and mobile app included in every plan. No hidden fees.</p>
 
         <div className="billing-toggle">
           <span className={!isAnnual ? 'active' : ''}>Monthly</span>

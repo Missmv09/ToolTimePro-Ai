@@ -4,8 +4,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { FetchPatch } from '@/lib/patch-fetch';
 
 export const metadata: Metadata = {
-  title: 'ToolTime Pro - All-in-One Platform for Service Businesses',
-  description: 'The complete business management platform for landscapers, painters, pool pros, handymen, and cleaners. HR tools, compliance, scheduling, and more.',
+  title: 'ToolTime Pro | AI-Powered Field Service Management',
+  description: 'AI-powered FSM for HVAC, plumbing, electrical, landscaping, and roofing contractors. Jenny AI dispatch, Spanish language support, mobile app — starting at $49/month.',
 };
 
 export default function RootLayout({
