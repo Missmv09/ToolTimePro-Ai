@@ -62,7 +62,7 @@ const sampleQuote = {
   quote_number: 'QT-2026-050',
   status: 'sent',
   created_at: '2026-03-01',
-  valid_until: '2026-04-01',
+  valid_until: '2027-12-31',
   subtotal: 500,
   tax_rate: 10,
   tax_amount: 50,
