@@ -1,0 +1,99 @@
+{
+  "nav": {
+    "features": "Funciones",
+    "demos": "Demos",
+    "hrCompliance": "RH y Cumplimiento",
+    "pricing": "Precios",
+    "freeTools": "Herramientas Gratis",
+    "resources": "Recursos",
+    "getStarted": "Comenzar",
+    "startFreeTrial": "Prueba Gratis",
+    "viewPricing": "Ver Precios"
+  },
+  "hero": {
+    "badge": "Hecho para Profesionales",
+    "title1": "Tu Negocio",
+    "title2": "En Piloto Automático",
+    "subtitle": "Nosotros lo configuramos. Tú manejas tu negocio. Así de simple.",
+    "cta1": "Empieza Gratis",
+    "cta2": "Ver Cómo Funciona"
+  },
+  "stats": {
+    "startingAt": "Desde /mes",
+    "cheaperThan": "Más barato que la competencia",
+    "techSkills": "Habilidades técnicas requeridas"
+  },
+  "promo": {
+    "text": "Tiempo Limitado: Obtén 2 meses gratis en planes anuales.",
+    "cta": "Prueba Gratis"
+  },
+  "footer": {
+    "tagline": "Tu negocio, en piloto automático."
+  },
+  "common": {
+    "backToTools": "Volver a Herramientas Gratis",
+    "learnMore": "Más Información",
+    "getStarted": "Comenzar",
+    "close": "Cerrar",
+    "yes": "Sí",
+    "no": "No",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "success": "Éxito",
+    "tryAgain": "Intentar de nuevo",
+    "goBack": "Volver",
+    "viewAll": "Ver todo",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "noResults": "No se encontraron resultados",
+    "required": "Requerido",
+    "optional": "Opcional"
+  },
+  "jenny": {
+    "askJenny": "Pregúntale a Jenny",
+    "clearChat": "Borrar chat",
+    "scrollLatest": "Ir al más reciente",
+    "errorConnect": "Lo siento, tuve problemas al conectar. Por favor intenta de nuevo en un momento.",
+    "compliance": {
+      "title": "Jenny Asesora de Cumplimiento",
+      "subtitle": "Experta en leyes laborales de CA",
+      "greeting": "¡Hola! Soy Jenny, tu asesora de cumplimiento de CA. Pregúntame lo que quieras o elige una pregunta abajo.",
+      "placeholder": "Pregúntale a Jenny sobre cumplimiento...",
+      "prompt": "cumplimiento de leyes laborales de CA",
+      "q1": "¿Cuándo debo dar descansos para comer?",
+      "q2": "¿Cómo funciona el tiempo extra en California?",
+      "q3": "¿Mi trabajador es contratista o empleado?",
+      "q4": "¿Cuáles son las multas por descansos perdidos?"
+    },
+    "hr": {
+      "title": "Jenny Asesora de RH",
+      "subtitle": "Guía para gestión de personal",
+      "greeting": "¡Hola! Soy Jenny, tu asesora de recursos humanos. Pregúntame lo que quieras o elige una pregunta abajo.",
+      "placeholder": "Pregúntale a Jenny sobre RH...",
+      "prompt": "RH y gestión de personal",
+      "q1": "¿Qué formularios necesito para una nueva contratación?",
+      "q2": "¿Cómo despido correctamente a un empleado?",
+      "q3": "¿Necesito un manual del empleado?",
+      "q4": "W-2 vs 1099 — ¿cómo clasifico a los trabajadores?"
+    },
+    "insights": {
+      "title": "Jenny Perspectivas de Negocio",
+      "subtitle": "Consejos de negocio basados en datos",
+      "greeting": "¡Hola! Soy Jenny, tu asesora de perspectivas de negocio. Pregúntame lo que quieras o elige una pregunta abajo.",
+      "placeholder": "Pregúntale a Jenny sobre tu negocio...",
+      "prompt": "las métricas de tu negocio",
+      "q1": "¿Qué KPIs debo seguir?",
+      "q2": "¿Cómo puedo mejorar la rentabilidad?",
+      "q3": "¿Cuánto debo cobrar por mis servicios?",
+      "q4": "¿Cómo reduzco la rotación de personal?"
+    }
+  }
+}

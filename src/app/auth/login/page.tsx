@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { registerSession } from '@/hooks/useSessionGuard'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 function LoginContent() {
   const [email, setEmail] = useState('')
@@ -23,6 +25,7 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { authError, signIn, isConfigured } = useAuth()
+  const t = useTranslations('auth.login')
 
   // Check if user was kicked due to another login
   const sessionReplaced = searchParams.get('reason') === 'session_replaced'
@@ -114,7 +117,7 @@ function LoginContent() {
         const message = error.message || 'An unexpected error occurred'
         const msgLower = message.toLowerCase()
         if (msgLower.includes('failed to fetch')) {
-          setError('Unable to connect to the server. Please check your internet connection and try again.')
+          setError('connection_error')
         } else if (msgLower.includes('temporarily unavailable') || msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
           setError('too_many_attempts')
         } else if (msgLower.includes('invalid login credentials')) {
@@ -146,7 +149,7 @@ function LoginContent() {
             if (!checkRes.ok) {
               // 2FA check failed — fail closed, don't let user through
               await supabase.auth.signOut()
-              setError('Unable to verify your identity. Please try again.')
+              setError('verify_error')
               setLoading(false)
               return
             }
@@ -167,7 +170,7 @@ function LoginContent() {
               } else {
                 // SMS failed to send — sign out and show error
                 await supabase.auth.signOut()
-                setError('Unable to send verification code. SMS service may be unavailable. Please contact support or try again later.')
+                setError('sms_error')
                 setLoading(false)
                 return
               }
@@ -176,7 +179,7 @@ function LoginContent() {
         } catch {
           // 2FA check failed — fail closed, sign out
           await supabase.auth.signOut()
-          setError('Unable to verify your identity. Please try again.')
+          setError('verify_error')
           setLoading(false)
           return
         }
@@ -187,7 +190,7 @@ function LoginContent() {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
       const msgLower = message.toLowerCase()
       if (msgLower.includes('failed to fetch')) {
-        setError('Unable to connect to the server. Please check your internet connection and try again.')
+        setError('connection_error')
       } else if (msgLower.includes('temporarily unavailable') || msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
         setError('too_many_attempts')
       } else {
@@ -205,7 +208,7 @@ function LoginContent() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        setError('Session expired. Please log in again.')
+        setError('session_expired')
         setTwoFaRequired(false)
         setVerifying2FA(false)
         return
@@ -227,7 +230,7 @@ function LoginContent() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Verification failed')
+        setError(data.error || 'verification_failed')
         setVerifying2FA(false)
         return
       }
@@ -239,7 +242,7 @@ function LoginContent() {
 
       await navigateAfterLogin()
     } catch {
-      setError('Verification failed. Please try again.')
+      setError('verification_failed')
       setVerifying2FA(false)
     }
   }
@@ -259,10 +262,10 @@ function LoginContent() {
         setTwoFaPhoneLast4(phoneLast4)
         setError(null)
       } else {
-        setError('Failed to resend code. Please try again.')
+        setError('resend_failed')
       }
     } catch {
-      setError('Failed to resend code.')
+      setError('resend_failed_short')
     }
   }
 
@@ -273,31 +276,78 @@ function LoginContent() {
     setError(null)
   }
 
+  // Helper to render translated error messages
+  const renderError = (err: string) => {
+    switch (err) {
+      case 'too_many_attempts':
+        return t('tooManyAttempts')
+      case 'invalid_credentials':
+        return (
+          <>
+            {t('invalidCredentials')}{' '}
+            <Link href="/auth/forgot-password" className="underline font-medium text-red-800 hover:text-red-900">
+              {t('invalidCredentialsLink')}
+            </Link>{' '}
+            {t('invalidCredentialsEnd')}
+          </>
+        )
+      case 'email_not_confirmed':
+        return (
+          <>
+            {t('emailNotConfirmed')}{' '}
+            <Link href="/auth/signup" className="underline font-medium text-red-800 hover:text-red-900">
+              {t('emailNotConfirmedLink')}
+            </Link>{' '}
+            {t('emailNotConfirmedEnd')}
+          </>
+        )
+      case 'connection_error':
+        return t('connectionError')
+      case 'verify_error':
+        return t('verifyError')
+      case 'sms_error':
+        return t('smsError')
+      case 'session_expired':
+        return t('twoFa.sessionExpired')
+      case 'verification_failed':
+        return t('twoFa.verificationFailed')
+      case 'resend_failed':
+        return t('twoFa.resendFailed')
+      case 'resend_failed_short':
+        return t('twoFa.resendFailedShort')
+      default:
+        return err
+    }
+  }
+
   // 2FA verification screen
   if (twoFaRequired) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
+          <div className="flex justify-end">
+            <LanguageSwitcher />
+          </div>
           <div>
-            <h1 className="text-3xl font-bold text-center text-gray-900">ToolTime Pro</h1>
+            <h1 className="text-3xl font-bold text-center text-gray-900">{t('title')}</h1>
             <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900">
-              Two-Factor Verification
+              {t('twoFa.title')}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Enter the 6-digit code sent to ***-{twoFaPhoneLast4 || '****'}
+              {t('twoFa.description', { phoneLast4: twoFaPhoneLast4 || '****' })}
             </p>
           </div>
 
           <form className="mt-8 space-y-6" onSubmit={handleVerify2FA}>
             {displayError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {displayError}
+                {renderError(displayError)}
               </div>
             )}
 
             <div>
               <label htmlFor="twofa-code" className="block text-sm font-medium text-gray-700">
-                Verification Code
+                {t('twoFa.codeLabel')}
               </label>
               <input
                 id="twofa-code"
@@ -323,7 +373,7 @@ function LoginContent() {
                 className="h-4 w-4 text-[#f5a623] border-gray-300 rounded focus:ring-[#f5a623]"
               />
               <label htmlFor="trust-device" className="ml-2 block text-sm text-gray-700">
-                Trust this device for 90 days
+                {t('twoFa.trustDevice')}
               </label>
             </div>
 
@@ -332,7 +382,7 @@ function LoginContent() {
               disabled={verifying2FA || twoFaCode.length !== 6}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {verifying2FA ? 'Verifying...' : 'Verify'}
+              {verifying2FA ? t('twoFa.verifying') : t('twoFa.verifyButton')}
             </button>
 
             <div className="flex items-center justify-between text-sm">
@@ -341,14 +391,14 @@ function LoginContent() {
                 onClick={handleResend2FA}
                 className="text-[#f5a623] hover:text-[#e6991a]"
               >
-                Resend code
+                {t('twoFa.resendCode')}
               </button>
               <button
                 type="button"
                 onClick={handleCancel2FA}
                 className="text-gray-500 hover:text-gray-700"
               >
-                Cancel
+                {t('twoFa.cancel')}
               </button>
             </div>
           </form>
@@ -360,60 +410,39 @@ function LoginContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        <div className="flex justify-end">
+          <LanguageSwitcher />
+        </div>
         <div>
-          <h1 className="text-3xl font-bold text-center text-gray-900">ToolTime Pro</h1>
+          <h1 className="text-3xl font-bold text-center text-gray-900">{t('title')}</h1>
           <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900">
-            Sign in to your account
+            {t('heading')}
           </h2>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           {sessionReplaced && !displayError && (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
-              You were signed out because your account was signed in from another device.
-              Only one active session is allowed at a time.
+              {t('sessionReplaced')}
             </div>
           )}
 
           {!isConfigured && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
-              Authentication is not configured. Please contact support if this issue persists.
+              {t('authNotConfigured')}
             </div>
           )}
 
           {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {displayError === 'too_many_attempts' ? (
-                <>
-                  Too many sign-in attempts. Our server is temporarily unavailable — please wait a few minutes and try again.
-                  If this persists, please contact support.
-                </>
-              ) : displayError === 'invalid_credentials' ? (
-                <>
-                  Incorrect email or password. If you signed up recently but never set a password, please{' '}
-                  <Link href="/auth/forgot-password" className="underline font-medium text-red-800 hover:text-red-900">
-                    reset your password
-                  </Link>{' '}
-                  to get started.
-                </>
-              ) : displayError === 'email_not_confirmed' ? (
-                <>
-                  Your email hasn&apos;t been verified yet. Check your inbox for the verification email, or{' '}
-                  <Link href="/auth/signup" className="underline font-medium text-red-800 hover:text-red-900">
-                    sign up again
-                  </Link>{' '}
-                  to get a new one.
-                </>
-              ) : (
-                displayError
-              )}
+              {renderError(displayError)}
             </div>
           )}
 
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                {t('emailLabel')}
               </label>
               <input
                 id="email"
@@ -430,7 +459,7 @@ function LoginContent() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                {t('passwordLabel')}
               </label>
               <div className="relative mt-1">
                 <input
@@ -448,7 +477,7 @@ function LoginContent() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('hidePassword') : t('showPassword')}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -470,7 +499,7 @@ function LoginContent() {
           <div className="flex items-center justify-between">
             <div className="text-sm">
               <Link href="/auth/forgot-password" className="text-[#f5a623] hover:text-[#e6991a]">
-                Forgot your password?
+                {t('forgotPassword')}
               </Link>
             </div>
           </div>
@@ -480,14 +509,14 @@ function LoginContent() {
             disabled={loading}
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? t('signingIn') : t('signInButton')}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-600">
-          Don&apos;t have an account?{' '}
+          {t('noAccount')}{' '}
           <Link href="/auth/signup" className="text-[#f5a623] hover:text-[#e6991a] font-medium">
-            Sign up
+            {t('signUpLink')}
           </Link>
         </p>
       </div>
@@ -496,12 +525,13 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
+  const t = useTranslations('auth.login')
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#f5a623] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     }>

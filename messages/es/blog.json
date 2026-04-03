@@ -1,0 +1,41 @@
+{
+  "blog": {
+    "list": {
+      "title": "Blog de ToolTime Pro",
+      "subtitle": "Consejos, guias e informacion para ayudarte a hacer crecer tu negocio de servicios.",
+      "allPosts": "Todos los Articulos",
+      "tipsTricks": "Consejos y Trucos",
+      "guides": "Guias",
+      "industryNews": "Noticias del Sector",
+      "productUpdates": "Novedades del Producto",
+      "featured": "Destacado",
+      "minRead": "min de lectura",
+      "min": "min",
+      "readMore": "Leer mas",
+      "read": "Leer",
+      "comingSoon": "Proximamente",
+      "comingSoonMessage": "Estamos preparando contenido interesante para ti. Vuelve pronto!",
+      "ctaTitle": "Listo para hacer crecer tu negocio?",
+      "ctaSubtitle": "Unete a miles de contratistas que usan ToolTime Pro para gestionar trabajos, enviar facturas y ganar mas clientes.",
+      "ctaButton": "Comienza tu Prueba Gratis de 14 Dias",
+      "navJennyAi": "Jenny AI",
+      "navFeatures": "Funciones",
+      "navPricing": "Precios",
+      "navBlog": "Blog",
+      "navStartTrial": "Prueba Gratis"
+    },
+    "post": {
+      "backToBlog": "Volver al Blog",
+      "postNotFound": "Articulo no encontrado",
+      "minRead": "min de lectura",
+      "ctaTitle": "Listo para hacer crecer tu negocio?",
+      "ctaSubtitle": "Prueba ToolTime Pro gratis por 14 dias. No se requiere tarjeta de credito.",
+      "ctaButton": "Prueba Gratis",
+      "navJennyAi": "Jenny AI",
+      "navFeatures": "Funciones",
+      "navPricing": "Precios",
+      "navBlog": "Blog",
+      "navStartTrial": "Prueba Gratis"
+    }
+  }
+}

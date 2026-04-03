@@ -5,8 +5,8 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-
-type Language = 'en' | 'es';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Features data - ordered by key money makers first
 const features = [
@@ -154,12 +154,12 @@ const pricingAddOns = [
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
-  const [language, setLanguage] = useState<Language>('en');
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [industriesOpen, setIndustriesOpen] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const router = useRouter();
   const { user, company, isLoading } = useAuth();
+  const t = useTranslations('home');
 
   // Redirect authenticated users away from the marketing homepage
   useEffect(() => {
@@ -189,83 +189,16 @@ export default function Home() {
     );
   }
 
-  const t = {
-    en: {
-      promo: 'Limited Time: Get 2 months free on annual plans.',
-      startTrial: 'Start Free Trial',
-      features: 'Features',
-      industries: 'Industries',
-      pricing: 'Pricing',
-      resources: 'Resources',
-      freeTools: 'Free Tools',
-      getStarted: 'Get Started',
-      badge: 'AI-Powered Field Service Management',
-      heroTitle1: 'Dispatch Smarter.',
-      heroTitle2: 'Grow Faster.',
-      heroSubtitle: 'Jenny AI handles dispatch, scheduling, and customer communication — so you can focus on growing your business.',
-      cta1: 'Get Started Free',
-      cta2: 'See How It Works',
-      stat1: 'Starting at /month',
-      stat2: 'Cheaper than competitors',
-      stat3: 'Tech skills required',
-      // Dashboard preview
-      todaysOverview: "Today's Overview",
-      jobsToday: 'Jobs Today',
-      revenue: 'Revenue',
-      activeCrew: 'Active Crew',
-      newLeads: 'New Leads',
-      upcomingJobs: 'Upcoming Jobs',
-      lawnCare: 'Lawn care',
-      landscaping: 'Landscaping',
-      poolService: 'Pool service',
-      active: 'Active',
-      next: 'Next',
-      later: 'Later',
-    },
-    es: {
-      promo: 'Tiempo Limitado: Obtén 2 meses gratis en planes anuales.',
-      startTrial: 'Prueba Gratis',
-      features: 'Funciones',
-      industries: 'Industrias',
-      pricing: 'Precios',
-      resources: 'Recursos',
-      freeTools: 'Herramientas Gratis',
-      getStarted: 'Comenzar',
-      badge: 'Gestión de Servicios Impulsada por IA',
-      heroTitle1: 'Despacha Mejor.',
-      heroTitle2: 'Crece Más Rápido.',
-      heroSubtitle: 'Jenny AI gestiona despacho, programación y comunicación con clientes — para que te enfoques en hacer crecer tu negocio.',
-      cta1: 'Empieza Gratis',
-      cta2: 'Ver Cómo Funciona',
-      stat1: 'Desde /mes',
-      stat2: 'Más barato que la competencia',
-      stat3: 'Habilidades técnicas requeridas',
-      // Dashboard preview
-      todaysOverview: 'Resumen de Hoy',
-      jobsToday: 'Trabajos Hoy',
-      revenue: 'Ingresos',
-      activeCrew: 'Equipo Activo',
-      newLeads: 'Nuevos Clientes',
-      upcomingJobs: 'Próximos Trabajos',
-      lawnCare: 'Jardinería',
-      landscaping: 'Paisajismo',
-      poolService: 'Servicio de piscina',
-      active: 'Activo',
-      next: 'Siguiente',
-      later: 'Después',
-    },
-  };
-
-  const text = t[language];
+  // Translations are now provided by next-intl via useTranslations('home')
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Promo Banner */}
       <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
-        {text.promo}
+        {t('promo')}
         <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
-          {text.startTrial}
+          {t('startTrial')}
         </Link>
       </div>
 
@@ -287,13 +220,13 @@ export default function Home() {
             <Link href="/jenny" className="ml-6 text-[#f5a623] font-semibold text-base hover:text-[#e6991a] transition-colors no-underline flex items-center gap-1">
               🎧 Jenny AI
             </Link>
-            <Link href="#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.features}</Link>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('features')}</Link>
             <div className="relative">
               <button
                 onClick={() => setIndustriesOpen(!industriesOpen)}
                 className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
-                {text.industries} <span className="text-xs">▼</span>
+                {t('industries')} <span className="text-xs">▼</span>
               </button>
               {industriesOpen && (
                 <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50 max-h-[70vh] overflow-y-auto">
@@ -365,18 +298,18 @@ export default function Home() {
                 </div>
               )}
             </div>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{text.pricing}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('pricing')}</Link>
             <div className="relative">
               <button
                 onClick={() => setResourcesOpen(!resourcesOpen)}
                 className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
               >
-                {text.resources} <span className="text-xs">▼</span>
+                {t('resources')} <span className="text-xs">▼</span>
               </button>
               {resourcesOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
                   <Link href="/tools" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
-                    🧰 {text.freeTools}
+                    🧰 {t('freeTools')}
                   </Link>
                   <Link href="/blog" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
                     📝 Blog
@@ -392,24 +325,7 @@ export default function Home() {
             </div>
 
             {/* Language Switcher */}
-            <div className="flex items-center border border-gray-200 rounded-lg">
-              <button
-                onClick={() => setLanguage('en')}
-                className={`min-w-[40px] px-3 py-2 text-sm font-medium transition-colors rounded-l-lg ${
-                  language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                US
-              </button>
-              <button
-                onClick={() => setLanguage('es')}
-                className={`min-w-[40px] px-3 py-2 text-sm font-medium transition-colors rounded-r-lg border-l border-gray-200 ${
-                  language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                ES
-              </button>
-            </div>
+            <LanguageSwitcher />
 
             <a href="tel:1-888-980-8665" className="text-[#5c5c70] text-base flex items-center gap-2 whitespace-nowrap hover:text-[#1a1a2e] transition-colors no-underline">
               📞 <span>(888) 980-TOOL</span>
@@ -418,7 +334,7 @@ export default function Home() {
               href="/auth/signup"
               className="bg-[#f97316] text-white px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(249,115,22,0.3)] hover:bg-[#ea580c] hover:-translate-y-0.5 transition-all no-underline"
             >
-              {text.startTrial}
+              {t('startTrial')}
             </Link>
             <Link
               href="/auth/login"
@@ -440,25 +356,14 @@ export default function Home() {
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
             <Link href="/jenny" className="text-[#f5a623] font-semibold text-lg hover:text-[#e6991a] no-underline flex items-center gap-2">🎧 Jenny AI</Link>
-            <Link href="#features" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{text.features}</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">🧰 {text.freeTools}</Link>
+            <Link href="#features" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{t('features')}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">🧰 {t('freeTools')}</Link>
             <Link href="#demos" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">Demos</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{text.pricing}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{t('pricing')}</Link>
             <div className="flex gap-2 pt-2 border-t border-gray-100">
-              <button
-                onClick={() => setLanguage('en')}
-                className={`flex-1 py-2 rounded-lg text-base font-medium ${language === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
-              >
-                🇺🇸 English
-              </button>
-              <button
-                onClick={() => setLanguage('es')}
-                className={`flex-1 py-2 rounded-lg text-base font-medium ${language === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100'}`}
-              >
-                🇪🇸 Español
-              </button>
+              <LanguageSwitcher />
             </div>
-            <Link href="/auth/signup" className="bg-[#f97316] text-white px-6 py-3 rounded-xl font-semibold text-lg text-center no-underline">{text.startTrial}</Link>
+            <Link href="/auth/signup" className="bg-[#f97316] text-white px-6 py-3 rounded-xl font-semibold text-lg text-center no-underline">{t('startTrial')}</Link>
             <Link href="/auth/login" className="text-[#374151] font-medium text-lg text-center py-3 hover:text-[#1a1a2e] no-underline">Login</Link>
           </div>
         )}
@@ -475,20 +380,20 @@ export default function Home() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-[#fef3d6] px-[18px] py-2.5 rounded-full text-sm font-bold text-[#1a1a2e] mb-6 border border-[rgba(245,166,35,0.3)]">
               <span className="w-2 h-2 bg-[#00c853] rounded-full animate-pulse" />
-              {text.badge}
+              {t('badge')}
             </div>
 
             {/* Headline */}
             <h1 className="text-[clamp(2.5rem,5.5vw,4rem)] font-extrabold text-[#1a1a2e] leading-[1.15] tracking-tight mb-6">
-              {text.heroTitle1}<br />
+              {t('heroTitle1')}<br />
               <span className="text-[#f5a623] relative">
-                {text.heroTitle2}
+                {t('heroTitle2')}
                 <span className="absolute bottom-1 left-0 right-0 h-2 bg-[#f5a623] opacity-30 -z-10 rounded" />
               </span>
             </h1>
 
             <p className="text-[1.1875rem] text-[#5c5c70] mb-9 max-w-[480px] leading-relaxed">
-              {text.heroSubtitle}
+              {t('heroSubtitle')}
             </p>
 
             {/* CTAs */}
@@ -497,13 +402,13 @@ export default function Home() {
                 href="/auth/signup"
                 className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(245,166,35,0.4)] transition-all no-underline"
               >
-                {text.cta1} →
+                {t('cta1')} →
               </Link>
               <Link
                 href="#demos"
                 className="inline-flex items-center gap-2 px-10 py-5 bg-white text-[#1a1a2e] border-2 border-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] hover:bg-[#1a1a2e] hover:text-white transition-all no-underline"
               >
-                {text.cta2}
+                {t('cta2')}
               </Link>
             </div>
 
@@ -511,7 +416,7 @@ export default function Home() {
             <div className="flex gap-12 pt-8 border-t border-gray-200">
               <div>
                 <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$49</div>
-                <div className="text-sm text-[#8e8e9f] mt-1.5">{text.stat1}</div>
+                <div className="text-sm text-[#8e8e9f] mt-1.5">{t('stat1')}</div>
               </div>
               <div>
                 <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">AI</div>
@@ -529,35 +434,35 @@ export default function Home() {
             <div className="bg-white rounded-[20px] p-5 shadow-[0_24px_60px_rgba(26,26,46,0.16)] transform perspective-[1000px] hover:rotate-y-[-2deg] transition-transform duration-500 max-w-[420px]">
               <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 text-white min-h-[380px]">
                 <div className="flex justify-between items-center mb-6 gap-4">
-                  <div className="text-[1.125rem] font-bold whitespace-nowrap">📊 {text.todaysOverview}</div>
-                  <div className="text-[0.75rem] opacity-70 font-mono whitespace-nowrap">{language === 'es' ? '25 Ene, 2026' : 'Jan 25, 2026'}</div>
+                  <div className="text-[1.125rem] font-bold whitespace-nowrap">📊 {t('todaysOverview')}</div>
+                  <div className="text-[0.75rem] opacity-70 font-mono whitespace-nowrap">{t('date')}</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-5">
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.jobsToday}</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{t('jobsToday')}</div>
                     <div className="text-[1.375rem] font-extrabold">8</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.revenue}</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{t('revenue')}</div>
                     <div className="text-[1.375rem] font-extrabold text-[#00c853]"><span className="opacity-60">$</span>2,450</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.activeCrew}</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{t('activeCrew')}</div>
                     <div className="text-[1.375rem] font-extrabold">5</div>
                   </div>
                   <div className="bg-white/10 rounded-[10px] p-3.5">
-                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{text.newLeads}</div>
+                    <div className="text-[0.6875rem] opacity-70 uppercase tracking-wide mb-1">{t('newLeads')}</div>
                     <div className="text-[1.375rem] font-extrabold">12</div>
                   </div>
                 </div>
 
                 <div className="bg-white/5 rounded-[10px] p-3.5">
-                  <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">{text.upcomingJobs}</div>
+                  <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">{t('upcomingJobs')}</div>
                   {[
-                    { name: '🏠 Martinez Residence', type: text.lawnCare, time: '9:00 AM', status: text.active, statusColor: 'bg-[#00c853]' },
-                    { name: '🏢 Oak Valley HOA', type: text.landscaping, time: '11:30 AM', status: text.next, statusColor: 'bg-[#f5a623]' },
-                    { name: '🏊 Thompson Pool', type: text.poolService, time: '2:00 PM', status: text.later, statusColor: 'bg-[#f5a623]' },
+                    { name: '🏠 Martinez Residence', type: t('lawnCare'), time: '9:00 AM', status: t('active'), statusColor: 'bg-[#00c853]' },
+                    { name: '🏢 Oak Valley HOA', type: t('landscaping'), time: '11:30 AM', status: t('next'), statusColor: 'bg-[#f5a623]' },
+                    { name: '🏊 Thompson Pool', type: t('poolService'), time: '2:00 PM', status: t('later'), statusColor: 'bg-[#f5a623]' },
                   ].map((job, i) => (
                     <div key={i} className={`flex justify-between items-center py-2.5 ${i < 2 ? 'border-b border-white/10' : ''}`}>
                       <div>
@@ -583,13 +488,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
-              Powered by Jenny AI
+              {t('poweredByJenny')}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
-              One Platform. Zero Headaches.
+              {t('featuresTitle')}
             </h2>
             <p className="text-[1.0625rem] text-white/90">
-              Jenny AI handles intelligent dispatch, route optimization, and 24/7 customer communication. Combined with built-in compliance tools, bilingual support, mobile apps, and real-time analytics — everything your growing team needs.
+              {t('featuresSubtitle')}
             </p>
           </div>
 
@@ -678,13 +583,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
-              See It In Action
+              {t('seeItInAction')}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
-              Try Our Interactive Demos
+              {t('demosTitle')}
             </h2>
             <p className="text-[1.0625rem] text-[#5c5c70]">
-              Click any feature below to see exactly how ToolTime Pro works. No signup required.
+              {t('demosSubtitle')}
             </p>
           </div>
 
@@ -703,7 +608,7 @@ export default function Home() {
                 <div className="text-[2.5rem] mb-3">{card.icon}</div>
                 <h3 className="text-[1.125rem] font-extrabold text-[#1a1a2e] mb-2">{card.name}</h3>
                 <p className="text-[0.875rem] text-[#8e8e9f] leading-relaxed mb-3">{card.description}</p>
-                <span className="text-[#f5a623] font-semibold text-[0.875rem] group-hover:underline">Try Demo →</span>
+                <span className="text-[#f5a623] font-semibold text-[0.875rem] group-hover:underline">{t('tryDemo')} →</span>
               </Link>
             ))}
           </div>
@@ -716,13 +621,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-[640px] mx-auto mb-16">
             <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
-              Why ToolTime Pro
+              {t('whyToolTime')}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
-              Built Different. Priced Fair.
+              {t('whyTitle')}
             </h2>
             <p className="text-[1.0625rem] text-white/80">
-              We built ToolTime Pro for contractors tired of overpaying for enterprise software or choosing between affordability and capability.
+              {t('whySubtitle')}
             </p>
           </div>
 
@@ -730,28 +635,28 @@ export default function Home() {
             {[
               {
                 icon: '🤖',
-                title: 'AI-Powered from Day One',
-                description: 'Jenny AI handles intelligent dispatch, route optimization, and workload balancing — included in every plan at no extra cost.',
+                title: t('whyAiTitle'),
+                description: t('whyAiDesc'),
               },
               {
                 icon: '🛡️',
-                title: 'Built-In Compliance & Legal Protection',
-                description: 'ToolTime Shield keeps you compliant with worker classification laws, wage regulations, and HR requirements. No competitor includes this.',
+                title: t('whyComplianceTitle'),
+                description: t('whyComplianceDesc'),
               },
               {
                 icon: '💰',
-                title: 'Pricing That Scales with You',
-                description: '$49–$129/month with no surprise per-user fees. Competitors charge $20/vehicle or $250+/tech for the same features.',
+                title: t('whyPricingTitle'),
+                description: t('whyPricingDesc'),
               },
               {
                 icon: '🌐',
-                title: 'Spanish Language Built In',
-                description: 'Native bilingual interface in every tier. Over 40% of field crews are Spanish-speaking — we built for them from day one.',
+                title: t('whySpanishTitle'),
+                description: t('whySpanishDesc'),
               },
               {
                 icon: '⚡',
-                title: 'Fast Setup, Real Results',
-                description: 'Running in 1–2 weeks, not 6–12 months. No expensive consultants, no lengthy onboarding. See ROI immediately.',
+                title: t('whyFastTitle'),
+                description: t('whyFastDesc'),
               },
             ].map((card, index) => (
               <div
@@ -772,13 +677,13 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-12">
             <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
-              Transparent Pricing
+              {t('transparentPricing')}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
-              Plans That Grow With You
+              {t('plansTitle')}
             </h2>
             <p className="text-[1.0625rem] text-[#5c5c70]">
-              No hidden fees. No per-user add-on costs. AI dispatch included in every plan.
+              {t('plansSubtitle')}
             </p>
           </div>
 
@@ -793,7 +698,7 @@ export default function Home() {
                     : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
                 }`}
               >
-                Monthly
+                {t('monthly')}
               </button>
               <button
                 onClick={() => setBillingPeriod('annual')}
@@ -803,9 +708,9 @@ export default function Home() {
                     : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
                 }`}
               >
-                Annual
+                {t('annual')}
                 <span className="bg-[#00c853] text-white px-2.5 py-1 rounded-full text-[0.6875rem] font-bold">
-                  Save 17%
+                  {t('save17')}
                 </span>
               </button>
             </div>
@@ -1071,16 +976,16 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,166,35,0.1)_0%,transparent_60%)]" />
         <div className="max-w-[640px] mx-auto relative z-10">
           <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
-            Ready to Put Your Business On Autopilot?
+            {t('footerCtaTitle')}
           </h2>
           <p className="text-[1.125rem] text-white/70 mb-9">
-            Join hundreds of service businesses using ToolTime Pro to save time, stay compliant, and get more customers.
+            {t('footerCtaSubtitle')}
           </p>
           <Link
             href="/auth/signup"
             className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] transition-all no-underline"
           >
-            Get Started Free →
+            {t('getStartedFree')} →
           </Link>
         </div>
       </section>

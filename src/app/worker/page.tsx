@@ -14,19 +14,13 @@ import {
 } from 'lucide-react';
 import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
 import { useWorkerJobs } from '@/hooks/useWorkerJobs';
+import { useTranslations } from 'next-intl';
 
 const statusColors = {
   scheduled: 'bg-blue-100 text-blue-700',
   in_progress: 'bg-yellow-100 text-yellow-700',
   completed: 'bg-green-100 text-green-700',
   cancelled: 'bg-gray-100 text-gray-500',
-};
-
-const statusLabels = {
-  scheduled: 'Upcoming',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
 };
 
 function formatTime(timeStr: string | null): string {
@@ -45,6 +39,14 @@ export default function WorkerJobsPage() {
     company?.id || null
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const t = useTranslations('worker.home');
+
+  const statusLabels = {
+    scheduled: t('statusUpcoming'),
+    in_progress: t('statusInProgress'),
+    completed: t('statusCompleted'),
+    cancelled: t('statusCancelled'),
+  };
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -79,10 +81,10 @@ export default function WorkerJobsPage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-navy-500 mb-2">Error Loading Jobs</h2>
+        <h2 className="text-lg font-semibold text-navy-500 mb-2">{t('errorLoadingJobs')}</h2>
         <p className="text-gray-600 mb-4 text-center">{error}</p>
         <button onClick={handleRefresh} className="btn-secondary">
-          Try Again
+          {t('tryAgain')}
         </button>
       </div>
     );
@@ -93,7 +95,7 @@ export default function WorkerJobsPage() {
       {/* Date Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-navy-500">Today&apos;s Jobs</h1>
+          <h1 className="text-xl font-bold text-navy-500">{t('title')}</h1>
           <p className="text-sm text-gray-500 flex items-center gap-1">
             <Calendar size={14} />
             {today}

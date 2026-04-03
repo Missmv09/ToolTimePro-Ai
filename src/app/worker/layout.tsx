@@ -9,6 +9,8 @@ import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning'
 import { useSessionTimeout } from '@/hooks/useSessionTimeout'
 import { WorkerAuthProvider } from '@/contexts/WorkerAuthContext'
 import { OfflineIndicator, OfflineStatusDot } from '@/components/worker/OfflineIndicator'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 interface WorkerUser {
   id: string
@@ -99,11 +101,13 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
     return null
   }
 
+  const t = useTranslations('worker.layout')
+
   const navItems = [
-    { href: '/worker/timeclock', label: 'Clock', icon: '⏱️' },
-    { href: '/worker/job', label: 'Jobs', icon: '📋' },
-    { href: '/worker/time', label: 'Hours', icon: '📊' },
-    { href: '/worker/profile', label: 'Profile', icon: '👤' },
+    { href: '/worker/timeclock', label: t('clock'), icon: '⏱️' },
+    { href: '/worker/job', label: t('jobs'), icon: '📋' },
+    { href: '/worker/time', label: t('hours'), icon: '📊' },
+    { href: '/worker/profile', label: t('profile'), icon: '👤' },
   ]
 
   return (
@@ -120,12 +124,13 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
             <p className="font-semibold text-gray-900">{user.full_name}</p>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <OfflineStatusDot />
             <button
               onClick={handleSignOut}
               className="text-sm text-gray-500 hover:text-gray-700"
             >
-              Sign Out
+              {t('signOut')}
             </button>
           </div>
         </div>

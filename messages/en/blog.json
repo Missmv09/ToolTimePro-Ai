@@ -1,0 +1,41 @@
+{
+  "blog": {
+    "list": {
+      "title": "ToolTime Pro Blog",
+      "subtitle": "Tips, guides, and insights to help you grow your home service business.",
+      "allPosts": "All Posts",
+      "tipsTricks": "Tips & Tricks",
+      "guides": "Guides",
+      "industryNews": "Industry News",
+      "productUpdates": "Product Updates",
+      "featured": "Featured",
+      "minRead": "min read",
+      "min": "min",
+      "readMore": "Read more",
+      "read": "Read",
+      "comingSoon": "Coming soon",
+      "comingSoonMessage": "We're working on great content for you. Check back soon!",
+      "ctaTitle": "Ready to grow your business?",
+      "ctaSubtitle": "Join thousands of contractors using ToolTime Pro to manage jobs, send invoices, and win more customers.",
+      "ctaButton": "Start Your Free 14-Day Trial",
+      "navJennyAi": "Jenny AI",
+      "navFeatures": "Features",
+      "navPricing": "Pricing",
+      "navBlog": "Blog",
+      "navStartTrial": "Start Free Trial"
+    },
+    "post": {
+      "backToBlog": "Back to Blog",
+      "postNotFound": "Post not found",
+      "minRead": "min read",
+      "ctaTitle": "Ready to grow your business?",
+      "ctaSubtitle": "Try ToolTime Pro free for 14 days. No credit card required.",
+      "ctaButton": "Start Free Trial",
+      "navJennyAi": "Jenny AI",
+      "navFeatures": "Features",
+      "navPricing": "Pricing",
+      "navBlog": "Blog",
+      "navStartTrial": "Start Free Trial"
+    }
+  }
+}
