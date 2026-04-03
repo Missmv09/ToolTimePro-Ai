@@ -83,6 +83,7 @@ function JobDetailContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { worker: authWorker, isLoading: authLoading, isAuthenticated } = useWorkerAuth();
+  const t = useTranslations('worker.job');
 
   // Derive worker data from auth context (memoized to prevent infinite re-fetch loop)
   const worker: WorkerData | null = useMemo(
@@ -140,7 +141,12 @@ function JobDetailContent() {
       if (jobError) throw jobError;
 
       setJob(jobData as Job);
-      setChecklist(getDefaultChecklist(jobData.title));
+      setChecklist(getDefaultChecklistKeys().map(item => ({
+        id: item.id,
+        text: t(item.key),
+        completed: false,
+        required: item.required,
+      })));
 
       // Check for active time entry
       const { data: timeEntry } = await supabase
@@ -370,10 +376,10 @@ function JobDetailContent() {
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          {error || 'Job not found'}
+          {error || t('jobNotFound')}
         </h2>
         <Link href="/worker/job" className="mt-4 px-4 py-2 bg-gray-200 rounded-lg">
-          Back to Jobs
+          {t('backToJobs')}
         </Link>
       </div>
     );
@@ -394,7 +400,7 @@ function JobDetailContent() {
             <ArrowLeft size={20} />
           </Link>
           <div className="flex-1">
-            <h1 className="font-bold">{customer?.name || 'Customer'}</h1>
+            <h1 className="font-bold">{customer?.name || t('customer')}</h1>
             <p className="text-sm text-white/70">{job.title}</p>
           </div>
         </div>
@@ -403,16 +409,16 @@ function JobDetailContent() {
         <div className="bg-white/10 rounded-xl p-4">
           {isClockedIn ? (
             <div className="text-center">
-              <p className="text-sm text-white/70 mb-1">Time on Job</p>
+              <p className="text-sm text-white/70 mb-1">{t('timeOnJob')}</p>
               <p className="text-3xl font-mono font-bold text-yellow-400">{formatTime(elapsedTime)}</p>
               <p className="text-xs text-white/50 mt-1">
-                Started at {new Date(activeTimeEntry!.clock_in).toLocaleTimeString()}
+                {t('startedAt')} {new Date(activeTimeEntry!.clock_in).toLocaleTimeString()}
               </p>
             </div>
           ) : (
             <div className="text-center">
-              <p className="text-sm text-white/70 mb-1">Ready to Start?</p>
-              <p className="text-lg font-medium">Tap below to clock in</p>
+              <p className="text-sm text-white/70 mb-1">{t('readyToStart')}</p>
+              <p className="text-lg font-medium">{t('tapToClockIn')}</p>
             </div>
           )}
         </div>
@@ -431,7 +437,7 @@ function JobDetailContent() {
             ) : (
               <>
                 <Play size={24} />
-                CLOCK IN
+                {t('clockIn')}
               </>
             )}
           </button>
@@ -446,7 +452,7 @@ function JobDetailContent() {
             ) : (
               <>
                 <Square size={24} />
-                CLOCK OUT & COMPLETE
+                {t('clockOutComplete')}
               </>
             )}
           </button>
@@ -459,8 +465,8 @@ function JobDetailContent() {
           <div className="flex items-start gap-3 mb-4">
             <MapPin className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm text-gray-500">Address</p>
-              <p className="font-medium text-gray-900">{fullAddress || 'No address provided'}</p>
+              <p className="text-sm text-gray-500">{t('address')}</p>
+              <p className="font-medium text-gray-900">{fullAddress || t('noAddress')}</p>
             </div>
             {fullAddress && (
               <a
@@ -478,11 +484,11 @@ function JobDetailContent() {
             <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
               <Phone className="w-5 h-5 text-yellow-500" />
               <div className="flex-1">
-                <p className="text-sm text-gray-500">Customer Phone</p>
+                <p className="text-sm text-gray-500">{t('customerPhone')}</p>
                 <p className="font-medium text-gray-900">{customer.phone}</p>
               </div>
               <a href={`tel:${customer.phone}`} className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
-                Call
+                {t('call')}
               </a>
             </div>
           )}
@@ -494,7 +500,7 @@ function JobDetailContent() {
             <div className="flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-yellow-800">Job Notes</p>
+                <p className="text-sm font-medium text-yellow-800">{t('jobNotes')}</p>
                 <p className="text-sm text-yellow-700 mt-1">{job.notes}</p>
               </div>
             </div>
@@ -504,7 +510,7 @@ function JobDetailContent() {
         {/* Checklist */}
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Job Checklist</h2>
+            <h2 className="font-semibold text-gray-900">{t('jobChecklist')}</h2>
             <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
               {completedCount}/{checklist.length}
             </span>
@@ -538,14 +544,14 @@ function JobDetailContent() {
             ))}
           </div>
 
-          <p className="text-xs text-gray-500 mt-3">* Required before completing job</p>
+          <p className="text-xs text-gray-500 mt-3">{t('requiredBeforeComplete')}</p>
         </div>
 
         {/* Photo Upload */}
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Job Photos</h2>
-            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{photos.length} photos</span>
+            <h2 className="font-semibold text-gray-900">{t('jobPhotos')}</h2>
+            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{photos.length} {t('photos')}</span>
           </div>
 
           {photos.length > 0 && (
@@ -583,7 +589,7 @@ function JobDetailContent() {
             className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-yellow-500 hover:text-yellow-600 transition-colors"
           >
             <Camera size={24} />
-            <span className="text-sm font-medium">Take Photo or Upload</span>
+            <span className="text-sm font-medium">{t('takePhotoOrUpload')}</span>
           </button>
         </div>
       </div>
@@ -592,15 +598,15 @@ function JobDetailContent() {
       {showCompleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end z-50">
           <div className="bg-white w-full rounded-t-2xl p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Cannot Complete Job Yet</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">{t('cannotCompleteYet')}</h3>
 
             {!requiredComplete && (
               <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg mb-3">
                 <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-red-700">Incomplete Checklist</p>
+                  <p className="font-medium text-red-700">{t('incompleteChecklist')}</p>
                   <p className="text-sm text-red-600">
-                    Please complete all required checklist items.
+                    {t('completeAllRequired')}
                   </p>
                 </div>
               </div>
@@ -610,8 +616,8 @@ function JobDetailContent() {
               <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg mb-3">
                 <Camera className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-red-700">No Photos</p>
-                  <p className="text-sm text-red-600">Please upload at least one job photo.</p>
+                  <p className="font-medium text-red-700">{t('noPhotos')}</p>
+                  <p className="text-sm text-red-600">{t('uploadAtLeastOne')}</p>
                 </div>
               </div>
             )}
@@ -621,7 +627,7 @@ function JobDetailContent() {
                 onClick={() => setShowCompleteModal(false)}
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-xl font-medium"
               >
-                Go Back
+                {t('goBack')}
               </button>
               <button
                 onClick={completeJob}
@@ -631,7 +637,7 @@ function JobDetailContent() {
                 {isSubmitting ? (
                   <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                 ) : (
-                  'Complete Anyway'
+                  t('completeAnyway')
                 )}
               </button>
             </div>

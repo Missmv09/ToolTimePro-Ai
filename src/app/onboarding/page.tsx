@@ -6,17 +6,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Building2, Wrench, Users, Shield, Check, ArrowRight, ArrowLeft, Search, Plus, X } from 'lucide-react'
 import { industries, type Industry } from '@/lib/industries'
-
-const STEPS = [
-  { id: 1, title: 'Company Details', icon: Building2 },
-  { id: 2, title: 'Your Industry', icon: Wrench },
-  { id: 3, title: 'Invite Your Team', icon: Users },
-  { id: 4, title: 'Security', icon: Shield },
-]
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function OnboardingPage() {
   const router = useRouter()
   const { user, company, dbUser, isLoading, refreshUserData } = useAuth()
+  const t = useTranslations('misc.onboarding')
   const [currentStep, setCurrentStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -341,7 +337,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Loading your account...</p>
+          <p className="text-gray-500">{t('loadingAccount')}</p>
         </div>
       </div>
     )
@@ -352,15 +348,25 @@ export default function OnboardingPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome to ToolTime Pro!</h1>
-          <p className="text-gray-500 mt-1">Let&apos;s get your account set up in a few quick steps.</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{t('welcome')}</h1>
+              <p className="text-gray-500 mt-1">{t('setupSubtitle')}</p>
+            </div>
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
 
       {/* Progress Steps */}
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-10">
-          {STEPS.map((step, index) => (
+          {[
+            { id: 1, title: t('companyDetails'), icon: Building2 },
+            { id: 2, title: t('yourIndustry'), icon: Wrench },
+            { id: 3, title: t('inviteTeam'), icon: Users },
+            { id: 4, title: t('security'), icon: Shield },
+          ].map((step, index) => (
             <div key={step.id} className="flex items-center flex-1">
               <div className="flex items-center">
                 <div

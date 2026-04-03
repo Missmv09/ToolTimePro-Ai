@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { PRICE_IDS } from '@/lib/stripe-prices';
 
 // ============================================
@@ -234,6 +236,7 @@ export default function PricingPage() {
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [extraWorkers, setExtraWorkers] = useState(0);
+  const t = useTranslations('pricing');
 
   const toggleAddon = (addonId) => {
     setSelectedAddons((prev) =>
@@ -314,19 +317,20 @@ export default function PricingPage() {
       <nav className="nav">
         <Link href="/"><Image src="/logo-horizontal-white-01262026.png" alt="ToolTime Pro" width={180} height={40} className="logo-img" /></Link>
         <div className="nav-links">
-          <Link href="/#features">Features</Link>
-          <Link href="/pricing" className="active">Pricing</Link>
-          <Link href="/auth/login" className="btn-login">Login</Link>
+          <Link href="/#features">{t('features')}</Link>
+          <Link href="/pricing" className="active">{t('pricingNav')}</Link>
+          <LanguageSwitcher />
+          <Link href="/auth/login" className="btn-login">{t('login')}</Link>
         </div>
       </nav>
 
       {/* Hero */}
       <header className="hero">
-        <h1>Transparent Pricing. Powerful Tools.</h1>
-        <p>AI dispatch, Spanish language support, and mobile app included in every plan. No hidden fees.</p>
+        <h1>{t('pageTitle')}</h1>
+        <p>{t('pageSubtitle')}</p>
 
         <div className="billing-toggle">
-          <span className={!isAnnual ? 'active' : ''}>Monthly</span>
+          <span className={!isAnnual ? 'active' : ''}>{t('monthly')}</span>
           <button
             className={`toggle ${isAnnual ? 'on' : ''}`}
             onClick={() => setIsAnnual(!isAnnual)}
@@ -334,7 +338,7 @@ export default function PricingPage() {
             <span className="toggle-knob" />
           </button>
           <span className={isAnnual ? 'active' : ''}>
-            Annual <span className="save-badge">Save ~17%</span>
+            {t('annual')} <span className="save-badge">{t('saveBadge')}</span>
           </span>
         </div>
       </header>
@@ -342,7 +346,7 @@ export default function PricingPage() {
       <main className="main">
         {/* Main Tiers */}
         <section className="section">
-          <h2>Choose Your Plan</h2>
+          <h2>{t('chooseYourPlan')}</h2>
           <div className="tiers-grid">
             {TIERS.map((tier) => (
               <div
@@ -350,7 +354,7 @@ export default function PricingPage() {
                 className={`tier-card ${selectedTier === tier.id ? 'selected' : ''} ${tier.popular ? 'popular' : ''}`}
                 onClick={() => selectTier(tier.id)}
               >
-                {tier.popular && <span className="popular-badge">Most Popular</span>}
+                {tier.popular && <span className="popular-badge">{t('mostPopular')}</span>}
 
                 <h3>{tier.name}</h3>
                 <p className="tier-desc">{tier.description}</p>
@@ -366,7 +370,7 @@ export default function PricingPage() {
                 )}
 
                 <p className="workers-info">👷 {tier.workers}</p>
-                <p className="workers-extra">+$7/user/mo for additional</p>
+                <p className="workers-extra">{t('workersExtra')}</p>
 
                 <ul className="features">
                   {tier.features.map((f, i) => (
@@ -384,26 +388,26 @@ export default function PricingPage() {
                 {/* Jenny Lite included */}
                 <div className="tier-included">
                   <span className="check">✓</span>
-                  <span>Jenny Lite — AI Chat & Lead Capture</span>
-                  <span className="included-badge">Included</span>
+                  <span>{t('jennyLiteIncluded')}</span>
+                  <span className="included-badge">{t('included')}</span>
                 </div>
 
                 {/* Inline optional add-ons */}
                 {PLAN_INLINE_ADDONS[tier.id] && (
                   <div className="tier-addons" onClick={(e) => e.stopPropagation()}>
-                    <p className="tier-addons-title">Optional Add-ons:</p>
+                    <p className="tier-addons-title">{t('optionalAddons')}</p>
                     {tier.id === 'elite' && (
                       <div className="tier-addon-row included">
                         <span className="check">✓</span>
                         <span>Customer Portal Pro</span>
-                        <span className="included-badge">Included</span>
+                        <span className="included-badge">{t('included')}</span>
                       </div>
                     )}
                     {tier.id === 'elite' && (
                       <div className="tier-addon-row included">
                         <span className="check">✓</span>
                         <span>QuickBooks Sync</span>
-                        <span className="included-badge">Included</span>
+                        <span className="included-badge">{t('included')}</span>
                       </div>
                     )}
                     {PLAN_INLINE_ADDONS[tier.id].map((addon) => (
@@ -421,7 +425,7 @@ export default function PricingPage() {
                 )}
 
                 <button className={`select-btn ${selectedTier === tier.id ? 'selected' : ''}`}>
-                  {selectedTier === tier.id ? '✓ Selected' : 'Select Plan'}
+                  {selectedTier === tier.id ? `✓ ${t('selected')}` : t('selectPlan')}
                 </button>
               </div>
             ))}
@@ -430,8 +434,8 @@ export default function PricingPage() {
 
         {/* Just Need One Thing */}
         <section className="section standalone-section">
-          <h2>Just Need One Thing?</h2>
-          <p className="section-desc">Not ready for a full plan? Start with just what you need.</p>
+          <h2>{t('justNeedOne')}</h2>
+          <p className="section-desc">{t('justNeedOneDesc')}</p>
 
           <div className="standalone-grid">
             {STANDALONE.map((item) => (
@@ -454,7 +458,7 @@ export default function PricingPage() {
           </div>
 
           <p className="upgrade-note">
-            💡 Standalone products can be upgraded to full plans anytime — we&apos;ll credit what you&apos;ve paid!
+            💡 {t('upgradeNote')}
           </p>
         </section>
 
@@ -464,19 +468,19 @@ export default function PricingPage() {
             <div className="jenny-banner-content">
               <div className="jenny-avatar">🎧</div>
               <div className="jenny-info">
-                <h2>Add Jenny AI — Your Business Assistant</h2>
-                <p>Jenny handles calls, chat, SMS, and keeps you compliant 24/7. Choose the tier that fits your needs.</p>
+                <h2>{t('addJennyTitle')}</h2>
+                <p>{t('addJennyDesc')}</p>
                 <div className="jenny-compare">
-                  <span className="jenny-price">Lite <strong>Included Free</strong> on all plans</span>
-                  <span className="jenny-vs">Jobber charges $349/mo for this</span>
+                  <span className="jenny-price" dangerouslySetInnerHTML={{ __html: t.raw('jennyLiteFree') }} />
+                  <span className="jenny-vs">{t('jennyCompetitorNote')}</span>
                 </div>
               </div>
-              <Link href="/jenny" className="jenny-learn-more">Learn More →</Link>
+              <Link href="/jenny" className="jenny-learn-more">{t('learnMore')}</Link>
             </div>
           </div>
 
           <div className="jenny-section-label">
-            <span className="section-label-badge">Customer-Facing</span>
+            <span className="section-label-badge">{t('customerFacing')}</span>
           </div>
 
           <div className="jenny-tiers">
@@ -492,16 +496,16 @@ export default function PricingPage() {
               }}
               style={selectedTier ? { cursor: 'default' } : {}}
             >
-              {selectedTier && <span className="jenny-included-label">✓ Included in All Plans</span>}
+              {selectedTier && <span className="jenny-included-label">✓ {t('includedInAllPlans')}</span>}
               <div className="jenny-tier-header">
                 <h4>Jenny Lite</h4>
-                <span className="jenny-tier-price">{selectedTier ? 'Included' : `+$${isAnnual ? '16' : '19'}/mo`}</span>
+                <span className="jenny-tier-price">{selectedTier ? t('included') : `+$${isAnnual ? '16' : '19'}/mo`}</span>
               </div>
               <ul>
-                <li>✓ Website chat widget</li>
-                <li>✓ Lead capture & notifications</li>
-                <li>✓ FAQ answering</li>
-                <li>✓ English & Spanish</li>
+                <li>✓ {t('jennyLiteFeature1')}</li>
+                <li>✓ {t('jennyLiteFeature2')}</li>
+                <li>✓ {t('jennyLiteFeature3')}</li>
+                <li>✓ {t('jennyLiteFeature4')}</li>
               </ul>
               {!selectedTier && isAnnual && <p className="jenny-annual-note">Billed $190/year</p>}
               <div className="jenny-tier-check">{selectedAddons.includes('jenny_lite') ? '☑' : '☐'}</div>

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Industry data - only includes marketing content, NOT fake features
 const industries: Record<string, {
@@ -522,6 +524,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function IndustryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const industry = industries[slug];
+  const t = await getTranslations('industries');
 
   // Fallback for industries not explicitly defined
   const displayIndustry = industry || {
@@ -552,9 +555,9 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       {/* Promo Banner */}
       <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
-        Limited Time: Get 2 months free on annual plans.
+        {t('promo')}
         <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
-          Start Free Trial
+          {t('startFreeTrial')}
         </Link>
       </div>
 
@@ -573,15 +576,16 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Features</Link>
-            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">Industries</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Pricing</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Free Tools</Link>
+            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('features')}</Link>
+            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">{t('industriesNav')}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('pricing')}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('freeTools')}</Link>
+            <LanguageSwitcher />
             <Link
               href="/auth/signup"
               className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] transition-all no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
           </div>
         </div>
@@ -596,16 +600,16 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
 
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <Link href="/industries" className="inline-flex items-center gap-2 text-white/60 hover:text-white mb-6 no-underline">
-            ← Back to All Industries
+            {t('backToAll')}
           </Link>
 
           <div className="flex items-center gap-4 mb-6">
             <span className="text-6xl">{displayIndustry.icon}</span>
             <div>
               <h1 className="text-4xl md:text-5xl font-extrabold text-white">
-                {displayIndustry.name} Software
+                {displayIndustry.name} {t('software')}
               </h1>
-              <p className="text-xl text-[#f5a623] mt-2">Scheduling, Quoting & Invoicing Made Easy</p>
+              <p className="text-xl text-[#f5a623] mt-2">{t('madeEasy')}</p>
             </div>
           </div>
 
@@ -618,13 +622,13 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
               href="/auth/signup"
               className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-[#e6991a] transition-all no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
             <Link
               href="/demo/dashboard"
               className="px-8 py-4 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-all no-underline"
             >
-              See Demo
+              {t('seeDemo')}
             </Link>
           </div>
         </div>
@@ -648,10 +652,10 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       <section className="py-16 bg-[#fef3d6]/30">
         <div className="max-w-[1200px] mx-auto px-6">
           <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4 text-center">
-            Sound Familiar?
+            {t('soundFamiliar')}
           </h2>
           <p className="text-gray-600 text-center mb-10 max-w-2xl mx-auto">
-            {displayIndustry.name} businesses deal with these challenges every day. ToolTime Pro helps.
+            {t('soundFamiliarDesc', { name: displayIndustry.name })}
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
@@ -666,12 +670,12 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           </div>
 
           <div className="text-center mt-10">
-            <p className="text-lg text-[#1a1a2e] font-semibold mb-4">ToolTime Pro helps with all of this.</p>
+            <p className="text-lg text-[#1a1a2e] font-semibold mb-4">{t('toolTimeHelps')}</p>
             <Link
               href="/auth/signup"
               className="inline-block px-6 py-3 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold no-underline hover:bg-[#e6991a] transition-all"
             >
-              Start Free Trial →
+              {t('startFreeTrial')} →
             </Link>
           </div>
         </div>
@@ -680,9 +684,9 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       {/* Core Features - ACTUAL FEATURES ONLY */}
       <section className="py-16 bg-white">
         <div className="max-w-[1200px] mx-auto px-6">
-          <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4 text-center">Everything You Need to Run Your {displayIndustry.name} Business</h2>
+          <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4 text-center">{t('everythingYouNeed', { name: displayIndustry.name })}</h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            ToolTime Pro gives you the tools to schedule, quote, manage your team, and get paid - all in one place.
+            {t('everythingYouNeedDesc')}
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -690,43 +694,43 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 📅
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Smart Scheduling</h3>
-              <p className="text-gray-600">Drag-and-drop calendar with recurring jobs, automated customer reminders, and easy rescheduling.</p>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('smartScheduling')}</h3>
+              <p className="text-gray-600">{t('smartSchedulingDesc')}</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 📱
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Crew Mobile App</h3>
-              <p className="text-gray-600">Your team gets job details, customer info, navigation, time tracking, and photo uploads - all in one app.</p>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('crewMobileApp')}</h3>
+              <p className="text-gray-600">{t('crewMobileAppDesc')}</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 💰
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Quoting & Invoicing</h3>
-              <p className="text-gray-600">Create professional quotes on-site, convert to invoices with one tap, and get paid online by card.</p>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('quotingInvoicing')}</h3>
+              <p className="text-gray-600">{t('quotingInvoicingDesc')}</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🛡️
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">ToolTime Shield</h3>
-              <p className="text-gray-600">California labor law compliance built-in. Worker classification tools, final pay calculators, and HR document templates.</p>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('toolTimeShield')}</h3>
+              <p className="text-gray-600">{t('toolTimeShieldDesc')}</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🌐
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Booking Website</h3>
-              <p className="text-gray-600">We build and host your professional website with online booking - included free with every plan.</p>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('bookingWebsite')}</h3>
+              <p className="text-gray-600">{t('bookingWebsiteDesc')}</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 📊
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Business Reports</h3>
-              <p className="text-gray-600">Track revenue, see job history, and monitor your business performance with real-time dashboards.</p>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('businessReports')}</h3>
+              <p className="text-gray-600">{t('businessReportsDesc')}</p>
             </div>
           </div>
         </div>
@@ -748,7 +752,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       <section className="py-16 bg-gray-50">
         <div className="max-w-[800px] mx-auto px-6">
           <h2 className="text-3xl font-bold text-[#1a1a2e] mb-8 text-center">
-            Frequently Asked Questions
+            {t('faqTitle')}
           </h2>
 
           <div className="space-y-4">
@@ -765,7 +769,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       {/* Competitor Comparison Hint */}
       <section className="py-12 bg-white border-t border-b">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <p className="text-gray-600 mb-4">Comparing {displayIndustry.name} software options?</p>
+          <p className="text-gray-600 mb-4">{t('comparingSoftware', { name: displayIndustry.name })}</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/compare/jobber"
@@ -787,24 +791,23 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       <section className="py-16 bg-gradient-to-r from-[#f5a623] to-[#e6991a]">
         <div className="max-w-[800px] mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">
-            Ready to Grow Your {displayIndustry.name} Business?
+            {t('readyToGrow', { name: displayIndustry.name })}
           </h2>
           <p className="text-[#1a1a2e]/80 text-lg mb-8">
-            Join thousands of California service pros who use ToolTime Pro.
-            Start your free 14-day trial - no credit card required.
+            {t('readyToGrowDesc')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/auth/signup"
               className="px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold shadow-lg hover:bg-[#2d2d44] transition-all no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
             <Link
               href="/pricing"
               className="px-8 py-4 bg-white text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
             >
-              See Pricing
+              {t('seePricing')}
             </Link>
           </div>
         </div>
@@ -823,7 +826,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
             />
           </Link>
           <p className="text-white/40 text-base">
-            © 2026 ToolTime Pro. All rights reserved.
+            {t('copyright')}
           </p>
         </div>
       </footer>

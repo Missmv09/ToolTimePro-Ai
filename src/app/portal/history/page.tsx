@@ -11,6 +11,7 @@ import {
   TrendingUp,
   MapPin,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface HistoryJob {
   id: string;
@@ -28,18 +29,19 @@ interface Stats {
   totalSpent: number;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
-  completed: { label: 'Completed', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  scheduled: { label: 'Scheduled', color: 'bg-blue-100 text-blue-700', icon: Clock },
-  in_progress: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
-};
-
 export default function PortalHistory() {
   const [jobs, setJobs] = useState<HistoryJob[]>([]);
   const [stats, setStats] = useState<Stats>({ totalJobs: 0, completedJobs: 0, totalSpent: 0 });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const t = useTranslations('portal.history');
+
+  const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
+    completed: { label: t('statusCompleted'), color: 'bg-green-100 text-green-700', icon: CheckCircle },
+    scheduled: { label: t('statusScheduled'), color: 'bg-blue-100 text-blue-700', icon: Clock },
+    in_progress: { label: t('statusInProgress'), color: 'bg-yellow-100 text-yellow-700', icon: Clock },
+    cancelled: { label: t('statusCancelled'), color: 'bg-red-100 text-red-700', icon: XCircle },
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('portal_token');
@@ -55,7 +57,7 @@ export default function PortalHistory() {
       .catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-12 text-gray-400">Loading history...</div>;
+  if (loading) return <div className="text-center py-12 text-gray-400">{t('loading')}</div>;
 
   const filtered = filter === 'all' ? jobs : jobs.filter(j => j.status === filter);
 
@@ -70,36 +72,36 @@ export default function PortalHistory() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-gray-900">Service History</h1>
+      <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <Briefcase className="w-5 h-5 text-blue-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
-          <p className="text-xs text-gray-500">Total Jobs</p>
+          <p className="text-xs text-gray-500">{t('totalJobs')}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <CheckCircle className="w-5 h-5 text-green-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-green-600">{stats.completedJobs}</p>
-          <p className="text-xs text-gray-500">Completed</p>
+          <p className="text-xs text-gray-500">{t('completed')}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <DollarSign className="w-5 h-5 text-gold-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">
             ${stats.totalSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </p>
-          <p className="text-xs text-gray-500">Total Invested</p>
+          <p className="text-xs text-gray-500">{t('totalInvested')}</p>
         </div>
       </div>
 
       {/* Filter */}
       <div className="flex gap-2 flex-wrap">
         {[
-          { key: 'all', label: 'All' },
-          { key: 'completed', label: 'Completed' },
-          { key: 'scheduled', label: 'Upcoming' },
-          { key: 'cancelled', label: 'Cancelled' },
+          { key: 'all', label: t('filterAll') },
+          { key: 'completed', label: t('filterCompleted') },
+          { key: 'scheduled', label: t('filterUpcoming') },
+          { key: 'cancelled', label: t('filterCancelled') },
         ].map(f => (
           <button
             key={f.key}
@@ -117,8 +119,8 @@ export default function PortalHistory() {
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl p-8 shadow-sm text-center">
           <Clock className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <h3 className="font-medium text-gray-700">No service history</h3>
-          <p className="text-sm text-gray-500 mt-1">Your completed jobs will build a timeline here.</p>
+          <h3 className="font-medium text-gray-700">{t('noHistory')}</h3>
+          <p className="text-sm text-gray-500 mt-1">{t('noHistoryDescription')}</p>
         </div>
       ) : (
         <div className="space-y-6">

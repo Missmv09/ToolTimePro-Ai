@@ -8,6 +8,7 @@ import {
   Calendar,
   X,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Photo {
   id: string;
@@ -25,17 +26,18 @@ interface JobWithPhotos {
   photos: Photo[];
 }
 
-const PHOTO_TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  before: { label: 'Before', color: 'bg-gray-100 text-gray-600' },
-  during: { label: 'During', color: 'bg-blue-100 text-blue-600' },
-  after: { label: 'After', color: 'bg-green-100 text-green-600' },
-};
-
 export default function PortalPhotos() {
   const [jobs, setJobs] = useState<JobWithPhotos[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
+  const t = useTranslations('portal.photos');
+
+  const PHOTO_TYPE_LABELS: Record<string, { label: string; color: string }> = {
+    before: { label: t('before'), color: 'bg-gray-100 text-gray-600' },
+    during: { label: t('during'), color: 'bg-blue-100 text-blue-600' },
+    after: { label: t('after'), color: 'bg-green-100 text-green-600' },
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('portal_token');
@@ -60,17 +62,17 @@ export default function PortalPhotos() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [lightboxPhoto]);
 
-  if (loading) return <div className="text-center py-12 text-gray-400">Loading photos...</div>;
+  if (loading) return <div className="text-center py-12 text-gray-400">{t('loading')}</div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-gray-900">Job Photos</h1>
+      <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
 
       {jobs.length === 0 ? (
         <div className="bg-white rounded-xl p-8 shadow-sm text-center">
           <Camera className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <h3 className="font-medium text-gray-700">No photos yet</h3>
-          <p className="text-sm text-gray-500 mt-1">When your contractor takes before/during/after photos, they&apos;ll appear here.</p>
+          <h3 className="font-medium text-gray-700">{t('noPhotos')}</h3>
+          <p className="text-sm text-gray-500 mt-1">{t('noPhotosDescription')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -93,7 +95,7 @@ export default function PortalPhotos() {
                       <span className="text-xs text-gray-500">
                         {new Date(job.scheduled_date).toLocaleDateString()}
                       </span>
-                      <span className="text-xs text-gray-400">{job.photos.length} photos</span>
+                      <span className="text-xs text-gray-400">{job.photos.length} {t('photos')}</span>
                     </div>
                   </div>
                   {isExpanded ? (
@@ -106,16 +108,16 @@ export default function PortalPhotos() {
                 {isExpanded && (
                   <div className="px-4 pb-4 space-y-4">
                     {[
-                      { label: 'Before', photos: beforePhotos, type: 'before' },
-                      { label: 'During', photos: duringPhotos, type: 'during' },
-                      { label: 'After', photos: afterPhotos, type: 'after' },
+                      { label: t('before'), photos: beforePhotos, type: 'before' },
+                      { label: t('during'), photos: duringPhotos, type: 'during' },
+                      { label: t('after'), photos: afterPhotos, type: 'after' },
                     ].filter(g => g.photos.length > 0).map(group => (
                       <div key={group.type}>
                         <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-2">
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${PHOTO_TYPE_LABELS[group.type]?.color || 'bg-gray-100'}`}>
                             {group.label}
                           </span>
-                          <span className="text-xs text-gray-400">{group.photos.length} photos</span>
+                          <span className="text-xs text-gray-400">{group.photos.length} {t('photos')}</span>
                         </h4>
                         <div className="grid grid-cols-3 gap-2">
                           {group.photos.map(photo => (
@@ -158,7 +160,7 @@ export default function PortalPhotos() {
               <p className="text-white/80 text-center mt-3 text-sm">{lightboxPhoto.caption}</p>
             )}
             <p className="text-white/50 text-center mt-1 text-xs">
-              {PHOTO_TYPE_LABELS[lightboxPhoto.photo_type]?.label || 'Photo'} —{' '}
+              {PHOTO_TYPE_LABELS[lightboxPhoto.photo_type]?.label || t('photo')} —{' '}
               {new Date(lightboxPhoto.created_at).toLocaleDateString()}
             </p>
           </div>

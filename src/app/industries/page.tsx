@@ -351,29 +351,29 @@ export default function IndustriesPage() {
                 />
               </Link>
               <p className="text-white/50 text-base leading-relaxed max-w-[300px]">
-                The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.
+                {t('footerDesc')}
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-white text-lg mb-5">Product</h4>
+              <h4 className="font-bold text-white text-lg mb-5">{t('product')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Features</Link>
-                <Link href="/pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
-                <Link href="/#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
-                <Link href="/compare" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Compare Plans</Link>
+                <Link href="/#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('features')}</Link>
+                <Link href="/pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('pricing')}</Link>
+                <Link href="/#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('demos')}</Link>
+                <Link href="/compare" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('comparePlans')}</Link>
               </div>
             </div>
             <div>
-              <h4 className="font-bold text-white text-lg mb-5">Company</h4>
+              <h4 className="font-bold text-white text-lg mb-5">{t('company')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Login</Link>
-                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('login')}</Link>
+                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('signUp')}</Link>
+                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('contact')}</a>
               </div>
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 text-center text-white/40 text-base">
-            © 2026 ToolTime Pro. All rights reserved.
+            {t('copyright')}
           </div>
         </div>
       </footer>

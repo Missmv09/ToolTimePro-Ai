@@ -20,6 +20,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useTranslations } from 'next-intl';
 
 interface WorkerData {
   id: string;
@@ -47,6 +48,7 @@ interface WorkerStats {
 
 export default function WorkerProfilePage() {
   const router = useRouter();
+  const t = useTranslations('worker.profile');
   const [worker, setWorker] = useState<WorkerData | null>(null);
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [notifications, setNotifications] = useState(true);
@@ -190,10 +192,10 @@ export default function WorkerProfilePage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Not Authenticated</h2>
-        <p className="text-gray-600 mb-4">Please log in to view your profile</p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('notAuthenticated')}</h2>
+        <p className="text-gray-600 mb-4">{t('pleaseLogIn')}</p>
         <button onClick={() => router.push('/worker/login')} className="px-4 py-2 bg-gray-200 rounded-lg">
-          Go to Login
+          {t('goToLogin')}
         </button>
       </div>
     );
@@ -222,7 +224,7 @@ export default function WorkerProfilePage() {
         <div className="flex items-center justify-center gap-2 mt-2">
           <Shield className="w-4 h-4 text-green-500" />
           <span className="text-sm text-green-600">
-            {worker.is_active ? 'Active Employee' : 'Inactive'}
+            {worker.is_active ? t('activeEmployee') : t('inactive')}
           </span>
         </div>
       </div>
@@ -232,7 +234,7 @@ export default function WorkerProfilePage() {
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-5 h-5 text-yellow-500" />
-            <span className="text-sm text-gray-500">This Week</span>
+            <span className="text-sm text-gray-500">{t('thisWeek')}</span>
           </div>
           {isLoadingStats ? (
             <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
@@ -246,7 +248,7 @@ export default function WorkerProfilePage() {
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-green-500" />
-            <span className="text-sm text-gray-500">YTD Earnings</span>
+            <span className="text-sm text-gray-500">{t('ytdEarnings')}</span>
           </div>
           {isLoadingStats ? (
             <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
@@ -260,7 +262,7 @@ export default function WorkerProfilePage() {
 
       {/* Contact Info */}
       <div className="bg-white rounded-xl shadow-sm p-4">
-        <h2 className="font-semibold text-gray-900 mb-4">Contact Information</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">{t('contactInfo')}</h2>
         <div className="space-y-4">
           {worker.phone && (
             <div className="flex items-center gap-3">
@@ -268,7 +270,7 @@ export default function WorkerProfilePage() {
                 <Phone className="w-5 h-5 text-gray-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Phone</p>
+                <p className="text-sm text-gray-500">{t('phone')}</p>
                 <p className="font-medium text-gray-900">{worker.phone}</p>
               </div>
             </div>
@@ -278,7 +280,7 @@ export default function WorkerProfilePage() {
               <Mail className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Email</p>
+              <p className="text-sm text-gray-500">{t('email')}</p>
               <p className="font-medium text-gray-900">{worker.email}</p>
             </div>
           </div>
@@ -287,7 +289,7 @@ export default function WorkerProfilePage() {
               <Calendar className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Start Date</p>
+              <p className="text-sm text-gray-500">{t('startDate')}</p>
               <p className="font-medium text-gray-900">{startDate}</p>
             </div>
           </div>
@@ -297,7 +299,7 @@ export default function WorkerProfilePage() {
                 <DollarSign className="w-5 h-5 text-gray-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Hourly Rate</p>
+                <p className="text-sm text-gray-500">{t('hourlyRate')}</p>
                 <p className="font-medium text-gray-900">${worker.hourly_rate.toFixed(2)}/hr</p>
               </div>
             </div>
@@ -308,7 +310,7 @@ export default function WorkerProfilePage() {
       {/* Company Info */}
       {company && (
         <div className="bg-white rounded-xl shadow-sm p-4">
-          <h2 className="font-semibold text-gray-900 mb-4">Company</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">{t('company')}</h2>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <span className="text-lg font-bold text-blue-600">
@@ -329,12 +331,12 @@ export default function WorkerProfilePage() {
 
       {/* Settings */}
       <div className="bg-white rounded-xl shadow-sm p-4">
-        <h2 className="font-semibold text-gray-900 mb-4">Settings</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">{t('settings')}</h2>
         <div className="space-y-2">
           <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">Push Notifications</span>
+              <span className="font-medium text-gray-900">{t('pushNotifications')}</span>
             </div>
             <div
               className={`w-12 h-6 rounded-full p-1 transition-colors ${
@@ -359,7 +361,7 @@ export default function WorkerProfilePage() {
           >
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">Edit Profile</span>
+              <span className="font-medium text-gray-900">{t('editProfile')}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
@@ -370,7 +372,7 @@ export default function WorkerProfilePage() {
           >
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">Change PIN</span>
+              <span className="font-medium text-gray-900">{t('changePin')}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
@@ -381,7 +383,7 @@ export default function WorkerProfilePage() {
           >
             <div className="flex items-center gap-3">
               <Lock className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">Change Password</span>
+              <span className="font-medium text-gray-900">{t('changePassword')}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
@@ -423,11 +425,11 @@ export default function WorkerProfilePage() {
         className="w-full flex items-center justify-center gap-2 p-4 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition-colors"
       >
         <LogOut className="w-5 h-5" />
-        Sign Out
+        {t('signOut')}
       </button>
 
       {/* App Version */}
-      <p className="text-center text-xs text-gray-400">ToolTime Pro Worker App v1.0.0</p>
+      <p className="text-center text-xs text-gray-400">{t('appVersion')}</p>
     </div>
   );
 }
@@ -437,6 +439,7 @@ function EditProfileModal({ worker, onClose, onSave }: {
   onClose: () => void;
   onSave: (updated: WorkerData) => void;
 }) {
+  const t = useTranslations('worker.profile');
   const [formData, setFormData] = useState({
     full_name: worker.full_name,
     phone: worker.phone || '',
@@ -475,14 +478,14 @@ function EditProfileModal({ worker, onClose, onSave }: {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
         <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Edit Profile</h2>
+          <h2 className="text-lg font-semibold">{t('editProfile')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
             ✕
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('fullName')}</label>
             <input
               type="text"
               value={formData.full_name}
@@ -492,7 +495,7 @@ function EditProfileModal({ worker, onClose, onSave }: {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('phoneNumber')}</label>
             <input
               type="tel"
               value={formData.phone}
@@ -503,14 +506,14 @@ function EditProfileModal({ worker, onClose, onSave }: {
           </div>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-3 border rounded-xl hover:bg-gray-50">
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? t('saving') : t('saveChanges')}
             </button>
           </div>
         </form>
@@ -524,6 +527,7 @@ function ChangePinModal({ workerId, onClose, onSave }: {
   onClose: () => void;
   onSave: () => void;
 }) {
+  const t = useTranslations('worker.profile');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [saving, setSaving] = useState(false);
@@ -562,14 +566,14 @@ function ChangePinModal({ workerId, onClose, onSave }: {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
         <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Change PIN</h2>
+          <h2 className="text-lg font-semibold">{t('changePin')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
             ✕
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New 4-Digit PIN</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('newPin')}</label>
             <input
               type="password"
               inputMode="numeric"
@@ -582,7 +586,7 @@ function ChangePinModal({ workerId, onClose, onSave }: {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm PIN</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('confirmPin')}</label>
             <input
               type="password"
               inputMode="numeric"
@@ -595,18 +599,18 @@ function ChangePinModal({ workerId, onClose, onSave }: {
             />
           </div>
           <p className="text-xs text-gray-500">
-            This PIN is used to sign in to the ToolTime Worker App.
+            {t('pinHelp')}
           </p>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-3 border rounded-xl hover:bg-gray-50">
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Update PIN'}
+              {saving ? t('saving') : t('updatePin')}
             </button>
           </div>
         </form>
@@ -619,6 +623,7 @@ function ChangePasswordModal({ onClose, onSave }: {
   onClose: () => void;
   onSave: () => void;
 }) {
+  const t = useTranslations('worker.profile');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -660,21 +665,21 @@ function ChangePasswordModal({ onClose, onSave }: {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
         <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Change Password</h2>
+          <h2 className="text-lg font-semibold">{t('changePassword')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
             ✕
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('newPassword')}</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 pr-12"
-                placeholder="At least 8 characters"
+                placeholder={t('passwordPlaceholder')}
                 minLength={8}
                 required
               />
@@ -688,13 +693,13 @@ function ChangePasswordModal({ onClose, onSave }: {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('confirmPassword')}</label>
             <input
               type={showPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
-              placeholder="Confirm your password"
+              placeholder={t('confirmPasswordPlaceholder')}
               minLength={8}
               required
             />
@@ -706,14 +711,14 @@ function ChangePasswordModal({ onClose, onSave }: {
           )}
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-3 border rounded-xl hover:bg-gray-50">
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? 'Updating...' : 'Update Password'}
+              {saving ? t('updating') : t('updatePassword')}
             </button>
           </div>
         </form>

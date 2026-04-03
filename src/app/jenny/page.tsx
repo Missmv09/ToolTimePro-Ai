@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Jenny's capabilities
 const jennyFeatures = [
@@ -123,6 +125,7 @@ const competitorComparison = [
 
 export default function JennyPage() {
   const [activeFeature, setActiveFeature] = useState(jennyFeatures[0]);
+  const t = useTranslations('misc.jenny');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,28 +138,30 @@ export default function JennyPage() {
         </div>
 
         <div className="max-w-6xl mx-auto px-4 py-20 relative z-10">
-          <Link href="/" className="text-white/90 hover:text-white text-sm mb-8 inline-flex items-center gap-1">
-            ← Back to Home
-          </Link>
+          <div className="flex items-center justify-between mb-8">
+            <Link href="/" className="text-white/90 hover:text-white text-sm inline-flex items-center gap-1">
+              &larr; {t('backToHome')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center mt-8">
             <div>
               <div className="inline-flex items-center gap-2 bg-[#f5a623]/20 px-4 py-2 rounded-full text-[#f5a623] font-semibold text-sm mb-6">
                 <span className="w-2 h-2 bg-[#f5a623] rounded-full animate-pulse"></span>
-                AI-Powered Business Assistant
+                {t('badge')}
               </div>
 
               <h1 className="text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
-                Meet <span className="text-[#f5a623]">Jenny</span>
+                {t('heroTitle')} <span className="text-[#f5a623]">Jenny</span>
               </h1>
 
               <p className="text-xl text-white/90 mb-4 leading-relaxed">
-                Your AI-powered business partner that answers calls, writes quotes,
-                handles reviews, and keeps you compliant — 24/7.
+                {t('heroDescription')}
               </p>
 
               <p className="text-lg text-white/80 mb-8">
-                While you&apos;re on the job, Jenny&apos;s got your back.
+                {t('heroSubtext')}
               </p>
 
               <div className="flex flex-wrap gap-4">
@@ -164,18 +169,18 @@ export default function JennyPage() {
                   href="/pricing"
                   className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#f5a623]/25 no-underline"
                 >
-                  Jenny Lite Included Free →
+                  {t('ctaFree')} &rarr;
                 </Link>
                 <Link
                   href="#features"
                   className="border-2 border-white/30 text-white px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition-colors no-underline"
                 >
-                  See What Jenny Can Do
+                  {t('ctaSeeFeatures')}
                 </Link>
               </div>
 
               <p className="text-white/70 text-sm mt-6">
-                Jenny Lite included free on all plans • 14-day free trial • Jobber charges $349/mo for this
+                {t('freeNote')} &bull; {t('trialNote')} &bull; {t('jobberNote')}
               </p>
             </div>
 
@@ -186,22 +191,22 @@ export default function JennyPage() {
                   <div className="text-center">
                     <div className="text-8xl mb-4">🎧</div>
                     <div className="text-3xl font-bold text-[#1a1a2e]">Jenny</div>
-                    <div className="text-[#1a1a2e]/70 font-medium">Always On Duty</div>
+                    <div className="text-[#1a1a2e]/70 font-medium">{t('alwaysOnDuty')}</div>
                   </div>
                 </div>
 
                 {/* Floating capability badges */}
                 <div className="absolute -top-4 -left-4 bg-white rounded-xl px-4 py-2 shadow-lg animate-bounce">
                   <span className="text-2xl">📞</span>
-                  <span className="ml-2 font-semibold text-[#1a1a2e]">Answering calls...</span>
+                  <span className="ml-2 font-semibold text-[#1a1a2e]">{t('answeringCalls')}</span>
                 </div>
                 <div className="absolute top-1/4 -right-8 bg-white rounded-xl px-4 py-2 shadow-lg animate-bounce" style={{ animationDelay: '0.5s' }}>
                   <span className="text-2xl">📝</span>
-                  <span className="ml-2 font-semibold text-[#1a1a2e]">Writing quote...</span>
+                  <span className="ml-2 font-semibold text-[#1a1a2e]">{t('writingQuote')}</span>
                 </div>
                 <div className="absolute -bottom-4 left-1/4 bg-white rounded-xl px-4 py-2 shadow-lg animate-bounce" style={{ animationDelay: '1s' }}>
                   <span className="text-2xl">⭐</span>
-                  <span className="ml-2 font-semibold text-[#1a1a2e]">5 new reviews!</span>
+                  <span className="ml-2 font-semibold text-[#1a1a2e]">{t('newReviews')}</span>
                 </div>
               </div>
             </div>
@@ -215,19 +220,19 @@ export default function JennyPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold text-[#1a1a2e]">3</div>
-              <div className="text-gray-500 mt-1">Flexible Tiers</div>
+              <div className="text-gray-500 mt-1">{t('flexibleTiers')}</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-[#1a1a2e]">24/7</div>
-              <div className="text-gray-500 mt-1">Always Available</div>
+              <div className="text-gray-500 mt-1">{t('alwaysAvailable')}</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-[#00c853]">$0</div>
-              <div className="text-gray-500 mt-1">Jenny Lite — Included</div>
+              <div className="text-gray-500 mt-1">{t('jennyLiteIncluded')}</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-[#1a1a2e]">18x</div>
-              <div className="text-gray-500 mt-1">Cheaper Than Jobber</div>
+              <div className="text-gray-500 mt-1">{t('cheaperThanJobber')}</div>
             </div>
           </div>
         </div>
@@ -238,13 +243,13 @@ export default function JennyPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
-              One AI, Six Superpowers
+              {t('featuresTagline')}
             </span>
             <h2 className="text-4xl font-extrabold text-[#1a1a2e] mb-4">
-              Everything Jenny Can Do For You
+              {t('featuresTitle')}
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Jenny handles the busywork so you can focus on what you do best — your trade.
+              {t('featuresSubtitle')}
             </p>
           </div>
 
@@ -289,7 +294,7 @@ export default function JennyPage() {
                 <div>
                   <h4 className="font-bold text-[#1a1a2e] mb-4 flex items-center gap-2">
                     <span className="w-8 h-8 bg-[#00c853] text-white rounded-lg flex items-center justify-center text-sm">✓</span>
-                    What Jenny Does
+                    {t('whatJennyDoes')}
                   </h4>
                   <ul className="space-y-3">
                     {activeFeature.capabilities.map((cap, index) => (
@@ -302,12 +307,12 @@ export default function JennyPage() {
                 </div>
 
                 <div className="flex flex-col justify-center items-center bg-gray-50 rounded-2xl p-8">
-                  <p className="text-gray-500 mb-4">See {activeFeature.name} in action</p>
+                  <p className="text-gray-500 mb-4">{t('seeInAction', { name: activeFeature.name })}</p>
                   <Link
                     href={activeFeature.demoLink}
                     className="bg-[#1a1a2e] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline inline-flex items-center gap-2"
                   >
-                    Try Demo →
+                    {t('tryDemo')} &rarr;
                   </Link>
                 </div>
               </div>
@@ -320,8 +325,8 @@ export default function JennyPage() {
       <section className="py-20 bg-[#1a1a2e]">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Try Each Feature</h2>
-            <p className="text-white/80">Click any card to see an interactive demo</p>
+            <h2 className="text-3xl font-bold text-white mb-4">{t('tryEachFeature')}</h2>
+            <p className="text-white/80">{t('tryEachFeatureSubtitle')}</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -342,7 +347,7 @@ export default function JennyPage() {
                 </div>
                 <p className="text-white/90 text-sm mb-4 line-clamp-2">{feature.description}</p>
                 <span className="text-[#f5a623] font-semibold text-sm group-hover:underline">
-                  Try Demo →
+                  {t('tryDemo')} &rarr;
                 </span>
               </Link>
             ))}
@@ -355,13 +360,13 @@ export default function JennyPage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
             <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
-              Jenny vs The Competition
+              {t('comparisonTagline')}
             </span>
             <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">
-              More AI. Less Money.
+              {t('comparisonTitle')}
             </h2>
             <p className="text-gray-600">
-              See how Jenny stacks up against Jobber and HouseCall Pro
+              {t('comparisonSubtitle')}
             </p>
           </div>
 
@@ -369,11 +374,11 @@ export default function JennyPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-[#1a1a2e] text-white">
-                  <th className="text-left p-4 font-semibold">Feature</th>
+                  <th className="text-left p-4 font-semibold">{t('feature')}</th>
                   <th className="text-center p-4 font-semibold">
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-[#f5a623]">Jenny</span>
-                      <span className="text-xs bg-[#00c853] text-white px-2 py-0.5 rounded-full">Lite included free</span>
+                      <span className="text-xs bg-[#00c853] text-white px-2 py-0.5 rounded-full">{t('liteIncludedFree')}</span>
                     </div>
                   </th>
                   <th className="text-center p-4 font-semibold">Jobber</th>
@@ -416,7 +421,7 @@ export default function JennyPage() {
           </div>
 
           <p className="text-center text-gray-500 text-sm mt-6">
-            * Jobber AI Receptionist is an additional $349+/month on top of their base plan
+            {t('jobberAiNote')}
           </p>
         </div>
       </section>
@@ -426,14 +431,13 @@ export default function JennyPage() {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="text-6xl mb-6">🎵</div>
           <h2 className="text-4xl font-extrabold text-[#1a1a2e] mb-4">
-            867-5309 / Jenny
+            {t('songTitle')}
           </h2>
           <p className="text-xl text-[#1a1a2e]/80 mb-8 max-w-2xl mx-auto">
-            Just like the song, our Jenny is unforgettable. She&apos;ll answer your calls,
-            capture your leads, and make sure you never miss an opportunity.
+            {t('songDescription')}
           </p>
           <p className="text-lg text-[#1a1a2e]/60 font-medium">
-            &ldquo;Jenny, Jenny, who can I turn to?&rdquo; — Now you know.
+            {t('songQuote')}
           </p>
         </div>
       </section>
@@ -442,33 +446,32 @@ export default function JennyPage() {
       <section className="py-20 bg-[#1a1a2e]">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-extrabold text-white mb-6">
-            Ready to Meet Jenny?
+            {t('readyToMeet')}
           </h2>
           <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-            Jenny Lite is included free with every ToolTime Pro plan.
-            Upgrade to Jenny Pro for $49/mo. Jobber charges $349/mo for this.
+            {t('readyDescription')}
           </p>
 
           <div className="bg-white/10 rounded-2xl p-6 mb-8 max-w-lg mx-auto">
-            <div className="text-white/60 text-sm mb-4">Jenny AI Tiers:</div>
+            <div className="text-white/60 text-sm mb-4">{t('jennyTiers')}</div>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-[#00c853] text-2xl font-bold">Free</div>
-                <div className="text-white/60 text-sm">Jenny Lite</div>
-                <div className="text-white/40 text-xs">Included in all plans</div>
+                <div className="text-[#00c853] text-2xl font-bold">{t('free')}</div>
+                <div className="text-white/60 text-sm">{t('jennyLite')}</div>
+                <div className="text-white/40 text-xs">{t('includedInAllPlans')}</div>
               </div>
               <div>
                 <div className="text-[#f5a623] text-2xl font-bold">$49</div>
-                <div className="text-white/60 text-sm">Jenny Pro</div>
-                <div className="text-white/40 text-xs">Phone & SMS</div>
+                <div className="text-white/60 text-sm">{t('jennyPro')}</div>
+                <div className="text-white/40 text-xs">{t('phoneSms')}</div>
               </div>
               <div>
                 <div className="text-[#f5a623] text-2xl font-bold">$79</div>
-                <div className="text-white/60 text-sm">Exec Admin</div>
-                <div className="text-white/40 text-xs">HR & Compliance</div>
+                <div className="text-white/60 text-sm">{t('execAdmin')}</div>
+                <div className="text-white/40 text-xs">{t('hrCompliance')}</div>
               </div>
             </div>
-            <div className="text-white/40 text-sm mt-4">Jobber AI Receptionist: $349/mo</div>
+            <div className="text-white/40 text-sm mt-4">{t('jobberPrice')}</div>
           </div>
 
           <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -476,20 +479,20 @@ export default function JennyPage() {
               href="/pricing"
               className="bg-[#f5a623] text-[#1a1a2e] px-10 py-5 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#f5a623]/25 no-underline"
             >
-              Add Jenny to Your Plan →
+              {t('addJenny')} &rarr;
             </Link>
             <Link
               href="/auth/signup"
               className="border-2 border-white/30 text-white px-10 py-5 rounded-xl font-bold hover:bg-white/10 transition-colors no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
           </div>
 
           <div className="flex justify-center gap-8 text-white/50 text-sm flex-wrap">
-            <span>✓ 14-day free trial</span>
-            <span>✓ No credit card required</span>
-            <span>✓ Cancel anytime</span>
+            <span>✓ {t('trialFree')}</span>
+            <span>✓ {t('noCreditCard')}</span>
+            <span>✓ {t('cancelAnytime')}</span>
           </div>
         </div>
       </section>
@@ -498,16 +501,16 @@ export default function JennyPage() {
       <footer className="bg-[#12121f] text-white py-12 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-white/40 text-sm">
-            © 2026 ToolTime Pro. Jenny is your AI-powered business assistant.
+            &copy; {t('copyright')}
           </p>
           <div className="flex justify-center gap-6 mt-4">
-            <Link href="/" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Home</Link>
-            <Link href="/pricing" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Pricing</Link>
-            <Link href="/compare" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Compare Plans</Link>
-            <Link href="/auth/signup" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">Sign Up</Link>
+            <Link href="/" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('home')}</Link>
+            <Link href="/pricing" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('pricing')}</Link>
+            <Link href="/compare" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('comparePlans')}</Link>
+            <Link href="/auth/signup" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('signUp')}</Link>
           </div>
           <div className="mt-6 text-[#f5a623] text-sm">
-            ★ Proudly Women-Owned Business
+            ★ {t('womenOwned')}
           </div>
         </div>
       </footer>

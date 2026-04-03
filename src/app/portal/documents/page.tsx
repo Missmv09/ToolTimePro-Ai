@@ -11,6 +11,7 @@ import {
   File,
   Calendar,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Document {
   id: string;
@@ -24,15 +25,6 @@ interface Document {
   created_at: string;
 }
 
-const DOC_TYPE_CONFIG: Record<string, { label: string; icon: typeof FileText; color: string }> = {
-  contract: { label: 'Contract', icon: FileCheck, color: 'text-blue-600 bg-blue-50' },
-  warranty: { label: 'Warranty', icon: Shield, color: 'text-green-600 bg-green-50' },
-  permit: { label: 'Permit', icon: FileText, color: 'text-purple-600 bg-purple-50' },
-  receipt: { label: 'Receipt', icon: Receipt, color: 'text-orange-600 bg-orange-50' },
-  photo: { label: 'Photo', icon: Camera, color: 'text-pink-600 bg-pink-50' },
-  other: { label: 'Document', icon: File, color: 'text-gray-600 bg-gray-50' },
-};
-
 function formatFileSize(bytes: number | null): string {
   if (!bytes) return '';
   if (bytes < 1024) return `${bytes} B`;
@@ -44,6 +36,16 @@ export default function PortalDocuments() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const t = useTranslations('portal.documents');
+
+  const DOC_TYPE_CONFIG: Record<string, { label: string; icon: typeof FileText; color: string }> = {
+    contract: { label: t('typeContract'), icon: FileCheck, color: 'text-blue-600 bg-blue-50' },
+    warranty: { label: t('typeWarranty'), icon: Shield, color: 'text-green-600 bg-green-50' },
+    permit: { label: t('typePermit'), icon: FileText, color: 'text-purple-600 bg-purple-50' },
+    receipt: { label: t('typeReceipt'), icon: Receipt, color: 'text-orange-600 bg-orange-50' },
+    photo: { label: t('typePhoto'), icon: Camera, color: 'text-pink-600 bg-pink-50' },
+    other: { label: t('typeDocument'), icon: File, color: 'text-gray-600 bg-gray-50' },
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('portal_token');
@@ -55,21 +57,21 @@ export default function PortalDocuments() {
       .catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-12 text-gray-400">Loading documents...</div>;
+  if (loading) return <div className="text-center py-12 text-gray-400">{t('loading')}</div>;
 
   const docTypes = [...new Set(documents.map(d => d.document_type))];
   const filtered = filter === 'all' ? documents : documents.filter(d => d.document_type === filter);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-gray-900">Documents</h1>
+      <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
 
       {documents.length === 0 ? (
         <div className="bg-white rounded-xl p-8 shadow-sm text-center">
           <FileText className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <h3 className="font-medium text-gray-700">No documents yet</h3>
+          <h3 className="font-medium text-gray-700">{t('noDocuments')}</h3>
           <p className="text-sm text-gray-500 mt-1">
-            Contracts, warranties, permits, and receipts from your contractor will appear here.
+            {t('noDocumentsDescription')}
           </p>
         </div>
       ) : (
@@ -83,7 +85,7 @@ export default function PortalDocuments() {
                   filter === 'all' ? 'bg-navy-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                All ({documents.length})
+                {t('filterAll')} ({documents.length})
               </button>
               {docTypes.map(type => {
                 const config = DOC_TYPE_CONFIG[type] || DOC_TYPE_CONFIG.other;

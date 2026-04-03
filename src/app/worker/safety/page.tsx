@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useTranslations } from 'next-intl'
 
 interface Incident {
   id: string
@@ -18,23 +19,24 @@ interface EmergencyContact {
   phone: string
 }
 
-const INCIDENT_TYPES = [
-  { value: 'injury', label: 'Injury', icon: '🤕' },
-  { value: 'near_miss', label: 'Near Miss', icon: '⚠️' },
-  { value: 'hazard', label: 'Hazard', icon: '🚧' },
-  { value: 'equipment', label: 'Equipment Issue', icon: '🔧' },
-  { value: 'vehicle', label: 'Vehicle Incident', icon: '🚗' },
-  { value: 'other', label: 'Other', icon: '📋' },
+const INCIDENT_TYPE_KEYS = [
+  { value: 'injury', key: 'incidentInjury', icon: '🤕' },
+  { value: 'near_miss', key: 'incidentNearMiss', icon: '⚠️' },
+  { value: 'hazard', key: 'incidentHazard', icon: '🚧' },
+  { value: 'equipment', key: 'incidentEquipment', icon: '🔧' },
+  { value: 'vehicle', key: 'incidentVehicle', icon: '🚗' },
+  { value: 'other', key: 'incidentOther', icon: '📋' },
 ]
 
-const SEVERITY_LEVELS = [
-  { value: 'low', label: 'Low', color: 'bg-green-100 text-green-700' },
-  { value: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'high', label: 'High', color: 'bg-orange-100 text-orange-700' },
-  { value: 'critical', label: 'Critical', color: 'bg-red-100 text-red-700' },
+const SEVERITY_LEVEL_KEYS = [
+  { value: 'low', key: 'severityLow', color: 'bg-green-100 text-green-700' },
+  { value: 'medium', key: 'severityMedium', color: 'bg-yellow-100 text-yellow-700' },
+  { value: 'high', key: 'severityHigh', color: 'bg-orange-100 text-orange-700' },
+  { value: 'critical', key: 'severityCritical', color: 'bg-red-100 text-red-700' },
 ]
 
 export default function WorkerSafetyPage() {
+  const t = useTranslations('worker.safety')
   const [userId, setUserId] = useState<string | null>(null)
   const [companyId, setCompanyId] = useState<string | null>(null)
   const [incidents, setIncidents] = useState<Incident[]>([])

@@ -9,6 +9,7 @@ import {
   User,
   Wrench,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Message {
   id: string;
@@ -36,6 +37,7 @@ export default function PortalMessages() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations('portal.messages');
 
   const fetchMessages = (jobId?: string | null) => {
     const token = localStorage.getItem('portal_token');
@@ -101,7 +103,7 @@ export default function PortalMessages() {
     setSending(false);
   };
 
-  if (loading) return <div className="text-center py-12 text-gray-400">Loading messages...</div>;
+  if (loading) return <div className="text-center py-12 text-gray-400">{t('loading')}</div>;
 
   // Thread list view
   if (!selectedJob) {
@@ -131,10 +133,10 @@ export default function PortalMessages() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Messages</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
           {unreadCount > 0 && (
             <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-              {unreadCount} unread
+              {t('unread', { count: unreadCount })}
             </span>
           )}
         </div>
@@ -142,8 +144,8 @@ export default function PortalMessages() {
         {threads.length === 0 ? (
           <div className="bg-white rounded-xl p-8 shadow-sm text-center">
             <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <h3 className="font-medium text-gray-700">No messages yet</h3>
-            <p className="text-sm text-gray-500 mt-1">Messages from your contractor will appear here.</p>
+            <h3 className="font-medium text-gray-700">{t('noMessages')}</h3>
+            <p className="text-sm text-gray-500 mt-1">{t('noMessagesDescription')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -156,10 +158,10 @@ export default function PortalMessages() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 truncate">
-                      {thread.job ? thread.job.title : 'General'}
+                      {thread.job ? thread.job.title : t('general')}
                     </p>
                     <p className="text-sm text-gray-500 truncate mt-0.5">
-                      {thread.lastMessage.sender_type === 'customer' ? 'You: ' : ''}
+                      {thread.lastMessage.sender_type === 'customer' ? t('you') : ''}
                       {thread.lastMessage.message}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
@@ -181,7 +183,7 @@ export default function PortalMessages() {
         {jobs.length > 0 && threads.length === 0 && (
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
             <p className="text-sm text-blue-700">
-              Have a question about an upcoming job? Select it below to start a conversation.
+              {t('questionPrompt')}
             </p>
             <div className="mt-3 space-y-2">
               {jobs.slice(0, 5).map(job => (
@@ -201,7 +203,7 @@ export default function PortalMessages() {
   }
 
   // Chat view
-  const jobTitle = jobs.find(j => j.id === selectedJob)?.title || 'Conversation';
+  const jobTitle = jobs.find(j => j.id === selectedJob)?.title || t('conversation');
   const jobMessages = messages.filter(m => m.job_id === selectedJob);
 
   return (
@@ -213,14 +215,14 @@ export default function PortalMessages() {
         </button>
         <div>
           <h2 className="font-semibold text-gray-900">{jobTitle}</h2>
-          <p className="text-xs text-gray-400">{jobMessages.length} messages</p>
+          <p className="text-xs text-gray-400">{t('messagesCount', { count: jobMessages.length })}</p>
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto py-4 space-y-3">
         {jobMessages.length === 0 && (
-          <p className="text-center text-sm text-gray-400 py-8">No messages yet. Send one below.</p>
+          <p className="text-center text-sm text-gray-400 py-8">{t('noMessagesYet')}</p>
         )}
 
         {jobMessages.map(msg => {
@@ -265,7 +267,7 @@ export default function PortalMessages() {
           value={newMessage}
           onChange={e => setNewMessage(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-          placeholder="Type a message..."
+          placeholder={t('typePlaceholder')}
           className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-navy-500 focus:border-navy-500"
         />
         <button

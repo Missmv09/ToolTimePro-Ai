@@ -5,8 +5,11 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Clock, ArrowLeft, Calendar, User } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function BlogPostPage() {
+  const t = useTranslations('blog.post');
   const { slug } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,12 +71,13 @@ export default function BlogPostPage() {
             />
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/jenny" className="text-[#f5a623] font-semibold hover:text-[#e6991a] no-underline">Jenny AI</Link>
-            <Link href="/#features" className="text-gray-600 hover:text-gray-900 no-underline">Features</Link>
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 no-underline">Pricing</Link>
-            <Link href="/blog" className="text-[#1a1a2e] font-semibold no-underline">Blog</Link>
+            <Link href="/jenny" className="text-[#f5a623] font-semibold hover:text-[#e6991a] no-underline">{t('navJennyAi')}</Link>
+            <Link href="/#features" className="text-gray-600 hover:text-gray-900 no-underline">{t('navFeatures')}</Link>
+            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 no-underline">{t('navPricing')}</Link>
+            <Link href="/blog" className="text-[#1a1a2e] font-semibold no-underline">{t('navBlog')}</Link>
+            <LanguageSwitcher />
             <Link href="/auth/signup" className="bg-[#f97316] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#ea580c] no-underline">
-              Start Free Trial
+              {t('navStartTrial')}
             </Link>
           </div>
         </div>
@@ -91,10 +95,10 @@ export default function BlogPostPage() {
         </div>
       ) : error ? (
         <div className="max-w-[800px] mx-auto px-6 py-16 text-center">
-          <h1 className="text-3xl font-bold text-gray-300 mb-4">Post not found</h1>
+          <h1 className="text-3xl font-bold text-gray-300 mb-4">{t('postNotFound')}</h1>
           <p className="text-gray-500 mb-8">{error}</p>
           <Link href="/blog" className="text-[#f97316] font-semibold no-underline flex items-center gap-2 justify-center">
-            <ArrowLeft size={18} /> Back to Blog
+            <ArrowLeft size={18} /> {t('backToBlog')}
           </Link>
         </div>
       ) : post ? (
@@ -103,7 +107,7 @@ export default function BlogPostPage() {
           <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4e] text-white py-16">
             <div className="max-w-[800px] mx-auto px-6">
               <Link href="/blog" className="text-white/50 hover:text-white no-underline flex items-center gap-2 mb-6 text-sm">
-                <ArrowLeft size={16} /> Back to Blog
+                <ArrowLeft size={16} /> {t('backToBlog')}
               </Link>
               {post.category && (
                 <span className="inline-block px-3 py-1 bg-white/10 text-white/80 rounded-full text-xs font-semibold uppercase mb-4">
@@ -125,7 +129,7 @@ export default function BlogPostPage() {
                     : ''}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Clock size={14} /> {post.read_time_minutes} min read
+                  <Clock size={14} /> {post.read_time_minutes} {t('minRead')}
                 </span>
               </div>
             </div>
@@ -155,15 +159,15 @@ export default function BlogPostPage() {
           {/* CTA */}
           <div className="bg-gradient-to-r from-[#f97316] to-[#ea580c] py-12">
             <div className="max-w-[800px] mx-auto px-6 text-center">
-              <h2 className="text-2xl font-bold text-white mb-3">Ready to grow your business?</h2>
+              <h2 className="text-2xl font-bold text-white mb-3">{t('ctaTitle')}</h2>
               <p className="text-white/80 mb-6">
-                Try ToolTime Pro free for 14 days. No credit card required.
+                {t('ctaSubtitle')}
               </p>
               <Link
                 href="/auth/signup"
                 className="inline-block bg-white text-[#f97316] px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors no-underline"
               >
-                Start Free Trial
+                {t('ctaButton')}
               </Link>
             </div>
           </div>
