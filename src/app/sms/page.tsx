@@ -141,9 +141,9 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Contact Us</h2>
+            <h2 className="text-xl font-bold mb-3">{t('contactUs')}</h2>
             <p>
-              If you have questions about our SMS messaging program, please contact us at:
+              {t('contactQuestion')}
             </p>
             <p className="mt-2">
               <strong>Email:</strong> support@tooltimepro.com<br />

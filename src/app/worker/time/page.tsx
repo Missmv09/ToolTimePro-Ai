@@ -81,9 +81,9 @@ export default function WorkerTimePage() {
 
   // Helper to get customer name from potentially array result
   const getCustomerName = (customer: Customer | Customer[] | null): string => {
-    if (!customer) return 'Unknown Customer';
-    if (Array.isArray(customer)) return customer[0]?.name || 'Unknown Customer';
-    return customer.name || 'Unknown Customer';
+    if (!customer) return t('unknownCustomer');
+    if (Array.isArray(customer)) return customer[0]?.name || t('unknownCustomer');
+    return customer.name || t('unknownCustomer');
   };
 
   // Initialize auth
@@ -333,7 +333,7 @@ export default function WorkerTimePage() {
                 const hours = calculateHours(entry.clock_in, entry.clock_out, entry.break_minutes);
                 const isActive = !entry.clock_out;
                 const job = getJob(entry.job);
-                const customerName = job ? getCustomerName(job.customer) : 'Unknown Customer';
+                const customerName = job ? getCustomerName(job.customer) : t('unknownCustomer');
 
                 return (
                   <div
@@ -377,9 +377,9 @@ export default function WorkerTimePage() {
       {entriesByDate.length === 0 && (
         <div className="bg-white rounded-xl shadow-sm p-4 text-center py-12">
           <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No time entries for this week</p>
+          <p className="text-gray-500">{t('noTimeEntries')}</p>
           <p className="text-sm text-gray-400 mt-1">
-            Clock in to a job to start tracking time
+            {t('clockInToStart')}
           </p>
         </div>
       )}

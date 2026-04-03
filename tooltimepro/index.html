@@ -362,12 +362,13 @@
         <div class="container">
             <a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a>
             <div class="nav-links" id="navLinks">
-                <a href="#jenny" style="color:var(--accent);font-weight:700">🤖 Jenny AI</a>
-                <a href="#features">Features</a>
-                <a href="#demos">Demos</a>
-                <a href="#hr">🛡️ Compliance</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#contact" class="nav-cta">Get Started</a>
+                <a href="#jenny" style="color:var(--accent);font-weight:700" data-i18n="nav_jenny_ai">🤖 Jenny AI</a>
+                <a href="#features" data-i18n="nav_features">Features</a>
+                <a href="#demos" data-i18n="nav_demos">Demos</a>
+                <a href="#hr" data-i18n="nav_compliance">🛡️ Compliance</a>
+                <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+                <a href="#contact" class="nav-cta" data-i18n="nav_get_started">Get Started</a>
+                <button onclick="switchLocale(getLocale()==='en'?'es':'en')" data-i18n-toggle style="background:none;border:1px solid var(--border);color:var(--text-light);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:0.875rem;font-weight:600">🌐 ES</button>
             </div>
             <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
         </div>

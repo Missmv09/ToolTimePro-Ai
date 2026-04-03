@@ -272,25 +272,23 @@ export default function IndustriesPage() {
       <section className="py-16 bg-gradient-to-r from-[#f5a623] to-[#e6991a]">
         <div className="max-w-[800px] mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">
-            Don&apos;t See Your Industry?
+            {t('dontSeeYours')}
           </h2>
           <p className="text-[#1a1a2e]/80 text-lg mb-8">
-            <strong>That&apos;s the point.</strong> ToolTime Pro isn&apos;t limited to a checkbox list.
-            If you run a service business — any service business — our platform adapts to you.
-            Custom services, custom workflows, your way.
+            {t.rich('dontSeeYoursDesc', { strong: (chunks) => <strong>{chunks}</strong> })}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/auth/signup"
               className="px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold shadow-lg hover:bg-[#2d2d44] transition-all no-underline"
             >
-              Try It Free — 14 Days
+              {t('tryItFree')}
             </Link>
             <Link
               href="/dashboard/smart-quote"
               className="px-8 py-4 bg-white text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
             >
-              See How Quoting Works
+              {t('seeHowQuoting')}
             </Link>
           </div>
         </div>
