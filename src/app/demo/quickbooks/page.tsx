@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo sync data
 const demoInvoices = [
@@ -24,16 +26,10 @@ const syncStats = {
   customers: { total: 156, synced: 156, pending: 0 },
 };
 
-const features = [
-  { icon: '🔄', title: 'Automatic 2-Way Sync', description: 'Invoices, payments, and customers sync automatically. No manual data entry needed.' },
-  { icon: '📊', title: 'Real-Time Updates', description: 'Changes in ToolTime Pro appear in QuickBooks within seconds. Always stay in sync.' },
-  { icon: '💰', title: 'Payment Tracking', description: 'When customers pay online, it automatically records in QuickBooks. No more reconciliation headaches.' },
-  { icon: '👥', title: 'Customer Sync', description: 'New customers created in ToolTime Pro automatically appear in your QuickBooks customer list.' },
-  { icon: '📈', title: 'Financial Reports', description: 'Use QuickBooks for your taxes and reports while managing daily operations in ToolTime Pro.' },
-  { icon: '🔒', title: 'Secure Connection', description: 'OAuth 2.0 security. Your accounting data is protected with bank-level encryption.' },
-];
+const featureIcons = ['🔄', '📊', '💰', '👥', '📈', '🔒'];
 
 export default function QuickBooksDemoPage() {
+  const t = useTranslations('demo.quickbooks');
   const [connected, setConnected] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [invoices, setInvoices] = useState(demoInvoices);
@@ -61,16 +57,16 @@ export default function QuickBooksDemoPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'synced':
-        return <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">Synced</span>;
+        return <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">{t('synced')}</span>;
       case 'syncing':
         return (
           <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1">
             <span className="w-2 h-2 border border-blue-700 border-t-transparent rounded-full animate-spin"></span>
-            Syncing
+            {t('syncing')}
           </span>
         );
       case 'pending':
-        return <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">Pending</span>;
+        return <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">{t('pending')}</span>;
       default:
         return null;
     }
@@ -81,19 +77,22 @@ export default function QuickBooksDemoPage() {
       {/* Demo Banner */}
       <div className="bg-gradient-to-r from-[#2ca01c] to-[#238c17] text-white py-3 px-4 text-center font-semibold">
         <span className="mr-2">📗</span>
-        QuickBooks Integration Demo —
+        {t('demoBanner')} —
         <Link href="/auth/signup" className="underline ml-1 font-bold">
-          Start Free Trial
+          {t('startFreeTrial')}
         </Link>
-        {' '}to connect your account
+        {' '}{t('toConnectAccount')}
       </div>
 
       {/* Header */}
       <header className="bg-[#1a1a2e] text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
-          <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-flex items-center gap-1">
-            ← Back to Home
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/" className="text-white/70 hover:text-white text-sm inline-flex items-center gap-1">
+              {t('backToHome')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
           <div className="flex items-center gap-4 mt-4">
             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center">
               <svg viewBox="0 0 40 40" className="w-10 h-10">
@@ -103,11 +102,11 @@ export default function QuickBooksDemoPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-bold">QuickBooks Sync</h1>
-              <p className="text-white/70 mt-1">Keep your books and field ops in perfect sync.</p>
+              <h1 className="text-3xl font-bold">{t('title')}</h1>
+              <p className="text-white/70 mt-1">{t('subtitle')}</p>
             </div>
             <span className="ml-auto bg-white/10 text-white px-4 py-1.5 rounded-full text-sm font-medium border border-white/20">
-              All Plans
+              {t('allPlans')}
             </span>
           </div>
         </div>
@@ -127,10 +126,10 @@ export default function QuickBooksDemoPage() {
               </div>
               <div>
                 <h3 className="font-bold text-[#1a1a2e] text-lg">
-                  {connected ? 'Connected to QuickBooks Online' : 'Not Connected'}
+                  {connected ? t('connectedToQB') : t('notConnected')}
                 </h3>
                 <p className="text-gray-500 text-sm">
-                  {connected ? `Last synced: ${lastSync}` : 'Connect to start syncing your data'}
+                  {connected ? `${t('lastSynced')}: ${lastSync}` : t('connectToStart')}
                 </p>
               </div>
             </div>
@@ -149,10 +148,10 @@ export default function QuickBooksDemoPage() {
                   {isSyncing ? (
                     <span className="flex items-center gap-2">
                       <span className="w-4 h-4 border-2 border-blue-700 border-t-transparent rounded-full animate-spin"></span>
-                      Syncing...
+                      {t('syncingEllipsis')}
                     </span>
                   ) : (
-                    '🔄 Sync Now'
+                    `🔄 ${t('syncNow')}`
                   )}
                 </button>
               )}
@@ -164,7 +163,7 @@ export default function QuickBooksDemoPage() {
                     : 'bg-[#2ca01c] text-white hover:bg-[#238c17]'
                 }`}
               >
-                {connected ? 'Disconnect' : 'Connect QuickBooks'}
+                {connected ? t('disconnect') : t('connectQuickBooks')}
               </button>
             </div>
           </div>
@@ -174,7 +173,7 @@ export default function QuickBooksDemoPage() {
             <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100">
               <div className="text-center p-4 bg-gray-50 rounded-xl">
                 <div className="text-3xl font-bold text-[#1a1a2e]">{syncStats.invoices.synced}</div>
-                <div className="text-sm text-gray-500 mt-1">Invoices Synced</div>
+                <div className="text-sm text-gray-500 mt-1">{t('invoicesSynced')}</div>
                 {syncStats.invoices.pending > 0 && (
                   <div className="text-xs text-yellow-600 mt-1">{syncStats.invoices.pending} pending</div>
                 )}

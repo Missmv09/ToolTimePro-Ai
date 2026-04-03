@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo services
 const demoServices = [
@@ -113,6 +115,7 @@ function getAvailableDates(): string[] {
 const demoBookedSlots = new Set(['10:00', '14:30']);
 
 export default function DemoBookingPage() {
+  const t = useTranslations('demo.booking');
   const [step, setStep] = useState<BookingStep>('service');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [booking, setBooking] = useState<BookingData>({
@@ -172,11 +175,11 @@ export default function DemoBookingPage() {
           <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
-          This is a preview of the customer booking experience.{' '}
+          {t('bannerText')}{' '}
           <Link href="/auth/signup" className="text-[#f5a623] underline">
-            Sign up
+            {t('bannerSignUp')}
           </Link>{' '}
-          to get your own booking page.
+          {t('bannerSuffix')}
         </p>
       </div>
 
@@ -189,9 +192,10 @@ export default function DemoBookingPage() {
             </div>
             <div>
               <h1 className="font-bold text-[#1a1a2e]">Green Scene Landscaping</h1>
-              <p className="text-sm text-[#5c5c70]">Online Booking</p>
+              <p className="text-sm text-[#5c5c70]">{t('onlineBooking')}</p>
             </div>
           </div>
+          <LanguageSwitcher />
         </div>
       </header>
 
