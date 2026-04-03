@@ -489,17 +489,17 @@ export default function BookingPage() {
               onClick={() => setStep('service')}
               className="flex items-center gap-1 text-[#5c5c70] hover:text-[#1a1a2e] mb-4 text-sm"
             >
-              ← Back to services
+              &larr; {t('backToServices')}
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Select Date & Time</h2>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('selectDateTime')}</h2>
             <p className="text-[#5c5c70] mb-6">
-              Choose when you&apos;d like to schedule your {booking.service?.name}.
+              {t('selectDateTimeSubtitle', { service: booking.service?.name || '' })}
             </p>
 
             {/* Date Selection */}
             <div className="mb-8">
-              <h3 className="font-bold text-[#1a1a2e] mb-3">Available Dates</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-3">{t('availableDates')}</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {availableDates.map((date) => {
                   const d = new Date(date + 'T00:00:00');
@@ -530,7 +530,7 @@ export default function BookingPage() {
             {/* Time Selection */}
             {booking.date && (
               <div>
-                <h3 className="font-bold text-[#1a1a2e] mb-3">Available Times</h3>
+                <h3 className="font-bold text-[#1a1a2e] mb-3">{t('availableTimes')}</h3>
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                   {timeSlots.map((time) => {
                     const isBooked = bookedSlots.has(time);
