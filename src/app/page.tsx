@@ -654,6 +654,11 @@ export default function Home() {
                 description: t('whySpanishDesc'),
               },
               {
+                icon: '📍',
+                title: 'Multi-Location Management',
+                description: 'Manage multiple service areas from one dashboard. Separate crews, schedules, and reporting per location — perfect for growing businesses and franchises.',
+              },
+              {
                 icon: '⚡',
                 title: t('whyFastTitle'),
                 description: t('whyFastDesc'),
