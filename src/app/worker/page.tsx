@@ -113,7 +113,7 @@ export default function WorkerJobsPage() {
             <p className="text-2xl font-bold text-navy-500">
               {completedCount}/{todaysJobs.length}
             </p>
-            <p className="text-xs text-gray-500">Completed</p>
+            <p className="text-xs text-gray-500">{t('completed')}</p>
           </div>
         </div>
       </div>
@@ -123,14 +123,14 @@ export default function WorkerJobsPage() {
         <div className="bg-gold-50 border-2 border-gold-500 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 bg-gold-500 rounded-full animate-pulse" />
-            <span className="text-sm font-medium text-gold-700">Currently Working</span>
+            <span className="text-sm font-medium text-gold-700">{t('currentlyWorking')}</span>
           </div>
           <h3 className="font-bold text-navy-500">
-            {inProgressJob.customer?.name || 'Job In Progress'}
+            {inProgressJob.customer?.name || t('jobInProgress')}
           </h3>
           <p className="text-sm text-gray-600">{inProgressJob.title}</p>
           <Link href={`/worker/job?id=${inProgressJob.id}`} className="btn-secondary mt-3 w-full text-center">
-            View Job Details
+            {t('viewJobDetails')}
           </Link>
         </div>
       )}
@@ -148,7 +148,7 @@ export default function WorkerJobsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-navy-500">
-                      {job.customer?.name || 'Unknown Customer'}
+                      {job.customer?.name || t('unknownCustomer')}
                     </h3>
                     <span className={`badge text-xs ${statusColors[job.status]}`}>
                       {statusLabels[job.status]}
@@ -178,7 +178,7 @@ export default function WorkerJobsPage() {
               {job.status === 'completed' && (
                 <div className="flex items-center gap-1 mt-3 text-green-600 text-sm">
                   <CheckCircle size={16} />
-                  <span>Completed</span>
+                  <span>{t('statusCompleted')}</span>
                 </div>
               )}
 
@@ -194,8 +194,8 @@ export default function WorkerJobsPage() {
       ) : (
         <div className="card text-center py-12">
           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600">No jobs scheduled</h3>
-          <p className="text-gray-400 mt-1">You have no jobs assigned for today</p>
+          <h3 className="text-lg font-medium text-gray-600">{t('noJobsScheduled')}</h3>
+          <p className="text-gray-400 mt-1">{t('noJobsAssignedToday')}</p>
         </div>
       )}
 

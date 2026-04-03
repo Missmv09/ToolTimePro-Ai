@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useTranslations } from 'next-intl'
 
 interface TimeEntry {
   id: string
@@ -20,6 +21,7 @@ interface ActiveBreak {
 }
 
 export default function TimeclockPage() {
+  const t = useTranslations('worker.timeclock')
   const [userId, setUserId] = useState<string | null>(null)
   const [companyId, setCompanyId] = useState<string | null>(null)
   const [currentEntry, setCurrentEntry] = useState<TimeEntry | null>(null)
@@ -268,14 +270,14 @@ export default function TimeclockPage() {
       }`}>
         <div className="text-center">
           <p className="text-lg font-semibold mb-2">
-            {isOnBreak ? `On ${activeBreak.break_type === 'meal' ? 'Meal' : 'Rest'} Break` :
-             isClockedIn ? 'Clocked In' : 'Clocked Out'}
+            {isOnBreak ? (activeBreak.break_type === 'meal' ? t('onMealBreak') : t('onRestBreak')) :
+             isClockedIn ? t('clockedIn') : t('clockedOut')}
           </p>
 
           {isClockedIn && (
             <>
               <p className="text-sm text-gray-600">
-                Since {new Date(currentEntry.clock_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                {t('since')} {new Date(currentEntry.clock_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {formatDuration(currentEntry.clock_in)}
@@ -298,7 +300,7 @@ export default function TimeclockPage() {
           disabled={actionLoading}
           className="w-full py-6 bg-green-600 text-white text-2xl font-bold rounded-2xl hover:bg-green-700 disabled:opacity-50 transition-colors shadow-lg"
         >
-          {actionLoading ? 'Please wait...' : '▶ CLOCK IN'}
+          {actionLoading ? t('pleaseWait') : `▶ ${t('clockIn')}`}
         </button>
       ) : isOnBreak ? (
         <button

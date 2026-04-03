@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -12,6 +14,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const { signUp, isConfigured } = useAuth()
+  const t = useTranslations('auth.signup')
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,7 +27,7 @@ export default function SignupPage() {
       if (signUpError) {
         const message = signUpError.message
         if (message === 'Failed to fetch') {
-          setError('Unable to connect. Please check your internet connection and try again.')
+          setError(t('connectionError'))
         } else {
           setError(message)
         }
@@ -37,7 +40,7 @@ export default function SignupPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
       if (message === 'Failed to fetch') {
-        setError('Unable to connect. Please check your internet connection and try again.')
+        setError(t('connectionError'))
       } else {
         setError(message)
       }
@@ -49,23 +52,26 @@ export default function SignupPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full text-center">
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher />
+          </div>
           <div className="bg-green-50 border border-green-200 rounded-lg p-8">
             <div className="text-4xl mb-4">📬</div>
-            <h2 className="text-2xl font-bold text-green-800 mb-4">Check your email!</h2>
+            <h2 className="text-2xl font-bold text-green-800 mb-4">{t('successTitle')}</h2>
             <p className="text-green-700 mb-2">
-              We&apos;ve sent a confirmation link to <strong>{email}</strong>.
+              {t('successMessage')} <strong>{email}</strong>.
             </p>
             <p className="text-green-600 text-sm">
-              Click the link in your email to verify your address and set your password.
+              {t('successInstruction')}
             </p>
             <div className="mt-6 pt-4 border-t border-green-200">
               <p className="text-sm text-gray-500">
-                Didn&apos;t get the email? Check your spam folder or{' '}
+                {t('noEmailReceived')}{' '}
                 <button
                   onClick={() => setSuccess(false)}
                   className="text-[#f5a623] hover:text-[#e6991a] font-medium"
                 >
-                  try again
+                  {t('tryAgain')}
                 </button>
               </p>
             </div>
@@ -78,20 +84,23 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        <div className="flex justify-end">
+          <LanguageSwitcher />
+        </div>
         <div>
-          <h1 className="text-3xl font-bold text-center text-gray-900">ToolTime Pro</h1>
+          <h1 className="text-3xl font-bold text-center text-gray-900">{t('title')}</h1>
           <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900">
-            Create your account
+            {t('heading')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Start your 14-day free trial
+            {t('subtitle')}
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSignup}>
           {!isConfigured && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
-              Authentication is not configured. Please contact support if this issue persists.
+              {t('authNotConfigured')}
             </div>
           )}
 
@@ -101,7 +110,7 @@ export default function SignupPage() {
               {error.includes('already exists') && (
                 <div className="mt-2">
                   <Link href="/auth/login" className="text-[#f5a623] hover:text-[#e6991a] font-medium underline">
-                    Go to sign in
+                    {t('goToSignIn')}
                   </Link>
                 </div>
               )}
@@ -111,7 +120,7 @@ export default function SignupPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                Full Name
+                {t('fullNameLabel')}
               </label>
               <input
                 id="fullName"
@@ -127,7 +136,7 @@ export default function SignupPage() {
 
             <div>
               <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
-                Company Name
+                {t('companyNameLabel')}
               </label>
               <input
                 id="companyName"
@@ -143,7 +152,7 @@ export default function SignupPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                {t('emailLabel')}
               </label>
               <input
                 id="email"
@@ -165,18 +174,18 @@ export default function SignupPage() {
             disabled={loading || !isConfigured}
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? t('creatingButton') : t('createButton')}
           </button>
 
           <p className="text-xs text-center text-gray-500">
-            By signing up, you agree to our Terms of Service and Privacy Policy
+            {t('termsText')}
           </p>
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{' '}
+          {t('hasAccount')}{' '}
           <Link href="/auth/login" className="text-[#f5a623] hover:text-[#e6991a] font-medium">
-            Sign in
+            {t('signInLink')}
           </Link>
         </p>
       </div>
