@@ -233,16 +233,16 @@ export default function ComparisonPage({ data }: Props) {
       {/* CTA */}
       <section className="py-16 px-4 bg-[#1a1a2e] text-white text-center">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4">Ready to Switch from {data.name}?</h2>
+          <h2 className="text-3xl font-bold mb-4">{t('readyToSwitchFrom', { name: data.name })}</h2>
           <p className="text-gray-300 text-lg mb-8">
-            No contracts. Cancel anytime. Free migration from {data.name}.
+            {t('readyToSwitchFromDesc', { name: data.name })}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup" className="bg-[#f5a623] hover:bg-[#e6991a] text-[#1a1a2e] font-semibold py-3 px-8 rounded-lg text-lg no-underline">
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
             <Link href="/pricing" className="border border-white/30 hover:bg-white/10 text-white font-semibold py-3 px-8 rounded-lg text-lg no-underline">
-              See Pricing
+              {t('seePricing')}
             </Link>
           </div>
         </div>
@@ -251,12 +251,12 @@ export default function ComparisonPage({ data }: Props) {
       {/* Footer */}
       <footer className="bg-gray-100 px-6 py-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} ToolTime Pro. All rights reserved.</p>
+          <p className="text-sm text-gray-500">{t('copyright', { year: new Date().getFullYear() })}</p>
           <div className="flex gap-6 text-sm text-gray-500">
-            <Link href="/compare" className="hover:text-gray-700 no-underline">All Comparisons</Link>
-            <Link href="/pricing" className="hover:text-gray-700 no-underline">Pricing</Link>
-            <Link href="/terms" className="hover:text-gray-700 no-underline">Terms</Link>
-            <Link href="/privacy" className="hover:text-gray-700 no-underline">Privacy</Link>
+            <Link href="/compare" className="hover:text-gray-700 no-underline">{t('allComparisons')}</Link>
+            <Link href="/pricing" className="hover:text-gray-700 no-underline">{t('seePricing')}</Link>
+            <Link href="/terms" className="hover:text-gray-700 no-underline">{t('terms')}</Link>
+            <Link href="/privacy" className="hover:text-gray-700 no-underline">{t('privacy')}</Link>
           </div>
         </div>
       </footer>

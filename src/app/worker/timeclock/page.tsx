@@ -308,7 +308,7 @@ export default function TimeclockPage() {
           disabled={actionLoading}
           className="w-full py-6 bg-blue-600 text-white text-2xl font-bold rounded-2xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-lg"
         >
-          {actionLoading ? 'Please wait...' : '✓ END BREAK'}
+          {actionLoading ? t('pleaseWait') : `✓ ${t('endBreak')}`}
         </button>
       ) : (
         <div className="space-y-3">
@@ -317,7 +317,7 @@ export default function TimeclockPage() {
             disabled={actionLoading}
             className="w-full py-6 bg-red-600 text-white text-2xl font-bold rounded-2xl hover:bg-red-700 disabled:opacity-50 transition-colors shadow-lg"
           >
-            {actionLoading ? 'Please wait...' : '⏹ CLOCK OUT'}
+            {actionLoading ? t('pleaseWait') : `⏹ ${t('clockOut')}`}
           </button>
 
           {/* Break Buttons */}
@@ -327,14 +327,14 @@ export default function TimeclockPage() {
               disabled={actionLoading}
               className="py-4 bg-yellow-500 text-white font-semibold rounded-xl hover:bg-yellow-600 disabled:opacity-50 transition-colors"
             >
-              🍽️ Meal Break
+              🍽️ {t('mealBreak')}
             </button>
             <button
               onClick={() => startBreak('rest')}
               disabled={actionLoading}
               className="py-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 disabled:opacity-50 transition-colors"
             >
-              ☕ Rest Break
+              ☕ {t('restBreak')}
             </button>
           </div>
         </div>
