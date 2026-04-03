@@ -352,18 +352,18 @@ export default function WorkerTimePage() {
                       <p className="text-sm font-medium text-gray-900">
                         {formatTimeRange(entry.clock_in, entry.clock_out)}
                       </p>
-                      <p className="text-xs text-gray-500">{hours.toFixed(1)} hrs</p>
+                      <p className="text-xs text-gray-500">{hours.toFixed(1)} {t('hrs')}</p>
                     </div>
                     <div className="ml-3">
                       {isActive ? (
                         <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full flex items-center gap-1">
                           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                          Active
+                          {t('active')}
                         </span>
                       ) : entry.status === 'completed' ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Completed</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">{t('completed')}</span>
                       ) : (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Edited</span>
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">{t('edited')}</span>
                       )}
                     </div>
                   </div>

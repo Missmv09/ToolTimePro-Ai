@@ -166,21 +166,20 @@ export default function IndustriesPage() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
             <span className="text-[#f5a623]">✓</span>
-            Works for ANY service business
+            {t('worksForAny')}
           </div>
 
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
-            Built for <span className="text-[#f5a623]">Every</span> Service Business
+            {t.rich('heroTitle', { highlight: (chunks) => <span className="text-[#f5a623]">{chunks}</span> })}
           </h1>
           <p className="text-xl text-white/90 mb-6 max-w-2xl mx-auto">
-            Unlike competitors who limit you to their list, ToolTime Pro adapts to YOUR business.
-            If you schedule jobs and manage workers, we&apos;ve got you covered.
+            {t('heroSubtitle')}
           </p>
 
           {/* Competitive callout */}
           <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-xl mb-8">
-            <span className="text-2xl font-bold text-[#f5a623]">60+</span>
-            <span className="text-white/90">Industries supported — and counting</span>
+            <span className="text-2xl font-bold text-[#f5a623]">{t('industriesCount')}</span>
+            <span className="text-white/90">{t('industriesCountLabel')}</span>
           </div>
 
           <div className="flex flex-wrap justify-center gap-4">
@@ -188,13 +187,13 @@ export default function IndustriesPage() {
               href="/auth/signup"
               className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-[#e6991a] transition-all no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
             <Link
               href="/demo/dashboard"
               className="px-8 py-4 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-all no-underline"
             >
-              See Demo
+              {t('seeDemo')}
             </Link>
           </div>
         </div>
@@ -208,7 +207,7 @@ export default function IndustriesPage() {
             <div className="relative w-full md:w-96">
               <input
                 type="text"
-                placeholder="Search industries..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-transparent"
@@ -256,13 +255,13 @@ export default function IndustriesPage() {
 
           {filteredIndustries.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg mb-4">No industries found matching &quot;{searchQuery}&quot;</p>
-              <p className="text-gray-400">But don&apos;t worry — ToolTime Pro works for ANY service business!</p>
+              <p className="text-gray-500 text-lg mb-4">{t('noResults', { query: searchQuery })}</p>
+              <p className="text-gray-400">{t('noResultsSub')}</p>
               <Link
                 href="/auth/signup"
                 className="inline-block mt-4 px-6 py-3 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold no-underline"
               >
-                Start Free Trial Anyway →
+                {t('startTrialAnyway')}
               </Link>
             </div>
           )}

@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, FileText, Home, LogOut, Truck, Camera, MessageSquare, FolderOpen, Clock, Lock, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface PortalSession {
   token: string;
@@ -19,6 +21,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('portal.layout');
 
   // Pro-only routes
   const PRO_ROUTES = ['/portal/tracker', '/portal/photos', '/portal/messages', '/portal/documents', '/portal/history'];
@@ -105,15 +108,15 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
 
   // Free nav items (always shown)
   const freeNavItems = [
-    { href: '/portal', label: 'Home', icon: Home },
-    { href: '/portal/appointments', label: 'Appts', icon: Calendar },
-    { href: '/portal/invoices', label: 'Invoices', icon: FileText },
+    { href: '/portal', label: t('home'), icon: Home },
+    { href: '/portal/appointments', label: t('appointments'), icon: Calendar },
+    { href: '/portal/invoices', label: t('invoices'), icon: FileText },
   ];
 
   // Pro nav items (shown with lock if not subscribed)
   const proNavItems = [
-    { href: '/portal/tracker', label: 'Tracker', icon: Truck },
-    { href: '/portal/messages', label: 'Messages', icon: MessageSquare },
+    { href: '/portal/tracker', label: t('tracker'), icon: Truck },
+    { href: '/portal/messages', label: t('messages'), icon: MessageSquare },
   ];
 
   // All nav items combined
@@ -131,11 +134,12 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <p className="font-semibold text-gray-900 text-sm">{session.customerName}</p>
               {hasPro && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gold-100 text-gold-700 uppercase">Pro</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gold-100 text-gold-700 uppercase">{t('proLabel')}</span>
               )}
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             {hasPro && (
               <div className="flex gap-1">
                 <Link href="/portal/photos" className={`p-2 rounded-lg hover:bg-gray-100 ${pathname === '/portal/photos' ? 'bg-gray-100' : ''}`}>
@@ -164,19 +168,18 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="w-16 h-16 bg-gold-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-8 h-8 text-gold-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Portal Pro Feature</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('portalProFeature')}</h2>
               <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
-                This feature is available with Customer Portal Pro. Ask your contractor
-                about upgrading to unlock job tracking, photos, messaging, documents, and full service history.
+                {t('portalProDescription')}
               </p>
               <div className="mt-6 space-y-3">
                 <div className="grid grid-cols-2 gap-3 text-left max-w-sm mx-auto">
                   {[
-                    { icon: Truck, label: 'Live Job Tracker' },
-                    { icon: Camera, label: 'Photo Gallery' },
-                    { icon: MessageSquare, label: 'Direct Messaging' },
-                    { icon: FolderOpen, label: 'Document Vault' },
-                    { icon: Clock, label: 'Service History' },
+                    { icon: Truck, label: t('liveJobTracker') },
+                    { icon: Camera, label: t('photoGallery') },
+                    { icon: MessageSquare, label: t('directMessaging') },
+                    { icon: FolderOpen, label: t('documentVault') },
+                    { icon: Clock, label: t('serviceHistory') },
                   ].map(item => (
                     <div key={item.label} className="flex items-center gap-2 text-sm text-gray-600">
                       <item.icon className="w-4 h-4 text-gold-500" />
@@ -189,7 +192,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
                 onClick={() => { setShowUpgradePrompt(false); router.push('/portal'); }}
                 className="mt-6 px-6 py-2.5 bg-navy-500 text-white rounded-xl font-medium hover:bg-navy-600 transition-colors"
               >
-                Back to Portal
+                {t('backToPortal')}
               </button>
             </div>
           </div>

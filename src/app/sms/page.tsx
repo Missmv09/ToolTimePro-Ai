@@ -114,7 +114,7 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">How to Get Help</h2>
+            <h2 className="text-xl font-bold mb-3">{t('howToGetHelp')}</h2>
             <p>
               Reply <strong>HELP</strong> to any message for assistance, or contact us at{' '}
               <strong>support@tooltimepro.com</strong>.
@@ -122,14 +122,14 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Supported Carriers</h2>
+            <h2 className="text-xl font-bold mb-3">{t('supportedCarriers')}</h2>
             <p>
               AT&amp;T, T-Mobile, Verizon, Sprint, and most major US carriers are supported.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Data Privacy</h2>
+            <h2 className="text-xl font-bold mb-3">{t('dataPrivacy')}</h2>
             <p>
               We do not sell, share, or use phone numbers or SMS data for marketing or advertising
               purposes. Phone numbers are only used to deliver service-related notifications on behalf
