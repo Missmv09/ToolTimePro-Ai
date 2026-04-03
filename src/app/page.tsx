@@ -8,20 +8,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
-// Non-translatable feature tab config
-const featureTabConfig = [
-  { icon: '🤖', href: '/jenny', highlight: true },
-  { icon: '📝', href: '/dashboard/smart-quote', highlight: true },
-  { icon: '⭐', href: '/demo/reviews', highlight: true },
-  { icon: '👷', href: '/demo/worker' },
-  { icon: '🛡️', href: '/demo/shield' },
-  { icon: '🗺️', href: '/demo/route-optimization' },
-  { icon: '📋', href: '/demo/dispatch' },
-  { icon: '👤', href: '/portal', highlight: true },
-  { icon: '📗', href: '/demo/quickbooks' },
-  { icon: '🌐', href: '/demo/website' },
-];
-
 // Demo cards that have badge translations
 const demoCardBadgeIndices = new Set([0, 1, 2, 3, 4, 5, 6, 7, 9]);
 
@@ -91,11 +77,6 @@ export default function Home() {
     { title: t('features_12_title'), description: t('features_12_desc') },
     { title: t('features_13_title'), description: t('features_13_desc') },
   ], [t]);
-
-  const featureTabs = useMemo(() => featureTabConfig.map((cfg, i) => ({
-    ...cfg,
-    name: t(`featureTabs_${i}`),
-  })), [t]);
 
   const demoCards = useMemo(() => demoCardConfig.map((cfg, i) => ({
     ...cfg,
@@ -470,83 +451,62 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Feature Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 mb-14">
-            {featureTabs.map((tab, index) => (
-              <Link
-                key={index}
-                href={tab.href}
-                className={`px-6 py-3.5 rounded-full font-semibold text-[0.9375rem] transition-all no-underline ${
-                  index === 0
-                    ? 'bg-[#f5a623] text-[#1a1a2e] border border-[#f5a623]'
-                    : 'bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 hover:text-white'
-                }`}
-              >
-                {tab.icon} {tab.name}
-              </Link>
-            ))}
-          </div>
-
-          {/* Feature Content */}
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <div>
-              <ul className="space-y-7">
-                {features.map((feature, index) => (
-                  <li key={index} className="flex gap-5">
-                    <div className="w-9 h-9 min-w-[36px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-[#1a1a2e] font-bold">
-                      ✓
+          {/* Phone Mockup */}
+          <div className="flex justify-center mb-16">
+            <div className="relative max-w-[300px] w-full">
+              {/* Glow effect behind phone */}
+              <div className="absolute -inset-6 bg-gradient-to-b from-[#f5a623]/30 to-[#00c853]/25 rounded-[52px] blur-2xl opacity-80" />
+              <div className="relative bg-gradient-to-b from-[#3a3a55] to-[#1a1a2e] rounded-[44px] p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.45),0_0_0_2px_rgba(255,255,255,0.15)]">
+                {/* Notch */}
+                <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-[#3a3a55] rounded-b-[16px] z-10" />
+                <div className="bg-white rounded-[38px] overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-16 pb-5">
+                    <h4 className="font-extrabold text-[1.25rem] tracking-wide text-[#f5a623]">👷 {t('workerApp')}</h4>
+                    <p className="text-[rgba(255,255,255,0.85)] text-[0.875rem] mt-1">{t('todaysSchedule')}</p>
+                  </div>
+                  {/* Body */}
+                  <div className="p-4 space-y-3">
+                    <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
+                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏠 Martinez Residence</h5>
+                      <p className="text-[0.8125rem] text-[#8e8e9f]">123 Oak Street</p>
+                      <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">9:00 AM - 11:00 AM</p>
                     </div>
-                    <div>
-                      <h4 className="text-white font-extrabold text-[1.0625rem] mb-1.5">
-                        {feature.title}
-                        {feature.badge && (
-                          <span className="ml-2 bg-white/20 text-white/90 text-[0.625rem] font-bold px-2 py-0.5 rounded-full align-middle">
-                            {feature.badge}
-                          </span>
-                        )}
-                      </h4>
-                      <p className="text-white/65 text-[0.9375rem] leading-relaxed">{feature.description}</p>
+                    <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
+                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏢 Oak Valley HOA</h5>
+                      <p className="text-[0.8125rem] text-[#8e8e9f]">456 Pine Avenue</p>
+                      <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Phone Mockup */}
-            <div className="flex justify-center items-center">
-              <div className="relative max-w-[300px] w-full">
-                {/* Glow effect behind phone */}
-                <div className="absolute -inset-6 bg-gradient-to-b from-[#f5a623]/30 to-[#00c853]/25 rounded-[52px] blur-2xl opacity-80" />
-                <div className="relative bg-gradient-to-b from-[#3a3a55] to-[#1a1a2e] rounded-[44px] p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.45),0_0_0_2px_rgba(255,255,255,0.15)]">
-                  {/* Notch */}
-                  <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-[#3a3a55] rounded-b-[16px] z-10" />
-                  <div className="bg-white rounded-[38px] overflow-hidden">
-                    {/* Header */}
-                    <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-16 pb-5">
-                      <h4 className="font-extrabold text-[1.25rem] tracking-wide text-[#f5a623]">👷 {t('workerApp')}</h4>
-                      <p className="text-[rgba(255,255,255,0.85)] text-[0.875rem] mt-1">{t('todaysSchedule')}</p>
-                    </div>
-                    {/* Body */}
-                    <div className="p-4 space-y-3">
-                      <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
-                        <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏠 Martinez Residence</h5>
-                        <p className="text-[0.8125rem] text-[#8e8e9f]">123 Oak Street</p>
-                        <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">9:00 AM - 11:00 AM</p>
-                      </div>
-                      <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
-                        <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏢 Oak Valley HOA</h5>
-                        <p className="text-[0.8125rem] text-[#8e8e9f]">456 Pine Avenue</p>
-                        <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
-                      </div>
-                      <button className="w-full py-4 bg-gradient-to-r from-[#00c853] to-[#00e676] text-white font-bold rounded-2xl shadow-[0_4px_20px_rgba(0,200,83,0.35)] hover:shadow-[0_6px_28px_rgba(0,200,83,0.45)] transition-shadow">
-                        ⏰ {t('clockInNow')}
-                      </button>
-                    </div>
+                    <button className="w-full py-4 bg-gradient-to-r from-[#00c853] to-[#00e676] text-white font-bold rounded-2xl shadow-[0_4px_20px_rgba(0,200,83,0.35)] hover:shadow-[0_6px_28px_rgba(0,200,83,0.45)] transition-shadow">
+                      ⏰ {t('clockInNow')}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Feature Grid */}
+          <ul className="grid md:grid-cols-2 gap-x-12 gap-y-7">
+            {features.map((feature, index) => (
+              <li key={index} className="flex gap-5">
+                <div className="w-9 h-9 min-w-[36px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-[#1a1a2e] font-bold">
+                  ✓
+                </div>
+                <div>
+                  <h4 className="text-white font-extrabold text-[1.0625rem] mb-1.5">
+                    {feature.title}
+                    {feature.badge && (
+                      <span className="ml-2 bg-white/20 text-white/90 text-[0.625rem] font-bold px-2 py-0.5 rounded-full align-middle">
+                        {feature.badge}
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-white/65 text-[0.9375rem] leading-relaxed">{feature.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

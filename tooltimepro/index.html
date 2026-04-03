@@ -128,16 +128,10 @@
         .features .section-label{background:rgba(245,166,35,0.2);color:var(--accent)}
         .features h2{color:var(--white)}
         .features .section-header p{color:rgba(255,255,255,0.7)}
-        .feature-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:56px;position:relative;z-index:1}
-        .feature-tab{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);padding:14px 24px;border-radius:100px;color:rgba(255,255,255,0.8);font-weight:600;font-size:0.9375rem;cursor:pointer;transition:all 0.3s}
-        .feature-tab:hover{background:rgba(255,255,255,0.15);color:var(--white)}
-        .feature-tab.active{background:var(--accent);color:var(--primary);border-color:var(--accent)}
-        .feature-tab.coming-soon-tab{text-decoration:none;position:relative;opacity:0.85;cursor:pointer}
-        .feature-tab.coming-soon-tab:hover{opacity:1}
-        .coming-soon-badge{background:var(--accent);color:var(--primary);padding:3px 8px;border-radius:10px;font-size:0.625rem;font-weight:700;margin-left:6px;vertical-align:middle}
-        .feature-content{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative;z-index:1}
-        .feature-list{list-style:none}
-        .feature-list li{display:flex;gap:20px;margin-bottom:28px}
+        .feature-content{display:flex;flex-direction:column;align-items:center;gap:48px;position:relative;z-index:1}
+        .feature-details{width:100%}
+        .feature-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:28px 48px}
+        .feature-list li{display:flex;gap:20px}
         .feature-check{width:36px;height:36px;min-width:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:bold}
         .feature-list h4{color:var(--white);margin-bottom:6px;font-size:1.0625rem}
         .feature-list p{font-size:0.9375rem;color:rgba(255,255,255,0.65);line-height:1.5}
@@ -158,7 +152,7 @@
         .clock-btn:hover{box-shadow:0 6px 28px rgba(0,200,83,0.45)}
         @media(max-width:968px){#jenny .container>div:nth-child(2){grid-template-columns:repeat(2,1fr)!important}}
         @media(max-width:480px){#jenny .container>div:nth-child(2){grid-template-columns:1fr!important}}
-        @media(max-width:768px){.feature-content{grid-template-columns:1fr;gap:48px}.feature-showcase{order:-1}}
+        @media(max-width:768px){.feature-list{grid-template-columns:1fr}}
 
         /* ToolTime HR Section */
         .hr-section{background:var(--accent-light);position:relative;overflow:hidden}
@@ -508,21 +502,22 @@
                 <h2>One Platform. Zero Headaches.</h2>
                 <p>Jenny AI handles intelligent dispatch, route optimization, and 24/7 customer communication. Combined with built-in compliance tools, bilingual support, mobile apps, and real-time analytics — everything your growing team needs.</p>
             </div>
-            <div class="feature-tabs">
-                <a href="#jenny" class="feature-tab" style="background:var(--accent);color:var(--primary);border-color:var(--accent)">🤖 Jenny AI</a>
-                <a href="quote.html" class="feature-tab">📝 Smart Quoting</a>
-                <a href="reviews.html" class="feature-tab">⭐ Reviews</a>
-                <a href="scheduler.html" class="feature-tab">📅 Scheduling</a>
-                <a href="dashboard.html" class="feature-tab">🗺️ Dispatch</a>
-                <a href="worker.html" class="feature-tab">👷 Worker App</a>
-                <a href="#demos" class="feature-tab">💰 Invoicing</a>
-                <a href="#demos" class="feature-tab">🚗 Routes</a>
-                <a href="hr-compliance.html" class="feature-tab">🛡️ Shield</a>
-                <a href="#demos" class="feature-tab">📗 QuickBooks</a>
-                <a href="#demos" class="feature-tab">👤 Customer Portal</a>
-                <a href="#demos" class="feature-tab">🌐 Website</a>
-            </div>
             <div class="feature-content">
+                <div class="feature-showcase">
+                    <div class="phone-mockup">
+                        <div class="phone-mockup-inner">
+                            <div class="phone-notch"></div>
+                            <div class="phone-screen">
+                                <div class="phone-header"><h4>👷 Worker App</h4><p class="subtitle">Today's Schedule</p></div>
+                                <div class="phone-body">
+                                    <div class="worker-job"><h5>🏠 Martinez Residence</h5><p>123 Oak Street</p><p class="time">9:00 AM - 11:00 AM</p></div>
+                                    <div class="worker-job"><h5>🏢 Oak Valley HOA</h5><p>456 Pine Avenue</p><p class="time">11:30 AM - 2:00 PM</p></div>
+                                    <button class="clock-btn">⏰ Clock In Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="feature-details">
                     <ul class="feature-list">
                         <li><div class="feature-check">✓</div><div><h4>Jenny AI — Your 24/7 AI Employee</h4><p>3 tiers: Lite (chatbot $19/mo), Pro (phone + SMS $49/mo), Exec Admin (compliance + analytics $79/mo). Works nights and weekends.</p></div></li>
@@ -540,21 +535,6 @@
                         <li><div class="feature-check">✓</div><div><h4>ToolTime Shield — CA Compliance</h4><p>Worker classification, final pay calculator, AB5 compliance, break tracking alerts, HR document library.</p></div></li>
                         <li><div class="feature-check">✓</div><div><h4>Professional Website — Built For You</h4><p>We create your branded site with online booking. Mobile-optimized, designed to convert visitors into customers.</p></div></li>
                     </ul>
-                </div>
-                <div class="feature-showcase">
-                    <div class="phone-mockup">
-                        <div class="phone-mockup-inner">
-                            <div class="phone-notch"></div>
-                            <div class="phone-screen">
-                                <div class="phone-header"><h4>👷 Worker App</h4><p class="subtitle">Today's Schedule</p></div>
-                                <div class="phone-body">
-                                    <div class="worker-job"><h5>🏠 Martinez Residence</h5><p>123 Oak Street</p><p class="time">9:00 AM - 11:00 AM</p></div>
-                                    <div class="worker-job"><h5>🏢 Oak Valley HOA</h5><p>456 Pine Avenue</p><p class="time">11:30 AM - 2:00 PM</p></div>
-                                    <button class="clock-btn">⏰ Clock In Now</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1310,7 +1290,6 @@
 
         document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));t&&(t.scrollIntoView({behavior:'smooth',block:'start'}),document.getElementById('navLinks').classList.remove('active'))})});
         document.getElementById('questionnaire-form').addEventListener('submit',function(e){e.preventDefault();alert("Thanks! We'll be in touch within 24 hours.");this.reset()});
-        document.querySelectorAll('.feature-tab').forEach(t=>{t.addEventListener('click',function(){document.querySelectorAll('.feature-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')})});
         const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add('visible')})},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
         document.querySelectorAll('.animate-on-scroll').forEach(e=>observer.observe(e));
     </script>
