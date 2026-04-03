@@ -68,7 +68,7 @@ const PRODUCTS = [
   // === Jenny AI Tiers ===
   {
     id: 'jenny_lite',
-    name: 'Jenny Lite — AI Chatbot',
+    name: 'Jenny Lite — ToolTime Assistant',
     description: '24/7 website chatbot. Lead capture, FAQ answering, appointment booking. Bilingual English/Spanish. Included free with all plans.',
     prices: [
       { key: 'monthly', amount: 1900, interval: 'month' },

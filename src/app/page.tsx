@@ -749,6 +749,11 @@ export default function Home() {
                 description: 'Native bilingual interface in every tier. Over 40% of field crews are Spanish-speaking — we built for them from day one.',
               },
               {
+                icon: '📍',
+                title: 'Multi-Location Management',
+                description: 'Manage multiple service areas from one dashboard. Separate crews, schedules, and reporting per location — perfect for growing businesses and franchises.',
+              },
+              {
                 icon: '⚡',
                 title: 'Fast Setup, Real Results',
                 description: 'Running in 1–2 weeks, not 6–12 months. No expensive consultants, no lengthy onboarding. See ROI immediately.',
