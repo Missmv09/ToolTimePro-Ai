@@ -654,7 +654,7 @@ export default function BookingPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">State *</label>
+                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">{t('stateLabel')} *</label>
                     <input
                       type="text"
                       required
@@ -668,7 +668,7 @@ export default function BookingPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
-                      ZIP Code *
+                      {t('zipCode')} *
                     </label>
                     <input
                       type="text"
@@ -685,14 +685,14 @@ export default function BookingPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
-                    Additional Notes
+                    {t('additionalNotes')}
                   </label>
                   <textarea
                     value={booking.notes}
                     onChange={(e) => setBooking((prev) => ({ ...prev, notes: e.target.value }))}
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all resize-none"
-                    placeholder="Any special instructions or details about the job..."
+                    placeholder={t('notesPlaceholder')}
                   />
                 </div>
 
@@ -708,15 +708,11 @@ export default function BookingPage() {
                       className="mt-1 w-5 h-5 rounded border-gray-300 text-[#f5a623] focus:ring-[#f5a623] cursor-pointer"
                     />
                     <span className="text-sm text-[#1a1a2e]">
-                      I agree to receive SMS/text message notifications about my appointment
-                      (confirmations, reminders, and updates) from {company?.name} via ToolTime Pro.
-                      Message and data rates may apply. Message frequency varies. Reply <strong>STOP</strong> to
-                      opt out or <strong>HELP</strong> for help at any time.
+                      {t('smsConsent', { company: company?.name || '' })}
                     </span>
                   </label>
                   <p className="text-xs text-[#5c5c70] mt-2 ml-8">
-                    By checking this box, you consent to receive service-related text messages.
-                    View our{' '}
+                    {t('smsConsentFooter')}{' '}
                     <Link href="/privacy" target="_blank" className="text-[#f5a623] underline">
                       Privacy Policy
                     </Link>{' '}

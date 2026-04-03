@@ -26,6 +26,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
+  const t = useTranslations('worker.layout')
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -100,8 +101,6 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   if (!user) {
     return null
   }
-
-  const t = useTranslations('worker.layout')
 
   const navItems = [
     { href: '/worker/timeclock', label: t('clock'), icon: '⏱️' },
