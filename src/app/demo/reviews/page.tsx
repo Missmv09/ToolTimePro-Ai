@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import {
   Star,
   Send,
@@ -92,6 +94,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function DemoReviewsPage() {
+  const t = useTranslations('demo.reviews');
   const [sentJobs, setSentJobs] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [isSending, setIsSending] = useState<string | null>(null);
@@ -114,11 +117,11 @@ export default function DemoReviewsPage() {
           <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
-          This is a preview of the Review Machine — powered by Jenny AI.{' '}
+          {t('bannerText')}{' '}
           <Link href="/auth/signup" className="text-[#f5a623] underline">
-            Sign up
+            {t('bannerSignUp')}
           </Link>{' '}
-          to automate your review requests.
+          {t('bannerSuffix')}
         </p>
       </div>
 
@@ -126,26 +129,29 @@ export default function DemoReviewsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#1a1a2e]">Review Machine</h1>
-            <p className="text-[#5c5c70]">Automate 5-star review requests after every job</p>
+            <h1 className="text-2xl font-bold text-[#1a1a2e]">{t('title')}</h1>
+            <p className="text-[#5c5c70]">{t('subtitle')}</p>
           </div>
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-[#1a1a2e] hover:bg-gray-50"
-          >
-            <Settings size={18} />
-            Settings
-          </button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-[#1a1a2e] hover:bg-gray-50"
+            >
+              <Settings size={18} />
+              {t('settings')}
+            </button>
+          </div>
         </div>
 
         {/* Settings Panel */}
         {showSettings && (
           <div className="bg-white rounded-xl border-2 border-[#f5a623] p-6 mb-8">
-            <h3 className="font-semibold text-[#1a1a2e] mb-4">Review Settings</h3>
+            <h3 className="font-semibold text-[#1a1a2e] mb-4">{t('reviewSettings')}</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Google Review Link
+                  {t('googleReviewLink')}
                 </label>
                 <input
                   type="url"
@@ -153,7 +159,7 @@ export default function DemoReviewsPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Get your link from Google Business Profile → Share → Ask for reviews
+                  {t('googleLinkHint')}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -164,7 +170,7 @@ export default function DemoReviewsPage() {
                   className="w-4 h-4 rounded border-gray-300 text-[#f5a623]"
                 />
                 <label htmlFor="autoSend" className="text-sm text-gray-700">
-                  Automatically send review requests when jobs are marked complete
+                  {t('autoSendLabel')}
                 </label>
               </div>
             </div>

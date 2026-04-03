@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo data
 const complianceScore = 85;
@@ -31,6 +33,7 @@ const quizQuestions = [
 ];
 
 export default function ShieldDemoPage() {
+  const t = useTranslations('demo.shield');
   const [activeTab, setActiveTab] = useState<'overview' | 'checklist' | 'documents' | 'calculator' | 'quiz'>('overview');
   const [quizStep, setQuizStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<string[]>([]);

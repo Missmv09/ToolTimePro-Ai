@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo data for calendar
 const demoJobs = [
@@ -28,6 +30,7 @@ const demoTechs = [
 ];
 
 export default function SchedulingDemoPage() {
+  const t = useTranslations('demo.scheduling');
   const [selectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
 

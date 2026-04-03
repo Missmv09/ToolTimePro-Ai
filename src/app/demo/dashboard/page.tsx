@@ -258,7 +258,7 @@ export default function DashboardDemoPage() {
                 <span className="text-lg">📨</span>
               </div>
               <div className="text-3xl font-bold text-red-500">{demoStats.unpaidInvoices}</div>
-              <p className="text-xs text-gray-400 mt-1">$4,200 outstanding</p>
+              <p className="text-xs text-gray-400 mt-1">{t('outstanding')}</p>
             </div>
           </div>
 
@@ -266,35 +266,35 @@ export default function DashboardDemoPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-5 text-white">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-white/70">Jenny AI Today</span>
+                <span className="text-sm text-white/70">{t('jennyAiToday')}</span>
                 <span className="text-lg">🤖</span>
               </div>
               <div className="text-3xl font-bold">7</div>
-              <p className="text-xs text-white/60 mt-1">3 calls, 2 quotes, 2 reviews</p>
+              <p className="text-xs text-white/60 mt-1">{t('jennyDetail')}</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">Reviews</span>
+                <span className="text-sm text-gray-500">{t('reviews')}</span>
                 <span className="text-lg">⭐</span>
               </div>
               <div className="text-3xl font-bold text-[#1a1a2e]">{demoStats.avgRating}</div>
-              <p className="text-xs text-green-600 mt-1">{demoStats.reviewsThisMonth} new this month</p>
+              <p className="text-xs text-green-600 mt-1">{demoStats.reviewsThisMonth} {t('newThisMonth')}</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">Active Crew</span>
+                <span className="text-sm text-gray-500">{t('activeCrew')}</span>
                 <span className="text-lg">👷</span>
               </div>
               <div className="text-3xl font-bold text-[#1a1a2e]">{demoStats.activeCrew}</div>
-              <p className="text-xs text-gray-400 mt-1">All CA-compliant</p>
+              <p className="text-xs text-gray-400 mt-1">{t('allCompliant')}</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">New Leads</span>
+                <span className="text-sm text-gray-500">{t('newLeads')}</span>
                 <span className="text-lg">👥</span>
               </div>
               <div className="text-3xl font-bold text-[#f5a623]">{demoStats.newLeads}</div>
-              <p className="text-xs text-gray-400 mt-1">4 from Jenny, 5 from website</p>
+              <p className="text-xs text-gray-400 mt-1">{t('newLeadsDetail')}</p>
             </div>
           </div>
 
@@ -305,10 +305,10 @@ export default function DashboardDemoPage() {
               <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a]">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🤖</span>
-                  <h2 className="font-bold text-white">Jenny AI — Live Activity</h2>
+                  <h2 className="font-bold text-white">{t('jennyLiveActivity')}</h2>
                 </div>
                 <Link href="/demo/phone-receptionist" className="text-xs text-[#f5a623] font-medium no-underline hover:underline">
-                  Configure →
+                  {t('configure')} →
                 </Link>
               </div>
               <div className="divide-y divide-gray-100">
@@ -328,15 +328,15 @@ export default function DashboardDemoPage() {
                 ))}
               </div>
               <div className="p-3 bg-gray-50 border-t border-gray-200 text-center">
-                <span className="text-xs text-gray-500">Jenny answered <strong>156 calls</strong> and collected <strong>23 reviews</strong> this month</span>
+                <span className="text-xs text-gray-500">{t('jennyMonthSummary', { calls: 156, reviews: 23 })}</span>
               </div>
             </div>
 
             {/* Weekly Revenue Chart */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">Weekly Revenue</h2>
-                <span className="text-sm text-gray-400">This week</span>
+                <h2 className="font-bold text-[#1a1a2e]">{t('weeklyRevenue')}</h2>
+                <span className="text-sm text-gray-400">{t('thisWeek')}</span>
               </div>
               <div className="p-6">
                 <div className="flex items-end justify-between gap-3 h-40 mb-4">
@@ -353,11 +353,11 @@ export default function DashboardDemoPage() {
                 </div>
                 <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Week total</p>
+                    <p className="text-sm text-gray-500">{t('weekTotal')}</p>
                     <p className="text-2xl font-bold text-[#1a1a2e]">$15,000</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">vs. last week</p>
+                    <p className="text-sm text-gray-500">{t('vsLastWeek')}</p>
                     <p className="text-sm font-semibold text-green-600">+12.4%</p>
                   </div>
                 </div>
@@ -370,8 +370,8 @@ export default function DashboardDemoPage() {
             {/* Today's Jobs */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">Today&apos;s Jobs</h2>
-                <Link href="/demo/scheduling" className="text-sm text-blue-600 font-medium no-underline hover:underline">View Schedule →</Link>
+                <h2 className="font-bold text-[#1a1a2e]">{t('todaysJobs')}</h2>
+                <Link href="/demo/scheduling" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('viewSchedule')} →</Link>
               </div>
               <div className="divide-y divide-gray-100">
                 {demoJobs.map((job) => (
@@ -395,8 +395,8 @@ export default function DashboardDemoPage() {
             {/* Quotes Pipeline */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">Quotes Pipeline</h2>
-                <Link href="/demo/invoicing" className="text-sm text-blue-600 font-medium no-underline hover:underline">View All →</Link>
+                <h2 className="font-bold text-[#1a1a2e]">{t('quotesPipeline')}</h2>
+                <Link href="/demo/invoicing" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('viewAll')} →</Link>
               </div>
               <div className="divide-y divide-gray-100">
                 {recentQuotes.map((quote) => (
@@ -416,7 +416,7 @@ export default function DashboardDemoPage() {
                 ))}
               </div>
               <div className="p-3 bg-gray-50 border-t border-gray-200 text-center">
-                <span className="text-xs text-gray-500">Close rate: <strong className="text-green-600">68%</strong> — avg. time to sign: <strong>1.2 days</strong></span>
+                <span className="text-xs text-gray-500">{t('closeRate')} <strong className="text-green-600">68%</strong> — {t('avgTimeToSign')} <strong>1.2 days</strong></span>
               </div>
             </div>
           </div>
@@ -426,8 +426,8 @@ export default function DashboardDemoPage() {
             {/* New Leads */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">New Leads</h2>
-                <span className="text-sm text-blue-600 font-medium cursor-pointer">View CRM →</span>
+                <h2 className="font-bold text-[#1a1a2e]">{t('newLeadsTitle')}</h2>
+                <span className="text-sm text-blue-600 font-medium cursor-pointer">{t('viewCRM')} →</span>
               </div>
               <div className="divide-y divide-gray-100">
                 {demoLeads.map((lead) => (
@@ -452,9 +452,9 @@ export default function DashboardDemoPage() {
               <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🛡️</span>
-                  <h2 className="font-bold text-[#1a1a2e]">ToolTime Shield</h2>
+                  <h2 className="font-bold text-[#1a1a2e]">{t('toolTimeShield')}</h2>
                 </div>
-                <Link href="/demo/shield" className="text-sm text-blue-600 font-medium no-underline hover:underline">View All →</Link>
+                <Link href="/demo/shield" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('viewAll')} →</Link>
               </div>
               <div className="divide-y divide-gray-100">
                 {complianceAlerts.map((alert) => (
@@ -465,7 +465,7 @@ export default function DashboardDemoPage() {
                     <div className="flex-1">
                       <p className="text-sm text-gray-700">{alert.message}</p>
                       {alert.action && (
-                        <button className="text-xs text-blue-600 font-medium mt-1 hover:underline">{alert.action}</button>
+                        <button className="text-xs text-blue-600 font-medium mt-1 hover:underline">{t('sendReminder')}</button>
                       )}
                     </div>
                   </div>
@@ -474,7 +474,7 @@ export default function DashboardDemoPage() {
               <div className="p-3 bg-green-50 border-t border-gray-200">
                 <div className="flex items-center gap-2">
                   <span className="text-xs">✅</span>
-                  <span className="text-xs text-green-700 font-medium">CA labor law compliance: 96% — AB5, final pay, break tracking active</span>
+                  <span className="text-xs text-green-700 font-medium">{t('complianceStatus')}</span>
                 </div>
               </div>
             </div>
@@ -483,22 +483,22 @@ export default function DashboardDemoPage() {
           {/* Crew Status Table */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="font-bold text-[#1a1a2e]">Crew Status</h2>
+              <h2 className="font-bold text-[#1a1a2e]">{t('crewStatus')}</h2>
               <div className="flex gap-3">
-                <Link href="/demo/dispatch" className="text-sm text-blue-600 font-medium no-underline hover:underline">Dispatch Board →</Link>
-                <Link href="/demo/route-optimization" className="text-sm text-blue-600 font-medium no-underline hover:underline">Routes →</Link>
+                <Link href="/demo/dispatch" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('dispatchBoard')} →</Link>
+                <Link href="/demo/route-optimization" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('routes')} →</Link>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">Name</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">Current Job</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">Clock In</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">Break Status</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-500 text-xs">Actions</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">{t('thName')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">{t('thStatus')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">{t('thCurrentJob')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">{t('thClockIn')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs">{t('thBreakStatus')}</th>
+                    <th className="text-right py-3 px-4 font-medium text-gray-500 text-xs">{t('thActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -521,14 +521,14 @@ export default function DashboardDemoPage() {
                       <td className="py-3 px-4 text-gray-600 text-sm">{worker.clockIn}</td>
                       <td className="py-3 px-4">
                         {worker.breakCompliant ? (
-                          <span className="text-xs text-green-600 font-medium">✓ Compliant</span>
+                          <span className="text-xs text-green-600 font-medium">✓ {t('compliant')}</span>
                         ) : (
-                          <span className="text-xs text-red-600 font-medium">⚠ Break overdue</span>
+                          <span className="text-xs text-red-600 font-medium">⚠ {t('breakOverdue')}</span>
                         )}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <button className="text-blue-600 text-xs font-medium mr-3">Message</button>
-                        <button className="text-blue-600 text-xs font-medium">View</button>
+                        <button className="text-blue-600 text-xs font-medium mr-3">{t('message')}</button>
+                        <button className="text-blue-600 text-xs font-medium">{t('view')}</button>
                       </td>
                     </tr>
                   ))}
@@ -539,21 +539,21 @@ export default function DashboardDemoPage() {
 
           {/* Feature Quick Links Grid */}
           <div className="mb-6">
-            <h2 className="font-bold text-[#1a1a2e] mb-4">Explore All Features</h2>
+            <h2 className="font-bold text-[#1a1a2e] mb-4">{t('exploreAllFeatures')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {[
-                { icon: '🤖', label: 'AI Phone Receptionist', desc: 'Jenny answers 24/7', href: '/demo/phone-receptionist' },
-                { icon: '📝', label: 'Smart Quoting', desc: 'Send & sign digitally', href: '/demo/invoicing' },
-                { icon: '💰', label: 'Invoicing & Payments', desc: 'Get paid faster', href: '/demo/invoicing' },
-                { icon: '🗺️', label: 'Dispatch Board', desc: 'Real-time crew tracking', href: '/demo/dispatch' },
-                { icon: '🚗', label: 'Route Optimization', desc: 'Save time on the road', href: '/demo/route-optimization' },
-                { icon: '⭐', label: 'Review Machine', desc: 'Automate 5-star reviews', href: '/demo/reviews' },
-                { icon: '🛡️', label: 'ToolTime Shield', desc: 'CA compliance built-in', href: '/demo/shield' },
-                { icon: '📅', label: 'Online Booking', desc: 'Customers book directly', href: '/demo/booking' },
-                { icon: '👷', label: 'Worker Mobile App', desc: 'GPS clock-in, photos', href: '/demo/worker' },
-                { icon: '📚', label: 'QuickBooks Sync', desc: 'Two-way auto-sync', href: '/demo/quickbooks' },
-                { icon: '🌐', label: 'Business Website', desc: 'Free with Pro+ plan', href: '/demo/website' },
-                { icon: '💬', label: 'Jenny Lite Chatbot', desc: 'Capture leads on site', href: '/demo/chatbot' },
+                { icon: '🤖', label: t('featureAIPhone'), desc: t('featureAIPhoneDesc'), href: '/demo/phone-receptionist' },
+                { icon: '📝', label: t('featureSmartQuoting'), desc: t('featureSmartQuotingDesc'), href: '/demo/invoicing' },
+                { icon: '💰', label: t('featureInvoicing'), desc: t('featureInvoicingDesc'), href: '/demo/invoicing' },
+                { icon: '🗺️', label: t('featureDispatch'), desc: t('featureDispatchDesc'), href: '/demo/dispatch' },
+                { icon: '🚗', label: t('featureRoutes'), desc: t('featureRoutesDesc'), href: '/demo/route-optimization' },
+                { icon: '⭐', label: t('featureReviews'), desc: t('featureReviewsDesc'), href: '/demo/reviews' },
+                { icon: '🛡️', label: t('featureShield'), desc: t('featureShieldDesc'), href: '/demo/shield' },
+                { icon: '📅', label: t('featureBooking'), desc: t('featureBookingDesc'), href: '/demo/booking' },
+                { icon: '👷', label: t('featureWorker'), desc: t('featureWorkerDesc'), href: '/demo/worker' },
+                { icon: '📚', label: t('featureQuickBooks'), desc: t('featureQuickBooksDesc'), href: '/demo/quickbooks' },
+                { icon: '🌐', label: t('featureWebsite'), desc: t('featureWebsiteDesc'), href: '/demo/website' },
+                { icon: '💬', label: t('featureChatbot'), desc: t('featureChatbotDesc'), href: '/demo/chatbot' },
               ].map((feature) => (
                 <Link
                   key={feature.label}
@@ -572,16 +572,16 @@ export default function DashboardDemoPage() {
           <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-6 text-white">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h3 className="text-xl font-bold mb-1">Ready to run your business smarter?</h3>
+                <h3 className="text-xl font-bold mb-1">{t('readySmarter')}</h3>
                 <p className="text-white/70 text-sm">
-                  Smart quoting, AI phone receptionist, automated reviews, crew management, invoicing, compliance — all starting at $49/mo.
+                  {t('readySmarterDesc')}
                 </p>
               </div>
               <Link
                 href="/auth/signup"
                 className="px-6 py-3 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline text-center whitespace-nowrap"
               >
-                Start Free Trial →
+                {t('startFreeTrialCTA')} →
               </Link>
             </div>
           </div>

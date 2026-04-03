@@ -284,6 +284,7 @@ const STATUS_CONFIG = {
 // ============================================
 
 export default function DispatchBoardPage() {
+  const t = useTranslations('demo.dispatch');
   const [jobs, setJobs] = useState(DEMO_JOBS);
   const [techs, setTechs] = useState(DEMO_TECHS);
   const [selectedTech, setSelectedTech] = useState(null);
@@ -368,14 +369,15 @@ export default function DispatchBoardPage() {
     <div className="dispatch-page">
       {/* Demo Banner */}
       <div style={{ background: 'linear-gradient(90deg, #f5a623, #e6991a)', padding: '12px 20px', textAlign: 'center', color: '#1a1a2e', fontWeight: 600, fontSize: '0.9375rem' }}>
-        🎯 This is an interactive demo — <Link href="/auth/signup?plan=elite" style={{ textDecoration: 'underline', color: '#1a1a2e' }}>Get Elite Plan</Link> for full access
+        🎯 {t('demoBanner')} — <Link href="/auth/signup?plan=elite" style={{ textDecoration: 'underline', color: '#1a1a2e' }}>{t('getElitePlan')}</Link> {t('forFullAccess')}
       </div>
       {/* Header */}
       <header className="header">
         <div className="header-left">
-          <Link href="/" className="back-link">← Back to Home</Link>
-          <h1>Dispatch Board</h1>
-          <span className="elite-badge">Elite Feature</span>
+          <Link href="/" className="back-link">{t('backToHome')}</Link>
+          <h1>{t('title')}</h1>
+          <span className="elite-badge">{t('eliteFeature')}</span>
+          <LanguageSwitcher />
         </div>
         <div className="header-right">
           <div className="current-time">
@@ -386,13 +388,13 @@ export default function DispatchBoardPage() {
               className={viewMode === 'map' ? 'active' : ''}
               onClick={() => setViewMode('map')}
             >
-              Map
+              {t('map')}
             </button>
             <button
               className={viewMode === 'timeline' ? 'active' : ''}
               onClick={() => setViewMode('timeline')}
             >
-              Timeline
+              {t('timeline')}
             </button>
           </div>
         </div>
@@ -402,11 +404,11 @@ export default function DispatchBoardPage() {
         {/* Left Panel - Tech List */}
         <aside className="tech-panel">
           <div className="panel-header">
-            <h2>Crew ({techs.length})</h2>
+            <h2>{t('crew')} ({techs.length})</h2>
             <div className="status-summary">
-              <span className="status-dot on-site"></span> {techs.filter(t => t.status === 'on_site').length} On Site
-              <span className="status-dot en-route"></span> {techs.filter(t => t.status === 'en_route').length} En Route
-              <span className="status-dot available"></span> {techs.filter(t => t.status === 'available').length} Available
+              <span className="status-dot on-site"></span> {techs.filter(tc => tc.status === 'on_site').length} {t('onSite')}
+              <span className="status-dot en-route"></span> {techs.filter(tc => tc.status === 'en_route').length} {t('enRoute')}
+              <span className="status-dot available"></span> {techs.filter(tc => tc.status === 'available').length} {t('available')}
             </div>
           </div>
 
@@ -426,9 +428,9 @@ export default function DispatchBoardPage() {
                   <h4>{tech.name}</h4>
                   <p className="tech-vehicle">{tech.vehicle} • {tech.specialty}</p>
                   <span className={`tech-status ${tech.status}`}>
-                    {tech.status === 'on_site' && 'On Site'}
-                    {tech.status === 'en_route' && 'En Route'}
-                    {tech.status === 'available' && 'Available'}
+                    {tech.status === 'on_site' && t('onSite')}
+                    {tech.status === 'en_route' && t('enRoute')}
+                    {tech.status === 'available' && t('available')}
                   </span>
                 </div>
                 <div className="tech-actions">
@@ -487,7 +489,7 @@ export default function DispatchBoardPage() {
                   {/* Map overlay info */}
                   <div className="map-overlay">
                     <p>📍 Los Angeles Area</p>
-                    <p className="update-time">Live • Updated just now</p>
+                    <p className="update-time">{t('liveUpdated')}</p>
                   </div>
                 </div>
               </div>
@@ -509,26 +511,26 @@ export default function DispatchBoardPage() {
                       </div>
                       <div className="detail-body">
                         <p className={`status-badge ${selectedTech.status}`}>
-                          {selectedTech.status === 'on_site' && 'Currently On Site'}
-                          {selectedTech.status === 'en_route' && 'Driving to Job'}
-                          {selectedTech.status === 'available' && 'Available for Assignment'}
+                          {selectedTech.status === 'on_site' && t('currentlyOnSite')}
+                          {selectedTech.status === 'en_route' && t('drivingToJob')}
+                          {selectedTech.status === 'available' && t('availableForAssignment')}
                         </p>
                         <div className="tech-stats">
-                          <span>⭐ {selectedTech.rating} rating</span>
-                          <span>📋 {selectedTech.jobsToday} jobs today</span>
+                          <span>⭐ {selectedTech.rating} {t('rating')}</span>
+                          <span>📋 {selectedTech.jobsToday} {t('jobsToday')}</span>
                           <span>🔧 {selectedTech.specialty}</span>
                         </div>
                         {selectedTech.currentJob && (
                           <div className="current-job">
-                            <strong>Current Job:</strong> {selectedTech.currentJob}
+                            <strong>{t('currentJobLabel')}:</strong> {selectedTech.currentJob}
                             <br />
                             {jobs.find(j => j.id === selectedTech.currentJob)?.customer}
                           </div>
                         )}
                         <div className="detail-actions">
-                          <button className="btn-primary">📞 Call</button>
-                          <button className="btn-secondary">💬 Message</button>
-                          <button className="btn-secondary">📋 View Schedule</button>
+                          <button className="btn-primary">📞 {t('call')}</button>
+                          <button className="btn-secondary">💬 {t('message')}</button>
+                          <button className="btn-secondary">📋 {t('viewSchedule')}</button>
                         </div>
                       </div>
                     </>
@@ -559,7 +561,7 @@ export default function DispatchBoardPage() {
                               className="btn-primary"
                               onClick={() => handleStatusChange(selectedJob.id, 'en_route')}
                             >
-                              Mark En Route
+                              {t('markEnRoute')}
                             </button>
                           )}
                           {selectedJob.status === 'en_route' && (
@@ -568,13 +570,13 @@ export default function DispatchBoardPage() {
                                 className="btn-primary"
                                 onClick={() => handleStatusChange(selectedJob.id, 'in_progress')}
                               >
-                                Arrived On Site
+                                {t('arrivedOnSite')}
                               </button>
                               <button
                                 className="btn-warning"
                                 onClick={() => handleSendRunningLate(selectedJob.id)}
                               >
-                                Running Late
+                                {t('runningLate')}
                               </button>
                             </>
                           )}
@@ -583,7 +585,7 @@ export default function DispatchBoardPage() {
                               className="btn-success"
                               onClick={() => handleStatusChange(selectedJob.id, 'completed')}
                             >
-                              Mark Complete
+                              {t('markComplete')}
                             </button>
                           )}
                           {!selectedJob.techId && (
@@ -591,7 +593,7 @@ export default function DispatchBoardPage() {
                               className="btn-primary"
                               onClick={() => setShowAssignModal(true)}
                             >
-                              Assign Tech
+                              {t('assignTech')}
                             </button>
                           )}
                         </div>
@@ -604,7 +606,7 @@ export default function DispatchBoardPage() {
           ) : (
             <div className="timeline-view">
               <div className="timeline-header">
-                <div className="timeline-tech-col">Tech</div>
+                <div className="timeline-tech-col">{t('tech')}</div>
                 {['8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM'].map(time => (
                   <div key={time} className="timeline-hour">{time}</div>
                 ))}
@@ -670,14 +672,14 @@ export default function DispatchBoardPage() {
         {/* Right Panel - Job Queue */}
         <aside className="job-panel">
           <div className="panel-header">
-            <h2>Today&apos;s Jobs ({jobs.length})</h2>
+            <h2>{t('todaysJobs')} ({jobs.length})</h2>
           </div>
 
           {/* Unassigned Jobs */}
           {unassignedJobs.length > 0 && (
             <div className="job-section">
               <h3 className="section-title warning">
-                Unassigned ({unassignedJobs.length})
+                {t('unassigned')} ({unassignedJobs.length})
               </h3>
               {unassignedJobs.map(job => (
                 <div
@@ -704,7 +706,7 @@ export default function DispatchBoardPage() {
                         setShowAssignModal(true);
                       }}
                     >
-                      + Assign
+                      + {t('assign')}
                     </button>
                   </div>
                 </div>
@@ -714,7 +716,7 @@ export default function DispatchBoardPage() {
 
           {/* Assigned Jobs */}
           <div className="job-section">
-            <h3 className="section-title">Scheduled ({assignedJobs.length})</h3>
+            <h3 className="section-title">{t('scheduled')} ({assignedJobs.length})</h3>
             {assignedJobs.map(job => {
               const tech = techs.find(t => t.id === job.techId);
               return (
@@ -754,7 +756,7 @@ export default function DispatchBoardPage() {
       {showAssignModal && selectedJob && (
         <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3>Assign Job {selectedJob.id}</h3>
+            <h3>{t('assignJob')} {selectedJob.id}</h3>
             <p>{selectedJob.service} • {selectedJob.customer}</p>
             <div className="modal-techs">
               {techs.map(tech => (
@@ -767,8 +769,8 @@ export default function DispatchBoardPage() {
                   <div>
                     <strong>{tech.name}</strong>
                     <span className="tech-status-small">
-                      {tech.status === 'available' ? 'Available' :
-                       tech.status === 'en_route' ? 'En Route' : 'On Site'}
+                      {tech.status === 'available' ? t('available') :
+                       tech.status === 'en_route' ? t('enRoute') : t('onSite')}
                       {' • '}{tech.specialty}
                     </span>
                   </div>
@@ -776,7 +778,7 @@ export default function DispatchBoardPage() {
               ))}
             </div>
             <button className="modal-close" onClick={() => setShowAssignModal(false)}>
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -794,11 +796,11 @@ export default function DispatchBoardPage() {
         <div className="banner-content">
           <span className="banner-icon">🚀</span>
           <div>
-            <strong>This is a demo of the Elite Dispatch Board</strong>
-            <p>Upgrade to Elite to manage multiple crews in real-time</p>
+            <strong>{t('upgradeBannerTitle')}</strong>
+            <p>{t('upgradeBannerDesc')}</p>
           </div>
           <Link href="/pricing" className="banner-cta">
-            Upgrade to Elite →
+            {t('upgradeToElite')}
           </Link>
         </div>
       </div>
