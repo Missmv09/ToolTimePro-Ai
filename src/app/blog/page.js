@@ -4,16 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Clock, ArrowRight, Tag } from 'lucide-react';
-
-const CATEGORIES = [
-  { id: 'all', label: 'All Posts' },
-  { id: 'tips', label: 'Tips & Tricks' },
-  { id: 'guides', label: 'Guides' },
-  { id: 'industry-news', label: 'Industry News' },
-  { id: 'product-updates', label: 'Product Updates' },
-];
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function BlogListingPage() {
+  const t = useTranslations('blog.list');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');

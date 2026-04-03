@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
+import { useTranslations } from 'next-intl';
 
 interface ChecklistItem {
   id: string;
@@ -62,16 +63,16 @@ interface WorkerData {
   company_id: string;
 }
 
-// Default checklist template
-const getDefaultChecklist = (jobTitle: string): ChecklistItem[] => {
+// Default checklist template - uses translation keys, actual text set in component
+const getDefaultChecklistKeys = (): { id: string; key: string; required: boolean }[] => {
   return [
-    { id: '1', text: 'Arrive and check in with customer', completed: false, required: true },
-    { id: '2', text: 'Review job requirements', completed: false, required: true },
-    { id: '3', text: 'Complete primary service', completed: false, required: true },
-    { id: '4', text: 'Quality check', completed: false, required: true },
-    { id: '5', text: 'Clean up work area', completed: false, required: true },
-    { id: '6', text: 'Take completion photos', completed: false, required: true },
-    { id: '7', text: 'Get customer sign-off (if applicable)', completed: false, required: false },
+    { id: '1', key: 'checklistArrival', required: true },
+    { id: '2', key: 'checklistReview', required: true },
+    { id: '3', key: 'checklistPrimary', required: true },
+    { id: '4', key: 'checklistQuality', required: true },
+    { id: '5', key: 'checklistCleanup', required: true },
+    { id: '6', key: 'checklistPhotos', required: true },
+    { id: '7', key: 'checklistSignoff', required: false },
   ];
 };
 

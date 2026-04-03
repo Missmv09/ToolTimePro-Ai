@@ -298,9 +298,9 @@ export default function IndustriesPage() {
       <section className="py-16 bg-white">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">Why Service Pros Choose ToolTime Pro</h2>
+            <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">{t('whyTitle')}</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              While other software makes you fit their mold, we built ToolTime Pro to fit yours.
+              {t('whySubtitle')}
             </p>
           </div>
 
@@ -309,27 +309,27 @@ export default function IndustriesPage() {
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🎯
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Industry-Agnostic</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('industryAgnostic')}</h3>
               <p className="text-gray-600">
-                Define your own services, pricing, and workflows. No forcing your business into pre-built templates.
+                {t('industryAgnosticDesc')}
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 💰
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Half the Price</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('halfThePrice')}</h3>
               <p className="text-gray-600">
-                Save 50-77% compared to Jobber. Same features, better value. No $29/user hidden fees.
+                {t('halfThePriceDesc')}
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🛡️
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Compliance Built-In</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('complianceBuiltIn')}</h3>
               <p className="text-gray-600">
-                ToolTime Shield keeps you legal with CA labor law compliance, final pay calculators, and HR docs.
+                {t('complianceBuiltInDesc')}
               </p>
             </div>
           </div>
