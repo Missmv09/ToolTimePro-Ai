@@ -520,18 +520,18 @@ export default function PricingPage() {
                 toggleAddon('jenny_pro');
               }}
             >
-              <span className="best-value-badge">Most Popular</span>
+              <span className="best-value-badge">{t('mostPopular')}</span>
               <div className="jenny-tier-header">
                 <h4>Jenny Pro</h4>
                 <span className="jenny-tier-price">+${isAnnual ? '41' : '49'}/mo</span>
               </div>
               <ul>
-                <li>✓ Everything in Lite, plus:</li>
-                <li>✓ <strong>AI phone answering 24/7</strong></li>
-                <li>✓ SMS conversations</li>
-                <li>✓ Direct booking into calendar</li>
-                <li>✓ Bilingual voice support</li>
-                <li>✓ Emergency escalation</li>
+                <li>✓ {t('jennyProFeature0')}</li>
+                <li>✓ <strong>{t('jennyProFeature1')}</strong></li>
+                <li>✓ {t('jennyProFeature2')}</li>
+                <li>✓ {t('jennyProFeature3')}</li>
+                <li>✓ {t('jennyProFeature4')}</li>
+                <li>✓ {t('jennyProFeature5')}</li>
               </ul>
               {isAnnual && <p className="jenny-annual-note">Billed $490/year</p>}
               <div className="jenny-tier-check">{selectedAddons.includes('jenny_pro') ? '☑' : '☐'}</div>
@@ -539,7 +539,7 @@ export default function PricingPage() {
           </div>
 
           <div className="jenny-section-label owner-facing">
-            <span className="section-label-badge">Owner-Facing</span>
+            <span className="section-label-badge">{t('ownerFacing')}</span>
           </div>
 
           <div className="jenny-tiers single">
@@ -552,11 +552,11 @@ export default function PricingPage() {
                 <span className="jenny-tier-price">+${isAnnual ? '66' : '79'}/mo</span>
               </div>
               <ul>
-                <li>✓ Compliance advisor & alerts</li>
-                <li>✓ HR guidance & document help</li>
-                <li>✓ Business insights & reports</li>
-                <li>✓ California labor law expertise</li>
-                <li>✓ For owners only (not shown to workers)</li>
+                <li>✓ {t('jennyExecFeature1')}</li>
+                <li>✓ {t('jennyExecFeature2')}</li>
+                <li>✓ {t('jennyExecFeature3')}</li>
+                <li>✓ {t('jennyExecFeature4')}</li>
+                <li>✓ {t('jennyExecFeature5')}</li>
               </ul>
               {isAnnual && <p className="jenny-annual-note">Billed $790/year</p>}
               <div className="jenny-tier-check">{selectedAddons.includes('jenny_exec_admin') ? '☑' : '☐'}</div>

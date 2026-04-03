@@ -93,11 +93,11 @@ export default function WorkerSafetyPage() {
   }, [fetchIncidents])
 
   const getSeverityStyle = (severity: string) => {
-    return SEVERITY_LEVELS.find(s => s.value === severity)?.color || 'bg-gray-100 text-gray-700'
+    return SEVERITY_LEVEL_KEYS.find(s => s.value === severity)?.color || 'bg-gray-100 text-gray-700'
   }
 
   const getIncidentIcon = (type: string) => {
-    return INCIDENT_TYPES.find(t => t.value === type)?.icon || '📋'
+    return INCIDENT_TYPE_KEYS.find(it => it.value === type)?.icon || '📋'
   }
 
   const formatDate = (date: string) => {
@@ -121,22 +121,22 @@ export default function WorkerSafetyPage() {
     <div className="max-w-md mx-auto p-4">
       {/* Emergency Banner */}
       <div className="bg-red-600 text-white rounded-xl p-4 mb-4">
-        <p className="font-bold text-lg mb-1">🚨 Emergency?</p>
-        <p className="text-red-100 text-sm mb-3">For life-threatening emergencies, call 911 immediately</p>
+        <p className="font-bold text-lg mb-1">🚨 {t('emergency')}</p>
+        <p className="text-red-100 text-sm mb-3">{t('emergencyDescription')}</p>
         <a
           href="tel:911"
           className="inline-block bg-white text-red-600 font-bold px-6 py-2 rounded-lg"
         >
-          Call 911
+          {t('call911')}
         </a>
       </div>
 
       {/* Tabs */}
       <div className="flex bg-white rounded-xl p-1 mb-4 shadow-sm">
         {[
-          { key: 'report', label: 'Report', icon: '📝' },
-          { key: 'history', label: 'My Reports', icon: '📋' },
-          { key: 'info', label: 'Safety Info', icon: 'ℹ️' },
+          { key: 'report', label: t('report'), icon: '📝' },
+          { key: 'history', label: t('myReports'), icon: '📋' },
+          { key: 'info', label: t('safetyInfo'), icon: 'ℹ️' },
         ].map((tab) => (
           <button
             key={tab.key}

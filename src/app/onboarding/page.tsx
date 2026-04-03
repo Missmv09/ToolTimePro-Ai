@@ -388,7 +388,7 @@ export default function OnboardingPage() {
                   {step.title}
                 </span>
               </div>
-              {index < STEPS.length - 1 && (
+              {index < 3 && (
                 <div
                   className={`flex-1 h-0.5 mx-4 ${
                     currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
@@ -415,14 +415,14 @@ export default function OnboardingPage() {
                   <Building2 size={20} className="text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Company Details</h2>
-                  <p className="text-sm text-gray-500">Add your business info so customers can find you.</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('companyDetailsTitle')}</h2>
+                  <p className="text-sm text-gray-500">{t('companyDetailsSubtitle')}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Business Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('businessPhone')}</label>
                   <input
                     type="tel"
                     value={phone}
@@ -432,7 +432,7 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('streetAddress')}</label>
                   <input
                     type="text"
                     value={address}
@@ -443,7 +443,7 @@ export default function OnboardingPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('city')}</label>
                     <input
                       type="text"
                       value={city}
@@ -453,7 +453,7 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('state')}</label>
                     <input
                       type="text"
                       value={state}
@@ -463,7 +463,7 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('zip')}</label>
                     <input
                       type="text"
                       value={zip}
