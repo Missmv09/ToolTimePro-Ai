@@ -295,17 +295,17 @@ export default function WorkerTimePage() {
         <div className="bg-white rounded-xl shadow-sm p-4 text-center">
           <Clock className="w-6 h-6 text-blue-600 mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">{totalHours.toFixed(1)}</p>
-          <p className="text-xs text-gray-500">Total Hours</p>
+          <p className="text-xs text-gray-500">{t('totalHours')}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 text-center">
           <Calendar className="w-6 h-6 text-green-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-green-600">{regularHours.toFixed(1)}</p>
-          <p className="text-xs text-gray-500">Regular</p>
+          <p className="text-xs text-gray-500">{t('regular')}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 text-center">
           <DollarSign className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-yellow-600">{overtimeHours.toFixed(1)}</p>
-          <p className="text-xs text-gray-500">Overtime</p>
+          <p className="text-xs text-gray-500">{t('overtime')}</p>
         </div>
       </div>
 
@@ -323,8 +323,8 @@ export default function WorkerTimePage() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-gray-900">{group.totalHours.toFixed(1)} hrs</p>
-                <p className="text-xs text-gray-500">{group.entries.length} entries</p>
+                <p className="font-bold text-gray-900">{group.totalHours.toFixed(1)} {t('hrs')}</p>
+                <p className="text-xs text-gray-500">{group.entries.length} {t('entries')}</p>
               </div>
             </div>
 
@@ -346,7 +346,7 @@ export default function WorkerTimePage() {
                       <p className="font-medium text-gray-900 text-sm">
                         {customerName}
                       </p>
-                      <p className="text-xs text-gray-500">{job?.title || 'No job assigned'}</p>
+                      <p className="text-xs text-gray-500">{job?.title || t('noJobAssigned')}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900">

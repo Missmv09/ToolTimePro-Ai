@@ -75,7 +75,7 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">What Messages You Will Receive</h2>
+            <h2 className="text-xl font-bold mb-3">{t('whatMessages')}</h2>
             <p className="mb-2">
               If you opt in, you will receive service-related text messages including:
             </p>
@@ -90,7 +90,7 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Message Frequency</h2>
+            <h2 className="text-xl font-bold mb-3">{t('messageFrequency')}</h2>
             <p>
               Message frequency varies based on your service activity. You will typically receive
               1&ndash;5 messages per service appointment or customer interaction.
@@ -98,14 +98,14 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Message and Data Rates</h2>
+            <h2 className="text-xl font-bold mb-3">{t('messageDataRates')}</h2>
             <p>
               Standard message and data rates may apply depending on your mobile carrier and plan.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">How to Opt Out</h2>
+            <h2 className="text-xl font-bold mb-3">{t('howToOptOut')}</h2>
             <p>
               You can opt out of SMS notifications at any time by replying <strong>STOP</strong> to
               any message you receive from ToolTime Pro. You will receive a confirmation message and
