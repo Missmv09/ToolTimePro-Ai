@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { Quote, Company, Customer } from '@/types/database';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface QuoteLineItem {
   id: string;
@@ -63,6 +65,7 @@ const demoQuote = {
 };
 
 export default function CustomerQuoteView({ params }: { params: { id: string } }) {
+  const t = useTranslations('misc.quote');
   const [quote, setQuote] = useState<QuoteWithDetails | null>(null);
   const [items, setItems] = useState<QuoteLineItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -376,9 +379,9 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
         <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-navy-500 mb-2">Quote Not Found</h1>
+        <h1 className="text-2xl font-bold text-navy-500 mb-2">{t('quoteNotFound')}</h1>
         <p className="text-gray-600 text-center">
-          The quote you&apos;re looking for doesn&apos;t exist or has expired.
+          {t('quoteNotFoundMessage')}
         </p>
       </div>
     );
@@ -417,7 +420,8 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
               <p className="text-sm text-gray-500 mt-1">{quote.company?.phone}</p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-500">Quote #{quote.quote_number || quote.id.slice(0, 8)}</div>
+              <LanguageSwitcher />
+              <div className="text-sm text-gray-500 mt-2">{t('quoteNumber')}{quote.quote_number || quote.id.slice(0, 8)}</div>
               <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-1 ${
                 quoteStatus === 'approved'
                   ? 'bg-green-100 text-green-700'
@@ -427,7 +431,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                   ? 'bg-gray-100 text-gray-700'
                   : 'bg-gold-100 text-gold-700'
               }`}>
-                {quoteStatus === 'approved' ? '✓ Approved' : quoteStatus === 'rejected' ? 'Declined' : isExpired ? 'Expired' : 'Awaiting Response'}
+                {quoteStatus === 'approved' ? `✓ ${t('approved')}` : quoteStatus === 'rejected' ? t('declined') : isExpired ? t('expired') : t('awaitingResponse')}
               </div>
             </div>
           </div>
@@ -440,12 +444,12 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center">
             <div className="text-5xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold text-green-700 mb-2">
-              {depositPaid ? 'Quote Approved & Deposit Paid!' : 'Quote Approved!'}
+              {depositPaid ? t('quoteApprovedDeposit') : t('quoteApproved')}
             </h2>
             <p className="text-green-600 mb-4">
               {depositPaid
-                ? 'Thank you! Your deposit has been received.'
-                : 'Thank you for your business!'}
+                ? t('depositReceived')
+                : t('thankYouBusiness')}
             </p>
             {signature && (
               <div className="inline-block p-2 bg-white rounded border border-green-200 mb-4">
@@ -456,16 +460,16 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             {/* Scheduling Request Section */}
             {!schedulingRequested ? (
               <div className="mt-6 bg-white rounded-xl border border-green-200 p-6 text-left max-w-md mx-auto">
-                <h3 className="font-semibold text-gray-800 text-center mb-2">Ready to schedule?</h3>
+                <h3 className="font-semibold text-gray-800 text-center mb-2">{t('readyToSchedule')}</h3>
                 <p className="text-sm text-gray-600 text-center mb-4">
-                  Let us know the best time to reach you and we&apos;ll call to set up your service date.
+                  {t('scheduleMessage')}
                 </p>
                 <div className="space-y-2 mb-4">
                   {[
-                    { value: 'morning', label: 'Morning (8am - 12pm)' },
-                    { value: 'afternoon', label: 'Afternoon (12pm - 5pm)' },
-                    { value: 'evening', label: 'Evening (5pm - 7pm)' },
-                    { value: 'anytime', label: 'Anytime works' },
+                    { value: 'morning', label: t('morning') },
+                    { value: 'afternoon', label: t('afternoon') },
+                    { value: 'evening', label: t('evening') },
+                    { value: 'anytime', label: t('anytime') },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -488,15 +492,15 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                   {requestingSchedule ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Sending...
+                      {t('sending')}
                     </>
                   ) : (
-                    'Request a Call to Schedule'
+                    t('requestCall')
                   )}
                 </button>
                 {quote.company?.phone && (
                   <p className="text-xs text-gray-500 text-center mt-3">
-                    Or call us directly at{' '}
+                    {t('callDirectly')}{' '}
                     <a href={`tel:${quote.company.phone}`} className="text-blue-600 font-medium">
                       {quote.company.phone}
                     </a>
@@ -506,7 +510,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
             ) : (
               <div className="mt-6 bg-white rounded-xl border border-green-200 p-6 max-w-md mx-auto">
                 <div className="text-3xl mb-2">&#10003;</div>
-                <h3 className="font-semibold text-green-700 mb-2">Scheduling Request Sent!</h3>
+                <h3 className="font-semibold text-green-700 mb-2">{t('scheduleSent')}</h3>
                 <p className="text-sm text-gray-600">
                   We&apos;ve notified {quote.company?.name || 'the team'} and they&apos;ll reach out
                   {preferredContact && preferredContact !== 'anytime'
@@ -516,7 +520,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                 </p>
                 {quote.company?.phone && (
                   <p className="text-sm text-gray-500 mt-3">
-                    Need to reach us sooner? Call{' '}
+                    {t('reachSooner')}{' '}
                     <a href={`tel:${quote.company.phone}`} className="text-blue-600 font-medium">
                       {quote.company.phone}
                     </a>
@@ -530,12 +534,12 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
         {quoteStatus === 'rejected' && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6 text-center">
             <div className="text-5xl mb-4">😔</div>
-            <h2 className="text-2xl font-bold text-red-700 mb-2">Quote Declined</h2>
+            <h2 className="text-2xl font-bold text-red-700 mb-2">{t('quoteDeclined')}</h2>
             <p className="text-red-600 mb-4">
-              We&apos;re sorry this quote didn&apos;t work out. Feel free to reach out if you&apos;d like to discuss other options.
+              {t('quoteDeclinedMessage')}
             </p>
             {rejectReason && (
-              <p className="text-sm text-red-500">Reason: {rejectReason}</p>
+              <p className="text-sm text-red-500">{t('reason')} {rejectReason}</p>
             )}
           </div>
         )}
@@ -546,17 +550,17 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           <div className="p-6 border-b border-gray-100">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <div className="text-sm text-gray-500 mb-1">Prepared for</div>
+                <div className="text-sm text-gray-500 mb-1">{t('preparedFor')}</div>
                 <div className="font-semibold text-navy-500">{quote.customer?.name || 'Customer'}</div>
                 <div className="text-sm text-gray-600">{customerAddress}</div>
               </div>
               <div className="md:text-right">
-                <div className="text-sm text-gray-500 mb-1">Quote Date</div>
+                <div className="text-sm text-gray-500 mb-1">{t('quoteDate')}</div>
                 <div className="font-medium text-navy-500">{formatDate(quote.created_at)}</div>
-                <div className="text-sm text-gray-500 mt-2">Valid Until</div>
+                <div className="text-sm text-gray-500 mt-2">{t('validUntil')}</div>
                 <div className={`font-medium ${isExpired ? 'text-red-500' : 'text-navy-500'}`}>
                   {formatDate(quote.valid_until)}
-                  {isExpired && ' (Expired)'}
+                  {isExpired && ` (${t('expired')})`}
                 </div>
               </div>
             </div>
@@ -564,15 +568,15 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
           {/* Line Items */}
           <div className="p-6">
-            <h3 className="font-semibold text-navy-500 mb-4">Service Details</h3>
+            <h3 className="font-semibold text-navy-500 mb-4">{t('serviceDetails')}</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 text-sm font-medium text-gray-500">Description</th>
-                    <th className="text-center py-2 text-sm font-medium text-gray-500 w-16">Qty</th>
-                    <th className="text-right py-2 text-sm font-medium text-gray-500 w-24">Price</th>
-                    <th className="text-right py-2 text-sm font-medium text-gray-500 w-24">Total</th>
+                    <th className="text-left py-2 text-sm font-medium text-gray-500">{t('description')}</th>
+                    <th className="text-center py-2 text-sm font-medium text-gray-500 w-16">{t('qty')}</th>
+                    <th className="text-right py-2 text-sm font-medium text-gray-500 w-24">{t('price')}</th>
+                    <th className="text-right py-2 text-sm font-medium text-gray-500 w-24">{t('total')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -587,7 +591,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                   {items.length === 0 && (
                     <tr>
                       <td colSpan={4} className="py-4 text-center text-gray-500">
-                        No line items
+                        {t('noLineItems')}
                       </td>
                     </tr>
                   )}
@@ -600,21 +604,21 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
               <div className="flex justify-end">
                 <div className="w-64 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Subtotal</span>
+                    <span className="text-gray-500">{t('subtotal')}</span>
                     <span className="text-navy-500">${(quote.subtotal || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Tax ({quote.tax_rate || 0}%)</span>
+                    <span className="text-gray-500">{t('tax')} ({quote.tax_rate || 0}%)</span>
                     <span className="text-navy-500">${(quote.tax_amount || 0).toFixed(2)}</span>
                   </div>
                   {(quote.discount_amount || 0) > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
-                      <span>Discount</span>
+                      <span>{t('discount')}</span>
                       <span>-${(quote.discount_amount || 0).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xl font-bold pt-2 border-t border-gray-200">
-                    <span className="text-navy-500">Total</span>
+                    <span className="text-navy-500">{t('total')}</span>
                     <span className="text-gold-600">${(quote.total || 0).toFixed(2)}</span>
                   </div>
                   {quote.deposit_required && (
