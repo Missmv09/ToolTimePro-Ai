@@ -2,153 +2,66 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
-// Features data - ordered by key money makers first
-const features = [
-  { title: 'Jenny AI — Your Back-Office Employee', description: 'One AI, three tiers. Jenny Lite (free): website chatbot that captures leads 24/7. Jenny Pro ($49/mo): answers phone calls with bilingual voice, books appointments, sends SMS. Jenny Exec ($79/mo): compliance monitoring, HR law updates, business analytics. Plus 15 autonomous actions that run your back office automatically.', badge: '\u{1F916} AI-Powered', highlight: true },
-  { title: 'Smart Quoting — Win More Jobs', description: 'Create professional quotes in seconds. Voice, photo, or manual entry. Customers approve with e-signature. Close deals 3x faster.', badge: '💰 Top Revenue Driver', highlight: true },
-  { title: 'Review Machine — Powered by Jenny', description: 'Auto-requests Google & Yelp reviews via SMS after every job. Configurable delay, click tracking, and AI-generated responses. Included with all plans.', badge: '💰 Top Revenue Driver', highlight: true },
-  { title: 'Smart Material Estimator — 21 Trades', description: 'Describe a job and get exact material lists with Good/Better/Best pricing. Supports painting, plumbing, electrical, roofing, fencing, concrete, and 15 more trades. Contractor markup engine included.', badge: '🌟 NEW', highlight: true },
-  { title: 'Customer Portal Pro', description: 'Give customers a branded portal: live job tracker, before/after photo gallery, messaging, document vault, service history, and invoice payments. $24/mo or included with Elite.', badge: '🌟 NEW', highlight: true },
-  { title: 'Worker App with GPS Clock-In', description: 'Your crew sees their jobs, clocks in/out with location proof, uploads photos, and reports issues. Full compliance tracking built-in.', highlight: true },
-  { title: 'Blended Workforce Management', description: 'Manage W-2 employees and 1099 contractors side by side. Separate payment flows, classification guardrails, cert tracking, and multi-state compliance (CA, TX, FL, NY, IL).', badge: '🛡️ Compliance', highlight: true },
-  { title: 'ToolTime Shield — Legal Protection', description: 'Worker classification quiz, final wage calculator, AB5 compliance checklists. Protect yourself from costly lawsuits.', badge: '🛡️ Legal Protection', highlight: true },
-  { title: 'Dispatch Board — Real-Time Crew Tracking', description: 'See all your crews on a map in real-time. Drag-and-drop job assignments. Send "running late" alerts automatically.', badge: 'Elite Only' },
-  { title: 'Route Optimization', description: 'Automatically plan the most efficient routes for your crews. Save on gas and fit more jobs in each day.', badge: 'Elite Only' },
-  { title: 'QuickBooks Sync', description: 'Two-way sync with QuickBooks Online. Invoices, payments, and customers sync automatically. No double entry. $12/mo add-on.' },
-  { title: 'Professional Website — Built For You', description: 'We create your branded site. Mobile-optimized, fast, designed to convert visitors into paying customers.' },
-  { title: 'Online Booking & Scheduling', description: 'Let customers book online 24/7. Smart calendar prevents double-bookings. Automatic reminders reduce no-shows.' },
-  { title: 'Invoicing & Payments', description: 'Send professional invoices. Accept credit cards with low fees. Get paid faster with automated payment reminders.' },
+// Non-translatable feature tab config
+const featureTabConfig = [
+  { icon: '🤖', href: '/jenny', highlight: true },
+  { icon: '📝', href: '/dashboard/smart-quote', highlight: true },
+  { icon: '⭐', href: '/demo/reviews', highlight: true },
+  { icon: '👷', href: '/demo/worker' },
+  { icon: '🛡️', href: '/demo/shield' },
+  { icon: '🗺️', href: '/demo/route-optimization' },
+  { icon: '📋', href: '/demo/dispatch' },
+  { icon: '👤', href: '/portal', highlight: true },
+  { icon: '📗', href: '/demo/quickbooks' },
+  { icon: '🌐', href: '/demo/website' },
 ];
 
-// Feature tabs - key money makers highlighted
-const featureTabs = [
-  { name: 'Jenny AI', icon: '🤖', href: '/jenny', highlight: true },
-  { name: 'Smart Quoting', icon: '📝', href: '/dashboard/smart-quote', highlight: true },
-  { name: 'Reviews', icon: '⭐', href: '/demo/reviews', highlight: true },
-  { name: 'Worker App', icon: '👷', href: '/demo/worker' },
-  { name: 'Legal Protection', icon: '🛡️', href: '/demo/shield' },
-  { name: 'Route Optimization', icon: '🗺️', href: '/demo/route-optimization' },
-  { name: 'Dispatch', icon: '📋', href: '/demo/dispatch' },
-  { name: 'Customer Portal', icon: '👤', href: '/portal', highlight: true },
-  { name: 'QuickBooks', icon: '📗', href: '/demo/quickbooks' },
-  { name: 'Website', icon: '🌐', href: '/demo/website' },
+// Demo cards that have badge translations
+const demoCardBadgeIndices = new Set([0, 1, 2, 3, 4, 5, 6, 7, 9]);
+
+// Non-translatable demo card config
+const demoCardConfig = [
+  { icon: '🤖', href: '/jenny' },
+  { icon: '📝', href: '/dashboard/smart-quote' },
+  { icon: '⭐', href: '/demo/reviews' },
+  { icon: '👷', href: '/demo/worker' },
+  { icon: '🧮', href: '/dashboard/estimator' },
+  { icon: '🛡️', href: '/demo/shield' },
+  { icon: '🗺️', href: '/demo/route-optimization' },
+  { icon: '📋', href: '/demo/dispatch' },
+  { icon: '📗', href: '/demo/quickbooks' },
+  { icon: '👤', href: '/portal' },
+  { icon: '🌐', href: '/demo/website' },
+  { icon: '📊', href: '/demo/dashboard' },
 ];
 
-// Demo cards - reordered by key money makers first, aligned with actual demo pages
-const demoCards = [
-  { icon: '🤖', name: 'Jenny AI', description: 'Meet Jenny — your AI that answers calls, writes quotes, captures leads, and requests reviews 24/7', href: '/jenny', badge: '🌟 NEW' },
-  { icon: '📝', name: 'Smart Quoting', description: 'Create professional quotes in seconds — close deals 3x faster', href: '/dashboard/smart-quote', badge: '💰 Top Revenue' },
-  { icon: '⭐', name: 'Review Machine', description: 'Automate 5-star reviews — powered by Jenny, more reviews = more customers', href: '/demo/reviews', badge: '💰 Top Revenue' },
-  { icon: '👷', name: 'Worker App', description: 'GPS clock-in, compliance tracking, job management', href: '/demo/worker', badge: 'Must Have' },
-  { icon: '🧮', name: 'Material Estimator', description: '21 trades — exact material lists with Good/Better/Best pricing', href: '/dashboard/estimator', badge: '🌟 NEW' },
-  { icon: '🛡️', name: 'ToolTime Shield', description: 'AB5 compliance, final pay calculator, HR docs', href: '/demo/shield', badge: 'Legal Protection' },
-  { icon: '🗺️', name: 'Route Optimization', description: 'Save gas and fit more jobs into every day', href: '/demo/route-optimization', badge: 'Elite' },
-  { icon: '📋', name: 'Dispatch Board', description: 'Real-time crew tracking and job assignment', href: '/demo/dispatch', badge: 'Elite' },
-  { icon: '📗', name: 'QuickBooks Sync', description: 'Auto-sync invoices, payments, and customers — $12/mo', href: '/demo/quickbooks' },
-  { icon: '👤', name: 'Customer Portal Pro', description: 'Job tracker, photos, messaging, docs for your customers — $24/mo', href: '/portal', badge: '🌟 NEW' },
-  { icon: '🌐', name: 'Website Builder', description: "See a sample site we'd build for your business", href: '/demo/website' },
-  { icon: '📊', name: 'Admin Dashboard', description: 'See jobs, revenue, crew status at a glance', href: '/demo/dashboard' },
+// Non-translatable pricing config
+const pricingConfig = [
+  { price: 49, annualPrice: 490, workersNum: null, popular: false },
+  { price: 79, annualPrice: 790, workersNum: 15, popular: true },
+  { price: 129, annualPrice: 1290, workersNum: 20, popular: false },
 ];
 
-// Pricing plans
-const pricingPlans = [
-  {
-    name: 'Starter',
-    price: 49,
-    annualPrice: 490,
-    workers: 'Owner + 2',
-    description: 'For small teams',
-    features: [
-      'Professional 1-page website',
-      'Online booking page',
-      'Smart quoting with e-signatures',
-      'Invoicing + card payments',
-      'GPS clock-in (worker app)',
-      'ToolTime Shield (compliance tools)',
-      'HR document library (10+ templates)',
-      'Spanish language support',
-      'Chat & email support',
-    ],
-    hrFeature: 'ToolTime Shield included',
-  },
-  {
-    name: 'Pro',
-    price: 79,
-    annualPrice: 790,
-    workers: 15,
-    description: 'For growing teams who need more tools',
-    popular: true,
-    features: [
-      'Everything in Starter, plus:',
-      'Review Machine (auto 5-star requests)',
-      'Jenny Lite chatbot (lead capture)',
-      'Break tracking + CA compliance alerts',
-      'Team scheduling + dispatch',
-      'QuickBooks sync',
-      '3-page website',
-      'Phone support',
-    ],
-    hrFeature: 'Full compliance toolkit',
-  },
-  {
-    name: 'Elite',
-    price: 129,
-    annualPrice: 1290,
-    workers: 20,
-    description: 'Full operations suite for serious businesses',
-    features: [
-      'Everything in Pro, plus:',
-      'Jenny Pro included (phone + SMS)',
-      'Dispatch Board + Route Optimization',
-      'Customer Portal Pro included',
-      'QuickBooks sync included',
-      'Advanced reporting + analytics',
-      'Photo verification (clock-in selfies)',
-      'Compliance dashboard',
-      '5-page website',
-      'Priority support + account manager',
-    ],
-    hrFeature: 'HR On-Demand access',
-    payrollFeature: 'Payroll (coming soon)',
-  },
+const standaloneConfig = [
+  { id: 'booking_only', price: 15, annualPrice: 150, icon: '📅' },
+  { id: 'invoicing_only', price: 15, annualPrice: 150, icon: '🧾' },
 ];
 
-// Standalone plans - just need one thing
-const standalonePlans = [
-  {
-    id: 'booking_only',
-    name: 'Booking Only',
-    price: 15,
-    annualPrice: 150,
-    icon: '📅',
-    description: 'Just need online booking? Start here.',
-  },
-  {
-    id: 'invoicing_only',
-    name: 'Invoicing Only',
-    price: 15,
-    annualPrice: 150,
-    icon: '🧾',
-    description: 'Just need to send invoices? This is for you.',
-  },
-];
-
-// Add-ons
-const pricingAddOns = [
-  { id: 'website_builder', name: 'Website Builder', price: 25, icon: '🌐', description: 'Custom landing page built for you' },
-  { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 29, icon: '🛡️', description: 'Automated compliance monitoring, law-change alerts & cert reminders' },
-  { id: 'extra_page', name: 'Extra Website Page', price: 10, icon: '📄', description: 'Add more pages to your site' },
-  { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12, icon: '📊', description: 'Two-way sync with QuickBooks Online' },
-  { id: 'customer_portal_pro', name: 'Customer Portal Pro', price: 24, icon: '🏠', description: 'Branded portal for customers to book, pay & track jobs' },
-  { id: 'extra_worker', name: 'Extra Worker', price: 7, icon: '👷', description: 'Add more team members to your plan' },
-  { id: 'jenny_pro', name: 'Jenny AI Pro', price: 49, icon: '🤖', description: 'Advanced AI assistant for scheduling, estimates & follow-ups' },
-  { id: 'jenny_exec_admin', name: 'Jenny AI Exec Admin', price: 79, icon: '🧠', description: 'Full AI office manager — handles calls, emails & admin tasks' },
+const addOnConfig = [
+  { id: 'website_builder', price: 25, icon: '🌐' },
+  { id: 'keep_me_legal', price: 29, icon: '🛡️' },
+  { id: 'extra_page', price: 10, icon: '📄' },
+  { id: 'quickbooks_sync', price: 12, icon: '📊' },
+  { id: 'customer_portal_pro', price: 24, icon: '🏠' },
+  { id: 'extra_worker', price: 7, icon: '👷' },
+  { id: 'jenny_pro', price: 49, icon: '🤖' },
+  { id: 'jenny_exec_admin', price: 79, icon: '🧠' },
 ];
 
 export default function Home() {
@@ -160,6 +73,65 @@ export default function Home() {
   const router = useRouter();
   const { user, company, isLoading } = useAuth();
   const t = useTranslations('home');
+
+  // Translated data arrays
+  const features = useMemo(() => [
+    { title: t('features_0_title'), description: t('features_0_desc'), badge: '🤖 ' + t('features_0_badge'), highlight: true },
+    { title: t('features_1_title'), description: t('features_1_desc'), badge: '💰 ' + t('features_1_badge'), highlight: true },
+    { title: t('features_2_title'), description: t('features_2_desc'), badge: '💰 ' + t('features_2_badge'), highlight: true },
+    { title: t('features_3_title'), description: t('features_3_desc'), badge: '🌟 ' + t('features_3_badge'), highlight: true },
+    { title: t('features_4_title'), description: t('features_4_desc'), badge: '🌟 ' + t('features_4_badge'), highlight: true },
+    { title: t('features_5_title'), description: t('features_5_desc'), highlight: true },
+    { title: t('features_6_title'), description: t('features_6_desc'), badge: '🛡️ ' + t('features_6_badge'), highlight: true },
+    { title: t('features_7_title'), description: t('features_7_desc'), badge: '🛡️ ' + t('features_7_badge'), highlight: true },
+    { title: t('features_8_title'), description: t('features_8_desc'), badge: t('features_8_badge') },
+    { title: t('features_9_title'), description: t('features_9_desc'), badge: t('features_9_badge') },
+    { title: t('features_10_title'), description: t('features_10_desc') },
+    { title: t('features_11_title'), description: t('features_11_desc') },
+    { title: t('features_12_title'), description: t('features_12_desc') },
+    { title: t('features_13_title'), description: t('features_13_desc') },
+  ], [t]);
+
+  const featureTabs = useMemo(() => featureTabConfig.map((cfg, i) => ({
+    ...cfg,
+    name: t(`featureTabs_${i}`),
+  })), [t]);
+
+  const demoCards = useMemo(() => demoCardConfig.map((cfg, i) => ({
+    ...cfg,
+    name: t(`demoCards_${i}_name`),
+    description: t(`demoCards_${i}_desc`),
+    ...(demoCardBadgeIndices.has(i) ? { badge: t(`demoCards_${i}_badge`) } : {}),
+  })), [t]);
+
+  const pricingPlans = useMemo(() => {
+    const planKeys = ['starter', 'pro', 'elite'] as const;
+    const featureCounts = [9, 8, 10];
+    return pricingConfig.map((cfg, i) => ({
+      ...cfg,
+      name: t(`pricingPlan_${planKeys[i]}_name`),
+      description: t(`pricingPlan_${planKeys[i]}_desc`),
+      workers: cfg.workersNum,
+      workersLabel: cfg.workersNum ? t('upToWorkersCount', { count: cfg.workersNum }) : t('ownerPlus2'),
+      features: Array.from({ length: featureCounts[i] }, (_, j) => t(`pricingPlan_${planKeys[i]}_feature${j}`)),
+      hrFeature: t(`pricingPlan_${planKeys[i]}_hr`),
+      payrollFeature: planKeys[i] === 'elite' ? t('pricingPlan_elite_payroll') : undefined,
+    }));
+  }, [t]);
+
+  const standalonePlans = useMemo(() => [
+    { ...standaloneConfig[0], name: t('standalone_booking_name'), description: t('standalone_booking_desc') },
+    { ...standaloneConfig[1], name: t('standalone_invoicing_name'), description: t('standalone_invoicing_desc') },
+  ], [t]);
+
+  const pricingAddOns = useMemo(() => {
+    const addonKeys = ['website_builder', 'compliance', 'extra_page', 'quickbooks', 'portal', 'extra_worker', 'jenny_pro', 'jenny_exec'] as const;
+    return addOnConfig.map((cfg, i) => ({
+      ...cfg,
+      name: t(`addon_${addonKeys[i]}`),
+      description: t(`addon_${addonKeys[i]}_desc`),
+    }));
+  }, [t]);
 
   // Redirect authenticated users away from the marketing homepage
   useEffect(() => {
@@ -551,8 +523,8 @@ export default function Home() {
                   <div className="bg-white rounded-[38px] overflow-hidden">
                     {/* Header */}
                     <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-16 pb-5">
-                      <h4 className="font-extrabold text-[1.25rem] tracking-wide text-[#f5a623]">👷 Worker App</h4>
-                      <p className="text-[rgba(255,255,255,0.85)] text-[0.875rem] mt-1">Today&apos;s Schedule</p>
+                      <h4 className="font-extrabold text-[1.25rem] tracking-wide text-[#f5a623]">👷 {t('workerApp')}</h4>
+                      <p className="text-[rgba(255,255,255,0.85)] text-[0.875rem] mt-1">{t('todaysSchedule')}</p>
                     </div>
                     {/* Body */}
                     <div className="p-4 space-y-3">
@@ -567,7 +539,7 @@ export default function Home() {
                         <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
                       </div>
                       <button className="w-full py-4 bg-gradient-to-r from-[#00c853] to-[#00e676] text-white font-bold rounded-2xl shadow-[0_4px_20px_rgba(0,200,83,0.35)] hover:shadow-[0_6px_28px_rgba(0,200,83,0.45)] transition-shadow">
-                        ⏰ Clock In Now
+                        ⏰ {t('clockInNow')}
                       </button>
                     </div>
                   </div>
@@ -655,8 +627,8 @@ export default function Home() {
               },
               {
                 icon: '📍',
-                title: 'Multi-Location Management',
-                description: 'Manage multiple service areas from one dashboard. Separate crews, schedules, and reporting per location — perfect for growing businesses and franchises.',
+                title: t('whyMultiLocationTitle'),
+                description: t('whyMultiLocationDesc'),
               },
               {
                 icon: '⚡',
@@ -734,19 +706,19 @@ export default function Home() {
               >
                 {plan.popular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#f5a623] text-[#1a1a2e] px-5 py-2 rounded-full text-[0.75rem] font-extrabold whitespace-nowrap">
-                    Most Popular
+                    {t('mostPopular')}
                   </div>
                 )}
 
                 <div className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{plan.name}</div>
                 <p className="text-[0.9375rem] text-[#8e8e9f] mb-2">{plan.description}</p>
-                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">{typeof plan.workers === 'number' ? `Up to ${plan.workers} workers` : plan.workers} workers</p>
+                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">{plan.workersLabel}</p>
 
                 <div className="mb-7">
                   <span className="text-[3.25rem] font-extrabold text-[#1a1a2e] leading-none">
                     ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}
                   </span>
-                  <span className="text-[#8e8e9f]">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                  <span className="text-[#8e8e9f]">{billingPeriod === 'monthly' ? t('perMonth') : t('perYear')}</span>
                 </div>
 
                 <ul className="space-y-0 mb-6">
@@ -774,25 +746,25 @@ export default function Home() {
                 <div className="border-t border-gray-200 pt-4 mb-6">
                   <div className="flex items-center gap-2 text-[0.875rem] mb-3 bg-[#f0fdf9] -mx-10 px-10 py-2.5 rounded-none">
                     <span className="text-[#00c853] font-bold">✓</span>
-                    <span className="text-[#1a1a2e] font-medium">Jenny Lite — AI Chat & Lead Capture</span>
-                    <span className="text-[#00c853] font-semibold ml-auto text-[0.8125rem]">Included</span>
+                    <span className="text-[#1a1a2e] font-medium">{t('jennyLiteIncluded')}</span>
+                    <span className="text-[#00c853] font-semibold ml-auto text-[0.8125rem]">{t('included')}</span>
                   </div>
-                  <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">Optional Add-ons:</p>
+                  <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">{t('optionalAddons')}</p>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Compliance Autopilot</span>
-                      <span className="text-[#8e8e9f] ml-auto">$29/mo</span>
+                      <span className="text-[#5c5c70]">{t('complianceAutopilot')}</span>
+                      <span className="text-[#8e8e9f] ml-auto">$29{t('perMonth')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Website Builder</span>
-                      <span className="text-[#8e8e9f] ml-auto">$25/mo</span>
+                      <span className="text-[#5c5c70]">{t('websiteBuilder')}</span>
+                      <span className="text-[#8e8e9f] ml-auto">$25{t('perMonth')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
                       <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">Extra Website Page</span>
-                      <span className="text-[#8e8e9f] ml-auto">$10/mo</span>
+                      <span className="text-[#5c5c70]">{t('extraPage')}</span>
+                      <span className="text-[#8e8e9f] ml-auto">$10{t('perMonth')}</span>
                     </label>
                   </div>
                 </div>
@@ -805,10 +777,10 @@ export default function Home() {
                       : 'bg-[#1a1a2e] text-white hover:bg-[#2d2d44]'
                   }`}
                 >
-                  Start Free Trial
+                  {t('startFreeTrial')}
                 </Link>
                 <p className="text-center text-[0.8125rem] text-[#8e8e9f] mt-3">
-                  14-day free trial • No credit card required
+                  {t('trialNote')}
                 </p>
               </div>
             ))}
@@ -817,8 +789,8 @@ export default function Home() {
           {/* Just Need One Thing - Standalone Options */}
           <div className="mt-16 bg-white rounded-[20px] p-10 border-2 border-gray-200">
             <div className="text-center mb-8">
-              <h3 className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">Just Need One Thing?</h3>
-              <p className="text-[#8e8e9f]">Not ready for a full plan? Start with just what you need.</p>
+              <h3 className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{t('justNeedOne')}</h3>
+              <p className="text-[#8e8e9f]">{t('justNeedOneDesc')}</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-6 max-w-[500px] mx-auto">
               {standalonePlans.map((plan, index) => (
@@ -830,14 +802,14 @@ export default function Home() {
                   <span className="text-[2.5rem] block mb-2">{plan.icon}</span>
                   <h4 className="text-[1.125rem] font-bold text-[#1a1a2e] mb-1">{plan.name}</h4>
                   <p className="text-[1.25rem] font-bold text-[#f5a623] mb-2">
-                    ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}/{billingPeriod === 'monthly' ? 'mo' : 'yr'}
+                    ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}{billingPeriod === 'monthly' ? t('perMonth') : t('perYear')}
                   </p>
                   <p className="text-[0.875rem] text-[#8e8e9f]">{plan.description}</p>
                 </Link>
               ))}
             </div>
             <p className="text-center text-[0.875rem] text-[#8e8e9f] mt-6">
-              💡 Upgrade to a full plan anytime — we&apos;ll credit what you&apos;ve paid!
+              💡 {t('upgradeNote')}
             </p>
           </div>
 
@@ -857,24 +829,24 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-[22px] font-extrabold text-white leading-tight m-0">Add Jenny AI — Your Business Assistant</h3>
-                    <p className="text-sm text-white/60 mt-1">Jenny handles calls, chat, SMS, and keeps you compliant 24/7. Choose the tier that fits your needs.</p>
+                    <h3 className="text-[22px] font-extrabold text-white leading-tight m-0">{t('addJennyTitle')}</h3>
+                    <p className="text-sm text-white/60 mt-1">{t('addJennyDesc')}</p>
                   </div>
                 </div>
                 <Link href="/jenny" className="text-[#f5a623] text-sm font-semibold no-underline whitespace-nowrap hover:opacity-80 transition-opacity">
-                  Learn More →
+                  {t('jennyLearnMore')}
                 </Link>
               </div>
 
               <div className="text-sm text-white/50 mt-3.5 mb-8 relative">
-                Jenny Lite <strong className="text-[#00c853] text-lg font-extrabold">Included Free</strong> on all plans
-                <span className="text-[12.5px] text-white/35 line-through italic ml-3">Jobber charges $349/mo for this</span>
+                {t('jennyLite')} <strong className="text-[#00c853] text-lg font-extrabold">{t('jennyLiteFreeLabel')}</strong> {t('jennyLiteOnAllPlans')}
+                <span className="text-[12.5px] text-white/35 line-through italic ml-3">{t('jennyCompetitorNote')}</span>
               </div>
 
               {/* Customer-Facing Label */}
               <div className="text-center mb-3">
                 <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-white/12 text-white/70 px-3.5 py-1.5 rounded-full">
-                  Customer-Facing
+                  {t('customerFacing')}
                 </span>
               </div>
 
@@ -883,14 +855,14 @@ export default function Home() {
                 {/* Jenny Lite */}
                 <div className="flex-1 bg-[#232b47] border-[1.5px] border-[#2ab09e] rounded-[14px] p-7 transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
                   <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 bg-[#2ab09e] text-white text-[10.5px] font-bold px-3.5 py-1 rounded-xl tracking-wider uppercase whitespace-nowrap">
-                    Included in All Plans
+                    {t('includedInAll')}
                   </div>
                   <div className="flex items-baseline justify-between mb-4">
-                    <span className="font-bold text-lg text-white">Jenny Lite</span>
-                    <span className="font-extrabold text-base text-[#00c853]">Free</span>
+                    <span className="font-bold text-lg text-white">{t('jennyLite')}</span>
+                    <span className="font-extrabold text-base text-[#00c853]">{t('jennyLiteFree')}</span>
                   </div>
                   <ul className="list-none m-0 p-0">
-                    {['Website chat widget', 'Lead capture & notifications', 'FAQ answering', 'English & Spanish'].map((item, i) => (
+                    {[t('jennyLiteFeature0'), t('jennyLiteFeature1'), t('jennyLiteFeature2'), t('jennyLiteFeature3')].map((item, i) => (
                       <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
                         <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#2ab09e" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         {item}
@@ -902,20 +874,20 @@ export default function Home() {
                 {/* Jenny Pro */}
                 <div className="flex-1 bg-[#232b47] border-[1.5px] border-[#f5a623] rounded-[14px] p-7 transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
                   <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 bg-[#f5a623] text-white text-[10.5px] font-bold px-3.5 py-1 rounded-xl tracking-wider uppercase whitespace-nowrap">
-                    Most Popular
+                    {t('mostPopular')}
                   </div>
                   <div className="flex items-baseline justify-between mb-4">
-                    <span className="font-bold text-lg text-white">Jenny Pro</span>
+                    <span className="font-bold text-lg text-white">{t('jennyPro')}</span>
                     <span className="font-extrabold text-base text-[#f5a623]">+$49<span className="text-xs font-medium text-white/40">/mo</span></span>
                   </div>
                   <ul className="list-none m-0 p-0">
                     {[
-                      { text: 'Everything in Lite, plus:', bold: false },
-                      { text: 'AI phone answering 24/7', bold: true },
-                      { text: 'SMS conversations', bold: false },
-                      { text: 'Direct booking into calendar', bold: false },
-                      { text: 'Bilingual voice support', bold: false },
-                      { text: 'Emergency escalation', bold: false },
+                      { text: t('jennyProFeature0'), bold: false },
+                      { text: t('jennyProFeature1'), bold: true },
+                      { text: t('jennyProFeature2'), bold: false },
+                      { text: t('jennyProFeature3'), bold: false },
+                      { text: t('jennyProFeature4'), bold: false },
+                      { text: t('jennyProFeature5'), bold: false },
                     ].map((item, i) => (
                       <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
                         <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -929,7 +901,7 @@ export default function Home() {
               {/* Owner-Facing Label */}
               <div className="text-center mb-3 mt-10 pt-5 border-t border-white/10">
                 <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-[rgba(245,166,35,0.18)] text-[#f5a623] px-3.5 py-1.5 rounded-full">
-                  Owner-Facing
+                  {t('ownerFacing')}
                 </span>
               </div>
 
@@ -937,11 +909,11 @@ export default function Home() {
               <div className="flex gap-5 mb-0 relative flex-col md:flex-row">
                 <div className="flex-1 max-w-[480px] bg-[#232b47] border-[1.5px] border-white/10 rounded-[14px] p-7 transition-all hover:border-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
                   <div className="flex items-baseline justify-between mb-4">
-                    <span className="font-bold text-lg text-white">Jenny Exec Admin</span>
+                    <span className="font-bold text-lg text-white">{t('jennyExec')}</span>
                     <span className="font-extrabold text-base text-[#f5a623]">+$79<span className="text-xs font-medium text-white/40">/mo</span></span>
                   </div>
                   <ul className="list-none m-0 p-0">
-                    {['Compliance advisor & alerts', 'HR guidance & document help', 'Business insights & reports', 'California labor law expertise', 'For owners only (not shown to workers)'].map((item, i) => (
+                    {[t('jennyExecFeature0'), t('jennyExecFeature1'), t('jennyExecFeature2'), t('jennyExecFeature3'), t('jennyExecFeature4')].map((item, i) => (
                       <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
                         <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         {item}
@@ -957,9 +929,9 @@ export default function Home() {
                   href="/pricing"
                   className="inline-block px-9 py-3.5 bg-[#f5a623] text-white text-[15px] font-bold rounded-[10px] no-underline hover:bg-[#e6991a] active:scale-[0.98] transition-all"
                 >
-                  Start 14-Day Free Trial →
+                  {t('startTrialCta')}
                 </Link>
-                <span className="block text-xs text-white/40 mt-2.5">No credit card required</span>
+                <span className="block text-xs text-white/40 mt-2.5">{t('noCreditCard')}</span>
               </div>
             </div>
           </div>
@@ -970,7 +942,7 @@ export default function Home() {
               href="/pricing"
               className="inline-flex items-center gap-2 text-[#1a1a2e] font-semibold hover:text-[#f5a623] transition-colors no-underline"
             >
-              See full pricing details & customize your plan →
+              {t('fullPricingLink')} →
             </Link>
           </div>
         </div>
