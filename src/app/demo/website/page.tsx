@@ -91,6 +91,7 @@ const demoTestimonials = [
 ];
 
 export default function WebsiteDemoPage() {
+  const t = useTranslations('demo.website');
   // Step state
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -196,10 +197,10 @@ export default function WebsiteDemoPage() {
                 className="px-6 py-3 rounded-lg font-semibold"
                 style={{ backgroundColor: selectedColorScheme.secondary, color: selectedColorScheme.primary }}
               >
-                Get Free Quote
+                {t('getFreeQuote')}
               </button>
               <button className="px-6 py-3 rounded-lg font-semibold border-2 border-white text-white hover:bg-white/10">
-                Our Services
+                {t('ourServices')}
               </button>
             </div>
           </div>
@@ -210,19 +211,19 @@ export default function WebsiteDemoPage() {
           <div className={`grid ${previewMode === 'mobile' ? 'grid-cols-2' : 'grid-cols-4'} gap-4 text-center`}>
             <div className="flex flex-col items-center">
               <span className="text-2xl mb-1">✓</span>
-              <span className="text-sm text-gray-600">Licensed & Insured</span>
+              <span className="text-sm text-gray-600">{t('licensedInsured')}</span>
             </div>
             <div className="flex flex-col items-center">
               <span className="text-2xl mb-1">⭐</span>
-              <span className="text-sm text-gray-600">5-Star Rated</span>
+              <span className="text-sm text-gray-600">{t('fiveStarRated')}</span>
             </div>
             <div className="flex flex-col items-center">
               <span className="text-2xl mb-1">🕐</span>
-              <span className="text-sm text-gray-600">Same-Day Service</span>
+              <span className="text-sm text-gray-600">{t('sameDayService')}</span>
             </div>
             <div className="flex flex-col items-center">
               <span className="text-2xl mb-1">💯</span>
-              <span className="text-sm text-gray-600">Satisfaction Guaranteed</span>
+              <span className="text-sm text-gray-600">{t('satisfactionGuaranteed')}</span>
             </div>
           </div>
         </div>
@@ -261,7 +262,7 @@ export default function WebsiteDemoPage() {
           className="py-12 px-8 text-center text-white"
           style={{ backgroundColor: selectedColorScheme.primary }}
         >
-          <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('readyToGetStarted')}</h2>
           <p className="text-white/80 mb-6 max-w-xl mx-auto">
             Request a free quote today and see why we&apos;re the top-rated {selectedIndustry.name.toLowerCase()} service in the area.
           </p>
@@ -269,7 +270,7 @@ export default function WebsiteDemoPage() {
             className="px-8 py-4 rounded-lg font-bold text-lg"
             style={{ backgroundColor: selectedColorScheme.secondary, color: selectedColorScheme.primary }}
           >
-            Get Your Free Quote
+            {t('getYourFreeQuote')}
           </button>
         </div>
 
@@ -279,7 +280,7 @@ export default function WebsiteDemoPage() {
             className="text-2xl font-bold mb-8 text-center"
             style={{ color: selectedColorScheme.primary }}
           >
-            What Our Customers Say
+            {t('whatCustomersSay')}
           </h2>
           <div className={`grid ${previewMode === 'mobile' ? 'grid-cols-1' : 'grid-cols-3'} gap-6`}>
             {demoTestimonials.map((testimonial, index) => (
@@ -304,7 +305,7 @@ export default function WebsiteDemoPage() {
                 className="text-2xl font-bold mb-6"
                 style={{ color: selectedColorScheme.primary }}
               >
-                Contact Us
+                {t('contactUs')}
               </h2>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -322,7 +323,7 @@ export default function WebsiteDemoPage() {
               </div>
             </div>
             <div className="bg-gray-50 p-6 rounded-xl">
-              <h3 className="font-semibold text-gray-900 mb-4">Request a Quote</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">{t('requestAQuote')}</h3>
               <div className="space-y-3">
                 <input
                   type="text"
@@ -345,7 +346,7 @@ export default function WebsiteDemoPage() {
                   className="w-full py-3 rounded-lg font-semibold text-white"
                   style={{ backgroundColor: selectedColorScheme.primary }}
                 >
-                  Send Request
+                  {t('sendRequest')}
                 </button>
               </div>
             </div>
@@ -370,14 +371,17 @@ export default function WebsiteDemoPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-navy-500 to-navy-600 text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-block">
-            ← Back to Home
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/" className="text-white/70 hover:text-white text-sm inline-block">
+              {t('backToHome')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-4xl">🌐</span>
-            <h1 className="text-3xl font-bold">Website Builder Demo</h1>
+            <h1 className="text-3xl font-bold">{t('title')}</h1>
           </div>
-          <p className="text-white/80">See a sample of the professional website we&apos;d build for your business.</p>
+          <p className="text-white/80">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -397,7 +401,7 @@ export default function WebsiteDemoPage() {
                   {step}
                 </div>
                 <span className={`ml-2 font-medium ${currentStep >= step ? 'text-navy-500' : 'text-gray-400'}`}>
-                  {step === 1 ? 'Industry' : step === 2 ? 'Details' : 'Preview'}
+                  {step === 1 ? t('stepIndustry') : step === 2 ? t('stepDetails') : t('stepPreview')}
                 </span>
                 {step < 3 && (
                   <div className={`w-12 h-1 mx-4 rounded ${currentStep > step ? 'bg-gold-500' : 'bg-gray-200'}`}></div>
@@ -410,8 +414,8 @@ export default function WebsiteDemoPage() {
         {/* Step 1: Industry Selection */}
         {currentStep === 1 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
-            <h2 className="text-2xl font-bold text-navy-500 mb-2 text-center">What type of business do you run?</h2>
-            <p className="text-gray-600 mb-8 text-center">We&apos;ll customize your demo website based on your industry.</p>
+            <h2 className="text-2xl font-bold text-navy-500 mb-2 text-center">{t('whatTypeBusiness')}</h2>
+            <p className="text-gray-600 mb-8 text-center">{t('customizeDemo')}</p>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {industryOptions.map((industry) => (
@@ -440,7 +444,7 @@ export default function WebsiteDemoPage() {
                 }}
                 className="px-8 py-3 bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold rounded-lg transition-colors"
               >
-                Continue →
+                {t('continue')}
               </button>
             </div>
           </div>
@@ -449,13 +453,13 @@ export default function WebsiteDemoPage() {
         {/* Step 2: Business Details */}
         {currentStep === 2 && (
           <div className="bg-white rounded-xl shadow-sm p-8">
-            <h2 className="text-2xl font-bold text-navy-500 mb-2 text-center">Tell us about your business</h2>
-            <p className="text-gray-600 mb-8 text-center">This info will appear on your demo website. Leave blank to use placeholders.</p>
+            <h2 className="text-2xl font-bold text-navy-500 mb-2 text-center">{t('tellUsAboutBusiness')}</h2>
+            <p className="text-gray-600 mb-8 text-center">{t('infoAppearOnDemo')}</p>
 
             <div className="max-w-2xl mx-auto space-y-6">
               {/* Business Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('businessName')}</label>
                 <input
                   type="text"
                   value={businessName}
@@ -467,7 +471,7 @@ export default function WebsiteDemoPage() {
 
               {/* Tagline */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tagline</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('tagline')}</label>
                 <input
                   type="text"
                   value={tagline}
@@ -480,7 +484,7 @@ export default function WebsiteDemoPage() {
               {/* Phone & Email */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('phoneNumber')}</label>
                   <input
                     type="tel"
                     value={phone}
@@ -490,7 +494,7 @@ export default function WebsiteDemoPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('email')}</label>
                   <input
                     type="email"
                     value={email}
@@ -503,7 +507,7 @@ export default function WebsiteDemoPage() {
 
               {/* Address */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Service Area</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('serviceArea')}</label>
                 <input
                   type="text"
                   value={address}
@@ -515,7 +519,7 @@ export default function WebsiteDemoPage() {
 
               {/* Services */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Services</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('yourServices')}</label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {services.map((service, index) => (
                     <span
@@ -554,14 +558,14 @@ export default function WebsiteDemoPage() {
                     }}
                     className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium"
                   >
-                    Add
+                    {t('add')}
                   </button>
                 </div>
               </div>
 
               {/* Color Scheme */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Color Scheme</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('colorScheme')}</label>
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                   {colorSchemes.map((scheme) => (
                     <button
@@ -595,13 +599,13 @@ export default function WebsiteDemoPage() {
                 onClick={() => setCurrentStep(1)}
                 className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
               >
-                ← Back
+                {t('back')}
               </button>
               <button
                 onClick={() => setCurrentStep(3)}
                 className="px-8 py-3 bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold rounded-lg transition-colors"
               >
-                See My Website →
+                {t('seeMyWebsite')}
               </button>
             </div>
           </div>
@@ -616,11 +620,11 @@ export default function WebsiteDemoPage() {
                 onClick={() => setCurrentStep(2)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
               >
-                ← Edit Details
+                {t('editDetails')}
               </button>
 
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-500">Preview:</span>
+                <span className="text-sm text-gray-500">{t('preview')}:</span>
                 <div className="flex bg-gray-100 rounded-lg p-1">
                   <button
                     onClick={() => setPreviewMode('desktop')}
@@ -645,7 +649,7 @@ export default function WebsiteDemoPage() {
                 href="/auth/register"
                 className="px-6 py-2 bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold rounded-lg transition-colors"
               >
-                Get This Website →
+                {t('getThisWebsite')}
               </Link>
             </div>
 
@@ -654,26 +658,25 @@ export default function WebsiteDemoPage() {
 
             {/* CTA Section */}
             <div className="mt-8 bg-gradient-to-r from-navy-500 to-navy-600 rounded-xl p-8 text-center text-white">
-              <h2 className="text-2xl font-bold mb-3">Love what you see?</h2>
+              <h2 className="text-2xl font-bold mb-3">{t('loveWhatYouSee')}</h2>
               <p className="text-white/80 mb-6 max-w-xl mx-auto">
-                We&apos;ll build this website for you — plus online booking, AI chatbot, invoicing, and more.
-                All included in your ToolTime Pro subscription.
+                {t('ctaDescription')}
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link
                   href="/auth/register"
                   className="px-8 py-3 bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold rounded-lg transition-colors"
                 >
-                  Start Free Trial
+                  {t('startFreeTrial')}
                 </Link>
                 <Link
                   href="/#get-started"
                   className="px-8 py-3 border-2 border-white text-white hover:bg-white/10 font-semibold rounded-lg transition-colors"
                 >
-                  Schedule Demo Call
+                  {t('scheduleDemoCall')}
                 </Link>
               </div>
-              <p className="text-white/60 text-sm mt-4">No credit card required. Setup done for you in days.</p>
+              <p className="text-white/60 text-sm mt-4">{t('ctaFootnote')}</p>
             </div>
           </div>
         )}

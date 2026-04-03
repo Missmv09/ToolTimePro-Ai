@@ -175,20 +175,20 @@ export default function QuickBooksDemoPage() {
                 <div className="text-3xl font-bold text-[#1a1a2e]">{syncStats.invoices.synced}</div>
                 <div className="text-sm text-gray-500 mt-1">{t('invoicesSynced')}</div>
                 {syncStats.invoices.pending > 0 && (
-                  <div className="text-xs text-yellow-600 mt-1">{syncStats.invoices.pending} pending</div>
+                  <div className="text-xs text-yellow-600 mt-1">{syncStats.invoices.pending} {t('pending').toLowerCase()}</div>
                 )}
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
                 <div className="text-3xl font-bold text-[#1a1a2e]">{syncStats.payments.synced}</div>
-                <div className="text-sm text-gray-500 mt-1">Payments Synced</div>
+                <div className="text-sm text-gray-500 mt-1">{t('paymentsSynced')}</div>
                 {syncStats.payments.pending > 0 && (
-                  <div className="text-xs text-yellow-600 mt-1">{syncStats.payments.pending} pending</div>
+                  <div className="text-xs text-yellow-600 mt-1">{syncStats.payments.pending} {t('pending').toLowerCase()}</div>
                 )}
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
                 <div className="text-3xl font-bold text-[#1a1a2e]">{syncStats.customers.synced}</div>
-                <div className="text-sm text-gray-500 mt-1">Customers Synced</div>
-                <div className="text-xs text-green-600 mt-1">All synced!</div>
+                <div className="text-sm text-gray-500 mt-1">{t('customersSynced')}</div>
+                <div className="text-xs text-green-600 mt-1">{t('allSynced')}</div>
               </div>
             </div>
           )}
@@ -208,7 +208,7 @@ export default function QuickBooksDemoPage() {
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  Invoices
+                  {t('invoices')}
                 </button>
                 <button
                   onClick={() => setActiveTab('payments')}
@@ -218,7 +218,7 @@ export default function QuickBooksDemoPage() {
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  Payments
+                  {t('payments')}
                 </button>
               </div>
             </div>
@@ -229,12 +229,12 @@ export default function QuickBooksDemoPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Invoice</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Customer</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Service</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
-                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Amount</th>
-                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">QB Status</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('invoice')}</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('customer')}</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('service')}</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('date')}</th>
+                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('amount')}</th>
+                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('qbStatus')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -256,12 +256,12 @@ export default function QuickBooksDemoPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Payment</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Invoice</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Customer</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Method</th>
-                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Amount</th>
-                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">QB Status</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('payment')}</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('invoice')}</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('customer')}</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('method')}</th>
+                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('amount')}</th>
+                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('qbStatus')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -292,9 +292,9 @@ export default function QuickBooksDemoPage() {
         <div className="mb-16">
           <div className="text-center mb-10">
             <span className="inline-block bg-[#e6f7e6] px-4 py-2 rounded-full text-sm font-bold text-[#2ca01c] mb-4">
-              How It Works
+              {t('howItWorks')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">Seamless Two-Way Sync</h2>
+            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('seamlessTwoWaySync')}</h2>
           </div>
 
           {/* Workflow Diagram */}
@@ -306,7 +306,7 @@ export default function QuickBooksDemoPage() {
                   🔧
                 </div>
                 <h4 className="font-bold text-[#1a1a2e]">ToolTime Pro</h4>
-                <p className="text-xs text-gray-500 mt-1">Create invoices, record payments</p>
+                <p className="text-xs text-gray-500 mt-1">{t('createInvoicesRecord')}</p>
               </div>
 
               {/* Arrow */}
@@ -319,8 +319,8 @@ export default function QuickBooksDemoPage() {
                 <div className="w-16 h-16 bg-[#2ca01c] rounded-full mx-auto flex items-center justify-center text-3xl mb-3 animate-pulse">
                   🔄
                 </div>
-                <h4 className="font-bold text-[#2ca01c]">Auto Sync</h4>
-                <p className="text-xs text-gray-600 mt-1">Real-time synchronization</p>
+                <h4 className="font-bold text-[#2ca01c]">{t('autoSync')}</h4>
+                <p className="text-xs text-gray-600 mt-1">{t('realTimeSynchronization')}</p>
               </div>
 
               {/* Arrow */}
@@ -334,14 +334,14 @@ export default function QuickBooksDemoPage() {
                   <span className="text-white text-2xl font-bold">QB</span>
                 </div>
                 <h4 className="font-bold text-[#1a1a2e]">QuickBooks</h4>
-                <p className="text-xs text-gray-500 mt-1">Reports, taxes, accounting</p>
+                <p className="text-xs text-gray-500 mt-1">{t('reportsTaxesAccounting')}</p>
               </div>
             </div>
 
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <h4 className="font-semibold text-center text-gray-700 mb-4">What Gets Synced:</h4>
+              <h4 className="font-semibold text-center text-gray-700 mb-4">{t('whatGetsSynced')}</h4>
               <div className="flex flex-wrap justify-center gap-3">
-                {['Invoices', 'Payments', 'Customers', 'Products/Services', 'Tax Rates'].map((item) => (
+                {[t('invoices'), t('payments'), t('customers'), t('productsServices'), t('taxRates')].map((item) => (
                   <span key={item} className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
                     ✓ {item}
                   </span>
@@ -355,19 +355,19 @@ export default function QuickBooksDemoPage() {
         <div className="mb-16">
           <div className="text-center mb-10">
             <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
-              Key Benefits
+              {t('keyBenefits')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">Why Connect QuickBooks?</h2>
+            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('whyConnectQB')}</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
+            {featureIcons.map((icon, index) => (
               <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#2ca01c] hover:shadow-lg transition-all">
                 <div className="w-12 h-12 bg-[#e6f7e6] rounded-xl flex items-center justify-center text-2xl mb-4">
-                  {feature.icon}
+                  {icon}
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{t(`features.${index}.title`)}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{t(`features.${index}.description`)}</p>
               </div>
             ))}
           </div>
@@ -375,17 +375,12 @@ export default function QuickBooksDemoPage() {
 
         {/* FAQ */}
         <div className="bg-white rounded-2xl p-8 shadow-lg mb-16">
-          <h3 className="text-2xl font-bold text-[#1a1a2e] mb-6 text-center">Frequently Asked Questions</h3>
+          <h3 className="text-2xl font-bold text-[#1a1a2e] mb-6 text-center">{t('faqTitle')}</h3>
           <div className="space-y-4 max-w-3xl mx-auto">
-            {[
-              { q: 'Do I need QuickBooks Online or Desktop?', a: 'We integrate with QuickBooks Online. Desktop versions are not currently supported, but most Desktop users can upgrade to Online.' },
-              { q: 'Will syncing mess up my existing QuickBooks data?', a: 'No! We only add new data from ToolTime Pro. We never modify or delete your existing QuickBooks records.' },
-              { q: 'Can I choose what gets synced?', a: 'Yes! In Settings, you can enable/disable sync for invoices, payments, and customers individually.' },
-              { q: 'Is there an extra cost for QuickBooks integration?', a: 'No, QuickBooks sync is included with all ToolTime Pro plans at no additional cost.' },
-            ].map((faq, index) => (
+            {[0, 1, 2, 3].map((index) => (
               <div key={index} className="border border-gray-100 rounded-xl p-4">
-                <h4 className="font-semibold text-[#1a1a2e] mb-2">{faq.q}</h4>
-                <p className="text-gray-600 text-sm">{faq.a}</p>
+                <h4 className="font-semibold text-[#1a1a2e] mb-2">{t(`faq.${index}.q`)}</h4>
+                <p className="text-gray-600 text-sm">{t(`faq.${index}.a`)}</p>
               </div>
             ))}
           </div>
@@ -393,26 +388,25 @@ export default function QuickBooksDemoPage() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-[#2ca01c] to-[#238c17] rounded-2xl p-10 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Connect Your Books. Save Hours Every Week.</h2>
+          <h2 className="text-3xl font-bold mb-4">{t('ctaTitle')}</h2>
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
-            Stop entering the same data twice. ToolTime Pro syncs with QuickBooks automatically,
-            so you can focus on running your business, not bookkeeping.
+            {t('ctaDescription')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup"
               className="bg-white text-[#2ca01c] px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors no-underline"
             >
-              Start Free Trial →
+              {t('startFreeTrial')} →
             </Link>
             <Link
               href="/dashboard/settings"
               className="border-2 border-white text-white px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition-colors no-underline"
             >
-              Go to Settings
+              {t('goToSettings')}
             </Link>
           </div>
-          <p className="text-white/60 text-sm mt-4">14-day free trial • QuickBooks sync included on all plans</p>
+          <p className="text-white/60 text-sm mt-4">{t('ctaFootnote')}</p>
         </div>
       </div>
     </div>

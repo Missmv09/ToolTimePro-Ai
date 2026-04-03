@@ -53,6 +53,7 @@ const demoTimeLog = {
 };
 
 export default function WorkerDemoPage() {
+  const t = useTranslations('demo.worker');
   const [activeTab, setActiveTab] = useState<'jobs' | 'clock' | 'hours' | 'profile'>('jobs');
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<typeof demoJobs[0] | null>(null);
@@ -63,11 +64,11 @@ export default function WorkerDemoPage() {
       <div className="bg-[#f5a623] text-[#1a1a2e] py-2 px-4 text-center">
         <p className="text-sm font-medium">
           <span className="bg-[#1a1a2e] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
-          Preview of the Worker App.{' '}
+          {t('demoBanner')}{' '}
           <Link href="/auth/signup" className="underline font-bold">
-            Sign up
+            {t('signUp')}
           </Link>{' '}
-          to get your team started.
+          {t('toGetTeamStarted')}
         </p>
       </div>
 
@@ -79,8 +80,9 @@ export default function WorkerDemoPage() {
             <p className="font-semibold text-gray-900">{demoUser.name}</p>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/" className="text-sm text-blue-600 font-medium">
-              ← Exit Demo
+              {t('exitDemo')}
             </Link>
           </div>
         </div>
@@ -94,18 +96,18 @@ export default function WorkerDemoPage() {
             {/* Today&apos;s Overview */}
             <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 mb-4 text-white">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-bold text-lg">Today&apos;s Jobs</h2>
+                <h2 className="font-bold text-lg">{t('todaysJobs')}</h2>
                 <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
                   {demoJobs.length} jobs
                 </span>
               </div>
               <div className="flex gap-6 text-sm">
                 <div>
-                  <div className="text-white/70">Est. Hours</div>
+                  <div className="text-white/70">{t('estHours')}</div>
                   <div className="font-bold text-lg">5.5</div>
                 </div>
                 <div>
-                  <div className="text-white/70">Revenue</div>
+                  <div className="text-white/70">{t('revenue')}</div>
                   <div className="font-bold text-lg text-[#f5a623]">$355</div>
                 </div>
               </div>
