@@ -1,21 +1,25 @@
-import Link from 'next/link'
+'use client';
 
-export const metadata = {
-  title: 'SMS Terms & Opt-In | ToolTime Pro',
-  description: 'ToolTime Pro SMS messaging terms, opt-in details, and how to manage text message notifications.',
-}
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function SmsPage() {
+  const t = useTranslations('legal.sms');
+
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
       <div className="bg-[#1a1a2e] text-white py-8">
         <div className="max-w-[900px] mx-auto px-6">
-          <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
-            &larr; ToolTime Pro
-          </Link>
-          <h1 className="text-3xl font-extrabold mt-4 drop-shadow-lg">SMS Messaging Terms &amp; Opt-In</h1>
-          <p className="text-white/90 mt-2">Last updated: March 26, 2026</p>
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
+              &larr; {t('backLink')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
+          <h1 className="text-3xl font-extrabold mt-4 drop-shadow-lg">{t('title')}</h1>
+          <p className="text-white/90 mt-2">{t('lastUpdated')}</p>
         </div>
       </div>
 
@@ -24,7 +28,7 @@ export default function SmsPage() {
         <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#1a1a2e] leading-relaxed">
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Program Name</h2>
+            <h2 className="text-xl font-bold mb-3">{t('programName')}</h2>
             <p>ToolTime Pro Service Notifications</p>
           </section>
 

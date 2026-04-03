@@ -64,6 +64,7 @@ function calculateHours(clockIn: string, clockOut: string | null, breakMinutes: 
 
 export default function WorkerTimePage() {
   const router = useRouter();
+  const t = useTranslations('worker.time');
   const [worker, setWorker] = useState<WorkerData | null>(null);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
@@ -246,10 +247,10 @@ export default function WorkerTimePage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Time Entries</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('errorLoadingTimeEntries')}</h2>
         <p className="text-gray-600 mb-4">{error}</p>
         <button onClick={handleRefresh} className="px-4 py-2 bg-gray-200 rounded-lg">
-          Try Again
+          {t('tryAgain')}
         </button>
       </div>
     );
