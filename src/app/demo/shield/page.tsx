@@ -69,11 +69,11 @@ export default function ShieldDemoPage() {
       <div className="bg-[#1a1a2e] text-white py-3 px-4 text-center">
         <p className="text-sm">
           <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
-          Preview of ToolTime Shield — CA Compliance & HR Tools.{' '}
+          {t('bannerText')}{' '}
           <Link href="/auth/signup" className="text-[#f5a623] underline">
-            Sign up
+            {t('bannerSignUp')}
           </Link>{' '}
-          to protect your business.
+          {t('bannerSuffix')}
         </p>
       </div>
 
@@ -81,13 +81,14 @@ export default function ShieldDemoPage() {
       <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-block">
-            ← Back to Home
+            ← {t('backToHome')}
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-4xl">🛡️</span>
-            <h1 className="text-3xl font-bold">ToolTime Shield Demo</h1>
+            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <div className="ml-auto"><LanguageSwitcher /></div>
           </div>
-          <p className="text-white/80">California compliance tools, worker classification, and HR document library</p>
+          <p className="text-white/80">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -96,11 +97,11 @@ export default function ShieldDemoPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex overflow-x-auto gap-1 py-2">
             {[
-              { key: 'overview', label: 'Overview', icon: '📊' },
-              { key: 'checklist', label: 'Compliance Checklist', icon: '✅' },
-              { key: 'quiz', label: 'Worker Classification', icon: '👷' },
-              { key: 'calculator', label: 'Final Pay Calculator', icon: '🧮' },
-              { key: 'documents', label: 'HR Documents', icon: '📄' },
+              { key: 'overview', label: t('tabOverview'), icon: '📊' },
+              { key: 'checklist', label: t('tabChecklist'), icon: '✅' },
+              { key: 'quiz', label: t('tabWorkerClass'), icon: '👷' },
+              { key: 'calculator', label: t('tabCalculator'), icon: '🧮' },
+              { key: 'documents', label: t('tabDocuments'), icon: '📄' },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -125,7 +126,7 @@ export default function ShieldDemoPage() {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Compliance Score */}
             <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">Compliance Score</h2>
+              <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('complianceScore')}</h2>
               <div className="flex items-center gap-8">
                 <div className="relative w-40 h-40">
                   <svg className="w-full h-full transform -rotate-90">
@@ -153,18 +154,18 @@ export default function ShieldDemoPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold text-green-600 mb-2">Good Standing</div>
+                  <div className="text-lg font-semibold text-green-600 mb-2">{t('goodStanding')}</div>
                   <p className="text-gray-600 mb-4">
-                    You&apos;re doing well! Complete the remaining items to reach 100% compliance.
+                    {t('goodStandingDesc')}
                   </p>
                   <div className="flex gap-4 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                      <span>4 Complete</span>
+                      <span>4 {t('complete')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-                      <span>2 Pending</span>
+                      <span>2 {t('pendingItems')}</span>
                     </div>
                   </div>
                 </div>
@@ -173,7 +174,7 @@ export default function ShieldDemoPage() {
 
             {/* Quick Actions */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">Quick Actions</h2>
+              <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('quickActions')}</h2>
               <div className="space-y-3">
                 <button
                   onClick={() => setActiveTab('quiz')}
@@ -182,8 +183,8 @@ export default function ShieldDemoPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">👷</span>
                     <div>
-                      <div className="font-semibold text-[#1a1a2e]">Worker Quiz</div>
-                      <div className="text-sm text-gray-500">Employee or Contractor?</div>
+                      <div className="font-semibold text-[#1a1a2e]">{t('workerQuiz')}</div>
+                      <div className="text-sm text-gray-500">{t('workerQuizDesc')}</div>
                     </div>
                   </div>
                 </button>
@@ -194,8 +195,8 @@ export default function ShieldDemoPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🧮</span>
                     <div>
-                      <div className="font-semibold text-[#1a1a2e]">Final Pay Calculator</div>
-                      <div className="text-sm text-gray-500">CA termination rules</div>
+                      <div className="font-semibold text-[#1a1a2e]">{t('finalPayCalc')}</div>
+                      <div className="text-sm text-gray-500">{t('finalPayCalcDesc')}</div>
                     </div>
                   </div>
                 </button>
@@ -206,8 +207,8 @@ export default function ShieldDemoPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">📄</span>
                     <div>
-                      <div className="font-semibold text-[#1a1a2e]">HR Documents</div>
-                      <div className="text-sm text-gray-500">Templates & forms</div>
+                      <div className="font-semibold text-[#1a1a2e]">{t('hrDocuments')}</div>
+                      <div className="text-sm text-gray-500">{t('hrDocumentsDesc')}</div>
                     </div>
                   </div>
                 </button>
@@ -217,12 +218,12 @@ export default function ShieldDemoPage() {
             {/* Recent Checklist Items */}
             <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">Compliance Checklist</h2>
+                <h2 className="font-bold text-[#1a1a2e]">{t('complianceChecklist')}</h2>
                 <button
                   onClick={() => setActiveTab('checklist')}
                   className="text-sm text-blue-600 font-medium"
                 >
-                  View All →
+                  {t('viewAllLink')} →
                 </button>
               </div>
               <div className="divide-y divide-gray-100">
@@ -257,8 +258,8 @@ export default function ShieldDemoPage() {
         {activeTab === 'checklist' && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-200">
-              <h2 className="font-bold text-[#1a1a2e]">CA Compliance Checklist</h2>
-              <p className="text-sm text-gray-500">Track your compliance with California employment laws</p>
+              <h2 className="font-bold text-[#1a1a2e]">{t('caComplianceChecklist')}</h2>
+              <p className="text-sm text-gray-500">{t('caChecklistDesc')}</p>
             </div>
             <div className="divide-y divide-gray-100">
               {demoChecklist.map((item) => (
@@ -284,7 +285,7 @@ export default function ShieldDemoPage() {
                     }`}>
                       {item.priority}
                     </span>
-                    <button className="text-blue-600 text-sm font-medium">Learn More</button>
+                    <button className="text-blue-600 text-sm font-medium">{t('learnMore')}</button>
                   </div>
                 </div>
               ))}
@@ -296,15 +297,15 @@ export default function ShieldDemoPage() {
         {activeTab === 'quiz' && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2 text-center">Worker Classification Quiz</h2>
+              <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2 text-center">{t('quizTitle')}</h2>
               <p className="text-gray-600 text-center mb-8">
-                Answer these questions to help determine if your worker should be classified as an employee or independent contractor.
+                {t('quizDesc')}
               </p>
 
               {quizAnswers.length < quizQuestions.length ? (
                 <div>
                   <div className="mb-4 text-sm text-gray-500 text-center">
-                    Question {quizStep + 1} of {quizQuestions.length}
+                    {t('questionOf', { current: quizStep + 1, total: quizQuestions.length })}
                   </div>
                   <div className="bg-gray-50 rounded-xl p-6 mb-6">
                     <p className="text-xl font-medium text-[#1a1a2e] text-center">
@@ -316,13 +317,13 @@ export default function ShieldDemoPage() {
                       onClick={() => handleQuizAnswer('yes')}
                       className="py-4 bg-green-100 text-green-700 rounded-xl font-bold hover:bg-green-200 transition-colors"
                     >
-                      Yes
+                      {t('yes')}
                     </button>
                     <button
                       onClick={() => handleQuizAnswer('no')}
                       className="py-4 bg-red-100 text-red-700 rounded-xl font-bold hover:bg-red-200 transition-colors"
                     >
-                      No
+                      {t('no')}
                     </button>
                   </div>
                 </div>
@@ -331,21 +332,20 @@ export default function ShieldDemoPage() {
                   <div className="w-20 h-20 bg-[#fef3d6] rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-4xl">⚠️</span>
                   </div>
-                  <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Review Recommended</h3>
+                  <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('reviewRecommended')}</h3>
                   <p className="text-gray-600 mb-6">
-                    Based on your answers, this worker may need to be classified as an <strong>Employee</strong>.
-                    We recommend consulting with an employment attorney to confirm.
+                    {t('reviewRecommendedDesc')}
                   </p>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
                     <p className="text-sm text-yellow-800">
-                      <strong>CA Law Note:</strong> California uses the ABC test which presumes workers are employees unless the hiring entity can prove all three conditions of the test.
+                      <strong>CA Law Note:</strong> {t('caLawNote')}
                     </p>
                   </div>
                   <button
                     onClick={resetQuiz}
                     className="px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-semibold hover:bg-[#2d2d4a]"
                   >
-                    Take Quiz Again
+                    {t('takeQuizAgain')}
                   </button>
                 </div>
               )}
@@ -357,15 +357,15 @@ export default function ShieldDemoPage() {
         {activeTab === 'calculator' && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2 text-center">Final Pay Calculator</h2>
+              <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2 text-center">{t('calcTitle')}</h2>
               <p className="text-gray-600 text-center mb-8">
-                Calculate final wages owed to terminated employees under California law.
+                {t('calcDesc')}
               </p>
 
               <div className="space-y-4 mb-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hours Worked (unpaid)
+                    {t('hoursWorked')}
                   </label>
                   <input
                     type="number"
@@ -376,7 +376,7 @@ export default function ShieldDemoPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hourly Rate ($)
+                    {t('hourlyRate')}
                   </label>
                   <input
                     type="number"
@@ -387,7 +387,7 @@ export default function ShieldDemoPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Unused PTO Hours
+                    {t('unusedPTOHours')}
                   </label>
                   <input
                     type="number"
@@ -399,18 +399,18 @@ export default function ShieldDemoPage() {
               </div>
 
               <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="font-bold text-[#1a1a2e] mb-4">Final Pay Breakdown</h3>
+                <h3 className="font-bold text-[#1a1a2e] mb-4">{t('finalPayBreakdown')}</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Unpaid Wages</span>
+                    <span className="text-gray-600">{t('unpaidWages')}</span>
                     <span className="font-semibold">${calculateFinalPay().wages.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Unused PTO Payout</span>
+                    <span className="text-gray-600">{t('unusedPTOPayout')}</span>
                     <span className="font-semibold">${calculateFinalPay().ptoValue.toFixed(2)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-3 flex justify-between">
-                    <span className="font-bold text-[#1a1a2e]">Total Due</span>
+                    <span className="font-bold text-[#1a1a2e]">{t('totalDue')}</span>
                     <span className="font-bold text-2xl text-green-600">${calculateFinalPay().total.toFixed(2)}</span>
                   </div>
                 </div>
@@ -418,8 +418,7 @@ export default function ShieldDemoPage() {
 
               <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-4">
                 <p className="text-sm text-red-800">
-                  <strong>CA Law:</strong> If an employee is fired, final pay (including unused PTO) must be provided <strong>immediately</strong>.
-                  Waiting time penalties of up to 30 days&apos; wages may apply for late payment.
+                  <strong>CA Law:</strong> {t('caLawFinalPay')}
                 </p>
               </div>
             </div>
@@ -430,8 +429,8 @@ export default function ShieldDemoPage() {
         {activeTab === 'documents' && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-200">
-              <h2 className="font-bold text-[#1a1a2e]">HR Document Library</h2>
-              <p className="text-sm text-gray-500">California-compliant templates and forms</p>
+              <h2 className="font-bold text-[#1a1a2e]">{t('hrDocLibrary')}</h2>
+              <p className="text-sm text-gray-500">{t('hrDocLibraryDesc')}</p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
               {demoDocuments.map((doc) => (
@@ -445,7 +444,7 @@ export default function ShieldDemoPage() {
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <span className="bg-gray-100 px-2 py-0.5 rounded">{doc.type}</span>
                         <span>•</span>
-                        <span>{doc.downloads} downloads</span>
+                        <span>{doc.downloads} {t('downloads')}</span>
                       </div>
                     </div>
                   </div>
@@ -457,23 +456,22 @@ export default function ShieldDemoPage() {
 
         {/* Bottom CTA */}
         <div className="mt-8 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">Protect Your Business</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('protectBusiness')}</h2>
           <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-            ToolTime Shield helps you stay compliant with California employment law, avoid costly lawsuits,
-            and manage HR tasks with ease. Included in all ToolTime Pro plans.
+            {t('protectBusinessDesc')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup"
               className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
             <Link
               href="/demo/dashboard"
               className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white/10 transition-colors no-underline"
             >
-              See Full Dashboard →
+              {t('seeFullDashboard')} →
             </Link>
           </div>
         </div>
@@ -483,7 +481,7 @@ export default function ShieldDemoPage() {
       <footer className="border-t border-gray-200 py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
-            Powered by{' '}
+            {t('poweredBy')}{' '}
             <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
               ToolTime Pro
             </Link>
