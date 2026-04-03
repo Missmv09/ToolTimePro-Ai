@@ -566,8 +566,8 @@ export default function PricingPage() {
 
         {/* Other Add-ons */}
         <section className="section">
-          <h2>Other Add-Ons</h2>
-          <p className="section-desc">Supercharge any plan with these extras.</p>
+          <h2>{t('otherAddons')}</h2>
+          <p className="section-desc">{t('otherAddonsDesc')}</p>
 
           <div className="addons-grid">
             {ADDONS.filter(addon => !addon.isJenny).map((addon) => (
@@ -593,7 +593,7 @@ export default function PricingPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Buy standalone →
+                    {t('buyStandalone')}
                   </a>
                 )}
               </div>
@@ -602,8 +602,8 @@ export default function PricingPage() {
 
           {(selectedTier || selectedStandalone) && (
             <div className="extra-workers">
-              <h4>Need Extra Workers?</h4>
-              <p>Add more team members at $7/user/month</p>
+              <h4>{t('needExtraWorkers')}</h4>
+              <p>{t('extraWorkersDesc')}</p>
               <div className="workers-control">
                 <button onClick={() => setExtraWorkers(Math.max(0, extraWorkers - 1))} disabled={extraWorkers === 0}>−</button>
                 <span className="workers-count">{extraWorkers}</span>
@@ -616,8 +616,8 @@ export default function PricingPage() {
 
         {/* Onboarding */}
         <section className="section">
-          <h2>Optional Onboarding Services</h2>
-          <p className="section-desc">Get help setting up. One-time fee.</p>
+          <h2>{t('onboardingTitle')}</h2>
+          <p className="section-desc">{t('onboardingDesc')}</p>
 
           <div className="onboarding-grid">
             {ONBOARDING.map((option) => (
@@ -626,9 +626,9 @@ export default function PricingPage() {
                 className={`onboarding-card ${selectedOnboarding === option.id ? 'selected' : ''} ${option.recommended ? 'recommended' : ''}`}
                 onClick={() => setSelectedOnboarding(selectedOnboarding === option.id ? null : option.id)}
               >
-                {option.recommended && <span className="recommended-badge">Recommended</span>}
+                {option.recommended && <span className="recommended-badge">{t('recommended')}</span>}
                 <h4>{option.name}</h4>
-                <p className="onboarding-price">${option.price} <span>one-time</span></p>
+                <p className="onboarding-price">${option.price} <span>{t('oneTime')}</span></p>
                 <p className="onboarding-desc">{option.description}</p>
                 <ul className="onboarding-features">
                   {option.features.map((f, i) => (
@@ -647,13 +647,13 @@ export default function PricingPage() {
         {hasSelection && (
           <section className="summary-section">
             <div className="summary-card">
-              <h3>Your Selection</h3>
+              <h3>{t('yourSelection')}</h3>
 
               <div className="summary-items">
                 {selectedTier && (
                   <div className="summary-line main">
-                    <span>{TIERS.find(t => t.id === selectedTier)?.name} Plan</span>
-                    <span>${isAnnual ? Math.round(TIERS.find(t => t.id === selectedTier)?.annualPrice / 12) : TIERS.find(t => t.id === selectedTier)?.monthlyPrice}/mo</span>
+                    <span>{TIERS.find(tier => tier.id === selectedTier)?.name} {t('plan')}</span>
+                    <span>${isAnnual ? Math.round(TIERS.find(tier => tier.id === selectedTier)?.annualPrice / 12) : TIERS.find(tier => tier.id === selectedTier)?.monthlyPrice}/mo</span>
                   </div>
                 )}
                 {selectedStandalone && (
@@ -669,14 +669,14 @@ export default function PricingPage() {
                   return (
                     <div key={addonId} className="summary-line">
                       <span>{addon?.icon} {addon?.name}</span>
-                      <span>{isIncludedFree ? 'Included ✓' : `+$${addon?.monthlyPrice}/mo`}</span>
+                      <span>{isIncludedFree ? `${t('included')} ✓` : `+$${addon?.monthlyPrice}/mo`}</span>
                     </div>
                   );
                 })}
 
                 {extraWorkers > 0 && (
                   <div className="summary-line">
-                    <span>👷 {extraWorkers} Extra Workers</span>
+                    <span>👷 {extraWorkers} {t('extraWorkers')}</span>
                     <span>+${extraWorkers * 7}/mo</span>
                   </div>
                 )}
@@ -685,7 +685,7 @@ export default function PricingPage() {
               <div className="summary-divider" />
 
               <div className="summary-total">
-                <span>Monthly Total</span>
+                <span>{t('monthlyTotal')}</span>
                 <span className="total-amount">${displayPrice}<span>/mo</span></span>
               </div>
 
@@ -701,9 +701,9 @@ export default function PricingPage() {
               )}
 
               <button className="cta-btn" onClick={handleCheckout}>
-                Start 14-Day Free Trial →
+                {t('startTrialCta')}
               </button>
-              <p className="cta-note">No credit card required</p>
+              <p className="cta-note">{t('noCreditCard')}</p>
             </div>
           </section>
         )}
@@ -713,34 +713,34 @@ export default function PricingPage() {
           <div className="dispatch-content">
             <span className="dispatch-icon">🗺️</span>
             <div>
-              <h3>Need the Dispatch Board?</h3>
-              <p>Real-time crew tracking, drag-and-drop scheduling, and route optimization. Available exclusively in Elite.</p>
+              <h3>{t('dispatchBoardTitle')}</h3>
+              <p>{t('dispatchBoardDesc')}</p>
             </div>
             <button onClick={() => selectTier('elite')} className="dispatch-btn">
-              Get Elite →
+              {t('getElite')}
             </button>
           </div>
         </section>
 
         {/* FAQ */}
         <section className="section faq-section">
-          <h2>Common Questions</h2>
+          <h2>{t('faqTitle')}</h2>
           <div className="faq-grid">
             <div className="faq-item">
-              <h4>Can I switch plans later?</h4>
-              <p>Yes! Upgrade or downgrade anytime. Changes apply to your next billing cycle.</p>
+              <h4>{t('faq1Q')}</h4>
+              <p>{t('faq1A')}</p>
             </div>
             <div className="faq-item">
-              <h4>What&apos;s included in the trial?</h4>
-              <p>Full access to your selected plan for 14 days. No credit card needed to start.</p>
+              <h4>{t('faq2Q')}</h4>
+              <p>{t('faq2A')}</p>
             </div>
             <div className="faq-item">
-              <h4>Do I need onboarding?</h4>
-              <p>It&apos;s optional but recommended. We&apos;ll set everything up so you can focus on your business.</p>
+              <h4>{t('faq3Q')}</h4>
+              <p>{t('faq3A')}</p>
             </div>
             <div className="faq-item">
-              <h4>What if I just need booking OR invoicing?</h4>
-              <p>Start with our $15/mo standalone options. Upgrade to a full plan anytime — we&apos;ll credit your payments.</p>
+              <h4>{t('faq4Q')}</h4>
+              <p>{t('faq4A')}</p>
             </div>
           </div>
         </section>
@@ -749,15 +749,15 @@ export default function PricingPage() {
       {/* Footer */}
       <footer className="footer">
         <div className="footer-top">
-          <p>© 2026 ToolTime Pro. Built for California contractors.</p>
+          <p>© 2026 ToolTime Pro. {t('footerBuiltFor')}</p>
           <div className="footer-badge">
-            <span className="women-owned">★ Women-Owned Business</span>
+            <span className="women-owned">★ {t('womenOwned')}</span>
           </div>
         </div>
         <div className="footer-links">
-          <Link href="/terms">Terms</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/contact">Contact</Link>
+          <Link href="/terms">{t('terms')}</Link>
+          <Link href="/privacy">{t('privacy')}</Link>
+          <Link href="/contact">{t('contact')}</Link>
         </div>
       </footer>
 

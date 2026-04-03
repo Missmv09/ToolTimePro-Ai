@@ -152,9 +152,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Back to ToolTime Pro
+                <span data-i18n="back_to_tooltime">Back to ToolTime Pro</span>
             </a>
-            <span class="coming-soon-badge">Coming Soon</span>
+            <span class="coming-soon-badge" data-i18n="payroll_coming_soon">Coming Soon</span>
+            <button onclick="switchLocale(getLocale()==='en'?'es':'en')" data-i18n-toggle style="background:none;border:1px solid var(--border);color:var(--text-light);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:0.875rem;font-weight:600">🌐 ES</button>
         </div>
     </header>
 
@@ -162,7 +163,7 @@
     <section class="hero">
         <div class="container">
             <div class="hero-icon">💰</div>
-            <h1>Payroll — <span>Coming Soon</span></h1>
+            <h1><span data-i18n="payroll_title">Payroll</span> — <span data-i18n="payroll_coming_soon">Coming Soon</span></h1>
             <p class="hero-subtitle">The missing piece for running your crew. Direct deposit, tax forms, time sync — all in one place.</p>
             <div class="hero-badge">Expected Launch: Q2 2026</div>
         </div>
@@ -366,5 +367,6 @@
 
         document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
     </script>
+    <script src="i18n.js"></script>
 </body>
 </html>

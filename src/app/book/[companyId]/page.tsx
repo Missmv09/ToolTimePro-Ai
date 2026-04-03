@@ -6,6 +6,8 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Service, Company } from '@/types/database';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Types for the booking flow
 interface BookingData {
@@ -125,6 +127,7 @@ function getAvailableDates(
 export default function BookingPage() {
   const params = useParams();
   const companyId = params.companyId as string;
+  const t = useTranslations('misc.booking');
 
   const [company, setCompany] = useState<Company | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -314,7 +317,7 @@ export default function BookingPage() {
       <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#f5a623] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#5c5c70]">Loading booking page...</p>
+          <p className="text-[#5c5c70]">{t('loadingBooking')}</p>
         </div>
       </div>
     );
@@ -326,13 +329,13 @@ export default function BookingPage() {
       <div className="min-h-screen bg-[#fafafa] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">😕</div>
-          <h1 className="text-2xl font-bold text-[#1a1a2e] mb-2">Page Not Found</h1>
+          <h1 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('pageNotFound')}</h1>
           <p className="text-[#5c5c70] mb-6">{error}</p>
           <Link
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-medium hover:bg-[#2d2d44] transition-colors no-underline"
           >
-            Go Home
+            {t('goHome')}
           </Link>
         </div>
       </div>
@@ -360,9 +363,10 @@ export default function BookingPage() {
             )}
             <div>
               <h1 className="font-bold text-[#1a1a2e]">{company?.name}</h1>
-              <p className="text-sm text-[#5c5c70]">Online Booking</p>
+              <p className="text-sm text-[#5c5c70]">{t('onlineBooking')}</p>
             </div>
           </div>
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -372,10 +376,10 @@ export default function BookingPage() {
           <div className="max-w-3xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               {[
-                { key: 'service', label: 'Service' },
-                { key: 'datetime', label: 'Date & Time' },
-                { key: 'info', label: 'Your Info' },
-                { key: 'confirm', label: 'Confirm' },
+                { key: 'service', label: t('service') },
+                { key: 'datetime', label: t('dateTime') },
+                { key: 'info', label: t('yourInfo') },
+                { key: 'confirm', label: t('confirm') },
               ].map((s, index) => {
                 const steps: BookingStep[] = ['service', 'datetime', 'info', 'confirm'];
                 const currentIndex = steps.indexOf(step);
@@ -429,12 +433,12 @@ export default function BookingPage() {
         {/* Step 1: Select Service */}
         {step === 'service' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Select a Service</h2>
-            <p className="text-[#5c5c70] mb-6">Choose the service you need.</p>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('selectService')}</h2>
+            <p className="text-[#5c5c70] mb-6">{t('selectServiceSubtitle')}</p>
 
             {services.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                <p className="text-[#5c5c70]">No services available for booking at this time.</p>
+                <p className="text-[#5c5c70]">{t('noServices')}</p>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -468,7 +472,7 @@ export default function BookingPage() {
                             )}
                           </div>
                         )}
-                        <span className="text-[#f5a623] font-medium text-sm">Select →</span>
+                        <span className="text-[#f5a623] font-medium text-sm">{t('selectArrow')} &rarr;</span>
                       </div>
                     </div>
                   </button>
