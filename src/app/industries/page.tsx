@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // 50+ industries - more than any competitor
 const industries = [
@@ -89,6 +91,7 @@ export default function IndustriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations('industries');
 
   const filteredIndustries = industries.filter(industry => {
     const matchesSearch = industry.name.toLowerCase().includes(searchQuery.toLowerCase());

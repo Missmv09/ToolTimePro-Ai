@@ -343,21 +343,21 @@ export default function TimeclockPage() {
       {/* Location Status */}
       <div className="mt-4 text-center">
         {location ? (
-          <p className="text-sm text-green-600">📍 GPS location enabled</p>
+          <p className="text-sm text-green-600">📍 {t('gpsEnabled')}</p>
         ) : locationError ? (
-          <p className="text-sm text-yellow-600">⚠️ {locationError}</p>
+          <p className="text-sm text-yellow-600">⚠️ {t('locationDenied')}</p>
         ) : (
-          <p className="text-sm text-gray-500">📍 Getting location...</p>
+          <p className="text-sm text-gray-500">📍 {t('gettingLocation')}</p>
         )}
       </div>
 
       {/* California Break Rules Notice */}
       <div className="mt-6 bg-blue-50 rounded-xl p-4">
-        <p className="text-sm font-semibold text-blue-800 mb-2">California Break Rules</p>
+        <p className="text-sm font-semibold text-blue-800 mb-2">{t('californiaBreakRules')}</p>
         <ul className="text-xs text-blue-700 space-y-1">
-          <li>• 30-min meal break before 5th hour</li>
-          <li>• 10-min rest break per 4 hours worked</li>
-          <li>• Second meal break if working 10+ hours</li>
+          <li>• {t('mealBreakRule')}</li>
+          <li>• {t('restBreakRule')}</li>
+          <li>• {t('secondMealRule')}</li>
         </ul>
       </div>
     </div>
