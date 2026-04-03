@@ -104,9 +104,9 @@ export default function IndustriesPage() {
       {/* Promo Banner */}
       <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
-        Limited Time: Get 2 months free on annual plans.
+        {t('promo')}
         <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
-          Start Free Trial
+          {t('startFreeTrial')}
         </Link>
       </div>
 
@@ -125,10 +125,10 @@ export default function IndustriesPage() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Features</Link>
-            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">Industries</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Pricing</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Free Tools</Link>
+            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('features')}</Link>
+            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">{t('industries', undefined, { namespace: '' }) || 'Industries'}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('pricing')}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('freeTools')}</Link>
             <span className="text-[#5c5c70] text-base flex items-center gap-1">
               📞 (888) 980-TOOL
             </span>
@@ -136,13 +136,14 @@ export default function IndustriesPage() {
               href="/auth/login"
               className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline"
             >
-              Login
+              {t('login')}
             </Link>
+            <LanguageSwitcher />
             <Link
               href="/auth/signup"
               className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
           </div>
 
