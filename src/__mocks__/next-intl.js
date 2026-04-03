@@ -77,7 +77,13 @@ function NextIntlClientProvider({ children }) {
 }
 
 async function getTranslations(namespace) {
-  return useTranslations(namespace);
+  const t = function (key) {
+    const fullPath = namespace ? `${namespace}.${key}` : key;
+    return getNestedValue(allMessages, fullPath);
+  };
+  t.rich = function (key) { return t(key); };
+  t.raw = function (key) { return t(key); };
+  return t;
 }
 
 async function getLocale() {
