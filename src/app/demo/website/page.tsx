@@ -654,7 +654,7 @@ export default function WebsiteDemoPage() {
             <div className="mt-8 bg-gradient-to-r from-navy-500 to-navy-600 rounded-xl p-8 text-center text-white">
               <h2 className="text-2xl font-bold mb-3">Love what you see?</h2>
               <p className="text-white/80 mb-6 max-w-xl mx-auto">
-                We&apos;ll build this website for you — plus online booking, AI chatbot, invoicing, and more.
+                We&apos;ll build this website for you — plus online booking, ToolTime Assistant, invoicing, and more.
                 All included in your ToolTime Pro subscription.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
