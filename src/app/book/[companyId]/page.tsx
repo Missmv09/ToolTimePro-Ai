@@ -837,17 +837,17 @@ export default function BookingPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 max-w-md mx-auto mb-8">
               <div className="text-left">
                 <div className="mb-4">
-                  <p className="text-sm text-[#5c5c70]">Service</p>
+                  <p className="text-sm text-[#5c5c70]">{t('service')}</p>
                   <p className="font-bold text-[#1a1a2e]">{booking.service?.name}</p>
                 </div>
                 <div className="mb-4">
-                  <p className="text-sm text-[#5c5c70]">Date & Time</p>
+                  <p className="text-sm text-[#5c5c70]">{t('dateTimeSuccess')}</p>
                   <p className="font-bold text-[#1a1a2e]">
                     {formatDate(booking.date)} at {formatTime(booking.time)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#5c5c70]">Location</p>
+                  <p className="text-sm text-[#5c5c70]">{t('location')}</p>
                   <p className="font-bold text-[#1a1a2e]">{booking.customerAddress}</p>
                   <p className="text-[#5c5c70]">
                     {booking.customerCity}, {booking.customerState} {booking.customerZip}
@@ -860,7 +860,7 @@ export default function BookingPage() {
               href="/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-medium hover:bg-[#2d2d44] transition-colors no-underline"
             >
-              Back to Home
+              {t('backToHome')}
             </Link>
           </div>
         )}
@@ -870,7 +870,7 @@ export default function BookingPage() {
       <footer className="border-t border-gray-200 py-6 mt-auto">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
-            Powered by{' '}
+            {t('poweredBy')}{' '}
             <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
               ToolTime Pro
             </Link>
