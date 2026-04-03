@@ -15,7 +15,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslations, useLocale } from 'next-intl';
 import { SESSION_ACTIVITY_EVENT } from '@/hooks/useSessionTimeout';
 
 interface Message {
@@ -84,19 +84,20 @@ export default function JennyExecChat({
   inline = false,
 }: JennyExecChatProps) {
   const { company } = useAuth();
-  const { t, language } = useLanguage();
+  const t = useTranslations('jenny');
+  const language = useLocale();
   const style = MODE_STYLE[mode];
   const ModeIcon = style.icon;
 
-  const title = t(`jenny.${mode}.title`);
-  const subtitle = t(`jenny.${mode}.subtitle`);
-  const greeting = t(`jenny.${mode}.greeting`);
-  const placeholder = t(`jenny.${mode}.placeholder`);
+  const title = t(`${mode}.title`);
+  const subtitle = t(`${mode}.subtitle`);
+  const greeting = t(`${mode}.greeting`);
+  const placeholder = t(`${mode}.placeholder`);
   const quickQuestions = [
-    t(`jenny.${mode}.q1`),
-    t(`jenny.${mode}.q2`),
-    t(`jenny.${mode}.q3`),
-    t(`jenny.${mode}.q4`),
+    t(`${mode}.q1`),
+    t(`${mode}.q2`),
+    t(`${mode}.q3`),
+    t(`${mode}.q4`),
   ];
 
   const [isOpen, setIsOpen] = useState(inline);
@@ -179,7 +180,7 @@ export default function JennyExecChat({
         {
           id: `error-${Date.now()}`,
           role: 'assistant',
-          content: t('jenny.errorConnect'),
+          content: t('errorConnect'),
           timestamp: new Date(),
         },
       ]);
@@ -206,7 +207,7 @@ export default function JennyExecChat({
             <div className="flex items-center gap-2">
               <Sparkles className="w-6 h-6" />
               <span className="hidden group-hover:inline text-sm font-medium pr-1">
-                {t('jenny.askJenny')}
+                {t('askJenny')}
               </span>
             </div>
           </button>
@@ -363,7 +364,7 @@ export default function JennyExecChat({
             onClick={() => setMessages([])}
             className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
-            {t('jenny.clearChat')}
+            {t('clearChat')}
           </button>
         )}
       </div>
@@ -439,7 +440,7 @@ export default function JennyExecChat({
                 onClick={scrollToBottom}
                 className="mx-auto block text-xs text-gray-400 hover:text-gray-600"
               >
-                <ChevronDown className="w-4 h-4 inline" /> {t('jenny.scrollLatest')}
+                <ChevronDown className="w-4 h-4 inline" /> {t('scrollLatest')}
               </button>
             )}
           </>

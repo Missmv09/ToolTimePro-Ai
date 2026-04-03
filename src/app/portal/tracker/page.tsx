@@ -11,6 +11,7 @@ import {
   MessageSquare,
   AlertCircle,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface StatusUpdate {
   note_text: string;
@@ -32,15 +33,16 @@ interface TrackedJob {
   statusUpdates: StatusUpdate[];
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock; description: string }> = {
-  scheduled: { label: 'Scheduled', color: 'bg-blue-100 text-blue-700', icon: Calendar, description: 'Your appointment is confirmed' },
-  in_progress: { label: 'In Progress', color: 'bg-green-100 text-green-700', icon: Truck, description: 'Your crew is on the job' },
-  completed: { label: 'Completed', color: 'bg-gray-100 text-gray-600', icon: CheckCircle, description: 'Work is finished' },
-};
-
 export default function PortalTracker() {
   const [jobs, setJobs] = useState<TrackedJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations('portal.tracker');
+
+  const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock; description: string }> = {
+    scheduled: { label: t('statusScheduled'), color: 'bg-blue-100 text-blue-700', icon: Calendar, description: t('scheduledDescription') },
+    in_progress: { label: t('statusInProgress'), color: 'bg-green-100 text-green-700', icon: Truck, description: t('inProgressDescription') },
+    completed: { label: t('statusCompleted'), color: 'bg-gray-100 text-gray-600', icon: CheckCircle, description: t('completedDescription') },
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('portal_token');
@@ -52,17 +54,17 @@ export default function PortalTracker() {
       .catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-12 text-gray-400">Loading tracker...</div>;
+  if (loading) return <div className="text-center py-12 text-gray-400">{t('loading')}</div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-gray-900">Job Tracker</h1>
+      <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
 
       {jobs.length === 0 ? (
         <div className="bg-white rounded-xl p-8 shadow-sm text-center">
           <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-3" />
-          <h3 className="font-medium text-gray-700">No active jobs</h3>
-          <p className="text-sm text-gray-500 mt-1">When you have scheduled work, you&apos;ll see live updates here.</p>
+          <h3 className="font-medium text-gray-700">{t('noActiveJobs')}</h3>
+          <p className="text-sm text-gray-500 mt-1">{t('noActiveJobsDescription')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -85,7 +87,7 @@ export default function PortalTracker() {
                     {isActive && (
                       <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        Live
+                        {t('live')}
                       </span>
                     )}
                   </div>
@@ -117,7 +119,7 @@ export default function PortalTracker() {
                     {job.crew.length > 0 && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Users className="w-4 h-4 text-gray-400" />
-                        <span>Crew: {job.crew.join(', ')}</span>
+                        <span>{t('crew', { members: job.crew.join(', ') })}</span>
                       </div>
                     )}
                   </div>
@@ -126,7 +128,7 @@ export default function PortalTracker() {
                   {job.statusUpdates.length > 0 && (
                     <div className="mt-4 border-t pt-4">
                       <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                        <MessageSquare className="w-3 h-3" /> Updates
+                        <MessageSquare className="w-3 h-3" /> {t('updates')}
                       </h4>
                       <div className="space-y-2">
                         {job.statusUpdates.map((update, i) => (

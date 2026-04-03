@@ -803,13 +803,14 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Back to ToolTime Pro
+                <span data-i18n="back_to_tooltime">Back to ToolTime Pro</span>
             </a>
             <div class="header-title">
-                <h1>5-Star Review Machine</h1>
-                <p>Automatically request reviews after every job. Watch your rating climb.</p>
+                <h1 data-i18n="reviews_title">5-Star Review Machine</h1>
+                <p data-i18n="reviews_subtitle">Automatically request reviews after every job. Watch your rating climb.</p>
             </div>
-            <span class="demo-badge">Interactive Demo</span>
+            <span class="demo-badge" data-i18n="interactive_demo">Interactive Demo</span>
+            <button onclick="switchLocale(getLocale()==='en'?'es':'en')" data-i18n-toggle style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:0.875rem;font-weight:600">🌐 ES</button>
             <span class="ai-badge">Powered by AI ✨</span>
         </div>
     </header>
@@ -1053,15 +1054,15 @@
     <section class="pricing-cta">
         <div class="cta-box">
             <div class="cta-content">
-                <h3>Add Review Automation to Your Plan</h3>
-                <p>Available as an add-on to any ToolTime Pro subscription</p>
+                <h3 data-i18n="reviews_cta_title">Add Review Automation to Your Plan</h3>
+                <p data-i18n="reviews_cta_desc">Available as an add-on to any ToolTime Pro subscription</p>
             </div>
             <div class="cta-price">
                 <div class="amount">$19</div>
                 <div class="period">/month add-on</div>
             </div>
             <a href="index.html#pricing" class="cta-btn">
-                Add to My Plan
+                <span data-i18n="reviews_cta_btn">Add to My Plan</span>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -1195,5 +1196,6 @@
             });
         }
     </script>
+    <script src="i18n.js"></script>
 </body>
 </html>

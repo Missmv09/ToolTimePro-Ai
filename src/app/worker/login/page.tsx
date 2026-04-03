@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function WorkerLoginPage() {
   const [email, setEmail] = useState('')
@@ -10,6 +12,7 @@ export default function WorkerLoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const t = useTranslations('worker.login')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,7 +39,7 @@ export default function WorkerLoginPage() {
         .single()
 
       if (!userData) {
-        setError('Account not found. Contact your employer.')
+        setError(t('accountNotFound'))
         await supabase.auth.signOut()
         setLoading(false)
         return
@@ -58,7 +61,7 @@ export default function WorkerLoginPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
       if (message === 'Failed to fetch') {
-        setError('Unable to connect. Please check your internet connection and try again.')
+        setError(t('connectionError'))
       } else {
         setError(message)
       }
@@ -71,14 +74,19 @@ export default function WorkerLoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">ToolTime Pro</h1>
-          <p className="text-blue-200 mt-2">Worker Portal</p>
+          <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
+          <p className="text-blue-200 mt-2">{t('subtitle')}</p>
+        </div>
+
+        {/* Language Switcher */}
+        <div className="flex justify-center mb-4">
+          <LanguageSwitcher />
         </div>
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-6">
           <h2 className="text-xl font-semibold text-gray-900 text-center mb-6">
-            Sign In
+            {t('signIn')}
           </h2>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -90,7 +98,7 @@ export default function WorkerLoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t('email')}
               </label>
               <input
                 type="email"
@@ -98,13 +106,13 @@ export default function WorkerLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-                placeholder="you@company.com"
+                placeholder={t('emailPlaceholder')}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <input
                 type="password"
@@ -121,13 +129,13 @@ export default function WorkerLoginPage() {
               disabled={loading}
               className="w-full py-4 bg-blue-600 text-white text-lg font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t('signingIn') : t('signIn')}
             </button>
           </form>
         </div>
 
         <p className="text-center text-blue-200 text-sm mt-6">
-          Need an account? Ask your employer to add you.
+          {t('needAccount')}
         </p>
       </div>
     </div>

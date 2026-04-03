@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { HardHat, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 async function triggerWelcomeEmail() {
   try {
@@ -27,6 +29,7 @@ async function triggerWelcomeEmail() {
 export default function SetPasswordPage() {
   const router = useRouter();
   const { user, dbUser, company, isLoading: authLoading } = useAuth();
+  const t = useTranslations('auth.setPassword');
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -103,12 +106,12 @@ export default function SetPasswordPage() {
     setError('');
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('minLength'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('mismatch'));
       return;
     }
 
@@ -170,12 +173,15 @@ export default function SetPasswordPage() {
     return (
       <div className="min-h-screen bg-navy-gradient flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher />
+          </div>
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-navy-500 mb-2">You&apos;re All Set!</h1>
+          <h1 className="text-2xl font-bold text-navy-500 mb-2">{t('successTitle')}</h1>
           <p className="text-gray-600 mb-6">
-            Your password has been saved. Taking you to set up your account...
+            {t('successMessage')}
           </p>
         </div>
       </div>
@@ -186,13 +192,15 @@ export default function SetPasswordPage() {
     return (
       <div className="min-h-screen bg-navy-gradient flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-navy-500 mb-2">Invalid or Expired Link</h1>
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher />
+          </div>
+          <h1 className="text-2xl font-bold text-navy-500 mb-2">{t('invalidTitle')}</h1>
           <p className="text-gray-600 mb-6">
-            This confirmation link is invalid or has expired.
-            Please sign up again.
+            {t('invalidMessage')}
           </p>
           <Link href="/auth/signup" className="btn-secondary w-full inline-block text-center">
-            Sign Up
+            {t('signUpLink')}
           </Link>
         </div>
       </div>
@@ -202,34 +210,35 @@ export default function SetPasswordPage() {
   return (
     <div className="min-h-screen bg-navy-gradient flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-center pt-12 pb-8">
+      <div className="flex items-center justify-between pt-12 pb-8 px-4 max-w-md mx-auto w-full">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center">
             <HardHat className="w-7 h-7 text-navy-500" />
           </div>
           <span className="text-2xl font-bold text-white">ToolTime Pro</span>
         </Link>
+        <LanguageSwitcher />
       </div>
 
       {/* Form Card */}
       <div className="flex-1 flex items-start justify-center px-4 pb-12">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold text-navy-500 mb-2">Set Your Password</h1>
+          <h1 className="text-2xl font-bold text-navy-500 mb-2">{t('title')}</h1>
           <p className="text-gray-600 mb-6">
-            Email verified! Create a password to secure your account.
+            {t('subtitle')}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Password */}
             <div>
-              <label className="input-label">Password</label>
+              <label className="input-label">{t('passwordLabel')}</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 8 characters"
+                  placeholder={t('placeholder')}
                   className="input pl-10 pr-10"
                   minLength={8}
                   required
@@ -246,14 +255,14 @@ export default function SetPasswordPage() {
 
             {/* Confirm Password */}
             <div>
-              <label className="input-label">Confirm Password</label>
+              <label className="input-label">{t('confirmPasswordLabel')}</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
+                  placeholder={t('confirmPlaceholder')}
                   className="input pl-10"
                   minLength={8}
                   required
@@ -277,10 +286,10 @@ export default function SetPasswordPage() {
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-5 h-5 border-2 border-navy-500 border-t-transparent rounded-full animate-spin" />
-                  Saving...
+                  {t('saving')}
                 </span>
               ) : (
-                'Set Password & Continue'
+                t('setButton')
               )}
             </button>
           </form>

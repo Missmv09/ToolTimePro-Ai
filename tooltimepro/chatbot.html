@@ -636,20 +636,21 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Back to ToolTime Pro
+                <span data-i18n="back_to_tooltime">Back to ToolTime Pro</span>
             </a>
             <div class="header-title">
-                <h1>24/7 ToolTime Assistant</h1>
-                <p>Never miss a lead. Answer questions instantly. Book appointments while you sleep.</p>
+                <h1 data-i18n="chatbot_title">24/7 ToolTime Assistant</h1>
+                <p data-i18n="chatbot_subtitle">Never miss a lead. Answer questions instantly. Book appointments while you sleep.</p>
             </div>
-            <span class="demo-badge">Interactive Demo</span>
+            <span class="demo-badge" data-i18n="interactive_demo">Interactive Demo</span>
+            <button onclick="switchLocale(getLocale()==='en'?'es':'en')" data-i18n-toggle style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:0.875rem;font-weight:600">🌐 ES</button>
         </div>
     </header>
 
     <main class="main-container">
         <!-- Left - What It Does -->
         <div class="features-panel">
-            <h3><span>🤖</span> What It Does</h3>
+            <h3><span>🤖</span> <span data-i18n="chatbot_what_it_does">What It Does</span></h3>
             <ul class="feature-list">
                 <li>
                     <div class="check">✓</div>
@@ -746,10 +747,10 @@
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="cta-box">
-            <h3>Capture leads while you sleep</h3>
-            <p>The ToolTime Assistant answers questions, qualifies leads, and books appointments 24/7 - even when you're on a job site.</p>
+            <h3 data-i18n="chatbot_cta_title">Capture leads while you sleep</h3>
+            <p data-i18n="chatbot_cta_desc">The AI chatbot answers questions, qualifies leads, and books appointments 24/7 - even when you're on a job site.</p>
             <a href="index.html#contact" class="cta-btn">
-                Get ToolTime Assistant
+                <span data-i18n="chatbot_cta_btn">Get ToolTime Assistant</span>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -978,5 +979,6 @@
             }
         }
     </script>
+    <script src="i18n.js"></script>
 </body>
 </html>

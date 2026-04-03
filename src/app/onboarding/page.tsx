@@ -6,17 +6,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Building2, Wrench, Users, Shield, Check, ArrowRight, ArrowLeft, Search, Plus, X } from 'lucide-react'
 import { industries, type Industry } from '@/lib/industries'
-
-const STEPS = [
-  { id: 1, title: 'Company Details', icon: Building2 },
-  { id: 2, title: 'Your Industry', icon: Wrench },
-  { id: 3, title: 'Invite Your Team', icon: Users },
-  { id: 4, title: 'Security', icon: Shield },
-]
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function OnboardingPage() {
   const router = useRouter()
   const { user, company, dbUser, isLoading, refreshUserData } = useAuth()
+  const t = useTranslations('misc.onboarding')
   const [currentStep, setCurrentStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -341,7 +337,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Loading your account...</p>
+          <p className="text-gray-500">{t('loadingAccount')}</p>
         </div>
       </div>
     )
@@ -352,15 +348,25 @@ export default function OnboardingPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome to ToolTime Pro!</h1>
-          <p className="text-gray-500 mt-1">Let&apos;s get your account set up in a few quick steps.</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{t('welcome')}</h1>
+              <p className="text-gray-500 mt-1">{t('setupSubtitle')}</p>
+            </div>
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
 
       {/* Progress Steps */}
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-10">
-          {STEPS.map((step, index) => (
+          {[
+            { id: 1, title: t('companyDetails'), icon: Building2 },
+            { id: 2, title: t('yourIndustry'), icon: Wrench },
+            { id: 3, title: t('inviteTeam'), icon: Users },
+            { id: 4, title: t('security'), icon: Shield },
+          ].map((step, index) => (
             <div key={step.id} className="flex items-center flex-1">
               <div className="flex items-center">
                 <div
@@ -382,7 +388,7 @@ export default function OnboardingPage() {
                   {step.title}
                 </span>
               </div>
-              {index < STEPS.length - 1 && (
+              {index < 3 && (
                 <div
                   className={`flex-1 h-0.5 mx-4 ${
                     currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
@@ -409,14 +415,14 @@ export default function OnboardingPage() {
                   <Building2 size={20} className="text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Company Details</h2>
-                  <p className="text-sm text-gray-500">Add your business info so customers can find you.</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('companyDetailsTitle')}</h2>
+                  <p className="text-sm text-gray-500">{t('companyDetailsSubtitle')}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Business Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('businessPhone')}</label>
                   <input
                     type="tel"
                     value={phone}
@@ -426,7 +432,7 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('streetAddress')}</label>
                   <input
                     type="text"
                     value={address}
@@ -437,7 +443,7 @@ export default function OnboardingPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('city')}</label>
                     <input
                       type="text"
                       value={city}
@@ -447,7 +453,7 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('state')}</label>
                     <input
                       type="text"
                       value={state}
@@ -457,7 +463,7 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('zip')}</label>
                     <input
                       type="text"
                       value={zip}
@@ -479,9 +485,9 @@ export default function OnboardingPage() {
                   <Wrench size={20} className="text-green-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">What industry are you in?</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('industryTitle')}</h2>
                   <p className="text-sm text-gray-500">
-                    Select one or more. We&apos;ll suggest services based on your selection.
+                    {t('industrySubtitle')}
                   </p>
                 </div>
               </div>
@@ -515,7 +521,7 @@ export default function OnboardingPage() {
                   value={industrySearch}
                   onChange={(e) => setIndustrySearch(e.target.value)}
                   className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Search industries..."
+                  placeholder={t('searchIndustries')}
                 />
               </div>
 
@@ -540,7 +546,7 @@ export default function OnboardingPage() {
                 })}
                 {filteredIndustries.length === 0 && (
                   <div className="col-span-full text-center py-8 text-gray-400">
-                    No industries match &ldquo;{industrySearch}&rdquo;
+                    {t('noIndustriesMatch')} &ldquo;{industrySearch}&rdquo;
                   </div>
                 )}
               </div>
@@ -549,7 +555,7 @@ export default function OnboardingPage() {
               {allSuggestedServices.length > 0 && (
                 <div className="mt-6 pt-5 border-t border-gray-200">
                   <p className="text-sm font-medium text-gray-700 mb-3">
-                    Your services — uncheck any you don&apos;t offer:
+                    {t('yourServices')}
                   </p>
 
                   <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
@@ -603,7 +609,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setCustomServiceInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomService() } }}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Add a custom service..."
+                      placeholder={t('addCustomService')}
                     />
                     <button
                       onClick={addCustomService}
@@ -611,7 +617,7 @@ export default function OnboardingPage() {
                       className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-1"
                     >
                       <Plus size={16} />
-                      Add
+                      {t('add')}
                     </button>
                   </div>
 
@@ -625,17 +631,17 @@ export default function OnboardingPage() {
                       }}
                       className="text-xs text-blue-600 hover:text-blue-500 font-medium"
                     >
-                      Select all
+                      {t('selectAll')}
                     </button>
                     <span className="text-gray-300">|</span>
                     <button
                       onClick={() => setSelectedServiceNames(new Set())}
                       className="text-xs text-blue-600 hover:text-blue-500 font-medium"
                     >
-                      Deselect all
+                      {t('deselectAll')}
                     </button>
                     <span className="ml-auto text-xs text-gray-400">
-                      {selectedServiceNames.size} selected
+                      {selectedServiceNames.size} {t('selected')}
                     </span>
                   </div>
                 </div>
@@ -645,7 +651,7 @@ export default function OnboardingPage() {
               {selectedIndustries.length === 0 && (
                 <div className="mt-6 pt-5 border-t border-gray-200">
                   <p className="text-sm text-gray-500 mb-3">
-                    Don&apos;t see your industry? Add your services manually:
+                    {t('noIndustryHint')}
                   </p>
                   <div className="flex gap-2">
                     <input
@@ -654,7 +660,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setCustomServiceInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomService() } }}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Type a service name and press Enter"
+                      placeholder={t('typeServiceHint')}
                     />
                     <button
                       onClick={addCustomService}
@@ -662,7 +668,7 @@ export default function OnboardingPage() {
                       className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-1"
                     >
                       <Plus size={16} />
-                      Add
+                      {t('add')}
                     </button>
                   </div>
                   {customServices.length > 0 && (
@@ -696,14 +702,14 @@ export default function OnboardingPage() {
                   <Users size={20} className="text-purple-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Invite Your Team</h2>
-                  <p className="text-sm text-gray-500">Add team members now or skip and do it later from the Team page.</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('inviteTeamTitle')}</h2>
+                  <p className="text-sm text-gray-500">{t('inviteTeamSubtitle')}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Team Member Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('teamMemberName')}</label>
                   <input
                     type="text"
                     value={memberName}
@@ -713,7 +719,7 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
                   <input
                     type="email"
                     value={memberEmail}
@@ -723,22 +729,22 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('role')}</label>
                   <select
                     value={memberRole}
                     onChange={(e) => setMemberRole(e.target.value as 'admin' | 'worker' | 'worker_admin')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="worker">Worker</option>
-                    <option value="admin">Admin</option>
-                    <option value="worker_admin">Team Member + Admin</option>
+                    <option value="worker">{t('worker')}</option>
+                    <option value="admin">{t('admin')}</option>
+                    <option value="worker_admin">{t('teamMemberAdmin')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-700">
-                  You can invite more team members anytime from <strong>Dashboard &rarr; Team</strong>.
+                  {t('inviteMoreHint')} <strong>{t('dashboardTeam')}</strong>.
                 </p>
               </div>
             </div>
@@ -752,23 +758,23 @@ export default function OnboardingPage() {
                   <Shield size={20} className="text-amber-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Secure Your Account</h2>
-                  <p className="text-sm text-gray-500">Add two-factor authentication for extra security when logging in.</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('secureTitle')}</h2>
+                  <p className="text-sm text-gray-500">{t('secureSubtitle')}</p>
                 </div>
               </div>
 
               {twoFaEnabled ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
                   <div className="text-3xl mb-2">&#10003;</div>
-                  <h3 className="text-lg font-semibold text-green-700">2FA Enabled!</h3>
+                  <h3 className="text-lg font-semibold text-green-700">{t('twoFaEnabled')}</h3>
                   <p className="text-sm text-green-600 mt-1">
-                    You&apos;ll receive a verification code via SMS each time you log in from a new device.
+                    {t('twoFaEnabledMessage')}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Phone Number</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('mobilePhone')}</label>
                     <input
                       type="tel"
                       value={twoFaPhone}
@@ -777,13 +783,13 @@ export default function OnboardingPage() {
                       placeholder="(555) 123-4567"
                     />
                     <p className="text-xs text-gray-400 mt-1">
-                      We&apos;ll send a 6-digit code to this number when you log in from an unrecognized device.
+                      {t('twoFaCodeHint')}
                     </p>
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-700">
-                      Two-factor authentication adds an extra layer of security. You can also set this up later from <strong>Settings</strong>.
+                      {t('twoFaSecurityHint')} <strong>{t('settings')}</strong>.
                     </p>
                   </div>
                 </div>
@@ -800,7 +806,7 @@ export default function OnboardingPage() {
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium"
                 >
                   <ArrowLeft size={16} />
-                  Back
+                  {t('back')}
                 </button>
               )}
             </div>
@@ -810,7 +816,7 @@ export default function OnboardingPage() {
                 onClick={handleSkip}
                 className="text-sm text-gray-500 hover:text-gray-700 font-medium"
               >
-                {currentStep === 4 ? 'Skip & go to dashboard' : 'Skip'}
+                {currentStep === 4 ? t('skipDashboard') : t('skip')}
               </button>
               <button
                 onClick={handleNext}
@@ -818,12 +824,12 @@ export default function OnboardingPage() {
                 className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
               >
                 {saving ? (
-                  'Saving...'
+                  t('saving')
                 ) : currentStep === 4 ? (
-                  'Finish setup'
+                  t('finishSetup')
                 ) : (
                   <>
-                    Next
+                    {t('next')}
                     <ArrowRight size={16} />
                   </>
                 )}
@@ -836,9 +842,9 @@ export default function OnboardingPage() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
             {company?.is_beta_tester ? (
-              <>You have <strong>Beta Tester</strong> access &mdash; all features unlocked on the <strong>Elite plan</strong>.</>
+              <>{t('betaTester')} <strong>{t('betaTesterAccess')}</strong> {t('betaTesterPlan')} <strong>{t('elitePlan')}</strong>.</>
             ) : (
-              <>You&apos;re on the <strong>Pro plan</strong> free trial &mdash; 14 days of full access, no credit card required.</>
+              <>{t('proPlanTrial')} <strong>{t('proPlan')}</strong> {t('proPlanTrialSuffix')}</>
             )}
           </p>
         </div>

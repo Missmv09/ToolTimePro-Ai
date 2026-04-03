@@ -1,0 +1,33 @@
+{
+  "legal": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated: March 15, 2026",
+      "backLink": "ToolTime Pro",
+      "contactUsHeading": "13. Contact Us"
+    },
+    "terms": {
+      "title": "Terms & Conditions",
+      "lastUpdated": "Last updated: March 15, 2026",
+      "backLink": "ToolTime Pro",
+      "contactUsHeading": "13. Contact Us"
+    },
+    "sms": {
+      "title": "SMS Messaging Terms & Opt-In",
+      "lastUpdated": "Last updated: March 26, 2026",
+      "backLink": "ToolTime Pro",
+      "programName": "Program Name",
+      "howYouOptIn": "How You Opt In",
+      "whatMessages": "What Messages You Will Receive",
+      "messageFrequency": "Message Frequency",
+      "messageDataRates": "Message and Data Rates",
+      "howToOptOut": "How to Opt Out",
+      "howToGetHelp": "How to Get Help",
+      "supportedCarriers": "Supported Carriers",
+      "dataPrivacy": "Data Privacy",
+      "contactUs": "Contact Us",
+      "contactQuestion": "If you have questions about our SMS messaging program, please contact us at:",
+      "optInLabel": "Opt-In As Shown on Booking Page"
+    }
+  }
+}

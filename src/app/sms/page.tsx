@@ -1,21 +1,25 @@
-import Link from 'next/link'
+'use client';
 
-export const metadata = {
-  title: 'SMS Terms & Opt-In | ToolTime Pro',
-  description: 'ToolTime Pro SMS messaging terms, opt-in details, and how to manage text message notifications.',
-}
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function SmsPage() {
+  const t = useTranslations('legal.sms');
+
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
       <div className="bg-[#1a1a2e] text-white py-8">
         <div className="max-w-[900px] mx-auto px-6">
-          <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
-            &larr; ToolTime Pro
-          </Link>
-          <h1 className="text-3xl font-extrabold mt-4 drop-shadow-lg">SMS Messaging Terms &amp; Opt-In</h1>
-          <p className="text-white/90 mt-2">Last updated: March 26, 2026</p>
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
+              &larr; {t('backLink')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
+          <h1 className="text-3xl font-extrabold mt-4 drop-shadow-lg">{t('title')}</h1>
+          <p className="text-white/90 mt-2">{t('lastUpdated')}</p>
         </div>
       </div>
 
@@ -24,12 +28,12 @@ export default function SmsPage() {
         <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#1a1a2e] leading-relaxed">
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Program Name</h2>
+            <h2 className="text-xl font-bold mb-3">{t('programName')}</h2>
             <p>ToolTime Pro Service Notifications</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">How You Opt In</h2>
+            <h2 className="text-xl font-bold mb-3">{t('howYouOptIn')}</h2>
             <p className="mb-4">
               When booking a service appointment through ToolTime Pro, customers are presented with an
               explicit opt-in checkbox to consent to receiving SMS/text message notifications. The
@@ -39,7 +43,7 @@ export default function SmsPage() {
 
             {/* Visual representation of the opt-in CTA */}
             <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50">
-              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">Opt-In As Shown on Booking Page</p>
+              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">{t('optInLabel')}</p>
               <div className="bg-[#fef3d6] rounded-xl p-4">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
@@ -71,7 +75,7 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">What Messages You Will Receive</h2>
+            <h2 className="text-xl font-bold mb-3">{t('whatMessages')}</h2>
             <p className="mb-2">
               If you opt in, you will receive service-related text messages including:
             </p>
@@ -86,7 +90,7 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Message Frequency</h2>
+            <h2 className="text-xl font-bold mb-3">{t('messageFrequency')}</h2>
             <p>
               Message frequency varies based on your service activity. You will typically receive
               1&ndash;5 messages per service appointment or customer interaction.
@@ -94,14 +98,14 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Message and Data Rates</h2>
+            <h2 className="text-xl font-bold mb-3">{t('messageDataRates')}</h2>
             <p>
               Standard message and data rates may apply depending on your mobile carrier and plan.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">How to Opt Out</h2>
+            <h2 className="text-xl font-bold mb-3">{t('howToOptOut')}</h2>
             <p>
               You can opt out of SMS notifications at any time by replying <strong>STOP</strong> to
               any message you receive from ToolTime Pro. You will receive a confirmation message and
@@ -110,7 +114,7 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">How to Get Help</h2>
+            <h2 className="text-xl font-bold mb-3">{t('howToGetHelp')}</h2>
             <p>
               Reply <strong>HELP</strong> to any message for assistance, or contact us at{' '}
               <strong>support@tooltimepro.com</strong>.
@@ -118,14 +122,14 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Supported Carriers</h2>
+            <h2 className="text-xl font-bold mb-3">{t('supportedCarriers')}</h2>
             <p>
               AT&amp;T, T-Mobile, Verizon, Sprint, and most major US carriers are supported.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Data Privacy</h2>
+            <h2 className="text-xl font-bold mb-3">{t('dataPrivacy')}</h2>
             <p>
               We do not sell, share, or use phone numbers or SMS data for marketing or advertising
               purposes. Phone numbers are only used to deliver service-related notifications on behalf
@@ -137,9 +141,9 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">Contact Us</h2>
+            <h2 className="text-xl font-bold mb-3">{t('contactUs')}</h2>
             <p>
-              If you have questions about our SMS messaging program, please contact us at:
+              {t('contactQuestion')}
             </p>
             <p className="mt-2">
               <strong>Email:</strong> support@tooltimepro.com<br />

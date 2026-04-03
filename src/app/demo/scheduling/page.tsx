@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo data for calendar
 const demoJobs = [
@@ -28,6 +30,7 @@ const demoTechs = [
 ];
 
 export default function SchedulingDemoPage() {
+  const t = useTranslations('demo.scheduling');
   const [selectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
 
@@ -48,11 +51,11 @@ export default function SchedulingDemoPage() {
           <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
-          This is a preview of the smart scheduling system.{' '}
+          {t('bannerText')}{' '}
           <Link href="/auth/signup" className="text-[#f5a623] underline">
-            Sign up
+            {t('bannerSignUp')}
           </Link>{' '}
-          to manage your own schedule.
+          {t('bannerSuffix')}
         </p>
       </div>
 
@@ -60,13 +63,14 @@ export default function SchedulingDemoPage() {
       <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-block">
-            ← Back to Home
+            ← {t('backToHome')}
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-4xl">📅</span>
-            <h1 className="text-3xl font-bold">Smart Scheduling Demo</h1>
+            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <div className="ml-auto"><LanguageSwitcher /></div>
           </div>
-          <p className="text-white/80">See how ToolTime Pro helps you manage jobs, crews, and customer appointments</p>
+          <p className="text-white/80">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -92,7 +96,7 @@ export default function SchedulingDemoPage() {
                     viewMode === 'day' ? 'bg-white shadow-sm text-[#1a1a2e]' : 'text-gray-600'
                   }`}
                 >
-                  Day
+                  {t('day')}
                 </button>
                 <button
                   onClick={() => setViewMode('week')}
@@ -100,11 +104,11 @@ export default function SchedulingDemoPage() {
                     viewMode === 'week' ? 'bg-white shadow-sm text-[#1a1a2e]' : 'text-gray-600'
                   }`}
                 >
-                  Week
+                  {t('week')}
                 </button>
               </div>
               <button className="px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-semibold hover:bg-[#e6991a] transition-colors">
-                + New Job
+                {t('newJob')}
               </button>
             </div>
           </div>
@@ -116,7 +120,7 @@ export default function SchedulingDemoPage() {
             {viewMode === 'day' ? (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
-                  <h3 className="font-semibold text-[#1a1a2e]">Today&apos;s Jobs ({demoJobs.length})</h3>
+                  <h3 className="font-semibold text-[#1a1a2e]">{t('todaysJobs')} ({demoJobs.length})</h3>
                 </div>
                 <div className="divide-y divide-gray-100">
                   {demoJobs.map((job) => (
@@ -146,7 +150,7 @@ export default function SchedulingDemoPage() {
                               : 'bg-yellow-100 text-yellow-700'
                           }`}
                         >
-                          {job.status === 'confirmed' ? 'Confirmed' : 'Pending'}
+                          {job.status === 'confirmed' ? t('confirmed') : t('pending')}
                         </span>
                       </div>
                     </div>
@@ -156,7 +160,7 @@ export default function SchedulingDemoPage() {
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
-                  <h3 className="font-semibold text-[#1a1a2e]">Week Overview</h3>
+                  <h3 className="font-semibold text-[#1a1a2e]">{t('weekOverview')}</h3>
                 </div>
                 <div className="p-4">
                   <div className="grid grid-cols-7 gap-2">
@@ -169,7 +173,7 @@ export default function SchedulingDemoPage() {
                       >
                         <div className="text-sm font-medium text-gray-500 mb-1">{day.day}</div>
                         <div className="text-2xl font-bold text-[#1a1a2e]">{day.count}</div>
-                        <div className="text-xs text-gray-500">jobs</div>
+                        <div className="text-xs text-gray-500">{t('jobs')}</div>
                         {day.revenue > 0 && (
                           <div className="text-sm font-semibold text-green-600 mt-2">${day.revenue}</div>
                         )}
@@ -183,10 +187,10 @@ export default function SchedulingDemoPage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
               {[
-                { icon: '📋', label: 'Quick Quote', desc: 'Create a quote' },
-                { icon: '📅', label: 'Block Time', desc: 'Mark unavailable' },
-                { icon: '🔄', label: 'Recurring', desc: 'Set up repeating' },
-                { icon: '👥', label: 'Assign Crew', desc: 'Manage workers' },
+                { icon: '📋', label: t('quickQuote'), desc: t('quickQuoteDesc') },
+                { icon: '📅', label: t('blockTime'), desc: t('blockTimeDesc') },
+                { icon: '🔄', label: t('recurring'), desc: t('recurringDesc') },
+                { icon: '👥', label: t('assignCrew'), desc: t('assignCrewDesc') },
               ].map((action) => (
                 <button
                   key={action.label}
@@ -204,7 +208,7 @@ export default function SchedulingDemoPage() {
           <div className="space-y-6">
             {/* Team Availability */}
             <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="font-semibold text-[#1a1a2e] mb-4">Team Availability</h3>
+              <h3 className="font-semibold text-[#1a1a2e] mb-4">{t('teamAvailability')}</h3>
               <div className="space-y-3">
                 {demoTechs.map((tech) => (
                   <div key={tech.id} className="flex items-center justify-between">
@@ -217,7 +221,7 @@ export default function SchedulingDemoPage() {
                       </div>
                       <span className="font-medium text-[#1a1a2e]">{tech.name}</span>
                     </div>
-                    <span className="text-sm text-green-600 font-medium">Available</span>
+                    <span className="text-sm text-green-600 font-medium">{t('available')}</span>
                   </div>
                 ))}
               </div>
@@ -225,38 +229,38 @@ export default function SchedulingDemoPage() {
 
             {/* Today&apos;s Stats */}
             <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-6 text-white">
-              <h3 className="font-semibold mb-4">Today&apos;s Stats</h3>
+              <h3 className="font-semibold mb-4">{t('todaysStats')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-3xl font-bold text-[#f5a623]">4</div>
-                  <div className="text-sm text-white/70">Jobs Scheduled</div>
+                  <div className="text-sm text-white/70">{t('jobsScheduled')}</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#f5a623]">$520</div>
-                  <div className="text-sm text-white/70">Est. Revenue</div>
+                  <div className="text-sm text-white/70">{t('estRevenue')}</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#f5a623]">3</div>
-                  <div className="text-sm text-white/70">Techs Working</div>
+                  <div className="text-sm text-white/70">{t('techsWorking')}</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#f5a623]">6.5</div>
-                  <div className="text-sm text-white/70">Hours Booked</div>
+                  <div className="text-sm text-white/70">{t('hoursBooked')}</div>
                 </div>
               </div>
             </div>
 
             {/* CTA */}
             <div className="bg-[#fef3d6] rounded-xl p-6 text-center">
-              <h3 className="font-bold text-[#1a1a2e] mb-2">Sync with Your Calendar</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t('syncCalendar')}</h3>
               <p className="text-sm text-[#5c5c70] mb-4">
-                Connect Google Calendar, Outlook, or Apple Calendar to avoid double-bookings.
+                {t('syncCalendarDesc')}
               </p>
               <Link
                 href="/auth/signup"
                 className="inline-block px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-semibold hover:bg-[#2d2d4a] transition-colors no-underline"
               >
-                Start Free Trial →
+                {t('startFreeTrial')} →
               </Link>
             </div>
           </div>
@@ -264,23 +268,22 @@ export default function SchedulingDemoPage() {
 
         {/* Bottom CTA */}
         <div className="mt-12 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">Take Control of Your Schedule</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('takeControl')}</h2>
           <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-            Stop double-booking and missing appointments. ToolTime Pro&apos;s smart scheduler syncs with your calendar,
-            sends automatic reminders, and lets customers book online 24/7.
+            {t('takeControlDesc')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup"
               className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline"
             >
-              Get Started Free
+              {t('getStartedFree')}
             </Link>
             <Link
               href="/demo/booking"
               className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white/10 transition-colors no-underline"
             >
-              See Customer Booking →
+              {t('seeCustomerBooking')} →
             </Link>
           </div>
         </div>
@@ -290,7 +293,7 @@ export default function SchedulingDemoPage() {
       <footer className="border-t border-gray-200 py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
-            Powered by{' '}
+            {t('poweredBy')}{' '}
             <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
               ToolTime Pro
             </Link>

@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // 50+ industries - more than any competitor
 const industries = [
@@ -89,6 +91,7 @@ export default function IndustriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations('industries');
 
   const filteredIndustries = industries.filter(industry => {
     const matchesSearch = industry.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -101,9 +104,9 @@ export default function IndustriesPage() {
       {/* Promo Banner */}
       <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
-        Limited Time: Get 2 months free on annual plans.
+        {t('promo')}
         <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
-          Start Free Trial
+          {t('startFreeTrial')}
         </Link>
       </div>
 
@@ -122,10 +125,10 @@ export default function IndustriesPage() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Features</Link>
-            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">Industries</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Pricing</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">Free Tools</Link>
+            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('features')}</Link>
+            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">{t('industriesNav')}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('pricing')}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('freeTools')}</Link>
             <span className="text-[#5c5c70] text-base flex items-center gap-1">
               📞 (888) 980-TOOL
             </span>
@@ -133,13 +136,14 @@ export default function IndustriesPage() {
               href="/auth/login"
               className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline"
             >
-              Login
+              {t('login')}
             </Link>
+            <LanguageSwitcher />
             <Link
               href="/auth/signup"
               className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
           </div>
 
@@ -162,21 +166,20 @@ export default function IndustriesPage() {
         <div className="max-w-[1200px] mx-auto px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
             <span className="text-[#f5a623]">✓</span>
-            Works for ANY service business
+            {t('worksForAny')}
           </div>
 
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
-            Built for <span className="text-[#f5a623]">Every</span> Service Business
+            {t.rich('heroTitle', { highlight: (chunks) => <span className="text-[#f5a623]">{chunks}</span> })}
           </h1>
           <p className="text-xl text-white/90 mb-6 max-w-2xl mx-auto">
-            Unlike competitors who limit you to their list, ToolTime Pro adapts to YOUR business.
-            If you schedule jobs and manage workers, we&apos;ve got you covered.
+            {t('heroSubtitle')}
           </p>
 
           {/* Competitive callout */}
           <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-xl mb-8">
-            <span className="text-2xl font-bold text-[#f5a623]">60+</span>
-            <span className="text-white/90">Industries supported — and counting</span>
+            <span className="text-2xl font-bold text-[#f5a623]">{t('industriesCount')}</span>
+            <span className="text-white/90">{t('industriesCountLabel')}</span>
           </div>
 
           <div className="flex flex-wrap justify-center gap-4">
@@ -184,13 +187,13 @@ export default function IndustriesPage() {
               href="/auth/signup"
               className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-[#e6991a] transition-all no-underline"
             >
-              Start Free Trial
+              {t('startFreeTrial')}
             </Link>
             <Link
               href="/demo/dashboard"
               className="px-8 py-4 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-all no-underline"
             >
-              See Demo
+              {t('seeDemo')}
             </Link>
           </div>
         </div>
@@ -204,7 +207,7 @@ export default function IndustriesPage() {
             <div className="relative w-full md:w-96">
               <input
                 type="text"
-                placeholder="Search industries..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-transparent"
@@ -252,13 +255,13 @@ export default function IndustriesPage() {
 
           {filteredIndustries.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg mb-4">No industries found matching &quot;{searchQuery}&quot;</p>
-              <p className="text-gray-400">But don&apos;t worry — ToolTime Pro works for ANY service business!</p>
+              <p className="text-gray-500 text-lg mb-4">{t('noResults', { query: searchQuery })}</p>
+              <p className="text-gray-400">{t('noResultsSub')}</p>
               <Link
                 href="/auth/signup"
                 className="inline-block mt-4 px-6 py-3 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold no-underline"
               >
-                Start Free Trial Anyway →
+                {t('startTrialAnyway')}
               </Link>
             </div>
           )}
@@ -269,25 +272,23 @@ export default function IndustriesPage() {
       <section className="py-16 bg-gradient-to-r from-[#f5a623] to-[#e6991a]">
         <div className="max-w-[800px] mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">
-            Don&apos;t See Your Industry?
+            {t('dontSeeYours')}
           </h2>
           <p className="text-[#1a1a2e]/80 text-lg mb-8">
-            <strong>That&apos;s the point.</strong> ToolTime Pro isn&apos;t limited to a checkbox list.
-            If you run a service business — any service business — our platform adapts to you.
-            Custom services, custom workflows, your way.
+            {t.rich('dontSeeYoursDesc', { strong: (chunks) => <strong>{chunks}</strong> })}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/auth/signup"
               className="px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold shadow-lg hover:bg-[#2d2d44] transition-all no-underline"
             >
-              Try It Free — 14 Days
+              {t('tryItFree')}
             </Link>
             <Link
               href="/dashboard/smart-quote"
               className="px-8 py-4 bg-white text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
             >
-              See How Quoting Works
+              {t('seeHowQuoting')}
             </Link>
           </div>
         </div>
@@ -297,9 +298,9 @@ export default function IndustriesPage() {
       <section className="py-16 bg-white">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">Why Service Pros Choose ToolTime Pro</h2>
+            <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">{t('whyTitle')}</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              While other software makes you fit their mold, we built ToolTime Pro to fit yours.
+              {t('whySubtitle')}
             </p>
           </div>
 
@@ -308,27 +309,27 @@ export default function IndustriesPage() {
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🎯
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Industry-Agnostic</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('industryAgnostic')}</h3>
               <p className="text-gray-600">
-                Define your own services, pricing, and workflows. No forcing your business into pre-built templates.
+                {t('industryAgnosticDesc')}
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 💰
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Half the Price</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('halfThePrice')}</h3>
               <p className="text-gray-600">
-                Save 50-77% compared to Jobber. Same features, better value. No $29/user hidden fees.
+                {t('halfThePriceDesc')}
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🛡️
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">Compliance Built-In</h3>
+              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('complianceBuiltIn')}</h3>
               <p className="text-gray-600">
-                ToolTime Shield keeps you legal with CA labor law compliance, final pay calculators, and HR docs.
+                {t('complianceBuiltInDesc')}
               </p>
             </div>
           </div>
@@ -350,29 +351,29 @@ export default function IndustriesPage() {
                 />
               </Link>
               <p className="text-white/50 text-base leading-relaxed max-w-[300px]">
-                The all-in-one platform for service businesses. Website, scheduling, worker app, HR & compliance — we set it up, you run your business.
+                {t('footerDesc')}
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-white text-lg mb-5">Product</h4>
+              <h4 className="font-bold text-white text-lg mb-5">{t('product')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Features</Link>
-                <Link href="/pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
-                <Link href="/#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
-                <Link href="/compare" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Compare Plans</Link>
+                <Link href="/#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('features')}</Link>
+                <Link href="/pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('pricing')}</Link>
+                <Link href="/#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('demos')}</Link>
+                <Link href="/compare" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('comparePlans')}</Link>
               </div>
             </div>
             <div>
-              <h4 className="font-bold text-white text-lg mb-5">Company</h4>
+              <h4 className="font-bold text-white text-lg mb-5">{t('company')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Login</Link>
-                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('login')}</Link>
+                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('signUp')}</Link>
+                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('contact')}</a>
               </div>
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 text-center text-white/40 text-base">
-            © 2026 ToolTime Pro. All rights reserved.
+            {t('copyright')}
           </div>
         </div>
       </footer>

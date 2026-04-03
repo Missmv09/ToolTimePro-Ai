@@ -6,6 +6,8 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Service, Company } from '@/types/database';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Types for the booking flow
 interface BookingData {
@@ -125,6 +127,7 @@ function getAvailableDates(
 export default function BookingPage() {
   const params = useParams();
   const companyId = params.companyId as string;
+  const t = useTranslations('misc.booking');
 
   const [company, setCompany] = useState<Company | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -314,7 +317,7 @@ export default function BookingPage() {
       <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#f5a623] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#5c5c70]">Loading booking page...</p>
+          <p className="text-[#5c5c70]">{t('loadingBooking')}</p>
         </div>
       </div>
     );
@@ -326,13 +329,13 @@ export default function BookingPage() {
       <div className="min-h-screen bg-[#fafafa] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">😕</div>
-          <h1 className="text-2xl font-bold text-[#1a1a2e] mb-2">Page Not Found</h1>
+          <h1 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('pageNotFound')}</h1>
           <p className="text-[#5c5c70] mb-6">{error}</p>
           <Link
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-medium hover:bg-[#2d2d44] transition-colors no-underline"
           >
-            Go Home
+            {t('goHome')}
           </Link>
         </div>
       </div>
@@ -360,9 +363,10 @@ export default function BookingPage() {
             )}
             <div>
               <h1 className="font-bold text-[#1a1a2e]">{company?.name}</h1>
-              <p className="text-sm text-[#5c5c70]">Online Booking</p>
+              <p className="text-sm text-[#5c5c70]">{t('onlineBooking')}</p>
             </div>
           </div>
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -372,10 +376,10 @@ export default function BookingPage() {
           <div className="max-w-3xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               {[
-                { key: 'service', label: 'Service' },
-                { key: 'datetime', label: 'Date & Time' },
-                { key: 'info', label: 'Your Info' },
-                { key: 'confirm', label: 'Confirm' },
+                { key: 'service', label: t('service') },
+                { key: 'datetime', label: t('dateTime') },
+                { key: 'info', label: t('yourInfo') },
+                { key: 'confirm', label: t('confirm') },
               ].map((s, index) => {
                 const steps: BookingStep[] = ['service', 'datetime', 'info', 'confirm'];
                 const currentIndex = steps.indexOf(step);
@@ -429,12 +433,12 @@ export default function BookingPage() {
         {/* Step 1: Select Service */}
         {step === 'service' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Select a Service</h2>
-            <p className="text-[#5c5c70] mb-6">Choose the service you need.</p>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('selectService')}</h2>
+            <p className="text-[#5c5c70] mb-6">{t('selectServiceSubtitle')}</p>
 
             {services.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                <p className="text-[#5c5c70]">No services available for booking at this time.</p>
+                <p className="text-[#5c5c70]">{t('noServices')}</p>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -468,7 +472,7 @@ export default function BookingPage() {
                             )}
                           </div>
                         )}
-                        <span className="text-[#f5a623] font-medium text-sm">Select →</span>
+                        <span className="text-[#f5a623] font-medium text-sm">{t('selectArrow')} &rarr;</span>
                       </div>
                     </div>
                   </button>
@@ -485,17 +489,17 @@ export default function BookingPage() {
               onClick={() => setStep('service')}
               className="flex items-center gap-1 text-[#5c5c70] hover:text-[#1a1a2e] mb-4 text-sm"
             >
-              ← Back to services
+              &larr; {t('backToServices')}
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Select Date & Time</h2>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('selectDateTime')}</h2>
             <p className="text-[#5c5c70] mb-6">
-              Choose when you&apos;d like to schedule your {booking.service?.name}.
+              {t('selectDateTimeSubtitle', { service: booking.service?.name || '' })}
             </p>
 
             {/* Date Selection */}
             <div className="mb-8">
-              <h3 className="font-bold text-[#1a1a2e] mb-3">Available Dates</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-3">{t('availableDates')}</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {availableDates.map((date) => {
                   const d = new Date(date + 'T00:00:00');
@@ -526,7 +530,7 @@ export default function BookingPage() {
             {/* Time Selection */}
             {booking.date && (
               <div>
-                <h3 className="font-bold text-[#1a1a2e] mb-3">Available Times</h3>
+                <h3 className="font-bold text-[#1a1a2e] mb-3">{t('availableTimes')}</h3>
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                   {timeSlots.map((time) => {
                     const isBooked = bookedSlots.has(time);
@@ -650,7 +654,7 @@ export default function BookingPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">State *</label>
+                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">{t('stateLabel')} *</label>
                     <input
                       type="text"
                       required
@@ -664,7 +668,7 @@ export default function BookingPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
-                      ZIP Code *
+                      {t('zipCode')} *
                     </label>
                     <input
                       type="text"
@@ -681,14 +685,14 @@ export default function BookingPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
-                    Additional Notes
+                    {t('additionalNotes')}
                   </label>
                   <textarea
                     value={booking.notes}
                     onChange={(e) => setBooking((prev) => ({ ...prev, notes: e.target.value }))}
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all resize-none"
-                    placeholder="Any special instructions or details about the job..."
+                    placeholder={t('notesPlaceholder')}
                   />
                 </div>
 
@@ -704,21 +708,17 @@ export default function BookingPage() {
                       className="mt-1 w-5 h-5 rounded border-gray-300 text-[#f5a623] focus:ring-[#f5a623] cursor-pointer"
                     />
                     <span className="text-sm text-[#1a1a2e]">
-                      I agree to receive SMS/text message notifications about my appointment
-                      (confirmations, reminders, and updates) from {company?.name} via ToolTime Pro.
-                      Message and data rates may apply. Message frequency varies. Reply <strong>STOP</strong> to
-                      opt out or <strong>HELP</strong> for help at any time.
+                      {t('smsConsent', { company: company?.name || '' })}
                     </span>
                   </label>
                   <p className="text-xs text-[#5c5c70] mt-2 ml-8">
-                    By checking this box, you consent to receive service-related text messages.
-                    View our{' '}
+                    {t('smsConsentFooter')}{' '}
                     <Link href="/privacy" target="_blank" className="text-[#f5a623] underline">
                       Privacy Policy
                     </Link>{' '}
-                    and{' '}
+                    &amp;{' '}
                     <Link href="/terms" target="_blank" className="text-[#f5a623] underline">
-                      Terms &amp; Conditions
+                      {t('termsConditions')}
                     </Link>.
                   </p>
                 </div>
@@ -728,7 +728,7 @@ export default function BookingPage() {
                 type="submit"
                 className="w-full mt-6 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors"
               >
-                Review Booking
+                {t('reviewBooking')}
               </button>
             </form>
           </div>
@@ -741,21 +741,21 @@ export default function BookingPage() {
               onClick={() => setStep('info')}
               className="flex items-center gap-1 text-[#5c5c70] hover:text-[#1a1a2e] mb-4 text-sm"
             >
-              ← Back to your info
+              &larr; {t('backToInfo')}
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Confirm Your Booking</h2>
-            <p className="text-[#5c5c70] mb-6">Please review your booking details.</p>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('confirmBooking')}</h2>
+            <p className="text-[#5c5c70] mb-6">{t('confirmSubtitle')}</p>
 
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               {/* Service Details */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">SERVICE</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('serviceLabel')}</h3>
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-bold text-[#1a1a2e] text-lg">{booking.service?.name}</p>
                     <p className="text-sm text-[#5c5c70]">
-                      {booking.service?.duration_minutes} minutes
+                      {booking.service?.duration_minutes} {t('minutes')}
                     </p>
                   </div>
                   {booking.service?.default_price && (
@@ -768,14 +768,14 @@ export default function BookingPage() {
 
               {/* Date & Time */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">DATE & TIME</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('dateTimeLabel')}</h3>
                 <p className="font-bold text-[#1a1a2e]">{formatDate(booking.date)}</p>
                 <p className="text-[#5c5c70]">{formatTime(booking.time)}</p>
               </div>
 
               {/* Customer Info */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">CONTACT INFORMATION</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('contactInfo')}</h3>
                 <p className="font-bold text-[#1a1a2e]">{booking.customerName}</p>
                 <p className="text-[#5c5c70]">{booking.customerEmail}</p>
                 <p className="text-[#5c5c70]">{booking.customerPhone}</p>
@@ -783,7 +783,7 @@ export default function BookingPage() {
 
               {/* Address */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">SERVICE ADDRESS</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('serviceAddressLabel')}</h3>
                 <p className="text-[#1a1a2e]">{booking.customerAddress}</p>
                 <p className="text-[#5c5c70]">
                   {booking.customerCity}, {booking.customerState} {booking.customerZip}
@@ -793,7 +793,7 @@ export default function BookingPage() {
               {/* Notes */}
               {booking.notes && (
                 <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-sm font-medium text-[#5c5c70] mb-2">NOTES</h3>
+                  <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('notesLabel')}</h3>
                   <p className="text-[#1a1a2e]">{booking.notes}</p>
                 </div>
               )}
@@ -808,14 +808,14 @@ export default function BookingPage() {
                   {isSubmitting ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Confirming...
+                      {t('confirming')}
                     </>
                   ) : (
-                    <>Confirm Booking</>
+                    <>{t('confirmButton')}</>
                   )}
                 </button>
                 <p className="text-center text-sm text-[#5c5c70] mt-3">
-                  You&apos;ll receive a confirmation email at {booking.customerEmail}
+                  {t('confirmationEmail', { email: booking.customerEmail })}
                 </p>
               </div>
             </div>
@@ -828,26 +828,26 @@ export default function BookingPage() {
             <div className="w-20 h-20 bg-[#e8f5e9] rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">✓</span>
             </div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Booking Confirmed!</h2>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('bookingConfirmed')}</h2>
             <p className="text-[#5c5c70] mb-8 max-w-md mx-auto">
-              Your appointment has been scheduled. We&apos;ve sent a confirmation email to{' '}
+              {t('bookingConfirmedMessage')}{' '}
               <strong>{booking.customerEmail}</strong>.
             </p>
 
             <div className="bg-white rounded-xl border border-gray-200 p-6 max-w-md mx-auto mb-8">
               <div className="text-left">
                 <div className="mb-4">
-                  <p className="text-sm text-[#5c5c70]">Service</p>
+                  <p className="text-sm text-[#5c5c70]">{t('service')}</p>
                   <p className="font-bold text-[#1a1a2e]">{booking.service?.name}</p>
                 </div>
                 <div className="mb-4">
-                  <p className="text-sm text-[#5c5c70]">Date & Time</p>
+                  <p className="text-sm text-[#5c5c70]">{t('dateTimeSuccess')}</p>
                   <p className="font-bold text-[#1a1a2e]">
                     {formatDate(booking.date)} at {formatTime(booking.time)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#5c5c70]">Location</p>
+                  <p className="text-sm text-[#5c5c70]">{t('location')}</p>
                   <p className="font-bold text-[#1a1a2e]">{booking.customerAddress}</p>
                   <p className="text-[#5c5c70]">
                     {booking.customerCity}, {booking.customerState} {booking.customerZip}
@@ -860,7 +860,7 @@ export default function BookingPage() {
               href="/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-medium hover:bg-[#2d2d44] transition-colors no-underline"
             >
-              Back to Home
+              {t('backToHome')}
             </Link>
           </div>
         )}
@@ -870,7 +870,7 @@ export default function BookingPage() {
       <footer className="border-t border-gray-200 py-6 mt-auto">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
-            Powered by{' '}
+            {t('poweredBy')}{' '}
             <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
               ToolTime Pro
             </Link>

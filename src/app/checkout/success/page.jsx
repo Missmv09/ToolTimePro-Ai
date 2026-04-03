@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
@@ -10,6 +12,7 @@ function CheckoutSuccessContent() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const t = useTranslations('misc.checkoutSuccess');
 
   useEffect(() => {
     if (sessionId) {
@@ -36,7 +39,7 @@ function CheckoutSuccessContent() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Processing your order...</p>
+          <p className="mt-4 text-gray-600">{t('processing')}</p>
         </div>
       </div>
     );
@@ -51,7 +54,7 @@ function CheckoutSuccessContent() {
             href="/dashboard"
             className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
           >
-            Go to Dashboard
+            {t('goToDashboard')}
           </Link>
         </div>
       </div>
@@ -62,6 +65,10 @@ function CheckoutSuccessContent() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 text-center">
 
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher />
+        </div>
+
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -69,37 +76,37 @@ function CheckoutSuccessContent() {
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome to ToolTime Pro!
+          {t('welcomeTitle')}
         </h1>
 
         <p className="text-gray-600 mb-6">
-          Your subscription is now active. Let&apos;s get your business set up.
+          {t('welcomeMessage')}
         </p>
 
         {session && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-            <h3 className="font-semibold text-gray-900 mb-2">Order Summary</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">{t('orderSummary')}</h3>
             <div className="text-sm text-gray-600 space-y-1">
               {session.metadata?.plan && (
-                <p><span className="font-medium">Plan:</span> {session.metadata.plan.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+                <p><span className="font-medium">{t('plan')}</span> {session.metadata.plan.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
               )}
               {session.metadata?.billing && (
-                <p><span className="font-medium">Billing:</span> {session.metadata.billing.charAt(0).toUpperCase() + session.metadata.billing.slice(1)}</p>
+                <p><span className="font-medium">{t('billing')}</span> {session.metadata.billing.charAt(0).toUpperCase() + session.metadata.billing.slice(1)}</p>
               )}
               {session.metadata?.addons && (
-                <p><span className="font-medium">Add-ons:</span> {session.metadata.addons.replace(/_/g, ' ').replace(/,/g, ', ')}</p>
+                <p><span className="font-medium">{t('addons')}</span> {session.metadata.addons.replace(/_/g, ' ').replace(/,/g, ', ')}</p>
               )}
             </div>
           </div>
         )}
 
         <div className="bg-orange-50 rounded-lg p-4 mb-6 text-left">
-          <h3 className="font-semibold text-orange-900 mb-2">What&apos;s Next?</h3>
+          <h3 className="font-semibold text-orange-900 mb-2">{t('whatsNext')}</h3>
           <ul className="text-sm text-orange-800 space-y-2">
-            <li>1. Check your email for login details</li>
-            <li>2. Complete your company profile</li>
-            <li>3. Add your services and pricing</li>
-            <li>4. Invite your team to the worker app</li>
+            <li>{t('step1')}</li>
+            <li>{t('step2')}</li>
+            <li>{t('step3')}</li>
+            <li>{t('step4')}</li>
           </ul>
         </div>
 
@@ -108,12 +115,12 @@ function CheckoutSuccessContent() {
             href="/dashboard"
             className="block w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            Go to Dashboard
+            {t('goToDashboard')}
           </Link>
         </div>
 
         <p className="mt-6 text-sm text-gray-500">
-          Questions? Email us at{' '}
+          {t('questions')}{' '}
           <a href="mailto:support@tooltimepro.com" className="text-orange-500 hover:underline">
             support@tooltimepro.com
           </a>
@@ -124,16 +131,21 @@ function CheckoutSuccessContent() {
   );
 }
 
+function CheckoutSuccessFallback() {
+  const t = useTranslations('misc.checkoutSuccess');
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">{t('loading')}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function CheckoutSuccess() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<CheckoutSuccessFallback />}>
       <CheckoutSuccessContent />
     </Suspense>
   );

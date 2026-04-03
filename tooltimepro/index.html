@@ -362,12 +362,13 @@
         <div class="container">
             <a href="#" class="logo"><div class="logo-icon">🛠</div>ToolTime Pro</a>
             <div class="nav-links" id="navLinks">
-                <a href="#jenny" style="color:var(--accent);font-weight:700">🤖 Jenny AI</a>
-                <a href="#features">Features</a>
-                <a href="#demos">Demos</a>
-                <a href="#hr">🛡️ Compliance</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#contact" class="nav-cta">Get Started</a>
+                <a href="#jenny" style="color:var(--accent);font-weight:700" data-i18n="nav_jenny_ai">🤖 Jenny AI</a>
+                <a href="#features" data-i18n="nav_features">Features</a>
+                <a href="#demos" data-i18n="nav_demos">Demos</a>
+                <a href="#hr" data-i18n="nav_compliance">🛡️ Compliance</a>
+                <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+                <a href="#contact" class="nav-cta" data-i18n="nav_get_started">Get Started</a>
+                <button onclick="switchLocale(getLocale()==='en'?'es':'en')" data-i18n-toggle style="background:none;border:1px solid var(--border);color:var(--text-light);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:0.875rem;font-weight:600">🌐 ES</button>
             </div>
             <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
         </div>
@@ -376,17 +377,17 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <div class="hero-badge"><span class="dot"></span>AI-Powered Field Service Management</div>
-                <h1>Dispatch Smarter.<br><span class="highlight">Grow Faster.</span></h1>
-                <p class="hero-subtitle">Jenny AI handles dispatch, scheduling, and customer communication — so you can focus on growing your business.</p>
+                <div class="hero-badge"><span class="dot"></span><span data-i18n="hero_badge">AI-Powered Field Service Management</span></div>
+                <h1><span data-i18n="hero_h1_line1">Dispatch Smarter.</span><br><span class="highlight" data-i18n="hero_h1_highlight">Grow Faster.</span></h1>
+                <p class="hero-subtitle" data-i18n="hero_subtitle">Jenny AI handles dispatch, scheduling, and customer communication — so you can focus on growing your business.</p>
                 <div class="hero-ctas">
-                    <a href="#contact" class="btn btn-primary btn-large">Get Started Free →</a>
-                    <a href="#features" class="btn btn-secondary">See How It Works</a>
+                    <a href="#contact" class="btn btn-primary btn-large" data-i18n="hero_cta_primary">Get Started Free →</a>
+                    <a href="#features" class="btn btn-secondary" data-i18n="hero_cta_secondary">See How It Works</a>
                 </div>
                 <div class="hero-stats">
-                    <div class="stat"><div class="stat-number mono">$49</div><div class="stat-label">Starting at /month</div></div>
-                    <div class="stat"><div class="stat-number mono">AI</div><div class="stat-label">Powered dispatch</div></div>
-                    <div class="stat"><div class="stat-number mono">ES/EN</div><div class="stat-label">Bilingual built-in</div></div>
+                    <div class="stat"><div class="stat-number mono">$49</div><div class="stat-label" data-i18n="stat_starting">Starting at /month</div></div>
+                    <div class="stat"><div class="stat-number mono">AI</div><div class="stat-label" data-i18n="stat_powered">Powered dispatch</div></div>
+                    <div class="stat"><div class="stat-number mono">ES/EN</div><div class="stat-label" data-i18n="stat_bilingual">Bilingual built-in</div></div>
                 </div>
             </div>
             <div class="hero-visual">
@@ -417,9 +418,9 @@
     <section class="pain-points">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Sound Familiar?</span>
-                <h2>These Problems Cost You Money</h2>
-                <p>You're great at your trade. But running the business side? That's where things fall apart.</p>
+                <span class="section-label" data-i18n="pain_section_label">Sound Familiar?</span>
+                <h2 data-i18n="pain_section_title">These Problems Cost You Money</h2>
+                <p data-i18n="pain_section_desc">You're great at your trade. But running the business side? That's where things fall apart.</p>
             </div>
             <div class="pain-grid">
                 <div class="pain-card animate-on-scroll"><div class="pain-icon">📵</div><h3>No Website = Invisible</h3><p>Customers can't find you online. You're losing jobs to competitors who show up on Google.</p><div class="pain-solution">Done-for-you branded website</div></div>
@@ -957,9 +958,9 @@
     <section class="pricing" id="pricing">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Transparent Pricing</span>
-                <h2>Start Your 14-Day Free Trial</h2>
-                <p>No hidden fees. No per-user add-on costs. AI dispatch included in every plan.</p>
+                <span class="section-label" data-i18n="pricing_section_label">Transparent Pricing</span>
+                <h2 data-i18n="pricing_section_title">Start Your 14-Day Free Trial</h2>
+                <p data-i18n="pricing_section_desc">No hidden fees. No per-user add-on costs. AI dispatch included in every plan.</p>
             </div>
 
             <!-- Billing Toggle -->
@@ -1164,9 +1165,9 @@
     <section class="questionnaire" id="contact">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Let's Talk</span>
-                <h2>Tell Us About Your Business</h2>
-                <p>Takes 30 seconds. We'll reach out with a plan that fits your needs.</p>
+                <span class="section-label" data-i18n="contact_section_label">Let's Talk</span>
+                <h2 data-i18n="contact_section_title">Tell Us About Your Business</h2>
+                <p data-i18n="contact_section_desc">Takes 30 seconds. We'll reach out with a plan that fits your needs.</p>
             </div>
             <div class="form-container">
                 <div class="skip-link"><a href="#pricing">Already know what you need? Skip to pricing →</a></div>
@@ -1197,8 +1198,8 @@
                     </div>
                     <div class="form-group"><label for="email">Your Email</label><input type="email" id="email" name="email" class="form-input" placeholder="you@yourbusiness.com" required></div>
                     <div class="form-group"><label for="phone">Phone (optional)</label><input type="tel" id="phone" name="phone" class="form-input" placeholder="(555) 123-4567"></div>
-                    <button type="submit" class="form-submit">Get My Free Consultation →</button>
-                    <p class="form-note">No spam. We'll reach out within 24 hours.</p>
+                    <button type="submit" class="form-submit" data-i18n="form_submit">Get My Free Consultation →</button>
+                    <p class="form-note" data-i18n="form_note">No spam. We'll reach out within 24 hours.</p>
                 </form>
             </div>
         </div>
@@ -1207,8 +1208,8 @@
     <section class="testimonials">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Real Results</span>
-                <h2>What Service Pros Are Saying</h2>
+                <span class="section-label" data-i18n="testimonials_label">Real Results</span>
+                <h2 data-i18n="testimonials_title">What Service Pros Are Saying</h2>
             </div>
             <div class="testimonial-grid">
                 <div class="testimonial-card animate-on-scroll"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"I was losing jobs because I couldn't answer the phone. Now the ToolTime Assistant catches every lead. Revenue is up 40%."</p><div class="testimonial-author"><div class="author-avatar">MR</div><div class="author-info"><h4>Miguel R.</h4><p>Landscaping • San Jose, CA</p></div></div></div>
@@ -1220,9 +1221,9 @@
 
     <section class="footer-cta">
         <div class="container">
-            <h2>Ready to Put Your Business On Autopilot?</h2>
-            <p>Join hundreds of service businesses who stopped stressing and started growing.</p>
-            <a href="#contact" class="btn btn-primary btn-large">Get Started Today →</a>
+            <h2 data-i18n="footer_cta_title">Ready to Put Your Business On Autopilot?</h2>
+            <p data-i18n="footer_cta_desc">Join hundreds of service businesses who stopped stressing and started growing.</p>
+            <a href="#contact" class="btn btn-primary btn-large" data-i18n="footer_cta_btn">Get Started Today →</a>
         </div>
     </section>
 
@@ -1233,9 +1234,9 @@
                 <div class="footer-links"><h4>Platform</h4><a href="#jenny">Jenny AI</a><a href="#features">Features</a><a href="#demos">Demos</a><a href="#hr">HR & Compliance</a><a href="#pricing">Pricing</a></div>
                 <div class="footer-links"><h4>Try Demos</h4><a href="chatbot.html">Jenny ToolTime Assistant</a><a href="quote.html">Smart Quoting</a><a href="reviews.html">Review Machine</a><a href="dashboard.html">Dashboard</a><a href="scheduler.html">Booking</a><a href="worker.html">Worker App</a></div>
                 <div class="footer-links"><h4>More Features</h4><a href="dashboard.html">Dispatch Board</a><a href="dashboard.html">Route Optimization</a><a href="dashboard.html">QuickBooks Sync</a><a href="dashboard.html">Customer Portal Pro</a><a href="hr-compliance.html">ToolTime Shield</a><a href="website.html">Website Builder</a></div>
-                <div class="footer-links"><h4>Company</h4><a href="#">About Us</a><a href="#contact">Contact</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+                <div class="footer-links"><h4 data-i18n="footer_company">Company</h4><a href="#" data-i18n="footer_about">About Us</a><a href="#contact" data-i18n="footer_contact">Contact</a><a href="#" data-i18n="footer_privacy">Privacy Policy</a><a href="#" data-i18n="footer_terms">Terms of Service</a></div>
             </div>
-            <div class="footer-bottom"><p>© 2026 ToolTime Pro. All rights reserved. Built with 💛 for service pros who hate software.</p></div>
+            <div class="footer-bottom"><p data-i18n="footer_copyright">© 2026 ToolTime Pro. All rights reserved. Built with 💛 for service pros who hate software.</p></div>
         </div>
     </footer>
 
@@ -1313,5 +1314,6 @@
         const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add('visible')})},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
         document.querySelectorAll('.animate-on-scroll').forEach(e=>observer.observe(e));
     </script>
+    <script src="i18n.js"></script>
 </body>
 </html>

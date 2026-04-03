@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo call scenarios
 const demoScenarios = [
@@ -94,24 +96,13 @@ const demoScenarios = [
   },
 ];
 
-// Stats for the feature section
-const stats = [
-  { value: '24/7', label: 'Availability', icon: '🌙' },
-  { value: '100%', label: 'Calls Answered', icon: '📞' },
-  { value: '< 1s', label: 'Response Time', icon: '⚡' },
-  { value: '3x', label: 'More Leads', icon: '📈' },
-];
-
-const features = [
-  { icon: '🎯', title: 'Never Miss a Lead', description: 'Answers every call instantly, even at 2 AM on weekends. No more lost revenue from missed calls.' },
-  { icon: '🗣️', title: 'Natural Conversations', description: 'Advanced AI that sounds human, handles complex questions, and knows your business inside-out.' },
-  { icon: '📝', title: 'Auto Lead Capture', description: 'Collects name, phone, address, and service details. Leads appear in your dashboard instantly.' },
-  { icon: '📅', title: 'Books Appointments', description: 'Checks your real calendar and schedules appointments. Sends confirmation texts automatically.' },
-  { icon: '🚨', title: 'Emergency Routing', description: 'Recognizes urgent situations, provides helpful tips, and escalates to on-call staff if needed.' },
-  { icon: '🌐', title: 'Bilingual Support', description: 'Speaks English and Spanish fluently. Serves your diverse customer base without extra staff.' },
-];
+// Stats for the feature section - icons only, labels come from translations
+const statIcons = ['🌙', '📞', '⚡', '📈'];
+const statValues = ['24/7', '100%', '< 1s', '3x'];
+const featureIcons = ['🎯', '🗣️', '📝', '📅', '🚨', '🌐'];
 
 export default function PhoneReceptionistDemo() {
+  const t = useTranslations('demo.phoneReceptionist');
   const [selectedScenario, setSelectedScenario] = useState(demoScenarios[0]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -169,29 +160,32 @@ export default function PhoneReceptionistDemo() {
       {/* Demo Banner */}
       <div className="bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] py-3 px-4 text-center font-semibold">
         <span className="mr-2">📞</span>
-        This is an interactive demo —
+        {t('demoBanner')} —
         <Link href="/auth/signup?plan=pro" className="underline ml-1 font-bold">
-          Get Pro Plan
+          {t('getProPlan')}
         </Link>
-        {' '}for Jenny Pro — Phone Receptionist
+        {' '}{t('forJennyPro')}
       </div>
 
       {/* Header */}
       <header className="bg-[#1a1a2e] text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
-          <Link href="/" className="text-white/90 hover:text-white text-sm mb-4 inline-flex items-center gap-1">
-            ← Back to Home
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/" className="text-white/90 hover:text-white text-sm inline-flex items-center gap-1">
+              {t('backToHome')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
           <div className="flex items-center gap-4 mt-4">
             <div className="w-16 h-16 bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-2xl flex items-center justify-center text-3xl">
               📞
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold drop-shadow-lg">Jenny Pro — Phone Receptionist</h1>
-              <p className="text-white/90 mt-1">Never miss another call. Your AI answers 24/7.</p>
+              <h1 className="text-3xl font-extrabold drop-shadow-lg">{t('title')}</h1>
+              <p className="text-white/90 mt-1">{t('subtitle')}</p>
             </div>
             <span className="ml-auto bg-[#f5a623] text-[#1a1a2e] px-4 py-1.5 rounded-full text-sm font-bold">
-              Pro Feature
+              {t('proFeature')}
             </span>
           </div>
         </div>
@@ -200,11 +194,11 @@ export default function PhoneReceptionistDemo() {
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          {stats.map((stat, index) => (
+          {statValues.map((value, index) => (
             <div key={index} className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
-              <div className="text-2xl mb-2">{stat.icon}</div>
-              <div className="text-3xl font-bold text-[#1a1a2e]">{stat.value}</div>
-              <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+              <div className="text-2xl mb-2">{statIcons[index]}</div>
+              <div className="text-3xl font-bold text-[#1a1a2e]">{value}</div>
+              <div className="text-sm text-gray-500 mt-1">{t(`stats.${index}`)}</div>
             </div>
           ))}
         </div>
@@ -213,7 +207,7 @@ export default function PhoneReceptionistDemo() {
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
           {/* Phone Simulator */}
           <div>
-            <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">Try a Demo Call</h2>
+            <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('tryDemoCall')}</h2>
 
             {/* Scenario Selector */}
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -260,7 +254,7 @@ export default function PhoneReceptionistDemo() {
                   {isPlaying && (
                     <div className="flex items-center justify-center gap-1 mt-2">
                       <span className="w-1.5 h-1.5 bg-[#00c853] rounded-full animate-pulse"></span>
-                      <span className="text-xs text-[#00c853]">Call in progress</span>
+                      <span className="text-xs text-[#00c853]">{t('callInProgress')}</span>
                     </div>
                   )}
                 </div>
@@ -273,7 +267,7 @@ export default function PhoneReceptionistDemo() {
                   {currentMessageIndex === 0 && !isPlaying ? (
                     <div className="text-center text-gray-400 mt-16">
                       <p className="text-4xl mb-2">👆</p>
-                      <p>Press Play to start the demo call</p>
+                      <p>{t('pressPlay')}</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -328,9 +322,9 @@ export default function PhoneReceptionistDemo() {
 
           {/* Lead Card Preview */}
           <div>
-            <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">Lead Captured Instantly</h2>
+            <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('leadCapturedInstantly')}</h2>
             <p className="text-gray-600 mb-6">
-              Watch how the AI automatically captures lead information and adds it to your dashboard.
+              {t('leadCapturedDesc')}
             </p>
 
             <div className={`bg-white rounded-2xl shadow-lg border-2 transition-all duration-500 ${
@@ -341,8 +335,8 @@ export default function PhoneReceptionistDemo() {
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{selectedScenario.icon}</span>
                   <div>
-                    <h3 className="font-bold">New Lead Captured!</h3>
-                    <p className="text-white/60 text-sm">via Jenny Pro — Phone Receptionist</p>
+                    <h3 className="font-bold">{t('newLeadCaptured')}</h3>
+                    <p className="text-white/60 text-sm">{t('viaJennyPro')}</p>
                   </div>
                 </div>
                 {selectedScenario.leadCaptured.priority && (
@@ -352,7 +346,7 @@ export default function PhoneReceptionistDemo() {
                 )}
                 {selectedScenario.leadCaptured.existingCustomer && (
                   <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    Existing Customer
+                    {t('existingCustomer')}
                   </span>
                 )}
               </div>
@@ -363,7 +357,7 @@ export default function PhoneReceptionistDemo() {
                   <div className="flex items-start gap-3">
                     <span className="text-xl">👤</span>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Name</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">{t('name')}</p>
                       <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.name}</p>
                     </div>
                   </div>
@@ -371,7 +365,7 @@ export default function PhoneReceptionistDemo() {
                   <div className="flex items-start gap-3">
                     <span className="text-xl">📞</span>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Phone</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">{t('phone')}</p>
                       <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.phone}</p>
                     </div>
                   </div>
@@ -379,7 +373,7 @@ export default function PhoneReceptionistDemo() {
                   <div className="flex items-start gap-3">
                     <span className="text-xl">📍</span>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Address</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">{t('address')}</p>
                       <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.address}</p>
                     </div>
                   </div>
@@ -387,7 +381,7 @@ export default function PhoneReceptionistDemo() {
                   <div className="flex items-start gap-3">
                     <span className="text-xl">🔧</span>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Service Requested</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">{t('serviceRequested')}</p>
                       <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.service}</p>
                     </div>
                   </div>
@@ -395,7 +389,7 @@ export default function PhoneReceptionistDemo() {
                   <div className="flex items-start gap-3">
                     <span className="text-xl">💰</span>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Estimated Value</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">{t('estimatedValue')}</p>
                       <p className="font-semibold text-[#00c853]">{selectedScenario.leadCaptured.estimatedValue}</p>
                     </div>
                   </div>
@@ -409,10 +403,10 @@ export default function PhoneReceptionistDemo() {
                 {/* Actions */}
                 <div className="flex gap-3 mt-6">
                   <button className="flex-1 bg-[#1a1a2e] text-white py-3 rounded-lg font-semibold hover:bg-[#2d2d44] transition-colors">
-                    📞 Call Back
+                    📞 {t('callBack')}
                   </button>
                   <button className="flex-1 bg-[#f5a623] text-[#1a1a2e] py-3 rounded-lg font-semibold hover:bg-[#e6991a] transition-colors">
-                    📝 Create Quote
+                    📝 {t('createQuote')}
                   </button>
                 </div>
               </div>
@@ -420,7 +414,7 @@ export default function PhoneReceptionistDemo() {
 
             {!showLeadCard && (
               <p className="text-center text-gray-400 mt-4 text-sm">
-                Play the demo call to see the lead card populate
+                {t('playDemoToSee')}
               </p>
             )}
           </div>
@@ -430,19 +424,19 @@ export default function PhoneReceptionistDemo() {
         <div className="mb-16">
           <div className="text-center mb-10">
             <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
-              Why Choose Jenny Pro?
+              {t('whyChooseJenny')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">Every Call Handled Professionally</h2>
+            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('everyCallHandled')}</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
+            {featureIcons.map((icon, index) => (
               <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#f5a623] hover:shadow-lg transition-all">
                 <div className="w-12 h-12 bg-[#fef3d6] rounded-xl flex items-center justify-center text-2xl mb-4">
-                  {feature.icon}
+                  {icon}
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{t(`features.${index}.title`)}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{t(`features.${index}.description`)}</p>
               </div>
             ))}
           </div>
@@ -450,26 +444,25 @@ export default function PhoneReceptionistDemo() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-2xl p-10 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Stop Losing Calls. Start Winning Customers.</h2>
+          <h2 className="text-3xl font-bold mb-4">{t('ctaTitle')}</h2>
           <p className="text-white/70 mb-8 max-w-xl mx-auto">
-            The average service business misses 30% of calls. That&apos;s thousands in lost revenue.
-            Let our AI receptionist answer every call, capture every lead, and book appointments 24/7.
+            {t('ctaDescription')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup?plan=pro"
               className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors no-underline"
             >
-              Get Jenny Pro →
+              {t('getJennyPro')}
             </Link>
             <Link
               href="/#get-started"
               className="border-2 border-white text-white px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition-colors no-underline"
             >
-              Schedule Demo Call
+              {t('scheduleDemoCall')}
             </Link>
           </div>
-          <p className="text-white/50 text-sm mt-4">Included with Pro Plan ($49/mo) • 14-day free trial</p>
+          <p className="text-white/50 text-sm mt-4">{t('ctaFootnote')}</p>
         </div>
       </div>
     </div>

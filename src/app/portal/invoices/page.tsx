@@ -11,6 +11,7 @@ import {
   CreditCard,
   ExternalLink,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Invoice {
   id: string;
@@ -27,6 +28,7 @@ export default function PortalInvoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'open' | 'paid'>('all');
+  const t = useTranslations('portal.invoices');
 
   useEffect(() => {
     const token = localStorage.getItem('portal_token');
@@ -56,21 +58,21 @@ export default function PortalInvoices() {
     .reduce((sum, inv) => sum + inv.total, 0);
 
   if (loading) {
-    return <div className="text-center py-12 text-gray-400">Loading invoices...</div>;
+    return <div className="text-center py-12 text-gray-400">{t('loading')}</div>;
   }
 
   const getStatusBadge = (inv: Invoice) => {
     const isOverdue = inv.status === 'overdue' || (inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid');
 
-    if (inv.status === 'paid') return { label: 'Paid', color: 'bg-green-100 text-green-700', icon: CheckCircle };
-    if (isOverdue) return { label: 'Overdue', color: 'bg-red-100 text-red-700', icon: AlertCircle };
-    if (inv.status === 'partial') return { label: 'Partial', color: 'bg-yellow-100 text-yellow-700', icon: Clock };
-    return { label: 'Open', color: 'bg-blue-100 text-blue-700', icon: FileText };
+    if (inv.status === 'paid') return { label: t('statusPaid'), color: 'bg-green-100 text-green-700', icon: CheckCircle };
+    if (isOverdue) return { label: t('statusOverdue'), color: 'bg-red-100 text-red-700', icon: AlertCircle };
+    if (inv.status === 'partial') return { label: t('statusPartial'), color: 'bg-yellow-100 text-yellow-700', icon: Clock };
+    return { label: t('statusOpen'), color: 'bg-blue-100 text-blue-700', icon: FileText };
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-gray-900">Your Invoices</h1>
+      <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3">
@@ -79,21 +81,21 @@ export default function PortalInvoices() {
           <p className={`text-2xl font-bold ${totalOwed > 0 ? 'text-orange-600' : 'text-gray-900'}`}>
             ${totalOwed.toFixed(2)}
           </p>
-          <p className="text-xs text-gray-500">Amount Due</p>
+          <p className="text-xs text-gray-500">{t('amountDue')}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <CheckCircle className="w-5 h-5 text-green-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-green-600">${totalPaid.toFixed(2)}</p>
-          <p className="text-xs text-gray-500">Total Paid</p>
+          <p className="text-xs text-gray-500">{t('totalPaid')}</p>
         </div>
       </div>
 
       {/* Filter */}
       <div className="flex gap-2">
         {[
-          { key: 'all', label: `All (${invoices.length})` },
-          { key: 'open', label: `Open (${invoices.filter(i => ['sent', 'viewed', 'partial', 'overdue'].includes(i.status)).length})` },
-          { key: 'paid', label: `Paid (${invoices.filter(i => i.status === 'paid').length})` },
+          { key: 'all', label: `${t('filterAll')} (${invoices.length})` },
+          { key: 'open', label: `${t('filterOpen')} (${invoices.filter(i => ['sent', 'viewed', 'partial', 'overdue'].includes(i.status)).length})` },
+          { key: 'paid', label: `${t('filterPaid')} (${invoices.filter(i => i.status === 'paid').length})` },
         ].map(f => (
           <button
             key={f.key}
@@ -111,7 +113,7 @@ export default function PortalInvoices() {
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl p-8 shadow-sm text-center">
           <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">No invoices found.</p>
+          <p className="text-gray-500 text-sm">{t('noInvoices')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -126,30 +128,30 @@ export default function PortalInvoices() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-gray-900">Invoice #{inv.invoice_number}</p>
+                      <p className="font-semibold text-gray-900">{t('invoiceNumber', { number: inv.invoice_number })}</p>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.color}`}>
                         {badge.label}
                       </span>
                     </div>
                     <div className="mt-1 space-y-0.5 text-sm text-gray-500">
                       {inv.sent_at && (
-                        <p>Sent {new Date(inv.sent_at).toLocaleDateString()}</p>
+                        <p>{t('sent', { date: new Date(inv.sent_at).toLocaleDateString() })}</p>
                       )}
                       {inv.due_date && inv.status !== 'paid' && (
-                        <p>Due {new Date(inv.due_date).toLocaleDateString()}</p>
+                        <p>{t('due', { date: new Date(inv.due_date).toLocaleDateString() })}</p>
                       )}
                       {inv.paid_at && (
-                        <p className="text-green-600">Paid {new Date(inv.paid_at).toLocaleDateString()}</p>
+                        <p className="text-green-600">{t('paidDate', { date: new Date(inv.paid_at).toLocaleDateString() })}</p>
                       )}
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-bold text-gray-900">${inv.total.toFixed(2)}</p>
                     {inv.amount_paid > 0 && inv.status !== 'paid' && (
-                      <p className="text-xs text-gray-400">Paid: ${inv.amount_paid.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400">{t('paidAmount', { amount: inv.amount_paid.toFixed(2) })}</p>
                     )}
                     {balance > 0 && inv.status !== 'paid' && (
-                      <p className="text-sm font-medium text-orange-600">Balance: ${balance.toFixed(2)}</p>
+                      <p className="text-sm font-medium text-orange-600">{t('balanceAmount', { amount: balance.toFixed(2) })}</p>
                     )}
                   </div>
                 </div>
@@ -160,7 +162,7 @@ export default function PortalInvoices() {
                     className="mt-4 w-full bg-green-500 text-white py-2.5 rounded-xl font-medium hover:bg-green-600 transition-colors flex items-center justify-center gap-2 text-sm"
                   >
                     <CreditCard className="w-4 h-4" />
-                    Pay ${balance.toFixed(2)} Now
+                    {t('payNow', { amount: balance.toFixed(2) })}
                   </Link>
                 )}
 
@@ -169,7 +171,7 @@ export default function PortalInvoices() {
                     href={`/invoice/${inv.id}`}
                     className="mt-3 text-sm text-blue-600 font-medium flex items-center gap-1"
                   >
-                    View Receipt <ExternalLink className="w-3.5 h-3.5" />
+                    {t('viewReceipt')} <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 )}
               </div>

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import {
   Star,
   Send,
@@ -92,6 +94,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function DemoReviewsPage() {
+  const t = useTranslations('demo.reviews');
   const [sentJobs, setSentJobs] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [isSending, setIsSending] = useState<string | null>(null);
@@ -114,11 +117,11 @@ export default function DemoReviewsPage() {
           <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
-          This is a preview of the Review Machine — powered by Jenny AI.{' '}
+          {t('bannerText')}{' '}
           <Link href="/auth/signup" className="text-[#f5a623] underline">
-            Sign up
+            {t('bannerSignUp')}
           </Link>{' '}
-          to automate your review requests.
+          {t('bannerSuffix')}
         </p>
       </div>
 
@@ -126,26 +129,29 @@ export default function DemoReviewsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#1a1a2e]">Review Machine</h1>
-            <p className="text-[#5c5c70]">Automate 5-star review requests after every job</p>
+            <h1 className="text-2xl font-bold text-[#1a1a2e]">{t('title')}</h1>
+            <p className="text-[#5c5c70]">{t('subtitle')}</p>
           </div>
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-[#1a1a2e] hover:bg-gray-50"
-          >
-            <Settings size={18} />
-            Settings
-          </button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-[#1a1a2e] hover:bg-gray-50"
+            >
+              <Settings size={18} />
+              {t('settings')}
+            </button>
+          </div>
         </div>
 
         {/* Settings Panel */}
         {showSettings && (
           <div className="bg-white rounded-xl border-2 border-[#f5a623] p-6 mb-8">
-            <h3 className="font-semibold text-[#1a1a2e] mb-4">Review Settings</h3>
+            <h3 className="font-semibold text-[#1a1a2e] mb-4">{t('reviewSettings')}</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Google Review Link
+                  {t('googleReviewLink')}
                 </label>
                 <input
                   type="url"
@@ -153,7 +159,7 @@ export default function DemoReviewsPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Get your link from Google Business Profile → Share → Ask for reviews
+                  {t('googleLinkHint')}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -164,7 +170,7 @@ export default function DemoReviewsPage() {
                   className="w-4 h-4 rounded border-gray-300 text-[#f5a623]"
                 />
                 <label htmlFor="autoSend" className="text-sm text-gray-700">
-                  Automatically send review requests when jobs are marked complete
+                  {t('autoSendLabel')}
                 </label>
               </div>
             </div>
@@ -176,22 +182,22 @@ export default function DemoReviewsPage() {
           <div className="bg-white rounded-xl p-6 text-center border border-gray-200">
             <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
             <p className="text-3xl font-bold text-[#1a1a2e]">{demoStats.total}</p>
-            <p className="text-sm text-gray-500">Total Requests</p>
+            <p className="text-sm text-gray-500">{t('totalRequests')}</p>
           </div>
           <div className="bg-white rounded-xl p-6 text-center border border-gray-200">
             <Send className="w-8 h-8 text-blue-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-blue-600">{demoStats.sent}</p>
-            <p className="text-sm text-gray-500">Sent</p>
+            <p className="text-sm text-gray-500">{t('sent')}</p>
           </div>
           <div className="bg-white rounded-xl p-6 text-center border border-gray-200">
             <ExternalLink className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-yellow-600">{demoStats.clicked}</p>
-            <p className="text-sm text-gray-500">Clicked</p>
+            <p className="text-sm text-gray-500">{t('clicked')}</p>
           </div>
           <div className="bg-white rounded-xl p-6 text-center border border-gray-200">
             <Star className="w-8 h-8 text-green-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-green-600">{demoStats.reviewed}</p>
-            <p className="text-sm text-gray-500">Reviewed</p>
+            <p className="text-sm text-gray-500">{t('reviewed')}</p>
           </div>
         </div>
 
@@ -199,10 +205,9 @@ export default function DemoReviewsPage() {
         <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 mb-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h3 className="text-lg font-bold mb-1">Review Conversion Rate</h3>
+              <h3 className="text-lg font-bold mb-1">{t('conversionRate')}</h3>
               <p className="text-white/70 text-sm">
-                {Math.round((demoStats.reviewed / demoStats.sent) * 100)}% of customers who received
-                a request left a review
+                {t('conversionDesc', { percent: Math.round((demoStats.reviewed / demoStats.sent) * 100) })}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -217,25 +222,25 @@ export default function DemoReviewsPage() {
         {/* Jobs Ready for Review Request */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
           <h2 className="text-lg font-semibold text-[#1a1a2e] mb-4">
-            Ready for Review Request ({jobsToShow.length})
+            {t('readyForReview')} ({jobsToShow.length})
           </h2>
 
           {jobsToShow.length === 0 ? (
             <div className="text-center py-8">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-600">All caught up!</h3>
-              <p className="text-gray-400">All completed jobs have been sent review requests</p>
+              <h3 className="text-lg font-medium text-gray-600">{t('allCaughtUp')}</h3>
+              <p className="text-gray-400">{t('allCaughtUpDesc')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Customer</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Service</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Completed</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Contact</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-500 text-sm">Action</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thCustomer')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thService')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thCompleted')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thContact')}</th>
+                    <th className="text-right py-3 px-4 font-medium text-gray-500 text-sm">{t('thAction')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -267,11 +272,11 @@ export default function DemoReviewsPage() {
                           className="inline-flex items-center gap-1 px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-medium text-sm hover:bg-[#e6991a] disabled:opacity-50"
                         >
                           {isSending === job.id ? (
-                            'Sending...'
+                            t('sending')
                           ) : (
                             <>
                               <Send size={14} />
-                              Send Request
+                              {t('sendRequest')}
                             </>
                           )}
                         </button>
@@ -287,17 +292,17 @@ export default function DemoReviewsPage() {
         {/* Sent Review Requests */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
           <h2 className="text-lg font-semibold text-[#1a1a2e] mb-4">
-            Recent Requests
+            {t('recentRequests')}
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Customer</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Service</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Channel</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Sent</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Status</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thCustomer')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thService')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thChannel')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thSent')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thStatus')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -335,17 +340,16 @@ export default function DemoReviewsPage() {
         <div className="bg-[#fef3d6] rounded-xl p-8 text-center">
           <Star className="w-12 h-12 text-[#f5a623] mx-auto mb-4" />
           <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">
-            Automate Your Reviews
+            {t('automateReviews')}
           </h3>
           <p className="text-[#5c5c70] mb-6 max-w-lg mx-auto">
-            Stop chasing customers for reviews. Jenny automatically sends SMS review requests
-            after every completed job, helping you build your online reputation on autopilot.
+            {t('automateDesc')}
           </p>
           <Link
             href="/auth/signup"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline"
           >
-            Get Started Free
+            {t('getStartedFree')}
             <ArrowRight size={18} />
           </Link>
         </div>
@@ -355,7 +359,7 @@ export default function DemoReviewsPage() {
       <footer className="border-t border-gray-200 py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
-            Powered by{' '}
+            {t('poweredBy')}{' '}
             <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
               ToolTime Pro
             </Link>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useTranslations } from 'next-intl'
 
 interface TimeEntry {
   id: string
@@ -20,6 +21,7 @@ interface ActiveBreak {
 }
 
 export default function TimeclockPage() {
+  const t = useTranslations('worker.timeclock')
   const [userId, setUserId] = useState<string | null>(null)
   const [companyId, setCompanyId] = useState<string | null>(null)
   const [currentEntry, setCurrentEntry] = useState<TimeEntry | null>(null)
@@ -268,14 +270,14 @@ export default function TimeclockPage() {
       }`}>
         <div className="text-center">
           <p className="text-lg font-semibold mb-2">
-            {isOnBreak ? `On ${activeBreak.break_type === 'meal' ? 'Meal' : 'Rest'} Break` :
-             isClockedIn ? 'Clocked In' : 'Clocked Out'}
+            {isOnBreak ? (activeBreak.break_type === 'meal' ? t('onMealBreak') : t('onRestBreak')) :
+             isClockedIn ? t('clockedIn') : t('clockedOut')}
           </p>
 
           {isClockedIn && (
             <>
               <p className="text-sm text-gray-600">
-                Since {new Date(currentEntry.clock_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                {t('since')} {new Date(currentEntry.clock_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {formatDuration(currentEntry.clock_in)}
@@ -298,7 +300,7 @@ export default function TimeclockPage() {
           disabled={actionLoading}
           className="w-full py-6 bg-green-600 text-white text-2xl font-bold rounded-2xl hover:bg-green-700 disabled:opacity-50 transition-colors shadow-lg"
         >
-          {actionLoading ? 'Please wait...' : '▶ CLOCK IN'}
+          {actionLoading ? t('pleaseWait') : `▶ ${t('clockIn')}`}
         </button>
       ) : isOnBreak ? (
         <button
@@ -306,7 +308,7 @@ export default function TimeclockPage() {
           disabled={actionLoading}
           className="w-full py-6 bg-blue-600 text-white text-2xl font-bold rounded-2xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-lg"
         >
-          {actionLoading ? 'Please wait...' : '✓ END BREAK'}
+          {actionLoading ? t('pleaseWait') : `✓ ${t('endBreak')}`}
         </button>
       ) : (
         <div className="space-y-3">
@@ -315,7 +317,7 @@ export default function TimeclockPage() {
             disabled={actionLoading}
             className="w-full py-6 bg-red-600 text-white text-2xl font-bold rounded-2xl hover:bg-red-700 disabled:opacity-50 transition-colors shadow-lg"
           >
-            {actionLoading ? 'Please wait...' : '⏹ CLOCK OUT'}
+            {actionLoading ? t('pleaseWait') : `⏹ ${t('clockOut')}`}
           </button>
 
           {/* Break Buttons */}
@@ -325,14 +327,14 @@ export default function TimeclockPage() {
               disabled={actionLoading}
               className="py-4 bg-yellow-500 text-white font-semibold rounded-xl hover:bg-yellow-600 disabled:opacity-50 transition-colors"
             >
-              🍽️ Meal Break
+              🍽️ {t('mealBreak')}
             </button>
             <button
               onClick={() => startBreak('rest')}
               disabled={actionLoading}
               className="py-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 disabled:opacity-50 transition-colors"
             >
-              ☕ Rest Break
+              ☕ {t('restBreak')}
             </button>
           </div>
         </div>
@@ -341,21 +343,21 @@ export default function TimeclockPage() {
       {/* Location Status */}
       <div className="mt-4 text-center">
         {location ? (
-          <p className="text-sm text-green-600">📍 GPS location enabled</p>
+          <p className="text-sm text-green-600">📍 {t('gpsEnabled')}</p>
         ) : locationError ? (
-          <p className="text-sm text-yellow-600">⚠️ {locationError}</p>
+          <p className="text-sm text-yellow-600">⚠️ {t('locationDenied')}</p>
         ) : (
-          <p className="text-sm text-gray-500">📍 Getting location...</p>
+          <p className="text-sm text-gray-500">📍 {t('gettingLocation')}</p>
         )}
       </div>
 
       {/* California Break Rules Notice */}
       <div className="mt-6 bg-blue-50 rounded-xl p-4">
-        <p className="text-sm font-semibold text-blue-800 mb-2">California Break Rules</p>
+        <p className="text-sm font-semibold text-blue-800 mb-2">{t('californiaBreakRules')}</p>
         <ul className="text-xs text-blue-700 space-y-1">
-          <li>• 30-min meal break before 5th hour</li>
-          <li>• 10-min rest break per 4 hours worked</li>
-          <li>• Second meal break if working 10+ hours</li>
+          <li>• {t('mealBreakRule')}</li>
+          <li>• {t('restBreakRule')}</li>
+          <li>• {t('secondMealRule')}</li>
         </ul>
       </div>
     </div>

@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const t = useTranslations('auth.forgotPassword')
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,14 +27,14 @@ export default function ForgotPasswordPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Something went wrong. Please try again.')
+        setError(data.error || t('defaultError'))
       } else {
         setSuccess(true)
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
       if (message === 'Failed to fetch') {
-        setError('Unable to connect. Please check your internet connection and try again.')
+        setError(t('connectionError'))
       } else {
         setError(message)
       }
@@ -43,16 +46,19 @@ export default function ForgotPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full text-center">
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher />
+          </div>
           <div className="bg-green-50 border border-green-200 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-green-800 mb-4">Check your email!</h2>
+            <h2 className="text-2xl font-bold text-green-800 mb-4">{t('successTitle')}</h2>
             <p className="text-green-700">
-              We&apos;ve sent you a password reset link. Click it to reset your password.
+              {t('successMessage')}
             </p>
             <Link
               href="/auth/login"
               className="mt-6 inline-block text-[#f5a623] hover:text-[#e6991a]"
             >
-              Back to login
+              {t('backToLogin')}
             </Link>
           </div>
         </div>
@@ -63,13 +69,16 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        <div className="flex justify-end">
+          <LanguageSwitcher />
+        </div>
         <div>
-          <h1 className="text-3xl font-bold text-center text-gray-900">ToolTime Pro</h1>
+          <h1 className="text-3xl font-bold text-center text-gray-900">{t('title')}</h1>
           <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900">
-            Reset your password
+            {t('heading')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your email and we&apos;ll send you a reset link
+            {t('subtitle')}
           </p>
         </div>
 
@@ -82,7 +91,7 @@ export default function ForgotPasswordPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email address
+              {t('emailLabel')}
             </label>
             <input
               id="email"
@@ -102,14 +111,14 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Sending...' : 'Send reset link'}
+            {loading ? t('sending') : t('sendButton')}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-600">
-          Remember your password?{' '}
+          {t('rememberPassword')}{' '}
           <Link href="/auth/login" className="text-[#f5a623] hover:text-[#e6991a] font-medium">
-            Sign in
+            {t('signInLink')}
           </Link>
         </p>
       </div>

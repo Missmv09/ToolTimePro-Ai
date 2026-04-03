@@ -8,6 +8,8 @@ const customConfig = {
   setupFiles: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^next-intl$': '<rootDir>/src/__mocks__/next-intl.js',
+    '^next-intl/server$': '<rootDir>/src/__mocks__/next-intl.js',
   },
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   collectCoverageFrom: [

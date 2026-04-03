@@ -1,21 +1,25 @@
-import Link from 'next/link'
+'use client';
 
-export const metadata = {
-  title: 'Privacy Policy | ToolTime Pro',
-  description: 'ToolTime Pro privacy policy - how we collect, use, and protect your data.',
-}
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function PrivacyPolicyPage() {
+  const t = useTranslations('legal.privacy');
+
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
       <div className="bg-[#1a1a2e] text-white py-8">
         <div className="max-w-[900px] mx-auto px-6">
-          <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
-            &larr; ToolTime Pro
-          </Link>
-          <h1 className="text-3xl font-extrabold mt-4 drop-shadow-lg">Privacy Policy</h1>
-          <p className="text-white/90 mt-2">Last updated: March 15, 2026</p>
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
+              &larr; {t('backLink')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
+          <h1 className="text-3xl font-extrabold mt-4 drop-shadow-lg">{t('title')}</h1>
+          <p className="text-white/90 mt-2">{t('lastUpdated')}</p>
         </div>
       </div>
 

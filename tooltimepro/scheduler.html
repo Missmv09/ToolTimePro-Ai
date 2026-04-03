@@ -607,13 +607,14 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Back to ToolTime Pro
+                <span data-i18n="back_to_tooltime">Back to ToolTime Pro</span>
             </a>
             <div class="header-title">
-                <h1>Smart Scheduler</h1>
-                <p>Let customers book online. Sync with your calendar. Send automatic reminders.</p>
+                <h1 data-i18n="scheduler_title">Smart Scheduler</h1>
+                <p data-i18n="scheduler_subtitle">Let customers book online. Sync with your calendar. Send automatic reminders.</p>
             </div>
-            <span class="demo-badge">Interactive Demo</span>
+            <span class="demo-badge" data-i18n="interactive_demo">Interactive Demo</span>
+            <button onclick="switchLocale(getLocale()==='en'?'es':'en')" data-i18n-toggle style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:0.875rem;font-weight:600">🌐 ES</button>
         </div>
     </header>
 
@@ -936,10 +937,10 @@
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="cta-box">
-            <h3>Ready to automate your scheduling?</h3>
+            <h3 data-i18n="scheduler_cta_title">Ready to automate your scheduling?</h3>
             <p>Join thousands of contractors who save 10+ hours per week with Smart Scheduler.</p>
             <a href="index.html#contact" class="cta-btn">
-                Get Smart Scheduler
+                <span data-i18n="scheduler_cta_btn">Get Smart Scheduler</span>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -1095,5 +1096,6 @@
         // Initialize
         renderCalendar();
     </script>
+    <script src="i18n.js"></script>
 </body>
 </html>

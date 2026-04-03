@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo invoice data
 const demoInvoices = [
@@ -20,6 +22,7 @@ const demoStats = {
 };
 
 export default function InvoicingDemoPage() {
+  const t = useTranslations('demo.invoicing');
   const [selectedInvoice, setSelectedInvoice] = useState<typeof demoInvoices[0] | null>(null);
 
   const getStatusColor = (status: string) => {
@@ -52,11 +55,11 @@ export default function InvoicingDemoPage() {
           <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
-          This is a preview of invoicing and payments.{' '}
+          {t('bannerText')}{' '}
           <Link href="/auth/signup" className="text-[#f5a623] underline">
-            Sign up
+            {t('bannerSignUp')}
           </Link>{' '}
-          to start getting paid faster.
+          {t('bannerSuffix')}
         </p>
       </div>
 
@@ -64,13 +67,14 @@ export default function InvoicingDemoPage() {
       <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-block">
-            ← Back to Home
+            ← {t('backToHome')}
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-4xl">💰</span>
-            <h1 className="text-3xl font-bold">Invoicing & Payments Demo</h1>
+            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <div className="ml-auto"><LanguageSwitcher /></div>
           </div>
-          <p className="text-white/80">Professional invoices, online payments, and automatic reminders</p>
+          <p className="text-white/80">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -78,24 +82,24 @@ export default function InvoicingDemoPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="text-sm text-gray-500 mb-1">Outstanding</div>
+            <div className="text-sm text-gray-500 mb-1">{t('outstanding')}</div>
             <div className="text-3xl font-bold text-[#f5a623]">${demoStats.outstanding}</div>
-            <div className="text-xs text-gray-400">awaiting payment</div>
+            <div className="text-xs text-gray-400">{t('awaitingPayment')}</div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="text-sm text-gray-500 mb-1">Paid This Month</div>
+            <div className="text-sm text-gray-500 mb-1">{t('paidThisMonth')}</div>
             <div className="text-3xl font-bold text-green-600">${demoStats.paidThisMonth}</div>
-            <div className="text-xs text-gray-400">collected</div>
+            <div className="text-xs text-gray-400">{t('collected')}</div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="text-sm text-gray-500 mb-1">Overdue</div>
+            <div className="text-sm text-gray-500 mb-1">{t('overdue')}</div>
             <div className="text-3xl font-bold text-red-600">{demoStats.overdueCount}</div>
-            <div className="text-xs text-gray-400">invoice(s)</div>
+            <div className="text-xs text-gray-400">{t('invoices')}</div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="text-sm text-gray-500 mb-1">Avg. Pay Time</div>
+            <div className="text-sm text-gray-500 mb-1">{t('avgPayTime')}</div>
             <div className="text-3xl font-bold text-[#1a1a2e]">{demoStats.avgPayTime}</div>
-            <div className="text-xs text-gray-400">days</div>
+            <div className="text-xs text-gray-400">{t('days')}</div>
           </div>
         </div>
 
@@ -104,9 +108,9 @@ export default function InvoicingDemoPage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-                <h3 className="font-semibold text-[#1a1a2e]">Recent Invoices</h3>
+                <h3 className="font-semibold text-[#1a1a2e]">{t('recentInvoices')}</h3>
                 <button className="px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-semibold text-sm hover:bg-[#e6991a] transition-colors">
-                  + New Invoice
+                  {t('newInvoice')}
                 </button>
               </div>
 
@@ -114,12 +118,12 @@ export default function InvoicingDemoPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Invoice</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Customer</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Service</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">Date</th>
-                      <th className="text-right py-3 px-4 font-medium text-gray-500 text-sm">Amount</th>
-                      <th className="text-center py-3 px-4 font-medium text-gray-500 text-sm">Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thInvoice')}</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thCustomer')}</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thService')}</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500 text-sm">{t('thDate')}</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-500 text-sm">{t('thAmount')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-gray-500 text-sm">{t('thStatus')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -155,12 +159,12 @@ export default function InvoicingDemoPage() {
             {/* Features */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
               {[
-                { icon: '💳', label: 'Accept Cards', desc: 'Visa, MC, Amex' },
-                { icon: '🔄', label: 'Auto-Reminders', desc: 'Never chase payments' },
-                { icon: '📧', label: 'Email Invoices', desc: 'One-click send' },
-                { icon: '📱', label: 'Mobile Payments', desc: 'Pay via text' },
-                { icon: '🧾', label: 'Professional PDFs', desc: 'Your branding' },
-                { icon: '📊', label: 'Reports', desc: 'Track everything' },
+                { icon: '💳', label: t('acceptCards'), desc: t('acceptCardsDesc') },
+                { icon: '🔄', label: t('autoReminders'), desc: t('autoRemindersDesc') },
+                { icon: '📧', label: t('emailInvoices'), desc: t('emailInvoicesDesc') },
+                { icon: '📱', label: t('mobilePayments'), desc: t('mobilePaymentsDesc') },
+                { icon: '🧾', label: t('professionalPDFs'), desc: t('professionalPDFsDesc') },
+                { icon: '📊', label: t('reports'), desc: t('reportsDesc') },
               ].map((feature) => (
                 <div
                   key={feature.label}
@@ -179,7 +183,7 @@ export default function InvoicingDemoPage() {
             {selectedInvoice ? (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-                  <h3 className="font-semibold text-[#1a1a2e]">Invoice Preview</h3>
+                  <h3 className="font-semibold text-[#1a1a2e]">{t('invoicePreview')}</h3>
                   <button
                     onClick={() => setSelectedInvoice(null)}
                     className="text-gray-400 hover:text-gray-600"
@@ -204,7 +208,7 @@ export default function InvoicingDemoPage() {
 
                   <div className="space-y-4 mb-6">
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Bill To</div>
+                      <div className="text-xs text-gray-500 uppercase">{t('billTo')}</div>
                       <div className="font-semibold text-[#1a1a2e]">{selectedInvoice.customer}</div>
                     </div>
                     <div>
@@ -215,7 +219,7 @@ export default function InvoicingDemoPage() {
 
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Due</span>
+                      <span className="text-gray-600">{t('totalDue')}</span>
                       <span className="text-2xl font-bold text-[#1a1a2e]">
                         ${selectedInvoice.amount}
                       </span>
@@ -225,16 +229,16 @@ export default function InvoicingDemoPage() {
                   <div className="mt-6 space-y-2">
                     {selectedInvoice.status === 'pending' && (
                       <button className="w-full py-3 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-semibold hover:bg-[#e6991a] transition-colors">
-                        Send Reminder
+                        {t('sendReminder')}
                       </button>
                     )}
                     {selectedInvoice.status === 'overdue' && (
                       <button className="w-full py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors">
-                        Send Final Notice
+                        {t('sendFinalNotice')}
                       </button>
                     )}
                     <button className="w-full py-3 border border-gray-300 text-[#1a1a2e] rounded-xl font-semibold hover:bg-gray-50 transition-colors">
-                      Download PDF
+                      {t('downloadPDF')}
                     </button>
                   </div>
                 </div>
@@ -242,35 +246,35 @@ export default function InvoicingDemoPage() {
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
                 <span className="text-4xl block mb-3">📄</span>
-                <h3 className="font-semibold text-[#1a1a2e] mb-2">Invoice Preview</h3>
-                <p className="text-sm text-gray-500">Click an invoice to see details</p>
+                <h3 className="font-semibold text-[#1a1a2e] mb-2">{t('invoicePreview')}</h3>
+                <p className="text-sm text-gray-500">{t('clickToSee')}</p>
               </div>
             )}
 
             {/* Payment Methods */}
             <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-6 text-white">
-              <h3 className="font-semibold mb-4">Accepted Payment Methods</h3>
+              <h3 className="font-semibold mb-4">{t('acceptedPaymentMethods')}</h3>
               <div className="flex gap-3 mb-4">
-                <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">💳 Credit Card</div>
-                <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">🏦 ACH</div>
-                <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">📱 Venmo</div>
+                <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">💳 {t('creditCard')}</div>
+                <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">🏦 {t('ach')}</div>
+                <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">📱 {t('venmo')}</div>
               </div>
               <p className="text-white/70 text-sm">
-                Customers can pay online with one click. Funds deposit in 1-2 business days.
+                {t('paymentDesc')}
               </p>
             </div>
 
             {/* CTA */}
             <div className="bg-[#fef3d6] rounded-xl p-6 text-center">
-              <h3 className="font-bold text-[#1a1a2e] mb-2">Get Paid Faster</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-2">{t('getPaidFaster')}</h3>
               <p className="text-sm text-[#5c5c70] mb-4">
-                Businesses using ToolTime Pro get paid 3x faster with online invoicing.
+                {t('getPaidFasterDesc')}
               </p>
               <Link
                 href="/auth/signup"
                 className="inline-block px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-semibold hover:bg-[#2d2d4a] transition-colors no-underline"
               >
-                Start Free Trial →
+                {t('startFreeTrial')} →
               </Link>
             </div>
           </div>
@@ -278,23 +282,22 @@ export default function InvoicingDemoPage() {
 
         {/* Bottom CTA */}
         <div className="mt-12 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">Stop Chasing Payments</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('stopChasing')}</h2>
           <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-            Create professional invoices in seconds, accept credit cards and ACH, and let automatic reminders
-            do the follow-up for you. Get paid faster with less effort.
+            {t('stopChasingDesc')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup"
               className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline"
             >
-              Get Started Free
+              {t('getStartedFree')}
             </Link>
             <Link
               href="/dashboard/smart-quote"
               className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white/10 transition-colors no-underline"
             >
-              See Quoting Demo →
+              {t('seeQuotingDemo')} →
             </Link>
           </div>
         </div>
@@ -304,7 +307,7 @@ export default function InvoicingDemoPage() {
       <footer className="border-t border-gray-200 py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
-            Powered by{' '}
+            {t('poweredBy')}{' '}
             <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
               ToolTime Pro
             </Link>

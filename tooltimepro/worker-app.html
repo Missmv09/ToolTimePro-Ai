@@ -1847,7 +1847,10 @@
         let selectedLateReason = null
         let selectedDelay = null
         let sosCountdown = null
-        let currentLanguage = 'en'
+        let currentLanguage = (function() {
+            var match = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=([^;]*)/);
+            return (match && (match[1] === 'es' || match[1] === 'en')) ? match[1] : 'en';
+        })()
 
         // ============================================
         // TRANSLATIONS
@@ -2012,6 +2015,9 @@
             updateClock()
             setInterval(updateClock, 1000)
             updateGreeting()
+            // Apply saved language from cookie
+            document.getElementById('lang-label').textContent = currentLanguage.toUpperCase()
+            if (currentLanguage !== 'en') applyTranslations()
         })
 
         function updateClock() {
@@ -2272,6 +2278,7 @@
         // ============================================
         function toggleLanguage() {
             currentLanguage = currentLanguage === 'en' ? 'es' : 'en'
+            document.cookie = 'NEXT_LOCALE=' + currentLanguage + ';path=/;max-age=31536000'
             document.getElementById('lang-label').textContent = currentLanguage.toUpperCase()
             applyTranslations()
         }
@@ -2300,5 +2307,6 @@
             }, 3000)
         }
     </script>
+    <script src="i18n.js"></script>
 </body>
 </html>

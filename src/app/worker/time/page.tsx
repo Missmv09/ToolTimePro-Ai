@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, Calendar, ChevronLeft, ChevronRight, DollarSign, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useTranslations } from 'next-intl';
 
 interface Customer {
   name: string;
@@ -63,6 +64,7 @@ function calculateHours(clockIn: string, clockOut: string | null, breakMinutes: 
 
 export default function WorkerTimePage() {
   const router = useRouter();
+  const t = useTranslations('worker.time');
   const [worker, setWorker] = useState<WorkerData | null>(null);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
@@ -79,9 +81,9 @@ export default function WorkerTimePage() {
 
   // Helper to get customer name from potentially array result
   const getCustomerName = (customer: Customer | Customer[] | null): string => {
-    if (!customer) return 'Unknown Customer';
-    if (Array.isArray(customer)) return customer[0]?.name || 'Unknown Customer';
-    return customer.name || 'Unknown Customer';
+    if (!customer) return t('unknownCustomer');
+    if (Array.isArray(customer)) return customer[0]?.name || t('unknownCustomer');
+    return customer.name || t('unknownCustomer');
   };
 
   // Initialize auth
@@ -245,10 +247,10 @@ export default function WorkerTimePage() {
     return (
       <div className="p-4 flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Time Entries</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('errorLoadingTimeEntries')}</h2>
         <p className="text-gray-600 mb-4">{error}</p>
         <button onClick={handleRefresh} className="px-4 py-2 bg-gray-200 rounded-lg">
-          Try Again
+          {t('tryAgain')}
         </button>
       </div>
     );
@@ -266,7 +268,7 @@ export default function WorkerTimePage() {
             <ChevronLeft size={20} className="text-gray-600" />
           </button>
           <div className="text-center">
-            <p className="text-sm text-gray-500">Week of</p>
+            <p className="text-sm text-gray-500">{t('weekOf')}</p>
             <p className="font-semibold text-gray-900">{formatDateRange(start, end)}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -293,17 +295,17 @@ export default function WorkerTimePage() {
         <div className="bg-white rounded-xl shadow-sm p-4 text-center">
           <Clock className="w-6 h-6 text-blue-600 mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">{totalHours.toFixed(1)}</p>
-          <p className="text-xs text-gray-500">Total Hours</p>
+          <p className="text-xs text-gray-500">{t('totalHours')}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 text-center">
           <Calendar className="w-6 h-6 text-green-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-green-600">{regularHours.toFixed(1)}</p>
-          <p className="text-xs text-gray-500">Regular</p>
+          <p className="text-xs text-gray-500">{t('regular')}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 text-center">
           <DollarSign className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-yellow-600">{overtimeHours.toFixed(1)}</p>
-          <p className="text-xs text-gray-500">Overtime</p>
+          <p className="text-xs text-gray-500">{t('overtime')}</p>
         </div>
       </div>
 
@@ -321,8 +323,8 @@ export default function WorkerTimePage() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-gray-900">{group.totalHours.toFixed(1)} hrs</p>
-                <p className="text-xs text-gray-500">{group.entries.length} entries</p>
+                <p className="font-bold text-gray-900">{group.totalHours.toFixed(1)} {t('hrs')}</p>
+                <p className="text-xs text-gray-500">{group.entries.length} {t('entries')}</p>
               </div>
             </div>
 
@@ -331,7 +333,7 @@ export default function WorkerTimePage() {
                 const hours = calculateHours(entry.clock_in, entry.clock_out, entry.break_minutes);
                 const isActive = !entry.clock_out;
                 const job = getJob(entry.job);
-                const customerName = job ? getCustomerName(job.customer) : 'Unknown Customer';
+                const customerName = job ? getCustomerName(job.customer) : t('unknownCustomer');
 
                 return (
                   <div
@@ -344,24 +346,24 @@ export default function WorkerTimePage() {
                       <p className="font-medium text-gray-900 text-sm">
                         {customerName}
                       </p>
-                      <p className="text-xs text-gray-500">{job?.title || 'No job assigned'}</p>
+                      <p className="text-xs text-gray-500">{job?.title || t('noJobAssigned')}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900">
                         {formatTimeRange(entry.clock_in, entry.clock_out)}
                       </p>
-                      <p className="text-xs text-gray-500">{hours.toFixed(1)} hrs</p>
+                      <p className="text-xs text-gray-500">{hours.toFixed(1)} {t('hrs')}</p>
                     </div>
                     <div className="ml-3">
                       {isActive ? (
                         <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full flex items-center gap-1">
                           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                          Active
+                          {t('active')}
                         </span>
                       ) : entry.status === 'completed' ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Completed</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">{t('completed')}</span>
                       ) : (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Edited</span>
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">{t('edited')}</span>
                       )}
                     </div>
                   </div>
@@ -375,9 +377,9 @@ export default function WorkerTimePage() {
       {entriesByDate.length === 0 && (
         <div className="bg-white rounded-xl shadow-sm p-4 text-center py-12">
           <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No time entries for this week</p>
+          <p className="text-gray-500">{t('noTimeEntries')}</p>
           <p className="text-sm text-gray-400 mt-1">
-            Clock in to a job to start tracking time
+            {t('clockInToStart')}
           </p>
         </div>
       )}

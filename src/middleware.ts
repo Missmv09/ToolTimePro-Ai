@@ -2,13 +2,11 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const MAIN_DOMAIN = 'tooltimepro.com'
+const SUPPORTED_LOCALES = ['en', 'es']
+const DEFAULT_LOCALE = 'en'
 
 export async function middleware(request: NextRequest) {
   // --- Subdomain → path redirect for customer sites ---
-  // If *.tooltimepro.com is hit (e.g. saldana-sons.tooltimepro.com),
-  // redirect to the path-based URL so the user lands on a working page.
-  // Subdomains require wildcard DNS which isn't configured, so we
-  // redirect rather than rewrite to give the user a URL that always works.
   const hostname = request.headers.get('host') || ''
   if (
     hostname.endsWith(`.${MAIN_DOMAIN}`) &&
@@ -22,6 +20,16 @@ export async function middleware(request: NextRequest) {
   }
 
   let supabaseResponse = NextResponse.next({ request })
+
+  // --- Locale detection (cookie-based, no URL prefixes) ---
+  const localeCookie = request.cookies.get('NEXT_LOCALE')?.value
+  if (!localeCookie || !SUPPORTED_LOCALES.includes(localeCookie)) {
+    // Set default locale cookie if missing or invalid
+    supabaseResponse.cookies.set('NEXT_LOCALE', DEFAULT_LOCALE, {
+      path: '/',
+      maxAge: 31536000, // 1 year
+    })
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

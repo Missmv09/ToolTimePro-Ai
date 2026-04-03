@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Demo data for worker app
 const demoUser = {
@@ -51,6 +53,7 @@ const demoTimeLog = {
 };
 
 export default function WorkerDemoPage() {
+  const t = useTranslations('demo.worker');
   const [activeTab, setActiveTab] = useState<'jobs' | 'clock' | 'hours' | 'profile'>('jobs');
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<typeof demoJobs[0] | null>(null);
@@ -61,11 +64,11 @@ export default function WorkerDemoPage() {
       <div className="bg-[#f5a623] text-[#1a1a2e] py-2 px-4 text-center">
         <p className="text-sm font-medium">
           <span className="bg-[#1a1a2e] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
-          Preview of the Worker App.{' '}
+          {t('demoBanner')}{' '}
           <Link href="/auth/signup" className="underline font-bold">
-            Sign up
+            {t('signUp')}
           </Link>{' '}
-          to get your team started.
+          {t('toGetTeamStarted')}
         </p>
       </div>
 
@@ -77,8 +80,9 @@ export default function WorkerDemoPage() {
             <p className="font-semibold text-gray-900">{demoUser.name}</p>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/" className="text-sm text-blue-600 font-medium">
-              ← Exit Demo
+              {t('exitDemo')}
             </Link>
           </div>
         </div>
@@ -92,18 +96,18 @@ export default function WorkerDemoPage() {
             {/* Today&apos;s Overview */}
             <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 mb-4 text-white">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-bold text-lg">Today&apos;s Jobs</h2>
+                <h2 className="font-bold text-lg">{t('todaysJobs')}</h2>
                 <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
                   {demoJobs.length} jobs
                 </span>
               </div>
               <div className="flex gap-6 text-sm">
                 <div>
-                  <div className="text-white/70">Est. Hours</div>
+                  <div className="text-white/70">{t('estHours')}</div>
                   <div className="font-bold text-lg">5.5</div>
                 </div>
                 <div>
-                  <div className="text-white/70">Revenue</div>
+                  <div className="text-white/70">{t('revenue')}</div>
                   <div className="font-bold text-lg text-[#f5a623]">$355</div>
                 </div>
               </div>
@@ -124,7 +128,7 @@ export default function WorkerDemoPage() {
                   {job.status === 'current' && (
                     <div className="flex items-center gap-2 text-green-600 text-sm font-semibold mb-2">
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                      CURRENT JOB
+                      {t('currentJob')}
                     </div>
                   )}
                   <div className="flex justify-between items-start mb-2">
@@ -135,7 +139,7 @@ export default function WorkerDemoPage() {
                   <p className="text-sm text-gray-500 mb-2">📍 {job.address}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-[#1a1a2e]">⏰ {job.time}</span>
-                    <button className="text-sm text-blue-600 font-medium">View Details →</button>
+                    <button className="text-sm text-blue-600 font-medium">{t('viewDetails')}</button>
                   </div>
                 </div>
               ))}
@@ -150,16 +154,16 @@ export default function WorkerDemoPage() {
               <div className="mb-6">
                 {demoTimeLog.clockedIn ? (
                   <>
-                    <div className="text-sm text-gray-500 mb-1">Clocked in at</div>
+                    <div className="text-sm text-gray-500 mb-1">{t('clockedInAt')}</div>
                     <div className="text-4xl font-bold text-green-600">{demoTimeLog.clockInTime}</div>
                     <div className="text-gray-600 mt-2">
-                      Working for <span className="font-bold">{demoTimeLog.hoursToday} hours</span>
+                      {t('workingFor')} <span className="font-bold">{demoTimeLog.hoursToday} {t('hours')}</span>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-sm text-gray-500 mb-1">Status</div>
-                    <div className="text-2xl font-bold text-gray-400">Not Clocked In</div>
+                    <div className="text-sm text-gray-500 mb-1">{t('status')}</div>
+                    <div className="text-2xl font-bold text-gray-400">{t('notClockedIn')}</div>
                   </>
                 )}
               </div>
@@ -172,7 +176,7 @@ export default function WorkerDemoPage() {
                     : 'bg-green-500 hover:bg-green-600 text-white'
                 }`}
               >
-                {demoTimeLog.clockedIn ? '⏹ Clock Out' : '▶️ Clock In'}
+                {demoTimeLog.clockedIn ? `⏹ ${t('clockOut')}` : `▶️ ${t('clockIn')}`}
               </button>
             </div>
 
@@ -180,11 +184,11 @@ export default function WorkerDemoPage() {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button className="bg-white rounded-xl p-4 text-center border-2 border-gray-200 hover:border-[#f5a623]">
                 <span className="text-2xl block mb-1">☕</span>
-                <span className="font-medium text-[#1a1a2e]">Start Break</span>
+                <span className="font-medium text-[#1a1a2e]">{t('startBreak')}</span>
               </button>
               <button className="bg-white rounded-xl p-4 text-center border-2 border-gray-200 hover:border-[#f5a623]">
                 <span className="text-2xl block mb-1">🍽️</span>
-                <span className="font-medium text-[#1a1a2e]">Lunch Break</span>
+                <span className="font-medium text-[#1a1a2e]">{t('lunchBreak')}</span>
               </button>
             </div>
 
@@ -193,9 +197,9 @@ export default function WorkerDemoPage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📍</span>
                 <div>
-                  <div className="font-semibold text-[#1a1a2e]">GPS Tracking Active</div>
+                  <div className="font-semibold text-[#1a1a2e]">{t('gpsTrackingActive')}</div>
                   <div className="text-sm text-gray-600">
-                    Location verified for clock in/out
+                    {t('locationVerifiedForClock')}
                   </div>
                 </div>
               </div>
@@ -207,20 +211,20 @@ export default function WorkerDemoPage() {
         {activeTab === 'hours' && (
           <div>
             <div className="bg-white rounded-xl p-6 mb-4">
-              <h3 className="font-bold text-[#1a1a2e] mb-4">This Week</h3>
+              <h3 className="font-bold text-[#1a1a2e] mb-4">{t('thisWeek')}</h3>
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <div className="text-3xl font-bold text-[#1a1a2e]">32.5</div>
-                  <div className="text-sm text-gray-500">Hours Worked</div>
+                  <div className="text-sm text-gray-500">{t('hoursWorked')}</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <div className="text-3xl font-bold text-green-600">5</div>
-                  <div className="text-sm text-gray-500">Breaks Taken</div>
+                  <div className="text-sm text-gray-500">{t('breaksTaken')}</div>
                 </div>
               </div>
 
               {/* Daily Breakdown */}
-              <h4 className="font-semibold text-gray-600 mb-3 text-sm">DAILY BREAKDOWN</h4>
+              <h4 className="font-semibold text-gray-600 mb-3 text-sm">{t('dailyBreakdown')}</h4>
               <div className="space-y-2">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
                   <div
@@ -255,10 +259,10 @@ export default function WorkerDemoPage() {
 
             <div className="bg-white rounded-xl overflow-hidden">
               {[
-                { icon: '📋', label: 'My Documents', desc: 'W-4, I-9, certifications' },
-                { icon: '💰', label: 'Pay Stubs', desc: 'View payment history' },
-                { icon: '📅', label: 'Time Off', desc: 'Request PTO' },
-                { icon: '⚙️', label: 'Settings', desc: 'Notifications, language' },
+                { icon: '📋', label: t('myDocuments'), desc: t('myDocumentsDesc') },
+                { icon: '💰', label: t('payStubs'), desc: t('payStubsDesc') },
+                { icon: '📅', label: t('timeOff'), desc: t('timeOffDesc') },
+                { icon: '⚙️', label: t('settings'), desc: t('settingsDesc') },
               ].map((item, i) => (
                 <button
                   key={item.label}
@@ -282,10 +286,10 @@ export default function WorkerDemoPage() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div className="flex justify-around">
           {[
-            { key: 'jobs', icon: '📋', label: 'Jobs' },
-            { key: 'clock', icon: '⏱️', label: 'Clock' },
-            { key: 'hours', icon: '📊', label: 'Hours' },
-            { key: 'profile', icon: '👤', label: 'Profile' },
+            { key: 'jobs', icon: '📋', label: t('navJobs') },
+            { key: 'clock', icon: '⏱️', label: t('navClock') },
+            { key: 'hours', icon: '📊', label: t('navHours') },
+            { key: 'profile', icon: '👤', label: t('navProfile') },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -306,11 +310,11 @@ export default function WorkerDemoPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
             <h3 className="text-xl font-bold text-[#1a1a2e] mb-4 text-center">
-              {demoTimeLog.clockedIn ? 'Clock Out' : 'Clock In'}
+              {demoTimeLog.clockedIn ? t('clockOut') : t('clockIn')}
             </h3>
             <div className="bg-gray-50 rounded-xl p-4 mb-4 text-center">
               <div className="text-3xl mb-2">📍</div>
-              <div className="font-medium text-[#1a1a2e]">Location Verified</div>
+              <div className="font-medium text-[#1a1a2e]">{t('locationVerified')}</div>
               <div className="text-sm text-gray-500">1234 Oak Street, Los Angeles</div>
             </div>
             <div className="flex gap-3">
@@ -318,7 +322,7 @@ export default function WorkerDemoPage() {
                 onClick={() => setShowClockInModal(false)}
                 className="flex-1 py-3 border border-gray-300 rounded-xl font-semibold"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={() => setShowClockInModal(false)}
@@ -326,7 +330,7 @@ export default function WorkerDemoPage() {
                   demoTimeLog.clockedIn ? 'bg-red-500' : 'bg-green-500'
                 }`}
               >
-                Confirm
+                {t('confirm')}
               </button>
             </div>
           </div>
@@ -338,7 +342,7 @@ export default function WorkerDemoPage() {
         <div className="fixed inset-0 bg-black/50 flex items-end z-50">
           <div className="bg-white rounded-t-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[#1a1a2e]">Job Details</h3>
+              <h3 className="text-lg font-bold text-[#1a1a2e]">{t('jobDetails')}</h3>
               <button onClick={() => setSelectedJob(null)} className="p-2">
                 ✕
               </button>
@@ -353,28 +357,28 @@ export default function WorkerDemoPage() {
                 <div className="flex items-start gap-3">
                   <span className="text-xl">📍</span>
                   <div>
-                    <div className="text-sm text-gray-500">Address</div>
+                    <div className="text-sm text-gray-500">{t('address')}</div>
                     <div className="font-medium text-[#1a1a2e]">{selectedJob.address}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl">🔧</span>
                   <div>
-                    <div className="text-sm text-gray-500">Service</div>
+                    <div className="text-sm text-gray-500">{t('service')}</div>
                     <div className="font-medium text-[#1a1a2e]">{selectedJob.service}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl">⏰</span>
                   <div>
-                    <div className="text-sm text-gray-500">Time</div>
+                    <div className="text-sm text-gray-500">{t('time')}</div>
                     <div className="font-medium text-[#1a1a2e]">{selectedJob.time}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl">📝</span>
                   <div>
-                    <div className="text-sm text-gray-500">Notes</div>
+                    <div className="text-sm text-gray-500">{t('notes')}</div>
                     <div className="font-medium text-[#1a1a2e]">{selectedJob.notes}</div>
                   </div>
                 </div>
@@ -382,16 +386,16 @@ export default function WorkerDemoPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <button className="py-3 bg-blue-500 text-white rounded-xl font-semibold">
-                  📞 Call Customer
+                  📞 {t('callCustomer')}
                 </button>
                 <button className="py-3 bg-gray-100 text-[#1a1a2e] rounded-xl font-semibold">
-                  🗺️ Navigate
+                  🗺️ {t('navigate')}
                 </button>
               </div>
 
               {selectedJob.status === 'current' && (
                 <button className="w-full mt-3 py-4 bg-green-500 text-white rounded-xl font-bold">
-                  ✓ Mark Complete
+                  ✓ {t('markComplete')}
                 </button>
               )}
             </div>
@@ -403,14 +407,14 @@ export default function WorkerDemoPage() {
       <div className="fixed bottom-20 left-4 right-4 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <div className="font-bold">Get this for your team</div>
-            <div className="text-sm text-white/70">GPS clock-in, job tracking & more</div>
+            <div className="font-bold">{t('getThisForTeam')}</div>
+            <div className="text-sm text-white/70">{t('gpsClockInDesc')}</div>
           </div>
           <Link
             href="/auth/signup"
             className="px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-bold text-sm no-underline"
           >
-            Sign Up
+            {t('signUp')}
           </Link>
         </div>
       </div>

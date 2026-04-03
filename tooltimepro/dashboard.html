@@ -636,13 +636,14 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Back to ToolTime Pro
+                <span data-i18n="back_to_tooltime">Back to ToolTime Pro</span>
             </a>
             <div class="header-title">
-                <h1>Admin Dashboard</h1>
-                <p>Your entire business at a glance. Jobs, leads, crew, revenue - all in one place.</p>
+                <h1 data-i18n="dashboard_title">Admin Dashboard</h1>
+                <p data-i18n="dashboard_subtitle">Your entire business at a glance. Jobs, leads, crew, revenue - all in one place.</p>
             </div>
             <div class="user-info" id="user-info">
+                <button onclick="switchLocale(getLocale()==='en'?'es':'en')" data-i18n-toggle style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:0.875rem;font-weight:600">🌐 ES</button>
                 <div class="user-avatar" id="user-avatar">--</div>
                 <div>
                     <div class="user-name" id="user-name">Loading...</div>
@@ -1186,5 +1187,6 @@
             return div.innerHTML
         }
     </script>
+    <script src="i18n.js"></script>
 </body>
 </html>
