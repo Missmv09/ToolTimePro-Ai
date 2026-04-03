@@ -716,9 +716,9 @@ export default function BookingPage() {
                     <Link href="/privacy" target="_blank" className="text-[#f5a623] underline">
                       Privacy Policy
                     </Link>{' '}
-                    and{' '}
+                    &amp;{' '}
                     <Link href="/terms" target="_blank" className="text-[#f5a623] underline">
-                      Terms &amp; Conditions
+                      {t('termsConditions')}
                     </Link>.
                   </p>
                 </div>
@@ -728,7 +728,7 @@ export default function BookingPage() {
                 type="submit"
                 className="w-full mt-6 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors"
               >
-                Review Booking
+                {t('reviewBooking')}
               </button>
             </form>
           </div>
@@ -741,21 +741,21 @@ export default function BookingPage() {
               onClick={() => setStep('info')}
               className="flex items-center gap-1 text-[#5c5c70] hover:text-[#1a1a2e] mb-4 text-sm"
             >
-              ← Back to your info
+              &larr; {t('backToInfo')}
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Confirm Your Booking</h2>
-            <p className="text-[#5c5c70] mb-6">Please review your booking details.</p>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('confirmBooking')}</h2>
+            <p className="text-[#5c5c70] mb-6">{t('confirmSubtitle')}</p>
 
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               {/* Service Details */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">SERVICE</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('serviceLabel')}</h3>
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-bold text-[#1a1a2e] text-lg">{booking.service?.name}</p>
                     <p className="text-sm text-[#5c5c70]">
-                      {booking.service?.duration_minutes} minutes
+                      {booking.service?.duration_minutes} {t('minutes')}
                     </p>
                   </div>
                   {booking.service?.default_price && (
@@ -768,14 +768,14 @@ export default function BookingPage() {
 
               {/* Date & Time */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">DATE & TIME</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('dateTimeLabel')}</h3>
                 <p className="font-bold text-[#1a1a2e]">{formatDate(booking.date)}</p>
                 <p className="text-[#5c5c70]">{formatTime(booking.time)}</p>
               </div>
 
               {/* Customer Info */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">CONTACT INFORMATION</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('contactInfo')}</h3>
                 <p className="font-bold text-[#1a1a2e]">{booking.customerName}</p>
                 <p className="text-[#5c5c70]">{booking.customerEmail}</p>
                 <p className="text-[#5c5c70]">{booking.customerPhone}</p>
@@ -783,7 +783,7 @@ export default function BookingPage() {
 
               {/* Address */}
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">SERVICE ADDRESS</h3>
+                <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('serviceAddressLabel')}</h3>
                 <p className="text-[#1a1a2e]">{booking.customerAddress}</p>
                 <p className="text-[#5c5c70]">
                   {booking.customerCity}, {booking.customerState} {booking.customerZip}
@@ -793,7 +793,7 @@ export default function BookingPage() {
               {/* Notes */}
               {booking.notes && (
                 <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-sm font-medium text-[#5c5c70] mb-2">NOTES</h3>
+                  <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('notesLabel')}</h3>
                   <p className="text-[#1a1a2e]">{booking.notes}</p>
                 </div>
               )}
@@ -808,14 +808,14 @@ export default function BookingPage() {
                   {isSubmitting ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Confirming...
+                      {t('confirming')}
                     </>
                   ) : (
-                    <>Confirm Booking</>
+                    <>{t('confirmButton')}</>
                   )}
                 </button>
                 <p className="text-center text-sm text-[#5c5c70] mt-3">
-                  You&apos;ll receive a confirmation email at {booking.customerEmail}
+                  {t('confirmationEmail', { email: booking.customerEmail })}
                 </p>
               </div>
             </div>
@@ -828,9 +828,9 @@ export default function BookingPage() {
             <div className="w-20 h-20 bg-[#e8f5e9] rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">✓</span>
             </div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Booking Confirmed!</h2>
+            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('bookingConfirmed')}</h2>
             <p className="text-[#5c5c70] mb-8 max-w-md mx-auto">
-              Your appointment has been scheduled. We&apos;ve sent a confirmation email to{' '}
+              {t('bookingConfirmedMessage')}{' '}
               <strong>{booking.customerEmail}</strong>.
             </p>
 
