@@ -33,7 +33,7 @@ export default function SmsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">How You Opt In</h2>
+            <h2 className="text-xl font-bold mb-3">{t('howYouOptIn')}</h2>
             <p className="mb-4">
               When booking a service appointment through ToolTime Pro, customers are presented with an
               explicit opt-in checkbox to consent to receiving SMS/text message notifications. The
@@ -43,7 +43,7 @@ export default function SmsPage() {
 
             {/* Visual representation of the opt-in CTA */}
             <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50">
-              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">Opt-In As Shown on Booking Page</p>
+              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">{t('optInLabel')}</p>
               <div className="bg-[#fef3d6] rounded-xl p-4">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input

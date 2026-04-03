@@ -268,7 +268,7 @@ export default function WorkerTimePage() {
             <ChevronLeft size={20} className="text-gray-600" />
           </button>
           <div className="text-center">
-            <p className="text-sm text-gray-500">Week of</p>
+            <p className="text-sm text-gray-500">{t('weekOf')}</p>
             <p className="font-semibold text-gray-900">{formatDateRange(start, end)}</p>
           </div>
           <div className="flex items-center gap-2">

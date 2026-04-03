@@ -126,7 +126,7 @@ export default function IndustriesPage() {
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
             <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('features')}</Link>
-            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">{t('all')}</Link>
+            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">{t('industriesNav')}</Link>
             <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('pricing')}</Link>
             <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('freeTools')}</Link>
             <span className="text-[#5c5c70] text-base flex items-center gap-1">
