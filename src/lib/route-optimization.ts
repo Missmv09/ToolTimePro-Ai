@@ -11,6 +11,31 @@ export interface RoutePoint {
   lng: number;
   label?: string;
   scheduledTime?: string | null;
+  /** Earliest arrival time (ISO or HH:MM) for time-window constraints */
+  earliestArrival?: string | null;
+  /** Latest arrival time (ISO or HH:MM) for time-window constraints */
+  latestArrival?: string | null;
+}
+
+/** Configurable optimization parameters (all optional — defaults to hardcoded constants) */
+export interface RouteOptions {
+  avgSpeedMph?: number;
+  fuelCostPerMile?: number;
+  roadFactor?: number;
+}
+
+/** Result for multi-worker optimization */
+export interface MultiWorkerResult {
+  /** One optimized route per worker */
+  workerRoutes: OptimizedRoute[];
+  /** Total miles across all workers */
+  totalDistanceMiles: number;
+  /** Total miles if routes were not optimized */
+  originalDistanceMiles: number;
+  /** Total miles saved across all workers */
+  milesSaved: number;
+  /** Overall percent improvement */
+  percentImprovement: number;
 }
 
 export interface OptimizedRoute {
@@ -65,22 +90,23 @@ export function haversineDistance(
 /**
  * Estimate road distance from straight-line distance.
  */
-export function estimateRoadDistance(straightLineDistance: number): number {
-  return straightLineDistance * ROAD_FACTOR;
+export function estimateRoadDistance(straightLineDistance: number, roadFactor?: number): number {
+  return straightLineDistance * (roadFactor ?? ROAD_FACTOR);
 }
 
 /**
  * Build a distance matrix for a set of points.
  * Returns distances in miles (road-estimated).
  */
-export function buildDistanceMatrix(points: RoutePoint[]): number[][] {
+export function buildDistanceMatrix(points: RoutePoint[], roadFactor?: number): number[][] {
   const n = points.length;
   const matrix: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
 
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       const dist = estimateRoadDistance(
-        haversineDistance(points[i].lat, points[i].lng, points[j].lat, points[j].lng)
+        haversineDistance(points[i].lat, points[i].lng, points[j].lat, points[j].lng),
+        roadFactor
       );
       matrix[i][j] = dist;
       matrix[j][i] = dist;
@@ -196,11 +222,16 @@ function multiStartNearestNeighbor(matrix: number[][]): number[] {
  *
  * @param points Array of route points with coordinates
  * @param fixedStartIndex If set, the route will always start from this point
+ * @param options Optional configuration for speed, fuel cost, road factor
  */
 export function optimizeRoute(
   points: RoutePoint[],
-  fixedStartIndex?: number
+  fixedStartIndex?: number,
+  options?: RouteOptions
 ): OptimizedRoute {
+  const speedMph = options?.avgSpeedMph ?? AVG_CITY_SPEED_MPH;
+  const fuelCost = options?.fuelCostPerMile ?? FUEL_COST_PER_MILE;
+  const roadFactor = options?.roadFactor ?? ROAD_FACTOR;
   if (points.length <= 1) {
     return {
       orderedPoints: points,
@@ -216,7 +247,7 @@ export function optimizeRoute(
     };
   }
 
-  const matrix = buildDistanceMatrix(points);
+  const matrix = buildDistanceMatrix(points, roadFactor);
 
   // Calculate original route distance (as-is order)
   const originalOrder = points.map((_, i) => i);
@@ -239,10 +270,10 @@ export function optimizeRoute(
   const optimizedDistance = routeDistance(optimizedOrder, matrix);
 
   const milesSaved = Math.max(0, originalDistance - optimizedDistance);
-  const originalTime = (originalDistance / AVG_CITY_SPEED_MPH) * 60;
-  const optimizedTime = (optimizedDistance / AVG_CITY_SPEED_MPH) * 60;
+  const originalTime = (originalDistance / speedMph) * 60;
+  const optimizedTime = (optimizedDistance / speedMph) * 60;
   const timeSaved = Math.max(0, originalTime - optimizedTime);
-  const fuelSaved = milesSaved * FUEL_COST_PER_MILE;
+  const fuelSaved = milesSaved * fuelCost;
   const percentImprovement = originalDistance > 0
     ? Math.round((milesSaved / originalDistance) * 100)
     : 0;
@@ -258,5 +289,109 @@ export function optimizeRoute(
     fuelSaved: Math.round(fuelSaved * 100) / 100,
     percentImprovement,
     distanceMatrix: matrix.map((row) => row.map((d) => Math.round(d * 10) / 10)),
+  };
+}
+
+/**
+ * Cluster points geographically using a simple k-means-like approach.
+ * Returns an array of point-index arrays, one per cluster.
+ */
+function clusterPoints(points: RoutePoint[], k: number): number[][] {
+  if (k <= 1) return [points.map((_, i) => i)];
+  if (k >= points.length) return points.map((_, i) => [i]);
+
+  // Initialize centroids by spreading evenly across sorted-by-lat points
+  const sorted = points.map((p, i) => ({ i, lat: p.lat, lng: p.lng }))
+    .sort((a, b) => a.lat - b.lat || a.lng - b.lng);
+  const centroids: { lat: number; lng: number }[] = [];
+  for (let c = 0; c < k; c++) {
+    const idx = Math.floor((c / k) * sorted.length);
+    centroids.push({ lat: sorted[idx].lat, lng: sorted[idx].lng });
+  }
+
+  let assignments = new Array(points.length).fill(0);
+  const maxIter = 20;
+
+  for (let iter = 0; iter < maxIter; iter++) {
+    // Assign each point to nearest centroid
+    const newAssignments = points.map((p) => {
+      let bestCluster = 0;
+      let bestDist = Infinity;
+      for (let c = 0; c < k; c++) {
+        const d = haversineDistance(p.lat, p.lng, centroids[c].lat, centroids[c].lng);
+        if (d < bestDist) {
+          bestDist = d;
+          bestCluster = c;
+        }
+      }
+      return bestCluster;
+    });
+
+    // Check convergence
+    const changed = newAssignments.some((a, i) => a !== assignments[i]);
+    assignments = newAssignments;
+    if (!changed) break;
+
+    // Update centroids
+    for (let c = 0; c < k; c++) {
+      const members = points.filter((_, i) => assignments[i] === c);
+      if (members.length > 0) {
+        centroids[c] = {
+          lat: members.reduce((s, p) => s + p.lat, 0) / members.length,
+          lng: members.reduce((s, p) => s + p.lng, 0) / members.length,
+        };
+      }
+    }
+  }
+
+  // Build clusters
+  const clusters: number[][] = Array.from({ length: k }, () => []);
+  assignments.forEach((c, i) => clusters[c].push(i));
+
+  // Remove empty clusters
+  return clusters.filter((c) => c.length > 0);
+}
+
+/**
+ * Optimize routes for multiple workers by clustering jobs geographically
+ * and optimizing each cluster independently.
+ *
+ * @param points All jobs to be distributed
+ * @param workerCount Number of workers to split across
+ * @param options Optional configuration
+ */
+export function optimizeMultiWorkerRoutes(
+  points: RoutePoint[],
+  workerCount: number,
+  options?: RouteOptions
+): MultiWorkerResult {
+  if (points.length === 0 || workerCount <= 0) {
+    return {
+      workerRoutes: [],
+      totalDistanceMiles: 0,
+      originalDistanceMiles: 0,
+      milesSaved: 0,
+      percentImprovement: 0,
+    };
+  }
+
+  const effectiveWorkers = Math.min(workerCount, points.length);
+  const clusters = clusterPoints(points, effectiveWorkers);
+
+  const workerRoutes = clusters.map((clusterIndices) => {
+    const clusterPoints_ = clusterIndices.map((i) => points[i]);
+    return optimizeRoute(clusterPoints_, undefined, options);
+  });
+
+  const totalDist = workerRoutes.reduce((s, r) => s + r.totalDistanceMiles, 0);
+  const origDist = workerRoutes.reduce((s, r) => s + r.originalDistanceMiles, 0);
+  const saved = workerRoutes.reduce((s, r) => s + r.milesSaved, 0);
+
+  return {
+    workerRoutes,
+    totalDistanceMiles: Math.round(totalDist * 10) / 10,
+    originalDistanceMiles: Math.round(origDist * 10) / 10,
+    milesSaved: Math.round(saved * 10) / 10,
+    percentImprovement: origDist > 0 ? Math.round((saved / origDist) * 100) : 0,
   };
 }

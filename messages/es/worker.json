@@ -3,6 +3,7 @@
     "layout": {
       "clock": "Reloj",
       "jobs": "Trabajos",
+      "route": "Ruta",
       "hours": "Horas",
       "profile": "Perfil",
       "signOut": "Cerrar sesión"
@@ -199,6 +200,15 @@
       "severityMedium": "Media",
       "severityHigh": "Alta",
       "severityCritical": "Crítica"
+    },
+    "route": {
+      "title": "Mi Ruta",
+      "noRoute": "Sin Ruta Asignada",
+      "noRouteDescription": "No se te ha asignado una ruta optimizada para hoy.",
+      "nextStop": "Próxima Parada",
+      "directions": "Navegar",
+      "complete": "Listo",
+      "stopsCompleted": "paradas completadas"
     },
     "offline": {
       "title": "Estás sin conexión",

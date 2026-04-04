@@ -3,6 +3,7 @@ import {
   estimateRoadDistance,
   buildDistanceMatrix,
   optimizeRoute,
+  optimizeMultiWorkerRoutes,
   RoutePoint,
 } from '@/lib/route-optimization';
 
@@ -198,6 +199,128 @@ describe('route-optimization', () => {
       const outputIds = result.orderedPoints.map((p) => p.id).sort();
       const inputIds = points.map((p) => p.id).sort();
       expect(outputIds).toEqual(inputIds);
+    });
+  });
+
+  describe('configurable RouteOptions', () => {
+    const points: RoutePoint[] = [
+      { id: 'A', lat: 34.05, lng: -118.30 },
+      { id: 'B', lat: 34.05, lng: -118.10 },
+      { id: 'C', lat: 34.05, lng: -118.20 },
+    ];
+
+    it('uses default options when none provided', () => {
+      const withDefaults = optimizeRoute(points);
+      const withExplicitDefaults = optimizeRoute(points, undefined, {
+        avgSpeedMph: 25,
+        fuelCostPerMile: 0.40,
+        roadFactor: 1.35,
+      });
+      expect(withDefaults.totalDistanceMiles).toBe(withExplicitDefaults.totalDistanceMiles);
+      expect(withDefaults.totalDriveTimeMinutes).toBe(withExplicitDefaults.totalDriveTimeMinutes);
+      expect(withDefaults.fuelSaved).toBe(withExplicitDefaults.fuelSaved);
+    });
+
+    it('custom speed changes drive time but not distance', () => {
+      const slow = optimizeRoute(points, undefined, { avgSpeedMph: 15 });
+      const fast = optimizeRoute(points, undefined, { avgSpeedMph: 50 });
+      expect(slow.totalDistanceMiles).toBe(fast.totalDistanceMiles);
+      expect(slow.totalDriveTimeMinutes).toBeGreaterThan(fast.totalDriveTimeMinutes);
+    });
+
+    it('custom fuel cost changes fuel savings', () => {
+      const cheap = optimizeRoute(points, undefined, { fuelCostPerMile: 0.20 });
+      const expensive = optimizeRoute(points, undefined, { fuelCostPerMile: 0.80 });
+      // Same miles saved, but different dollar amounts
+      expect(cheap.milesSaved).toBe(expensive.milesSaved);
+      if (cheap.milesSaved > 0) {
+        expect(expensive.fuelSaved).toBeGreaterThan(cheap.fuelSaved);
+      }
+    });
+
+    it('custom road factor changes distances', () => {
+      const low = optimizeRoute(points, undefined, { roadFactor: 1.0 });
+      const high = optimizeRoute(points, undefined, { roadFactor: 2.0 });
+      expect(high.totalDistanceMiles).toBeGreaterThan(low.totalDistanceMiles);
+    });
+
+    it('preserves time window fields in output', () => {
+      const twPoints: RoutePoint[] = [
+        { id: 'A', lat: 34.05, lng: -118.30, earliestArrival: '08:00', latestArrival: '10:00' },
+        { id: 'B', lat: 34.05, lng: -118.10, earliestArrival: '14:00', latestArrival: '16:00' },
+        { id: 'C', lat: 34.05, lng: -118.20 },
+      ];
+      const result = optimizeRoute(twPoints);
+      const pointA = result.orderedPoints.find((p) => p.id === 'A');
+      expect(pointA?.earliestArrival).toBe('08:00');
+      expect(pointA?.latestArrival).toBe('10:00');
+    });
+  });
+
+  describe('optimizeMultiWorkerRoutes', () => {
+    const points: RoutePoint[] = [
+      { id: '1', lat: 34.10, lng: -118.30 },
+      { id: '2', lat: 34.10, lng: -118.28 },
+      { id: '3', lat: 34.10, lng: -118.26 },
+      { id: '4', lat: 33.95, lng: -118.10 },
+      { id: '5', lat: 33.95, lng: -118.08 },
+      { id: '6', lat: 33.95, lng: -118.06 },
+    ];
+
+    it('handles empty input', () => {
+      const result = optimizeMultiWorkerRoutes([], 2);
+      expect(result.workerRoutes).toEqual([]);
+      expect(result.totalDistanceMiles).toBe(0);
+    });
+
+    it('handles zero workers', () => {
+      const result = optimizeMultiWorkerRoutes(points, 0);
+      expect(result.workerRoutes).toEqual([]);
+    });
+
+    it('1 worker returns single route with all points', () => {
+      const result = optimizeMultiWorkerRoutes(points, 1);
+      expect(result.workerRoutes.length).toBe(1);
+      const allIds = result.workerRoutes[0].orderedPoints.map((p) => p.id).sort();
+      expect(allIds).toEqual(['1', '2', '3', '4', '5', '6']);
+    });
+
+    it('splits points across multiple workers', () => {
+      const result = optimizeMultiWorkerRoutes(points, 2);
+      expect(result.workerRoutes.length).toBe(2);
+      // Each worker should have at least 1 point
+      result.workerRoutes.forEach((route) => {
+        expect(route.orderedPoints.length).toBeGreaterThan(0);
+      });
+      // All points should be covered
+      const allIds = result.workerRoutes
+        .flatMap((r) => r.orderedPoints.map((p) => p.id))
+        .sort();
+      expect(allIds).toEqual(['1', '2', '3', '4', '5', '6']);
+    });
+
+    it('handles more workers than points', () => {
+      const result = optimizeMultiWorkerRoutes(points, 10);
+      // Should have at most as many routes as points
+      expect(result.workerRoutes.length).toBeLessThanOrEqual(points.length);
+      const allIds = result.workerRoutes
+        .flatMap((r) => r.orderedPoints.map((p) => p.id))
+        .sort();
+      expect(allIds).toEqual(['1', '2', '3', '4', '5', '6']);
+    });
+
+    it('accepts RouteOptions', () => {
+      const result = optimizeMultiWorkerRoutes(points, 2, { avgSpeedMph: 35 });
+      expect(result.workerRoutes.length).toBeGreaterThan(0);
+      expect(result.totalDistanceMiles).toBeGreaterThan(0);
+    });
+
+    it('reports aggregate metrics', () => {
+      const result = optimizeMultiWorkerRoutes(points, 2);
+      expect(result.totalDistanceMiles).toBeGreaterThan(0);
+      expect(result.originalDistanceMiles).toBeGreaterThan(0);
+      expect(result.milesSaved).toBeGreaterThanOrEqual(0);
+      expect(result.percentImprovement).toBeGreaterThanOrEqual(0);
     });
   });
 });

@@ -207,6 +207,65 @@
       "getProtection": "Automatiza el Cumplimiento de Pago Final",
       "ctaText": "ToolTime Pro calcula automáticamente los montos de pago final y te recuerda las fechas límite según el tipo de terminación.",
       "startTrial": "Prueba Gratis"
+    },
+    "routeOptimizer": {
+      "title": "Optimizador de Rutas",
+      "subtitle": "Optimización de rutas con IA — distancias reales, ahorros reales",
+      "optimizeButton": "Optimizar Ruta",
+      "optimizeButtonActive": "Geocodificando y optimizando",
+      "jobs": "Trabajos",
+      "reOptimize": "Re-Optimizar",
+      "reset": "Reiniciar",
+      "saveRoute": "Guardar Ruta",
+      "saving": "Guardando...",
+      "routeNamePlaceholder": "Nombre de ruta (opcional)",
+      "settings": {
+        "title": "Configuración de Optimización",
+        "avgSpeed": "Velocidad Promedio (mph)",
+        "fuelCost": "Costo de Combustible ($/milla)",
+        "roadFactor": "Factor de Carretera",
+        "officeAddress": "Oficina / Dirección de Inicio",
+        "officeAddressPlaceholder": "123 Calle Principal, Ciudad, Estado",
+        "save": "Guardar Configuración"
+      },
+      "savings": {
+        "routeSavings": "Ahorro de Ruta",
+        "milesSaved": "Millas Ahorradas",
+        "timeSaved": "Tiempo Ahorrado",
+        "fuelSaved": "Combustible Ahorrado",
+        "originalRoute": "Ruta Original",
+        "optimizedRoute": "Ruta Optimizada",
+        "miDrive": "mi recorrido",
+        "minDrive": "min recorrido"
+      },
+      "savedRoutes": {
+        "title": "Rutas Guardadas",
+        "noRoutes": "No hay rutas guardadas para esta fecha.",
+        "load": "Cargar",
+        "stops": "paradas"
+      },
+      "multiWorker": {
+        "title": "División de Rutas Multi-Trabajador",
+        "description": "Divide los trabajos entre múltiples trabajadores. El optimizador agrupará los trabajos geográficamente y creará una ruta optimizada por trabajador.",
+        "numberOfWorkers": "Número de trabajadores:",
+        "splitNotice": "Las rutas se dividirán entre {count} trabajadores cuando hagas clic en Optimizar."
+      },
+      "noJobs": "No hay trabajos programados para este día",
+      "noJobsDescription": "Programa trabajos para optimizar tu ruta.",
+      "goToJobs": "Ir a Trabajos",
+      "optimizedOrder": "Orden de Ruta Optimizada",
+      "todaysJobs": "Trabajos de Hoy",
+      "routeOptimized": "Ruta Optimizada",
+      "getDirections": "Obtener Direcciones",
+      "viewJobDetails": "Ver Detalles del Trabajo",
+      "unassigned": "Sin Asignar",
+      "dailySummary": "Resumen Diario",
+      "revenue": "Ingresos",
+      "inProgress": "En Progreso",
+      "geocodeWarning": "Algunos trabajos no pudieron ser mapeados:",
+      "optimizationIssue": "Problema de Optimización",
+      "geocodeHint": "Asegúrate de que los trabajos tengan direcciones válidas. El optimizador geocodifica las direcciones automáticamente usando OpenStreetMap.",
+      "openDispatch": "Abrir Tablero de Despacho"
     }
   }
 }

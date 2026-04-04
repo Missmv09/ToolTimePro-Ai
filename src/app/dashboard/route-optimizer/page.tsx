@@ -16,6 +16,13 @@ import {
   Route,
   User,
   AlertTriangle,
+  Settings,
+  Save,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  Trash2,
+  FolderOpen,
 } from 'lucide-react';
 
 interface RouteJob {
@@ -46,6 +53,36 @@ interface OptimizationResult {
   percentImprovement: number;
   geocodeErrors?: string[];
 }
+
+interface RouteSettings {
+  avg_speed_mph: number;
+  fuel_cost_per_mile: number;
+  road_factor: number;
+  office_lat: number | null;
+  office_lng: number | null;
+  office_address: string | null;
+  time_window_enabled: boolean;
+}
+
+interface SavedRoute {
+  id: string;
+  name: string;
+  route_date: string;
+  worker_id: string | null;
+  ordered_job_ids: string[];
+  route_data: OptimizationResult;
+  created_at: string;
+}
+
+const DEFAULT_SETTINGS: RouteSettings = {
+  avg_speed_mph: 25,
+  fuel_cost_per_mile: 0.40,
+  road_factor: 1.35,
+  office_lat: null,
+  office_lng: null,
+  office_address: null,
+  time_window_enabled: false,
+};
 
 function getCustomerName(customer: RouteJob['customer']): string {
   if (!customer) return 'No customer';
@@ -197,6 +234,113 @@ export default function RouteOptimizerPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedJob, setSelectedJob] = useState<RouteJob | null>(null);
 
+  // Settings state
+  const [settings, setSettings] = useState<RouteSettings>(DEFAULT_SETTINGS);
+  const [showSettings, setShowSettings] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Saved routes state
+  const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
+  const [showSavedRoutes, setShowSavedRoutes] = useState(false);
+  const [savingRoute, setSavingRoute] = useState(false);
+  const [routeName, setRouteName] = useState('');
+
+  // Multi-worker state
+  const [workerCount, setWorkerCount] = useState(1);
+  const [showMultiWorker, setShowMultiWorker] = useState(false);
+
+  // Fetch settings on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return;
+        const res = await fetch('/api/routes/settings', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSettings({ ...DEFAULT_SETTINGS, ...data });
+        }
+      } catch { /* use defaults */ }
+    };
+    fetchSettings();
+  }, []);
+
+  // Fetch saved routes when date changes
+  useEffect(() => {
+    const fetchSavedRoutes = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return;
+        const res = await fetch(`/api/routes/saved?date=${selectedDate}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSavedRoutes(data || []);
+        }
+      } catch { /* ignore */ }
+    };
+    fetchSavedRoutes();
+  }, [selectedDate]);
+
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      await fetch('/api/routes/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify(settings),
+      });
+    } catch { /* ignore */ }
+    setSavingSettings(false);
+  };
+
+  const handleSaveRoute = async () => {
+    if (!optimizedResult) return;
+    setSavingRoute(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      const res = await fetch('/api/routes/saved', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({
+          name: routeName || `Route ${selectedDate}`,
+          route_date: selectedDate,
+          ordered_job_ids: optimizedResult.orderedPoints.map((p) => p.id),
+          route_data: optimizedResult,
+        }),
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setSavedRoutes((prev) => [saved, ...prev]);
+        setRouteName('');
+      }
+    } catch { /* ignore */ }
+    setSavingRoute(false);
+  };
+
+  const handleDeleteSavedRoute = async (routeId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      await fetch(`/api/routes/saved/${routeId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      setSavedRoutes((prev) => prev.filter((r) => r.id !== routeId));
+    } catch { /* ignore */ }
+  };
+
+  const handleLoadSavedRoute = (route: SavedRoute) => {
+    setOptimizedResult(route.route_data);
+    setShowSavedRoutes(false);
+  };
+
   const fetchJobs = useCallback(async (compId: string, date: string) => {
     setLoading(true);
     setOptimizedResult(null);
@@ -248,6 +392,15 @@ export default function RouteOptimizerPage() {
             scheduledTime: j.scheduled_time_start,
             label: getCustomerName(j.customer),
           })),
+          settings: {
+            avgSpeedMph: settings.avg_speed_mph,
+            fuelCostPerMile: settings.fuel_cost_per_mile,
+            roadFactor: settings.road_factor,
+          },
+          ...(workerCount > 1 ? { workerCount } : {}),
+          ...(settings.office_lat && settings.office_lng ? {
+            startLocation: { lat: settings.office_lat, lng: settings.office_lng, label: settings.office_address || 'Office' },
+          } : {}),
         }),
       });
 
@@ -373,6 +526,160 @@ export default function RouteOptimizerPage() {
         <p className="text-lg font-semibold text-gray-700 ml-auto">{formatDate(selectedDate)}</p>
       </div>
 
+      {/* Settings / Saved Routes / Multi-Worker Toggles */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button
+          onClick={() => { setShowSettings(!showSettings); setShowSavedRoutes(false); setShowMultiWorker(false); }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showSettings ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+        >
+          <Settings className="w-4 h-4" /> Settings
+          {showSettings ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
+        <button
+          onClick={() => { setShowSavedRoutes(!showSavedRoutes); setShowSettings(false); setShowMultiWorker(false); }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showSavedRoutes ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+        >
+          <FolderOpen className="w-4 h-4" /> Saved Routes ({savedRoutes.length})
+        </button>
+        <button
+          onClick={() => { setShowMultiWorker(!showMultiWorker); setShowSettings(false); setShowSavedRoutes(false); }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showMultiWorker ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+        >
+          <Users className="w-4 h-4" /> Multi-Worker
+        </button>
+      </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Settings className="w-5 h-5" /> Optimization Settings
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Avg Speed (mph)</label>
+              <input
+                type="number"
+                value={settings.avg_speed_mph}
+                onChange={(e) => setSettings({ ...settings, avg_speed_mph: Number(e.target.value) || 25 })}
+                className="w-full px-3 py-2 border rounded-lg"
+                min={5}
+                max={80}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Cost ($/mile)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={settings.fuel_cost_per_mile}
+                onChange={(e) => setSettings({ ...settings, fuel_cost_per_mile: Number(e.target.value) || 0.40 })}
+                className="w-full px-3 py-2 border rounded-lg"
+                min={0.01}
+                max={5}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Road Factor</label>
+              <input
+                type="number"
+                step="0.05"
+                value={settings.road_factor}
+                onChange={(e) => setSettings({ ...settings, road_factor: Number(e.target.value) || 1.35 })}
+                className="w-full px-3 py-2 border rounded-lg"
+                min={1}
+                max={3}
+              />
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Office / Start Address</label>
+            <input
+              type="text"
+              value={settings.office_address || ''}
+              onChange={(e) => setSettings({ ...settings, office_address: e.target.value })}
+              placeholder="123 Main St, City, State"
+              className="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <button
+            onClick={handleSaveSettings}
+            disabled={savingSettings}
+            className="px-6 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-60"
+          >
+            {savingSettings ? 'Saving...' : 'Save Settings'}
+          </button>
+        </div>
+      )}
+
+      {/* Saved Routes Panel */}
+      {showSavedRoutes && (
+        <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <FolderOpen className="w-5 h-5" /> Saved Routes for {formatDate(selectedDate)}
+          </h3>
+          {savedRoutes.length === 0 ? (
+            <p className="text-sm text-gray-500">No saved routes for this date.</p>
+          ) : (
+            <div className="space-y-2">
+              {savedRoutes.map((route) => (
+                <div key={route.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{route.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(route.created_at).toLocaleString()} &middot;{' '}
+                      {route.ordered_job_ids?.length || 0} stops
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleLoadSavedRoute(route)}
+                      className="px-3 py-1 bg-blue-50 text-blue-700 rounded text-sm font-medium hover:bg-blue-100"
+                    >
+                      Load
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSavedRoute(route.id)}
+                      className="p-1 text-red-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Multi-Worker Panel */}
+      {showMultiWorker && (
+        <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5" /> Multi-Worker Route Splitting
+          </h3>
+          <p className="text-sm text-gray-500 mb-3">
+            Split jobs across multiple workers. The optimizer will cluster jobs geographically and create an optimized route per worker.
+          </p>
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Number of workers:</label>
+            <input
+              type="number"
+              value={workerCount}
+              onChange={(e) => setWorkerCount(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
+              className="w-20 px-3 py-2 border rounded-lg text-center"
+              min={1}
+              max={10}
+            />
+          </div>
+          {workerCount > 1 && (
+            <p className="text-xs text-[#f5a623] mt-2 font-medium">
+              Routes will be split across {workerCount} workers when you click Optimize.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Error Banner */}
       {optimizeError && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
@@ -487,19 +794,38 @@ export default function RouteOptimizerPage() {
             )}
           </button>
         ) : (
-          <div className="flex gap-3">
-            <button
-              onClick={handleReset}
-              className="flex-1 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
-            >
-              Reset
-            </button>
-            <button
-              onClick={() => { handleReset(); setTimeout(handleOptimize, 100); }}
-              className="flex-1 py-3 bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] rounded-xl font-bold hover:from-[#e6991a] hover:to-[#d98f15] transition-all"
-            >
-              Re-Optimize
-            </button>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <button
+                onClick={handleReset}
+                className="flex-1 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => { handleReset(); setTimeout(handleOptimize, 100); }}
+                className="flex-1 py-3 bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] rounded-xl font-bold hover:from-[#e6991a] hover:to-[#d98f15] transition-all"
+              >
+                Re-Optimize
+              </button>
+            </div>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={routeName}
+                onChange={(e) => setRouteName(e.target.value)}
+                placeholder="Route name (optional)"
+                className="flex-1 px-3 py-2 border rounded-lg text-sm"
+              />
+              <button
+                onClick={handleSaveRoute}
+                disabled={savingRoute}
+                className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-60"
+              >
+                <Save className="w-4 h-4" />
+                {savingRoute ? 'Saving...' : 'Save Route'}
+              </button>
+            </div>
           </div>
         )}
       </div>
