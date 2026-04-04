@@ -104,6 +104,23 @@ const ADDON_FEATURE_MAP: Record<string, FeatureKey> = {
   portal_pro: 'customer_portal',
 };
 
+/** Max team members (including owner) per plan tier */
+export const PLAN_WORKER_LIMITS: Record<PlanTier, number> = {
+  booking_only: 1,
+  invoicing_only: 1,
+  starter: 3,
+  pro: 15,
+  elite: Infinity,
+};
+
+/** Returns the effective worker limit for a plan + any extra_worker add-ons */
+export function getWorkerLimit(plan: PlanTier, addons: string[]): number {
+  const base = PLAN_WORKER_LIMITS[plan] || 3;
+  if (base === Infinity) return Infinity;
+  const extraWorkers = addons.filter(a => a === 'extra_worker').length;
+  return base + extraWorkers;
+}
+
 /** Max website pages per plan tier (base, before extra_page add-ons) */
 export const PLAN_PAGE_LIMITS: Record<PlanTier, number> = {
   booking_only: 0,

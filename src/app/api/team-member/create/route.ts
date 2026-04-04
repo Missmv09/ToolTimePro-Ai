@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { randomBytes } from 'crypto'
 import { sendTeamMemberWelcomeEmail } from '@/lib/email'
+import { getWorkerLimit, PlanTier } from '@/lib/plan-features'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,6 +90,38 @@ export async function POST(request: NextRequest) {
     // Check granular team_management permission for non-owners
     if (callerProfile.role !== 'owner' && callerProfile.admin_permissions?.team_management === false) {
       return NextResponse.json({ error: 'You do not have permission to manage team members' }, { status: 403 })
+    }
+
+    // Enforce worker limit based on plan tier
+    const { data: companyData } = await adminClient
+      .from('companies')
+      .select('plan, addons')
+      .eq('id', companyId)
+      .single()
+
+    if (companyData) {
+      const planTier = (companyData.plan || 'starter') as PlanTier
+      const companyAddons = (companyData.addons || []) as string[]
+      const limit = getWorkerLimit(planTier, companyAddons)
+
+      if (limit !== Infinity) {
+        const { count } = await adminClient
+          .from('users')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+
+        if ((count ?? 0) >= limit) {
+          return NextResponse.json(
+            {
+              error: `Your ${planTier.charAt(0).toUpperCase() + planTier.slice(1).replace('_', ' ')} plan allows up to ${limit} team members. Please upgrade your plan or add Extra Workers ($7/user/mo) to add more.`,
+              code: 'WORKER_LIMIT_REACHED',
+              currentCount: count,
+              limit,
+            },
+            { status: 403 }
+          )
+        }
+      }
     }
 
     const tempPassword = generateTempPassword()
