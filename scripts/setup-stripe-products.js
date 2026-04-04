@@ -38,7 +38,7 @@ const PRODUCTS = [
   {
     id: 'elite',
     name: 'ToolTime Pro — Elite',
-    description: 'Up to 20 workers. Everything in Pro + Jenny Pro, Dispatch, Route Optimization, Customer Portal Pro, QuickBooks included.',
+    description: 'Unlimited workers. Everything in Pro + Jenny Pro, Dispatch, Route Optimization, Customer Portal Pro, QuickBooks included.',
     prices: [
       { key: 'monthly', amount: 12900, interval: 'month' },
       { key: 'annual', amount: 129000, interval: 'year' },

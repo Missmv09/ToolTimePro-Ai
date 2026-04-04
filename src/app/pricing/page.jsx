@@ -59,7 +59,7 @@ const TIERS = [
     monthlyPrice: 129,
     annualPrice: 1290,
     description: 'Full operations suite for serious businesses',
-    workers: 'Up to 20 workers',
+    workers: 'Unlimited workers',
     features: [
       'Everything in Pro, plus:',
       'Dispatch Board',
