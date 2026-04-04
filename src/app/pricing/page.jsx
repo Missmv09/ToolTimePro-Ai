@@ -749,10 +749,7 @@ export default function PricingPage() {
       {/* Footer */}
       <footer className="footer">
         <div className="footer-top">
-          <p>© 2026 ToolTime Pro. {t('footerBuiltFor')}</p>
-          <div className="footer-badge">
-            <span className="women-owned">★ {t('womenOwned')}</span>
-          </div>
+          <p>© 2026 ToolTime Pro. All rights reserved.</p>
         </div>
         <div className="footer-links">
           <Link href="/terms">{t('terms')}</Link>
