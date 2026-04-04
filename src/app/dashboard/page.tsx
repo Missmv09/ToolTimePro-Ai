@@ -8,6 +8,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
 import GettingStartedChecklist from '@/components/dashboard/GettingStartedChecklist'
 import OverdueJobsAlert from '@/components/dashboard/OverdueJobsAlert'
+import dynamic from 'next/dynamic'
+
+const RevenueChart = dynamic(() => import('@/components/dashboard/RevenueChart'), { ssr: false })
 
 const DASHBOARD_TIMEOUT_MS = 10000
 
@@ -375,11 +378,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Revenue Card */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white mb-8">
-        <p className="text-blue-100 text-sm">Revenue This Month</p>
-        <p className="text-3xl font-bold">${stats.monthRevenue.toLocaleString()}</p>
-      </div>
+      {/* Revenue Trend Chart */}
+      {companyId && <RevenueChart companyId={companyId} />}
 
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

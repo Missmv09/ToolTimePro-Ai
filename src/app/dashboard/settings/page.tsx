@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import QuickBooksConnect from '@/components/settings/QuickBooksConnect'
+import GoogleCalendarConnect from '@/components/settings/GoogleCalendarConnect'
 
 interface CompanyForm {
   name: string
@@ -403,6 +404,9 @@ function SettingsContent() {
               syncStatus={qboConnectionInfo?.syncStatus}
               onDisconnect={handleQboDisconnect}
             />
+
+            {/* Google Calendar Integration */}
+            <GoogleCalendarConnect />
           </div>
 
           {/* Stripe Payments Integration */}

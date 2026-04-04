@@ -167,7 +167,9 @@ export default function CustomersPage() {
             <div key={customer.id} className="bg-white rounded-xl border p-6 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                  <Link href={`/dashboard/customers/${customer.id}`} className="font-semibold text-gray-900 hover:text-blue-600">
+                    {customer.name}
+                  </Link>
                   <p className="text-sm text-gray-500">{customer.email}</p>
                 </div>
                 <div className="flex gap-1">

@@ -10,6 +10,7 @@ import {
   UsersRound,
   UserCircle,
   ClipboardList,
+  Repeat,
   Clock,
   FileText,
   Receipt,
@@ -29,6 +30,9 @@ import {
   CalendarCheck,
   Phone,
   Brain,
+  BarChart3,
+  CreditCard,
+  Webhook,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -37,6 +41,7 @@ import { PermissionKey } from '@/lib/permissions';
 import { FeatureKey } from '@/lib/plan-features';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import TrialBanner from '@/components/trial/TrialBanner';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 
@@ -64,6 +69,7 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeatur
   if (canAccessFeature('schedule')) items.push({ href: '/dashboard/schedule', label: 'Schedule', icon: CalendarDays });
 
   items.push({ href: '/dashboard/jobs', label: 'Jobs', icon: ClipboardList });
+  items.push({ href: '/dashboard/recurring-jobs', label: 'Recurring Jobs', icon: Repeat });
 
   if (canAccessFeature('route_optimizer')) items.push({ href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route });
   if (canAccessFeature('booking')) items.push({ href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck });
@@ -96,6 +102,10 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeatur
     );
   }
 
+  if (canAccessFeature('invoicing')) items.push({ href: '/dashboard/payment-plans', label: 'Payment Plans', icon: CreditCard });
+
+  if (can('settings')) items.push({ href: '/dashboard/reports', label: 'Reports', icon: BarChart3 });
+  if (can('settings')) items.push({ href: '/dashboard/webhooks', label: 'Webhooks', icon: Webhook });
   if (can('settings')) items.push({ href: '/dashboard/settings', label: 'Settings', icon: Settings });
 
   return items;
@@ -297,7 +307,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Main content */}
         <main className="lg:pl-64">
-          <div className="p-6 lg:p-8">
+          {/* Top bar with notifications */}
+          <div className="flex items-center justify-end px-6 pt-4 lg:pt-6">
+            <NotificationBell />
+          </div>
+          <div className="p-6 lg:p-8 pt-2">
             <TrialBanner />
             {children}
           </div>
