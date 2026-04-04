@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -224,6 +225,7 @@ function RouteMap({ jobs, optimizedOrder, isOptimized }: {
 
 export default function RouteOptimizerPage() {
   const { user, dbUser } = useAuth();
+  const t = useTranslations('tools.routeOptimizer');
   const companyId = dbUser?.company_id || null;
 
   const [jobs, setJobs] = useState<RouteJob[]>([]);
@@ -489,15 +491,15 @@ export default function RouteOptimizerPage() {
             <Route className="w-6 h-6 text-[#1a1a2e]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Route Optimizer</h1>
-            <p className="text-sm text-gray-500">AI-powered route optimization — real distances, real savings</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-sm text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
         <Link
           href="/dashboard/dispatch"
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] transition-colors"
         >
-          <Navigation className="w-4 h-4" /> Open Dispatch Board
+          <Navigation className="w-4 h-4" /> {t('openDispatch')}
         </Link>
       </div>
 
@@ -532,20 +534,20 @@ export default function RouteOptimizerPage() {
           onClick={() => { setShowSettings(!showSettings); setShowSavedRoutes(false); setShowMultiWorker(false); }}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showSettings ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
-          <Settings className="w-4 h-4" /> Settings
+          <Settings className="w-4 h-4" /> {t('settings.title')}
           {showSettings ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
         <button
           onClick={() => { setShowSavedRoutes(!showSavedRoutes); setShowSettings(false); setShowMultiWorker(false); }}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showSavedRoutes ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
-          <FolderOpen className="w-4 h-4" /> Saved Routes ({savedRoutes.length})
+          <FolderOpen className="w-4 h-4" /> {t('savedRoutes.title')} ({savedRoutes.length})
         </button>
         <button
           onClick={() => { setShowMultiWorker(!showMultiWorker); setShowSettings(false); setShowSavedRoutes(false); }}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showMultiWorker ? 'bg-[#1a1a2e] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
-          <Users className="w-4 h-4" /> Multi-Worker
+          <Users className="w-4 h-4" /> {t('multiWorker.title')}
         </button>
       </div>
 
@@ -553,11 +555,11 @@ export default function RouteOptimizerPage() {
       {showSettings && (
         <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Settings className="w-5 h-5" /> Optimization Settings
+            <Settings className="w-5 h-5" /> {t('settings.title')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Avg Speed (mph)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.avgSpeed')}</label>
               <input
                 type="number"
                 value={settings.avg_speed_mph}
@@ -568,7 +570,7 @@ export default function RouteOptimizerPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Cost ($/mile)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.fuelCost')}</label>
               <input
                 type="number"
                 step="0.01"
@@ -580,7 +582,7 @@ export default function RouteOptimizerPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Road Factor</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.roadFactor')}</label>
               <input
                 type="number"
                 step="0.05"
@@ -593,12 +595,12 @@ export default function RouteOptimizerPage() {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Office / Start Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.officeAddress')}</label>
             <input
               type="text"
               value={settings.office_address || ''}
               onChange={(e) => setSettings({ ...settings, office_address: e.target.value })}
-              placeholder="123 Main St, City, State"
+              placeholder={t('settings.officeAddressPlaceholder')}
               className="w-full px-3 py-2 border rounded-lg"
             />
           </div>
@@ -607,7 +609,7 @@ export default function RouteOptimizerPage() {
             disabled={savingSettings}
             className="px-6 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-60"
           >
-            {savingSettings ? 'Saving...' : 'Save Settings'}
+            {savingSettings ? t('saving') : t('settings.save')}
           </button>
         </div>
       )}
@@ -616,10 +618,10 @@ export default function RouteOptimizerPage() {
       {showSavedRoutes && (
         <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <FolderOpen className="w-5 h-5" /> Saved Routes for {formatDate(selectedDate)}
+            <FolderOpen className="w-5 h-5" /> {t('savedRoutes.title')} — {formatDate(selectedDate)}
           </h3>
           {savedRoutes.length === 0 ? (
-            <p className="text-sm text-gray-500">No saved routes for this date.</p>
+            <p className="text-sm text-gray-500">{t('savedRoutes.noRoutes')}</p>
           ) : (
             <div className="space-y-2">
               {savedRoutes.map((route) => (
@@ -628,7 +630,7 @@ export default function RouteOptimizerPage() {
                     <p className="font-medium text-gray-900 text-sm">{route.name}</p>
                     <p className="text-xs text-gray-500">
                       {new Date(route.created_at).toLocaleString()} &middot;{' '}
-                      {route.ordered_job_ids?.length || 0} stops
+                      {route.ordered_job_ids?.length || 0} {t('savedRoutes.stops')}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -636,7 +638,7 @@ export default function RouteOptimizerPage() {
                       onClick={() => handleLoadSavedRoute(route)}
                       className="px-3 py-1 bg-blue-50 text-blue-700 rounded text-sm font-medium hover:bg-blue-100"
                     >
-                      Load
+                      {t('savedRoutes.load')}
                     </button>
                     <button
                       onClick={() => handleDeleteSavedRoute(route.id)}
@@ -656,13 +658,13 @@ export default function RouteOptimizerPage() {
       {showMultiWorker && (
         <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5" /> Multi-Worker Route Splitting
+            <Users className="w-5 h-5" /> {t('multiWorker.title')}
           </h3>
           <p className="text-sm text-gray-500 mb-3">
-            Split jobs across multiple workers. The optimizer will cluster jobs geographically and create an optimized route per worker.
+            {t('multiWorker.description')}
           </p>
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">Number of workers:</label>
+            <label className="text-sm font-medium text-gray-700">{t('multiWorker.numberOfWorkers')}</label>
             <input
               type="number"
               value={workerCount}
@@ -674,7 +676,7 @@ export default function RouteOptimizerPage() {
           </div>
           {workerCount > 1 && (
             <p className="text-xs text-[#f5a623] mt-2 font-medium">
-              Routes will be split across {workerCount} workers when you click Optimize.
+              {t('multiWorker.splitNotice', { count: workerCount })}
             </p>
           )}
         </div>
@@ -685,10 +687,10 @@ export default function RouteOptimizerPage() {
         <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-800">Optimization Issue</p>
+            <p className="text-sm font-medium text-red-800">{t('optimizationIssue')}</p>
             <p className="text-sm text-red-600 mt-1">{optimizeError}</p>
             <p className="text-xs text-red-500 mt-2">
-              Make sure jobs have valid addresses. The optimizer geocodes addresses automatically using OpenStreetMap.
+              {t('geocodeHint')}
             </p>
           </div>
         </div>
@@ -700,22 +702,22 @@ export default function RouteOptimizerPage() {
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
             <TrendingDown className="w-6 h-6 text-green-600 mx-auto mb-1" />
             <p className="text-2xl font-bold text-green-700">{optimizedResult.percentImprovement}%</p>
-            <p className="text-xs text-green-600">Route Savings</p>
+            <p className="text-xs text-green-600">{t('savings.routeSavings')}</p>
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
             <MapPin className="w-6 h-6 text-blue-600 mx-auto mb-1" />
             <p className="text-2xl font-bold text-blue-700">{optimizedResult.milesSaved} mi</p>
-            <p className="text-xs text-blue-600">Miles Saved</p>
+            <p className="text-xs text-blue-600">{t('savings.milesSaved')}</p>
           </div>
           <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-center">
             <Clock className="w-6 h-6 text-purple-600 mx-auto mb-1" />
             <p className="text-2xl font-bold text-purple-700">{optimizedResult.timeSavedMinutes} min</p>
-            <p className="text-xs text-purple-600">Time Saved</p>
+            <p className="text-xs text-purple-600">{t('savings.timeSaved')}</p>
           </div>
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
             <Fuel className="w-6 h-6 text-orange-600 mx-auto mb-1" />
             <p className="text-2xl font-bold text-orange-700">${optimizedResult.fuelSaved.toFixed(2)}</p>
-            <p className="text-xs text-orange-600">Fuel Saved</p>
+            <p className="text-xs text-orange-600">{t('savings.fuelSaved')}</p>
           </div>
         </div>
       )}
@@ -724,15 +726,15 @@ export default function RouteOptimizerPage() {
       {optimizedResult && (
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <p className="text-sm text-gray-500 mb-1">Original Route</p>
+            <p className="text-sm text-gray-500 mb-1">{t('savings.originalRoute')}</p>
             <p className="text-lg font-bold text-gray-700">
-              {optimizedResult.originalDistanceMiles} mi &middot; {optimizedResult.originalDriveTimeMinutes} min drive
+              {optimizedResult.originalDistanceMiles} {t('savings.miDrive')} &middot; {optimizedResult.originalDriveTimeMinutes} {t('savings.minDrive')}
             </p>
           </div>
           <div className="bg-white border border-green-300 rounded-xl p-4">
-            <p className="text-sm text-green-600 mb-1">Optimized Route</p>
+            <p className="text-sm text-green-600 mb-1">{t('savings.optimizedRoute')}</p>
             <p className="text-lg font-bold text-green-700">
-              {optimizedResult.totalDistanceMiles} mi &middot; {optimizedResult.totalDriveTimeMinutes} min drive
+              {optimizedResult.totalDistanceMiles} {t('savings.miDrive')} &middot; {optimizedResult.totalDriveTimeMinutes} {t('savings.minDrive')}
             </p>
           </div>
         </div>
@@ -741,7 +743,7 @@ export default function RouteOptimizerPage() {
       {/* Geocode warnings */}
       {optimizedResult?.geocodeErrors && optimizedResult.geocodeErrors.length > 0 && (
         <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-          <p className="text-sm font-medium text-yellow-800 mb-1">Some jobs could not be mapped:</p>
+          <p className="text-sm font-medium text-yellow-800 mb-1">{t('geocodeWarning')}</p>
           <ul className="text-sm text-yellow-700 list-disc list-inside">
             {optimizedResult.geocodeErrors.map((err, i) => (
               <li key={i}>{err}</li>
@@ -766,13 +768,13 @@ export default function RouteOptimizerPage() {
         {jobs.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-500 mb-2">No jobs scheduled for this day</h3>
-            <p className="text-sm text-gray-400 mb-4">Schedule jobs to optimize your route.</p>
+            <h3 className="text-lg font-semibold text-gray-500 mb-2">{t('noJobs')}</h3>
+            <p className="text-sm text-gray-400 mb-4">{t('noJobsDescription')}</p>
             <Link
               href="/dashboard/jobs"
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
             >
-              Go to Jobs <ChevronRight className="w-4 h-4" />
+              {t('goToJobs')} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
         ) : !optimizedResult ? (
@@ -784,12 +786,12 @@ export default function RouteOptimizerPage() {
             {isOptimizing ? (
               <span className="flex items-center justify-center gap-2">
                 <RefreshCw className="w-5 h-5 animate-spin" />
-                Geocoding &amp; optimizing {jobs.length} jobs...
+                {t('optimizeButtonActive')} {jobs.length} {t('jobs')}...
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
                 <Route className="w-5 h-5" />
-                Optimize Route for {jobs.length} Jobs
+                {t('optimizeButton')} — {jobs.length} {t('jobs')}
               </span>
             )}
           </button>
@@ -800,13 +802,13 @@ export default function RouteOptimizerPage() {
                 onClick={handleReset}
                 className="flex-1 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
               >
-                Reset
+                {t('reset')}
               </button>
               <button
                 onClick={() => { handleReset(); setTimeout(handleOptimize, 100); }}
                 className="flex-1 py-3 bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] rounded-xl font-bold hover:from-[#e6991a] hover:to-[#d98f15] transition-all"
               >
-                Re-Optimize
+                {t('reOptimize')}
               </button>
             </div>
             <div className="flex gap-2 items-center">
@@ -814,7 +816,7 @@ export default function RouteOptimizerPage() {
                 type="text"
                 value={routeName}
                 onChange={(e) => setRouteName(e.target.value)}
-                placeholder="Route name (optional)"
+                placeholder={t('routeNamePlaceholder')}
                 className="flex-1 px-3 py-2 border rounded-lg text-sm"
               />
               <button
@@ -823,7 +825,7 @@ export default function RouteOptimizerPage() {
                 className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-60"
               >
                 <Save className="w-4 h-4" />
-                {savingRoute ? 'Saving...' : 'Save Route'}
+                {savingRoute ? t('saving') : t('saveRoute')}
               </button>
             </div>
           </div>
@@ -835,11 +837,11 @@ export default function RouteOptimizerPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">
-              {optimizedResult ? 'Optimized Route Order' : "Today's Jobs"} ({displayJobs.length})
+              {optimizedResult ? t('optimizedOrder') : t('todaysJobs')} ({displayJobs.length})
             </h2>
             {optimizedResult && (
               <span className="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">
-                Route Optimized
+                {t('routeOptimized')}
               </span>
             )}
           </div>
@@ -899,14 +901,14 @@ export default function RouteOptimizerPage() {
                           rel="noopener noreferrer"
                           className="flex-1 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium text-center hover:bg-blue-100 transition-colors"
                         >
-                          <Navigation className="w-4 h-4 inline mr-1" /> Get Directions
+                          <Navigation className="w-4 h-4 inline mr-1" /> {t('getDirections')}
                         </a>
                       )}
                       <Link
                         href={`/dashboard/jobs?edit=${job.id}`}
                         className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium text-center hover:bg-gray-200 transition-colors"
                       >
-                        View Job Details
+                        {t('viewJobDetails')}
                       </Link>
                     </div>
                   )}
@@ -924,23 +926,23 @@ export default function RouteOptimizerPage() {
 
           {/* Daily Summary */}
           <div className="mt-6 bg-[#1a1a2e] rounded-xl p-5 text-white">
-            <h4 className="font-semibold mb-3">Daily Summary</h4>
+            <h4 className="font-semibold mb-3">{t('dailySummary')}</h4>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold">{displayJobs.length}</div>
-                <div className="text-xs text-white/60">Jobs</div>
+                <div className="text-xs text-white/60">{t('jobs')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-green-400">
                   ${displayJobs.reduce((sum, j) => sum + (j.total_amount || 0), 0).toLocaleString()}
                 </div>
-                <div className="text-xs text-white/60">Revenue</div>
+                <div className="text-xs text-white/60">{t('revenue')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-[#f5a623]">
                   {displayJobs.filter((j) => j.status === 'in_progress').length}
                 </div>
-                <div className="text-xs text-white/60">In Progress</div>
+                <div className="text-xs text-white/60">{t('inProgress')}</div>
               </div>
             </div>
           </div>
