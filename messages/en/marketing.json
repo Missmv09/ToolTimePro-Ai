@@ -268,7 +268,16 @@
     "addon_jenny_pro": "Jenny AI Pro",
     "addon_jenny_pro_desc": "Advanced AI assistant for scheduling, estimates & follow-ups",
     "addon_jenny_exec": "Jenny AI Exec Admin",
-    "addon_jenny_exec_desc": "Full AI office manager — handles calls, emails & admin tasks"
+    "addon_jenny_exec_desc": "Full AI office manager — handles calls, emails & admin tasks",
+    "setupServicesTitle": "Need Help Getting Started?",
+    "setupServicesDesc": "Our team will set everything up for you.",
+    "assistedOnboarding": "Assisted Onboarding",
+    "assistedOnboardingDesc": "Guided setup with our team",
+    "assistedOnboardingPrice": "$199",
+    "whiteGloveSetup": "White-Glove Setup",
+    "whiteGloveSetupDesc": "We handle everything — full setup and customization",
+    "whiteGloveSetupPrice": "$499",
+    "oneTime": "one-time"
   },
   "pricing": {
     "pageTitle": "Transparent Pricing. Powerful Tools.",

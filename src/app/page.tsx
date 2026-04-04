@@ -896,6 +896,24 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Setup Services */}
+          <div className="mt-16 bg-gradient-to-r from-[#f9fafb] to-[#f3f4f6] rounded-[20px] p-10 border border-gray-200 max-w-[700px] mx-auto text-center">
+            <h3 className="text-[1.25rem] font-extrabold text-[#1a1a2e] mb-2">{t('setupServicesTitle')}</h3>
+            <p className="text-[#8e8e9f] mb-6">{t('setupServicesDesc')}</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="font-bold text-[#1a1a2e] mb-1">{t('assistedOnboarding')}</p>
+                <p className="text-sm text-[#8e8e9f] mb-2">{t('assistedOnboardingDesc')}</p>
+                <p className="text-lg font-extrabold text-[#1a1a2e]">{t('assistedOnboardingPrice')} <span className="text-sm font-normal text-[#8e8e9f]">{t('oneTime')}</span></p>
+              </div>
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="font-bold text-[#1a1a2e] mb-1">{t('whiteGloveSetup')}</p>
+                <p className="text-sm text-[#8e8e9f] mb-2">{t('whiteGloveSetupDesc')}</p>
+                <p className="text-lg font-extrabold text-[#1a1a2e]">{t('whiteGloveSetupPrice')} <span className="text-sm font-normal text-[#8e8e9f]">{t('oneTime')}</span></p>
+              </div>
+            </div>
+          </div>
+
           {/* Full Pricing Page Link */}
           <div className="text-center mt-10">
             <Link

@@ -268,7 +268,16 @@
     "addon_jenny_pro": "Jenny AI Pro",
     "addon_jenny_pro_desc": "Asistente IA avanzado para programación, estimados y seguimiento",
     "addon_jenny_exec": "Jenny AI Exec Admin",
-    "addon_jenny_exec_desc": "Gerente de oficina IA completo — contesta llamadas, correos y tareas administrativas"
+    "addon_jenny_exec_desc": "Gerente de oficina IA completo — contesta llamadas, correos y tareas administrativas",
+    "setupServicesTitle": "¿Necesitas Ayuda para Empezar?",
+    "setupServicesDesc": "Nuestro equipo lo configura todo por ti.",
+    "assistedOnboarding": "Incorporación Asistida",
+    "assistedOnboardingDesc": "Configuración guiada con nuestro equipo",
+    "assistedOnboardingPrice": "$199",
+    "whiteGloveSetup": "Configuración Premium",
+    "whiteGloveSetupDesc": "Nos encargamos de todo — configuración completa y personalización",
+    "whiteGloveSetupPrice": "$499",
+    "oneTime": "único pago"
   },
   "pricing": {
     "pageTitle": "Precios Transparentes. Herramientas Poderosas.",
