@@ -824,7 +824,7 @@ export async function sendTrialExpiredEmail({ to, name }: { to: string; name: st
         <ul style="color: #4b5563; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
           <li><strong>Starter</strong> - $49/mo (owner + 2 workers)</li>
           <li><strong>Pro</strong> - $79/mo (up to 15 workers)</li>
-          <li><strong>Elite</strong> - $129/mo (up to 20 workers)</li>
+          <li><strong>Elite</strong> - $129/mo (unlimited workers)</li>
         </ul>
       </div>
 
