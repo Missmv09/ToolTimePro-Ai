@@ -97,8 +97,6 @@
     "termsConditions": "Términos y Condiciones",
     "smsTerms": "Términos de SMS",
     "copyright": "© 2026 ToolTime Pro. Todos los derechos reservados.",
-    "womenOwned": "Negocio de Propietaria Mujer",
-    "builtInCalifornia": "Hecho en California",
     "viewAllIndustries": "Ver Todas las Industrias",
     "learnMore": "Más Información",
     "signUp": "Registrarse",
@@ -338,8 +336,7 @@
     "faq3A": "Es opcional pero recomendado. Configuramos todo para que te enfoques en tu negocio.",
     "faq4Q": "¿Qué pasa si solo necesito reservas O facturación?",
     "faq4A": "Comienza con nuestras opciones independientes de $15/mes. Actualiza a un plan completo cuando quieras — te acreditamos tus pagos.",
-    "footerBuiltFor": "Hecho para contratistas de California.",
-    "womenOwned": "Negocio de Propietaria Mujer",
+    "footerBuiltFor": "Hecho para contratistas que van en serio.",
     "buyStandalone": "Comprar por separado →",
     "pricingNav": "Precios",
     "features": "Funciones",
@@ -466,7 +463,7 @@
     "faqTitle": "Preguntas Frecuentes",
     "comparingSoftware": "¿Comparando opciones de software para {name}?",
     "readyToGrow": "¿Listo para Hacer Crecer tu Negocio de {name}?",
-    "readyToGrowDesc": "Únete a miles de profesionales de servicios de California que usan ToolTime Pro. Inicia tu prueba gratis de 14 días - sin tarjeta de crédito.",
+    "readyToGrowDesc": "Únete a miles de profesionales de servicios que usan ToolTime Pro. Inicia tu prueba gratis de 14 días - sin tarjeta de crédito.",
     "seePricing": "Ver Precios"
   }
 }

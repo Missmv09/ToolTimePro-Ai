@@ -97,8 +97,6 @@
     "termsConditions": "Terms & Conditions",
     "smsTerms": "SMS Terms",
     "copyright": "© 2026 ToolTime Pro. All rights reserved.",
-    "womenOwned": "Women-Owned Business",
-    "builtInCalifornia": "Built in California",
     "viewAllIndustries": "View All Industries",
     "learnMore": "Learn More",
     "signUp": "Sign Up",
@@ -338,8 +336,7 @@
     "faq3A": "It's optional but recommended. We'll set everything up so you can focus on your business.",
     "faq4Q": "What if I just need booking OR invoicing?",
     "faq4A": "Start with our $15/mo standalone options. Upgrade to a full plan anytime — we'll credit your payments.",
-    "footerBuiltFor": "Built for California contractors.",
-    "womenOwned": "Women-Owned Business",
+    "footerBuiltFor": "Built for contractors who mean business.",
     "buyStandalone": "Buy standalone →",
     "pricingNav": "Pricing",
     "features": "Features",
@@ -466,7 +463,7 @@
     "faqTitle": "Frequently Asked Questions",
     "comparingSoftware": "Comparing {name} software options?",
     "readyToGrow": "Ready to Grow Your {name} Business?",
-    "readyToGrowDesc": "Join thousands of California service pros who use ToolTime Pro. Start your free 14-day trial - no credit card required.",
+    "readyToGrowDesc": "Join thousands of service pros who use ToolTime Pro. Start your free 14-day trial - no credit card required.",
     "seePricing": "See Pricing"
   }
 }
