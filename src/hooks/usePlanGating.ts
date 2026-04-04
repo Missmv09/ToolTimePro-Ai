@@ -7,6 +7,8 @@ import {
   PlanTier,
   hasFeatureAccess,
   PLAN_PAGE_LIMITS,
+  PLAN_WORKER_LIMITS,
+  getWorkerLimit,
   minimumPlanForFeature,
   FEATURE_LABELS,
 } from '@/lib/plan-features'
@@ -30,6 +32,11 @@ export function usePlanGating() {
     return baseLimit + extraPages;
   }, [plan, addons, isBetaTester])
 
+  const workerLimit = useMemo(() => {
+    if (isBetaTester) return Infinity;
+    return getWorkerLimit(plan, addons);
+  }, [plan, addons, isBetaTester])
+
   const upgradeMessage = (feature: FeatureKey): string => {
     const minPlan = minimumPlanForFeature(feature)
     const label = FEATURE_LABELS[feature]
@@ -39,5 +46,5 @@ export function usePlanGating() {
     return `${label} is available as an add-on. Visit Settings to upgrade.`
   }
 
-  return { plan, addons, isBetaTester, canAccess, websitePageLimit, upgradeMessage }
+  return { plan, addons, isBetaTester, canAccess, websitePageLimit, workerLimit, upgradeMessage }
 }

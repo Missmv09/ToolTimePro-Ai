@@ -28,6 +28,7 @@ import {
   Route,
   CalendarCheck,
   Phone,
+  Brain,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -89,6 +90,7 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeatur
   // Owner-facing Jenny Exec Admin features: only visible to owners with the addon or beta testers
   if (showExecFeatures) {
     items.push(
+      { href: '/dashboard/jenny-exec', label: 'Jenny Exec', icon: Brain },
       { href: '/dashboard/compliance', label: 'CA Compliance', icon: Shield },
       { href: '/dashboard/hr-toolkit', label: 'HR Toolkit', icon: FileText },
     );
