@@ -36,7 +36,7 @@ function generateTempPassword(length = 12): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, full_name, phone, role, hourly_rate, is_active, notes, admin_permissions, companyId } =
+    const { email, full_name, phone, role, hourly_rate, is_active, notes, admin_permissions, home_address, home_city, companyId } =
       await request.json()
 
     if (!email || !full_name || !role || !companyId) {
@@ -140,6 +140,8 @@ export async function POST(request: NextRequest) {
         is_active: is_active ?? true,
         notes: notes || null,
         admin_permissions: admin_permissions || null,
+        home_address: home_address || null,
+        home_city: home_city || null,
         company_id: companyId,
       })
 
