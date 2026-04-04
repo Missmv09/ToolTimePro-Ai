@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+export const dynamic = 'force-dynamic';
+
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  );
+}
 
 async function getAuthUser(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return null;
-  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  const sb = getSupabaseAdmin();
+  const { data: { user } } = await sb.auth.getUser(token);
   return user;
 }
 
@@ -28,7 +33,8 @@ export async function GET(request: NextRequest) {
     const user = await getAuthUser(request);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { data: userData } = await supabaseAdmin
+    const sb = getSupabaseAdmin();
+    const { data: userData } = await sb
       .from('users')
       .select('company_id')
       .eq('id', user.id)
@@ -38,13 +44,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No company found' }, { status: 404 });
     }
 
-    const { data } = await supabaseAdmin
+    const { data } = await sb
       .from('route_settings')
       .select('*')
       .eq('company_id', userData.company_id)
       .single();
 
-    // Return settings or defaults
     return NextResponse.json(data || { company_id: userData.company_id, ...DEFAULTS });
   } catch {
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
@@ -56,7 +61,8 @@ export async function PUT(request: NextRequest) {
     const user = await getAuthUser(request);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { data: userData } = await supabaseAdmin
+    const sb = getSupabaseAdmin();
+    const { data: userData } = await sb
       .from('users')
       .select('company_id')
       .eq('id', user.id)
@@ -78,7 +84,7 @@ export async function PUT(request: NextRequest) {
       time_window_enabled: body.time_window_enabled ?? false,
     };
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await sb
       .from('route_settings')
       .upsert(settingsData, { onConflict: 'company_id' })
       .select()

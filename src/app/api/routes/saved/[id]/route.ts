@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+export const dynamic = 'force-dynamic';
+
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  );
+}
 
 async function getAuthUser(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return null;
-  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  const sb = getSupabaseAdmin();
+  const { data: { user } } = await sb.auth.getUser(token);
   return user;
 }
 
@@ -22,8 +27,9 @@ export async function GET(
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
+    const sb = getSupabaseAdmin();
 
-    const { data: userData } = await supabaseAdmin
+    const { data: userData } = await sb
       .from('users')
       .select('company_id')
       .eq('id', user.id)
@@ -33,7 +39,7 @@ export async function GET(
       return NextResponse.json({ error: 'No company found' }, { status: 404 });
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await sb
       .from('saved_routes')
       .select('*')
       .eq('id', id)
@@ -59,8 +65,9 @@ export async function DELETE(
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
+    const sb = getSupabaseAdmin();
 
-    const { data: userData } = await supabaseAdmin
+    const { data: userData } = await sb
       .from('users')
       .select('company_id')
       .eq('id', user.id)
@@ -70,7 +77,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'No company found' }, { status: 404 });
     }
 
-    const { error } = await supabaseAdmin
+    const { error } = await sb
       .from('saved_routes')
       .delete()
       .eq('id', id)
