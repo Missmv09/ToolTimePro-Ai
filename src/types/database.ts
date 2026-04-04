@@ -108,6 +108,10 @@ export interface Database {
           avatar_url: string | null
           pin: string | null
           admin_permissions: Record<string, boolean> | null
+          home_address: string | null
+          home_city: string | null
+          home_lat: number | null
+          home_lng: number | null
           created_at: string
           updated_at: string
         }
@@ -123,6 +127,10 @@ export interface Database {
           avatar_url?: string | null
           pin?: string | null
           admin_permissions?: Record<string, boolean> | null
+          home_address?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -138,6 +146,10 @@ export interface Database {
           avatar_url?: string | null
           pin?: string | null
           admin_permissions?: Record<string, boolean> | null
+          home_address?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -1068,6 +1080,85 @@ export interface Database {
           updated_at?: string
         }
       }
+      saved_routes: {
+        Row: {
+          id: string
+          company_id: string
+          name: string
+          route_date: string
+          worker_id: string | null
+          ordered_job_ids: string[]
+          route_data: Json
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          name?: string
+          route_date: string
+          worker_id?: string | null
+          ordered_job_ids?: string[]
+          route_data?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          name?: string
+          route_date?: string
+          worker_id?: string | null
+          ordered_job_ids?: string[]
+          route_data?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      route_settings: {
+        Row: {
+          id: string
+          company_id: string
+          avg_speed_mph: number
+          fuel_cost_per_mile: number
+          road_factor: number
+          office_lat: number | null
+          office_lng: number | null
+          office_address: string | null
+          time_window_enabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          avg_speed_mph?: number
+          fuel_cost_per_mile?: number
+          road_factor?: number
+          office_lat?: number | null
+          office_lng?: number | null
+          office_address?: string | null
+          time_window_enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          avg_speed_mph?: number
+          fuel_cost_per_mile?: number
+          road_factor?: number
+          office_lat?: number | null
+          office_lng?: number | null
+          office_address?: string | null
+          time_window_enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -1133,6 +1224,14 @@ export type ClassificationGuardrailUpdate = Database['public']['Tables']['classi
 export type ContractorInvoiceRow = Database['public']['Tables']['contractor_invoices']['Row']
 export type ContractorInvoiceInsert = Database['public']['Tables']['contractor_invoices']['Insert']
 export type ContractorInvoiceUpdate = Database['public']['Tables']['contractor_invoices']['Update']
+
+// Route optimization types
+export type SavedRouteRow = Database['public']['Tables']['saved_routes']['Row']
+export type SavedRouteInsert = Database['public']['Tables']['saved_routes']['Insert']
+export type SavedRouteUpdate = Database['public']['Tables']['saved_routes']['Update']
+export type RouteSettingsRow = Database['public']['Tables']['route_settings']['Row']
+export type RouteSettingsInsert = Database['public']['Tables']['route_settings']['Insert']
+export type RouteSettingsUpdate = Database['public']['Tables']['route_settings']['Update']
 
 // Location type for GPS tracking
 export interface GeoLocation {
