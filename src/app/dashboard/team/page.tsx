@@ -37,7 +37,8 @@ import {
   Clock,
   CheckCircle,
   Trash2,
-  ShieldCheck
+  ShieldCheck,
+  MapPin
 } from 'lucide-react'
 
 // Generate a random secure temporary password
@@ -172,6 +173,10 @@ interface TeamMember {
   avatar_url: string | null
   notes: string | null
   admin_permissions: AdminPermissions | null
+  home_address: string | null
+  home_city: string | null
+  home_lat: number | null
+  home_lng: number | null
   created_at: string
   last_login_at: string | null
   job_assignments?: { job_id: string }[]
@@ -1051,6 +1056,8 @@ function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
     hourly_rate: member?.hourly_rate?.toString() || '',
     is_active: member?.is_active ?? true,
     notes: member?.notes || '',
+    home_address: member?.home_address || '',
+    home_city: member?.home_city || '',
   })
   const [adminPerms, setAdminPerms] = useState<AdminPermissions>(
     member?.admin_permissions ?? allPermissionsGranted()
@@ -1109,6 +1116,8 @@ function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
         is_active: formData.is_active,
         notes: formData.notes || null,
+        home_address: formData.home_address || null,
+        home_city: formData.home_city || null,
       }
 
       // Only owners can set admin permissions
@@ -1182,6 +1191,8 @@ function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
             hourly_rate: formData.hourly_rate,
             is_active: formData.is_active,
             notes: formData.notes,
+            home_address: formData.home_address || null,
+            home_city: formData.home_city || null,
             admin_permissions: callerRole === 'owner' && hasAdminRole(formData.role) ? adminPerms : null,
             companyId,
           }),
@@ -1339,6 +1350,39 @@ function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
               </div>
             </div>
           )}
+
+          {/* Home Address (for Route Optimization) */}
+          <div className="border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <MapPin size={18} className="text-navy-500" />
+              <h3 className="text-sm font-semibold text-navy-500">Home Address (Route Optimization)</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Used as the worker&apos;s start location for route optimization.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                <input
+                  type="text"
+                  value={formData.home_address}
+                  onChange={(e) => setFormData({ ...formData, home_address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  placeholder="123 Main St"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <input
+                  type="text"
+                  value={formData.home_city}
+                  onChange={(e) => setFormData({ ...formData, home_city: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  placeholder="Los Angeles"
+                />
+              </div>
+            </div>
+          </div>
 
           <div className="flex items-center gap-2">
             <input

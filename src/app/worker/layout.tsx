@@ -105,6 +105,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   const navItems = [
     { href: '/worker/timeclock', label: t('clock'), icon: '⏱️' },
     { href: '/worker/job', label: t('jobs'), icon: '📋' },
+    { href: '/worker/route', label: t('route'), icon: '🗺️' },
     { href: '/worker/time', label: t('hours'), icon: '📊' },
     { href: '/worker/profile', label: t('profile'), icon: '👤' },
   ]

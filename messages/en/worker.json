@@ -3,6 +3,7 @@
     "layout": {
       "clock": "Clock",
       "jobs": "Jobs",
+      "route": "Route",
       "hours": "Hours",
       "profile": "Profile",
       "signOut": "Sign Out"
@@ -199,6 +200,15 @@
       "severityMedium": "Medium",
       "severityHigh": "High",
       "severityCritical": "Critical"
+    },
+    "route": {
+      "title": "My Route",
+      "noRoute": "No Route Assigned",
+      "noRouteDescription": "No optimized route has been assigned to you for today.",
+      "nextStop": "Next Stop",
+      "directions": "Navigate",
+      "complete": "Done",
+      "stopsCompleted": "stops completed"
     },
     "offline": {
       "title": "You're Offline",

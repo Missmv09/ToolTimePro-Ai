@@ -207,6 +207,65 @@
       "getProtection": "Automate Final Pay Compliance",
       "ctaText": "ToolTime Pro automatically calculates final pay amounts and reminds you of deadlines based on termination type.",
       "startTrial": "Start Free Trial"
+    },
+    "routeOptimizer": {
+      "title": "Route Optimizer",
+      "subtitle": "AI-powered route optimization — real distances, real savings",
+      "optimizeButton": "Optimize Route",
+      "optimizeButtonActive": "Geocoding & optimizing",
+      "jobs": "Jobs",
+      "reOptimize": "Re-Optimize",
+      "reset": "Reset",
+      "saveRoute": "Save Route",
+      "saving": "Saving...",
+      "routeNamePlaceholder": "Route name (optional)",
+      "settings": {
+        "title": "Optimization Settings",
+        "avgSpeed": "Avg Speed (mph)",
+        "fuelCost": "Fuel Cost ($/mile)",
+        "roadFactor": "Road Factor",
+        "officeAddress": "Office / Start Address",
+        "officeAddressPlaceholder": "123 Main St, City, State",
+        "save": "Save Settings"
+      },
+      "savings": {
+        "routeSavings": "Route Savings",
+        "milesSaved": "Miles Saved",
+        "timeSaved": "Time Saved",
+        "fuelSaved": "Fuel Saved",
+        "originalRoute": "Original Route",
+        "optimizedRoute": "Optimized Route",
+        "miDrive": "mi drive",
+        "minDrive": "min drive"
+      },
+      "savedRoutes": {
+        "title": "Saved Routes",
+        "noRoutes": "No saved routes for this date.",
+        "load": "Load",
+        "stops": "stops"
+      },
+      "multiWorker": {
+        "title": "Multi-Worker Route Splitting",
+        "description": "Split jobs across multiple workers. The optimizer will cluster jobs geographically and create an optimized route per worker.",
+        "numberOfWorkers": "Number of workers:",
+        "splitNotice": "Routes will be split across {count} workers when you click Optimize."
+      },
+      "noJobs": "No jobs scheduled for this day",
+      "noJobsDescription": "Schedule jobs to optimize your route.",
+      "goToJobs": "Go to Jobs",
+      "optimizedOrder": "Optimized Route Order",
+      "todaysJobs": "Today's Jobs",
+      "routeOptimized": "Route Optimized",
+      "getDirections": "Get Directions",
+      "viewJobDetails": "View Job Details",
+      "unassigned": "Unassigned",
+      "dailySummary": "Daily Summary",
+      "revenue": "Revenue",
+      "inProgress": "In Progress",
+      "geocodeWarning": "Some jobs could not be mapped:",
+      "optimizationIssue": "Optimization Issue",
+      "geocodeHint": "Make sure jobs have valid addresses. The optimizer geocodes addresses automatically using OpenStreetMap.",
+      "openDispatch": "Open Dispatch Board"
     }
   }
 }
