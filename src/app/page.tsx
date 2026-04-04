@@ -14,10 +14,10 @@ const demoCardBadgeIndices = new Set([0, 1, 2, 3, 4, 5, 6, 7, 9]);
 // Non-translatable demo card config
 const demoCardConfig = [
   { icon: '🤖', href: '/jenny' },
-  { icon: '📝', href: '/dashboard/smart-quote' },
+  { icon: '📝', href: '/demo/smart-quote' },
   { icon: '⭐', href: '/demo/reviews' },
   { icon: '👷', href: '/demo/worker' },
-  { icon: '🧮', href: '/dashboard/estimator' },
+  { icon: '🧮', href: '/demo/estimator' },
   { icon: '🛡️', href: '/demo/shield' },
   { icon: '🗺️', href: '/demo/route-optimization' },
   { icon: '📋', href: '/demo/dispatch' },
