@@ -1135,3 +1135,45 @@ export async function sendQuoteCancellationEmail({
   if (error) throw new Error(`Failed to send email: ${error.message}`);
   return data;
 }
+
+// ============================================
+// Customer Portal Magic Link Email
+// ============================================
+
+export async function sendPortalMagicLinkEmail({
+  to,
+  portalUrl,
+  companyName,
+}: {
+  to: string;
+  portalUrl: string;
+  companyName: string;
+}) {
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Your ${companyName} customer portal login link`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Your Portal Login Link</h2>
+      <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
+        You requested access to the <strong>${companyName}</strong> customer portal. Click the button below to log in.
+      </p>
+
+      ${ctaButton('Open Customer Portal', portalUrl)}
+
+      <div style="background: #fefce8; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #eab308;">
+        <p style="margin: 0; color: #854d0e; font-size: 14px;">
+          This link expires in 24 hours. If you didn't request this, you can safely ignore this email.
+        </p>
+      </div>
+
+      <p style="color: #9ca3af; font-size: 13px; margin: 24px 0 0 0;">
+        If the button doesn't work, paste this link into your browser:<br />
+        <a href="${portalUrl}" style="color: #3b82f6; word-break: break-all; font-size: 12px;">${portalUrl}</a>
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send portal magic link email: ${error.message}`);
+  return data;
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendPortalMagicLinkEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -524,8 +525,18 @@ export async function POST(request: NextRequest) {
     const { data: company } = await supabase
       .from('companies').select('name').eq('id', customer.company_id).single();
 
-    // TODO: Send email via Resend with portalUrl
+    // Send magic link email via Resend
     console.log(`[Portal] Magic link for ${email}: ${portalUrl}`);
+    try {
+      await sendPortalMagicLinkEmail({
+        to: email,
+        portalUrl,
+        companyName: company?.name || 'your service provider',
+      });
+    } catch (emailErr) {
+      console.error('[Portal] Failed to send magic link email:', emailErr);
+      // Don't fail the request — the link was created successfully
+    }
 
     // Log access attempt
     await logPortalAccess(supabase, customer.company_id, customer.id, 'login_requested', clientIp, `Login link sent to ${email}`);
