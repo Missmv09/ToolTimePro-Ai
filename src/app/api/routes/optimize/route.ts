@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { optimizeRoute, RoutePoint } from '@/lib/route-optimization';
+import { optimizeRoute, optimizeMultiWorkerRoutes, RoutePoint, RouteOptions } from '@/lib/route-optimization';
 import { geocodeAddress } from '@/lib/geocoding';
 
 interface JobInput {
@@ -9,15 +9,19 @@ interface JobInput {
   lat?: number | null;
   lng?: number | null;
   scheduledTime?: string | null;
+  earliestArrival?: string | null;
+  latestArrival?: string | null;
   label?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { jobs, startLocation } = body as {
+    const { jobs, startLocation, settings, workerCount } = body as {
       jobs: JobInput[];
       startLocation?: { lat: number; lng: number; label?: string };
+      settings?: { avgSpeedMph?: number; fuelCostPerMile?: number; roadFactor?: number };
+      workerCount?: number;
     };
 
     if (!jobs || !Array.isArray(jobs) || jobs.length === 0) {
@@ -54,6 +58,8 @@ export async function POST(request: NextRequest) {
         lng,
         label: job.label || job.id,
         scheduledTime: job.scheduledTime,
+        earliestArrival: job.earliestArrival,
+        latestArrival: job.latestArrival,
       });
     }
 
@@ -76,7 +82,22 @@ export async function POST(request: NextRequest) {
       fixedStartIndex = 0;
     }
 
-    const result = optimizeRoute(points, fixedStartIndex);
+    const routeOptions: RouteOptions | undefined = settings ? {
+      avgSpeedMph: settings.avgSpeedMph,
+      fuelCostPerMile: settings.fuelCostPerMile,
+      roadFactor: settings.roadFactor,
+    } : undefined;
+
+    // Multi-worker mode
+    if (workerCount && workerCount > 1) {
+      const multiResult = optimizeMultiWorkerRoutes(points, workerCount, routeOptions);
+      return NextResponse.json({
+        ...multiResult,
+        geocodeErrors: geocodeErrors.length > 0 ? geocodeErrors : undefined,
+      });
+    }
+
+    const result = optimizeRoute(points, fixedStartIndex, routeOptions);
 
     return NextResponse.json({
       ...result,
