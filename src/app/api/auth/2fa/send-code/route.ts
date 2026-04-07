@@ -65,12 +65,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to generate code' }, { status: 500 })
     }
 
-    // Send SMS via Twilio directly (bypass customer consent checks)
+    // Send SMS via Twilio (2FA verification - user consented during setup)
     const accountSid = process.env.TWILIO_ACCOUNT_SID
     const authToken2 = process.env.TWILIO_AUTH_TOKEN
     const fromNumber = process.env.TWILIO_PHONE_NUMBER
+    const messagingServiceSid = process.env.TWILIO_2FA_MESSAGING_SERVICE_SID
 
-    if (!accountSid || !authToken2 || !fromNumber) {
+    if (!accountSid || !authToken2 || (!fromNumber && !messagingServiceSid)) {
       return NextResponse.json({ error: 'SMS service not configured' }, { status: 500 })
     }
 
@@ -83,11 +84,22 @@ export async function POST(request: Request) {
       digits.length === 11 && digits.startsWith('1') ? `+${digits}` :
       userData.two_fa_phone.startsWith('+') ? userData.two_fa_phone : `+${digits}`
 
-    await twilioClient.messages.create({
-      body: `Your ToolTime Pro verification code is: ${code}. It expires in 10 minutes.`,
-      to: toPhone,
-      from: fromNumber,
-    })
+    const smsBody = `Your ToolTime Pro verification code is: ${code}. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&Data rates may apply.`
+
+    // Prefer messaging service SID (linked to 2FA A2P campaign) over raw phone number
+    if (messagingServiceSid) {
+      await twilioClient.messages.create({
+        body: smsBody,
+        to: toPhone,
+        messagingServiceSid,
+      })
+    } else {
+      await twilioClient.messages.create({
+        body: smsBody,
+        to: toPhone,
+        from: fromNumber!,
+      })
+    }
 
     // Return masked phone for UI
     const phoneLast4 = userData.two_fa_phone.slice(-4)
