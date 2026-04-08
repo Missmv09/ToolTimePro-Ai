@@ -688,6 +688,7 @@ function TwoFactorCard() {
   const [phone, setPhone] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [showSetup, setShowSetup] = useState(false)
+  const [smsConsent, setSmsConsent] = useState(false)
   const [saving, setSaving] = useState(false)
   const [disabling, setDisabling] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -723,6 +724,11 @@ function TwoFactorCard() {
     const digits = editPhone.replace(/\D/g, '')
     if (digits.length < 10) {
       setMessage({ type: 'error', text: 'Please enter a valid 10-digit phone number.' })
+      return
+    }
+
+    if (!smsConsent) {
+      setMessage({ type: 'error', text: 'You must agree to receive SMS verification codes to enable 2FA.' })
       return
     }
 
@@ -849,6 +855,24 @@ function TwoFactorCard() {
               required
             />
             <p className="text-xs text-gray-500 mt-1">We&apos;ll send a 6-digit code to this number when you log in from an unrecognized device.</p>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={smsConsent}
+                onChange={(e) => setSmsConsent(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-700">
+                I agree to receive SMS text messages containing verification codes for two-factor authentication at the phone number provided above.
+                Msg &amp; data rates may apply. Frequency varies based on login activity. Reply <strong>STOP</strong> to opt out or <strong>HELP</strong> for help at any time.
+                View our{' '}
+                <a href="/sms" target="_blank" className="text-blue-600 underline">SMS Terms</a>
+                {' '}and{' '}
+                <a href="/privacy" target="_blank" className="text-blue-600 underline">Privacy Policy</a>.
+              </span>
+            </label>
           </div>
           <div className="flex gap-3">
             <button

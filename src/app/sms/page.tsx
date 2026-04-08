@@ -90,6 +90,43 @@ export default function SmsPage() {
           </section>
 
           <section>
+            <h2 className="text-xl font-bold mb-3">Two-Factor Authentication (2FA) SMS</h2>
+            <p className="mb-4">
+              If you enable two-factor authentication (2FA) in your ToolTime Pro account settings,
+              you will receive SMS messages containing one-time verification codes when logging in
+              from unrecognized devices. By enabling 2FA and providing your phone number, you
+              explicitly consent to receive these security-related text messages.
+            </p>
+
+            {/* Visual representation of the 2FA opt-in CTA */}
+            <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50">
+              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">2FA Opt-In Example (shown in Account Settings)</p>
+              <div className="bg-[#fef3d6] rounded-xl p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked
+                    readOnly
+                    className="mt-1 w-5 h-5 rounded border-gray-300 text-[#f5a623] focus:ring-[#f5a623] cursor-pointer"
+                  />
+                  <span className="text-sm text-[#1a1a2e]">
+                    I agree to receive SMS text messages containing verification codes for
+                    two-factor authentication at the phone number provided above.
+                    Msg &amp; data rates may apply. Frequency varies based on login activity.
+                    Reply <strong>STOP</strong> to opt out or <strong>HELP</strong> for help at any time.
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <p className="mt-4">
+              2FA messages contain only a one-time verification code and standard compliance
+              language. You can disable 2FA at any time from your account settings to stop
+              receiving these messages.
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-xl font-bold mb-3">{t('messageFrequency')}</h2>
             <p>
               Message frequency varies based on your service activity. You will typically receive
