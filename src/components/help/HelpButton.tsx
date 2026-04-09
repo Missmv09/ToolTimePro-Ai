@@ -19,21 +19,70 @@ import {
   HelpCircle as FAQIcon,
   Wrench,
   CalendarCheck,
+  ClipboardList,
+  UserCircle,
+  Brain,
+  Globe,
+  Clock,
+  BarChart3,
+  CreditCard,
+  Settings,
+  Contact,
 } from 'lucide-react';
 
 const WIKI_BASE = 'https://github.com/Missmv09/ToolTimePro-Ai/wiki';
 
-const helpLinks = [
-  { label: 'Getting Started', href: `${WIKI_BASE}/Getting-Started`, icon: BookOpen },
-  { label: 'Adding Services', href: `${WIKI_BASE}/Adding-Services`, icon: Wrench },
-  { label: 'Pricing & Plans', href: `${WIKI_BASE}/Pricing-and-Plans`, icon: FileText },
-  { label: 'Quotes & Estimates', href: `${WIKI_BASE}/Quotes-and-Estimates`, icon: CalendarCheck },
-  { label: 'Team Management', href: `${WIKI_BASE}/Team-Management`, icon: Users },
-  { label: 'Mobile & Worker App', href: `${WIKI_BASE}/Mobile-and-Worker-App`, icon: Smartphone },
-  { label: 'Invoicing & Payments', href: `${WIKI_BASE}/Invoicing-and-Payments`, icon: Receipt },
-  { label: 'ToolTime Shield', href: `${WIKI_BASE}/ToolTime-Shield`, icon: Shield },
-  { label: 'Troubleshooting', href: `${WIKI_BASE}/Troubleshooting`, icon: AlertCircle },
-  { label: 'FAQ', href: `${WIKI_BASE}/FAQ`, icon: FAQIcon },
+interface HelpSection {
+  heading: string;
+  links: { label: string; href: string; icon: typeof HelpCircle }[];
+}
+
+const helpSections: HelpSection[] = [
+  {
+    heading: 'Getting Started',
+    links: [
+      { label: 'Getting Started', href: `${WIKI_BASE}/Getting-Started`, icon: BookOpen },
+      { label: 'Pricing & Plans', href: `${WIKI_BASE}/Pricing-and-Plans`, icon: FileText },
+    ],
+  },
+  {
+    heading: 'Core Features',
+    links: [
+      { label: 'Jobs & Scheduling', href: `${WIKI_BASE}/Jobs-and-Scheduling`, icon: ClipboardList },
+      { label: 'Online Booking', href: `${WIKI_BASE}/Online-Booking`, icon: CalendarCheck },
+      { label: 'Customers & Leads', href: `${WIKI_BASE}/Customers-and-Leads`, icon: UserCircle },
+      { label: 'Quotes & Estimates', href: `${WIKI_BASE}/Quotes-and-Estimates`, icon: CalendarCheck },
+      { label: 'Invoicing & Payments', href: `${WIKI_BASE}/Invoicing-and-Payments`, icon: Receipt },
+      { label: 'Payment Plans', href: `${WIKI_BASE}/Payment-Plans-Guide`, icon: CreditCard },
+      { label: 'Time Tracking', href: `${WIKI_BASE}/Time-Tracking`, icon: Clock },
+    ],
+  },
+  {
+    heading: 'AI & Website',
+    links: [
+      { label: 'Jenny AI', href: `${WIKI_BASE}/Jenny-AI`, icon: Brain },
+      { label: 'Website & Blog', href: `${WIKI_BASE}/Website-and-Blog`, icon: Globe },
+      { label: 'Customer Portal Pro', href: `${WIKI_BASE}/Customer-Portal`, icon: Contact },
+    ],
+  },
+  {
+    heading: 'Team & Compliance',
+    links: [
+      { label: 'Adding Services', href: `${WIKI_BASE}/Adding-Services`, icon: Wrench },
+      { label: 'Team Management', href: `${WIKI_BASE}/Team-Management`, icon: Users },
+      { label: 'Mobile & Worker App', href: `${WIKI_BASE}/Mobile-and-Worker-App`, icon: Smartphone },
+      { label: 'ToolTime Shield', href: `${WIKI_BASE}/ToolTime-Shield`, icon: Shield },
+      { label: 'Reports & Analytics', href: `${WIKI_BASE}/Reports-and-Analytics`, icon: BarChart3 },
+    ],
+  },
+  {
+    heading: 'Settings & Support',
+    links: [
+      { label: 'Settings & Integrations', href: `${WIKI_BASE}/Settings-and-Integrations`, icon: Settings },
+      { label: 'Troubleshooting', href: `${WIKI_BASE}/Troubleshooting`, icon: AlertCircle },
+      { label: 'FAQ', href: `${WIKI_BASE}/FAQ`, icon: FAQIcon },
+    ],
+  },
 ];
 
 export default function HelpButton() {
@@ -106,23 +155,27 @@ export default function HelpButton() {
           </div>
 
           {/* Help articles */}
-          <div className="max-h-[300px] overflow-y-auto">
-            <div className="px-4 py-2">
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Help Center</p>
-            </div>
-            {helpLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors group"
-              >
-                <link.icon size={16} className="text-gray-400 group-hover:text-gold-500 flex-shrink-0" />
-                <span className="text-sm text-gray-700 group-hover:text-navy-500 flex-1">{link.label}</span>
-                <ExternalLink size={12} className="text-gray-300 group-hover:text-gray-400 flex-shrink-0" />
-              </a>
+          <div className="max-h-[400px] overflow-y-auto">
+            {helpSections.map((section) => (
+              <div key={section.heading}>
+                <div className="px-4 py-2">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{section.heading}</p>
+                </div>
+                {section.links.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors group"
+                  >
+                    <link.icon size={16} className="text-gray-400 group-hover:text-gold-500 flex-shrink-0" />
+                    <span className="text-sm text-gray-700 group-hover:text-navy-500 flex-1">{link.label}</span>
+                    <ExternalLink size={12} className="text-gray-300 group-hover:text-gray-400 flex-shrink-0" />
+                  </a>
+                ))}
+              </div>
             ))}
           </div>
 

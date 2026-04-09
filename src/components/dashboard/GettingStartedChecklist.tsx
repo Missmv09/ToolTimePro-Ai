@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, Circle, Globe, Users, Briefcase, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { CheckCircle2, Circle, Globe, Users, Briefcase, CalendarCheck, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 
@@ -23,6 +23,7 @@ export default function GettingStartedChecklist() {
   const [hasJobs, setHasJobs] = useState(false)
   const [hasWebsite, setHasWebsite] = useState(false)
   const [hasTeam, setHasTeam] = useState(false)
+  const [hasBooking, setHasBooking] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function GettingStartedChecklist() {
     const checkProgress = async () => {
       const companyId = dbUser.company_id
 
-      const [customersRes, jobsRes, teamRes, websiteRes] = await Promise.all([
+      const [customersRes, jobsRes, teamRes, websiteRes, servicesRes] = await Promise.all([
         supabase
           .from('customers')
           .select('id', { count: 'exact', head: true })
@@ -56,12 +57,18 @@ export default function GettingStartedChecklist() {
           .select('id', { count: 'exact', head: true })
           .eq('company_id', companyId)
           .eq('status', 'live'),
+        supabase
+          .from('services')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+          .eq('is_active', true),
       ])
 
       setHasCustomers((customersRes.count ?? 0) > 0)
       setHasJobs((jobsRes.count ?? 0) > 0)
       setHasTeam((teamRes.count ?? 0) > 1) // More than the owner
       setHasWebsite(!!company?.website || (websiteRes.count ?? 0) > 0)
+      setHasBooking((servicesRes.count ?? 0) > 0)
       setLoaded(true)
     }
 
@@ -78,6 +85,14 @@ export default function GettingStartedChecklist() {
       href: '/dashboard/website-builder',
       completed: hasWebsite,
       icon: <Globe size={18} />,
+    },
+    {
+      id: 'booking',
+      label: 'Set up online booking',
+      description: 'Add services so customers can book appointments online',
+      href: '/dashboard/services',
+      completed: hasBooking,
+      icon: <CalendarCheck size={18} />,
     },
     {
       id: 'customer',
