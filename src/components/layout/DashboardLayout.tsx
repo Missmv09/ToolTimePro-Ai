@@ -42,6 +42,8 @@ import { FeatureKey } from '@/lib/plan-features';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import TrialBanner from '@/components/trial/TrialBanner';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import HelpButton from '@/components/help/HelpButton';
+import CrispChat from '@/components/help/CrispChat';
 import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 
@@ -307,8 +309,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Main content */}
         <main className="lg:pl-64">
-          {/* Top bar with notifications */}
-          <div className="flex items-center justify-end px-6 pt-4 lg:pt-6">
+          {/* Top bar with notifications and help */}
+          <div className="flex items-center justify-end gap-1 px-6 pt-4 lg:pt-6">
+            <HelpButton />
             <NotificationBell />
           </div>
           <div className="p-6 lg:p-8 pt-2">
@@ -324,6 +327,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             onLogOut={handleSignOut}
           />
         )}
+
+        {/* Crisp live chat widget */}
+        <CrispChat />
       </div>
     </ProtectedRoute>
   );
