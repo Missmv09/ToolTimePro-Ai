@@ -1,0 +1,70 @@
+name: Auto-Update Wiki & Crisp Helpdesk
+
+# Triggers when source-of-truth files change on main
+on:
+  push:
+    branches: [main]
+    paths:
+      # Pricing / product catalog changes
+      - 'scripts/setup-stripe-products.js'
+      - 'src/lib/stripe-prices.js'
+      # API route changes
+      - 'src/app/api/**/route.*'
+      # Cron / function changes
+      - 'netlify.toml'
+      - 'netlify/functions/**'
+      # Manual wiki edits (still sync to Crisp)
+      - 'wiki/**'
+
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  update-wiki:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Step 1: Regenerate wiki pages from source code
+      - name: Generate wiki content from source code
+        run: node scripts/generate-wiki.js
+
+      # Step 2: Check if wiki content actually changed
+      - name: Check for wiki changes
+        id: wiki-changes
+        run: |
+          git diff --quiet wiki/ && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      # Step 3: Commit updated wiki pages back to the repo
+      - name: Commit wiki updates
+        if: steps.wiki-changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add wiki/
+          git commit -m "docs: auto-update wiki from source code changes"
+          git push
+
+      # Step 4: Sync wiki/ directory to GitHub Wiki tab
+      - name: Sync to GitHub Wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: wiki/
+
+      # Step 5: Sync to Crisp Knowledge Base (if secrets are configured)
+      - name: Sync to Crisp Helpdesk
+        if: env.CRISP_API_IDENTIFIER != ''
+        env:
+          CRISP_API_IDENTIFIER: ${{ secrets.CRISP_API_IDENTIFIER }}
+          CRISP_API_KEY: ${{ secrets.CRISP_API_KEY }}
+          CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+        run: node scripts/sync-to-crisp.js
