@@ -1,5 +1,8 @@
 # Pricing & Plans
 
+<!-- AUTO-GENERATED from scripts/setup-stripe-products.js — do not edit manually -->
+<!-- To update: change PRODUCTS in setup-stripe-products.js, then run: node scripts/generate-wiki.js -->
+
 ToolTime Pro offers three core plans, standalone options, and powerful add-ons. No surprise per-user fees — competitors charge $20/vehicle or $250+/technician. We don't.
 
 ---
@@ -8,7 +11,7 @@ ToolTime Pro offers three core plans, standalone options, and powerful add-ons. 
 
 | Feature | Starter — $49/mo | Pro — $79/mo | Elite — $129/mo |
 |---------|:-----------------:|:------------:|:----------------:|
-| **Annual Price** | $490/yr | $790/yr | $1,290/yr |
+| **Annual Price** | $490/yr | $790/yr | $1290/yr |
 | **Workers** | Owner + 2 | Up to 15 | Unlimited |
 | Professional website | 1 page | 3 pages | 5 pages |
 | Online booking page | Yes | Yes | Yes |
@@ -45,8 +48,8 @@ For businesses that only need one feature:
 
 | Plan | Price | What's Included |
 |------|-------|-----------------|
-| **Booking Only** | $15/mo ($150/yr) | Online booking page, customer scheduling, reminders |
-| **Invoicing Only** | $15/mo ($150/yr) | Professional invoices, card payments, payment tracking |
+| **Booking Only** | $15/mo ($150/yr) | Online booking page only. For businesses that just need scheduling. |
+| **Invoicing Only** | $15/mo ($150/yr) | Invoicing and card payments only. For businesses that just need to get paid. |
 
 ---
 
@@ -56,9 +59,9 @@ Jenny AI is your AI-powered back-office assistant. Every plan includes access to
 
 | Tier | Price | Capabilities |
 |------|-------|-------------|
-| **Jenny Lite** | Free (included) | 24/7 website chatbot, lead capture, FAQ answering, bilingual (English/Spanish) |
-| **Jenny Pro** | $49/mo ($490/yr) | AI phone answering 24/7, SMS messaging, bilingual voice, direct booking, emergency escalation |
-| **Jenny Exec Admin** | $79/mo ($790/yr) | Compliance advisor, HR law monitoring, workforce analytics, proactive business insights |
+| **Jenny Lite** | $19/mo ($190/yr) | 24/7 website chatbot. Lead capture, FAQ answering, appointment booking. Bilingual English/Spanish. Included free with all plans. |
+| **Jenny Pro** | $49/mo ($490/yr) | AI phone answering 24/7 with bilingual voice. SMS messaging, direct booking, emergency escalation. Included with Elite. |
+| **Jenny Exec Admin** | $79/mo ($790/yr) | Compliance advisor, HR law monitoring, workforce analytics, proactive business insights. |
 
 ---
 
@@ -68,12 +71,12 @@ Extend your plan with powerful add-ons:
 
 | Add-On | Monthly | Annual | Description |
 |--------|---------|--------|-------------|
-| **Website Builder** | $25 | $250/yr | Custom branded landing page built for you |
-| **Extra Website Page** | $10 | $100/yr | Additional pages for your site |
-| **Compliance Autopilot** | $29 | $290/yr | Automated compliance monitoring, law-change alerts, certification reminders |
-| **QuickBooks Sync** | $12 | $120/yr | Two-way sync with QuickBooks Online (invoices, payments, customers) |
-| **Customer Portal Pro** | $24 | $240/yr | Live job tracker, before/after photos, messaging, document vault, service history |
-| **Extra Worker** | $7/mo | — | Per additional worker beyond your plan limit |
+| **Website Builder** | $25 | $250/yr | Custom landing page built for your business. |
+| **Compliance Autopilot** | $29 | $290/yr | Automated compliance monitoring, law-change alerts, and cert renewal reminders. |
+| **Extra Website Page** | $10 | $100/yr | Add additional pages to your ToolTime Pro website. |
+| **QuickBooks Sync** | $12 | $120/yr | Two-way sync with QuickBooks Online. Invoices, payments, and customers auto-sync. |
+| **Customer Portal Pro** | $24 | $240/yr | Branded customer portal: job tracker, photo gallery, messaging, document vault, service history. Included with Elite. |
+| **Extra Worker/Technician** | $7 | — | Add additional workers beyond your plan limit. $7/user/month. |
 
 ---
 
@@ -81,15 +84,15 @@ Extend your plan with powerful add-ons:
 
 | Service | Price | What's Included |
 |---------|-------|-----------------|
-| **Assisted Onboarding** | $199 | Guided setup call, service catalog config, team invites, booking page setup |
-| **White-Glove Setup** | $499 | Full account configuration, data migration, custom website build, training session |
+| **Assisted Onboarding** | $199 | Guided setup with our team. Account setup, customer import, 30-minute training call. |
+| **White Glove Setup** | $499 | Full done-for-you setup. Website design, data import, 1-hour training, 30-day priority support. |
 
 ---
 
 ## Choosing the Right Plan
 
-- **Solo operators or tiny teams (1–3 people):** Start with **Starter** at $49/mo
-- **Growing businesses (4–15 workers):** Go with **Pro** at $79/mo for scheduling, reviews, and compliance
+- **Solo operators or tiny teams (1-3 people):** Start with **Starter** at $49/mo
+- **Growing businesses (4-15 workers):** Go with **Pro** at $79/mo for scheduling, reviews, and compliance
 - **Established operations (15+ workers):** Choose **Elite** at $129/mo for dispatch board, route optimization, and unlimited workers
 - **Just need booking or invoicing?** Try a **Standalone** plan at $15/mo
 
@@ -97,7 +100,7 @@ Extend your plan with powerful add-ons:
 
 ## Upgrading or Downgrading
 
-- Go to **Settings** → **Billing** in your dashboard
+- Go to **Settings** > **Billing** in your dashboard
 - Changes take effect at the start of your next billing cycle
 - Upgrading mid-cycle is prorated — you only pay the difference
 - All your data is preserved when changing plans

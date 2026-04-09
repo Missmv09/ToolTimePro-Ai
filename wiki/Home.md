@@ -63,6 +63,17 @@ ToolTime Pro is an AI-powered field service management platform built for contra
 
 ---
 
+## Developer Reference
+
+_These pages are auto-generated from source code and stay up to date automatically._
+
+| Guide | What You'll Learn |
+|-------|-------------------|
+| [API Reference](API-Reference) | Complete list of API endpoints with methods and source files |
+| [System Automation](System-Automation) | Cron jobs, scheduled tasks, and serverless functions |
+
+---
+
 ## Need Help?
 
 - **Email:** support@tooltimepro.com

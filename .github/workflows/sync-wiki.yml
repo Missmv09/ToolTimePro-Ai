@@ -1,5 +1,8 @@
 name: Sync Wiki
 
+# NOTE: Wiki sync is now handled by update-wiki.yml which also
+# auto-generates content and syncs to Crisp. This workflow is kept
+# as a fallback for direct wiki/ edits that don't trigger the main workflow.
 on:
   push:
     branches: [main]
@@ -8,6 +11,8 @@ on:
 
 jobs:
   sync-wiki:
+    # Skip if update-wiki.yml already ran (it covers wiki/** paths too)
+    if: github.event.head_commit.author.name != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
