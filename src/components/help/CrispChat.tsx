@@ -29,7 +29,7 @@ export default function CrispChat() {
   const { user, dbUser, company } = useAuth();
 
   useEffect(() => {
-    const websiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID;
+    const websiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID || '6baf2f53-e868-4a02-a9c7-eef3e5549db6';
     if (!websiteId) return;
 
     // Initialize Crisp
