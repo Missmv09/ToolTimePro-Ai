@@ -16,12 +16,20 @@ import {
   MessageCircle,
   Settings,
   Clock,
+  Radio,
+  Route,
+  Phone,
+  Shield,
+  BookOpen,
+  Contact,
   X,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePlanGating } from '@/hooks/usePlanGating'
 import { supabase } from '@/lib/supabase'
+import type { FeatureKey } from '@/lib/plan-features'
 
 interface ChecklistItem {
   id: string
@@ -30,6 +38,7 @@ interface ChecklistItem {
   href: string
   completed: boolean
   icon: React.ReactNode
+  feature?: FeatureKey // only show if user has this feature
 }
 
 interface ChecklistSection {
@@ -41,37 +50,43 @@ interface ChecklistSection {
 
 export default function GettingStartedChecklist() {
   const { company, dbUser } = useAuth()
+  const { canAccess } = usePlanGating()
   const [dismissed, setDismissed] = useState(false)
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
   const [loaded, setLoaded] = useState(false)
 
-  // Essentials
-  const [hasProfile, setHasProfile] = useState(false)
-  const [hasServices, setHasServices] = useState(false)
-  const [hasWebsite, setHasWebsite] = useState(false)
-  const [hasBooking, setHasBooking] = useState(false)
-  const [hasCustomers, setHasCustomers] = useState(false)
-  const [hasJobs, setHasJobs] = useState(false)
-  const [hasTeam, setHasTeam] = useState(false)
-
-  // Grow Your Business
-  const [hasQuotes, setHasQuotes] = useState(false)
-  const [hasInvoices, setHasInvoices] = useState(false)
-  const [hasPayments, setHasPayments] = useState(false)
-  const [hasJenny, setHasJenny] = useState(false)
-  const [hasTimeLogs, setHasTimeLogs] = useState(false)
+  // Completion state
+  const [checks, setChecks] = useState({
+    profile: false,
+    services: false,
+    website: false,
+    booking: false,
+    customers: false,
+    jobs: false,
+    team: false,
+    quotes: false,
+    invoices: false,
+    payments: false,
+    jenny: false,
+    jennyPro: false,
+    timeLogs: false,
+    dispatch: false,
+    routeOptimizer: false,
+    blog: false,
+    quickbooks: false,
+    compliance: false,
+    customerPortal: false,
+  })
 
   useEffect(() => {
     if (!dbUser?.company_id) return
 
-    // Check if user previously dismissed the checklist
     const dismissedKey = `checklist_dismissed_${dbUser.company_id}`
     if (localStorage.getItem(dismissedKey) === 'true') {
       setDismissed(true)
       return
     }
 
-    // Restore collapsed state
     const collapsedKey = `checklist_collapsed_${dbUser.company_id}`
     const saved = localStorage.getItem(collapsedKey)
     if (saved) {
@@ -90,6 +105,7 @@ export default function GettingStartedChecklist() {
         quotesRes,
         invoicesRes,
         timeLogsRes,
+        qboRes,
       ] = await Promise.all([
         supabase
           .from('customers')
@@ -125,32 +141,45 @@ export default function GettingStartedChecklist() {
           .from('time_logs')
           .select('id', { count: 'exact', head: true })
           .eq('company_id', companyId),
+        supabase
+          .from('qbo_connections')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', dbUser.id),
       ])
 
-      // Essentials
-      setHasProfile(!!(company?.phone && company?.address))
-      setHasServices((servicesRes.count ?? 0) > 0)
-      setHasWebsite(!!company?.website || (websiteRes.count ?? 0) > 0)
-      setHasBooking((servicesRes.count ?? 0) > 0 && (!!company?.website || (websiteRes.count ?? 0) > 0))
-      setHasCustomers((customersRes.count ?? 0) > 0)
-      setHasJobs((jobsRes.count ?? 0) > 0)
-      setHasTeam((teamRes.count ?? 0) > 1)
+      const hasWebsiteOrSite = !!company?.website || (websiteRes.count ?? 0) > 0
+      const hasServicesSet = (servicesRes.count ?? 0) > 0
 
-      // Grow Your Business
-      setHasQuotes((quotesRes.count ?? 0) > 0)
-      setHasInvoices((invoicesRes.count ?? 0) > 0)
-      setHasPayments(!!company?.stripe_connect_onboarded)
-      setHasJenny(!!company?.booking_settings || (!!company?.website || (websiteRes.count ?? 0) > 0))
-      setHasTimeLogs((timeLogsRes.count ?? 0) > 0)
-
+      setChecks({
+        profile: !!(company?.phone && company?.address),
+        services: hasServicesSet,
+        website: hasWebsiteOrSite,
+        booking: hasServicesSet && hasWebsiteOrSite,
+        customers: (customersRes.count ?? 0) > 0,
+        jobs: (jobsRes.count ?? 0) > 0,
+        team: (teamRes.count ?? 0) > 1,
+        quotes: (quotesRes.count ?? 0) > 0,
+        invoices: (invoicesRes.count ?? 0) > 0,
+        payments: !!company?.stripe_connect_onboarded,
+        jenny: hasWebsiteOrSite, // Jenny Lite works once website is set up
+        jennyPro: !!company?.booking_settings, // Jenny Pro configured with booking settings
+        timeLogs: (timeLogsRes.count ?? 0) > 0,
+        dispatch: (jobsRes.count ?? 0) > 0, // Dispatch is useful once you have jobs
+        routeOptimizer: (jobsRes.count ?? 0) >= 2, // Route optimizer needs multiple jobs
+        blog: false, // Check would need blog_posts table
+        quickbooks: (qboRes.count ?? 0) > 0,
+        compliance: !!(company?.booking_settings), // Placeholder — compliance settings
+        customerPortal: (customersRes.count ?? 0) > 0 && (jobsRes.count ?? 0) > 0,
+      })
       setLoaded(true)
     }
 
     checkProgress()
-  }, [dbUser?.company_id, company?.website, company?.phone, company?.address, company?.stripe_connect_onboarded, company?.booking_settings])
+  }, [dbUser?.company_id, dbUser?.id, company?.website, company?.phone, company?.address, company?.stripe_connect_onboarded, company?.booking_settings])
 
   if (dismissed || !loaded) return null
 
+  // Build sections with plan-aware items
   const sections: ChecklistSection[] = [
     {
       id: 'essentials',
@@ -162,7 +191,7 @@ export default function GettingStartedChecklist() {
           label: 'Complete your company profile',
           description: 'Add phone, address, and business details',
           href: '/dashboard/settings',
-          completed: hasProfile,
+          completed: checks.profile,
           icon: <Settings size={18} />,
         },
         {
@@ -170,39 +199,43 @@ export default function GettingStartedChecklist() {
           label: 'Add your services',
           description: 'Build your service catalog with pricing',
           href: '/dashboard/services',
-          completed: hasServices,
+          completed: checks.services,
           icon: <Wrench size={18} />,
+          feature: 'booking',
         },
         {
           id: 'website',
           label: 'Build your website',
           description: 'Create a professional site to attract customers',
           href: '/dashboard/website-builder',
-          completed: hasWebsite,
+          completed: checks.website,
           icon: <Globe size={18} />,
+          feature: 'website_builder',
         },
         {
           id: 'booking',
           label: 'Set up online booking',
           description: 'Let customers book appointments from your site',
           href: '/dashboard/booking',
-          completed: hasBooking,
+          completed: checks.booking,
           icon: <CalendarCheck size={18} />,
+          feature: 'booking',
         },
         {
           id: 'customer',
           label: 'Add your first customer',
           description: 'Start tracking your customer relationships',
           href: '/dashboard/customers',
-          completed: hasCustomers,
+          completed: checks.customers,
           icon: <Users size={18} />,
+          feature: 'customers',
         },
         {
           id: 'job',
           label: 'Create your first job',
           description: 'Schedule and track your work',
           href: '/dashboard/jobs',
-          completed: hasJobs,
+          completed: checks.jobs,
           icon: <Briefcase size={18} />,
         },
         {
@@ -210,66 +243,156 @@ export default function GettingStartedChecklist() {
           label: 'Invite your team',
           description: 'Add team members to collaborate',
           href: '/dashboard/team',
-          completed: hasTeam,
+          completed: checks.team,
           icon: <Users size={18} />,
+          feature: 'team_management',
         },
       ],
     },
     {
-      id: 'grow',
-      title: 'Grow Your Business',
-      subtitle: 'Unlock quoting, invoicing, payments, and AI',
+      id: 'revenue',
+      title: 'Quotes, Invoicing & Payments',
+      subtitle: 'Start billing customers and getting paid',
       items: [
         {
           id: 'quote',
           label: 'Send your first quote',
           description: 'Create professional estimates with e-signatures',
           href: '/dashboard/quotes',
-          completed: hasQuotes,
+          completed: checks.quotes,
           icon: <Quote size={18} />,
+          feature: 'quoting',
         },
         {
           id: 'invoice',
           label: 'Send your first invoice',
           description: 'Bill customers and track payments',
           href: '/dashboard/invoices',
-          completed: hasInvoices,
+          completed: checks.invoices,
           icon: <Receipt size={18} />,
+          feature: 'invoicing',
         },
         {
           id: 'payments',
-          label: 'Connect payments',
-          description: 'Link Stripe to accept credit card payments',
+          label: 'Connect Stripe payments',
+          description: 'Accept credit card payments from customers',
           href: '/dashboard/settings',
-          completed: hasPayments,
+          completed: checks.payments,
           icon: <CreditCard size={18} />,
+          feature: 'invoicing',
         },
         {
-          id: 'jenny',
-          label: 'Set up Jenny AI',
-          description: 'Configure your AI chatbot to capture leads 24/7',
-          href: '/dashboard/jenny-lite',
-          completed: hasJenny,
-          icon: <MessageCircle size={18} />,
+          id: 'quickbooks',
+          label: 'Connect QuickBooks',
+          description: 'Sync invoices, payments, and customers',
+          href: '/dashboard/settings',
+          completed: checks.quickbooks,
+          icon: <BookOpen size={18} />,
+          feature: 'quickbooks_sync',
         },
+      ],
+    },
+    {
+      id: 'ai',
+      title: 'Jenny AI & Website',
+      subtitle: 'Set up your AI assistant and online presence',
+      items: [
+        {
+          id: 'jenny',
+          label: 'Set up Jenny Lite chatbot',
+          description: 'Capture leads 24/7 on your website',
+          href: '/dashboard/jenny-lite',
+          completed: checks.jenny,
+          icon: <MessageCircle size={18} />,
+          feature: 'jenny_lite',
+        },
+        {
+          id: 'jennypro',
+          label: 'Configure Jenny Pro',
+          description: 'AI phone answering and SMS for your business',
+          href: '/dashboard/jenny-pro',
+          completed: checks.jennyPro,
+          icon: <Phone size={18} />,
+          feature: 'jenny_pro',
+        },
+        {
+          id: 'blog',
+          label: 'Publish your first blog post',
+          description: 'Attract customers with SEO content',
+          href: '/dashboard/blog',
+          completed: checks.blog,
+          icon: <BookOpen size={18} />,
+          feature: 'blog',
+        },
+        {
+          id: 'portal',
+          label: 'Activate Customer Portal',
+          description: 'Give customers a self-service portal with job tracking',
+          href: '/dashboard/settings',
+          completed: checks.customerPortal,
+          icon: <Contact size={18} />,
+          feature: 'customer_portal',
+        },
+      ],
+    },
+    {
+      id: 'operations',
+      title: 'Team & Operations',
+      subtitle: 'Manage crews, time, routes, and compliance',
+      items: [
         {
           id: 'timelogs',
           label: 'Start tracking time',
           description: 'Have your team clock in with GPS verification',
           href: '/dashboard/time-logs',
-          completed: hasTimeLogs,
+          completed: checks.timeLogs,
           icon: <Clock size={18} />,
+          feature: 'time_tracking',
+        },
+        {
+          id: 'dispatch',
+          label: 'Use the Dispatch Board',
+          description: 'Assign crews and track workers in real-time',
+          href: '/dashboard/dispatch',
+          completed: checks.dispatch,
+          icon: <Radio size={18} />,
+          feature: 'dispatch_board',
+        },
+        {
+          id: 'routes',
+          label: 'Optimize your routes',
+          description: 'Save gas and drive time with smart routing',
+          href: '/dashboard/route-optimizer',
+          completed: checks.routeOptimizer,
+          icon: <Route size={18} />,
+          feature: 'route_optimizer',
+        },
+        {
+          id: 'compliance',
+          label: 'Review compliance dashboard',
+          description: 'Monitor labor law compliance and worker classification',
+          href: '/dashboard/compliance',
+          completed: checks.compliance,
+          icon: <Shield size={18} />,
+          feature: 'compliance',
         },
       ],
     },
   ]
 
-  const allItems = sections.flatMap((s) => s.items)
+  // Filter items based on user's plan/add-ons
+  const filteredSections = sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.feature || canAccess(item.feature)),
+    }))
+    .filter((section) => section.items.length > 0)
+
+  const allItems = filteredSections.flatMap((s) => s.items)
   const totalCompleted = allItems.filter((i) => i.completed).length
   const totalItems = allItems.length
   const progress = Math.round((totalCompleted / totalItems) * 100)
 
-  // Auto-dismiss if everything is done
   if (totalCompleted === totalItems) return null
 
   const handleDismiss = () => {
@@ -317,7 +440,7 @@ export default function GettingStartedChecklist() {
       </div>
 
       {/* Sections */}
-      {sections.map((section) => {
+      {filteredSections.map((section) => {
         const sectionCompleted = section.items.filter((i) => i.completed).length
         const sectionTotal = section.items.length
         const isCollapsed = collapsedSections[section.id] ?? false
@@ -340,7 +463,7 @@ export default function GettingStartedChecklist() {
                   {sectionCompleted}/{sectionTotal}
                 </span>
                 {!sectionDone && (
-                  <span className="text-xs text-gray-400">{section.subtitle}</span>
+                  <span className="text-xs text-gray-400 hidden sm:inline">{section.subtitle}</span>
                 )}
               </div>
               {isCollapsed ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronUp size={16} className="text-gray-400" />}
