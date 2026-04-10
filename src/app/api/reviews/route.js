@@ -37,21 +37,34 @@ function formatPhone(phone) {
   return phone.startsWith('+') ? phone : `+${digits}`;
 }
 
+// Build SMS params — prefer Messaging Service SID (A2P 10DLC) over raw phone number
+function buildSmsParams(to, body) {
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+  const params = { body, to: formatPhone(to) };
+
+  if (messagingServiceSid) {
+    params.messagingServiceSid = messagingServiceSid;
+  } else {
+    params.from = fromNumber;
+  }
+  return params;
+}
+
 // Send review request SMS
 async function sendReviewSMS({ to, customerName, companyName, reviewLink }) {
   try {
     const client = getTwilioClient();
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
     const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-    if (!client || !fromNumber) {
+    if (!client || (!messagingServiceSid && !fromNumber)) {
       return { sent: false, reason: 'twilio_not_configured' };
     }
 
-    const message = await client.messages.create({
-      body: `Hi ${customerName}! Thanks for choosing ${companyName}. We'd love to hear about your experience! Please leave us a review: ${reviewLink}`,
-      to: formatPhone(to),
-      from: fromNumber,
-    });
+    const message = await client.messages.create(
+      buildSmsParams(to, `Hi ${customerName}! Thanks for choosing ${companyName}. We'd love to hear about your experience! Please leave us a review: ${reviewLink}`)
+    );
 
     return { sent: true, messageId: message.sid };
   } catch (error) {
@@ -177,15 +190,14 @@ export async function POST(request) {
         : `Hi ${customerName}! Thanks for choosing ${companyName}. We hope you're satisfied with our service. Your feedback means the world to us!`;
 
       const client = getTwilioClient();
+      const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
       const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-      if (client && fromNumber) {
+      if (client && (messagingServiceSid || fromNumber)) {
         try {
-          const message = await client.messages.create({
-            body: messageText,
-            to: formatPhone(customerPhone),
-            from: fromNumber,
-          });
+          const message = await client.messages.create(
+            buildSmsParams(customerPhone, messageText)
+          );
           smsResult = { sent: true, messageId: message.sid };
 
           // Update review request status
