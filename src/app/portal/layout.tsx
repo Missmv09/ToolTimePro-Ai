@@ -40,13 +40,13 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Fetch profile + pro status in parallel
+    // Fetch profile + pro status in parallel (token in header, not URL)
     Promise.all([
-      fetch(`/api/portal?action=profile&token=${token}`).then(res => {
+      fetch('/api/portal?action=profile', { headers: { 'x-portal-token': token } }).then(res => {
         if (!res.ok) throw new Error('Invalid session');
         return res.json();
       }),
-      fetch(`/api/portal?action=check_pro&token=${token}`).then(res => res.json()).catch(() => ({ hasPortalPro: false })),
+      fetch('/api/portal?action=check_pro', { headers: { 'x-portal-token': token } }).then(res => res.json()).catch(() => ({ hasPortalPro: false })),
     ])
       .then(([profileData, proData]) => {
         localStorage.setItem('portal_token', token);

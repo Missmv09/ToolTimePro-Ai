@@ -213,20 +213,6 @@ describe('CustomerQuoteView – customer flow', () => {
     });
   });
 
-  // ── Demo quote handling ─────────────────────────────────────────────────
-
-  it('renders demo quote without hitting the API', async () => {
-    renderQuoteView('demo');
-
-    await waitFor(() => {
-      expect(screen.getByText('Green Valley Landscaping')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('John Smith')).toBeInTheDocument();
-    // API should not have been called for demo
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
   // ── Approval flow ──────────────────────────────────────────────────────
 
   it('opens signature modal when approve is clicked without signature', async () => {
@@ -285,20 +271,6 @@ describe('CustomerQuoteView – customer flow', () => {
     expect(body.signature).toBe('data:image/png;base64,fakesignature');
   });
 
-  it('does NOT call respond API for demo quotes', async () => {
-    renderQuoteView('demo');
-
-    await waitFor(() => {
-      expect(screen.getByText('Green Valley Landscaping')).toBeInTheDocument();
-    });
-
-    // Demo quote should not call API
-    expect(fetchMock).not.toHaveBeenCalled();
-
-    // Verify demo data rendered correctly
-    expect(screen.getByText('John Smith')).toBeInTheDocument();
-    expect(screen.getByText('$303.10')).toBeInTheDocument();
-  });
 
   // ── Rejection flow ─────────────────────────────────────────────────────
 

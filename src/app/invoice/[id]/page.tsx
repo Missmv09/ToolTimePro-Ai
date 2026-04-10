@@ -1,9 +1,7 @@
 import InvoiceViewClient from './InvoiceViewClient';
 
 export function generateStaticParams() {
-  return [
-    { id: 'demo' },
-  ];
+  return [];
 }
 
 export default function InvoicePage({ params }: { params: { id: string } }) {
