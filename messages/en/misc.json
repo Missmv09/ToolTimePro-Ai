@@ -205,6 +205,7 @@
       "payNow": "Pay Now",
       "securePayment": "Secure payment powered by Stripe",
       "notes": "Notes",
+      "paymentInstructions": "Other Ways to Pay",
       "questionsCall": "Questions? Call us at",
       "poweredBy": "Powered by"
     },

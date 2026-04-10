@@ -368,6 +368,16 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
             </div>
           )}
 
+          {/* Payment Instructions */}
+          {invoice.company?.payment_instructions && invoice.status !== 'paid' && balanceDue > 0 && !paymentSuccess && (
+            <div className="px-6 pb-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-sm font-medium text-blue-800 mb-2">{t('paymentInstructions')}</div>
+                <div className="text-sm text-blue-700 whitespace-pre-wrap">{invoice.company.payment_instructions}</div>
+              </div>
+            </div>
+          )}
+
           {/* Notes */}
           {invoice.notes && (
             <div className="px-6 pb-6">

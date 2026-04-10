@@ -17,6 +17,7 @@ interface CompanyForm {
   zip: string
   website: string
   default_quote_terms: string
+  payment_instructions: string
 }
 
 // Plan display configuration mapping plan IDs to human-readable names and prices
@@ -53,6 +54,7 @@ function SettingsContent() {
     zip: '',
     website: '',
     default_quote_terms: '',
+    payment_instructions: '',
   })
 
   // Initialize form when company data loads
@@ -68,6 +70,7 @@ function SettingsContent() {
         zip: company.zip || '',
         website: company.website || '',
         default_quote_terms: (company as unknown as Record<string, unknown>).default_quote_terms as string || '',
+        payment_instructions: company.payment_instructions || '',
       })
     }
   }, [company])
@@ -128,6 +131,7 @@ function SettingsContent() {
           zip: companyForm.zip,
           website: companyForm.website,
           default_quote_terms: companyForm.default_quote_terms,
+          payment_instructions: companyForm.payment_instructions || null,
           updated_at: new Date().toISOString(),
         }
 
@@ -136,9 +140,10 @@ function SettingsContent() {
         .update(updateData)
         .eq('id', company.id)
 
-      // Retry without default_quote_terms if column doesn't exist
-      if (error?.message?.includes('default_quote_terms')) {
+      // Retry without optional columns if they don't exist yet
+      if (error?.message?.includes('default_quote_terms') || error?.message?.includes('payment_instructions')) {
         delete updateData.default_quote_terms
+        delete updateData.payment_instructions
         const retry = await supabase.from('companies').update(updateData).eq('id', company.id)
         error = retry.error
       }
@@ -370,6 +375,22 @@ function SettingsContent() {
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     These terms will auto-populate on new quotes. You can edit them per quote.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Payment Instructions
+                  </label>
+                  <textarea
+                    value={companyForm.payment_instructions}
+                    onChange={(e) => setCompanyForm({ ...companyForm, payment_instructions: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. Zelle: maria@email.com &#10;Venmo: @MariasLandscaping &#10;Checks payable to: ABC Landscaping LLC"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    These instructions will appear on your invoices so customers know how to pay you outside of Stripe.
                   </p>
                 </div>
 
