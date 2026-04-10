@@ -22,15 +22,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Server config error' }, { status: 500 });
     }
 
-    const userId = request.headers.get('x-user-id');
-    if (!userId) {
+    // Authenticate via Bearer token (not spoofable x-user-id header)
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !authUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { data: user } = await supabase
       .from('users')
       .select('company_id')
-      .eq('id', userId)
+      .eq('id', authUser.id)
       .single();
 
     if (!user?.company_id) {
@@ -65,7 +71,7 @@ export async function POST(request: NextRequest) {
       store_name: item.storeName || null,
       purchase_date: item.purchaseDate || null,
       notes: item.notes || null,
-      created_by: userId,
+      created_by: authUser.id,
     }));
 
     const { error } = await supabase

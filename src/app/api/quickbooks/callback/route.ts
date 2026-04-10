@@ -15,7 +15,7 @@ const QBO_TOKEN_URL =
     ? 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer'
     : 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com'
 
 export async function GET(request: NextRequest) {
   try {
