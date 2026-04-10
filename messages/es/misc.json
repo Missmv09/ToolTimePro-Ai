@@ -205,6 +205,7 @@
       "payNow": "Pagar Ahora",
       "securePayment": "Pago seguro con Stripe",
       "notes": "Notas",
+      "paymentInstructions": "Otras Formas de Pago",
       "questionsCall": "Preguntas? Llamanos al",
       "poweredBy": "Desarrollado por"
     },

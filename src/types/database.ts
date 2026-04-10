@@ -37,6 +37,7 @@ export interface Database {
           welcome_email_sent_at: string | null
           is_beta_tester: boolean
           beta_notes: string | null
+          payment_instructions: string | null
           created_at: string
           updated_at: string
         }
@@ -64,6 +65,7 @@ export interface Database {
           welcome_email_sent_at?: string | null
           is_beta_tester?: boolean
           beta_notes?: string | null
+          payment_instructions?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -91,6 +93,7 @@ export interface Database {
           welcome_email_sent_at?: string | null
           is_beta_tester?: boolean
           beta_notes?: string | null
+          payment_instructions?: string | null
           created_at?: string
           updated_at?: string
         }
