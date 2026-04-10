@@ -141,6 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               if (elapsed > DEFAULT_TIMEOUT_MS) {
                 sessionStale = true;
               }
+            } else {
+              // No timestamp recorded — this is a pre-existing session from
+              // before the inactivity check was added, or the key was cleared.
+              // Treat as stale so users aren't auto-logged in indefinitely.
+              sessionStale = true;
             }
           } catch {}
 
