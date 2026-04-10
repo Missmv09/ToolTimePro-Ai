@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 // Default: 30 minutes of inactivity before logout
-const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
+export const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
 // Show warning 5 minutes before logout
 const DEFAULT_WARNING_MS = 5 * 60 * 1000;
+
+// localStorage key for persisting last activity across tab closes / browser restarts
+export const LAST_ACTIVITY_KEY = 'tooltime_last_activity';
 
 const ACTIVITY_EVENTS = [
   'mousedown',
@@ -74,7 +77,9 @@ export function useSessionTimeout({
 
   const startTimers = useCallback(() => {
     clearAllTimers();
-    lastActivityRef.current = Date.now();
+    const now = Date.now();
+    lastActivityRef.current = now;
+    try { localStorage.setItem(LAST_ACTIVITY_KEY, String(now)); } catch {};
 
     // Timer to show the warning
     const warningDelay = timeoutMs - warningMs;

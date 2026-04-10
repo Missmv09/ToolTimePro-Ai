@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useRef, useMemo, useCal
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User as DbUser, Company } from '@/types/database';
+import { LAST_ACTIVITY_KEY, DEFAULT_TIMEOUT_MS } from '@/hooks/useSessionTimeout';
 
 // Timeout for auth initialization to prevent infinite loading
 const AUTH_TIMEOUT_MS = 5000;
@@ -129,13 +130,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) {
           console.error('Error getting session:', error);
           setAuthError(error.message);
-        } else {
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
+        } else if (initialSession?.user) {
+          // Check if the session is stale — i.e. the user closed the tab/browser
+          // and has been inactive longer than the session timeout threshold.
+          let sessionStale = false;
+          try {
+            const lastActivity = localStorage.getItem(LAST_ACTIVITY_KEY);
+            if (lastActivity) {
+              const elapsed = Date.now() - Number(lastActivity);
+              if (elapsed > DEFAULT_TIMEOUT_MS) {
+                sessionStale = true;
+              }
+            }
+          } catch {}
 
-          if (initialSession?.user) {
+          if (sessionStale) {
+            // Expired due to inactivity — sign them out so they see the
+            // landing / login page instead of auto-redirecting to the dashboard.
+            console.info('Session expired due to inactivity, signing out');
+            await supabase.auth.signOut();
+            try { localStorage.removeItem(LAST_ACTIVITY_KEY); } catch {}
+            setSession(null);
+            setUser(null);
+          } else {
+            setSession(initialSession);
+            setUser(initialSession.user);
             await fetchUserData(initialSession.user.id);
           }
+        } else {
+          setSession(null);
+          setUser(null);
         }
 
         // Mark as complete and stop loading
@@ -266,6 +290,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error };
       }
 
+      // Stamp last-activity so the inactivity timer starts from login
+      try { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); } catch {}
+
       // Update last_login_at to clear "Pending Activation" status
       if (data.user?.id) {
         await supabase
@@ -284,6 +311,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isSupabaseConfigured) return;
 
     await supabase.auth.signOut();
+    try { localStorage.removeItem(LAST_ACTIVITY_KEY); } catch {}
     setUser(null);
     setDbUser(null);
     setCompany(null);
