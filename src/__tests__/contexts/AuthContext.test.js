@@ -87,6 +87,9 @@ describe('AuthContext', () => {
     const mockUser = { id: 'user-123', email: 'test@test.com' };
     const mockSession = { user: mockUser, access_token: 'token' };
 
+    // Simulate recent activity so the session is not treated as stale
+    localStorage.setItem('tooltime_last_activity', String(Date.now()));
+
     supabase.auth.getSession.mockResolvedValue({
       data: { session: mockSession },
       error: null,
