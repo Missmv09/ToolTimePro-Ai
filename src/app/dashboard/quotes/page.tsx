@@ -839,8 +839,16 @@ function QuotesContent() {
           <tbody className="divide-y divide-gray-200">
             {displayQuotes.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                  {filter === 'needs_follow_up' ? 'No quotes need follow-up right now.' : 'No quotes found. Create your first quote to get started.'}
+                <td colSpan={7} className="px-6 py-16 text-center">
+                  <span className="text-4xl block mb-4">{filter === 'needs_follow_up' ? '👍' : '📝'}</span>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-1">
+                    {filter === 'needs_follow_up' ? 'All caught up!' : 'No quotes yet'}
+                  </h3>
+                  <p className="text-gray-500 max-w-sm mx-auto">
+                    {filter === 'needs_follow_up'
+                      ? 'No quotes need follow-up right now — nice work!'
+                      : 'Send a customer a professional estimate — they can approve it right from their phone.'}
+                  </p>
                 </td>
               </tr>
             ) : (

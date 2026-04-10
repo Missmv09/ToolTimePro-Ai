@@ -159,7 +159,17 @@ export default function CustomersPage() {
       {/* Customers Grid */}
       {filteredCustomers.length === 0 ? (
         <div className="bg-white rounded-xl border p-12 text-center">
-          <p className="text-gray-500">No customers found. Add your first customer or convert a lead.</p>
+          <span className="text-4xl block mb-4">👤</span>
+          <h3 className="text-lg font-semibold text-gray-700 mb-1">No customers yet</h3>
+          <p className="text-gray-500 mb-4 max-w-sm mx-auto">
+            Add your first customer — just a name and phone number is enough to get started.
+          </p>
+          <button
+            onClick={() => { setEditingCustomer(null); setShowModal(true) }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            + Add Your First Customer
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

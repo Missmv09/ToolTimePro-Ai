@@ -413,7 +413,11 @@ export default function ReportsPage() {
           {loading ? (
             <Skeleton className="h-64 w-full" />
           ) : revenueByMonth.length === 0 ? (
-            <p className="text-gray-500 text-center py-16">No revenue data for this period.</p>
+            <div className="text-center py-16">
+              <span className="text-4xl block mb-4">📊</span>
+              <h3 className="text-lg font-semibold text-gray-700 mb-1">No revenue data yet</h3>
+              <p className="text-gray-500 max-w-sm mx-auto">Once you start sending invoices and getting paid, your revenue trends will show up here.</p>
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={revenueByMonth}>
@@ -437,7 +441,7 @@ export default function ReportsPage() {
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : revenueByMonth.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No data available.</p>
+            <p className="text-gray-500 text-center py-8">Complete some jobs and send invoices to see your monthly breakdown here.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -476,7 +480,7 @@ export default function ReportsPage() {
               {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : workers.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No time entries found for this period.</p>
+            <p className="text-gray-500 text-center py-8">When your team starts clocking in, their hours will show up here.</p>
           ) : (
             <>
               <div className="overflow-x-auto">
