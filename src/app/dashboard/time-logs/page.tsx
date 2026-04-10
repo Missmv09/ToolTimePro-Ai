@@ -414,12 +414,16 @@ export default function TimeLogsPage() {
 
       {filteredEntries.length === 0 && (
         <div className="card text-center py-12">
-          <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600">No time entries found</h3>
-          <p className="text-gray-400 mt-1">
+          <span className="text-4xl block mb-4">⏱️</span>
+          <h3 className="text-lg font-semibold text-gray-700 mb-1">
             {searchQuery || statusFilter !== 'all' || workerFilter !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Time entries will appear here when workers clock in'}
+              ? 'No matching entries'
+              : 'No time entries yet'}
+          </h3>
+          <p className="text-gray-500 mt-1 max-w-sm mx-auto">
+            {searchQuery || statusFilter !== 'all' || workerFilter !== 'all'
+              ? 'Try adjusting your search or filters to find what you\'re looking for.'
+              : 'When your team clocks in from the worker app, their hours show up here automatically.'}
           </p>
         </div>
       )}

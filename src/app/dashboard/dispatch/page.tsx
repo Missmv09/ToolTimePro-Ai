@@ -298,10 +298,11 @@ export default function DispatchBoardPage() {
 
           {workers.length === 0 ? (
             <div className="p-6 text-center">
-              <User className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500 mb-1">No active workers found.</p>
-              <Link href="/dashboard/team" className="text-sm text-[#f5a623] hover:underline font-medium">
-                Add team members in Settings
+              <span className="text-3xl block mb-3">👷</span>
+              <p className="text-sm font-medium text-gray-700 mb-1">No workers yet</p>
+              <p className="text-xs text-gray-500 mb-3">Add your crew so you can see them here and assign jobs.</p>
+              <Link href="/dashboard/team" className="inline-flex items-center gap-1 text-sm text-[#f5a623] hover:underline font-medium">
+                + Add Team Members
               </Link>
             </div>
           ) : (
@@ -437,10 +438,11 @@ export default function DispatchBoardPage() {
 
           {jobs.length === 0 ? (
             <div className="p-6 text-center">
-              <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500 mb-1">No jobs scheduled for today.</p>
-              <Link href="/dashboard/jobs" className="text-sm text-[#f5a623] hover:underline font-medium">
-                Schedule a job
+              <span className="text-3xl block mb-3">📅</span>
+              <p className="text-sm font-medium text-gray-700 mb-1">No jobs today</p>
+              <p className="text-xs text-gray-500 mb-3">Schedule a job and it&apos;ll show up here for dispatch.</p>
+              <Link href="/dashboard/jobs" className="inline-flex items-center gap-1 text-sm text-[#f5a623] hover:underline font-medium">
+                + Schedule a Job
               </Link>
             </div>
           ) : (

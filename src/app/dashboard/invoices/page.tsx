@@ -425,8 +425,12 @@ export default function InvoicesPage() {
           <tbody className="divide-y divide-gray-200">
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                  No invoices found. Create an invoice or convert an accepted quote.
+                <td colSpan={6} className="px-6 py-16 text-center">
+                  <span className="text-4xl block mb-4">💰</span>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-1">No invoices yet</h3>
+                  <p className="text-gray-500 max-w-sm mx-auto">
+                    Send a customer an invoice and get paid online — no more chasing checks.
+                  </p>
                 </td>
               </tr>
             ) : (
