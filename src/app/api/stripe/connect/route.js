@@ -90,14 +90,17 @@ export async function POST(request) {
           .eq('id', userData.company_id)
       } catch (createErr) {
         console.error('Failed to create Stripe account:', createErr)
-        const msg = createErr?.message?.includes('api_key')
-          ? 'Stripe API key is invalid. Please contact support.'
-          : 'Failed to create Stripe account. Please try again.'
+        let msg = 'Failed to create Stripe account. Please try again.'
+        if (createErr?.message?.includes('api_key')) {
+          msg = 'Stripe API key is invalid. Please contact support.'
+        } else if (createErr?.type === 'StripeInvalidRequestError' || createErr?.message?.includes('connect')) {
+          msg = 'Stripe Connect is not enabled on this account. Please enable Connect in your Stripe dashboard at https://dashboard.stripe.com/connect/overview'
+        }
         return NextResponse.json({ error: msg }, { status: 500 })
       }
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://tooltimepro.com'
 
     // Create onboarding link
     try {
