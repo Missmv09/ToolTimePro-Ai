@@ -5,10 +5,19 @@ export const dynamic = 'force-dynamic'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-const REDIRECT_URI = `${APP_URL}/api/google-calendar/callback`
+
+function getAppUrl(request) {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
+  const proto = request.headers.get('x-forwarded-proto') || 'https'
+  const host = request.headers.get('host')
+  if (host) return `${proto}://${host}`
+  return 'https://app.tooltimepro.com'
+}
 
 export async function GET(request) {
+  const APP_URL = getAppUrl(request)
+  const REDIRECT_URI = `${APP_URL}/api/google-calendar/callback`
+
   try {
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       console.error('Google Calendar environment variables not configured')
