@@ -209,9 +209,9 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 | Endpoint | Methods | Source |
 |----------|---------|--------|
-| `/api/stripe/connect` | `POST` | `src/app/api/stripe/connect/route.ts` |
-| `/api/stripe/connect/callback` | `POST` | `src/app/api/stripe/connect/callback/route.ts` |
-| `/api/stripe/connect/status` | `GET` | `src/app/api/stripe/connect/status/route.ts` |
+| `/api/stripe/connect` | `POST` | `src/app/api/stripe/connect/route.js` |
+| `/api/stripe/connect/callback` | `POST` | `src/app/api/stripe/connect/callback/route.js` |
+| `/api/stripe/connect/status` | `GET` | `src/app/api/stripe/connect/status/route.js` |
 | `/api/stripe/setup-products` | `GET` `POST` | `src/app/api/stripe/setup-products/route.js` |
 
 ## Supplier Pricing
@@ -267,4 +267,4 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 > **Total endpoints:** 89 routes across 33 groups
 
-_Last generated: 2026-04-09_
+_Last generated: 2026-04-10_
