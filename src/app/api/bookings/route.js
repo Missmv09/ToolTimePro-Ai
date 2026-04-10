@@ -28,9 +28,10 @@ function formatPhone(phone) {
 async function sendConfirmationSMS({ to, customerName, serviceName, date, time, companyName }) {
   try {
     const client = getTwilioClient();
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
     const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-    if (!client || !fromNumber) {
+    if (!client || (!messagingServiceSid && !fromNumber)) {
       console.log('Twilio not configured - skipping SMS');
       return { sent: false, reason: 'not_configured' };
     }
@@ -50,11 +51,18 @@ async function sendConfirmationSMS({ to, customerName, serviceName, date, time, 
     const displayHour = hour % 12 || 12;
     const formattedTime = `${displayHour}:${minutes} ${ampm}`;
 
-    const message = await client.messages.create({
+    const smsParams = {
       body: `Hi ${customerName}! Your ${serviceName} appointment with ${companyName} is confirmed for ${formattedDate} at ${formattedTime}. We'll see you then!`,
       to: formatPhone(to),
-      from: fromNumber,
-    });
+    };
+
+    if (messagingServiceSid) {
+      smsParams.messagingServiceSid = messagingServiceSid;
+    } else {
+      smsParams.from = fromNumber;
+    }
+
+    const message = await client.messages.create(smsParams);
 
     return { sent: true, messageId: message.sid };
   } catch (error) {

@@ -3,6 +3,7 @@
 // - TWILIO_ACCOUNT_SID
 // - TWILIO_AUTH_TOKEN
 // - TWILIO_PHONE_NUMBER
+// - TWILIO_MESSAGING_SERVICE_SID (preferred — routes through verified A2P 10DLC campaign)
 
 import Twilio from 'twilio';
 
@@ -62,16 +63,29 @@ export interface SMSResult {
   error?: string;
 }
 
+export function getMessagingServiceSid(): string | undefined {
+  return process.env.TWILIO_MESSAGING_SERVICE_SID || undefined;
+}
+
 export async function sendSMS(options: SendSMSOptions): Promise<SMSResult> {
   try {
     const client = getTwilioClient();
-    const fromNumber = options.from || getTwilioPhoneNumber();
+    const messagingServiceSid = getMessagingServiceSid();
 
-    const message = await client.messages.create({
-      body: options.body,
-      to: formatPhoneNumber(options.to),
-      from: fromNumber,
-    });
+    // Prefer Messaging Service SID (A2P 10DLC campaign) over raw phone number
+    const to = formatPhoneNumber(options.to);
+
+    const message = messagingServiceSid
+      ? await client.messages.create({
+          body: options.body,
+          to,
+          messagingServiceSid,
+        })
+      : await client.messages.create({
+          body: options.body,
+          to,
+          from: options.from || getTwilioPhoneNumber(),
+        });
 
     return {
       success: true,

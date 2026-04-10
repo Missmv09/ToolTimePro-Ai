@@ -104,9 +104,10 @@ export async function POST(request) {
 
     // Get Twilio client
     const client = getTwilioClient();
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
     const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-    if (!client || !fromNumber) {
+    if (!client || (!messagingServiceSid && !fromNumber)) {
       return NextResponse.json({ error: 'Twilio SMS service is not configured' }, { status: 500 });
     }
 
@@ -120,12 +121,19 @@ export async function POST(request) {
       return NextResponse.json({ error: `Unknown template: ${template}` }, { status: 400 });
     }
 
-    // Send SMS
-    const message = await client.messages.create({
+    // Send SMS — prefer Messaging Service SID (A2P 10DLC campaign) over raw phone number
+    const smsParams = {
       body: messageBody,
       to: formatPhone(to),
-      from: fromNumber,
-    });
+    };
+
+    if (messagingServiceSid) {
+      smsParams.messagingServiceSid = messagingServiceSid;
+    } else {
+      smsParams.from = fromNumber;
+    }
+
+    const message = await client.messages.create(smsParams);
 
     // Log the SMS if we have a company ID
     if (companyId) {
@@ -177,11 +185,12 @@ export async function GET() {
   const configured = !!(
     process.env.TWILIO_ACCOUNT_SID &&
     process.env.TWILIO_AUTH_TOKEN &&
-    process.env.TWILIO_PHONE_NUMBER
+    (process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.TWILIO_PHONE_NUMBER)
   );
 
   return NextResponse.json({
     configured,
+    a2pCampaignActive: !!process.env.TWILIO_MESSAGING_SERVICE_SID,
     templates: Object.keys(TEMPLATES),
   });
 }
