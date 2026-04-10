@@ -12,7 +12,7 @@ function getSupabaseAdmin() {
 }
 
 // POST - Verify Stripe Connect onboarding is complete
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -22,11 +22,11 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseAdmin()
     if (!supabase) {
-      return NextResponse.json({ error: 'Server config error' }, { status: 500 })
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-    if (error || !user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
@@ -50,7 +50,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No Stripe account found' }, { status: 400 })
     }
 
-    const stripe = getStripe()
+    let stripe
+    try {
+      stripe = getStripe()
+    } catch {
+      return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 })
+    }
+
     const account = await stripe.accounts.retrieve(company.stripe_connect_account_id)
 
     const onboarded = account.charges_enabled && account.details_submitted

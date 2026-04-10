@@ -11,7 +11,7 @@ function getSupabaseAdmin() {
 }
 
 // GET - Check Stripe Connect status for the user's company
-export async function GET(request: Request) {
+export async function GET(request) {
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -21,11 +21,11 @@ export async function GET(request: Request) {
 
     const supabase = getSupabaseAdmin()
     if (!supabase) {
-      return NextResponse.json({ error: 'Server config error' }, { status: 500 })
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-    if (error || !user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
       onboarded: company?.stripe_connect_onboarded || false,
     })
   } catch (error) {
-    console.error('Stripe connect status error:', error);
+    console.error('Stripe connect status error:', error)
     return NextResponse.json({ connected: false })
   }
 }
