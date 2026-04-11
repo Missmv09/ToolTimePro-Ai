@@ -323,4 +323,91 @@ describe('route-optimization', () => {
       expect(result.percentImprovement).toBeGreaterThanOrEqual(0);
     });
   });
+
+  describe('2-opt correctness with index 0', () => {
+    it('correctly handles point at index 0 without falsy-zero bug', () => {
+      // Deliberately create a route where point index 0 appears in various positions.
+      // The old bug: improved[(j+1)%n] || improved[j] treated 0 as falsy.
+      const points: RoutePoint[] = [
+        { id: 'Z', lat: 34.05, lng: -118.30 },  // index 0
+        { id: 'Y', lat: 34.05, lng: -118.10 },
+        { id: 'X', lat: 34.05, lng: -118.28 },
+        { id: 'W', lat: 34.05, lng: -118.12 },
+        { id: 'V', lat: 34.05, lng: -118.20 },
+      ];
+
+      const result = optimizeRoute(points);
+      // Optimized must be <= original (the bug could make it worse)
+      expect(result.totalDistanceMiles).toBeLessThanOrEqual(result.originalDistanceMiles + 0.1);
+      expect(result.orderedPoints.length).toBe(5);
+    });
+
+    it('never produces a route longer than the original', () => {
+      // Run multiple configurations to ensure 2-opt never worsens the route
+      for (let trial = 0; trial < 5; trial++) {
+        const points: RoutePoint[] = [
+          { id: `A${trial}`, lat: 34.00 + trial * 0.01, lng: -118.30 },
+          { id: `B${trial}`, lat: 34.10, lng: -118.10 - trial * 0.01 },
+          { id: `C${trial}`, lat: 34.05, lng: -118.20 },
+          { id: `D${trial}`, lat: 33.95, lng: -118.25 + trial * 0.01 },
+        ];
+        const result = optimizeRoute(points);
+        expect(result.totalDistanceMiles).toBeLessThanOrEqual(result.originalDistanceMiles + 0.1);
+      }
+    });
+  });
+
+  describe('time window enforcement', () => {
+    it('respects time windows when enforceTimeWindows is enabled', () => {
+      // Point A has a late time window (afternoon), B has an early window (morning)
+      // Without time windows, optimizer would order by distance.
+      // With time windows, B should come before A.
+      const points: RoutePoint[] = [
+        { id: 'A', lat: 34.05, lng: -118.30, earliestArrival: '14:00', latestArrival: '16:00' },
+        { id: 'B', lat: 34.05, lng: -118.28, earliestArrival: '08:00', latestArrival: '10:00' },
+        { id: 'C', lat: 34.05, lng: -118.20 }, // no window
+      ];
+
+      const result = optimizeRoute(points, undefined, {
+        enforceTimeWindows: true,
+        startTimeMinutes: 480, // 8:00 AM
+      });
+
+      expect(result.orderedPoints.length).toBe(3);
+      // B (morning window) should come before A (afternoon window)
+      const idxB = result.orderedPoints.findIndex((p) => p.id === 'B');
+      const idxA = result.orderedPoints.findIndex((p) => p.id === 'A');
+      expect(idxB).toBeLessThan(idxA);
+    });
+
+    it('preserves all points when time windows are enforced', () => {
+      const points: RoutePoint[] = [
+        { id: 'A', lat: 34.05, lng: -118.30, earliestArrival: '14:00', latestArrival: '16:00' },
+        { id: 'B', lat: 34.07, lng: -118.20, earliestArrival: '09:00', latestArrival: '11:00' },
+        { id: 'C', lat: 34.03, lng: -118.10 },
+        { id: 'D', lat: 34.09, lng: -118.25 },
+      ];
+
+      const result = optimizeRoute(points, undefined, {
+        enforceTimeWindows: true,
+        startTimeMinutes: 480,
+      });
+
+      const outputIds = result.orderedPoints.map((p) => p.id).sort();
+      expect(outputIds).toEqual(['A', 'B', 'C', 'D']);
+    });
+
+    it('does not affect route when time windows are disabled', () => {
+      const points: RoutePoint[] = [
+        { id: 'A', lat: 34.05, lng: -118.30, earliestArrival: '14:00', latestArrival: '16:00' },
+        { id: 'B', lat: 34.05, lng: -118.20, earliestArrival: '08:00', latestArrival: '10:00' },
+      ];
+
+      const withoutTW = optimizeRoute(points);
+      const withTWDisabled = optimizeRoute(points, undefined, { enforceTimeWindows: false });
+
+      expect(withoutTW.orderedPoints.map((p) => p.id))
+        .toEqual(withTWDisabled.orderedPoints.map((p) => p.id));
+    });
+  });
 });

@@ -381,9 +381,13 @@ export default function RouteOptimizerPage() {
     setOptimizeError(null);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch('/api/routes/optimize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({
           jobs: jobs.map((j) => ({
             id: j.id,
@@ -392,12 +396,15 @@ export default function RouteOptimizerPage() {
             lat: j.lat,
             lng: j.lng,
             scheduledTime: j.scheduled_time_start,
+            earliestArrival: j.scheduled_time_start || null,
+            latestArrival: j.scheduled_time_end || null,
             label: getCustomerName(j.customer),
           })),
           settings: {
             avgSpeedMph: settings.avg_speed_mph,
             fuelCostPerMile: settings.fuel_cost_per_mile,
             roadFactor: settings.road_factor,
+            timeWindowEnabled: settings.time_window_enabled,
           },
           ...(workerCount > 1 ? { workerCount } : {}),
           ...(settings.office_lat && settings.office_lng ? {
