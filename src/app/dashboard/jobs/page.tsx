@@ -69,8 +69,7 @@ function JobsContent() {
         if (customerFilter) params.set('customer', customerFilter)
         const qs = params.toString()
 
-        console.log('[fetchJobs] Calling /api/jobs/list...')
-        const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
+                const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -78,8 +77,6 @@ function JobsContent() {
           const result = await res.json()
           // Only update state if this is still the latest request
           if (currentFetchId !== fetchIdRef.current) return
-          console.log('[fetchJobs] API returned', result.jobs?.length, 'jobs. Sample assignments:',
-            result.jobs?.slice(0, 2).map((j: Job) => ({ title: j.title, assigned: j.assigned_users })))
           setJobs(result.jobs || [])
           setLoading(false)
           return
@@ -121,7 +118,6 @@ function JobsContent() {
     if (error) {
       console.error('[fetchJobs] Direct query error:', error)
     } else {
-      console.log('[fetchJobs] Direct query returned', data?.length, 'jobs (RLS - assignments may be empty)')
       setJobs(data || [])
     }
     setLoading(false)
@@ -524,7 +520,6 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
     }
 
     const workerId = formData.assigned_worker_id || null
-    console.log('[JobSave] Starting save. Worker:', workerId, 'Editing:', job?.id || 'NEW')
 
     // ---------- ATTEMPT 1: Server-side API (bypasses RLS) ----------
     try {
@@ -552,10 +547,8 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
       })
 
       const result = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
-      console.log('[JobSave] API response:', res.status, result)
 
       if (res.ok && result.success) {
-        console.log('[JobSave] Success via API. Log:', result.log)
         setSaving(false)
         onSave()
         return
@@ -569,7 +562,6 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
     }
 
     // ---------- ATTEMPT 2: Direct Supabase client fallback ----------
-    console.log('[JobSave] Falling back to direct Supabase client')
     try {
       let jobId = job?.id
 
@@ -586,7 +578,6 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
           setSaving(false)
           return
         }
-        console.log('[JobSave] Direct update OK')
       } else {
         // Insert new
         const { data: newJob, error: insertErr } = await supabase
@@ -602,7 +593,6 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
           return
         }
         jobId = newJob.id
-        console.log('[JobSave] Direct insert OK, id:', jobId)
       }
 
       // Handle assignment directly
@@ -616,7 +606,6 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
         if (delErr) {
           console.error('[JobSave] Direct delete assignments failed:', delErr)
         } else {
-          console.log('[JobSave] Cleared existing assignments')
         }
 
         // Insert new assignment
@@ -633,7 +622,6 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
             console.error('[JobSave] Direct assignment insert returned empty (RLS silent reject)')
             alert('Job saved but worker assignment was silently rejected by database security policy. Please contact support.')
           } else {
-            console.log('[JobSave] Direct assignment OK:', assignData)
           }
         }
       }

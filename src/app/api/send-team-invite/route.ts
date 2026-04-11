@@ -24,12 +24,12 @@ export async function POST(request: NextRequest) {
     const token = authHeader.replace('Bearer ', '')
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!supabaseUrl || !supabaseAnonKey) {
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {

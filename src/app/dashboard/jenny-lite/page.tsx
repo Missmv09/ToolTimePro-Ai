@@ -59,7 +59,9 @@ export default function JennyLitePage() {
   }, [authLoading, company]);
 
   const saveSettings = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch { /* quota exceeded or private browsing */ }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };

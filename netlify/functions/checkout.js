@@ -53,13 +53,7 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 400,
         body: JSON.stringify({
-          error: 'Price ID not configured for this plan',
-          debug: {
-            plan,
-            billing,
-            planPrice,
-            availablePlans: Object.keys(prices)
-          }
+          error: 'Price ID not configured for this plan. Please contact support.',
         })
       };
     }

@@ -12,6 +12,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Quote ID is required' }, { status: 400 })
     }
 
+    // Only allow UUID lookups to prevent enumeration attacks on quote_number
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -21,8 +27,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Try fetching by ID first, then by quote_number
-    let { data: quote, error } = await supabase
+    const { data: quote, error } = await supabase
       .from('quotes')
       .select(`
         *,
@@ -32,22 +37,8 @@ export async function GET(request: NextRequest) {
       .eq('id', id)
       .single()
 
-    if (error) {
-      // Try by quote_number
-      const { data: byNumber, error: numberError } = await supabase
-        .from('quotes')
-        .select(`
-          *,
-          company:companies(*),
-          customer:customers(*)
-        `)
-        .eq('quote_number', id)
-        .single()
-
-      if (numberError) {
-        return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
-      }
-      quote = byNumber
+    if (error || !quote) {
+      return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
     }
 
     // Only allow viewing sent/viewed/approved/rejected quotes (not drafts)

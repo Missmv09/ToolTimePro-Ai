@@ -21,48 +21,6 @@ interface QuoteWithDetails extends Quote {
   quote_line_items?: QuoteLineItem[];
 }
 
-// Demo quote data as fallback
-const demoQuote = {
-  id: 'demo',
-  quote_number: 'QT-2024-001',
-  status: 'sent' as const,
-  created_at: '2024-01-15',
-  valid_until: '2024-02-15',
-  company: {
-    id: 'demo-company',
-    name: 'Green Valley Landscaping',
-    phone: '(555) 123-4567',
-    email: 'info@greenvalley.com',
-    logo_url: null,
-    address: '456 Business Ave',
-    city: 'Sacramento',
-    state: 'CA',
-    zip: '95814',
-  },
-  customer: {
-    id: 'demo-customer',
-    name: 'John Smith',
-    phone: '(555) 987-6543',
-    email: 'john@email.com',
-    address: '123 Oak Street',
-    city: 'San Jose',
-    state: 'CA',
-    zip: '95123',
-  },
-  items: [
-    { id: '1', description: 'Front yard lawn mowing (1/4 acre)', quantity: 1, unit_price: 45, total_price: 45 },
-    { id: '2', description: 'Hedge trimming - front yard', quantity: 1, unit_price: 65, total_price: 65 },
-    { id: '3', description: 'Edge trimming along walkway & driveway', quantity: 1, unit_price: 25, total_price: 25 },
-    { id: '4', description: 'Gutter cleaning', quantity: 1, unit_price: 95, total_price: 95 },
-    { id: '5', description: 'Yard debris cleanup & haul away', quantity: 1, unit_price: 50, total_price: 50 },
-  ],
-  subtotal: 280,
-  tax_rate: 8.25,
-  tax_amount: 23.10,
-  discount_amount: 0,
-  total: 303.10,
-  notes: 'Work will be completed within 1-2 business days of approval. All debris will be hauled away. Please ensure gate access is available.',
-};
 
 export default function CustomerQuoteView({ params }: { params: { id: string } }) {
   const t = useTranslations('misc.quote');
@@ -93,14 +51,6 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     setError(null);
 
     try {
-      // Check for demo quote
-      if (params.id === 'demo' || params.id === 'QT-2024-001') {
-        setQuote(demoQuote as unknown as QuoteWithDetails);
-        setItems(demoQuote.items);
-        setIsLoading(false);
-        return;
-      }
-
       // Fetch quote via server-side API (bypasses RLS for public access)
       const res = await fetch(`/api/quote/public?id=${encodeURIComponent(params.id)}`);
 
