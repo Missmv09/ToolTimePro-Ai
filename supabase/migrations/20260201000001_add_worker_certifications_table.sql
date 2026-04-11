@@ -54,6 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_worker_certs_active ON worker_certifications(is_a
 ALTER TABLE worker_certifications ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view certifications for workers in their company
+DROP POLICY IF EXISTS "Users can view company worker certifications" ON worker_certifications;
 CREATE POLICY "Users can view company worker certifications" ON worker_certifications
     FOR SELECT USING (
         company_id IN (
@@ -62,6 +63,7 @@ CREATE POLICY "Users can view company worker certifications" ON worker_certifica
     );
 
 -- Policy: Admins and owners can insert certifications
+DROP POLICY IF EXISTS "Admins can insert worker certifications" ON worker_certifications;
 CREATE POLICY "Admins can insert worker certifications" ON worker_certifications
     FOR INSERT WITH CHECK (
         company_id IN (
@@ -73,6 +75,7 @@ CREATE POLICY "Admins can insert worker certifications" ON worker_certifications
     );
 
 -- Policy: Admins and owners can update certifications
+DROP POLICY IF EXISTS "Admins can update worker certifications" ON worker_certifications;
 CREATE POLICY "Admins can update worker certifications" ON worker_certifications
     FOR UPDATE USING (
         company_id IN (
@@ -84,6 +87,7 @@ CREATE POLICY "Admins can update worker certifications" ON worker_certifications
     );
 
 -- Policy: Owners can delete certifications
+DROP POLICY IF EXISTS "Owners can delete worker certifications" ON worker_certifications;
 CREATE POLICY "Owners can delete worker certifications" ON worker_certifications
     FOR DELETE USING (
         company_id IN (
@@ -97,6 +101,7 @@ CREATE POLICY "Owners can delete worker certifications" ON worker_certifications
 -- ============================================
 -- TRIGGERS
 -- ============================================
+DROP TRIGGER IF EXISTS update_worker_certifications_updated_at ON worker_certifications;
 CREATE TRIGGER update_worker_certifications_updated_at
     BEFORE UPDATE ON worker_certifications
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();

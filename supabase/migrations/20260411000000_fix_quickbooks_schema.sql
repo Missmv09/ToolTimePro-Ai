@@ -8,8 +8,16 @@
 -- Add company_id column (references companies table)
 ALTER TABLE qbo_connections ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id) ON DELETE CASCADE;
 
--- Rename qbo_realm_id → realm_id to match API code
-ALTER TABLE qbo_connections RENAME COLUMN qbo_realm_id TO realm_id;
+-- Rename qbo_realm_id → realm_id to match API code (idempotent)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'qbo_connections' AND column_name = 'qbo_realm_id'
+  ) THEN
+    ALTER TABLE qbo_connections RENAME COLUMN qbo_realm_id TO realm_id;
+  END IF;
+END $$;
 
 -- Backfill company_id from the user's company for any existing rows
 UPDATE qbo_connections qc
@@ -20,7 +28,14 @@ WHERE qc.user_id = u.id
 
 -- Drop old unique constraint on user_id and add one on company_id
 ALTER TABLE qbo_connections DROP CONSTRAINT IF EXISTS qbo_connections_user_id_key;
-ALTER TABLE qbo_connections ADD CONSTRAINT qbo_connections_company_id_key UNIQUE (company_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'qbo_connections_company_id_key'
+  ) THEN
+    ALTER TABLE qbo_connections ADD CONSTRAINT qbo_connections_company_id_key UNIQUE (company_id);
+  END IF;
+END $$;
 
 -- Add index on company_id
 CREATE INDEX IF NOT EXISTS idx_qbo_connections_company_id ON qbo_connections(company_id);

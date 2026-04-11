@@ -38,6 +38,7 @@ CREATE INDEX IF NOT EXISTS idx_worker_notes_created_at ON worker_notes(created_a
 ALTER TABLE worker_notes ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view notes for workers in their company
+DROP POLICY IF EXISTS "Users can view company worker notes" ON worker_notes;
 CREATE POLICY "Users can view company worker notes" ON worker_notes
     FOR SELECT USING (
         company_id IN (
@@ -46,6 +47,7 @@ CREATE POLICY "Users can view company worker notes" ON worker_notes
     );
 
 -- Policy: Admins and owners can insert notes
+DROP POLICY IF EXISTS "Admins can insert worker notes" ON worker_notes;
 CREATE POLICY "Admins can insert worker notes" ON worker_notes
     FOR INSERT WITH CHECK (
         company_id IN (
@@ -57,6 +59,7 @@ CREATE POLICY "Admins can insert worker notes" ON worker_notes
     );
 
 -- Policy: Admins and owners can update notes in their company
+DROP POLICY IF EXISTS "Admins can update worker notes" ON worker_notes;
 CREATE POLICY "Admins can update worker notes" ON worker_notes
     FOR UPDATE USING (
         company_id IN (
@@ -68,6 +71,7 @@ CREATE POLICY "Admins can update worker notes" ON worker_notes
     );
 
 -- Policy: Owners can delete notes in their company
+DROP POLICY IF EXISTS "Owners can delete worker notes" ON worker_notes;
 CREATE POLICY "Owners can delete worker notes" ON worker_notes
     FOR DELETE USING (
         company_id IN (
@@ -83,6 +87,7 @@ CREATE POLICY "Owners can delete worker notes" ON worker_notes
 -- ============================================
 
 -- Auto-update updated_at timestamp
+DROP TRIGGER IF EXISTS update_worker_notes_updated_at ON worker_notes;
 CREATE TRIGGER update_worker_notes_updated_at
     BEFORE UPDATE ON worker_notes
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
