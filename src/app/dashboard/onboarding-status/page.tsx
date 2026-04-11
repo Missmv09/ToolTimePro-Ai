@@ -233,6 +233,14 @@ export default function OnboardingStatusPage() {
                       <span className={`text-sm ${item.completed ? 'text-gray-500 line-through' : 'text-gray-700'}`}>
                         {item.label}
                       </span>
+                      {item.id === 'customer_import' && !item.completed && (
+                        <a
+                          href="/dashboard/import-customers"
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-1"
+                        >
+                          Import now &rarr;
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
