@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,27 +7,36 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.tooltimepro.com'
 
-export async function GET() {
+export async function GET(request) {
   try {
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-      console.error('Google Calendar environment variables not configured')
-      return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=not_configured', SITE_URL)
+      return NextResponse.json(
+        { error: 'Google Calendar is not configured' },
+        { status: 503 }
       )
     }
 
-    // Get the current user from Supabase using SSR client
-    const supabase = await createSupabaseServerClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError) {
-      console.error('Error getting user:', userError)
+    // Authenticate via Bearer token (sent by the client component)
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!user) {
-      return NextResponse.redirect(
-        new URL('/auth/login?redirect=/dashboard/settings', SITE_URL)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 503 }
       )
+    }
+
+    const token = authHeader.slice(7)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
+
+    if (error || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Encode user ID in state param for CSRF protection
@@ -53,11 +62,12 @@ export async function GET() {
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 
-    return NextResponse.redirect(authUrl)
+    return NextResponse.json({ url: authUrl })
   } catch (error) {
     console.error('Google Calendar connect error:', error)
-    return NextResponse.redirect(
-      new URL('/dashboard/settings?gcal=error', SITE_URL)
+    return NextResponse.json(
+      { error: 'Failed to initiate connection' },
+      { status: 500 }
     )
   }
 }

@@ -52,9 +52,38 @@ export default function GoogleCalendarConnect() {
     }
   }, [searchParams])
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
     setConnecting(true)
-    window.location.href = '/api/google-calendar/connect'
+    setMessage(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        window.location.href = '/auth/login?redirect=/dashboard/settings'
+        return
+      }
+
+      const response = await fetch('/api/google-calendar/connect', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const err = await response.json()
+        throw new Error(err.error || 'Failed to initiate connection')
+      }
+
+      const data = await response.json()
+      window.location.href = data.url
+    } catch (error) {
+      console.error('Connect failed:', error)
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to connect. Please try again.',
+      })
+      setConnecting(false)
+    }
   }
 
   const handleSync = async () => {
@@ -62,8 +91,12 @@ export default function GoogleCalendarConnect() {
     setMessage(null)
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const response = await fetch('/api/google-calendar/sync', {
         method: 'POST',
+        headers: session?.access_token
+          ? { 'Authorization': `Bearer ${session.access_token}` }
+          : {},
       })
 
       if (!response.ok) {
@@ -93,8 +126,12 @@ export default function GoogleCalendarConnect() {
     if (!confirm('Are you sure you want to disconnect Google Calendar?')) return
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const response = await fetch('/api/google-calendar/disconnect', {
         method: 'POST',
+        headers: session?.access_token
+          ? { 'Authorization': `Bearer ${session.access_token}` }
+          : {},
       })
 
       if (!response.ok) {
