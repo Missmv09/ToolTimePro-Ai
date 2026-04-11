@@ -262,11 +262,11 @@ export default function CustomerDetailPage() {
         icon: 'filetext',
         color: 'purple',
       })
-      if (quote.status === 'accepted') {
+      if (quote.status === 'approved') {
         events.push({
           id: `quote-accepted-${quote.id}`,
           type: 'quote_accepted',
-          title: `Quote #${quote.quote_number} accepted`,
+          title: `Quote #${quote.quote_number} approved`,
           description: `$${(quote.total || 0).toLocaleString()}`,
           date: quote.created_at,
           link: '/dashboard/quotes',

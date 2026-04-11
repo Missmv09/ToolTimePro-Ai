@@ -22,6 +22,7 @@ interface Customer {
   created_at: string
   jobs?: { id: string; status: string }[]
   invoices?: { id: string; status: string; total: number }[]
+  quotes?: { id: string; status: string }[]
 }
 
 export default function CustomersPage() {
@@ -62,7 +63,8 @@ export default function CustomersPage() {
       .select(`
         *,
         jobs:jobs(id, status),
-        invoices:invoices(id, status, total)
+        invoices:invoices(id, status, total),
+        quotes:quotes(id, status)
       `)
       .eq('company_id', companyId)
       .order('name')
@@ -227,6 +229,10 @@ export default function CustomersPage() {
                 <div>
                   <span className="text-gray-500">Invoices: </span>
                   <span className="font-medium">{customer.invoices?.length || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Quotes: </span>
+                  <span className="font-medium">{customer.quotes?.length || 0}</span>
                 </div>
               </div>
 
