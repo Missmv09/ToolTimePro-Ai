@@ -157,6 +157,7 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 | `/api/quote/save` | `POST` | `src/app/api/quote/save/route.ts` |
 | `/api/quote/save-items` | `POST` | `src/app/api/quote/save-items/route.ts` |
 | `/api/quote/send` | `POST` | `src/app/api/quote/send/route.ts` |
+| `/api/quote/sms-consent` | `POST` | `src/app/api/quote/sms-consent/route.ts` |
 
 ## Reset Password
 
@@ -271,6 +272,6 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 ---
 
-> **Total endpoints:** 90 routes across 34 groups
+> **Total endpoints:** 91 routes across 34 groups
 
 _Last generated: 2026-04-11_
