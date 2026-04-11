@@ -565,7 +565,7 @@ export default function PricingPage() {
         </section>
 
         {/* Other Add-ons */}
-        <section className="section">
+        <section className="section" id="addons">
           <h2>{t('otherAddons')}</h2>
           <p className="section-desc">{t('otherAddonsDesc')}</p>
 

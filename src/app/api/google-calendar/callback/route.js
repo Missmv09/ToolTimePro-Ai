@@ -47,7 +47,14 @@ export async function GET(request) {
       )
     }
 
-    const { userId } = stateData
+    const { userId, timestamp } = stateData
+
+    // Reject stale OAuth state (older than 10 minutes) to prevent replay attacks
+    if (!timestamp || Date.now() - timestamp > 10 * 60 * 1000) {
+      return NextResponse.redirect(
+        new URL('/dashboard/settings?gcal=error&reason=expired_state', APP_URL)
+      )
+    }
 
     if (!userId) {
       return NextResponse.redirect(
