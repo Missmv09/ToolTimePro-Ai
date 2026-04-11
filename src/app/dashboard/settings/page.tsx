@@ -52,7 +52,7 @@ const PLAN_CONFIG: Record<string, { name: string; price: string; period: string 
 }
 
 function SettingsContent() {
-  const { user, dbUser, company } = useAuth()
+  const { user, dbUser, company, refreshUserData } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -252,6 +252,8 @@ function SettingsContent() {
       if (error) {
         setSaveMessage({ type: 'error', text: 'Error saving: ' + error.message })
       } else {
+        // Refresh AuthContext so dashboard checklist sees updated company data
+        await refreshUserData()
         setSaveMessage({ type: 'success', text: 'Company info saved!' })
         setTimeout(() => setSaveMessage(null), 3000)
       }
