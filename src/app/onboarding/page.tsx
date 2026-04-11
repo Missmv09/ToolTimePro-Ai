@@ -422,7 +422,9 @@ export default function OnboardingPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('businessPhone')}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('businessPhone')} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="tel"
                     value={phone}
@@ -430,6 +432,7 @@ export default function OnboardingPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="(555) 123-4567"
                   />
+                  <p className="text-xs text-gray-400 mt-1">Appears on your invoices and quotes so customers can reach you.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('streetAddress')}</label>
