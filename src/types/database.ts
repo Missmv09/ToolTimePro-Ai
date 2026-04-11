@@ -47,6 +47,7 @@ export interface Database {
           service_area_radius: number | null
           company_description: string | null
           default_hourly_rate: number | null
+          quote_approval_settings: Json | null
           preferred_language: string
           created_at: string
           updated_at: string
@@ -85,6 +86,7 @@ export interface Database {
           service_area_radius?: number | null
           company_description?: string | null
           default_hourly_rate?: number | null
+          quote_approval_settings?: Json | null
           preferred_language?: string
           created_at?: string
           updated_at?: string
@@ -123,6 +125,7 @@ export interface Database {
           service_area_radius?: number | null
           company_description?: string | null
           default_hourly_rate?: number | null
+          quote_approval_settings?: Json | null
           preferred_language?: string
           created_at?: string
           updated_at?: string
