@@ -1347,7 +1347,10 @@ function StripeConnectCard() {
     const checkStatus = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) return
+        if (!session?.access_token) {
+          setLoading(false)
+          return
+        }
 
         // Check URL params for return from Stripe
         const urlParams = new URLSearchParams(window.location.search)
@@ -1399,7 +1402,11 @@ function StripeConnectCard() {
     setMessage(null)
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) return
+      if (!session?.access_token) {
+        setMessage({ type: 'error', text: 'Please log in again to connect Stripe.' })
+        setConnecting(false)
+        return
+      }
 
       const res = await fetch('/api/stripe/connect', {
         method: 'POST',
@@ -1414,7 +1421,7 @@ function StripeConnectCard() {
         setConnecting(false)
       }
     } catch {
-      setMessage({ type: 'error', text: 'Failed to connect to Stripe' })
+      setMessage({ type: 'error', text: 'Failed to connect to Stripe. Please try again.' })
       setConnecting(false)
     }
   }
