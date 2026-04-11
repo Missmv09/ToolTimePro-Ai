@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.tooltimepro.com'
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || ''
 
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -55,7 +56,7 @@ export async function POST(request) {
       })
     ).toString('base64url')
 
-    const REDIRECT_URI = `${SITE_URL}/api/google-calendar/callback`
+    const REDIRECT_URI = GOOGLE_REDIRECT_URI || `${SITE_URL}/api/google-calendar/callback`
 
     const params = new URLSearchParams({
       client_id: GOOGLE_CLIENT_ID,

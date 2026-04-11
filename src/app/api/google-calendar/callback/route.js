@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.tooltimepro.com'
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || ''
 
 export async function GET(request) {
   try {
@@ -52,7 +53,7 @@ export async function GET(request) {
       )
     }
 
-    const REDIRECT_URI = `${SITE_URL}/api/google-calendar/callback`
+    const REDIRECT_URI = GOOGLE_REDIRECT_URI || `${SITE_URL}/api/google-calendar/callback`
 
     // Exchange authorization code for tokens
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
