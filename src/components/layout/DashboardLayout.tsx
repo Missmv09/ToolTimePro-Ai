@@ -32,7 +32,6 @@ import {
   Brain,
   BarChart3,
   CreditCard,
-  Webhook,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -107,7 +106,6 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeatur
   if (canAccessFeature('invoicing')) items.push({ href: '/dashboard/payment-plans', label: 'Payment Plans', icon: CreditCard });
 
   if (can('settings')) items.push({ href: '/dashboard/reports', label: 'Reports', icon: BarChart3 });
-  if (can('settings')) items.push({ href: '/dashboard/webhooks', label: 'Webhooks', icon: Webhook });
   if (can('settings')) items.push({ href: '/dashboard/settings', label: 'Settings', icon: Settings });
 
   return items;
