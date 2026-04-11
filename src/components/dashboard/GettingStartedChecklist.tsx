@@ -7,21 +7,13 @@ import {
   Circle,
   Globe,
   Users,
-  Briefcase,
   CalendarCheck,
   Wrench,
-  Receipt,
-  Quote,
   CreditCard,
   MessageCircle,
   Settings,
-  Clock,
-  Radio,
-  Route,
   Phone,
-  Shield,
   BookOpen,
-  Contact,
   X,
   ChevronDown,
   ChevronUp,
@@ -64,21 +56,11 @@ export default function GettingStartedChecklist() {
     services: false,
     website: false,
     booking: false,
-    customers: false,
-    jobs: false,
     team: false,
-    quotes: false,
-    invoices: false,
     payments: false,
     jenny: false,
     jennyPro: false,
-    timeLogs: false,
-    dispatch: false,
-    routeOptimizer: false,
-    blog: false,
     quickbooks: false,
-    compliance: false,
-    customerPortal: false,
   })
 
   useEffect(() => {
@@ -100,24 +82,12 @@ export default function GettingStartedChecklist() {
       const companyId = dbUser.company_id
 
       const [
-        customersRes,
-        jobsRes,
         teamRes,
         websiteRes,
         servicesRes,
-        quotesRes,
-        invoicesRes,
-        timeLogsRes,
         qboRes,
+        jennyProRes,
       ] = await Promise.all([
-        supabase
-          .from('customers')
-          .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId),
-        supabase
-          .from('jobs')
-          .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId),
         supabase
           .from('users')
           .select('id', { count: 'exact', head: true })
@@ -133,19 +103,11 @@ export default function GettingStartedChecklist() {
           .eq('company_id', companyId)
           .eq('is_active', true),
         supabase
-          .from('quotes')
-          .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId),
-        supabase
-          .from('invoices')
-          .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId),
-        supabase
-          .from('time_logs')
-          .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId),
-        supabase
           .from('qbo_connections')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', companyId),
+        supabase
+          .from('jenny_pro_settings')
           .select('id', { count: 'exact', head: true })
           .eq('company_id', companyId),
       ])
@@ -153,32 +115,32 @@ export default function GettingStartedChecklist() {
       const hasWebsiteOrSite = !!company?.website || (websiteRes.count ?? 0) > 0
       const hasServicesSet = (servicesRes.count ?? 0) > 0
 
+      // Jenny Lite settings are stored in localStorage
+      let hasJennyLiteSettings = false
+      try {
+        const stored = localStorage.getItem('tooltimepro_jenny_lite_settings')
+        if (stored) {
+          const settings = JSON.parse(stored)
+          hasJennyLiteSettings = !!(settings.greeting || settings.businessName)
+        }
+      } catch {}
+
       setChecks({
         profile: !!(company?.phone && company?.address),
         services: hasServicesSet,
         website: hasWebsiteOrSite,
         booking: hasServicesSet && hasWebsiteOrSite,
-        customers: (customersRes.count ?? 0) > 0,
-        jobs: (jobsRes.count ?? 0) > 0,
         team: (teamRes.count ?? 0) > 1,
-        quotes: (quotesRes.count ?? 0) > 0,
-        invoices: (invoicesRes.count ?? 0) > 0,
         payments: !!company?.stripe_connect_onboarded,
-        jenny: hasWebsiteOrSite,
-        jennyPro: !!company?.booking_settings,
-        timeLogs: (timeLogsRes.count ?? 0) > 0,
-        dispatch: (jobsRes.count ?? 0) > 0,
-        routeOptimizer: (jobsRes.count ?? 0) >= 2,
-        blog: false,
+        jenny: hasJennyLiteSettings,
+        jennyPro: (jennyProRes.count ?? 0) > 0,
         quickbooks: (qboRes.count ?? 0) > 0,
-        compliance: !!(company?.booking_settings),
-        customerPortal: (customersRes.count ?? 0) > 0 && (jobsRes.count ?? 0) > 0,
       })
       setLoaded(true)
     }
 
     checkProgress()
-  }, [dbUser?.company_id, dbUser?.id, company?.website, company?.phone, company?.address, company?.stripe_connect_onboarded, company?.booking_settings])
+  }, [dbUser?.company_id, dbUser?.id, company?.website, company?.phone, company?.address, company?.stripe_connect_onboarded])
 
   if (dismissed || !loaded) return null
 
@@ -209,23 +171,6 @@ export default function GettingStartedChecklist() {
           completed: checks.services,
           icon: <Wrench size={18} />,
           feature: 'booking',
-        },
-        {
-          id: 'customer',
-          label: 'Add a customer',
-          description: 'Enter your first customer — you can always add more later',
-          href: '/dashboard/customers',
-          completed: checks.customers,
-          icon: <Users size={18} />,
-          feature: 'customers',
-        },
-        {
-          id: 'job',
-          label: 'Schedule your first job',
-          description: 'Pick a customer, choose a service, set a date — done!',
-          href: '/dashboard/jobs',
-          completed: checks.jobs,
-          icon: <Briefcase size={18} />,
         },
       ],
     },
@@ -271,22 +216,13 @@ export default function GettingStartedChecklist() {
           icon: <Phone size={18} />,
           feature: 'jenny_pro',
         },
-        {
-          id: 'blog',
-          label: 'Post a blog article',
-          description: 'We\'ll help you write it — great for showing up on Google',
-          href: '/dashboard/blog',
-          completed: checks.blog,
-          icon: <BookOpen size={18} />,
-          feature: 'blog',
-        },
       ],
     },
     {
       id: 'revenue',
       title: 'Start Getting Paid',
-      subtitle: 'Send quotes, invoices, and collect payments',
-      doneMessage: 'You\'re all set to quote, invoice, and get paid!',
+      subtitle: 'Connect your payment and accounting tools',
+      doneMessage: 'Your payment tools are connected and ready!',
       items: [
         {
           id: 'payments',
@@ -295,24 +231,6 @@ export default function GettingStartedChecklist() {
           href: '/dashboard/settings?tab=integrations',
           completed: checks.payments,
           icon: <CreditCard size={18} />,
-          feature: 'invoicing',
-        },
-        {
-          id: 'quote',
-          label: 'Send a quote to a customer',
-          description: 'Create a professional estimate — they can approve it right from their phone',
-          href: '/dashboard/quotes',
-          completed: checks.quotes,
-          icon: <Quote size={18} />,
-          feature: 'quoting',
-        },
-        {
-          id: 'invoice',
-          label: 'Send your first invoice',
-          description: 'Bill a customer and get paid online — no more chasing checks',
-          href: '/dashboard/invoices',
-          completed: checks.invoices,
-          icon: <Receipt size={18} />,
           feature: 'invoicing',
         },
         {
@@ -329,7 +247,7 @@ export default function GettingStartedChecklist() {
     {
       id: 'team',
       title: 'Manage Your Team',
-      subtitle: 'Add workers, track time, and stay organized',
+      subtitle: 'Invite your crew so they can see their jobs',
       doneMessage: 'Your team is set up and ready to roll!',
       items: [
         {
@@ -340,51 +258,6 @@ export default function GettingStartedChecklist() {
           completed: checks.team,
           icon: <Users size={18} />,
           feature: 'team_management',
-        },
-        {
-          id: 'timelogs',
-          label: 'Have someone clock in',
-          description: 'Workers tap one button on their phone — GPS tracks the rest',
-          href: '/dashboard/time-logs',
-          completed: checks.timeLogs,
-          icon: <Clock size={18} />,
-          feature: 'time_tracking',
-        },
-        {
-          id: 'dispatch',
-          label: 'Try the Dispatch Board',
-          description: 'See all your crews on a map and assign jobs with a click',
-          href: '/dashboard/dispatch',
-          completed: checks.dispatch,
-          icon: <Radio size={18} />,
-          feature: 'dispatch_board',
-        },
-        {
-          id: 'routes',
-          label: 'Optimize a route',
-          description: 'We\'ll sort your jobs to save gas and drive time',
-          href: '/dashboard/route-optimizer',
-          completed: checks.routeOptimizer,
-          icon: <Route size={18} />,
-          feature: 'route_optimizer',
-        },
-        {
-          id: 'compliance',
-          label: 'Check your compliance status',
-          description: 'Make sure your crew\'s breaks and hours are on track',
-          href: '/dashboard/compliance',
-          completed: checks.compliance,
-          icon: <Shield size={18} />,
-          feature: 'compliance',
-        },
-        {
-          id: 'portal',
-          label: 'See your Customer Portal',
-          description: 'Customers can check job status and message you — fewer phone calls',
-          href: '/dashboard/settings',
-          completed: checks.customerPortal,
-          icon: <Contact size={18} />,
-          feature: 'customer_portal',
         },
       ],
     },
