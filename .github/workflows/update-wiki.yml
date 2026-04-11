@@ -10,6 +10,9 @@ on:
       - 'src/lib/stripe-prices.js'
       # API route changes
       - 'src/app/api/**/route.*'
+      # CRM import / field mapping changes
+      - 'src/lib/crm-field-mappings.ts'
+      - 'src/app/dashboard/import-customers/**'
       # Cron / function changes
       - 'netlify.toml'
       - 'netlify/functions/**'

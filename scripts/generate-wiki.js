@@ -6,9 +6,10 @@
  * Run manually or via GitHub Actions on push to main.
  *
  * Generated pages:
- *   - wiki/Pricing-and-Plans.md  (from PRODUCTS array in setup-stripe-products.js)
- *   - wiki/API-Reference.md      (from src/app/api/ directory scan)
- *   - wiki/System-Automation.md   (from netlify.toml cron schedules + functions)
+ *   - wiki/Pricing-and-Plans.md       (from PRODUCTS array in setup-stripe-products.js)
+ *   - wiki/API-Reference.md           (from src/app/api/ directory scan)
+ *   - wiki/System-Automation.md       (from netlify.toml cron schedules + functions)
+ *   - wiki/Customers-and-Leads.md     (CRM Import section from src/lib/crm-field-mappings.ts)
  *
  * Usage:
  *   node scripts/generate-wiki.js
@@ -453,6 +454,186 @@ _Last generated: ${new Date().toISOString().split('T')[0]}_
 }
 
 // ============================================================
+// 4. CRM Import — parsed from src/lib/crm-field-mappings.ts
+//    Injects the "Importing Customers" section into
+//    wiki/Customers-and-Leads.md between marker comments.
+// ============================================================
+
+function parseCrmFieldMappings() {
+  const filePath = path.join(ROOT, 'src', 'lib', 'crm-field-mappings.ts');
+  if (!fs.existsSync(filePath)) return null;
+
+  const src = fs.readFileSync(filePath, 'utf8');
+
+  // Extract CRM template names, IDs, descriptions, and export instructions
+  const templates = [];
+  const templateRegex = /(\w+):\s*\{[^}]*?id:\s*'([^']+)',\s*name:\s*'([^']+)',\s*description:\s*'([^']+)',[\s\S]*?exportInstructions:\s*\[([\s\S]*?)\]/g;
+  let m;
+  while ((m = templateRegex.exec(src)) !== null) {
+    const instructions = [];
+    const instrRegex = /'([^']+)'/g;
+    let im;
+    while ((im = instrRegex.exec(m[5])) !== null) {
+      instructions.push(im[1]);
+    }
+    // Build a short export path: extract just the key nouns (Customers → Export → CSV)
+    const breadcrumbs = [];
+    for (const instr of instructions) {
+      // Strip leading "In CRM, " prefix
+      const clean = instr.replace(/^In [\w\s]+,\s*/i, '').replace(/\.$/, '');
+      // Extract the navigation target (bold noun after go to / navigate to / click / select)
+      const navMatch = clean.match(/(?:go to|navigate to)\s+(.+?)(?:\s+(?:from|in|and)\s|$)/i);
+      const clickMatch = clean.match(/(?:click|select|choose|use)\s+(?:the\s+)?(?:"([^"]+)"|'([^']+)'|(\w[\w\s]*?))(?:\s+(?:button|icon|function|format|and|to|as|above)\b|$)/i);
+      const exportMatch = clean.match(/\bexport\b/i);
+      const csvMatch = clean.match(/\bCSV\b/i);
+      if (navMatch) {
+        const crumb = navMatch[1].replace(/\s+from.*/, '').replace(/\s+in.*/, '');
+        if (!breadcrumbs.includes(crumb)) breadcrumbs.push(crumb);
+      } else if (exportMatch && !breadcrumbs.includes('Export')) {
+        breadcrumbs.push('Export');
+      }
+      if (csvMatch && !breadcrumbs.includes('CSV')) breadcrumbs.push('CSV');
+    }
+    templates.push({
+      id: m[2],
+      name: m[3],
+      description: m[4],
+      exportPath: breadcrumbs.length > 0 ? breadcrumbs.join(' → ') : 'Export as CSV',
+    });
+  }
+
+  // Extract customer fields
+  const fields = [];
+  const fieldRegex = /\{\s*target:\s*'([^']+)',\s*label:\s*'([^']+)',\s*required:\s*(true|false)\s*\}/g;
+  while ((m = fieldRegex.exec(src)) !== null) {
+    fields.push({ target: m[1], label: m[2], required: m[3] === 'true' });
+  }
+
+  return { templates, fields };
+}
+
+function generateCrmImportSection(data) {
+  if (!data) return null;
+
+  const { templates, fields } = data;
+  const specific = templates.filter(t => t.id !== 'generic_csv');
+  const generic = templates.find(t => t.id === 'generic_csv');
+
+  let md = `## Importing Customers (CRM Migration)
+
+<!-- AUTO-INJECTED by generate-wiki.js from src/lib/crm-field-mappings.ts — do not edit this section manually -->
+
+Already have customers in another system? ToolTime Pro includes a self-service import wizard that migrates your customer data in minutes — no White-Glove setup required.
+
+### How to Import
+
+1. Go to **Customers** in the sidebar
+2. Click **Import Customers** (or navigate to **Dashboard → Import Customers**)
+3. **Select your source CRM** — choose from the supported platforms below, or pick "Generic CSV" for any spreadsheet
+4. **Export your data** — follow the on-screen instructions to export a CSV from your old system
+5. **Upload your CSV** — drag and drop or click to upload (max 10 MB)
+6. **Map fields** — ToolTime Pro auto-detects column mappings; adjust any that need correction
+7. **Preview** — review the first 10 rows, see valid vs. error counts
+8. **Import** — click "Import" to bring in all valid rows
+
+### Supported CRM Platforms
+
+| Platform | Auto-Detected? | Export Path |
+|----------|:--------------:|-------------|
+`;
+
+  for (const t of specific) {
+    md += `| **${t.name}** | Yes | ${t.exportPath} |\n`;
+  }
+  if (generic) {
+    md += `| **${generic.name}** | Manual mapping | Any CSV with a header row |\n`;
+  }
+
+  md += `
+### Imported Fields
+
+| ToolTime Pro Field | Required? | Notes |
+|--------------------|:---------:|-------|
+`;
+
+  const fieldNotes = {
+    name: 'Or separate First + Last Name columns (auto-combined)',
+    email: 'Used for quotes, invoices, and communication',
+    phone: 'Normalized to (XXX) XXX-XXXX format',
+    address: 'Job site / mailing address',
+    city: '',
+    state: '2-letter abbreviation (e.g. CA, TX)',
+    zip: '',
+    notes: 'Multiple note-like columns are merged',
+    source: 'Where the customer originally came from',
+  };
+
+  for (const f of fields) {
+    const note = fieldNotes[f.target] || '';
+    md += `| **${f.label}** | ${f.required ? 'Yes' : 'No'} | ${note} |\n`;
+  }
+
+  md += `
+### Duplicate Handling
+
+- By default, **Skip Duplicates** is enabled — customers that already exist (matched by email or phone) are skipped
+- You can uncheck this option during the preview step if you want to allow duplicates
+- The import summary shows exactly how many rows were imported, skipped, or failed
+
+### Tips for a Smooth Import
+
+1. **Clean your CSV first** — remove test rows, blank rows, or internal notes
+2. **Use the preview step** — check the first 10 rows before committing
+3. **State abbreviations** — use 2-letter codes (CA, not California) to avoid validation errors
+4. **Phone numbers** — any format works (the importer normalizes them automatically)
+5. **Large lists** — the importer handles files up to 10 MB, which covers thousands of customers`;
+
+  return md;
+}
+
+function injectCrmImportSection(sectionMd) {
+  const wikiFile = path.join(WIKI_DIR, 'Customers-and-Leads.md');
+  if (!fs.existsSync(wikiFile)) {
+    console.log('  Skipped: wiki/Customers-and-Leads.md does not exist');
+    return;
+  }
+
+  const content = fs.readFileSync(wikiFile, 'utf8');
+
+  const startMarker = '## Importing Customers (CRM Migration)';
+  const endMarker = '## How Customers & Leads Connect to Other Features';
+
+  const startIdx = content.indexOf(startMarker);
+  const endIdx = content.indexOf(endMarker);
+
+  let updated;
+  if (startIdx !== -1 && endIdx !== -1) {
+    // Replace existing section
+    updated = content.slice(0, startIdx) + sectionMd + '\n\n---\n\n' + content.slice(endIdx);
+  } else if (endIdx !== -1) {
+    // Insert before the "How Customers & Leads Connect" section
+    updated = content.slice(0, endIdx) + sectionMd + '\n\n---\n\n' + content.slice(endIdx);
+  } else {
+    // Append before the last ---
+    const lastDivider = content.lastIndexOf('\n---\n');
+    if (lastDivider !== -1) {
+      updated = content.slice(0, lastDivider) + '\n---\n\n' + sectionMd + content.slice(lastDivider);
+    } else {
+      updated = content + '\n\n---\n\n' + sectionMd;
+    }
+  }
+
+  if (DRY_RUN) {
+    console.log(`\n--- Customers-and-Leads.md (CRM Import section) ---\n`);
+    console.log(sectionMd);
+    return;
+  }
+
+  fs.writeFileSync(wikiFile, updated, 'utf8');
+  console.log('  Injected CRM Import section into: wiki/Customers-and-Leads.md');
+}
+
+// ============================================================
 // Main
 // ============================================================
 
@@ -480,6 +661,19 @@ function main() {
   console.log('Generating System Automation...');
   const automationMd = generateSystemAutomation();
   writeWikiPage('System-Automation.md', automationMd);
+
+  // 4. CRM Import → inject into Customers-and-Leads.md
+  console.log('Generating CRM Import section...');
+  const crmData = parseCrmFieldMappings();
+  if (crmData && crmData.templates.length > 0) {
+    console.log(`  Found ${crmData.templates.length} CRM templates, ${crmData.fields.length} fields`);
+    const crmSection = generateCrmImportSection(crmData);
+    if (crmSection) {
+      injectCrmImportSection(crmSection);
+    }
+  } else {
+    console.log('  Skipped: no CRM field mappings found');
+  }
 
   console.log('\nDone!');
   if (DRY_RUN) {
