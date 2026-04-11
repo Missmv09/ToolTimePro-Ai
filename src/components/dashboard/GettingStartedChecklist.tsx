@@ -147,7 +147,7 @@ export default function GettingStartedChecklist() {
         supabase
           .from('qbo_connections')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', dbUser.id),
+          .eq('company_id', companyId),
       ])
 
       const hasWebsiteOrSite = !!company?.website || (websiteRes.count ?? 0) > 0
@@ -292,7 +292,7 @@ export default function GettingStartedChecklist() {
           id: 'payments',
           label: 'Connect your payment account',
           description: 'Link Stripe so you can accept credit cards — takes 5 minutes',
-          href: '/dashboard/settings',
+          href: '/dashboard/settings?tab=integrations',
           completed: checks.payments,
           icon: <CreditCard size={18} />,
           feature: 'invoicing',
@@ -319,7 +319,7 @@ export default function GettingStartedChecklist() {
           id: 'quickbooks',
           label: 'Connect QuickBooks',
           description: 'Your invoices and payments sync automatically — less bookkeeping',
-          href: '/dashboard/settings',
+          href: '/dashboard/settings?tab=integrations',
           completed: checks.quickbooks,
           icon: <BookOpen size={18} />,
           feature: 'quickbooks_sync',

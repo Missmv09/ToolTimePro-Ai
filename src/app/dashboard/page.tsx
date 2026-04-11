@@ -219,13 +219,13 @@ export default function DashboardPage() {
   // Check for QBO connection status
   useEffect(() => {
     const checkQboConnection = async () => {
-      if (!user || !isSupabaseConfigured) return
+      if (!companyId || !isSupabaseConfigured) return
 
       try {
         const { data, error } = await supabase
           .from('qbo_connections')
           .select('last_sync_at, sync_status')
-          .eq('user_id', user.id)
+          .eq('company_id', companyId)
           .single()
 
         if (data && !error) {
@@ -241,7 +241,7 @@ export default function DashboardPage() {
     }
 
     checkQboConnection()
-  }, [user])
+  }, [companyId])
 
   const handleQboDisconnect = async () => {
     if (!confirm('Are you sure you want to disconnect QuickBooks?')) return
@@ -466,7 +466,7 @@ export default function DashboardPage() {
       <div className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">QuickBooks Integration</h2>
-          <Link href="/dashboard/settings" className="text-blue-600 hover:text-blue-700 text-sm">
+          <Link href="/dashboard/settings?tab=integrations" className="text-blue-600 hover:text-blue-700 text-sm">
             All integrations →
           </Link>
         </div>
