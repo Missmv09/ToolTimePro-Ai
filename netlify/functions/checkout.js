@@ -2,7 +2,7 @@ const Stripe = require('stripe');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
+    return { statusCode: 405, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -102,6 +102,7 @@ exports.handler = async (event, context) => {
     console.error('Stripe checkout error:', error);
     return {
       statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: error.message })
     };
   }

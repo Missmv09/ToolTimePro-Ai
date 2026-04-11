@@ -94,8 +94,11 @@ function SettingsContent() {
             syncStatus: 'active',
           })
         }
-      } catch {
-        // No connection found, that's fine
+      } catch (err) {
+        // No connection found is expected; log real errors
+        if (err instanceof Error && !err.message?.includes('PGRST116')) {
+          console.warn('QBO connection check error:', err.message)
+        }
       }
     }
 

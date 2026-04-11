@@ -67,13 +67,17 @@ export async function authenticateRequest(request, bodyToken = null) {
     const url = new URL(request.url);
     const qToken = url.searchParams.get('_token');
     if (qToken) candidates.push({ token: qToken, source: 'query' });
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn('[Auth] Failed to parse URL for token:', err.message);
+  }
 
   // 4. Cookie (most reliable — always sent after redirects)
   try {
     const cookieToken = request.cookies?.get?.('_auth_token')?.value;
     if (cookieToken) candidates.push({ token: decodeURIComponent(cookieToken), source: 'cookie' });
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn('[Auth] Failed to read auth cookie:', err.message);
+  }
 
   if (candidates.length === 0) {
     console.error('[Auth] No token found. Header:', authHeader ? 'present' : 'missing',

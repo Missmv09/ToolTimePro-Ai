@@ -30,11 +30,25 @@ async function hashToken(token: string): Promise<string> {
 }
 
 // ============================================================
-// SECURITY: Rate limiting (in-memory, per IP)
+// SECURITY: Rate limiting (in-memory, per IP, with TTL cleanup)
 // ============================================================
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
+// Periodically clean up expired entries to prevent memory leaks
+const CLEANUP_INTERVAL = 60_000; // 1 minute
+let lastCleanup = Date.now();
+
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
+  lastCleanup = now;
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(key);
+  }
+}
+
 function checkRateLimit(ip: string, maxRequests: number, windowMs: number): boolean {
+  cleanupRateLimitMap();
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
 
