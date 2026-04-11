@@ -326,8 +326,48 @@ async function runLeadFollowUp(
 
   const now = new Date();
 
+  // Batch-check SMS consent for leads that have a linked customer
+  const leadsWithCustomer = coldLeads.filter((l: { customer_id?: string }) => l.customer_id);
+  const customerIds = leadsWithCustomer.map((l: { customer_id: string }) => l.customer_id);
+  const consentMap = new Map<string, boolean>();
+
+  if (customerIds.length > 0) {
+    const { data: customers } = await supabase
+      .from('customers')
+      .select('id, sms_consent')
+      .in('id', customerIds);
+
+    for (const c of (customers || [])) {
+      consentMap.set(c.id, c.sms_consent === true);
+    }
+  }
+
   for (const lead of coldLeads) {
     if (!lead.phone) continue;
+
+    // TCPA compliance: only send SMS if customer has explicitly opted in
+    if (lead.customer_id) {
+      const hasConsent = consentMap.get(lead.customer_id);
+      if (!hasConsent) {
+        // Log skipped follow-up for audit trail
+        await supabase.from('jenny_action_log').insert({
+          company_id: companyId,
+          action_type: 'lead_follow_up',
+          title: `Follow-up skipped for ${lead.name} — no SMS consent`,
+          description: `Jenny skipped SMS follow-up to ${lead.name} (${lead.phone}) because the customer has not opted in to text messages.`,
+          status: 'skipped',
+          target_id: lead.id,
+          target_type: 'lead',
+          target_name: lead.name,
+          metadata: { reason: 'no_sms_consent', phone: lead.phone },
+          executed_at: new Date().toISOString(),
+        });
+        continue;
+      }
+    } else {
+      // Lead has no linked customer record — skip SMS (no way to verify consent)
+      continue;
+    }
 
     const leadAge = Math.floor((now.getTime() - new Date(lead.created_at).getTime()) / (1000 * 60 * 60 * 24));
     const attemptsDone = followUpMap.get(lead.id) || 0;
@@ -347,7 +387,7 @@ async function runLeadFollowUp(
 
     // Build message from template
     const messageTemplate = messages[attemptsDone]?.sms_template ||
-      `Hi ${lead.name}, following up from ${company.name} about your project. Still interested? Call us at ${company.phone || 'our office'}.`;
+      `Hi ${lead.name}, following up from ${company.name} about your project. Still interested? Call us at ${company.phone || 'our office'}. Reply STOP to opt out.`;
 
     const message = messageTemplate
       .replace(/{customer_name}/g, lead.name || 'there')
