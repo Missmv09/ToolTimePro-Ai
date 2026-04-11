@@ -148,6 +148,7 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 |----------|---------|--------|
 | `/api/quote/delete` | `POST` | `src/app/api/quote/delete/route.ts` |
 | `/api/quote/deposit-pay` | `POST` | `src/app/api/quote/deposit-pay/route.ts` |
+| `/api/quote/edit-history` | `GET` `POST` | `src/app/api/quote/edit-history/route.ts` |
 | `/api/quote/notify-approval` | `POST` | `src/app/api/quote/notify-approval/route.ts` |
 | `/api/quote/notify-cancellation` | `POST` | `src/app/api/quote/notify-cancellation/route.ts` |
 | `/api/quote/notify-scheduling` | `POST` | `src/app/api/quote/notify-scheduling/route.ts` |
@@ -272,6 +273,6 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 ---
 
-> **Total endpoints:** 91 routes across 34 groups
+> **Total endpoints:** 92 routes across 34 groups
 
 _Last generated: 2026-04-11_
