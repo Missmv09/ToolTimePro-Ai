@@ -27,11 +27,12 @@ interface Stats {
   totalJobs: number;
   completedJobs: number;
   totalSpent: number;
+  memberSince: string | null;
 }
 
 export default function PortalHistory() {
   const [jobs, setJobs] = useState<HistoryJob[]>([]);
-  const [stats, setStats] = useState<Stats>({ totalJobs: 0, completedJobs: 0, totalSpent: 0 });
+  const [stats, setStats] = useState<Stats>({ totalJobs: 0, completedJobs: 0, totalSpent: 0, memberSince: null });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const t = useTranslations('portal.history');
@@ -51,7 +52,7 @@ export default function PortalHistory() {
       .then(res => res.json())
       .then(data => {
         setJobs(data.jobs || []);
-        setStats(data.stats || { totalJobs: 0, completedJobs: 0, totalSpent: 0 });
+        setStats(data.stats || { totalJobs: 0, completedJobs: 0, totalSpent: 0, memberSince: null });
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -75,7 +76,7 @@ export default function PortalHistory() {
       <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <Briefcase className="w-5 h-5 text-blue-500 mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
@@ -92,6 +93,15 @@ export default function PortalHistory() {
             ${stats.totalSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </p>
           <p className="text-xs text-gray-500">{t('totalInvested')}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm text-center">
+          <TrendingUp className="w-5 h-5 text-purple-500 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900">
+            {stats.memberSince
+              ? new Date(stats.memberSince).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+              : '—'}
+          </p>
+          <p className="text-xs text-gray-500">{t('memberSince')}</p>
         </div>
       </div>
 

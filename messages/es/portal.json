@@ -121,6 +121,7 @@
       "totalJobs": "Total de trabajos",
       "completed": "Completados",
       "totalInvested": "Total invertido",
+      "memberSince": "Cliente desde",
       "filterAll": "Todos",
       "filterCompleted": "Completados",
       "filterUpcoming": "Próximos",

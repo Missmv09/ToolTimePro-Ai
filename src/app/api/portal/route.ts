@@ -414,13 +414,23 @@ export async function GET(request: NextRequest) {
     const totalJobs = (allJobs || []).length;
     const completedJobs = (allJobs || []).filter((j: { status: string }) => j.status === 'completed').length;
 
+    // Get the earliest job date to compute "member since"
+    const { data: firstJob } = await supabase
+      .from('jobs')
+      .select('scheduled_date')
+      .eq('customer_id', session.customer_id)
+      .eq('company_id', session.company_id)
+      .order('scheduled_date', { ascending: true })
+      .limit(1)
+      .single();
+
     return NextResponse.json({
       jobs: allJobs || [],
       stats: {
         totalJobs,
         completedJobs,
         totalSpent,
-        memberSince: null, // Could compute from first job date
+        memberSince: firstJob?.scheduled_date || null,
       },
     });
   }
