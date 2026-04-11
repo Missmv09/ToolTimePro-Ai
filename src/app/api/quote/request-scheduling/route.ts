@@ -39,6 +39,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Quote not found' }, { status: 404 });
     }
 
+    // Persist the scheduling request on the quote so the dashboard can display it
+    const { error: updateError } = await supabase
+      .from('quotes')
+      .update({
+        scheduling_requested_at: new Date().toISOString(),
+        preferred_contact_time: preferredContact || 'anytime',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', quoteId);
+
+    if (updateError) {
+      // Columns may not exist yet — fall back to appending to notes
+      console.log('Could not save scheduling columns, appending to notes:', updateError.message);
+      const contactTimeLabelsForNote: Record<string, string> = {
+        morning: 'Morning (8am-12pm)',
+        afternoon: 'Afternoon (12pm-5pm)',
+        evening: 'Evening (5pm-7pm)',
+        anytime: 'Anytime',
+      };
+      const label = contactTimeLabelsForNote[preferredContact] || 'Anytime';
+      const schedulingNote = `\n\n[Scheduling Request] Customer requested callback: ${label} (${new Date().toLocaleString()})`;
+      const { data: currentQuote } = await supabase
+        .from('quotes')
+        .select('notes')
+        .eq('id', quoteId)
+        .single();
+      await supabase
+        .from('quotes')
+        .update({
+          notes: (currentQuote?.notes || '') + schedulingNote,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', quoteId);
+    }
+
     // Find owner/admin users for the company to notify
     const { data: owners } = await supabase
       .from('users')

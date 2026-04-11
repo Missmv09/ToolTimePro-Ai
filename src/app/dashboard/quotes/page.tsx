@@ -37,6 +37,8 @@ interface Quote {
   deposit_amount?: number | null
   deposit_percentage?: number | null
   deposit_paid?: boolean
+  scheduling_requested_at?: string | null
+  preferred_contact_time?: string | null
   items?: QuoteItem[]
   creator?: { full_name: string } | null
   sender?: { full_name: string } | null
@@ -923,6 +925,21 @@ function QuotesContent() {
                             Last: {new Date(quote.last_followed_up_at).toLocaleDateString()}
                           </p>
                         )}
+                      </div>
+                    ) : quote.status === 'approved' && quote.scheduling_requested_at ? (
+                      <div>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                          Callback Requested
+                        </span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {quote.preferred_contact_time === 'morning' ? 'Morning (8am-12pm)' :
+                           quote.preferred_contact_time === 'afternoon' ? 'Afternoon (12pm-5pm)' :
+                           quote.preferred_contact_time === 'evening' ? 'Evening (5pm-7pm)' :
+                           'Anytime'}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {new Date(quote.scheduling_requested_at).toLocaleDateString()}
+                        </p>
                       </div>
                     ) : (
                       <span className="text-xs text-gray-400">-</span>

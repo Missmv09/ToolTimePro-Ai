@@ -522,7 +522,7 @@ export interface Database {
           tax_amount: number
           discount_amount: number
           total: number
-          status: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired'
+          status: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired' | 'pending_approval'
           valid_until: string | null
           sent_at: string | null
           viewed_at: string | null
@@ -537,6 +537,8 @@ export interface Database {
           deposit_paid: boolean
           deposit_paid_at: string | null
           deposit_stripe_payment_id: string | null
+          scheduling_requested_at: string | null
+          preferred_contact_time: string | null
           created_at: string
           updated_at: string
         }
@@ -553,7 +555,7 @@ export interface Database {
           tax_amount?: number
           discount_amount?: number
           total?: number
-          status?: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired'
+          status?: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired' | 'pending_approval'
           valid_until?: string | null
           sent_at?: string | null
           viewed_at?: string | null
@@ -568,6 +570,8 @@ export interface Database {
           deposit_paid?: boolean
           deposit_paid_at?: string | null
           deposit_stripe_payment_id?: string | null
+          scheduling_requested_at?: string | null
+          preferred_contact_time?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -584,7 +588,7 @@ export interface Database {
           tax_amount?: number
           discount_amount?: number
           total?: number
-          status?: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired'
+          status?: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired' | 'pending_approval'
           valid_until?: string | null
           sent_at?: string | null
           viewed_at?: string | null
@@ -599,6 +603,8 @@ export interface Database {
           deposit_paid?: boolean
           deposit_paid_at?: string | null
           deposit_stripe_payment_id?: string | null
+          scheduling_requested_at?: string | null
+          preferred_contact_time?: string | null
           created_at?: string
           updated_at?: string
         }

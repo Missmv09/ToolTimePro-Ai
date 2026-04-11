@@ -68,6 +68,12 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
       } else if (fetchedQuote.status === 'rejected') {
         setQuoteStatus('rejected');
       }
+
+      // Reflect scheduling request state from the database
+      if (fetchedQuote.scheduling_requested_at) {
+        setSchedulingRequested(true);
+        setPreferredContact(fetchedQuote.preferred_contact_time || 'anytime');
+      }
     } catch (err) {
       console.error('Error fetching quote:', err);
       setError('Quote not found');
