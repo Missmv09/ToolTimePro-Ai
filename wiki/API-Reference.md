@@ -138,7 +138,7 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 | Endpoint | Methods | Source |
 |----------|---------|--------|
 | `/api/quickbooks/callback` | `GET` | `src/app/api/quickbooks/callback/route.ts` |
-| `/api/quickbooks/connect` | `GET` | `src/app/api/quickbooks/connect/route.ts` |
+| `/api/quickbooks/connect` | `POST` | `src/app/api/quickbooks/connect/route.ts` |
 | `/api/quickbooks/disconnect` | `POST` | `src/app/api/quickbooks/disconnect/route.ts` |
 | `/api/quickbooks/sync` | `POST` | `src/app/api/quickbooks/sync/route.ts` |
 
