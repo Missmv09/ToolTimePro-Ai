@@ -154,6 +154,8 @@ export default function OnboardingPage() {
       setError(updateError.message)
       return false
     }
+    // Refresh AuthContext so dashboard checklist sees updated company data
+    await refreshUserData()
     return true
   }
 
