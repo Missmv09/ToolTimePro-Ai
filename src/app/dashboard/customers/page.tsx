@@ -108,15 +108,23 @@ export default function CustomersPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-        <button
-          onClick={() => {
-            setEditingCustomer(null)
-            setShowModal(true)
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          + Add Customer
-        </button>
+        <div className="flex gap-3">
+          <Link
+            href="/dashboard/import-customers"
+            className="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50"
+          >
+            Import from CRM
+          </Link>
+          <button
+            onClick={() => {
+              setEditingCustomer(null)
+              setShowModal(true)
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            + Add Customer
+          </button>
+        </div>
       </div>
 
       {/* Search */}
