@@ -93,8 +93,10 @@ export async function POST(request) {
         let msg = 'Failed to create Stripe account. Please try again.'
         if (createErr?.message?.includes('api_key')) {
           msg = 'Stripe API key is invalid. Please contact support.'
-        } else if (createErr?.type === 'StripeInvalidRequestError' || createErr?.message?.includes('connect')) {
+        } else if (createErr?.code === 'platform_api_not_enabled') {
           msg = 'Stripe Connect is not enabled on this account. Please enable Connect in your Stripe dashboard at https://dashboard.stripe.com/connect/overview'
+        } else if (createErr?.type === 'StripeInvalidRequestError') {
+          msg = `Stripe error: ${createErr.message}`
         }
         return NextResponse.json({ error: msg }, { status: 500 })
       }
