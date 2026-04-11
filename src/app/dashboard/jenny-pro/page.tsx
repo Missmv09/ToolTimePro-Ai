@@ -13,7 +13,6 @@ import {
   ArrowRight,
   Settings,
   PhoneIncoming,
-  PhoneOff,
   Send,
   RefreshCw,
 } from 'lucide-react';
@@ -156,11 +155,11 @@ function JennyProDashboard() {
             ))}
           </div>
 
-          {/* Voice Feature Card — Pending Twilio Approval */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-6">
+          {/* Voice Feature Card — Campaign Approved */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <PhoneIncoming className="w-6 h-6 text-amber-600" />
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <PhoneIncoming className="w-6 h-6 text-green-600" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">AI Phone Receptionist</h3>
@@ -168,13 +167,12 @@ function JennyProDashboard() {
                   Jenny will answer your business calls 24/7, capture leads, book appointments, and handle emergencies — in English and Spanish.
                 </p>
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
-                    <Clock size={14} />
-                    Pending Twilio Campaign Approval
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                    Active
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  Voice features will activate automatically once your Twilio A2P 10DLC campaign is approved. SMS features are available now.
+                  Your A2P 10DLC campaign is verified. SMS and voice features are fully active.
                 </p>
               </div>
             </div>
@@ -358,13 +356,12 @@ function JennyProDashboard() {
           {/* Twilio Status */}
           <div className="bg-white rounded-xl border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Twilio Campaign Status</h3>
-            <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
-              <PhoneOff className="w-5 h-5 text-amber-600 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+              <Phone className="w-5 h-5 text-green-600 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-amber-800">A2P 10DLC Campaign: Pending Approval</p>
-                <p className="text-xs text-amber-600 mt-0.5">
-                  This is required for business SMS and voice services. Typical approval takes 1-5 business days.
-                  SMS features using existing approved numbers are available now.
+                <p className="text-sm font-medium text-green-800">A2P 10DLC Campaign: Verified</p>
+                <p className="text-xs text-green-600 mt-0.5">
+                  Your campaign is approved and active. All SMS and voice features are fully operational.
                 </p>
               </div>
             </div>

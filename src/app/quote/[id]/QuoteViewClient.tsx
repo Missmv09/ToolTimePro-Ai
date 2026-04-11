@@ -22,7 +22,7 @@ interface QuoteWithDetails extends Quote {
 }
 
 
-export default function CustomerQuoteView({ params }: { params: { id: string } }) {
+export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
   const t = useTranslations('misc.quote');
   const [quote, setQuote] = useState<QuoteWithDetails | null>(null);
   const [items, setItems] = useState<QuoteLineItem[]>([]);
@@ -41,6 +41,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
   const [requestingSchedule, setRequestingSchedule] = useState(false);
   const [preferredContact, setPreferredContact] = useState<string>('');
   const [depositPaid, setDepositPaid] = useState(false);
+  const [smsOptIn, setSmsOptIn] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -52,7 +53,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
     try {
       // Fetch quote via server-side API (bypasses RLS for public access)
-      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(params.id)}`);
+      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(quoteId)}`);
 
       if (!res.ok) {
         throw new Error('Quote not found');
@@ -74,7 +75,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     } finally {
       setIsLoading(false);
     }
-  }, [params.id]);
+  }, [quoteId]);
 
   useEffect(() => {
     fetchQuote();
@@ -179,6 +180,19 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || 'Failed to approve');
+        }
+
+        // Save SMS consent if customer opted in
+        if (smsOptIn && quote.customer?.id) {
+          try {
+            await fetch('/api/quote/sms-consent', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ customerId: quote.customer.id, quoteId: quote.id, consent: true }),
+            });
+          } catch {
+            // SMS consent save is best-effort, don't block approval
+          }
         }
 
         // Notify company owner that customer approved the quote
@@ -741,9 +755,32 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* SMS Opt-In + Action Buttons */}
         {quoteStatus === 'viewing' && !isExpired && !showRejectReason && (
           <div className="bg-white rounded-xl shadow-sm p-6">
+            {/* SMS Opt-In */}
+            {quote.customer?.phone && (
+              <div className="mb-5 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={smsOptIn}
+                    onChange={(e) => setSmsOptIn(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-gray-800">
+                      I&apos;d like to receive text message updates
+                    </span>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Get SMS notifications about your quote status, appointment reminders, and invoices.
+                      Message &amp; data rates may apply. You can opt out anytime by replying STOP.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={approveQuote}
@@ -757,11 +794,11 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
                   </>
                 ) : signature ? (
                   <>
-                    ✓ Approve Quote (${(quote.total || 0).toFixed(2)})
+                    &#10003; Approve Quote (${(quote.total || 0).toFixed(2)})
                   </>
                 ) : (
                   <>
-                    ✍️ Sign & Approve
+                    Sign &amp; Approve
                   </>
                 )}
               </button>

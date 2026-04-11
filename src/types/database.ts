@@ -38,6 +38,17 @@ export interface Database {
           is_beta_tester: boolean
           beta_notes: string | null
           payment_instructions: string | null
+          default_quote_terms: string | null
+          license_number: string | null
+          insurance_policy_number: string | null
+          insurance_expiration: string | null
+          tax_id: string | null
+          business_hours: Json | null
+          service_area_radius: number | null
+          company_description: string | null
+          default_hourly_rate: number | null
+          quote_approval_settings: Json | null
+          preferred_language: string
           created_at: string
           updated_at: string
         }
@@ -66,6 +77,17 @@ export interface Database {
           is_beta_tester?: boolean
           beta_notes?: string | null
           payment_instructions?: string | null
+          default_quote_terms?: string | null
+          license_number?: string | null
+          insurance_policy_number?: string | null
+          insurance_expiration?: string | null
+          tax_id?: string | null
+          business_hours?: Json | null
+          service_area_radius?: number | null
+          company_description?: string | null
+          default_hourly_rate?: number | null
+          quote_approval_settings?: Json | null
+          preferred_language?: string
           created_at?: string
           updated_at?: string
         }
@@ -94,6 +116,17 @@ export interface Database {
           is_beta_tester?: boolean
           beta_notes?: string | null
           payment_instructions?: string | null
+          default_quote_terms?: string | null
+          license_number?: string | null
+          insurance_policy_number?: string | null
+          insurance_expiration?: string | null
+          tax_id?: string | null
+          business_hours?: Json | null
+          service_area_radius?: number | null
+          company_description?: string | null
+          default_hourly_rate?: number | null
+          quote_approval_settings?: Json | null
+          preferred_language?: string
           created_at?: string
           updated_at?: string
         }

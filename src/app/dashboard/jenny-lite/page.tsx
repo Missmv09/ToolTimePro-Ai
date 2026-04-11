@@ -12,6 +12,7 @@ interface ChatbotSettings {
   faqs: { question: string; answer: string }[];
   accentColor: string;
   position: 'right' | 'left';
+  smsConsentText: string;
 }
 
 const DEFAULT_SETTINGS: ChatbotSettings = {
@@ -26,6 +27,7 @@ const DEFAULT_SETTINGS: ChatbotSettings = {
   ],
   accentColor: '#f5a623',
   position: 'right',
+  smsConsentText: 'By providing your phone number, you agree to receive SMS updates about your inquiry. Message & data rates may apply. Reply STOP to opt out.',
 };
 
 const STORAGE_KEY = 'tooltimepro_jenny_lite_settings';
@@ -34,7 +36,14 @@ function loadSettings(company: { name: string; phone: string | null; industry: s
   if (typeof window === 'undefined') return DEFAULT_SETTINGS;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Ensure smsConsentText exists for backward compatibility
+      if (!parsed.smsConsentText) {
+        parsed.smsConsentText = DEFAULT_SETTINGS.smsConsentText;
+      }
+      return parsed;
+    }
   } catch { /* ignore */ }
   return {
     ...DEFAULT_SETTINGS,
@@ -91,6 +100,7 @@ export default function JennyLitePage() {
     accentColor: ${JSON.stringify(settings.accentColor)},
     position: ${JSON.stringify(settings.position)},
     companyId: ${JSON.stringify(company?.id || null)},
+    smsConsentText: ${JSON.stringify(settings.smsConsentText)},
     faqs: ${JSON.stringify(settings.faqs.filter(f => f.question && f.answer), null, 2)}
   };
 </script>
@@ -301,6 +311,24 @@ export default function JennyLitePage() {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* SMS Consent Disclosure */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="font-bold text-gray-900 mb-2">SMS Consent Disclosure</h3>
+            <p className="text-sm text-gray-500 mb-3">
+              This message is shown to visitors before they submit their phone number. Required for TCPA compliance.
+            </p>
+            <textarea
+              value={settings.smsConsentText}
+              onChange={e => setSettings({ ...settings, smsConsentText: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+              placeholder="By providing your phone number, you agree to receive SMS updates..."
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Visitors must see this notice before providing contact info. Jenny will display it in the chat.
+            </p>
           </div>
 
           {/* FAQs */}

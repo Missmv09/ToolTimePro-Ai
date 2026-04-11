@@ -126,7 +126,9 @@ Yes:
 Contact support@tooltimepro.com or call 1-888-980-8665 to book.
 
 ### Can I migrate data from another platform?
-Yes. Our White-Glove Setup ($499) includes data migration from your current platform. We can import customers, services, and historical records.
+Yes! ToolTime Pro has a **self-service import wizard** built right into your dashboard. Go to **Customers → Import Customers**, select your old CRM (Housecall Pro, Jobber, ServiceTitan, FieldPulse, GorillaDesk, Workiz, or any CSV), upload your export file, and the importer auto-maps your columns. See the full guide: [Customers & Leads → Importing Customers](Customers-and-Leads#importing-customers-crm-migration).
+
+If you'd prefer hands-off migration, our **White-Glove Setup** ($499) includes full data migration, website build, and training.
 
 ---
 

@@ -426,6 +426,23 @@ export async function GET(request: NextRequest) {
   }
 
   // ============================================================
+  // SMS PREFERENCES: Get customer SMS consent status
+  // ============================================================
+  if (action === 'sms_preferences') {
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('sms_consent, sms_consent_date, phone')
+      .eq('id', session.customer_id)
+      .single();
+
+    return NextResponse.json({
+      sms_consent: customer?.sms_consent || false,
+      sms_consent_date: customer?.sms_consent_date || null,
+      phone: customer?.phone || null,
+    });
+  }
+
+  // ============================================================
   // PORTAL PRO: Check if company has Portal Pro addon
   // ============================================================
   if (action === 'check_pro') {
@@ -659,6 +676,41 @@ export async function POST(request: NextRequest) {
     await query;
 
     return NextResponse.json({ success: true });
+  }
+
+  // Update SMS preferences
+  if (action === 'update_sms_preferences') {
+    const { sms_consent } = body;
+
+    if (typeof sms_consent !== 'boolean') {
+      return NextResponse.json({ error: 'sms_consent must be a boolean' }, { status: 400 });
+    }
+
+    const updateData: Record<string, unknown> = {
+      sms_consent,
+      sms_consent_date: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from('customers')
+      .update(updateData)
+      .eq('id', session.customer_id);
+
+    if (error) {
+      // Retry without sms_consent_date if column doesn't exist yet
+      if (error.message?.includes('sms_consent_date')) {
+        await supabase
+          .from('customers')
+          .update({ sms_consent })
+          .eq('id', session.customer_id);
+      } else {
+        return NextResponse.json({ error: 'Failed to update preferences' }, { status: 500 });
+      }
+    }
+
+    await logPortalAccess(supabase, session.company_id, session.customer_id, 'sms_consent_updated', clientIp, `SMS consent set to ${sms_consent}`);
+
+    return NextResponse.json({ success: true, sms_consent });
   }
 
   // Logout — deactivate session

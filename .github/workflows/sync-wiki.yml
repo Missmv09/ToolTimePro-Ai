@@ -24,3 +24,5 @@ jobs:
         uses: Andrew-Chen-Wang/github-wiki-action@v4
         with:
           path: wiki/
+          token: ${{ secrets.GH_PAT || github.token }}
+        continue-on-error: true

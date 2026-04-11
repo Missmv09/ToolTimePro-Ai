@@ -164,11 +164,19 @@ export default function SmartQuotingPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
+  const [isSavingCustomer, setIsSavingCustomer] = useState(false);
+  const [customerFormErrors, setCustomerFormErrors] = useState<{ email?: string; phone?: string }>({});
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     phone: '',
     email: '',
     address: '',
+    city: '',
+    state: '',
+    zip: '',
+    notes: '',
+    sms_consent: false,
   });
   const [language, setLanguage] = useState<'en' | 'es'>('en');
 
@@ -616,8 +624,170 @@ export default function SmartQuotingPage() {
     (c.email && c.email.toLowerCase().includes(customerSearch.toLowerCase()))
   );
 
+  // Phone formatting & validation helpers
+  const formatPhoneNumber = (value: string): string => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length === 0) return '';
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  };
+
+  const isValidEmail = (email: string): boolean => {
+    if (!email) return true;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const isValidPhone = (phone: string): boolean => {
+    if (!phone) return true;
+    return phone.replace(/\D/g, '').length === 10;
+  };
+
+  const handleNewCustomerPhone = (value: string) => {
+    const formatted = formatPhoneNumber(value);
+    setNewCustomer(prev => ({ ...prev, phone: formatted }));
+    if (formatted && !isValidPhone(formatted)) {
+      setCustomerFormErrors(prev => ({ ...prev, phone: 'Please enter a valid 10-digit phone number' }));
+    } else {
+      setCustomerFormErrors(prev => ({ ...prev, phone: undefined }));
+    }
+  };
+
+  const handleNewCustomerEmail = (value: string) => {
+    setNewCustomer(prev => ({ ...prev, email: value }));
+    if (value && !isValidEmail(value)) {
+      setCustomerFormErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+    } else {
+      setCustomerFormErrors(prev => ({ ...prev, email: undefined }));
+    }
+  };
+
+  // Save new customer inline and select them for the quote
+  const saveNewCustomerInline = async () => {
+    if (!companyId || !newCustomer.name.trim()) return;
+
+    // Validate
+    const errors: { email?: string; phone?: string } = {};
+    if (newCustomer.email && !isValidEmail(newCustomer.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    if (newCustomer.phone && !isValidPhone(newCustomer.phone)) {
+      errors.phone = 'Please enter a valid 10-digit phone number';
+    }
+    if (Object.keys(errors).length > 0) {
+      setCustomerFormErrors(errors);
+      return;
+    }
+
+    setIsSavingCustomer(true);
+
+    try {
+      // Check for duplicates by phone or email
+      let existingCustomer = null;
+      if (newCustomer.phone) {
+        const { data } = await supabase
+          .from('customers')
+          .select('id, name, phone, email, address, state, sms_consent')
+          .eq('company_id', companyId)
+          .eq('phone', newCustomer.phone)
+          .single();
+        existingCustomer = data;
+      }
+      if (!existingCustomer && newCustomer.email) {
+        const { data } = await supabase
+          .from('customers')
+          .select('id, name, phone, email, address, state, sms_consent')
+          .eq('company_id', companyId)
+          .eq('email', newCustomer.email)
+          .single();
+        existingCustomer = data;
+      }
+
+      if (existingCustomer) {
+        // Customer already exists — select them
+        setSelectedCustomer(existingCustomer as Customer);
+        setShowNewCustomerForm(false);
+        setIsSavingCustomer(false);
+        return;
+      }
+
+      // Build full address for storage
+      const fullAddress = [newCustomer.address, newCustomer.city, newCustomer.state, newCustomer.zip]
+        .filter(Boolean)
+        .join(', ');
+
+      const insertData: Record<string, unknown> = {
+        company_id: companyId,
+        name: newCustomer.name.trim(),
+        phone: newCustomer.phone || null,
+        email: newCustomer.email || null,
+        address: fullAddress || null,
+        city: newCustomer.city || null,
+        state: newCustomer.state.toUpperCase() || null,
+        zip: newCustomer.zip || null,
+        notes: newCustomer.notes || null,
+        sms_consent: false,
+      };
+
+      const { data: created, error } = await supabase
+        .from('customers')
+        .insert(insertData)
+        .select('id, name, phone, email, address, state, sms_consent')
+        .single();
+
+      if (error) {
+        // Retry without sms_consent_date if column doesn't exist
+        if (error.message?.includes('sms_consent_date')) {
+          delete insertData.sms_consent_date;
+          const retry = await supabase
+            .from('customers')
+            .insert(insertData)
+            .select('id, name, phone, email, address, state, sms_consent')
+            .single();
+          if (retry.error) {
+            alert('Error creating customer: ' + retry.error.message);
+            setIsSavingCustomer(false);
+            return;
+          }
+          setSelectedCustomer(retry.data as Customer);
+        } else {
+          alert('Error creating customer: ' + error.message);
+          setIsSavingCustomer(false);
+          return;
+        }
+      } else {
+        setSelectedCustomer(created as Customer);
+      }
+
+      // Add to local customers list so they appear in search
+      if (created) {
+        setCustomers(prev => [...prev, created as Customer]);
+      }
+
+      // Auto-set tax rate from state
+      const stateAbbr = newCustomer.state.toUpperCase();
+      if (stateAbbr && STATE_TAX_RATES[stateAbbr] !== undefined) {
+        setTaxRate(STATE_TAX_RATES[stateAbbr]);
+      }
+
+      setShowNewCustomerForm(false);
+    } catch (err) {
+      alert('An unexpected error occurred. Please try again.');
+    }
+
+    setIsSavingCustomer(false);
+  };
+
+  // Clear selected customer
+  const clearSelectedCustomer = () => {
+    setSelectedCustomer(null);
+    setNewCustomer({ name: '', phone: '', email: '', address: '', city: '', state: '', zip: '', notes: '', sms_consent: false });
+    setCustomerFormErrors({});
+    setShowNewCustomerForm(false);
+  };
+
   // Send quote
-  const [sendMethod, setSendMethod] = useState<'sms' | 'email' | 'both'>('both');
+  const [sendMethod, setSendMethod] = useState<'sms' | 'email' | 'both'>('email');
   const [isSending, setIsSending] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [quoteSent, setQuoteSent] = useState(false);
@@ -792,9 +962,10 @@ export default function SmartQuotingPage() {
 
       const sendErrors: string[] = [];
 
-      // Send SMS notification (only if customer has consented)
+      // Send SMS notification (only if customer has previously opted in)
       const hasConsent = selectedCustomer?.sms_consent;
-      if (customerPhone && hasConsent && (sendMethod === 'sms' || sendMethod === 'both')) {
+      const effectiveSendMethod = hasConsent ? sendMethod : 'email';
+      if (customerPhone && hasConsent && (effectiveSendMethod === 'sms' || effectiveSendMethod === 'both')) {
         try {
           const smsRes = await fetch('/api/sms', {
             method: 'POST',
@@ -821,7 +992,7 @@ export default function SmartQuotingPage() {
       }
 
       // Send email notification
-      if (customerEmail && (sendMethod === 'email' || sendMethod === 'both')) {
+      if (customerEmail && (effectiveSendMethod === 'email' || effectiveSendMethod === 'both')) {
         try {
           const emailRes = await fetch('/api/quote/send', {
             method: 'POST',
@@ -1162,109 +1333,279 @@ export default function SmartQuotingPage() {
                 </div>
               </div>
 
-              {/* Customer Search/Select */}
-              <div className="relative mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Search Existing Customer
-                </label>
-                <input
-                  type="text"
-                  value={customerSearch}
-                  onChange={(e) => {
-                    setCustomerSearch(e.target.value);
-                    setShowCustomerDropdown(true);
-                  }}
-                  onFocus={() => setShowCustomerDropdown(true)}
-                  placeholder="Search by name, phone, or email..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
-                />
-                {showCustomerDropdown && customerSearch && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
-                    {filteredCustomers.map((customer) => (
-                      <button
-                        key={customer.id}
-                        onClick={() => {
-                          setSelectedCustomer(customer);
-                          setNewCustomer({
-                            name: customer.name,
-                            phone: customer.phone || '',
-                            email: customer.email || '',
-                            address: customer.address || '',
-                          });
-                          // Auto-set tax rate from customer state
-                          const state = customer.state || detectStateFromAddress(customer.address || '');
-                          if (state && STATE_TAX_RATES[state] !== undefined) {
-                            setTaxRate(STATE_TAX_RATES[state]);
-                          }
-                          setCustomerSearch('');
-                          setShowCustomerDropdown(false);
-                        }}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                      >
-                        <div className="font-medium text-navy-500">{customer.name}</div>
-                        <div className="text-sm text-gray-500">{customer.phone || 'No phone'} • {customer.address || 'No address'}</div>
-                      </button>
-                    ))}
-                    {filteredCustomers.length === 0 && (
-                      <div className="px-4 py-3 text-gray-500 text-sm">No customers found</div>
-                    )}
+              {/* Selected Customer Card */}
+              {selectedCustomer ? (
+                <div className="border border-green-200 bg-green-50 rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-semibold text-lg">
+                        {selectedCustomer.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-navy-500">{selectedCustomer.name}</div>
+                        <div className="text-sm text-gray-600 flex flex-wrap gap-x-3 gap-y-0.5">
+                          {selectedCustomer.phone && <span>{selectedCustomer.phone}</span>}
+                          {selectedCustomer.email && <span>{selectedCustomer.email}</span>}
+                        </div>
+                        {selectedCustomer.address && (
+                          <div className="text-sm text-gray-500">{selectedCustomer.address}</div>
+                        )}
+                        {selectedCustomer.sms_consent ? (
+                          <span className="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">SMS Opted In</span>
+                        ) : (
+                          <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">No SMS consent — email only</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={clearSelectedCustomer}
+                      className="text-sm text-gray-500 hover:text-red-500 transition-colors px-3 py-1 rounded-lg hover:bg-white"
+                    >
+                      Change
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <>
+                  {/* Search or Add New Toggle */}
+                  {!showNewCustomerForm ? (
+                    <>
+                      {/* Customer Search */}
+                      <div className="relative mb-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Search Existing Customer
+                        </label>
+                        <input
+                          type="text"
+                          value={customerSearch}
+                          onChange={(e) => {
+                            setCustomerSearch(e.target.value);
+                            setShowCustomerDropdown(true);
+                          }}
+                          onFocus={() => setShowCustomerDropdown(true)}
+                          placeholder="Search by name, phone, or email..."
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                        />
+                        {showCustomerDropdown && customerSearch && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                            {filteredCustomers.map((customer) => (
+                              <button
+                                key={customer.id}
+                                onClick={() => {
+                                  setSelectedCustomer(customer);
+                                  setNewCustomer({
+                                    name: customer.name,
+                                    phone: customer.phone || '',
+                                    email: customer.email || '',
+                                    address: customer.address || '',
+                                    city: '', state: customer.state || '', zip: '', notes: '', sms_consent: customer.sms_consent || false,
+                                  });
+                                  const state = customer.state || detectStateFromAddress(customer.address || '');
+                                  if (state && STATE_TAX_RATES[state] !== undefined) {
+                                    setTaxRate(STATE_TAX_RATES[state]);
+                                  }
+                                  setCustomerSearch('');
+                                  setShowCustomerDropdown(false);
+                                }}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                              >
+                                <div className="font-medium text-navy-500">{customer.name}</div>
+                                <div className="text-sm text-gray-500">{customer.phone || 'No phone'} • {customer.address || 'No address'}</div>
+                              </button>
+                            ))}
+                            {filteredCustomers.length === 0 && (
+                              <div className="px-4 py-3">
+                                <div className="text-gray-500 text-sm mb-2">No customers found matching &quot;{customerSearch}&quot;</div>
+                                <button
+                                  onClick={() => {
+                                    setNewCustomer(prev => ({ ...prev, name: customerSearch }));
+                                    setShowNewCustomerForm(true);
+                                    setShowCustomerDropdown(false);
+                                    setCustomerSearch('');
+                                  }}
+                                  className="w-full text-left px-3 py-2 bg-gold-50 hover:bg-gold-100 text-gold-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                                >
+                                  <span className="text-lg">+</span> Add &quot;{customerSearch}&quot; as New Customer
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
 
-              {/* Customer Form */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Customer Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newCustomer.name}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                    placeholder="John Smith"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={newCustomer.phone}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                    placeholder="(555) 123-4567"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={newCustomer.email}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                    placeholder="john@email.com"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                  <input
-                    type="text"
-                    value={newCustomer.address}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
-                    onBlur={(e) => {
-                      const state = detectStateFromAddress(e.target.value);
-                      if (state && STATE_TAX_RATES[state] !== undefined) {
-                        setTaxRate(STATE_TAX_RATES[state]);
-                      }
-                    }}
-                    placeholder="123 Main St, City, CA 12345"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
-                  />
-                </div>
-              </div>
+                      {/* Divider with Add New button */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="flex-1 border-t border-gray-200"></div>
+                        <span className="text-sm text-gray-400">or</span>
+                        <div className="flex-1 border-t border-gray-200"></div>
+                      </div>
+                      <button
+                        onClick={() => setShowNewCustomerForm(true)}
+                        className="w-full py-3 border-2 border-dashed border-gold-300 rounded-lg text-gold-600 hover:bg-gold-50 hover:border-gold-400 transition-colors font-medium flex items-center justify-center gap-2"
+                      >
+                        <span className="text-xl">+</span> Add New Customer
+                      </button>
+                    </>
+                  ) : (
+                    /* New Customer Form */
+                    <div className="border border-gold-200 bg-gold-50/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold text-navy-500 flex items-center gap-2">
+                          <span className="text-lg">+</span> New Customer
+                        </h3>
+                        <button
+                          onClick={() => {
+                            setShowNewCustomerForm(false);
+                            setNewCustomer({ name: '', phone: '', email: '', address: '', city: '', state: '', zip: '', notes: '', sms_consent: false });
+                            setCustomerFormErrors({});
+                          }}
+                          className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {/* Name & Phone */}
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newCustomer.name}
+                              onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
+                              placeholder="John Smith"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Phone <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              value={newCustomer.phone}
+                              onChange={(e) => handleNewCustomerPhone(e.target.value)}
+                              placeholder="(555) 123-4567"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${customerFormErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                            />
+                            {customerFormErrors.phone && <p className="text-red-500 text-xs mt-1">{customerFormErrors.phone}</p>}
+                          </div>
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                          <input
+                            type="email"
+                            value={newCustomer.email}
+                            onChange={(e) => handleNewCustomerEmail(e.target.value)}
+                            placeholder="john@email.com"
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${customerFormErrors.email ? 'border-red-500' : 'border-gray-300'}`}
+                          />
+                          {customerFormErrors.email && <p className="text-red-500 text-xs mt-1">{customerFormErrors.email}</p>}
+                        </div>
+
+                        {/* Address */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                          <input
+                            type="text"
+                            value={newCustomer.address}
+                            onChange={(e) => setNewCustomer(prev => ({ ...prev, address: e.target.value }))}
+                            placeholder="123 Main St"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                          />
+                        </div>
+
+                        {/* City, State, Zip */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <input
+                              type="text"
+                              value={newCustomer.city}
+                              onChange={(e) => setNewCustomer(prev => ({ ...prev, city: e.target.value }))}
+                              placeholder="City"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <input
+                              type="text"
+                              value={newCustomer.state}
+                              onChange={(e) => setNewCustomer(prev => ({ ...prev, state: e.target.value }))}
+                              onBlur={(e) => {
+                                const abbr = e.target.value.toUpperCase();
+                                if (abbr && STATE_TAX_RATES[abbr] !== undefined) {
+                                  setTaxRate(STATE_TAX_RATES[abbr]);
+                                }
+                              }}
+                              placeholder="CA"
+                              maxLength={2}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                            <input
+                              type="text"
+                              value={newCustomer.zip}
+                              onChange={(e) => setNewCustomer(prev => ({ ...prev, zip: e.target.value }))}
+                              placeholder="12345"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Notes */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                          <textarea
+                            value={newCustomer.notes}
+                            onChange={(e) => setNewCustomer(prev => ({ ...prev, notes: e.target.value }))}
+                            rows={2}
+                            placeholder="Gate code, preferred contact time, etc."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                          />
+                        </div>
+
+                        {/* SMS Consent Notice */}
+                        <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+                          <div className="flex items-start gap-3">
+                            <span className="mt-0.5 text-blue-500 text-lg">&#x2139;</span>
+                            <div>
+                              <span className="text-sm font-medium text-blue-800">SMS consent will be collected from the customer</span>
+                              <p className="text-xs text-blue-600 mt-0.5">
+                                The quote will be sent via email first. The customer can opt in to text messages when they view or approve the quote.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Save & Select Button */}
+                        <button
+                          onClick={saveNewCustomerInline}
+                          disabled={!newCustomer.name.trim() || isSavingCustomer}
+                          className="w-full py-2.5 bg-gold-500 hover:bg-gold-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          {isSavingCustomer ? (
+                            <>
+                              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
+                              Saving...
+                            </>
+                          ) : (
+                            <>Save & Select Customer</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Line Items Section */}
@@ -1762,21 +2103,48 @@ export default function SmartQuotingPage() {
               <div className="mt-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Send via:</label>
-                  <div className="flex gap-2">
-                    {['sms', 'email', 'both'].map((method) => (
-                      <button
-                        key={method}
-                        onClick={() => setSendMethod(method as typeof sendMethod)}
-                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          sendMethod === method
-                            ? 'bg-navy-500 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {method === 'sms' ? '📱 SMS' : method === 'email' ? '📧 Email' : '📱+📧 Both'}
-                      </button>
-                    ))}
-                  </div>
+                  {selectedCustomer?.sms_consent ? (
+                    <div className="flex gap-2">
+                      {['sms', 'email', 'both'].map((method) => (
+                        <button
+                          key={method}
+                          onClick={() => setSendMethod(method as typeof sendMethod)}
+                          className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            sendMethod === method
+                              ? 'bg-navy-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {method === 'sms' ? 'SMS' : method === 'email' ? 'Email' : 'Both'}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-navy-500 text-white text-center">
+                          Email
+                        </div>
+                        <button
+                          disabled
+                          className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
+                          title="Customer must opt in to SMS first"
+                        >
+                          SMS
+                        </button>
+                        <button
+                          disabled
+                          className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
+                          title="Customer must opt in to SMS first"
+                        >
+                          Both
+                        </button>
+                      </div>
+                      <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                        <span>&#9888;</span> SMS unavailable — customer hasn&apos;t opted in yet. They can opt in when they view the quote.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Error display */}

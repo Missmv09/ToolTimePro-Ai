@@ -35,18 +35,26 @@ function formatPhone(phone) {
 async function sendBookingConfirmationSMS({ to, customerName, serviceName, date, time }) {
   try {
     const client = getTwilioClient();
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
     const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-    if (!client || !fromNumber) {
+    if (!client || (!messagingServiceSid && !fromNumber)) {
       console.log('Twilio not configured - skipping booking confirmation SMS');
       return { sent: false, reason: 'not_configured' };
     }
 
-    const message = await client.messages.create({
+    const smsParams = {
       body: `Hi ${customerName}! Your ${serviceName} appointment is confirmed for ${date} at ${time}. We'll see you then! Reply STOP to opt out.`,
       to: formatPhone(to),
-      from: fromNumber,
-    });
+    };
+
+    if (messagingServiceSid) {
+      smsParams.messagingServiceSid = messagingServiceSid;
+    } else {
+      smsParams.from = fromNumber;
+    }
+
+    const message = await client.messages.create(smsParams);
 
     console.log('Booking confirmation SMS sent:', message.sid);
     return { sent: true, messageId: message.sid };

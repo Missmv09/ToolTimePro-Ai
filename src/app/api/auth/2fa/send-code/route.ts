@@ -69,7 +69,8 @@ export async function POST(request: Request) {
     const accountSid = process.env.TWILIO_ACCOUNT_SID
     const authToken2 = process.env.TWILIO_AUTH_TOKEN
     const fromNumber = process.env.TWILIO_PHONE_NUMBER
-    const messagingServiceSid = process.env.TWILIO_2FA_MESSAGING_SERVICE_SID
+    // Prefer shared A2P campaign SID; fall back to legacy 2FA-specific SID
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.TWILIO_2FA_MESSAGING_SERVICE_SID
 
     if (!accountSid || !authToken2 || (!fromNumber && !messagingServiceSid)) {
       return NextResponse.json({ error: 'SMS service not configured' }, { status: 500 })

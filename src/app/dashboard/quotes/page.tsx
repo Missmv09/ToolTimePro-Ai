@@ -476,6 +476,16 @@ function QuotesContent() {
   const { can } = usePermissions()
   const isOwnerOrAdmin = can('quotes')
 
+  // Quote approval workflow: determine if current user can send directly
+  const approvalSettings = (company as Record<string, unknown> | null)?.quote_approval_settings as { required?: boolean; approver_ids?: string[] } | null
+  const approvalRequired = approvalSettings?.required || false
+  const isOwner = dbUser?.role === 'owner'
+  const isDesignatedApprover = approvalSettings?.approver_ids?.includes(user?.id || '') || false
+  // Can send directly if: approval not required (and has quotes perm), OR user is owner, OR user is designated approver
+  const canSendDirectly = !approvalRequired ? isOwnerOrAdmin : (isOwner || isDesignatedApprover)
+  // Can approve pending quotes (same logic)
+  const canApproveQuotes = isOwner || isDesignatedApprover
+
   const submitForApproval = async (quote: Quote) => {
     if (!companyId) return
 
@@ -930,8 +940,8 @@ function QuotesContent() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2 flex-wrap">
-                      {/* Draft: Owner/Admin can Send directly, workers submit for approval */}
-                      {quote.status === 'draft' && isOwnerOrAdmin && (
+                      {/* Draft: Send directly if allowed, otherwise submit for approval */}
+                      {quote.status === 'draft' && canSendDirectly && (
                         <button
                           onClick={() => sendQuote(quote)}
                           disabled={sendingQuoteId === quote.id}
@@ -940,7 +950,7 @@ function QuotesContent() {
                           {sendingQuoteId === quote.id ? 'Sending...' : 'Send'}
                         </button>
                       )}
-                      {quote.status === 'draft' && !isOwnerOrAdmin && (
+                      {quote.status === 'draft' && !canSendDirectly && (
                         <button
                           onClick={() => submitForApproval(quote)}
                           disabled={sendingQuoteId === quote.id}
@@ -949,8 +959,8 @@ function QuotesContent() {
                           {sendingQuoteId === quote.id ? 'Submitting...' : 'Submit for Approval'}
                         </button>
                       )}
-                      {/* Pending Approval: Owner/Admin can approve & send, or return to draft */}
-                      {quote.status === 'pending_approval' && isOwnerOrAdmin && (
+                      {/* Pending Approval: Approvers can approve & send, or return to draft */}
+                      {quote.status === 'pending_approval' && canApproveQuotes && (
                         <>
                           <button
                             onClick={() => approveAndSend(quote)}
@@ -1276,9 +1286,12 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       tax_amount: Number(tax_amount) || 0,
       total: Number(total) || 0,
       status: quote?.status || 'draft',
-      deposit_required: depositRequired,
-      deposit_amount: depositRequired && depositType === 'fixed' ? Number(depositValue) || null : null,
-      deposit_percentage: depositRequired && depositType === 'percentage' ? Number(depositValue) || null : null,
+    }
+    // Only include deposit fields if deposit is required (columns may not exist in DB yet)
+    if (depositRequired) {
+      quoteData.deposit_required = true
+      quoteData.deposit_amount = depositType === 'fixed' ? Number(depositValue) || null : null
+      quoteData.deposit_percentage = depositType === 'percentage' ? Number(depositValue) || null : null
     }
     if (!quote && userId) {
       quoteData.created_by = userId

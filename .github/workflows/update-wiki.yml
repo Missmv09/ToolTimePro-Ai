@@ -10,6 +10,9 @@ on:
       - 'src/lib/stripe-prices.js'
       # API route changes
       - 'src/app/api/**/route.*'
+      # CRM import / field mapping changes
+      - 'src/lib/crm-field-mappings.ts'
+      - 'src/app/dashboard/import-customers/**'
       # Cron / function changes
       - 'netlify.toml'
       - 'netlify/functions/**'
@@ -55,10 +58,14 @@ jobs:
           git push
 
       # Step 4: Sync wiki/ directory to GitHub Wiki tab
+      # Requires: wiki must be initialized (create one page via GitHub UI first)
+      # Uses GH_PAT secret if available for wiki push access; falls back to GITHUB_TOKEN
       - name: Sync to GitHub Wiki
         uses: Andrew-Chen-Wang/github-wiki-action@v4
         with:
           path: wiki/
+          token: ${{ secrets.GH_PAT || github.token }}
+        continue-on-error: true
 
       # Step 5: Sync to Crisp Knowledge Base (if secrets are configured)
       - name: Sync to Crisp Helpdesk
@@ -68,3 +75,4 @@ jobs:
           CRISP_API_KEY: ${{ secrets.CRISP_API_KEY }}
           CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
         run: node scripts/sync-to-crisp.js
+        continue-on-error: true
