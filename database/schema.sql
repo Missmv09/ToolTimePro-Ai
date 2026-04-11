@@ -262,6 +262,7 @@ CREATE TABLE quotes (
     notes TEXT,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL, -- Employee who created the quote
     sent_by UUID REFERENCES users(id) ON DELETE SET NULL, -- Employee who sent the quote
+    revision_number INTEGER DEFAULT 0, -- Incremented each time a sent quote is edited
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -278,6 +279,20 @@ CREATE TABLE quote_items (
     unit_price DECIMAL(10,2) NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
     sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- QUOTE_EDIT_HISTORY (Audit log for quote changes)
+-- ============================================
+CREATE TABLE quote_edit_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    quote_id UUID NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    edited_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    revision_number INTEGER NOT NULL DEFAULT 1,
+    change_summary TEXT NOT NULL,
+    changes JSONB NOT NULL DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -530,6 +545,8 @@ CREATE INDEX idx_time_entries_date ON time_entries(clock_in);
 CREATE INDEX idx_quotes_company ON quotes(company_id);
 CREATE INDEX idx_quotes_created_by ON quotes(created_by);
 CREATE INDEX idx_quotes_sent_by ON quotes(sent_by);
+CREATE INDEX idx_quote_edit_history_quote ON quote_edit_history(quote_id);
+CREATE INDEX idx_quote_edit_history_company ON quote_edit_history(company_id);
 CREATE INDEX idx_invoices_company ON invoices(company_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE INDEX idx_compliance_alerts_company ON compliance_alerts(company_id);
@@ -563,6 +580,7 @@ ALTER TABLE time_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE breaks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quote_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quote_edit_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
@@ -673,6 +691,10 @@ CREATE POLICY "Job notes for company jobs" ON job_notes
             WHERE j.company_id = (SELECT company_id FROM users WHERE id = auth.uid())
         )
     );
+
+-- Quote edit history: users can view edit history for quotes in their company
+CREATE POLICY "Quote edit history belongs to company" ON quote_edit_history
+    FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Quote items: users can manage items for quotes in their company
 CREATE POLICY "Quote items for company quotes" ON quote_items

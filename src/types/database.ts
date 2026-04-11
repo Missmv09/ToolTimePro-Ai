@@ -540,6 +540,7 @@ export interface Database {
           deposit_paid: boolean
           deposit_paid_at: string | null
           deposit_stripe_payment_id: string | null
+          revision_number: number
           created_at: string
           updated_at: string
         }
@@ -571,6 +572,7 @@ export interface Database {
           deposit_paid?: boolean
           deposit_paid_at?: string | null
           deposit_stripe_payment_id?: string | null
+          revision_number?: number
           created_at?: string
           updated_at?: string
         }
@@ -602,8 +604,41 @@ export interface Database {
           deposit_paid?: boolean
           deposit_paid_at?: string | null
           deposit_stripe_payment_id?: string | null
+          revision_number?: number
           created_at?: string
           updated_at?: string
+        }
+      }
+      quote_edit_history: {
+        Row: {
+          id: string
+          quote_id: string
+          company_id: string
+          edited_by: string | null
+          revision_number: number
+          change_summary: string
+          changes: Record<string, { old: unknown; new: unknown }>
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          quote_id: string
+          company_id: string
+          edited_by?: string | null
+          revision_number?: number
+          change_summary: string
+          changes?: Record<string, { old: unknown; new: unknown }>
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          quote_id?: string
+          company_id?: string
+          edited_by?: string | null
+          revision_number?: number
+          change_summary?: string
+          changes?: Record<string, { old: unknown; new: unknown }>
+          created_at?: string
         }
       }
       invoices: {
@@ -1226,6 +1261,7 @@ export type JobInsert = Database['public']['Tables']['jobs']['Insert']
 export type TimeEntryInsert = Database['public']['Tables']['time_entries']['Insert']
 export type BreakInsert = Database['public']['Tables']['breaks']['Insert']
 export type QuoteInsert = Database['public']['Tables']['quotes']['Insert']
+export type QuoteEditHistory = Database['public']['Tables']['quote_edit_history']['Row']
 export type InvoiceInsert = Database['public']['Tables']['invoices']['Insert']
 export type IncidentInsert = Database['public']['Tables']['incidents']['Insert']
 export type ComplianceAlertInsert = Database['public']['Tables']['compliance_alerts']['Insert']

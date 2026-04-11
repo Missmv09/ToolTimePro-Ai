@@ -386,16 +386,23 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
             <div className="text-right">
               <LanguageSwitcher />
               <div className="text-sm text-gray-500 mt-2">{t('quoteNumber')}{quote.quote_number || quote.id.slice(0, 8)}</div>
-              <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-1 ${
-                quoteStatus === 'approved'
-                  ? 'bg-green-100 text-green-700'
-                  : quoteStatus === 'rejected'
-                  ? 'bg-red-100 text-red-700'
-                  : isExpired
-                  ? 'bg-gray-100 text-gray-700'
-                  : 'bg-gold-100 text-gold-700'
-              }`}>
-                {quoteStatus === 'approved' ? `✓ ${t('approved')}` : quoteStatus === 'rejected' ? t('declined') : isExpired ? t('expired') : t('awaitingResponse')}
+              <div className="flex items-center gap-2 justify-end mt-1">
+                <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                  quoteStatus === 'approved'
+                    ? 'bg-green-100 text-green-700'
+                    : quoteStatus === 'rejected'
+                    ? 'bg-red-100 text-red-700'
+                    : isExpired
+                    ? 'bg-gray-100 text-gray-700'
+                    : 'bg-gold-100 text-gold-700'
+                }`}>
+                  {quoteStatus === 'approved' ? `✓ ${t('approved')}` : quoteStatus === 'rejected' ? t('declined') : isExpired ? t('expired') : t('awaitingResponse')}
+                </div>
+                {((quote as unknown as Record<string, unknown>).revision_number as number) > 0 && (
+                  <div className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-700">
+                    Revised (Rev. {(quote as unknown as Record<string, unknown>).revision_number as number})
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -508,6 +515,21 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
           </div>
         )}
 
+        {/* Revision Notice */}
+        {((quote as unknown as Record<string, unknown>).revision_number as number) > 0 && quoteStatus === 'viewing' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+            <div className="text-amber-500 text-lg mt-0.5">&#9888;</div>
+            <div>
+              <h3 className="font-semibold text-amber-800">This quote has been revised</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                This is revision {(quote as unknown as Record<string, unknown>).revision_number as number} of quote {quote.quote_number || quote.id.slice(0, 8)}.
+                It was last updated on {formatDate(quote.updated_at)}.
+                Please review the updated details below before approving.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Quote Details Card */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
           {/* Customer Info */}
@@ -521,6 +543,12 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
               <div className="md:text-right">
                 <div className="text-sm text-gray-500 mb-1">{t('quoteDate')}</div>
                 <div className="font-medium text-navy-500">{formatDate(quote.created_at)}</div>
+                {((quote as unknown as Record<string, unknown>).revision_number as number) > 0 && (
+                  <div className="mt-1">
+                    <div className="text-sm text-gray-500">Last Updated</div>
+                    <div className="font-medium text-amber-600">{formatDate(quote.updated_at)}</div>
+                  </div>
+                )}
                 <div className="text-sm text-gray-500 mt-2">{t('validUntil')}</div>
                 <div className={`font-medium ${isExpired ? 'text-red-500' : 'text-navy-500'}`}>
                   {formatDate(quote.valid_until)}
