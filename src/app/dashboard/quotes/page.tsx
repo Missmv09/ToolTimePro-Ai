@@ -84,6 +84,9 @@ function QuotesContent() {
   const [showNewQuoteDropdown, setShowNewQuoteDropdown] = useState(false)
   const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null)
+  const [historyQuoteId, setHistoryQuoteId] = useState<string | null>(null)
+  const [editHistory, setEditHistory] = useState<{ id: string; editor_name: string; change_summary: string; revision_number: number; changes: Record<string, { old: unknown; new: unknown }>; created_at: string }[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -651,6 +654,26 @@ function QuotesContent() {
     if (companyId) fetchQuotes(companyId)
   }
 
+  const viewEditHistory = async (quoteId: string) => {
+    setHistoryQuoteId(quoteId)
+    setLoadingHistory(true)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) return
+
+      const res = await fetch(`/api/quote/edit-history?quoteId=${quoteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      setEditHistory(data.history || [])
+    } catch {
+      console.error('Failed to load edit history')
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
   const canDeleteQuote = (quote: Quote) => {
     // Approved quotes cannot be deleted by anyone
     if (quote.status === 'approved') return false
@@ -1032,6 +1055,14 @@ function QuotesContent() {
                       >
                         View
                       </Link>
+                      {['sent', 'viewed', 'approved', 'rejected'].includes(quote.status) && (
+                        <button
+                          onClick={() => viewEditHistory(quote.id)}
+                          className="text-gray-500 hover:text-gray-700 text-sm"
+                        >
+                          History
+                        </button>
+                      )}
                       {canDeleteQuote(quote) && (
                         <button
                           onClick={() => deleteQuote(quote)}
@@ -1052,6 +1083,102 @@ function QuotesContent() {
       </div>
         )
       })()}
+
+      {/* Edit History Modal */}
+      {historyQuoteId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Edit History</h2>
+              <button
+                onClick={() => { setHistoryQuoteId(null); setEditHistory([]) }}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                &times;
+              </button>
+            </div>
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : editHistory.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-2xl mb-2">&#128221;</p>
+                <p>No edits recorded for this quote.</p>
+                <p className="text-sm mt-1">Edits are tracked once a quote has been sent.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {editHistory.map((entry) => (
+                  <div key={entry.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium mr-2">
+                          Rev. {entry.revision_number}
+                        </span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {entry.editor_name}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {new Date(entry.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2">{entry.change_summary}</p>
+                    {/* Detailed changes */}
+                    {entry.changes && Object.keys(entry.changes).length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {Object.entries(entry.changes).map(([field, diff]) => {
+                          if (field === 'line_items') {
+                            const oldItems = diff.old as { description: string; quantity: number; unit_price: number }[]
+                            const newItems = diff.new as { description: string; quantity: number; unit_price: number }[]
+                            return (
+                              <div key={field} className="text-xs bg-gray-50 rounded p-2">
+                                <span className="font-medium text-gray-600">Line Items:</span>
+                                <div className="mt-1 grid grid-cols-2 gap-2">
+                                  <div>
+                                    <span className="text-red-600 font-medium">Before ({oldItems.length}):</span>
+                                    <ul className="list-disc list-inside">
+                                      {oldItems.map((item, i) => (
+                                        <li key={i} className="text-gray-600 truncate">
+                                          {item.description} &times;{item.quantity} @ ${Number(item.unit_price).toFixed(2)}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                  <div>
+                                    <span className="text-green-600 font-medium">After ({newItems.length}):</span>
+                                    <ul className="list-disc list-inside">
+                                      {newItems.map((item, i) => (
+                                        <li key={i} className="text-gray-600 truncate">
+                                          {item.description} &times;{item.quantity} @ ${Number(item.unit_price).toFixed(2)}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          }
+                          const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                          return (
+                            <div key={field} className="text-xs flex items-center gap-2 bg-gray-50 rounded px-2 py-1">
+                              <span className="font-medium text-gray-600">{label}:</span>
+                              <span className="text-red-600 line-through">{String(diff.old ?? 'none')}</span>
+                              <span className="text-gray-400">&rarr;</span>
+                              <span className="text-green-600">{String(diff.new ?? 'none')}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Modal */}
       {showModal && (
@@ -1300,12 +1427,73 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     let quoteId = quote?.id
 
     if (quote) {
+      // Capture old data before updating for audit trail
+      const oldData = {
+        subtotal: quote.subtotal,
+        tax_rate: quote.tax_rate,
+        tax_amount: quote.tax_amount,
+        total: quote.total,
+        notes: quote.notes,
+        valid_until: quote.valid_until,
+        customer_id: quote.customer_id,
+        deposit_required: quote.deposit_required,
+        deposit_amount: quote.deposit_amount,
+        deposit_percentage: quote.deposit_percentage,
+      }
+
       // Update existing quote
       const { error: updateError } = await supabase.from('quotes').update(quoteData).eq('id', quote.id)
       if (updateError) {
         alert('Failed to update quote: ' + updateError.message)
         setSaving(false)
         return
+      }
+
+      // Log the edit if the quote has been sent (audit trail)
+      if (['sent', 'viewed', 'approved', 'rejected'].includes(quote.status)) {
+        try {
+          // Gather old items from what was loaded into the form
+          const oldItems = quote.items?.map(i => ({
+            description: i.description,
+            quantity: i.quantity,
+            unit_price: i.unit_price,
+          })) || []
+
+          const newItems = items.filter(i => i.description).map(i => ({
+            description: i.description,
+            quantity: Number(i.quantity),
+            unit_price: Number(i.unit_price),
+          }))
+
+          await fetch('/api/quote/edit-history', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              quoteId: quote.id,
+              oldData,
+              newData: {
+                subtotal: Number(subtotal) || 0,
+                tax_rate: 8.75,
+                tax_amount: Number(tax_amount) || 0,
+                total: Number(total) || 0,
+                notes: formData.notes,
+                valid_until: formData.valid_until,
+                customer_id: customerId,
+                deposit_required: depositRequired,
+                deposit_amount: depositType === 'fixed' ? Number(depositValue) || null : null,
+                deposit_percentage: depositType === 'percentage' ? Number(depositValue) || null : null,
+              },
+              oldItems,
+              newItems,
+            }),
+          })
+        } catch {
+          // Audit logging is best-effort, don't block the save
+          console.log('Quote edit audit log skipped')
+        }
       }
     } else {
       // Create new quote via server-side API (bypasses RLS issues)
