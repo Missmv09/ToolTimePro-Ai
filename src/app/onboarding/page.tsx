@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Building2, Wrench, Users, Shield, Check, ArrowRight, ArrowLeft, Search, Plus, X } from 'lucide-react'
+import { Building2, Wrench, Users, Shield, Check, ArrowRight, ArrowLeft, Search, Plus, X, DollarSign, Star } from 'lucide-react'
 import { industries, type Industry } from '@/lib/industries'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
@@ -127,9 +127,88 @@ export default function OnboardingPage() {
     )
   }, [industrySearch])
 
-  // Step 3: Team member
+  // Step 3: Payment methods
+  const PAYMENT_METHOD_OPTIONS = [
+    { id: 'zelle', label: 'Zelle', icon: '💸', placeholder: 'Email or phone number', helperText: 'Your Zelle-registered email or phone' },
+    { id: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourHandle', helperText: 'Your Venmo username (e.g. @MikesPlumbing)' },
+    { id: 'cashapp', label: 'Cash App', icon: '💚', placeholder: '$YourCashTag', helperText: 'Your Cash App $cashtag' },
+    { id: 'paypal', label: 'PayPal', icon: '🅿️', placeholder: 'paypal.me/yourname or email', helperText: 'Your PayPal.me link or PayPal email' },
+    { id: 'square', label: 'Square', icon: '⬜', placeholder: 'Square payment link URL', helperText: 'Paste your Square payment link' },
+    { id: 'check', label: 'Check', icon: '📝', placeholder: 'Payable to: Your Business Name LLC', helperText: 'Business name checks should be made out to' },
+    { id: 'cash', label: 'Cash', icon: '💵', placeholder: '', helperText: 'Accept cash payments in person' },
+    { id: 'other', label: 'Other', icon: '💳', placeholder: 'Payment details or instructions', helperText: 'Any other way you accept payment' },
+  ] as const
+
+  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<Set<string>>(new Set())
+  const [paymentHandles, setPaymentHandles] = useState<Record<string, string>>({})
+  const [preferredPaymentMethod, setPreferredPaymentMethod] = useState<string | null>(null)
+
+  const togglePaymentMethod = (methodId: string) => {
+    setSelectedPaymentMethods(prev => {
+      const next = new Set(prev)
+      if (next.has(methodId)) {
+        next.delete(methodId)
+        // Clear handle and preferred status
+        setPaymentHandles(h => { const n = { ...h }; delete n[methodId]; return n })
+        if (preferredPaymentMethod === methodId) setPreferredPaymentMethod(null)
+      } else {
+        next.add(methodId)
+        // Auto-set first selected as preferred
+        if (next.size === 1) setPreferredPaymentMethod(methodId)
+      }
+      return next
+    })
+  }
+
+  const handleSavePaymentMethods = async () => {
+    if (!company) {
+      setError('Account data is still loading. Please wait a moment and try again.')
+      return false
+    }
+    if (selectedPaymentMethods.size === 0) return true // skip if none selected
+
+    setSaving(true)
+    setError(null)
+
+    // Build payment method records
+    const methods = Array.from(selectedPaymentMethods).map((methodId, index) => ({
+      company_id: company.id,
+      method: methodId,
+      handle: paymentHandles[methodId] || null,
+      is_active: true,
+      is_preferred: preferredPaymentMethod === methodId,
+      sort_order: index,
+    }))
+
+    const { error: insertError } = await supabase
+      .from('company_payment_methods')
+      .upsert(methods, { onConflict: 'company_id,method' })
+
+    // Also build a payment_instructions string for backwards compatibility
+    const instructionLines = methods
+      .filter(m => m.handle)
+      .map(m => {
+        const opt = PAYMENT_METHOD_OPTIONS.find(o => o.id === m.method)
+        return `${opt?.label || m.method}: ${m.handle}`
+      })
+    if (instructionLines.length > 0) {
+      await supabase
+        .from('companies')
+        .update({ payment_instructions: instructionLines.join('\n') })
+        .eq('id', company.id)
+    }
+
+    setSaving(false)
+    if (insertError) {
+      setError(insertError.message)
+      return false
+    }
+    return true
+  }
+
+  // Step 4: Team member
   const [memberName, setMemberName] = useState('')
-  // Step 4: 2FA
+  // Step 5: 2FA
   const [twoFaPhone, setTwoFaPhone] = useState('')
   const [twoFaEnabled, setTwoFaEnabled] = useState(false)
   const [twoFaSaving, setTwoFaSaving] = useState(false)
@@ -286,8 +365,11 @@ export default function OnboardingPage() {
       const success = await handleSaveIndustryAndServices()
       if (success) setCurrentStep(3)
     } else if (currentStep === 3) {
-      setCurrentStep(4)
+      const success = await handleSavePaymentMethods()
+      if (success) setCurrentStep(4)
     } else if (currentStep === 4) {
+      setCurrentStep(5)
+    } else if (currentStep === 5) {
       // If they entered a phone number but haven't enabled yet, enable it
       if (twoFaPhone.trim() && !twoFaEnabled) {
         const success = await handleEnable2FA()
@@ -299,7 +381,7 @@ export default function OnboardingPage() {
   }
 
   const handleSkip = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       setCurrentStep(currentStep + 1)
     } else {
       handleFinish()
@@ -366,8 +448,9 @@ export default function OnboardingPage() {
           {[
             { id: 1, title: t('companyDetails'), icon: Building2 },
             { id: 2, title: t('yourIndustry'), icon: Wrench },
-            { id: 3, title: t('inviteTeam'), icon: Users },
-            { id: 4, title: t('security'), icon: Shield },
+            { id: 3, title: t('paymentMethods'), icon: DollarSign },
+            { id: 4, title: t('inviteTeam'), icon: Users },
+            { id: 5, title: t('security'), icon: Shield },
           ].map((step, index) => (
             <div key={step.id} className="flex items-center flex-1">
               <div className="flex items-center">
@@ -390,7 +473,7 @@ export default function OnboardingPage() {
                   {step.title}
                 </span>
               </div>
-              {index < 3 && (
+              {index < 4 && (
                 <div
                   className={`flex-1 h-0.5 mx-4 ${
                     currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
@@ -699,8 +782,95 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3: Invite Team */}
+          {/* Step 3: Payment Methods */}
           {currentStep === 3 && (
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <DollarSign size={20} className="text-emerald-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('paymentMethodsTitle')}</h2>
+                  <p className="text-sm text-gray-500">{t('paymentMethodsSubtitle')}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {PAYMENT_METHOD_OPTIONS.map((method) => {
+                  const isSelected = selectedPaymentMethods.has(method.id)
+                  const isPreferred = preferredPaymentMethod === method.id
+                  return (
+                    <div key={method.id}>
+                      <button
+                        type="button"
+                        onClick={() => togglePaymentMethod(method.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left ${
+                          isSelected
+                            ? 'border-emerald-400 bg-emerald-50'
+                            : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+                        }`}
+                      >
+                        <span className="text-xl">{method.icon}</span>
+                        <span className="text-sm font-medium text-gray-900 flex-1">{method.label}</span>
+                        {isSelected && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setPreferredPaymentMethod(method.id)
+                            }}
+                            className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 transition-colors ${
+                              isPreferred
+                                ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                                : 'bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-600'
+                            }`}
+                            title="Set as preferred"
+                          >
+                            <Star size={10} className={isPreferred ? 'fill-amber-500' : ''} />
+                            {isPreferred ? t('preferred') : t('setPreferred')}
+                          </button>
+                        )}
+                        {isSelected && <Check size={16} className="text-emerald-600" />}
+                      </button>
+
+                      {/* Handle input - shown when method is selected and has a placeholder */}
+                      {isSelected && method.placeholder && (
+                        <div className="ml-12 mt-2 mb-1">
+                          <input
+                            type="text"
+                            value={paymentHandles[method.id] || ''}
+                            onChange={(e) => setPaymentHandles(prev => ({ ...prev, [method.id]: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder={method.placeholder}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">{method.helperText}</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {selectedPaymentMethods.size > 0 && (
+                <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <p className="text-sm text-emerald-700">
+                    {t('paymentMethodsHint')}
+                  </p>
+                </div>
+              )}
+
+              {selectedPaymentMethods.size === 0 && (
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-700">
+                    {t('paymentMethodsSkipHint')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 4: Invite Team */}
+          {currentStep === 4 && (
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -755,8 +925,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: Security */}
-          {currentStep === 4 && (
+          {/* Step 5: Security */}
+          {currentStep === 5 && (
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
@@ -821,7 +991,7 @@ export default function OnboardingPage() {
                 onClick={handleSkip}
                 className="text-sm text-gray-500 hover:text-gray-700 font-medium"
               >
-                {currentStep === 4 ? t('skipDashboard') : t('skip')}
+                {currentStep === 5 ? t('skipDashboard') : t('skip')}
               </button>
               <button
                 onClick={handleNext}
@@ -830,7 +1000,7 @@ export default function OnboardingPage() {
               >
                 {saving ? (
                   t('saving')
-                ) : currentStep === 4 ? (
+                ) : currentStep === 5 ? (
                   t('finishSetup')
                 ) : (
                   <>
