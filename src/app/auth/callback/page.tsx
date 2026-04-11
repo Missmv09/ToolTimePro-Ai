@@ -93,9 +93,34 @@ function AuthCallbackContent() {
         if (userId) {
           const { data: userRow } = await supabase
             .from('users')
-            .select('company_id')
+            .select('company_id, role')
             .eq('id', userId)
             .single()
+
+          // OAuth users (Google sign-in) won't have a users/companies row yet.
+          // Provision them now so onboarding has a company to work with.
+          if (!userRow) {
+            const meta = userData.user?.user_metadata || {}
+            const fullName = meta.full_name || meta.name || meta.email?.split('@')[0] || 'User'
+            const email = userData.user?.email || ''
+            const companyName = `${fullName}'s Company`
+
+            await supabase.rpc('handle_new_signup', {
+              p_user_id: userId,
+              p_email: email,
+              p_full_name: fullName,
+              p_company_name: companyName,
+            })
+
+            router.replace('/onboarding')
+            return
+          }
+
+          if (userRow?.role === 'worker') {
+            router.replace('/worker')
+            return
+          }
+
           if (userRow?.company_id) {
             const { data: comp } = await supabase
               .from('companies')
