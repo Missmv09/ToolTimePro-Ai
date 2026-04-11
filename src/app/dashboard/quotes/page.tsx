@@ -1276,9 +1276,12 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       tax_amount: Number(tax_amount) || 0,
       total: Number(total) || 0,
       status: quote?.status || 'draft',
-      deposit_required: depositRequired,
-      deposit_amount: depositRequired && depositType === 'fixed' ? Number(depositValue) || null : null,
-      deposit_percentage: depositRequired && depositType === 'percentage' ? Number(depositValue) || null : null,
+    }
+    // Only include deposit fields if deposit is required (columns may not exist in DB yet)
+    if (depositRequired) {
+      quoteData.deposit_required = true
+      quoteData.deposit_amount = depositType === 'fixed' ? Number(depositValue) || null : null
+      quoteData.deposit_percentage = depositType === 'percentage' ? Number(depositValue) || null : null
     }
     if (!quote && userId) {
       quoteData.created_by = userId
