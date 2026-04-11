@@ -64,6 +64,12 @@ function SettingsContent() {
     syncStatus: string
   } | null>(null)
 
+  // Quote approval settings
+  const [quoteApprovalRequired, setQuoteApprovalRequired] = useState(false)
+  const [quoteApproverIds, setQuoteApproverIds] = useState<string[]>([])
+  const [teamMembers, setTeamMembers] = useState<{ id: string; full_name: string; role: string }[]>([])
+  const [savingApproval, setSavingApproval] = useState(false)
+
   // Company info form
   const [companyForm, setCompanyForm] = useState<CompanyForm>({
     name: '',
@@ -112,8 +118,28 @@ function SettingsContent() {
         default_hourly_rate: c.default_hourly_rate ? String(c.default_hourly_rate) : '',
         preferred_language: (c.preferred_language as string) || 'en',
       })
+      // Load quote approval settings
+      const approvalSettings = c.quote_approval_settings as { required?: boolean; approver_ids?: string[] } | null
+      if (approvalSettings) {
+        setQuoteApprovalRequired(approvalSettings.required || false)
+        setQuoteApproverIds(approvalSettings.approver_ids || [])
+      }
     }
   }, [company])
+
+  // Fetch team members for approver selection (owners only)
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      if (!company?.id || dbUser?.role !== 'owner') return
+      const { data } = await supabase
+        .from('users')
+        .select('id, full_name, role')
+        .eq('company_id', company.id)
+        .order('full_name')
+      if (data) setTeamMembers(data)
+    }
+    fetchTeamMembers()
+  }, [company?.id, dbUser?.role])
 
   // Check for QBO connection status
   useEffect(() => {
@@ -250,6 +276,27 @@ function SettingsContent() {
     } catch {
       setSaveMessage({ type: 'error', text: 'Failed to disconnect QuickBooks' })
     }
+  }
+
+  const saveQuoteApprovalSettings = async () => {
+    if (!company) return
+    setSavingApproval(true)
+    const settings = {
+      required: quoteApprovalRequired,
+      approver_ids: quoteApprovalRequired ? quoteApproverIds : [],
+    }
+    const { error } = await supabase
+      .from('companies')
+      .update({ quote_approval_settings: settings, updated_at: new Date().toISOString() })
+      .eq('id', company.id)
+
+    if (error) {
+      setSaveMessage({ type: 'error', text: 'Failed to save approval settings: ' + error.message })
+    } else {
+      setSaveMessage({ type: 'success', text: 'Quote approval settings saved!' })
+      setTimeout(() => setSaveMessage(null), 3000)
+    }
+    setSavingApproval(false)
   }
 
   return (
@@ -688,6 +735,83 @@ function SettingsContent() {
               </div>
             )}
           </div>
+
+          {/* Quote Approval Workflow — Owner only */}
+          {dbUser?.role === 'owner' && company && (
+            <div className="bg-white rounded-xl border p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Quote Approval Workflow</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Control whether quotes need internal approval before being sent to customers.
+              </p>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={quoteApprovalRequired}
+                  onChange={(e) => {
+                    setQuoteApprovalRequired(e.target.checked)
+                    if (!e.target.checked) setQuoteApproverIds([])
+                  }}
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900">Require approval before sending quotes</span>
+                  <p className="text-xs text-gray-500">
+                    When enabled, team members must submit quotes for approval. Only designated approvers can send quotes to customers.
+                  </p>
+                </div>
+              </label>
+
+              {quoteApprovalRequired && (
+                <div className="mt-4 pl-8">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Who can approve &amp; send quotes?
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    You (the owner) can always approve. Select additional team members below.
+                  </p>
+                  {teamMembers.filter(m => m.id !== user?.id).length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">No other team members found. Only you can approve quotes.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {teamMembers
+                        .filter(m => m.id !== user?.id)
+                        .map((member) => (
+                          <label key={member.id} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              checked={quoteApproverIds.includes(member.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setQuoteApproverIds([...quoteApproverIds, member.id])
+                                } else {
+                                  setQuoteApproverIds(quoteApproverIds.filter(id => id !== member.id))
+                                }
+                              }}
+                              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <div>
+                              <span className="text-sm text-gray-900">{member.full_name}</span>
+                              <span className="text-xs text-gray-400 ml-2 capitalize">({member.role.replace('_', ' ')})</span>
+                            </div>
+                          </label>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-4 pt-4 border-t">
+                <button
+                  onClick={saveQuoteApprovalSettings}
+                  disabled={savingApproval}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {savingApproval ? 'Saving...' : 'Save Approval Settings'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
