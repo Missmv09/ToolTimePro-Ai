@@ -1,0 +1,53 @@
+name: Wiki Staleness Check
+
+# Runs on PRs to main and comments if wiki pages may need updating
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-wiki:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed
+        run: |
+          FILES=$(git diff --name-only origin/main...HEAD | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          echo "Changed files: $FILES"
+
+      - name: Check wiki staleness
+        id: staleness
+        continue-on-error: true
+        run: |
+          OUTPUT=$(git diff --name-only origin/main...HEAD | node scripts/check-wiki-staleness.js --stdin 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          # Write multiline output to file for the comment step
+          echo "$OUTPUT" > /tmp/wiki-check.md
+          echo "stale=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: steps.staleness.outputs.stale == '1'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: wiki-staleness
+          path: /tmp/wiki-check.md
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Remove old comment if no staleness
+        if: steps.staleness.outputs.stale == '0'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: wiki-staleness
+          delete: true
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
