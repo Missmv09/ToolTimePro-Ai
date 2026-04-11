@@ -20,7 +20,7 @@ export async function GET() {
     if (!QUICKBOOKS_CLIENT_ID || !QUICKBOOKS_REDIRECT_URI) {
       console.error('QuickBooks environment variables not configured')
       return NextResponse.redirect(
-        new URL('/dashboard/settings?qbo=error&reason=not_configured', process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com')
+        new URL('/dashboard/settings?tab=integrations&qbo=error&reason=not_configured', process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com')
       )
     }
 
@@ -67,7 +67,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error initiating QuickBooks OAuth:', error)
     return NextResponse.redirect(
-      new URL('/dashboard/settings?qbo=error', process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com')
+      new URL('/dashboard/settings?tab=integrations&qbo=error', process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com')
     )
   }
 }

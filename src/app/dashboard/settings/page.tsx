@@ -55,7 +55,9 @@ function SettingsContent() {
   const { user, dbUser, company } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState<'account' | 'integrations' | 'subscription'>('account')
+  const tabParam = searchParams.get('tab')
+  const initialTab = (tabParam === 'integrations' || tabParam === 'subscription') ? tabParam : 'account'
+  const [activeTab, setActiveTab] = useState<'account' | 'integrations' | 'subscription'>(initialTab)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [qboConnected, setQboConnected] = useState(false)
@@ -169,7 +171,7 @@ function SettingsContent() {
     }
 
     checkQboConnection()
-  }, [user])
+  }, [company?.id])
 
   // Check for QBO callback success
   useEffect(() => {

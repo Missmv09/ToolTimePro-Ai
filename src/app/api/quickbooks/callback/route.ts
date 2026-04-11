@@ -28,13 +28,13 @@ export async function GET(request: NextRequest) {
     // Handle OAuth errors
     if (error) {
       console.error('QuickBooks OAuth error:', error)
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=oauth_denied', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=oauth_denied', SITE_URL))
     }
 
     // Validate required parameters
     if (!code || !realmId || !state) {
       console.error('Missing required OAuth parameters')
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=missing_params', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=missing_params', SITE_URL))
     }
 
     // Decode and validate state
@@ -43,13 +43,13 @@ export async function GET(request: NextRequest) {
       stateData = JSON.parse(Buffer.from(state, 'base64').toString())
     } catch {
       console.error('Invalid state parameter')
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=invalid_state', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=invalid_state', SITE_URL))
     }
 
     // Check if state is not too old (15 minutes max)
     if (Date.now() - stateData.timestamp > 15 * 60 * 1000) {
       console.error('State parameter expired')
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=state_expired', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=state_expired', SITE_URL))
     }
 
     // Exchange authorization code for tokens
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text()
       console.error('Failed to exchange code for tokens:', errorText)
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=token_exchange_failed', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=token_exchange_failed', SITE_URL))
     }
 
     const tokenData = await tokenResponse.json()
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Supabase not configured')
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=db_not_configured', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=db_not_configured', SITE_URL))
     }
 
     // Use service role key for admin operations
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
     if (!companyId) {
       console.error('No company found for user')
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=no_company', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=no_company', SITE_URL))
     }
 
     // Upsert the connection (update if exists, insert if not)
@@ -123,13 +123,13 @@ export async function GET(request: NextRequest) {
 
     if (dbError) {
       console.error('Failed to store QBO connection:', dbError)
-      return NextResponse.redirect(new URL('/dashboard/settings?qbo=error&reason=db_error', SITE_URL))
+      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=db_error', SITE_URL))
     }
 
-    // Success! Redirect back to settings with success message
-    return NextResponse.redirect(new URL('/dashboard/settings?qbo=connected', SITE_URL))
+    // Success! Redirect back to settings integrations tab with success message
+    return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=connected', SITE_URL))
   } catch (error) {
     console.error('Error in QuickBooks callback:', error)
-    return NextResponse.redirect(new URL('/dashboard/settings?qbo=error', SITE_URL))
+    return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error', SITE_URL))
   }
 }
