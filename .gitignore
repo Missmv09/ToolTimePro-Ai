@@ -5,5 +5,8 @@ out
 .env.test
 tsconfig.tsbuildinfo
 
+# Test coverage output
+coverage
+
 # Local Netlify folder
 .netlify
