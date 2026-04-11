@@ -18,7 +18,28 @@ interface CompanyForm {
   website: string
   default_quote_terms: string
   payment_instructions: string
+  license_number: string
+  insurance_policy_number: string
+  insurance_expiration: string
+  tax_id: string
+  business_hours: Record<string, { open: string; close: string }>
+  service_area_radius: string
+  company_description: string
+  default_hourly_rate: string
+  preferred_language: string
 }
+
+const DAYS_OF_WEEK = [
+  { key: 'mon', label: 'Mon' },
+  { key: 'tue', label: 'Tue' },
+  { key: 'wed', label: 'Wed' },
+  { key: 'thu', label: 'Thu' },
+  { key: 'fri', label: 'Fri' },
+  { key: 'sat', label: 'Sat' },
+  { key: 'sun', label: 'Sun' },
+] as const
+
+const DEFAULT_HOURS = { open: '08:00', close: '17:00' }
 
 // Plan display configuration mapping plan IDs to human-readable names and prices
 const PLAN_CONFIG: Record<string, { name: string; price: string; period: string }> = {
@@ -55,11 +76,21 @@ function SettingsContent() {
     website: '',
     default_quote_terms: '',
     payment_instructions: '',
+    license_number: '',
+    insurance_policy_number: '',
+    insurance_expiration: '',
+    tax_id: '',
+    business_hours: {},
+    service_area_radius: '',
+    company_description: '',
+    default_hourly_rate: '',
+    preferred_language: 'en',
   })
 
   // Initialize form when company data loads
   useEffect(() => {
     if (company) {
+      const c = company as unknown as Record<string, unknown>
       setCompanyForm({
         name: company.name || '',
         email: company.email || '',
@@ -69,8 +100,17 @@ function SettingsContent() {
         state: company.state || '',
         zip: company.zip || '',
         website: company.website || '',
-        default_quote_terms: (company as unknown as Record<string, unknown>).default_quote_terms as string || '',
+        default_quote_terms: (c.default_quote_terms as string) || '',
         payment_instructions: company.payment_instructions || '',
+        license_number: (c.license_number as string) || '',
+        insurance_policy_number: (c.insurance_policy_number as string) || '',
+        insurance_expiration: (c.insurance_expiration as string) || '',
+        tax_id: (c.tax_id as string) || '',
+        business_hours: (c.business_hours as Record<string, { open: string; close: string }>) || {},
+        service_area_radius: c.service_area_radius ? String(c.service_area_radius) : '',
+        company_description: (c.company_description as string) || '',
+        default_hourly_rate: c.default_hourly_rate ? String(c.default_hourly_rate) : '',
+        preferred_language: (c.preferred_language as string) || 'en',
       })
     }
   }, [company])
@@ -117,35 +157,65 @@ function SettingsContent() {
 
   const saveCompanyInfo = async () => {
     if (!company) return
+
+    // Validate required fields
+    if (!companyForm.name.trim()) {
+      setSaveMessage({ type: 'error', text: 'Business Name is required.' })
+      return
+    }
+    if (!companyForm.phone.trim()) {
+      setSaveMessage({ type: 'error', text: 'Business Phone is required — it appears on your invoices and quotes.' })
+      return
+    }
+
     setSaving(true)
     setSaveMessage(null)
 
     try {
-      const updateData: Record<string, unknown> = {
-          name: companyForm.name,
-          email: companyForm.email,
-          phone: companyForm.phone,
-          address: companyForm.address,
-          city: companyForm.city,
-          state: companyForm.state,
-          zip: companyForm.zip,
-          website: companyForm.website,
-          default_quote_terms: companyForm.default_quote_terms,
-          payment_instructions: companyForm.payment_instructions || null,
-          updated_at: new Date().toISOString(),
-        }
+      // Core fields that are guaranteed to exist in the DB
+      const coreData: Record<string, unknown> = {
+        name: companyForm.name,
+        email: companyForm.email,
+        phone: companyForm.phone,
+        address: companyForm.address,
+        city: companyForm.city,
+        state: companyForm.state,
+        zip: companyForm.zip,
+        updated_at: new Date().toISOString(),
+      }
 
+      // Extended fields from migration 028 — save gracefully if columns exist
+      const extendedData: Record<string, unknown> = {
+        website: companyForm.website || null,
+        default_quote_terms: companyForm.default_quote_terms || null,
+        payment_instructions: companyForm.payment_instructions || null,
+        license_number: companyForm.license_number || null,
+        insurance_policy_number: companyForm.insurance_policy_number || null,
+        insurance_expiration: companyForm.insurance_expiration || null,
+        tax_id: companyForm.tax_id || null,
+        business_hours: Object.keys(companyForm.business_hours).length > 0 ? companyForm.business_hours : null,
+        service_area_radius: companyForm.service_area_radius ? Number(companyForm.service_area_radius) : null,
+        company_description: companyForm.company_description || null,
+        default_hourly_rate: companyForm.default_hourly_rate ? Number(companyForm.default_hourly_rate) : null,
+        preferred_language: companyForm.preferred_language || 'en',
+      }
+
+      // Try saving all fields at once
       let { error } = await supabase
         .from('companies')
-        .update(updateData)
+        .update({ ...coreData, ...extendedData })
         .eq('id', company.id)
 
-      // Retry without optional columns if they don't exist yet
-      if (error?.message?.includes('default_quote_terms') || error?.message?.includes('payment_instructions')) {
-        delete updateData.default_quote_terms
-        delete updateData.payment_instructions
-        const retry = await supabase.from('companies').update(updateData).eq('id', company.id)
+      // If extended columns don't exist yet, fall back to core fields only
+      if (error?.message?.includes('schema cache') || error?.message?.includes('column')) {
+        const retry = await supabase.from('companies').update(coreData).eq('id', company.id)
         error = retry.error
+        if (!error) {
+          setSaveMessage({ type: 'success', text: 'Core info saved! Run migration 028 to enable all profile fields.' })
+          setTimeout(() => setSaveMessage(null), 5000)
+          setSaving(false)
+          return
+        }
       }
 
       if (error) {
@@ -263,7 +333,10 @@ function SettingsContent() {
 
           {/* Company Info (editable) */}
           <div className="bg-white rounded-xl border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Business Information</h2>
+              <p className="text-xs text-gray-400"><span className="text-red-500">*</span> = required</p>
+            </div>
 
             {!company ? (
               <div className="text-center py-8 text-gray-500">
@@ -271,45 +344,53 @@ function SettingsContent() {
                 <p className="text-sm mt-2">Please contact support if this is an error.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* === CORE INFO === */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Business Name *
+                    Business Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={companyForm.name}
                     onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })}
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Business Email
+                      Business Email <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       value={companyForm.email}
                       onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })}
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="tel"
                       value={companyForm.phone}
                       onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })}
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="(555) 123-4567"
+                      required
                     />
+                    <p className="text-xs text-gray-500 mt-1">Appears on invoices, quotes, and your booking page.</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Street Address
+                    Street Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -321,7 +402,9 @@ function SettingsContent() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      City <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={companyForm.city}
@@ -330,7 +413,9 @@ function SettingsContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      State <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={companyForm.state}
@@ -341,7 +426,9 @@ function SettingsContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      ZIP <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={companyForm.zip}
@@ -351,50 +438,245 @@ function SettingsContent() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                  <input
-                    type="url"
-                    value={companyForm.website}
-                    onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="https://yourcompany.com"
-                  />
+                {/* === PROFESSIONAL DETAILS === */}
+                <div className="border-t pt-6">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">Professional Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Contractor License #
+                      </label>
+                      <input
+                        type="text"
+                        value={companyForm.license_number}
+                        onChange={(e) => setCompanyForm({ ...companyForm, license_number: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. CSLB #1234567"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Auto-prints on quotes &amp; invoices. Required in CA, FL, TX.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tax ID / EIN
+                      </label>
+                      <input
+                        type="text"
+                        value={companyForm.tax_id}
+                        onChange={(e) => setCompanyForm({ ...companyForm, tax_id: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. 12-3456789"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Appears on professional invoices. Set it once, never retype.</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Insurance Policy #
+                      </label>
+                      <input
+                        type="text"
+                        value={companyForm.insurance_policy_number}
+                        onChange={(e) => setCompanyForm({ ...companyForm, insurance_policy_number: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Policy number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Insurance Expiration
+                      </label>
+                      <input
+                        type="date"
+                        value={companyForm.insurance_expiration}
+                        onChange={(e) => setCompanyForm({ ...companyForm, insurance_expiration: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Jenny AI will alert you before it expires.</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Default Quote Terms & Conditions
-                  </label>
-                  <textarea
-                    value={companyForm.default_quote_terms}
-                    onChange={(e) => setCompanyForm({ ...companyForm, default_quote_terms: e.target.value })}
-                    rows={4}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g. Net 30 payment terms. 50% deposit required before work begins. All work guaranteed for 90 days. Cancellation fee of $50 applies within 24 hours of scheduled service."
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    These terms will auto-populate on new quotes. You can edit them per quote.
-                  </p>
+                {/* === ONLINE PRESENCE === */}
+                <div className="border-t pt-6">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">Online Presence</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                      <input
+                        type="url"
+                        value={companyForm.website}
+                        onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://yourcompany.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Language</label>
+                      <select
+                        value={companyForm.preferred_language}
+                        onChange={(e) => setCompanyForm({ ...companyForm, preferred_language: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="en">English</option>
+                        <option value="es">Spanish / Espa&ntilde;ol</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Language for customer-facing documents.</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Company Description
+                    </label>
+                    <textarea
+                      value={companyForm.company_description}
+                      onChange={(e) => setCompanyForm({ ...companyForm, company_description: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Tell your customers about your business — this shows on your booking page and customer portal."
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Payment Instructions
-                  </label>
-                  <textarea
-                    value={companyForm.payment_instructions}
-                    onChange={(e) => setCompanyForm({ ...companyForm, payment_instructions: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g. Zelle: maria@email.com &#10;Venmo: @MariasLandscaping &#10;Checks payable to: ABC Landscaping LLC"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    These instructions will appear on your invoices so customers know how to pay you outside of Stripe.
-                  </p>
+                {/* === OPERATIONS === */}
+                <div className="border-t pt-6">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">Operations</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Default Hourly Rate
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={companyForm.default_hourly_rate}
+                          onChange={(e) => setCompanyForm({ ...companyForm, default_hourly_rate: e.target.value })}
+                          className="w-full pl-7 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="75.00"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Auto-fills on new jobs. No more retyping every time.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Service Area (miles)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="500"
+                        value={companyForm.service_area_radius}
+                        onChange={(e) => setCompanyForm({ ...companyForm, service_area_radius: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="25"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Jenny AI filters out-of-area leads automatically.</p>
+                    </div>
+                  </div>
+
+                  {/* Business Hours */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Hours</label>
+                    <div className="space-y-2">
+                      {DAYS_OF_WEEK.map(({ key, label }) => {
+                        const dayHours = companyForm.business_hours[key]
+                        const isOpen = !!dayHours
+                        return (
+                          <div key={key} className="flex items-center gap-3">
+                            <label className="flex items-center gap-2 w-16">
+                              <input
+                                type="checkbox"
+                                checked={isOpen}
+                                onChange={(e) => {
+                                  const updated = { ...companyForm.business_hours }
+                                  if (e.target.checked) {
+                                    updated[key] = { ...DEFAULT_HOURS }
+                                  } else {
+                                    delete updated[key]
+                                  }
+                                  setCompanyForm({ ...companyForm, business_hours: updated })
+                                }}
+                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">{label}</span>
+                            </label>
+                            {isOpen ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="time"
+                                  value={dayHours.open}
+                                  onChange={(e) => {
+                                    const updated = { ...companyForm.business_hours }
+                                    updated[key] = { ...updated[key], open: e.target.value }
+                                    setCompanyForm({ ...companyForm, business_hours: updated })
+                                  }}
+                                  className="px-2 py-1 border rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                                <span className="text-gray-400 text-sm">to</span>
+                                <input
+                                  type="time"
+                                  value={dayHours.close}
+                                  onChange={(e) => {
+                                    const updated = { ...companyForm.business_hours }
+                                    updated[key] = { ...updated[key], close: e.target.value }
+                                    setCompanyForm({ ...companyForm, business_hours: updated })
+                                  }}
+                                  className="px-2 py-1 border rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">Closed</span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Used for your booking page and Jenny AI after-hours auto-responses.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="pt-4">
+                {/* === INVOICING & QUOTES === */}
+                <div className="border-t pt-6">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">Invoicing &amp; Quotes</h3>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Default Quote Terms &amp; Conditions
+                    </label>
+                    <textarea
+                      value={companyForm.default_quote_terms}
+                      onChange={(e) => setCompanyForm({ ...companyForm, default_quote_terms: e.target.value })}
+                      rows={4}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g. Net 30 payment terms. 50% deposit required before work begins. All work guaranteed for 90 days."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Auto-populates on new quotes. You can edit per quote.
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Payment Instructions
+                    </label>
+                    <textarea
+                      value={companyForm.payment_instructions}
+                      onChange={(e) => setCompanyForm({ ...companyForm, payment_instructions: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g. Zelle: maria@email.com &#10;Venmo: @MariasLandscaping &#10;Checks payable to: ABC Landscaping LLC"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Appears on invoices so customers know how to pay outside Stripe.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
                   <button
                     onClick={saveCompanyInfo}
                     disabled={saving}

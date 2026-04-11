@@ -16,10 +16,24 @@ CREATE TABLE companies (
     city VARCHAR(100),
     state VARCHAR(50) DEFAULT 'CA',
     zip VARCHAR(20),
+    website TEXT,
     logo_url TEXT,
     plan VARCHAR(50) DEFAULT 'starter', -- starter, pro, elite
     addons TEXT[] DEFAULT '{}', -- purchased add-on IDs (jenny_exec_admin, jenny_pro, etc.)
     stripe_customer_id VARCHAR(255),
+    -- Professional details (compliance & invoicing)
+    license_number VARCHAR(100),          -- Contractor license # (auto-prints on quotes/invoices)
+    insurance_policy_number VARCHAR(100),  -- Insurance policy for commercial proposals
+    insurance_expiration DATE,             -- Triggers Jenny AI renewal alert
+    tax_id VARCHAR(50),                    -- EIN for professional invoicing
+    -- Operations & scheduling
+    default_quote_terms TEXT,              -- Auto-populate on new quotes
+    payment_instructions TEXT,             -- Displayed on invoices
+    business_hours JSONB DEFAULT '{}',     -- {"mon":{"open":"08:00","close":"17:00"}, ...}
+    service_area_radius INTEGER,           -- Miles from business address
+    company_description TEXT,              -- Booking page & customer portal bio
+    default_hourly_rate DECIMAL(10,2),     -- Auto-fills on new jobs
+    preferred_language VARCHAR(10) DEFAULT 'en', -- en, es
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
