@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,31 +9,49 @@ const QUICKBOOKS_REDIRECT_URI = process.env.QUICKBOOKS_REDIRECT_URI || ''
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.tooltimepro.com'
 
-export async function GET() {
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createClient(url, key)
+}
+
+export async function POST(request: NextRequest) {
   try {
     // Check if QuickBooks is configured
     if (!QUICKBOOKS_CLIENT_ID || !QUICKBOOKS_REDIRECT_URI) {
       console.error('QuickBooks environment variables not configured')
-      return NextResponse.redirect(
-        new URL('/dashboard/settings?tab=integrations&qbo=error&reason=not_configured', SITE_URL)
+      return NextResponse.json(
+        { error: 'QuickBooks is not configured. Please contact support.' },
+        { status: 503 }
       )
     }
 
-    // Get the current user from Supabase using SSR client
-    const supabase = await createSupabaseServerClient()
+    // Authenticate via Bearer token (the app uses localStorage-based auth,
+    // so cookies are not available in API routes)
+    const authHeader = request.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    const supabase = getSupabaseAdmin()
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Server configuration error. Please contact support.' },
+        { status: 500 }
+      )
+    }
 
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser(token)
 
-    if (userError) {
-      console.error('Error getting user:', userError)
-    }
-
-    if (!user) {
-      return NextResponse.redirect(
-        new URL('/auth/login?redirect=/dashboard/settings', SITE_URL)
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Session expired. Please log in again.' },
+        { status: 401 }
       )
     }
 
@@ -46,8 +64,9 @@ export async function GET() {
 
     if (!dbUser?.company_id) {
       console.error('No company found for user before QuickBooks OAuth')
-      return NextResponse.redirect(
-        new URL('/dashboard/settings?tab=integrations&qbo=error&reason=no_company', SITE_URL)
+      return NextResponse.json(
+        { error: 'No company found. Please complete your account setup first.' },
+        { status: 400 }
       )
     }
 
@@ -73,12 +92,12 @@ export async function GET() {
 
     const authUrl = `https://appcenter.intuit.com/connect/oauth2?${params.toString()}`
 
-    // Redirect to QuickBooks OAuth
-    return NextResponse.redirect(authUrl)
+    return NextResponse.json({ url: authUrl })
   } catch (error) {
     console.error('Error initiating QuickBooks OAuth:', error)
-    return NextResponse.redirect(
-      new URL('/dashboard/settings?tab=integrations&qbo=error', SITE_URL)
+    return NextResponse.json(
+      { error: 'Failed to initiate QuickBooks connection. Please try again.' },
+      { status: 500 }
     )
   }
 }

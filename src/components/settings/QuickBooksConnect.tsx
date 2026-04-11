@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
 interface QuickBooksConnectProps {
   isConnected: boolean
@@ -17,14 +18,38 @@ export default function QuickBooksConnect({
 }: QuickBooksConnectProps) {
   const [syncing, setSyncing] = useState(false)
   const [connecting, setConnecting] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const handleConnect = async () => {
     setConnecting(true)
+    setMessage(null)
+
     try {
-      // Redirect to QuickBooks OAuth flow
-      window.location.href = '/api/quickbooks/connect'
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setMessage({ type: 'error', text: 'Please log in again to connect QuickBooks.' })
+        setConnecting(false)
+        return
+      }
+
+      const response = await fetch('/api/quickbooks/connect', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to start QuickBooks connection')
+      }
+
+      const { url } = await response.json()
+      window.location.href = url
     } catch (error) {
       console.error('Failed to initiate QuickBooks connection:', error)
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to connect. Please try again.',
+      })
       setConnecting(false)
     }
   }
@@ -68,6 +93,19 @@ export default function QuickBooksConnect({
 
   return (
     <div className="border rounded-lg p-4 bg-white">
+      {/* Toast message */}
+      {message && (
+        <div
+          className={`mb-3 p-3 rounded-lg text-sm ${
+            message.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           {/* QuickBooks Logo */}
