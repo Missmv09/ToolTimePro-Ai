@@ -707,7 +707,14 @@ CREATE POLICY "Quote items for company quotes" ON quote_items
 
 -- Invoice items: users can manage items for invoices in their company
 CREATE POLICY "Invoice items for company invoices" ON invoice_items
-    FOR ALL USING (
+    FOR ALL
+    USING (
+        invoice_id IN (
+            SELECT i.id FROM invoices i
+            WHERE i.company_id = (SELECT company_id FROM users WHERE id = auth.uid())
+        )
+    )
+    WITH CHECK (
         invoice_id IN (
             SELECT i.id FROM invoices i
             WHERE i.company_id = (SELECT company_id FROM users WHERE id = auth.uid())

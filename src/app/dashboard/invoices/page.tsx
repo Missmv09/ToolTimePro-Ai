@@ -531,6 +531,21 @@ export default function InvoicesPage() {
             setShowModal(false)
             if (companyId) fetchInvoices(companyId)
           }}
+          onSaveAndSend={async (invoiceId: string) => {
+            setShowModal(false)
+            if (companyId) {
+              await fetchInvoices(companyId)
+              // Fetch the just-saved invoice with full customer/items data to send it
+              const { data } = await supabase
+                .from('invoices')
+                .select('*, customer:customers(id, name, email, phone, address, city, state, zip, sms_consent), items:invoice_items(*)')
+                .eq('id', invoiceId)
+                .single()
+              if (data) {
+                await sendInvoice(data as Invoice)
+              }
+            }
+          }}
         />
       )}
     </div>
@@ -548,12 +563,13 @@ const STATE_TAX_RATES: Record<string, number> = {
   WA: 6.5, WV: 6, WI: 5, WY: 4,
 }
 
-function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
+function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAndSend }: {
   invoice: Invoice | null
   companyId: string
   customers: { id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string }[]
   onClose: () => void
   onSave: () => void
+  onSaveAndSend?: (invoiceId: string) => void
 }) {
   const [formData, setFormData] = useState({
     customer_id: invoice?.customer_id || '',
@@ -568,6 +584,7 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [customerError, setCustomerError] = useState<string | null>(null)
+  const [sendAfterSave, setSendAfterSave] = useState(false)
 
   const selectedCustomer = customers.find(c => c.id === formData.customer_id) || null
 
@@ -646,11 +663,16 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
         }
       }
 
-      onSave()
+      if (sendAfterSave && invoiceId && onSaveAndSend) {
+        onSaveAndSend(invoiceId)
+      } else {
+        onSave()
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred while saving the invoice.'
       console.error('Error saving invoice:', err)
       setSaveError(message)
+      setSendAfterSave(false)
     } finally {
       setSaving(false)
     }
@@ -806,10 +828,21 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave }: {
             <button
               type="submit"
               disabled={saving}
+              onClick={() => setSendAfterSave(false)}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save Invoice'}
+              {saving && !sendAfterSave ? 'Saving...' : 'Save Invoice'}
             </button>
+            {onSaveAndSend && (
+              <button
+                type="submit"
+                disabled={saving}
+                onClick={() => setSendAfterSave(true)}
+                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {saving && sendAfterSave ? 'Sending...' : 'Send Invoice'}
+              </button>
+            )}
           </div>
         </form>
       </div>
