@@ -5,19 +5,9 @@ export const dynamic = 'force-dynamic'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
-
-function getAppUrl(request) {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
-  const proto = request.headers.get('x-forwarded-proto') || 'https'
-  const host = request.headers.get('host')
-  if (host) return `${proto}://${host}`
-  return 'https://app.tooltimepro.com'
-}
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.tooltimepro.com'
 
 export async function GET(request) {
-  const APP_URL = getAppUrl(request)
-  const REDIRECT_URI = `${APP_URL}/api/google-calendar/callback`
-
   try {
     const { searchParams } = new URL(request.url)
     const code = searchParams.get('code')
@@ -27,13 +17,13 @@ export async function GET(request) {
     if (error) {
       console.error('Google OAuth error:', error)
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=oauth_denied', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=oauth_denied', SITE_URL)
       )
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=missing_params', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=missing_params', SITE_URL)
       )
     }
 
@@ -43,7 +33,7 @@ export async function GET(request) {
       stateData = JSON.parse(Buffer.from(state, 'base64url').toString())
     } catch {
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=invalid_state', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=invalid_state', SITE_URL)
       )
     }
 
@@ -52,15 +42,17 @@ export async function GET(request) {
     // Reject stale OAuth state (older than 10 minutes) to prevent replay attacks
     if (!timestamp || Date.now() - timestamp > 10 * 60 * 1000) {
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=expired_state', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=expired_state', SITE_URL)
       )
     }
 
     if (!userId) {
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=no_user', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=no_user', SITE_URL)
       )
     }
+
+    const REDIRECT_URI = `${SITE_URL}/api/google-calendar/callback`
 
     // Exchange authorization code for tokens
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -79,7 +71,7 @@ export async function GET(request) {
       const errBody = await tokenResponse.text()
       console.error('Google token exchange failed:', errBody)
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=token_exchange', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=token_exchange', SITE_URL)
       )
     }
 
@@ -89,10 +81,17 @@ export async function GET(request) {
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString()
 
     // Get user's company_id from the database
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    )
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase not configured')
+      return NextResponse.redirect(
+        new URL('/dashboard/settings?gcal=error&reason=db_not_configured', SITE_URL)
+      )
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
     const { data: dbUser, error: userError } = await supabaseAdmin
       .from('users')
@@ -103,7 +102,7 @@ export async function GET(request) {
     if (userError || !dbUser?.company_id) {
       console.error('Failed to get user company:', userError)
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=no_company', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=no_company', SITE_URL)
       )
     }
 
@@ -126,17 +125,17 @@ export async function GET(request) {
     if (upsertError) {
       console.error('Failed to store Google Calendar connection:', upsertError)
       return NextResponse.redirect(
-        new URL('/dashboard/settings?gcal=error&reason=db_error', APP_URL)
+        new URL('/dashboard/settings?gcal=error&reason=db_error', SITE_URL)
       )
     }
 
     return NextResponse.redirect(
-      new URL('/dashboard/settings?gcal=connected', APP_URL)
+      new URL('/dashboard/settings?gcal=connected', SITE_URL)
     )
   } catch (error) {
     console.error('Google Calendar callback error:', error)
     return NextResponse.redirect(
-      new URL('/dashboard/settings?gcal=error', APP_URL)
+      new URL('/dashboard/settings?gcal=error', SITE_URL)
     )
   }
 }
