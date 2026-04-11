@@ -59,4 +59,4 @@ All functions live in `netlify/functions/` and are deployed automatically:
 
 > **Total:** 6 scheduled jobs, 9 on-demand functions
 
-_Last generated: 2026-04-10_
+_Last generated: 2026-04-11_

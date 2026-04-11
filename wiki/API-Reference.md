@@ -267,4 +267,4 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 > **Total endpoints:** 89 routes across 33 groups
 
-_Last generated: 2026-04-10_
+_Last generated: 2026-04-11_
