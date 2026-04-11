@@ -58,6 +58,10 @@ export async function POST(request) {
       )
     }
 
+    // Detect key mode for better error messages
+    const stripeKey = process.env.STRIPE_SECRET_KEY || ''
+    const keyMode = stripeKey.startsWith('sk_test_') ? 'test' : stripeKey.startsWith('sk_live_') ? 'live' : 'unknown'
+
     let accountId = company?.stripe_connect_account_id
 
     // If an existing account ID is stored, verify it's still valid in Stripe
@@ -94,7 +98,7 @@ export async function POST(request) {
         if (createErr?.message?.includes('api_key')) {
           msg = 'Stripe API key is invalid. Please contact support.'
         } else if (createErr?.code === 'platform_api_not_enabled') {
-          msg = 'Stripe Connect is not enabled on this account. Please enable Connect in your Stripe dashboard at https://dashboard.stripe.com/connect/overview'
+          msg = `Stripe Connect is not enabled for your ${keyMode}-mode API key. Please go to your Stripe dashboard, switch to ${keyMode} mode, then enable Connect at Settings > Connect. (Current key mode: ${keyMode})`
         } else if (createErr?.type === 'StripeInvalidRequestError') {
           msg = `Stripe error: ${createErr.message}`
         }
