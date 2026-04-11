@@ -66,13 +66,19 @@ export async function POST(request: NextRequest) {
     if (quoteError) {
       console.error('Error creating quote:', quoteError)
 
-      // If the error is about created_by/sent_by columns not existing,
+      // If the error is about columns not existing in schema cache,
       // retry without those fields
       if (quoteError.message?.includes('created_by') || quoteError.message?.includes('sent_by') || quoteError.message?.includes('terms') || quoteError.code === '42703') {
         const retryData = { ...quoteData }
         delete retryData.created_by
         delete retryData.terms
         delete retryData.sent_by
+        delete retryData.deposit_amount
+        delete retryData.deposit_required
+        delete retryData.deposit_percentage
+        delete retryData.deposit_paid
+        delete retryData.deposit_paid_at
+        delete retryData.deposit_stripe_payment_id
 
         const { data: retryQuote, error: retryError } = await adminClient
           .from('quotes')
