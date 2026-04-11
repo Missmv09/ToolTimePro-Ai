@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -144,29 +143,19 @@ export async function POST(request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     )
 
-    // Get user from Authorization header or cookie
-    let userId = null
+    // Authenticate via Bearer token (the app uses localStorage-based auth)
     const authHeader = request.headers.get('authorization')
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.slice(7)
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-      if (!error && user) {
-        userId = user.id
-      }
-    }
-
-    if (!userId) {
-      const supabase = await createSupabaseServerClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        userId = user.id
-      }
-    }
-
-    if (!userId) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const token = authHeader.slice(7)
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const userId = user.id
 
     // Get Google Calendar connection for this user
     const { data: connection, error: connError } = await supabaseAdmin
