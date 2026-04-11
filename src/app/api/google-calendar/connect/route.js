@@ -7,11 +7,18 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.tooltimepro.com'
 
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createClient(url, key)
+}
+
 export async function POST(request) {
   try {
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       return NextResponse.json(
-        { error: 'Google Calendar is not configured' },
+        { error: 'Google Calendar is not configured. Please contact support.' },
         { status: 503 }
       )
     }
@@ -19,29 +26,24 @@ export async function POST(request) {
     // Authenticate via Bearer token (the app uses localStorage-based auth,
     // so cookies are not available in API routes)
     const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    const token = authHeader?.replace('Bearer ', '')
+    if (!token) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    const token = authHeader.slice(7)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-
-    if (!supabaseUrl || !supabaseAnonKey) {
+    const supabase = getSupabaseAdmin()
+    if (!supabase) {
       return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 503 }
+        { error: 'Server configuration error. Please contact support.' },
+        { status: 500 }
       )
     }
 
-    // Validate the token by creating a Supabase client with it
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    })
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Validate the token explicitly (matching Stripe Connect pattern)
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 })
     }
 
     // Encode user ID in state param for CSRF protection
