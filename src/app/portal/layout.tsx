@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, FileText, Home, LogOut, Truck, Camera, MessageSquare, FolderOpen, Clock, Lock, X } from 'lucide-react';
+import { Calendar, FileText, Home, LogOut, Truck, Camera, MessageSquare, FolderOpen, Clock, Lock, X, Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
@@ -153,6 +153,9 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
                 </Link>
               </div>
             )}
+            <Link href="/portal/preferences" className={`p-2 rounded-lg hover:bg-gray-100 ${pathname === '/portal/preferences' ? 'bg-gray-100' : ''}`} title="Preferences">
+              <Settings className="w-4 h-4 text-gray-500" />
+            </Link>
             <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
               <LogOut className="w-4 h-4" />
             </button>

@@ -726,12 +726,8 @@ export default function SmartQuotingPage() {
         state: newCustomer.state.toUpperCase() || null,
         zip: newCustomer.zip || null,
         notes: newCustomer.notes || null,
-        sms_consent: newCustomer.sms_consent,
+        sms_consent: false,
       };
-
-      if (newCustomer.sms_consent) {
-        insertData.sms_consent_date = new Date().toISOString();
-      }
 
       const { data: created, error } = await supabase
         .from('customers')
@@ -791,7 +787,7 @@ export default function SmartQuotingPage() {
   };
 
   // Send quote
-  const [sendMethod, setSendMethod] = useState<'sms' | 'email' | 'both'>('both');
+  const [sendMethod, setSendMethod] = useState<'sms' | 'email' | 'both'>('email');
   const [isSending, setIsSending] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [quoteSent, setQuoteSent] = useState(false);
@@ -966,9 +962,10 @@ export default function SmartQuotingPage() {
 
       const sendErrors: string[] = [];
 
-      // Send SMS notification (only if customer has consented)
+      // Send SMS notification (only if customer has previously opted in)
       const hasConsent = selectedCustomer?.sms_consent;
-      if (customerPhone && hasConsent && (sendMethod === 'sms' || sendMethod === 'both')) {
+      const effectiveSendMethod = hasConsent ? sendMethod : 'email';
+      if (customerPhone && hasConsent && (effectiveSendMethod === 'sms' || effectiveSendMethod === 'both')) {
         try {
           const smsRes = await fetch('/api/sms', {
             method: 'POST',
@@ -995,7 +992,7 @@ export default function SmartQuotingPage() {
       }
 
       // Send email notification
-      if (customerEmail && (sendMethod === 'email' || sendMethod === 'both')) {
+      if (customerEmail && (effectiveSendMethod === 'email' || effectiveSendMethod === 'both')) {
         try {
           const emailRes = await fetch('/api/quote/send', {
             method: 'POST',
@@ -1353,8 +1350,10 @@ export default function SmartQuotingPage() {
                         {selectedCustomer.address && (
                           <div className="text-sm text-gray-500">{selectedCustomer.address}</div>
                         )}
-                        {selectedCustomer.sms_consent && (
+                        {selectedCustomer.sms_consent ? (
                           <span className="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">SMS Opted In</span>
+                        ) : (
+                          <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">No SMS consent — email only</span>
                         )}
                       </div>
                     </div>
@@ -1574,22 +1573,17 @@ export default function SmartQuotingPage() {
                           />
                         </div>
 
-                        {/* SMS Consent */}
-                        <div className="border rounded-lg p-3 bg-white">
-                          <label className="flex items-start gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={newCustomer.sms_consent}
-                              onChange={(e) => setNewCustomer(prev => ({ ...prev, sms_consent: e.target.checked }))}
-                              className="mt-1 h-4 w-4 rounded border-gray-300 text-gold-600 focus:ring-gold-500"
-                            />
+                        {/* SMS Consent Notice */}
+                        <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+                          <div className="flex items-start gap-3">
+                            <span className="mt-0.5 text-blue-500 text-lg">&#x2139;</span>
                             <div>
-                              <span className="text-sm font-medium text-gray-700">Customer agrees to receive text messages</span>
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                Required for sending SMS quotes, invoices, and reminders. Customer can opt out anytime by replying STOP.
+                              <span className="text-sm font-medium text-blue-800">SMS consent will be collected from the customer</span>
+                              <p className="text-xs text-blue-600 mt-0.5">
+                                The quote will be sent via email first. The customer can opt in to text messages when they view or approve the quote.
                               </p>
                             </div>
-                          </label>
+                          </div>
                         </div>
 
                         {/* Save & Select Button */}
@@ -2109,21 +2103,48 @@ export default function SmartQuotingPage() {
               <div className="mt-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Send via:</label>
-                  <div className="flex gap-2">
-                    {['sms', 'email', 'both'].map((method) => (
-                      <button
-                        key={method}
-                        onClick={() => setSendMethod(method as typeof sendMethod)}
-                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          sendMethod === method
-                            ? 'bg-navy-500 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {method === 'sms' ? '📱 SMS' : method === 'email' ? '📧 Email' : '📱+📧 Both'}
-                      </button>
-                    ))}
-                  </div>
+                  {selectedCustomer?.sms_consent ? (
+                    <div className="flex gap-2">
+                      {['sms', 'email', 'both'].map((method) => (
+                        <button
+                          key={method}
+                          onClick={() => setSendMethod(method as typeof sendMethod)}
+                          className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            sendMethod === method
+                              ? 'bg-navy-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {method === 'sms' ? 'SMS' : method === 'email' ? 'Email' : 'Both'}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-navy-500 text-white text-center">
+                          Email
+                        </div>
+                        <button
+                          disabled
+                          className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
+                          title="Customer must opt in to SMS first"
+                        >
+                          SMS
+                        </button>
+                        <button
+                          disabled
+                          className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
+                          title="Customer must opt in to SMS first"
+                        >
+                          Both
+                        </button>
+                      </div>
+                      <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                        <span>&#9888;</span> SMS unavailable — customer hasn&apos;t opted in yet. They can opt in when they view the quote.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Error display */}
