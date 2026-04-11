@@ -111,29 +111,53 @@ export async function GET(request: NextRequest) {
       companyId = userData?.company_id
     }
 
-    if (!companyId) {
-      console.error('No company found for user')
-      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=no_company', SITE_URL))
+    // Try new schema first (after migration: company_id + realm_id columns)
+    // If that fails, fall back to old schema (user_id + qbo_realm_id columns)
+    let upsertSucceeded = false
+
+    if (companyId) {
+      const { error: dbError } = await supabase.from('qbo_connections').upsert(
+        {
+          user_id: stateData.userId,
+          company_id: companyId,
+          realm_id: realmId,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          token_expires_at: expiresAt,
+          connected_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'company_id',
+        }
+      )
+
+      if (!dbError) {
+        upsertSucceeded = true
+      } else {
+        console.warn('New schema upsert failed, trying old schema:', dbError.message)
+      }
     }
 
-    // Upsert the connection (update if exists, insert if not)
-    const { error: dbError } = await supabase.from('qbo_connections').upsert(
-      {
-        company_id: companyId,
-        realm_id: realmId,
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        token_expires_at: expiresAt,
-        connected_at: new Date().toISOString(),
-      },
-      {
-        onConflict: 'company_id',
-      }
-    )
+    // Fallback: old schema (before migration — uses user_id + qbo_realm_id)
+    if (!upsertSucceeded) {
+      const { error: fallbackError } = await supabase.from('qbo_connections').upsert(
+        {
+          user_id: stateData.userId,
+          qbo_realm_id: realmId,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          token_expires_at: expiresAt,
+          connected_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'user_id',
+        }
+      )
 
-    if (dbError) {
-      console.error('Failed to store QBO connection:', dbError)
-      return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=db_error', SITE_URL))
+      if (fallbackError) {
+        console.error('Failed to store QBO connection (both schemas tried):', fallbackError)
+        return NextResponse.redirect(new URL('/dashboard/settings?tab=integrations&qbo=error&reason=db_error', SITE_URL))
+      }
     }
 
     // Success! Redirect back to settings integrations tab with success message

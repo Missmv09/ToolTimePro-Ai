@@ -42,12 +42,20 @@ export async function POST() {
       return NextResponse.json({ error: 'No company found' }, { status: 400 })
     }
 
-    // Delete the QBO connection for this company
-    const { error } = await supabase.from('qbo_connections').delete().eq('company_id', dbUser.company_id)
+    // Delete the QBO connection — try company_id first, fall back to user_id
+    let deleteError = null
+    if (dbUser?.company_id) {
+      const result = await supabase.from('qbo_connections').delete().eq('company_id', dbUser.company_id)
+      deleteError = result.error
+    }
 
-    if (error) {
-      console.error('Error deleting QBO connection:', error)
-      return NextResponse.json({ error: 'Failed to disconnect' }, { status: 500 })
+    // Fallback: old schema uses user_id
+    if (deleteError || !dbUser?.company_id) {
+      const result = await supabase.from('qbo_connections').delete().eq('user_id', user.id)
+      if (result.error && deleteError) {
+        console.error('Error deleting QBO connection:', deleteError, result.error)
+        return NextResponse.json({ error: 'Failed to disconnect' }, { status: 500 })
+      }
     }
 
     return NextResponse.json({ success: true })

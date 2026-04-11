@@ -146,16 +146,41 @@ function SettingsContent() {
   // Check for QBO connection status
   useEffect(() => {
     const checkQboConnection = async () => {
-      if (!company?.id) return
+      if (!company?.id && !user?.id) return
 
       try {
-        const { data, error } = await supabase
-          .from('qbo_connections')
-          .select('last_sync_at')
-          .eq('company_id', company.id)
-          .single()
+        // Try new schema first (company_id, after migration)
+        let data = null
+        let found = false
 
-        if (data && !error) {
+        if (company?.id) {
+          const result = await supabase
+            .from('qbo_connections')
+            .select('last_sync_at')
+            .eq('company_id', company.id)
+            .single()
+
+          if (result.data && !result.error) {
+            data = result.data
+            found = true
+          }
+        }
+
+        // Fallback: old schema (user_id, before migration)
+        if (!found && user?.id) {
+          const result = await supabase
+            .from('qbo_connections')
+            .select('last_sync_at')
+            .eq('user_id', user.id)
+            .single()
+
+          if (result.data && !result.error) {
+            data = result.data
+            found = true
+          }
+        }
+
+        if (found && data) {
           setQboConnected(true)
           setQboConnectionInfo({
             lastSyncAt: data.last_sync_at,
@@ -171,7 +196,7 @@ function SettingsContent() {
     }
 
     checkQboConnection()
-  }, [company?.id])
+  }, [company?.id, user?.id])
 
   // Check for QBO callback success
   useEffect(() => {

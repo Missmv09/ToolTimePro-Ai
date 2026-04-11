@@ -219,16 +219,42 @@ export default function DashboardPage() {
   // Check for QBO connection status
   useEffect(() => {
     const checkQboConnection = async () => {
-      if (!companyId || !isSupabaseConfigured) return
+      if (!isSupabaseConfigured) return
+      if (!companyId && !user?.id) return
 
       try {
-        const { data, error } = await supabase
-          .from('qbo_connections')
-          .select('last_sync_at, sync_status')
-          .eq('company_id', companyId)
-          .single()
+        let data = null
+        let found = false
 
-        if (data && !error) {
+        // Try new schema first (company_id)
+        if (companyId) {
+          const result = await supabase
+            .from('qbo_connections')
+            .select('last_sync_at, sync_status')
+            .eq('company_id', companyId)
+            .single()
+
+          if (result.data && !result.error) {
+            data = result.data
+            found = true
+          }
+        }
+
+        // Fallback: old schema (user_id)
+        if (!found && user?.id) {
+          const result = await supabase
+            .from('qbo_connections')
+            .select('last_sync_at, sync_status')
+            .eq('user_id', user.id)
+            .single()
+
+          if (result.data && !result.error) {
+            data = result.data
+            found = true
+          }
+        }
+
+        if (found && data) {
           setQboConnected(true)
           setQboConnectionInfo({
             lastSyncAt: data.last_sync_at,
@@ -241,7 +267,7 @@ export default function DashboardPage() {
     }
 
     checkQboConnection()
-  }, [companyId])
+  }, [companyId, user?.id])
 
   const handleQboDisconnect = async () => {
     if (!confirm('Are you sure you want to disconnect QuickBooks?')) return

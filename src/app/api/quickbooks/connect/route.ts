@@ -37,18 +37,18 @@ export async function GET() {
       )
     }
 
-    // Look up the user's company_id before starting OAuth
-    const { data: dbUser } = await supabase
-      .from('users')
-      .select('company_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!dbUser?.company_id) {
-      console.error('No company found for user before QuickBooks OAuth')
-      return NextResponse.redirect(
-        new URL('/dashboard/settings?tab=integrations&qbo=error&reason=no_company', SITE_URL)
-      )
+    // Best-effort company_id lookup — don't block OAuth if it fails
+    // (the callback uses the service role key and will resolve it there)
+    let companyId: string | undefined
+    try {
+      const { data: dbUser } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
+      companyId = dbUser?.company_id ?? undefined
+    } catch {
+      // Non-fatal: callback will resolve company_id via service role key
     }
 
     // Generate a random state parameter for CSRF protection
@@ -56,7 +56,7 @@ export async function GET() {
     const state = Buffer.from(
       JSON.stringify({
         userId: user.id,
-        companyId: dbUser.company_id,
+        ...(companyId ? { companyId } : {}),
         timestamp: Date.now(),
         nonce: Math.random().toString(36).substring(7),
       })

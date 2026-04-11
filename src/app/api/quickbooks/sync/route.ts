@@ -20,8 +20,10 @@ const QBO_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer
 
 interface QBOConnection {
   id: string
-  company_id: string
-  realm_id: string
+  company_id?: string
+  user_id?: string
+  realm_id?: string
+  qbo_realm_id?: string
   access_token: string
   refresh_token: string
   token_expires_at: string
@@ -158,14 +160,31 @@ export async function POST() {
 
     const companyId = dbUser.company_id
 
-    // Get QBO connection by company_id
-    const { data: connection, error: connectionError } = await supabase
+    // Get QBO connection — try company_id first, fall back to user_id (old schema)
+    let connection: QBOConnection | null = null
+
+    const { data: connByCompany } = await supabase
       .from('qbo_connections')
       .select('*')
       .eq('company_id', companyId)
       .single()
 
-    if (connectionError || !connection) {
+    if (connByCompany) {
+      connection = connByCompany as QBOConnection
+    } else {
+      // Fallback: old schema uses user_id
+      const { data: connByUser } = await supabase
+        .from('qbo_connections')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (connByUser) {
+        connection = connByUser as QBOConnection
+      }
+    }
+
+    if (!connection) {
       return NextResponse.json(
         { error: 'QuickBooks not connected' },
         { status: 400 }
@@ -189,7 +208,13 @@ export async function POST() {
       }
     }
 
-    const realmId = connection.realm_id
+    const realmId = connection.realm_id || connection.qbo_realm_id
+    if (!realmId) {
+      return NextResponse.json(
+        { error: 'QuickBooks realm ID not found. Please reconnect.' },
+        { status: 400 }
+      )
+    }
     const syncResults = { customers: 0, invoices: 0, errors: [] as string[] }
 
     // Sync Customers
