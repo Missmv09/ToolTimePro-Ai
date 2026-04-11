@@ -54,25 +54,31 @@ ALTER TABLE qbo_connections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE qbo_sync_log ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view their own connections
+DROP POLICY IF EXISTS "Users can view own qbo_connections" ON qbo_connections;
 CREATE POLICY "Users can view own qbo_connections" ON qbo_connections
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Policy: Users can insert their own connections
+DROP POLICY IF EXISTS "Users can insert own qbo_connections" ON qbo_connections;
 CREATE POLICY "Users can insert own qbo_connections" ON qbo_connections
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can update their own connections
+DROP POLICY IF EXISTS "Users can update own qbo_connections" ON qbo_connections;
 CREATE POLICY "Users can update own qbo_connections" ON qbo_connections
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- Policy: Users can delete their own connections
+DROP POLICY IF EXISTS "Users can delete own qbo_connections" ON qbo_connections;
 CREATE POLICY "Users can delete own qbo_connections" ON qbo_connections
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Policy: Users can view their own sync logs
+DROP POLICY IF EXISTS "Users can view own qbo_sync_log" ON qbo_sync_log;
 CREATE POLICY "Users can view own qbo_sync_log" ON qbo_sync_log
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Policy: Users can insert their own sync logs
+DROP POLICY IF EXISTS "Users can insert own qbo_sync_log" ON qbo_sync_log;
 CREATE POLICY "Users can insert own qbo_sync_log" ON qbo_sync_log
   FOR INSERT WITH CHECK (auth.uid() = user_id);

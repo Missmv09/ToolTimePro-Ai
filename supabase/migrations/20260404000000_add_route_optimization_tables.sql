@@ -24,18 +24,22 @@ CREATE INDEX idx_saved_routes_company_date ON saved_routes(company_id, route_dat
 -- RLS for saved_routes
 ALTER TABLE saved_routes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view saved routes for their company" ON saved_routes;
 CREATE POLICY "Users can view saved routes for their company"
   ON saved_routes FOR SELECT
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert saved routes for their company" ON saved_routes;
 CREATE POLICY "Users can insert saved routes for their company"
   ON saved_routes FOR INSERT
   WITH CHECK (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update saved routes for their company" ON saved_routes;
 CREATE POLICY "Users can update saved routes for their company"
   ON saved_routes FOR UPDATE
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete saved routes for their company" ON saved_routes;
 CREATE POLICY "Users can delete saved routes for their company"
   ON saved_routes FOR DELETE
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
@@ -58,14 +62,17 @@ CREATE TABLE IF NOT EXISTS route_settings (
 -- RLS for route_settings
 ALTER TABLE route_settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view route settings for their company" ON route_settings;
 CREATE POLICY "Users can view route settings for their company"
   ON route_settings FOR SELECT
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert route settings for their company" ON route_settings;
 CREATE POLICY "Users can insert route settings for their company"
   ON route_settings FOR INSERT
   WITH CHECK (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update route settings for their company" ON route_settings;
 CREATE POLICY "Users can update route settings for their company"
   ON route_settings FOR UPDATE
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
@@ -85,6 +92,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_saved_routes_updated_at ON saved_routes;
 CREATE TRIGGER set_saved_routes_updated_at
   BEFORE UPDATE ON saved_routes
   FOR EACH ROW
@@ -99,6 +107,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_route_settings_updated_at ON route_settings;
 CREATE TRIGGER set_route_settings_updated_at
   BEFORE UPDATE ON route_settings
   FOR EACH ROW
