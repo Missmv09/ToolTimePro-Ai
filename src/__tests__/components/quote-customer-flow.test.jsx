@@ -152,7 +152,7 @@ function mockFetchRespondError() {
 }
 
 function renderQuoteView(id = 'q-real-123') {
-  return render(<CustomerQuoteView params={{ id }} />);
+  return render(<CustomerQuoteView quoteId={id} />);
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────

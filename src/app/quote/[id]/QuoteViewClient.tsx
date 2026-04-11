@@ -22,7 +22,7 @@ interface QuoteWithDetails extends Quote {
 }
 
 
-export default function CustomerQuoteView({ params }: { params: { id: string } }) {
+export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
   const t = useTranslations('misc.quote');
   const [quote, setQuote] = useState<QuoteWithDetails | null>(null);
   const [items, setItems] = useState<QuoteLineItem[]>([]);
@@ -52,7 +52,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
 
     try {
       // Fetch quote via server-side API (bypasses RLS for public access)
-      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(params.id)}`);
+      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(quoteId)}`);
 
       if (!res.ok) {
         throw new Error('Quote not found');
@@ -74,7 +74,7 @@ export default function CustomerQuoteView({ params }: { params: { id: string } }
     } finally {
       setIsLoading(false);
     }
-  }, [params.id]);
+  }, [quoteId]);
 
   useEffect(() => {
     fetchQuote();
