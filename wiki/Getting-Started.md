@@ -92,6 +92,7 @@ Contact support@tooltimepro.com or call 1-888-980-8665 to book.
 
 ## Next Steps
 
+- [Import your existing customers](Customers-and-Leads#importing-customers-crm-migration) from Housecall Pro, Jobber, ServiceTitan, or any CSV
 - [Add your services](Adding-Services) to start quoting and invoicing
 - [Review pricing plans](Pricing-and-Plans) to pick the right tier
 - [Set up your team](Team-Management) with roles and permissions
