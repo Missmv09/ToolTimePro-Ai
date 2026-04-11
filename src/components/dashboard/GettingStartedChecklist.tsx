@@ -86,6 +86,7 @@ export default function GettingStartedChecklist() {
         websiteRes,
         servicesRes,
         qboRes,
+        jennyProRes,
       ] = await Promise.all([
         supabase
           .from('users')
@@ -105,10 +106,24 @@ export default function GettingStartedChecklist() {
           .from('qbo_connections')
           .select('id', { count: 'exact', head: true })
           .eq('company_id', companyId),
+        supabase
+          .from('jenny_pro_settings')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', companyId),
       ])
 
       const hasWebsiteOrSite = !!company?.website || (websiteRes.count ?? 0) > 0
       const hasServicesSet = (servicesRes.count ?? 0) > 0
+
+      // Jenny Lite settings are stored in localStorage
+      let hasJennyLiteSettings = false
+      try {
+        const stored = localStorage.getItem('tooltimepro_jenny_lite_settings')
+        if (stored) {
+          const settings = JSON.parse(stored)
+          hasJennyLiteSettings = !!(settings.greeting || settings.businessName)
+        }
+      } catch {}
 
       setChecks({
         profile: !!(company?.phone && company?.address),
@@ -117,15 +132,15 @@ export default function GettingStartedChecklist() {
         booking: hasServicesSet && hasWebsiteOrSite,
         team: (teamRes.count ?? 0) > 1,
         payments: !!company?.stripe_connect_onboarded,
-        jenny: hasWebsiteOrSite,
-        jennyPro: !!company?.booking_settings,
+        jenny: hasJennyLiteSettings,
+        jennyPro: (jennyProRes.count ?? 0) > 0,
         quickbooks: (qboRes.count ?? 0) > 0,
       })
       setLoaded(true)
     }
 
     checkProgress()
-  }, [dbUser?.company_id, dbUser?.id, company?.website, company?.phone, company?.address, company?.stripe_connect_onboarded, company?.booking_settings])
+  }, [dbUser?.company_id, dbUser?.id, company?.website, company?.phone, company?.address, company?.stripe_connect_onboarded])
 
   if (dismissed || !loaded) return null
 
