@@ -269,8 +269,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Dashboard</h1>
 
       {/* Getting Started Checklist */}
       <GettingStartedChecklist />
@@ -279,7 +279,7 @@ export default function DashboardPage() {
       <OverdueJobsAlert />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
         <StatCard
           title="Today's Jobs"
           value={stats.todayJobs}
@@ -311,41 +311,41 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <Link href="/dashboard/dispatch">
-          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">📡</span>
-              <h3 className="font-bold">Dispatch Board</h3>
+          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-3 sm:p-5 text-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <span className="text-xl sm:text-2xl">📡</span>
+              <h3 className="font-bold text-sm sm:text-base">Dispatch Board</h3>
             </div>
-            <p className="text-white/60 text-sm">Track crews, assign jobs, manage live operations</p>
+            <p className="text-white/60 text-xs sm:text-sm hidden sm:block">Track crews, assign jobs, manage live operations</p>
           </div>
         </Link>
         <Link href="/dashboard/schedule">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">📅</span>
-              <h3 className="font-bold">Schedule</h3>
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-3 sm:p-5 text-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <span className="text-xl sm:text-2xl">📅</span>
+              <h3 className="font-bold text-sm sm:text-base">Schedule</h3>
             </div>
-            <p className="text-white/60 text-sm">Day and week calendar view of all jobs</p>
+            <p className="text-white/60 text-xs sm:text-sm hidden sm:block">Day and week calendar view of all jobs</p>
           </div>
         </Link>
         <Link href="/dashboard/route-optimizer">
-          <div className="bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-xl p-5 text-[#1a1a2e] hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">🗺️</span>
-              <h3 className="font-bold">Route Optimizer</h3>
+          <div className="bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-xl p-3 sm:p-5 text-[#1a1a2e] hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <span className="text-xl sm:text-2xl">🗺️</span>
+              <h3 className="font-bold text-sm sm:text-base">Route Optimizer</h3>
             </div>
-            <p className="text-[#1a1a2e]/60 text-sm">Optimize routes, save gas and drive time</p>
+            <p className="text-[#1a1a2e]/60 text-xs sm:text-sm hidden sm:block">Optimize routes, save gas and drive time</p>
           </div>
         </Link>
         <Link href="/dashboard/booking">
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">📆</span>
-              <h3 className="font-bold">Online Booking</h3>
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-3 sm:p-5 text-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <span className="text-xl sm:text-2xl">📆</span>
+              <h3 className="font-bold text-sm sm:text-base">Online Booking</h3>
             </div>
-            <p className="text-white/60 text-sm">Manage appointments and booking calendar</p>
+            <p className="text-white/60 text-xs sm:text-sm hidden sm:block">Manage appointments and booking calendar</p>
           </div>
         </Link>
       </div>
@@ -353,7 +353,7 @@ export default function DashboardPage() {
       {/* Customer Portal Pro Upsell — show for non-Elite users who don't have it */}
       {company && company.plan !== 'elite' && !company.is_beta_tester &&
        !(company.addons as string[] || []).includes('portal_pro') && (
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white mb-8">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 sm:p-6 text-white mb-6 sm:mb-8">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -382,9 +382,9 @@ export default function DashboardPage() {
       {companyId && <RevenueChart companyId={companyId} />}
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Today's Schedule */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Today&apos;s Schedule</h2>
             <Link href="/dashboard/schedule" className="text-blue-600 hover:text-blue-700 text-sm">
@@ -425,7 +425,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Leads */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Recent Leads</h2>
             <Link href="/dashboard/leads" className="text-blue-600 hover:text-blue-700 text-sm">
@@ -497,13 +497,13 @@ function StatCard({ title, value, icon, href, color }: {
 
   return (
     <Link href={href}>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">{title}</p>
-            <p className="text-3xl font-bold text-gray-900">{value}</p>
+            <p className="text-xs sm:text-sm text-gray-500">{title}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900">{value}</p>
           </div>
-          <div className={`w-12 h-12 rounded-full ${colors[color]} flex items-center justify-center text-2xl`}>
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${colors[color]} flex items-center justify-center text-xl sm:text-2xl`}>
             {icon}
           </div>
         </div>
