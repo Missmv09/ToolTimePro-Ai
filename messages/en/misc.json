@@ -128,7 +128,14 @@
       "proPlanTrial": "You're on the",
       "proPlan": "Pro plan",
       "proPlanTrialSuffix": "free trial — 14 days of full access, no credit card required.",
-      "accountLoading": "Account data is still loading. Please wait a moment and try again."
+      "accountLoading": "Account data is still loading. Please wait a moment and try again.",
+      "paymentMethods": "Payment Methods",
+      "paymentMethodsTitle": "How do your customers pay you?",
+      "paymentMethodsSubtitle": "Select all the ways you accept payment. This info appears on your invoices.",
+      "preferred": "Preferred",
+      "setPreferred": "Set preferred",
+      "paymentMethodsHint": "These payment options will appear on every invoice you send. You can change them anytime in Settings.",
+      "paymentMethodsSkipHint": "No worries — you can set up payment methods later from Settings. Your invoices will still work without them."
     },
     "booking": {
       "loadingBooking": "Loading booking page...",
@@ -217,7 +224,8 @@
       "payNow": "Pay Now",
       "securePayment": "Secure payment powered by Stripe",
       "notes": "Notes",
-      "paymentInstructions": "Other Ways to Pay",
+      "paymentInstructions": "Payment Options",
+      "paymentMethodsPreferred": "Preferred",
       "questionsCall": "Questions? Call us at",
       "poweredBy": "Powered by"
     },

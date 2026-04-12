@@ -66,6 +66,101 @@ function SettingsContent() {
     syncStatus: string
   } | null>(null)
 
+  // Payment methods
+  const PAYMENT_METHOD_OPTIONS = [
+    { id: 'zelle', label: 'Zelle', icon: '💸', placeholder: 'Email or phone number' },
+    { id: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourHandle' },
+    { id: 'cashapp', label: 'Cash App', icon: '💚', placeholder: '$YourCashTag' },
+    { id: 'paypal', label: 'PayPal', icon: '🅿️', placeholder: 'paypal.me/yourname or email' },
+    { id: 'square', label: 'Square', icon: '⬜', placeholder: 'Square payment link URL' },
+    { id: 'check', label: 'Check', icon: '📝', placeholder: 'Payable to: Your Business Name LLC' },
+    { id: 'cash', label: 'Cash', icon: '💵', placeholder: '' },
+    { id: 'other', label: 'Other', icon: '💳', placeholder: 'Payment details or instructions' },
+  ] as const
+
+  const [paymentMethods, setPaymentMethods] = useState<{ method: string; handle: string; is_preferred: boolean }[]>([])
+  const [savingPaymentMethods, setSavingPaymentMethods] = useState(false)
+
+  // Load payment methods
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      if (!company?.id) return
+      const { data } = await supabase
+        .from('company_payment_methods')
+        .select('method, handle, is_preferred, sort_order')
+        .eq('company_id', company.id)
+        .eq('is_active', true)
+        .order('sort_order')
+      if (data) {
+        setPaymentMethods(data.map(d => ({ method: d.method, handle: d.handle || '', is_preferred: d.is_preferred })))
+      }
+    }
+    fetchPaymentMethods()
+  }, [company?.id])
+
+  const toggleSettingsPaymentMethod = (methodId: string) => {
+    setPaymentMethods(prev => {
+      const exists = prev.find(m => m.method === methodId)
+      if (exists) {
+        return prev.filter(m => m.method !== methodId)
+      }
+      const isFirst = prev.length === 0
+      return [...prev, { method: methodId, handle: '', is_preferred: isFirst }]
+    })
+  }
+
+  const updatePaymentHandle = (methodId: string, handle: string) => {
+    setPaymentMethods(prev => prev.map(m => m.method === methodId ? { ...m, handle } : m))
+  }
+
+  const setPreferredMethod = (methodId: string) => {
+    setPaymentMethods(prev => prev.map(m => ({ ...m, is_preferred: m.method === methodId })))
+  }
+
+  const savePaymentMethods = async () => {
+    if (!company) return
+    setSavingPaymentMethods(true)
+    setSaveMessage(null)
+
+    try {
+      // Delete existing then insert fresh
+      await supabase.from('company_payment_methods').delete().eq('company_id', company.id)
+
+      if (paymentMethods.length > 0) {
+        const records = paymentMethods.map((m, index) => ({
+          company_id: company.id,
+          method: m.method,
+          handle: m.handle || null,
+          is_active: true,
+          is_preferred: m.is_preferred,
+          sort_order: index,
+        }))
+        const { error } = await supabase.from('company_payment_methods').insert(records)
+        if (error) throw error
+      }
+
+      // Sync payment_instructions for backwards compatibility
+      const instructionLines = paymentMethods
+        .filter(m => m.handle)
+        .map(m => {
+          const opt = PAYMENT_METHOD_OPTIONS.find(o => o.id === m.method)
+          return `${opt?.label || m.method}: ${m.handle}`
+        })
+      await supabase
+        .from('companies')
+        .update({ payment_instructions: instructionLines.length > 0 ? instructionLines.join('\n') : null })
+        .eq('id', company.id)
+
+      setSaveMessage({ type: 'success', text: 'Payment methods saved!' })
+    } catch (err) {
+      console.error('Save payment methods error:', err)
+      setSaveMessage({ type: 'error', text: 'Failed to save payment methods.' })
+    } finally {
+      setSavingPaymentMethods(false)
+      setTimeout(() => setSaveMessage(null), 5000)
+    }
+  }
+
   // Quote approval settings
   const [quoteApprovalRequired, setQuoteApprovalRequired] = useState(false)
   const [quoteApproverIds, setQuoteApproverIds] = useState<string[]>([])
@@ -713,21 +808,6 @@ function SettingsContent() {
                     </p>
                   </div>
 
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Payment Instructions
-                    </label>
-                    <textarea
-                      value={companyForm.payment_instructions}
-                      onChange={(e) => setCompanyForm({ ...companyForm, payment_instructions: e.target.value })}
-                      rows={3}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g. Zelle: maria@email.com &#10;Venmo: @MariasLandscaping &#10;Checks payable to: ABC Landscaping LLC"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Appears on invoices so customers know how to pay outside Stripe.
-                    </p>
-                  </div>
                 </div>
 
                 <div className="pt-4 border-t">
@@ -819,6 +899,74 @@ function SettingsContent() {
               </div>
             </div>
           )}
+          {/* Payment Methods */}
+          <div className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Payment Methods</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Select how your customers can pay you. These options appear on your invoices.
+            </p>
+
+            <div className="space-y-3">
+              {PAYMENT_METHOD_OPTIONS.map((opt) => {
+                const active = paymentMethods.find(m => m.method === opt.id)
+                const isPreferred = active?.is_preferred
+                return (
+                  <div key={opt.id}>
+                    <button
+                      type="button"
+                      onClick={() => toggleSettingsPaymentMethod(opt.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left ${
+                        active
+                          ? 'border-emerald-400 bg-emerald-50'
+                          : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
+                    >
+                      <span className="text-xl">{opt.icon}</span>
+                      <span className="text-sm font-medium text-gray-900 flex-1">{opt.label}</span>
+                      {active && (
+                        <span
+                          onClick={(e) => { e.stopPropagation(); setPreferredMethod(opt.id) }}
+                          className={`text-xs px-2 py-0.5 rounded-full cursor-pointer ${
+                            isPreferred
+                              ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                              : 'bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-600'
+                          }`}
+                        >
+                          {isPreferred ? 'Preferred' : 'Set preferred'}
+                        </span>
+                      )}
+                      {active && (
+                        <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                    {active && opt.placeholder && (
+                      <div className="ml-12 mt-2 mb-1">
+                        <input
+                          type="text"
+                          value={active.handle}
+                          onChange={(e) => updatePaymentHandle(opt.id, e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          placeholder={opt.placeholder}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="pt-4 mt-4 border-t">
+              <button
+                onClick={savePaymentMethods}
+                disabled={savingPaymentMethods}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {savingPaymentMethods ? 'Saving...' : 'Save Payment Methods'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

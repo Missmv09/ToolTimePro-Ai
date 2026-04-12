@@ -128,7 +128,14 @@
       "proPlanTrial": "Estas en el plan",
       "proPlan": "Pro",
       "proPlanTrialSuffix": "prueba gratis — 14 dias de acceso completo, sin tarjeta de credito.",
-      "accountLoading": "Los datos de la cuenta aun se estan cargando. Espera un momento e intenta de nuevo."
+      "accountLoading": "Los datos de la cuenta aun se estan cargando. Espera un momento e intenta de nuevo.",
+      "paymentMethods": "Metodos de Pago",
+      "paymentMethodsTitle": "Como te pagan tus clientes?",
+      "paymentMethodsSubtitle": "Selecciona todas las formas en que aceptas pago. Esta info aparece en tus facturas.",
+      "preferred": "Preferido",
+      "setPreferred": "Preferir",
+      "paymentMethodsHint": "Estas opciones de pago apareceran en cada factura que envies. Puedes cambiarlas en Configuracion.",
+      "paymentMethodsSkipHint": "No te preocupes — puedes configurar metodos de pago despues desde Configuracion. Tus facturas seguiran funcionando."
     },
     "booking": {
       "loadingBooking": "Cargando pagina de reservas...",
@@ -217,7 +224,8 @@
       "payNow": "Pagar Ahora",
       "securePayment": "Pago seguro con Stripe",
       "notes": "Notas",
-      "paymentInstructions": "Otras Formas de Pago",
+      "paymentInstructions": "Opciones de Pago",
+      "paymentMethodsPreferred": "Preferido",
       "questionsCall": "Preguntas? Llamanos al",
       "poweredBy": "Desarrollado por"
     },

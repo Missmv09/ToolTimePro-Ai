@@ -14,6 +14,24 @@ interface InvoiceItem {
   total_price: number;
 }
 
+interface PaymentMethod {
+  method: string;
+  handle: string | null;
+  is_preferred: boolean;
+  sort_order: number;
+}
+
+const PAYMENT_METHOD_LABELS: Record<string, { label: string; icon: string }> = {
+  zelle: { label: 'Zelle', icon: '💸' },
+  venmo: { label: 'Venmo', icon: '💜' },
+  cashapp: { label: 'Cash App', icon: '💚' },
+  paypal: { label: 'PayPal', icon: '🅿️' },
+  square: { label: 'Square', icon: '⬜' },
+  check: { label: 'Check', icon: '📝' },
+  cash: { label: 'Cash', icon: '💵' },
+  other: { label: 'Other', icon: '💳' },
+};
+
 interface InvoiceWithDetails {
   id: string;
   invoice_number: string | null;
@@ -40,6 +58,7 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
   const [paying, setPaying] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  const [companyPaymentMethods, setCompanyPaymentMethods] = useState<PaymentMethod[]>([]);
 
   const fetchInvoice = useCallback(async () => {
     setIsLoading(true);
@@ -79,6 +98,17 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
         .order('sort_order', { ascending: true });
 
       setItems((lineItems as InvoiceItem[]) || []);
+
+      // Fetch structured payment methods for this company
+      if (data.company_id) {
+        const { data: pmData } = await supabase
+          .from('company_payment_methods')
+          .select('method, handle, is_preferred, sort_order')
+          .eq('company_id', data.company_id)
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+        if (pmData) setCompanyPaymentMethods(pmData as PaymentMethod[]);
+      }
 
       // Mark as viewed if sent
       if (data.status === 'sent') {
@@ -368,12 +398,36 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
             </div>
           )}
 
-          {/* Payment Instructions */}
-          {invoice.company?.payment_instructions && invoice.status !== 'paid' && balanceDue > 0 && !paymentSuccess && (
+          {/* Payment Methods */}
+          {invoice.status !== 'paid' && balanceDue > 0 && !paymentSuccess && (companyPaymentMethods.length > 0 || invoice.company?.payment_instructions) && (
             <div className="px-6 pb-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="text-sm font-medium text-blue-800 mb-2">{t('paymentInstructions')}</div>
-                <div className="text-sm text-blue-700 whitespace-pre-wrap">{invoice.company.payment_instructions}</div>
+                <div className="text-sm font-medium text-blue-800 mb-3">{t('paymentInstructions')}</div>
+                {companyPaymentMethods.length > 0 ? (
+                  <div className="space-y-2">
+                    {companyPaymentMethods.map((pm) => {
+                      const info = PAYMENT_METHOD_LABELS[pm.method] || { label: pm.method, icon: '💳' };
+                      return (
+                        <div key={pm.method} className={`flex items-center gap-3 px-3 py-2 rounded-lg ${pm.is_preferred ? 'bg-white border border-blue-300' : 'bg-blue-50/50'}`}>
+                          <span className="text-lg">{info.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-blue-900">{info.label}</span>
+                            {pm.handle && (
+                              <span className="text-sm text-blue-700 ml-2">{pm.handle}</span>
+                            )}
+                          </div>
+                          {pm.is_preferred && (
+                            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full border border-amber-200">
+                              {t('paymentMethodsPreferred')}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-sm text-blue-700 whitespace-pre-wrap">{invoice.company?.payment_instructions}</div>
+                )}
               </div>
             </div>
           )}
