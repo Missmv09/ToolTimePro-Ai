@@ -129,6 +129,19 @@ export async function GET(request) {
       )
     }
 
+    // Check if onboarding is still in progress — redirect back there if so
+    const { data: companyData } = await supabaseAdmin
+      .from('companies')
+      .select('onboarding_completed')
+      .eq('id', dbUser.company_id)
+      .single()
+
+    if (companyData && !companyData.onboarding_completed) {
+      return NextResponse.redirect(
+        new URL('/onboarding?gcal=connected', SITE_URL)
+      )
+    }
+
     return NextResponse.redirect(
       new URL('/dashboard/settings?gcal=connected', SITE_URL)
     )

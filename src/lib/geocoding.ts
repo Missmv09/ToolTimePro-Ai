@@ -8,8 +8,12 @@ export interface GeoCoordinates {
   lng: number;
 }
 
-// In-memory cache to avoid re-geocoding the same address
+// In-memory cache to avoid re-geocoding the same address.
+// Successful results are cached permanently; failures expire after 5 minutes
+// so transient errors (network blips, rate limits) get retried.
 const geocodeCache = new Map<string, GeoCoordinates | null>();
+const failureCacheTimestamps = new Map<string, number>();
+const FAILURE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // Rate limiter: Nominatim requires max 1 request/second
 let lastRequestTime = 0;
@@ -36,7 +40,17 @@ export async function geocodeAddress(address: string): Promise<GeoCoordinates | 
   const key = normalizeAddress(address);
 
   if (geocodeCache.has(key)) {
-    return geocodeCache.get(key) || null;
+    const cached = geocodeCache.get(key) ?? null;
+    // Successful results are always returned from cache
+    if (cached !== null) return cached;
+    // Failed results expire after TTL so transient errors get retried
+    const failedAt = failureCacheTimestamps.get(key);
+    if (failedAt && Date.now() - failedAt < FAILURE_CACHE_TTL_MS) {
+      return null;
+    }
+    // TTL expired — clear and retry
+    geocodeCache.delete(key);
+    failureCacheTimestamps.delete(key);
   }
 
   try {
@@ -57,6 +71,7 @@ export async function geocodeAddress(address: string): Promise<GeoCoordinates | 
     if (!response.ok) {
       console.warn(`Geocoding failed for "${address}": HTTP ${response.status}`);
       geocodeCache.set(key, null);
+      failureCacheTimestamps.set(key, Date.now());
       return null;
     }
 
@@ -64,6 +79,7 @@ export async function geocodeAddress(address: string): Promise<GeoCoordinates | 
     if (!data || data.length === 0) {
       console.warn(`No geocoding results for "${address}"`);
       geocodeCache.set(key, null);
+      failureCacheTimestamps.set(key, Date.now());
       return null;
     }
 
@@ -77,6 +93,7 @@ export async function geocodeAddress(address: string): Promise<GeoCoordinates | 
   } catch (error) {
     console.error(`Geocoding error for "${address}":`, error);
     geocodeCache.set(key, null);
+    failureCacheTimestamps.set(key, Date.now());
     return null;
   }
 }
@@ -101,6 +118,7 @@ export async function batchGeocode(addresses: string[]): Promise<Map<string, Geo
  */
 export function clearGeocodeCache(): void {
   geocodeCache.clear();
+  failureCacheTimestamps.clear();
 }
 
 /**

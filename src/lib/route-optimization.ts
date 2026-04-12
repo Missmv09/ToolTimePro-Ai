@@ -22,6 +22,10 @@ export interface RouteOptions {
   avgSpeedMph?: number;
   fuelCostPerMile?: number;
   roadFactor?: number;
+  /** Route start time in minutes since midnight (e.g. 480 = 8:00 AM). Default: 480 */
+  startTimeMinutes?: number;
+  /** Whether to enforce time-window constraints. Default: false */
+  enforceTimeWindows?: boolean;
 }
 
 /** Result for multi-worker optimization */
@@ -174,9 +178,16 @@ function twoOptImprove(order: number[], matrix: number[][]): number[] {
 
     for (let i = 1; i < n - 1; i++) {
       for (let j = i + 1; j < n; j++) {
-        // Calculate distance change from reversing segment [i..j]
-        const d1 = matrix[improved[i - 1]][improved[i]] + matrix[improved[j]][improved[(j + 1) % n] || improved[j]];
-        const d2 = matrix[improved[i - 1]][improved[j]] + matrix[improved[i]][improved[(j + 1) % n] || improved[j]];
+        // For open paths (not circular): when j is the last index, there is
+        // no edge after j, so we only compare the edge entering the segment.
+        const isLastJ = j === n - 1;
+
+        // Current cost: edge into segment start + edge out of segment end
+        const d1 = matrix[improved[i - 1]][improved[i]]
+          + (isLastJ ? 0 : matrix[improved[j]][improved[j + 1]]);
+        // Cost after reversing segment [i..j]
+        const d2 = matrix[improved[i - 1]][improved[j]]
+          + (isLastJ ? 0 : matrix[improved[i]][improved[j + 1]]);
 
         if (d2 < d1 - 0.001) { // small epsilon for floating point
           // Reverse the segment
@@ -211,6 +222,158 @@ function multiStartNearestNeighbor(matrix: number[][]): number[] {
   }
 
   return bestOrder;
+}
+
+/**
+ * Parse a time string ("HH:MM", "H:MM", or ISO datetime) to minutes since midnight.
+ * Returns null if the string cannot be parsed.
+ */
+function parseTimeToMinutes(time: string | null | undefined): number | null {
+  if (!time) return null;
+
+  // Try HH:MM format
+  const hmMatch = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (hmMatch) {
+    const h = parseInt(hmMatch[1], 10);
+    const m = parseInt(hmMatch[2], 10);
+    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+      return h * 60 + m;
+    }
+  }
+
+  // Try ISO datetime (extract time portion)
+  const isoMatch = time.match(/T(\d{2}):(\d{2})/);
+  if (isoMatch) {
+    return parseInt(isoMatch[1], 10) * 60 + parseInt(isoMatch[2], 10);
+  }
+
+  return null;
+}
+
+/**
+ * Enforce time-window constraints on an optimized route.
+ *
+ * After distance-based optimization, this pass reorders points that have
+ * time windows to ensure workers arrive within the customer's requested window.
+ * It uses an insertion-based approach: points with time windows are placed at
+ * positions where their estimated arrival falls within [earliest, latest],
+ * while minimizing the added distance.
+ */
+function enforceTimeWindows(
+  order: number[],
+  points: RoutePoint[],
+  matrix: number[][],
+  speedMph: number,
+  routeStartMinutes: number
+): number[] {
+  // Separate constrained and unconstrained points (keep fixed start at index 0)
+  const hasFixedStart = order.length > 0 && points[order[0]]?.id === 'start';
+  const startIdx = hasFixedStart ? 1 : 0;
+
+  const constrained: Array<{ orderIdx: number; earliest: number; latest: number }> = [];
+  const unconstrained: number[] = [];
+
+  for (let i = startIdx; i < order.length; i++) {
+    const pt = points[order[i]];
+    const earliest = parseTimeToMinutes(pt.earliestArrival);
+    const latest = parseTimeToMinutes(pt.latestArrival);
+    if (earliest !== null || latest !== null) {
+      constrained.push({
+        orderIdx: order[i],
+        earliest: earliest ?? 0,
+        latest: latest ?? 24 * 60,
+      });
+    } else {
+      unconstrained.push(order[i]);
+    }
+  }
+
+  // If no constrained points, nothing to do
+  if (constrained.length === 0) return order;
+
+  // Sort constrained points by their earliest arrival time
+  constrained.sort((a, b) => a.earliest - b.earliest);
+
+  // Build the route greedily: place constrained jobs at their required times,
+  // fill gaps with unconstrained jobs optimized for distance.
+  const result: number[] = hasFixedStart ? [order[0]] : [];
+  const usedUnconstrained = new Set<number>();
+
+  let currentTime = routeStartMinutes;
+  let currentPointIdx = hasFixedStart ? order[0] : -1;
+
+  for (const cJob of constrained) {
+    // Fill gap before this constrained job with unconstrained jobs
+    // that can fit in the time before the constrained job's window
+    let inserted = true;
+    while (inserted && usedUnconstrained.size < unconstrained.length) {
+      inserted = false;
+      let bestIdx = -1;
+      let bestDist = Infinity;
+
+      for (const uIdx of unconstrained) {
+        if (usedUnconstrained.has(uIdx)) continue;
+        const dist = currentPointIdx >= 0 ? matrix[currentPointIdx][uIdx] : 0;
+        const travelTime = (dist / speedMph) * 60;
+        const arrivalAfterU = currentTime + travelTime;
+        // Only insert if we still have time to reach the constrained job after
+        const distToConstrained = matrix[uIdx][cJob.orderIdx];
+        const travelToConstrained = (distToConstrained / speedMph) * 60;
+        if (arrivalAfterU + travelToConstrained <= cJob.latest && dist < bestDist) {
+          bestDist = dist;
+          bestIdx = uIdx;
+        }
+      }
+
+      if (bestIdx >= 0) {
+        const travelTime = (bestDist / speedMph) * 60;
+        const arrival = currentTime + travelTime;
+        // Also check that inserting this unconstrained job doesn't make us late
+        const distToConstrained = matrix[bestIdx][cJob.orderIdx];
+        const timeToConstrained = (distToConstrained / speedMph) * 60;
+        if (arrival + timeToConstrained <= cJob.latest) {
+          result.push(bestIdx);
+          usedUnconstrained.add(bestIdx);
+          currentTime = arrival;
+          currentPointIdx = bestIdx;
+          inserted = true;
+        }
+      }
+    }
+
+    // Now insert the constrained job
+    const distToJob = currentPointIdx >= 0 ? matrix[currentPointIdx][cJob.orderIdx] : 0;
+    const travelTime = (distToJob / speedMph) * 60;
+    let arrival = currentTime + travelTime;
+
+    // If we arrive early, wait until the earliest time
+    if (arrival < cJob.earliest) {
+      arrival = cJob.earliest;
+    }
+
+    result.push(cJob.orderIdx);
+    currentTime = arrival;
+    currentPointIdx = cJob.orderIdx;
+  }
+
+  // Append remaining unconstrained jobs in nearest-neighbor order
+  const remaining = unconstrained.filter((idx) => !usedUnconstrained.has(idx));
+  while (remaining.length > 0) {
+    let bestI = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < remaining.length; i++) {
+      const dist = currentPointIdx >= 0 ? matrix[currentPointIdx][remaining[i]] : 0;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestI = i;
+      }
+    }
+    const next = remaining.splice(bestI, 1)[0];
+    result.push(next);
+    currentPointIdx = next;
+  }
+
+  return result;
 }
 
 /**
@@ -266,6 +429,12 @@ export function optimizeRoute(
 
   // Apply 2-opt improvement
   optimizedOrder = twoOptImprove(optimizedOrder, matrix);
+
+  // Apply time-window enforcement if enabled
+  if (options?.enforceTimeWindows) {
+    const startTime = options.startTimeMinutes ?? 480; // default 8:00 AM
+    optimizedOrder = enforceTimeWindows(optimizedOrder, points, matrix, speedMph, startTime);
+  }
 
   const optimizedDistance = routeDistance(optimizedOrder, matrix);
 
