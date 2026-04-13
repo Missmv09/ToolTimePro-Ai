@@ -310,34 +310,34 @@ export default function GettingStartedChecklist() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 sm:mb-8 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Welcome to your {planLabel} plan
-            </h2>
-            <button
-              onClick={handleDismiss}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Dismiss"
-            >
-              <X size={16} />
-            </button>
-          </div>
-          <p className="text-sm text-gray-500 mt-0.5">
+      <div className="flex items-start justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+            Welcome to your {planLabel} plan
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
             Let&apos;s get you set up — {totalItems - totalCompleted} {totalItems - totalCompleted === 1 ? 'step' : 'steps'} to go
           </p>
         </div>
-        <div className="text-right hidden sm:block">
-          <p className="text-2xl font-bold text-blue-600">{progress}%</p>
-          <p className="text-xs text-gray-400">complete</p>
+        <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+          <div className="text-right">
+            <p className="text-lg sm:text-2xl font-bold text-blue-600">{progress}%</p>
+            <p className="text-xs text-gray-400 hidden sm:block">complete</p>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            title="Dismiss"
+          >
+            <X size={16} />
+          </button>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="px-6 pt-3 pb-1">
+      <div className="px-4 sm:px-6 pt-3 pb-1">
         <div className="w-full bg-gray-100 rounded-full h-2.5">
           <div
             className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500"
@@ -348,7 +348,7 @@ export default function GettingStartedChecklist() {
 
       {/* Next step callout */}
       {nextStep && (
-        <div className="mx-6 mt-3 mb-1">
+        <div className="mx-4 sm:mx-6 mt-3 mb-1">
           <Link
             href={nextStep.href}
             className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors group"
@@ -379,11 +379,11 @@ export default function GettingStartedChecklist() {
               {/* Section header */}
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between px-4 sm:px-6 py-3 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  {sectionDone && <Sparkles size={14} className="text-green-500" />}
-                  <h3 className={`text-sm font-semibold ${sectionDone ? 'text-green-700' : 'text-gray-800'}`}>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  {sectionDone && <Sparkles size={14} className="text-green-500 flex-shrink-0" />}
+                  <h3 className={`text-xs sm:text-sm font-semibold ${sectionDone ? 'text-green-700' : 'text-gray-800'}`}>
                     {section.title}
                   </h3>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -405,7 +405,7 @@ export default function GettingStartedChecklist() {
 
               {/* Section items */}
               {!isCollapsed && (
-                <div className="px-6 pb-3">
+                <div className="px-4 sm:px-6 pb-3">
                   <div className="divide-y divide-gray-50">
                     {section.items.map((item) => {
                       const isNext = nextStep?.id === item.id
@@ -414,7 +414,7 @@ export default function GettingStartedChecklist() {
                         <Link
                           key={item.id}
                           href={item.href}
-                          className={`flex items-center gap-4 py-2.5 group transition-colors rounded-lg -mx-2 px-2 ${
+                          className={`flex items-center gap-3 sm:gap-4 py-2.5 group transition-colors rounded-lg -mx-2 px-2 ${
                             item.completed
                               ? 'opacity-50'
                               : isNext
@@ -458,7 +458,7 @@ export default function GettingStartedChecklist() {
       </div>
 
       {/* Help footer */}
-      <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+      <div className="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100">
         <p className="text-xs text-gray-500 text-center">
           Need help setting up?{' '}
           <a href="mailto:support@tooltimepro.com" className="text-blue-600 hover:underline">Email us</a>
