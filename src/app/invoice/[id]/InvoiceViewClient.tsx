@@ -101,13 +101,17 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
 
       // Fetch structured payment methods for this company
       if (data.company_id) {
-        const { data: pmData } = await supabase
+        const { data: pmData, error: pmError } = await supabase
           .from('company_payment_methods')
           .select('method, handle, is_preferred, sort_order')
           .eq('company_id', data.company_id)
           .eq('is_active', true)
           .order('sort_order', { ascending: true });
-        if (pmData) setCompanyPaymentMethods(pmData as PaymentMethod[]);
+        if (pmError) {
+          console.warn('Could not load payment methods:', pmError.message);
+        } else if (pmData) {
+          setCompanyPaymentMethods(pmData as PaymentMethod[]);
+        }
       }
 
       // Mark as viewed if sent

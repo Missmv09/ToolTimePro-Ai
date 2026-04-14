@@ -85,12 +85,17 @@ function SettingsContent() {
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       if (!company?.id) return
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('company_payment_methods')
         .select('method, handle, is_preferred, sort_order')
         .eq('company_id', company.id)
         .eq('is_active', true)
         .order('sort_order')
+      if (error) {
+        // Table may not exist yet if migration hasn't been applied
+        console.warn('Could not load payment methods:', error.message)
+        return
+      }
       if (data) {
         setPaymentMethods(data.map(d => ({ method: d.method, handle: d.handle || '', is_preferred: d.is_preferred })))
       }
@@ -122,11 +127,20 @@ function SettingsContent() {
     setSavingPaymentMethods(true)
     setSaveMessage(null)
 
+    let tableAvailable = true
+
     try {
       // Delete existing then insert fresh
-      await supabase.from('company_payment_methods').delete().eq('company_id', company.id)
+      const { error: deleteError } = await supabase.from('company_payment_methods').delete().eq('company_id', company.id)
 
-      if (paymentMethods.length > 0) {
+      if (deleteError && (deleteError.message.includes('schema cache') || deleteError.message.includes('does not exist') || deleteError.code === '42P01')) {
+        tableAvailable = false
+        console.warn('company_payment_methods table not available yet:', deleteError.message)
+      } else if (deleteError) {
+        throw deleteError
+      }
+
+      if (tableAvailable && paymentMethods.length > 0) {
         const records = paymentMethods.map((m, index) => ({
           company_id: company.id,
           method: m.method,
@@ -139,7 +153,7 @@ function SettingsContent() {
         if (error) throw error
       }
 
-      // Sync payment_instructions for backwards compatibility
+      // Always sync payment_instructions as fallback
       const instructionLines = paymentMethods
         .filter(m => m.handle)
         .map(m => {
