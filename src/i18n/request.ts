@@ -3,12 +3,17 @@ import { cookies } from 'next/headers';
 import { defaultLocale, locales, type Locale } from './config';
 
 export default getRequestConfig(async () => {
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get('NEXT_LOCALE')?.value;
-  const locale: Locale =
-    localeCookie && locales.includes(localeCookie as Locale)
-      ? (localeCookie as Locale)
-      : defaultLocale;
+  let locale: Locale = defaultLocale;
+  try {
+    const cookieStore = await cookies();
+    const localeCookie = cookieStore?.get('NEXT_LOCALE')?.value;
+    if (localeCookie && locales.includes(localeCookie as Locale)) {
+      locale = localeCookie as Locale;
+    }
+  } catch {
+    // cookies() can throw during edge-case renders (e.g. static generation
+    // or serverless cold-start timing issues). Fall back to default locale.
+  }
 
   // Load all message files for the locale
   const [

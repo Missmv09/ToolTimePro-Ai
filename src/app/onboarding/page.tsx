@@ -170,40 +170,47 @@ export default function OnboardingPage() {
     setSaving(true)
     setError(null)
 
-    // Build payment method records
-    const methods = Array.from(selectedPaymentMethods).map((methodId, index) => ({
-      company_id: company.id,
-      method: methodId,
-      handle: paymentHandles[methodId] || null,
-      is_active: true,
-      is_preferred: preferredPaymentMethod === methodId,
-      sort_order: index,
-    }))
+    try {
+      // Build payment method records
+      const methods = Array.from(selectedPaymentMethods).map((methodId, index) => ({
+        company_id: company.id,
+        method: methodId,
+        handle: paymentHandles[methodId] || null,
+        is_active: true,
+        is_preferred: preferredPaymentMethod === methodId,
+        sort_order: index,
+      }))
 
-    const { error: insertError } = await supabase
-      .from('company_payment_methods')
-      .upsert(methods, { onConflict: 'company_id,method' })
+      const { error: insertError } = await supabase
+        .from('company_payment_methods')
+        .upsert(methods, { onConflict: 'company_id,method' })
 
-    // Also build a payment_instructions string for backwards compatibility
-    const instructionLines = methods
-      .filter(m => m.handle)
-      .map(m => {
-        const opt = PAYMENT_METHOD_OPTIONS.find(o => o.id === m.method)
-        return `${opt?.label || m.method}: ${m.handle}`
-      })
-    if (instructionLines.length > 0) {
-      await supabase
-        .from('companies')
-        .update({ payment_instructions: instructionLines.join('\n') })
-        .eq('id', company.id)
-    }
+      if (insertError) {
+        setError(insertError.message)
+        return false
+      }
 
-    setSaving(false)
-    if (insertError) {
-      setError(insertError.message)
+      // Also build a payment_instructions string for backwards compatibility
+      const instructionLines = methods
+        .filter(m => m.handle)
+        .map(m => {
+          const opt = PAYMENT_METHOD_OPTIONS.find(o => o.id === m.method)
+          return `${opt?.label || m.method}: ${m.handle}`
+        })
+      if (instructionLines.length > 0) {
+        await supabase
+          .from('companies')
+          .update({ payment_instructions: instructionLines.join('\n') })
+          .eq('id', company.id)
+      }
+
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save payment methods. Please try again.')
       return false
+    } finally {
+      setSaving(false)
     }
-    return true
   }
 
   // Step 4: Team member
@@ -280,18 +287,25 @@ export default function OnboardingPage() {
     setSaving(true)
     setError(null)
 
-    const { error: updateError } = await supabase
-      .from('companies')
-      .update({ phone, address, city, state, zip })
-      .eq('id', company.id)
+    try {
+      const { error: updateError } = await supabase
+        .from('companies')
+        .update({ phone, address, city, state, zip })
+        .eq('id', company.id)
 
-    setSaving(false)
-    if (updateError) {
-      setError(updateError.message)
+      if (updateError) {
+        setSaving(false)
+        setError(updateError.message)
+        return false
+      }
+      // Refresh AuthContext so dashboard checklist sees updated company data
+      await refreshUserData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save company details. Please try again.')
       return false
+    } finally {
+      setSaving(false)
     }
-    // Refresh AuthContext so dashboard checklist sees updated company data
-    await refreshUserData()
     return true
   }
 
@@ -309,64 +323,68 @@ export default function OnboardingPage() {
     setSaving(true)
     setError(null)
 
-    // Save primary industry (first selected) to company
-    if (selectedIndustries.length > 0) {
-      const industryValue = selectedIndustries.map((i) => i.slug).join(',')
-      const { error: industryError } = await supabase
-        .from('companies')
-        .update({ industry: industryValue })
-        .eq('id', company.id)
+    try {
+      // Save primary industry (first selected) to company
+      if (selectedIndustries.length > 0) {
+        const industryValue = selectedIndustries.map((i) => i.slug).join(',')
+        const { error: industryError } = await supabase
+          .from('companies')
+          .update({ industry: industryValue })
+          .eq('id', company.id)
 
-      if (industryError) {
-        setSaving(false)
-        setError(industryError.message)
-        return false
+        if (industryError) {
+          setError(industryError.message)
+          return false
+        }
       }
-    }
 
-    // Build services from selected suggested + custom
-    const servicesToCreate: { company_id: string; name: string; default_price: null; price_type: string; duration_minutes: number }[] = []
+      // Build services from selected suggested + custom
+      const servicesToCreate: { company_id: string; name: string; default_price: null; price_type: string; duration_minutes: number }[] = []
 
-    // Add selected suggested services
-    for (const svc of allSuggestedServices) {
-      if (selectedServiceNames.has(svc.name)) {
-        servicesToCreate.push({
-          company_id: company.id,
-          name: svc.name,
-          default_price: null,
-          price_type: svc.priceType,
-          duration_minutes: svc.duration,
-        })
+      // Add selected suggested services
+      for (const svc of allSuggestedServices) {
+        if (selectedServiceNames.has(svc.name)) {
+          servicesToCreate.push({
+            company_id: company.id,
+            name: svc.name,
+            default_price: null,
+            price_type: svc.priceType,
+            duration_minutes: svc.duration,
+          })
+        }
       }
-    }
 
-    // Add custom services
-    for (const name of customServices) {
-      if (selectedServiceNames.has(name)) {
-        servicesToCreate.push({
-          company_id: company.id,
-          name,
-          default_price: null,
-          price_type: 'fixed',
-          duration_minutes: 60,
-        })
+      // Add custom services
+      for (const name of customServices) {
+        if (selectedServiceNames.has(name)) {
+          servicesToCreate.push({
+            company_id: company.id,
+            name,
+            default_price: null,
+            price_type: 'fixed',
+            duration_minutes: 60,
+          })
+        }
       }
-    }
 
-    if (servicesToCreate.length > 0) {
-      const { error: serviceError } = await supabase
-        .from('services')
-        .insert(servicesToCreate)
+      if (servicesToCreate.length > 0) {
+        const { error: serviceError } = await supabase
+          .from('services')
+          .insert(servicesToCreate)
 
-      if (serviceError) {
-        setSaving(false)
-        setError(serviceError.message)
-        return false
+        if (serviceError) {
+          setError(serviceError.message)
+          return false
+        }
       }
-    }
 
-    setSaving(false)
-    return true
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save services. Please try again.')
+      return false
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleEnable2FA = async () => {
@@ -456,23 +474,27 @@ export default function OnboardingPage() {
     setSaving(true)
     setError(null)
 
-    // Mark onboarding as completed
-    const { error: finishError } = await supabase
-      .from('companies')
-      .update({ onboarding_completed: true })
-      .eq('id', company.id)
+    try {
+      // Mark onboarding as completed
+      const { error: finishError } = await supabase
+        .from('companies')
+        .update({ onboarding_completed: true })
+        .eq('id', company.id)
 
-    setSaving(false)
+      if (finishError) {
+        setError('Failed to complete setup: ' + finishError.message)
+        return
+      }
 
-    if (finishError) {
-      setError('Failed to complete setup: ' + finishError.message)
-      return
+      // Refresh AuthContext so DashboardLayout sees onboarding_completed = true
+      await refreshUserData()
+
+      router.push('/dashboard')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to complete setup. Please try again.')
+    } finally {
+      setSaving(false)
     }
-
-    // Refresh AuthContext so DashboardLayout sees onboarding_completed = true
-    await refreshUserData()
-
-    router.push('/dashboard')
   }
 
   // Show loading while auth data is pending
