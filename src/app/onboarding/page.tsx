@@ -180,17 +180,20 @@ export default function OnboardingPage() {
       sort_order: index,
     }))
 
+    // Try saving to structured table, but don't block onboarding if table doesn't exist yet
     const { error: insertError } = await supabase
       .from('company_payment_methods')
       .upsert(methods, { onConflict: 'company_id,method' })
 
-    // Also build a payment_instructions string for backwards compatibility
+    // Build a payment_instructions string for backwards compatibility
     const instructionLines = methods
       .filter(m => m.handle)
       .map(m => {
         const opt = PAYMENT_METHOD_OPTIONS.find(o => o.id === m.method)
         return `${opt?.label || m.method}: ${m.handle}`
       })
+
+    // Always save payment_instructions as fallback
     if (instructionLines.length > 0) {
       await supabase
         .from('companies')
@@ -199,7 +202,13 @@ export default function OnboardingPage() {
     }
 
     setSaving(false)
+
+    // If the structured table doesn't exist yet, log the error but don't block the user
     if (insertError) {
+      if (insertError.message.includes('schema cache') || insertError.message.includes('does not exist') || insertError.code === '42P01') {
+        console.warn('company_payment_methods table not available yet, saved to payment_instructions instead:', insertError.message)
+        return true
+      }
       setError(insertError.message)
       return false
     }
