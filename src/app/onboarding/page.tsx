@@ -129,15 +129,15 @@ export default function OnboardingPage() {
 
   // Step 3: Payment methods
   const PAYMENT_METHOD_OPTIONS = [
-    { id: 'zelle', label: 'Zelle', icon: '💸', placeholder: 'Email or phone number', helperText: 'Your Zelle-registered email or phone' },
-    { id: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourHandle', helperText: 'Your Venmo username (e.g. @MikesPlumbing)' },
-    { id: 'cashapp', label: 'Cash App', icon: '💚', placeholder: '$YourCashTag', helperText: 'Your Cash App $cashtag' },
-    { id: 'paypal', label: 'PayPal', icon: '🅿️', placeholder: 'paypal.me/yourname or email', helperText: 'Your PayPal.me link or PayPal email' },
-    { id: 'square', label: 'Square', icon: '⬜', placeholder: 'Square payment link URL', helperText: 'Paste your Square payment link' },
-    { id: 'check', label: 'Check', icon: '📝', placeholder: 'Payable to: Your Business Name LLC', helperText: 'Business name checks should be made out to' },
-    { id: 'cash', label: 'Cash', icon: '💵', placeholder: '', helperText: 'Accept cash payments in person' },
-    { id: 'other', label: 'Other', icon: '💳', placeholder: 'Payment details or instructions', helperText: 'Any other way you accept payment' },
-  ] as const
+    { id: 'zelle', label: 'Zelle', labelKey: '', icon: '💸', placeholderKey: 'payZellePlaceholder', helperKey: 'payZelleHelper' },
+    { id: 'venmo', label: 'Venmo', labelKey: '', icon: '💜', placeholderKey: 'payVenmoPlaceholder', helperKey: 'payVenmoHelper' },
+    { id: 'cashapp', label: 'Cash App', labelKey: '', icon: '💚', placeholderKey: 'payCashAppPlaceholder', helperKey: 'payCashAppHelper' },
+    { id: 'paypal', label: 'PayPal', labelKey: '', icon: '🅿️', placeholderKey: 'payPaypalPlaceholder', helperKey: 'payPaypalHelper' },
+    { id: 'square', label: 'Square', labelKey: '', icon: '⬜', placeholderKey: 'paySquarePlaceholder', helperKey: 'paySquareHelper' },
+    { id: 'check', label: 'Check', labelKey: 'payCheckLabel', icon: '📝', placeholderKey: 'payCheckPlaceholder', helperKey: 'payCheckHelper' },
+    { id: 'cash', label: 'Cash', labelKey: 'payCashLabel', icon: '💵', placeholderKey: '', helperKey: 'payCashHelper' },
+    { id: 'other', label: 'Other', labelKey: 'payOtherLabel', icon: '💳', placeholderKey: 'payOtherPlaceholder', helperKey: 'payOtherHelper' },
+  ]
 
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<Set<string>>(new Set())
   const [paymentHandles, setPaymentHandles] = useState<Record<string, string>>({})
@@ -162,7 +162,7 @@ export default function OnboardingPage() {
 
   const handleSavePaymentMethods = async () => {
     if (!company) {
-      setError('Account data is still loading. Please wait a moment and try again.')
+      setError(t('accountLoading'))
       return false
     }
     if (selectedPaymentMethods.size === 0) return true // skip if none selected
@@ -189,7 +189,8 @@ export default function OnboardingPage() {
       .filter(m => m.handle)
       .map(m => {
         const opt = PAYMENT_METHOD_OPTIONS.find(o => o.id === m.method)
-        return `${opt?.label || m.method}: ${m.handle}`
+        const label = opt ? (opt.labelKey ? t(opt.labelKey) : opt.label) : m.method
+        return `${label}: ${m.handle}`
       })
     if (instructionLines.length > 0) {
       await supabase
@@ -252,7 +253,7 @@ export default function OnboardingPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        setError('Session expired. Please refresh.')
+        setError(t('sessionExpired'))
         setGcalConnecting(false)
         return
       }
@@ -262,19 +263,19 @@ export default function OnboardingPage() {
       })
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.error || 'Failed to start Google Calendar connection')
+        throw new Error(errData.error || t('calendarFailed'))
       }
       const { url } = await res.json()
       window.location.href = url
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect. Please try again.')
+      setError(err instanceof Error ? err.message : t('calendarFailed'))
       setGcalConnecting(false)
     }
   }
 
   const handleSaveCompany = async () => {
     if (!company) {
-      setError('Account data is still loading. Please wait a moment and try again.')
+      setError(t('accountLoading'))
       return false
     }
     setSaving(true)
@@ -297,7 +298,7 @@ export default function OnboardingPage() {
 
   const handleSaveIndustryAndServices = async () => {
     if (!company) {
-      setError('Account data is still loading. Please wait a moment and try again.')
+      setError(t('accountLoading'))
       return false
     }
 
@@ -372,7 +373,7 @@ export default function OnboardingPage() {
   const handleEnable2FA = async () => {
     const digits = twoFaPhone.replace(/\D/g, '')
     if (digits.length < 10) {
-      setError('Please enter a valid 10-digit phone number.')
+      setError(t('invalidPhone'))
       return false
     }
 
@@ -381,7 +382,7 @@ export default function OnboardingPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        setError('Session expired. Please refresh.')
+        setError(t('sessionExpired'))
         setTwoFaSaving(false)
         return false
       }
@@ -401,12 +402,12 @@ export default function OnboardingPage() {
         return true
       } else {
         const data = await res.json()
-        setError(data.error || 'Failed to enable 2FA')
+        setError(data.error || t('twoFaFailed'))
         setTwoFaSaving(false)
         return false
       }
     } catch {
-      setError('Failed to enable 2FA')
+      setError(t('twoFaFailed'))
       setTwoFaSaving(false)
       return false
     }
@@ -450,7 +451,7 @@ export default function OnboardingPage() {
 
   const handleFinish = async () => {
     if (!company) {
-      setError('Account data is still loading. Please wait a moment and try again.')
+      setError(t('accountLoading'))
       return
     }
     setSaving(true)
@@ -465,7 +466,7 @@ export default function OnboardingPage() {
     setSaving(false)
 
     if (finishError) {
-      setError('Failed to complete setup: ' + finishError.message)
+      setError(t('finishFailed') + ': ' + finishError.message)
       return
     }
 
@@ -578,7 +579,7 @@ export default function OnboardingPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="(555) 123-4567"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Appears on your invoices and quotes so customers can reach you.</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('phoneHelperText')}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('streetAddress')}</label>
@@ -872,7 +873,7 @@ export default function OnboardingPage() {
                         }`}
                       >
                         <span className="text-xl">{method.icon}</span>
-                        <span className="text-sm font-medium text-gray-900 flex-1">{method.label}</span>
+                        <span className="text-sm font-medium text-gray-900 flex-1">{method.labelKey ? t(method.labelKey) : method.label}</span>
                         {isSelected && (
                           <button
                             type="button"
@@ -885,7 +886,7 @@ export default function OnboardingPage() {
                                 ? 'bg-amber-100 text-amber-700 border border-amber-300'
                                 : 'bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-600'
                             }`}
-                            title="Set as preferred"
+                            title={t('setPreferred')}
                           >
                             <Star size={10} className={isPreferred ? 'fill-amber-500' : ''} />
                             {isPreferred ? t('preferred') : t('setPreferred')}
@@ -895,16 +896,16 @@ export default function OnboardingPage() {
                       </button>
 
                       {/* Handle input - shown when method is selected and has a placeholder */}
-                      {isSelected && method.placeholder && (
+                      {isSelected && method.placeholderKey && (
                         <div className="ml-12 mt-2 mb-1">
                           <input
                             type="text"
                             value={paymentHandles[method.id] || ''}
                             onChange={(e) => setPaymentHandles(prev => ({ ...prev, [method.id]: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            placeholder={method.placeholder}
+                            placeholder={method.placeholderKey ? t(method.placeholderKey) : ''}
                           />
-                          <p className="text-xs text-gray-400 mt-1">{method.helperText}</p>
+                          <p className="text-xs text-gray-400 mt-1">{t(method.helperKey)}</p>
                         </div>
                       )}
                     </div>
