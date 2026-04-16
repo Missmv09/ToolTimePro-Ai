@@ -1,7 +1,7 @@
 -- Outbound webhook subscriptions for Zapier/integration support
 CREATE TABLE IF NOT EXISTS webhooks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES companies(id),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   url VARCHAR(2000) NOT NULL,
   secret VARCHAR(255), -- HMAC secret for signature verification
   events TEXT[] NOT NULL DEFAULT '{}', -- array of event types to subscribe to

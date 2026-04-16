@@ -1,7 +1,7 @@
 -- Recurring job templates
 CREATE TABLE IF NOT EXISTS recurring_jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES companies(id),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   description TEXT,
   address VARCHAR(500),
