@@ -65,7 +65,7 @@ async function syncJobToCalendar(job, accessToken, calendarId) {
   const startDateTime = `${startDate}T${startTime}:00`
   const endDateTime = `${startDate}T${endTime}:00`
 
-  const customerName = job.customer?.name || job.customer?.full_name || 'Customer'
+  const customerName = job.customer?.name || 'Customer'
   const customerAddress = job.customer?.address || ''
 
   const eventBody = {
@@ -182,7 +182,7 @@ export async function POST(request) {
 
     const { data: jobs, error: jobsError } = await supabaseAdmin
       .from('jobs')
-      .select('id, title, description, scheduled_date, scheduled_time_start, scheduled_time_end, status, gcal_event_id, customer:customers(name, full_name, address)')
+      .select('id, title, description, scheduled_date, scheduled_time_start, scheduled_time_end, status, gcal_event_id, customer:customers(name, address)')
       .eq('company_id', connection.company_id)
       .gte('scheduled_date', today)
       .lte('scheduled_date', thirtyDaysOut)
