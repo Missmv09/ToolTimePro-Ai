@@ -87,17 +87,67 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">5. Data Sharing</h2>
+            <h2 className="text-xl font-bold mb-3">5. Google Calendar Integration</h2>
+            <p className="mb-2">
+              ToolTime Pro offers an optional integration with Google Calendar. When you choose to connect
+              your Google Calendar, the following applies:
+            </p>
+
+            <h3 className="font-bold mt-4 mb-2">Data We Access</h3>
+            <p className="mb-2">
+              We request access to the <code className="bg-gray-100 px-1 rounded text-sm">calendar.events</code> scope,
+              which allows us to create, read, update, and delete events on your Google Calendar. We use this access
+              solely to sync your ToolTime Pro jobs and appointments to your Google Calendar.
+            </p>
+
+            <h3 className="font-bold mt-4 mb-2">How We Use Google Calendar Data</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>To create calendar events for your scheduled jobs and appointments.</li>
+              <li>To update existing calendar events when job details change (e.g., time, location, description).</li>
+              <li>To remove calendar events when jobs are cancelled or deleted.</li>
+            </ul>
+            <p className="mt-2">
+              We <strong>do not</strong> read, store, or process any pre-existing events on your Google Calendar.
+              We only interact with events that ToolTime Pro has created.
+            </p>
+
+            <h3 className="font-bold mt-4 mb-2">Data Storage &amp; Security</h3>
+            <p>
+              Your Google OAuth tokens (access token and refresh token) are stored securely in our database
+              with encryption at rest. Tokens are used only to maintain your calendar sync connection and are
+              never shared with third parties.
+            </p>
+
+            <h3 className="font-bold mt-4 mb-2">No Selling or Sharing of Google Data</h3>
+            <p>
+              We <strong>do not sell, lease, or share</strong> your Google Calendar data or Google user data
+              with any third party for advertising, analytics, or any other purpose. Google Calendar data is
+              used exclusively to provide the calendar sync feature within ToolTime Pro.
+            </p>
+
+            <h3 className="font-bold mt-4 mb-2">Revoking Access</h3>
+            <p>
+              You can disconnect Google Calendar at any time from your ToolTime Pro Settings page. When you
+              disconnect, we revoke your OAuth tokens with Google and delete all stored tokens from our database.
+              You can also revoke access directly from your{' '}
+              <a href="https://myaccount.google.com/permissions" className="text-[#f5a623] hover:underline" target="_blank" rel="noopener noreferrer">
+                Google Account permissions page
+              </a>.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold mb-3">6. Data Sharing</h2>
             <p className="mb-2">We do not sell your personal information. We may share information with:</p>
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>Service Providers:</strong> Third-party services that help us operate our platform (e.g., Twilio for SMS, Resend for email, Supabase for data storage, Stripe for payments).</li>
-              <li><strong>Business Partners:</strong> When you use integrations like QuickBooks, data is shared as needed for the integration to function.</li>
+              <li><strong>Business Partners:</strong> When you use integrations like QuickBooks or Google Calendar, data is shared as needed for the integration to function.</li>
               <li><strong>Legal Requirements:</strong> When required by law, subpoena, or to protect our rights.</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">6. Data Security</h2>
+            <h2 className="text-xl font-bold mb-3">7. Data Security</h2>
             <p>
               We implement industry-standard security measures to protect your data, including encryption in
               transit (TLS/SSL), secure data storage, access controls, and regular security reviews.
@@ -106,7 +156,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">7. Data Retention</h2>
+            <h2 className="text-xl font-bold mb-3">8. Data Retention</h2>
             <p>
               We retain your data for as long as your account is active or as needed to provide services.
               You may request deletion of your account and associated data by contacting us.
@@ -115,7 +165,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">8. Your Rights</h2>
+            <h2 className="text-xl font-bold mb-3">9. Your Rights</h2>
             <p className="mb-2">Depending on your location, you may have the right to:</p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Access the personal data we hold about you.</li>
@@ -127,7 +177,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">9. California Privacy Rights (CCPA/CPRA)</h2>
+            <h2 className="text-xl font-bold mb-3">10. California Privacy Rights (CCPA/CPRA)</h2>
             <p className="mb-3">
               If you are a California resident, you have the following rights under the California Consumer
               Privacy Act (CCPA) and the California Privacy Rights Act (CPRA):
@@ -227,7 +277,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">10. Do Not Track Signals</h2>
+            <h2 className="text-xl font-bold mb-3">11. Do Not Track Signals</h2>
             <p>
               Our platform does not currently respond to &quot;Do Not Track&quot; browser signals. However,
               we do not engage in cross-site tracking of our users.
@@ -235,7 +285,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">11. Children&apos;s Privacy</h2>
+            <h2 className="text-xl font-bold mb-3">12. Children&apos;s Privacy</h2>
             <p>
               Our services are not directed to individuals under 18. We do not knowingly collect personal
               information from children.
@@ -243,7 +293,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">12. Changes to This Policy</h2>
+            <h2 className="text-xl font-bold mb-3">13. Changes to This Policy</h2>
             <p>
               We may update this Privacy Policy from time to time. We will notify you of any material changes
               by posting the new policy on this page and updating the &quot;Last updated&quot; date.
@@ -251,7 +301,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-3">13. Contact Us</h2>
+            <h2 className="text-xl font-bold mb-3">14. Contact Us</h2>
             <p>
               If you have questions about this Privacy Policy or wish to exercise your data rights,
               please contact us at:
