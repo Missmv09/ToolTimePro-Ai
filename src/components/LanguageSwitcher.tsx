@@ -1,15 +1,14 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 
 export default function LanguageSwitcher() {
   const locale = useLocale();
-  const router = useRouter();
 
   function switchLocale(newLocale: string) {
+    if (newLocale === locale) return;
     document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`;
-    router.refresh();
+    window.location.reload();
   }
 
   return (
