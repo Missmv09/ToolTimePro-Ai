@@ -1,7 +1,7 @@
 -- Payment plans for installment payments on invoices
 CREATE TABLE IF NOT EXISTS payment_plans (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES companies(id),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   invoice_id UUID NOT NULL REFERENCES invoices(id),
   customer_id UUID REFERENCES customers(id),
   total_amount DECIMAL(10,2) NOT NULL,

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES companies(id),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   type VARCHAR(50) NOT NULL, -- 'new_lead', 'job_assigned', 'invoice_paid', 'invoice_overdue', 'compliance_alert', 'review_received', 'booking_received', 'worker_clock_in', 'quote_accepted', 'quote_expired'
   title VARCHAR(255) NOT NULL,
