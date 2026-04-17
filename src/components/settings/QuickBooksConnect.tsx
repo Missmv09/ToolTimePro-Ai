@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getFreshAccessToken, redirectToLogin, SESSION_EXPIRED_MESSAGE } from '@/lib/auth-refresh'
 
 interface QuickBooksConnectProps {
   isConnected: boolean
@@ -25,17 +26,25 @@ export default function QuickBooksConnect({
     setMessage(null)
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        setMessage({ type: 'error', text: 'Please log in again to connect QuickBooks.' })
+      const token = await getFreshAccessToken(supabase)
+      if (!token) {
+        setMessage({ type: 'error', text: SESSION_EXPIRED_MESSAGE })
         setConnecting(false)
+        redirectToLogin()
         return
       }
 
       const response = await fetch('/api/quickbooks/connect', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       })
+
+      if (response.status === 401) {
+        setMessage({ type: 'error', text: SESSION_EXPIRED_MESSAGE })
+        setConnecting(false)
+        redirectToLogin()
+        return
+      }
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}))
