@@ -597,7 +597,7 @@ export default function JennyLitePage() {
               </p>
             </div>
             <Link
-              href="/pricing"
+              href="/pricing#jenny-ai"
               className="px-6 py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors no-underline text-sm whitespace-nowrap"
             >
               Upgrade to Jenny Pro →

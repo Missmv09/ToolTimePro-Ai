@@ -463,7 +463,7 @@ export default function PricingPage() {
         </section>
 
         {/* Jenny AI Add-on */}
-        <section className="section jenny-section">
+        <section id="jenny-ai" className="section jenny-section">
           <div className="jenny-banner">
             <div className="jenny-banner-content">
               <div className="jenny-avatar">🎧</div>
