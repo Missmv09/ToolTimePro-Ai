@@ -6,6 +6,21 @@
   NODE_VERSION = "20"
   SECRETS_SCAN_ENABLED = "false"
 
+# ============================================================
+# Sandbox / staging branch deploy
+# The `sandbox` branch gets its own build context so you can
+# point it at a second Supabase project and Stripe test keys
+# via Netlify's branch-scoped environment variables.
+# Set branch-scoped vars in Netlify UI: Site settings →
+# Environment variables → "Specific scopes" → branch = sandbox.
+# See docs/SANDBOX.md for the full runbook.
+# ============================================================
+[context.sandbox]
+  command = "npm run build"
+
+[context.sandbox.environment]
+  NEXT_PUBLIC_APP_ENV = "sandbox"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
