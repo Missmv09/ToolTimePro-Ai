@@ -246,6 +246,13 @@ export default function PricingPage() {
     );
   };
 
+  const scrollToSummary = () => {
+    if (typeof window === 'undefined') return;
+    requestAnimationFrame(() => {
+      document.getElementById('summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   const isElite = selectedTier === 'elite';
 
   const selectTier = (tierId) => {
@@ -309,7 +316,7 @@ export default function PricingPage() {
     window.location.href = `/api/checkout?${params.toString()}`;
   };
 
-  const hasSelection = selectedTier || selectedStandalone;
+  const hasSelection = selectedTier || selectedStandalone || selectedAddons.length > 0;
 
   return (
     <div className="pricing-page">
@@ -493,6 +500,7 @@ export default function PricingPage() {
                   setSelectedAddons(prev => prev.filter(id => id !== 'jenny_pro'));
                 }
                 toggleAddon('jenny_lite');
+                scrollToSummary();
               }}
               style={selectedTier ? { cursor: 'default' } : {}}
             >
@@ -518,6 +526,7 @@ export default function PricingPage() {
                   setSelectedAddons(prev => prev.filter(id => id !== 'jenny_lite'));
                 }
                 toggleAddon('jenny_pro');
+                scrollToSummary();
               }}
             >
               <span className="best-value-badge">{t('mostPopular')}</span>
@@ -545,7 +554,10 @@ export default function PricingPage() {
           <div className="jenny-tiers single">
             <div
               className={`jenny-tier exec ${selectedAddons.includes('jenny_exec_admin') ? 'selected' : ''}`}
-              onClick={() => toggleAddon('jenny_exec_admin')}
+              onClick={() => {
+                toggleAddon('jenny_exec_admin');
+                scrollToSummary();
+              }}
             >
               <div className="jenny-tier-header">
                 <h4>Jenny Exec Admin</h4>
@@ -645,7 +657,7 @@ export default function PricingPage() {
 
         {/* Summary & CTA */}
         {hasSelection && (
-          <section className="summary-section">
+          <section id="summary" className="summary-section">
             <div className="summary-card">
               <h3>{t('yourSelection')}</h3>
 
@@ -1592,8 +1604,8 @@ export default function PricingPage() {
           letter-spacing: 0.5px;
         }
         .jenny-tiers.single {
-          max-width: 700px;
-          grid-template-columns: 1fr 1fr;
+          max-width: 340px;
+          grid-template-columns: 1fr;
         }
         .jenny-tier.exec {
           background: linear-gradient(135deg, #f8f8ff, #fff);
