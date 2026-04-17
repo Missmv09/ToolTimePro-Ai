@@ -102,12 +102,14 @@ function WebsiteDashboard({ site, leadCount, onRefresh, pageLimit }) {
   const [editing, setEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const hasRealDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
-  const domainUrl = hasRealDomain
+  const hasCustomDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
+  // Only link to the custom domain once DNS is active — otherwise the browser
+  // shows "site can't be reached" while propagation/registration is pending.
+  const customDomainReady = hasCustomDomain && site.domain_status === 'active';
+  const fallbackUrl = site.slug ? `/site/${site.slug}/` : null;
+  const domainUrl = customDomainReady
     ? `https://${site.custom_domain}`
-    : site.slug
-      ? `/site/${site.slug}/`
-      : null;
+    : fallbackUrl;
   const isLive = site.status === 'live';
   const isBuilding = site.status === 'building';
 
@@ -137,8 +139,14 @@ function WebsiteDashboard({ site, leadCount, onRefresh, pageLimit }) {
             <Globe size={24} className="text-gold-500" />
             <div>
               <p className="font-semibold text-navy-500">
-                {hasRealDomain ? site.custom_domain : (site.slug ? `tooltimepro.com/site/${site.slug}` : 'No domain yet')}
+                {hasCustomDomain ? site.custom_domain : (site.slug ? `tooltimepro.com/site/${site.slug}` : 'No domain yet')}
               </p>
+              {hasCustomDomain && !customDomainReady && fallbackUrl && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Domain setup in progress — preview at{' '}
+                  <span className="text-navy-500">tooltimepro.com{fallbackUrl}</span>
+                </p>
+              )}
               <span className={`badge mt-1 ${statusColors[site.status] || statusColors.draft}`}>
                 {site.status === 'live' ? 'Live' : site.status === 'building' ? 'Building...' : site.status}
               </span>
