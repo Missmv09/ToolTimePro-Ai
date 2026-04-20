@@ -1,5 +1,16 @@
 -- SANDBOX CHUNK 2 of 3 — legacy numbered migrations
 
+
+-- ----------------------------------------------------------
+-- Drop tables that schema.sql creates in an outdated ('thin')
+-- form so the legacy migrations below can recreate them with
+-- their full column set. Safe because the sandbox is empty.
+-- ----------------------------------------------------------
+DROP TABLE IF EXISTS website_sites CASCADE;
+DROP TABLE IF EXISTS website_templates CASCADE;
+DROP TABLE IF EXISTS website_leads CASCADE;
+DROP TABLE IF EXISTS website_domain_log CASCADE;
+
 -- >>> LEGACY MIGRATION: 001_add_missing_columns.sql <<<
 -- Migration: Add missing columns for full feature support
 -- Run this in Supabase SQL Editor if you already deployed schema.sql previously
