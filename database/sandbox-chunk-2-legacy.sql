@@ -537,7 +537,7 @@ ALTER TABLE platform_admins ENABLE ROW LEVEL SECURITY;
 CREATE TRIGGER update_platform_admins_updated_at BEFORE UPDATE ON platform_admins
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- Drop thin website_templates left by migration 001 so the richer 003 version takes over
+-- Drop thin website_* left by migration 001
 DROP TABLE IF EXISTS website_sites CASCADE;
 DROP TABLE IF EXISTS website_templates CASCADE;
 
@@ -917,7 +917,7 @@ ON CONFLICT (slug) DO NOTHING;
 --
 -- SELECT id, trade_category, name FROM website_templates ORDER BY sort_order;
 
--- Drop thin website_templates left by migration 001 so the richer 003 version takes over
+-- Drop thin website_* left by migration 001
 DROP TABLE IF EXISTS website_sites CASCADE;
 DROP TABLE IF EXISTS website_templates CASCADE;
 
@@ -2122,6 +2122,9 @@ ALTER TABLE reschedule_requests ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "reschedule_requests_service_access" ON reschedule_requests;
 CREATE POLICY "reschedule_requests_service_access" ON reschedule_requests
   FOR ALL USING (true);
+
+-- Drop thin review_requests (schema.sql + 001) before 020 rebuilds it richer
+DROP TABLE IF EXISTS review_requests CASCADE;
 
 -- >>> LEGACY MIGRATION: 020_google_reviews.sql <<<
 -- ============================================================
