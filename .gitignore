@@ -7,6 +7,3 @@ tsconfig.tsbuildinfo
 
 # Local Netlify folder
 .netlify
-
-# Generated sandbox bootstrap SQL (built from schema.sql + supabase/migrations/)
-database/sandbox-combined.sql
