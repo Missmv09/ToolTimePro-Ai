@@ -1,9 +1,6 @@
--- ============================================================
 -- SANDBOX CHUNK 3 of 3 — newer timestamped migrations
--- Run AFTER chunk 2 succeeds. Recent features + fixes.
--- ============================================================
 
--- >>> SKIPPED: 20260128000000_add_quickbooks_tables.sql (superseded or duplicated by legacy) <<<
+-- >>> SKIPPED: 20260128000000_add_quickbooks_tables.sql <<<
 
 -- >>> MIGRATION: 20260201000000_add_worker_notes_table.sql <<<
 -- Worker Notes Table Migration
@@ -47,6 +44,7 @@ ALTER TABLE worker_notes ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view notes for workers in their company
 DROP POLICY IF EXISTS "Users can view company worker notes" ON worker_notes;
+DROP POLICY IF EXISTS "Users can view company worker notes" ON worker_notes;
 CREATE POLICY "Users can view company worker notes" ON worker_notes
     FOR SELECT USING (
         company_id IN (
@@ -55,6 +53,7 @@ CREATE POLICY "Users can view company worker notes" ON worker_notes
     );
 
 -- Policy: Admins and owners can insert notes
+DROP POLICY IF EXISTS "Admins can insert worker notes" ON worker_notes;
 DROP POLICY IF EXISTS "Admins can insert worker notes" ON worker_notes;
 CREATE POLICY "Admins can insert worker notes" ON worker_notes
     FOR INSERT WITH CHECK (
@@ -68,6 +67,7 @@ CREATE POLICY "Admins can insert worker notes" ON worker_notes
 
 -- Policy: Admins and owners can update notes in their company
 DROP POLICY IF EXISTS "Admins can update worker notes" ON worker_notes;
+DROP POLICY IF EXISTS "Admins can update worker notes" ON worker_notes;
 CREATE POLICY "Admins can update worker notes" ON worker_notes
     FOR UPDATE USING (
         company_id IN (
@@ -79,6 +79,7 @@ CREATE POLICY "Admins can update worker notes" ON worker_notes
     );
 
 -- Policy: Owners can delete notes in their company
+DROP POLICY IF EXISTS "Owners can delete worker notes" ON worker_notes;
 DROP POLICY IF EXISTS "Owners can delete worker notes" ON worker_notes;
 CREATE POLICY "Owners can delete worker notes" ON worker_notes
     FOR DELETE USING (
@@ -158,6 +159,7 @@ ALTER TABLE worker_certifications ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view certifications for workers in their company
 DROP POLICY IF EXISTS "Users can view company worker certifications" ON worker_certifications;
+DROP POLICY IF EXISTS "Users can view company worker certifications" ON worker_certifications;
 CREATE POLICY "Users can view company worker certifications" ON worker_certifications
     FOR SELECT USING (
         company_id IN (
@@ -166,6 +168,7 @@ CREATE POLICY "Users can view company worker certifications" ON worker_certifica
     );
 
 -- Policy: Admins and owners can insert certifications
+DROP POLICY IF EXISTS "Admins can insert worker certifications" ON worker_certifications;
 DROP POLICY IF EXISTS "Admins can insert worker certifications" ON worker_certifications;
 CREATE POLICY "Admins can insert worker certifications" ON worker_certifications
     FOR INSERT WITH CHECK (
@@ -179,6 +182,7 @@ CREATE POLICY "Admins can insert worker certifications" ON worker_certifications
 
 -- Policy: Admins and owners can update certifications
 DROP POLICY IF EXISTS "Admins can update worker certifications" ON worker_certifications;
+DROP POLICY IF EXISTS "Admins can update worker certifications" ON worker_certifications;
 CREATE POLICY "Admins can update worker certifications" ON worker_certifications
     FOR UPDATE USING (
         company_id IN (
@@ -190,6 +194,7 @@ CREATE POLICY "Admins can update worker certifications" ON worker_certifications
     );
 
 -- Policy: Owners can delete certifications
+DROP POLICY IF EXISTS "Owners can delete worker certifications" ON worker_certifications;
 DROP POLICY IF EXISTS "Owners can delete worker certifications" ON worker_certifications;
 CREATE POLICY "Owners can delete worker certifications" ON worker_certifications
     FOR DELETE USING (
@@ -223,6 +228,7 @@ CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 -- Fixes: toggleMemberStatus was silently failing because the only UPDATE
 -- policy on users was "Users can update own profile" (id = auth.uid()).
 DROP POLICY IF EXISTS "Admins can update team members" ON users;
+DROP POLICY IF EXISTS "Admins can update team members" ON users;
 CREATE POLICY "Admins can update team members" ON users
     FOR UPDATE USING (
         company_id IN (
@@ -237,6 +243,7 @@ CREATE POLICY "Admins can update team members" ON users
 -- Allow admins and owners to create new team members in their company
 -- This fixes the RLS error when creating team members from the dashboard
 
+DROP POLICY IF EXISTS "Admins can insert team members" ON users;
 DROP POLICY IF EXISTS "Admins can insert team members" ON users;
 CREATE POLICY "Admins can insert team members" ON users
     FOR INSERT WITH CHECK (
@@ -355,23 +362,23 @@ CREATE INDEX idx_saved_routes_company_date ON saved_routes(company_id, route_dat
 ALTER TABLE saved_routes ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view saved routes for their company" ON saved_routes;
-CREATE POLICY "Users can view saved routes for their company"
-  ON saved_routes FOR SELECT
+DROP POLICY IF EXISTS "Users can view saved routes for their company" ON saved_routes;
+CREATE POLICY "Users can view saved routes for their company" ON saved_routes FOR SELECT
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Users can insert saved routes for their company" ON saved_routes;
-CREATE POLICY "Users can insert saved routes for their company"
-  ON saved_routes FOR INSERT
+DROP POLICY IF EXISTS "Users can insert saved routes for their company" ON saved_routes;
+CREATE POLICY "Users can insert saved routes for their company" ON saved_routes FOR INSERT
   WITH CHECK (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Users can update saved routes for their company" ON saved_routes;
-CREATE POLICY "Users can update saved routes for their company"
-  ON saved_routes FOR UPDATE
+DROP POLICY IF EXISTS "Users can update saved routes for their company" ON saved_routes;
+CREATE POLICY "Users can update saved routes for their company" ON saved_routes FOR UPDATE
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Users can delete saved routes for their company" ON saved_routes;
-CREATE POLICY "Users can delete saved routes for their company"
-  ON saved_routes FOR DELETE
+DROP POLICY IF EXISTS "Users can delete saved routes for their company" ON saved_routes;
+CREATE POLICY "Users can delete saved routes for their company" ON saved_routes FOR DELETE
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- 2. route_settings — per-company optimization configuration
@@ -393,18 +400,18 @@ CREATE TABLE IF NOT EXISTS route_settings (
 ALTER TABLE route_settings ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view route settings for their company" ON route_settings;
-CREATE POLICY "Users can view route settings for their company"
-  ON route_settings FOR SELECT
+DROP POLICY IF EXISTS "Users can view route settings for their company" ON route_settings;
+CREATE POLICY "Users can view route settings for their company" ON route_settings FOR SELECT
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Users can insert route settings for their company" ON route_settings;
-CREATE POLICY "Users can insert route settings for their company"
-  ON route_settings FOR INSERT
+DROP POLICY IF EXISTS "Users can insert route settings for their company" ON route_settings;
+CREATE POLICY "Users can insert route settings for their company" ON route_settings FOR INSERT
   WITH CHECK (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Users can update route settings for their company" ON route_settings;
-CREATE POLICY "Users can update route settings for their company"
-  ON route_settings FOR UPDATE
+DROP POLICY IF EXISTS "Users can update route settings for their company" ON route_settings;
+CREATE POLICY "Users can update route settings for their company" ON route_settings FOR UPDATE
   USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- 3. Add worker home address fields to users table
@@ -451,9 +458,9 @@ CREATE TRIGGER set_route_settings_updated_at
 ALTER TABLE companies
 ADD COLUMN IF NOT EXISTS payment_instructions TEXT DEFAULT NULL;
 
--- >>> SKIPPED: 20260411000000_fix_quickbooks_schema.sql (superseded or duplicated by legacy) <<<
+-- >>> SKIPPED: 20260411000000_fix_quickbooks_schema.sql <<<
 
--- >>> SKIPPED: 20260411000001_fix_invoice_items_rls.sql (superseded or duplicated by legacy) <<<
+-- >>> SKIPPED: 20260411000001_fix_invoice_items_rls.sql <<<
 
 -- >>> MIGRATION: 20260411000002_add_company_payment_methods.sql <<<
 -- Add structured payment methods for companies
@@ -484,8 +491,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_company_payment_methods_unique
 ALTER TABLE company_payment_methods ENABLE ROW LEVEL SECURITY;
 
 -- Users can view payment methods for their own company
-CREATE POLICY "Users can view own company payment methods"
-    ON company_payment_methods FOR SELECT
+DROP POLICY IF EXISTS "Users can view own company payment methods" ON company_payment_methods;
+CREATE POLICY "Users can view own company payment methods" ON company_payment_methods FOR SELECT
     USING (
         company_id IN (
             SELECT company_id FROM users WHERE id = auth.uid()
@@ -493,8 +500,8 @@ CREATE POLICY "Users can view own company payment methods"
     );
 
 -- Owners and admins can manage payment methods
-CREATE POLICY "Owners and admins can insert payment methods"
-    ON company_payment_methods FOR INSERT
+DROP POLICY IF EXISTS "Owners and admins can insert payment methods" ON company_payment_methods;
+CREATE POLICY "Owners and admins can insert payment methods" ON company_payment_methods FOR INSERT
     WITH CHECK (
         company_id IN (
             SELECT company_id FROM users
@@ -502,8 +509,8 @@ CREATE POLICY "Owners and admins can insert payment methods"
         )
     );
 
-CREATE POLICY "Owners and admins can update payment methods"
-    ON company_payment_methods FOR UPDATE
+DROP POLICY IF EXISTS "Owners and admins can update payment methods" ON company_payment_methods;
+CREATE POLICY "Owners and admins can update payment methods" ON company_payment_methods FOR UPDATE
     USING (
         company_id IN (
             SELECT company_id FROM users
@@ -511,8 +518,8 @@ CREATE POLICY "Owners and admins can update payment methods"
         )
     );
 
-CREATE POLICY "Owners and admins can delete payment methods"
-    ON company_payment_methods FOR DELETE
+DROP POLICY IF EXISTS "Owners and admins can delete payment methods" ON company_payment_methods;
+CREATE POLICY "Owners and admins can delete payment methods" ON company_payment_methods FOR DELETE
     USING (
         company_id IN (
             SELECT company_id FROM users
@@ -521,10 +528,10 @@ CREATE POLICY "Owners and admins can delete payment methods"
     );
 
 -- Public read access for invoice/quote display (customers viewing invoices don't have auth)
-CREATE POLICY "Public can view active payment methods"
-    ON company_payment_methods FOR SELECT
+DROP POLICY IF EXISTS "Public can view active payment methods" ON company_payment_methods;
+CREATE POLICY "Public can view active payment methods" ON company_payment_methods FOR SELECT
     USING (is_active = true);
 
--- >>> SKIPPED: 20260415000000_fix_missing_rls_policies.sql (superseded or duplicated by legacy) <<<
+-- >>> SKIPPED: 20260415000000_fix_missing_rls_policies.sql <<<
 
--- >>> SKIPPED: 20260416000000_cascade_delete_company_fks.sql (superseded or duplicated by legacy) <<<
+-- >>> SKIPPED: 20260416000000_cascade_delete_company_fks.sql <<<

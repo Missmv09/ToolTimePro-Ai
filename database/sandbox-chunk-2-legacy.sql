@@ -1,7 +1,4 @@
--- ============================================================
 -- SANDBOX CHUNK 2 of 3 — legacy numbered migrations
--- Run AFTER chunk 1 succeeds. Adds extra tables, columns, policies.
--- ============================================================
 
 -- >>> LEGACY MIGRATION: 001_add_missing_columns.sql <<<
 -- Migration: Add missing columns for full feature support
@@ -87,12 +84,16 @@ ALTER TABLE qbo_connections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE qbo_sync_log ENABLE ROW LEVEL SECURITY;
 
 -- 10. Add RLS policies for new tables
+DROP POLICY IF EXISTS "Compliance alerts belong to company" ON compliance_alerts;
 CREATE POLICY "Compliance alerts belong to company" ON compliance_alerts
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+DROP POLICY IF EXISTS "SMS logs belong to company" ON sms_logs;
 CREATE POLICY "SMS logs belong to company" ON sms_logs
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+DROP POLICY IF EXISTS "QBO connections belong to company" ON qbo_connections;
 CREATE POLICY "QBO connections belong to company" ON qbo_connections
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+DROP POLICY IF EXISTS "QBO sync logs belong to company" ON qbo_sync_log;
 CREATE POLICY "QBO sync logs belong to company" ON qbo_sync_log
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -173,11 +174,15 @@ ALTER TABLE website_leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE website_domain_log ENABLE ROW LEVEL SECURITY;
 
 -- 17. RLS policies for website tables
+DROP POLICY IF EXISTS "Templates are readable" ON website_templates;
 CREATE POLICY "Templates are readable" ON website_templates FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Website sites belong to company" ON website_sites;
 CREATE POLICY "Website sites belong to company" ON website_sites
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+DROP POLICY IF EXISTS "Website leads belong to company" ON website_leads;
 CREATE POLICY "Website leads belong to company" ON website_leads
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
+DROP POLICY IF EXISTS "Website domain logs belong to company" ON website_domain_log;
 CREATE POLICY "Website domain logs belong to company" ON website_domain_log
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -651,30 +656,30 @@ ALTER TABLE website_leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE website_domain_log ENABLE ROW LEVEL SECURITY;
 
 -- Templates: anyone can read active templates (public catalog)
-CREATE POLICY "Anyone can read active templates"
-    ON website_templates FOR SELECT
+DROP POLICY IF EXISTS "Anyone can read active templates" ON website_templates;
+CREATE POLICY "Anyone can read active templates" ON website_templates FOR SELECT
     USING (is_active = true);
 
 -- Sites: users can manage their own sites
-CREATE POLICY "Users can read own sites"
-    ON website_sites FOR SELECT
+DROP POLICY IF EXISTS "Users can read own sites" ON website_sites;
+CREATE POLICY "Users can read own sites" ON website_sites FOR SELECT
     USING (user_id = auth.uid());
 
-CREATE POLICY "Users can insert own sites"
-    ON website_sites FOR INSERT
+DROP POLICY IF EXISTS "Users can insert own sites" ON website_sites;
+CREATE POLICY "Users can insert own sites" ON website_sites FOR INSERT
     WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "Users can update own sites"
-    ON website_sites FOR UPDATE
+DROP POLICY IF EXISTS "Users can update own sites" ON website_sites;
+CREATE POLICY "Users can update own sites" ON website_sites FOR UPDATE
     USING (user_id = auth.uid());
 
-CREATE POLICY "Users can delete own sites"
-    ON website_sites FOR DELETE
+DROP POLICY IF EXISTS "Users can delete own sites" ON website_sites;
+CREATE POLICY "Users can delete own sites" ON website_sites FOR DELETE
     USING (user_id = auth.uid());
 
 -- Company members can see sites in their company
-CREATE POLICY "Company members can read company sites"
-    ON website_sites FOR SELECT
+DROP POLICY IF EXISTS "Company members can read company sites" ON website_sites;
+CREATE POLICY "Company members can read company sites" ON website_sites FOR SELECT
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -682,8 +687,8 @@ CREATE POLICY "Company members can read company sites"
     );
 
 -- Leads: company members can read leads for their company
-CREATE POLICY "Company members can read leads"
-    ON website_leads FOR SELECT
+DROP POLICY IF EXISTS "Company members can read leads" ON website_leads;
+CREATE POLICY "Company members can read leads" ON website_leads FOR SELECT
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -691,13 +696,13 @@ CREATE POLICY "Company members can read leads"
     );
 
 -- Leads: anonymous inserts allowed (website contact forms)
-CREATE POLICY "Anonymous can insert leads"
-    ON website_leads FOR INSERT
+DROP POLICY IF EXISTS "Anonymous can insert leads" ON website_leads;
+CREATE POLICY "Anonymous can insert leads" ON website_leads FOR INSERT
     WITH CHECK (true);
 
 -- Company members can update lead status
-CREATE POLICY "Company members can update leads"
-    ON website_leads FOR UPDATE
+DROP POLICY IF EXISTS "Company members can update leads" ON website_leads;
+CREATE POLICY "Company members can update leads" ON website_leads FOR UPDATE
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -705,13 +710,13 @@ CREATE POLICY "Company members can update leads"
     );
 
 -- Domain log: users can read their own domain logs
-CREATE POLICY "Users can read own domain logs"
-    ON website_domain_log FOR SELECT
+DROP POLICY IF EXISTS "Users can read own domain logs" ON website_domain_log;
+CREATE POLICY "Users can read own domain logs" ON website_domain_log FOR SELECT
     USING (user_id = auth.uid());
 
 -- Domain log: company members can read company logs
-CREATE POLICY "Company members can read domain logs"
-    ON website_domain_log FOR SELECT
+DROP POLICY IF EXISTS "Company members can read domain logs" ON website_domain_log;
+CREATE POLICY "Company members can read domain logs" ON website_domain_log FOR SELECT
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1024,34 +1029,34 @@ ALTER TABLE website_domain_log ENABLE ROW LEVEL SECURITY;
 
 -- Templates: anyone can read active templates
 DROP POLICY IF EXISTS "Anyone can read active templates" ON website_templates;
-CREATE POLICY "Anyone can read active templates"
-    ON website_templates FOR SELECT
+DROP POLICY IF EXISTS "Anyone can read active templates" ON website_templates;
+CREATE POLICY "Anyone can read active templates" ON website_templates FOR SELECT
     USING (is_active = true);
 
 -- Sites: users can manage their own sites
 DROP POLICY IF EXISTS "Users can read own sites" ON website_sites;
-CREATE POLICY "Users can read own sites"
-    ON website_sites FOR SELECT
+DROP POLICY IF EXISTS "Users can read own sites" ON website_sites;
+CREATE POLICY "Users can read own sites" ON website_sites FOR SELECT
     USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "Users can insert own sites" ON website_sites;
-CREATE POLICY "Users can insert own sites"
-    ON website_sites FOR INSERT
+DROP POLICY IF EXISTS "Users can insert own sites" ON website_sites;
+CREATE POLICY "Users can insert own sites" ON website_sites FOR INSERT
     WITH CHECK (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "Users can update own sites" ON website_sites;
-CREATE POLICY "Users can update own sites"
-    ON website_sites FOR UPDATE
+DROP POLICY IF EXISTS "Users can update own sites" ON website_sites;
+CREATE POLICY "Users can update own sites" ON website_sites FOR UPDATE
     USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "Users can delete own sites" ON website_sites;
-CREATE POLICY "Users can delete own sites"
-    ON website_sites FOR DELETE
+DROP POLICY IF EXISTS "Users can delete own sites" ON website_sites;
+CREATE POLICY "Users can delete own sites" ON website_sites FOR DELETE
     USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "Company members can read company sites" ON website_sites;
-CREATE POLICY "Company members can read company sites"
-    ON website_sites FOR SELECT
+DROP POLICY IF EXISTS "Company members can read company sites" ON website_sites;
+CREATE POLICY "Company members can read company sites" ON website_sites FOR SELECT
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1060,8 +1065,8 @@ CREATE POLICY "Company members can read company sites"
 
 -- Leads: company members can read leads
 DROP POLICY IF EXISTS "Company members can read leads" ON website_leads;
-CREATE POLICY "Company members can read leads"
-    ON website_leads FOR SELECT
+DROP POLICY IF EXISTS "Company members can read leads" ON website_leads;
+CREATE POLICY "Company members can read leads" ON website_leads FOR SELECT
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1069,13 +1074,13 @@ CREATE POLICY "Company members can read leads"
     );
 
 DROP POLICY IF EXISTS "Anonymous can insert leads" ON website_leads;
-CREATE POLICY "Anonymous can insert leads"
-    ON website_leads FOR INSERT
+DROP POLICY IF EXISTS "Anonymous can insert leads" ON website_leads;
+CREATE POLICY "Anonymous can insert leads" ON website_leads FOR INSERT
     WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Company members can update leads" ON website_leads;
-CREATE POLICY "Company members can update leads"
-    ON website_leads FOR UPDATE
+DROP POLICY IF EXISTS "Company members can update leads" ON website_leads;
+CREATE POLICY "Company members can update leads" ON website_leads FOR UPDATE
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1084,13 +1089,13 @@ CREATE POLICY "Company members can update leads"
 
 -- Domain log
 DROP POLICY IF EXISTS "Users can read own domain logs" ON website_domain_log;
-CREATE POLICY "Users can read own domain logs"
-    ON website_domain_log FOR SELECT
+DROP POLICY IF EXISTS "Users can read own domain logs" ON website_domain_log;
+CREATE POLICY "Users can read own domain logs" ON website_domain_log FOR SELECT
     USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "Company members can read domain logs" ON website_domain_log;
-CREATE POLICY "Company members can read domain logs"
-    ON website_domain_log FOR SELECT
+DROP POLICY IF EXISTS "Company members can read domain logs" ON website_domain_log;
+CREATE POLICY "Company members can read domain logs" ON website_domain_log FOR SELECT
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1225,12 +1230,14 @@ ON CONFLICT (slug) DO UPDATE SET
 
 -- Users can view their own company
 DROP POLICY IF EXISTS "Users can view own company" ON companies;
+DROP POLICY IF EXISTS "Users can view own company" ON companies;
 CREATE POLICY "Users can view own company" ON companies
     FOR SELECT USING (
         id IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
 
 -- Owners and admins can update their company
+DROP POLICY IF EXISTS "Owners can update company" ON companies;
 DROP POLICY IF EXISTS "Owners can update company" ON companies;
 CREATE POLICY "Owners can update company" ON companies
     FOR UPDATE USING (
@@ -1323,8 +1330,8 @@ ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 
 -- Company members can read their blog posts
 DROP POLICY IF EXISTS "Company members can read blog posts" ON blog_posts;
-CREATE POLICY "Company members can read blog posts"
-    ON blog_posts FOR SELECT
+DROP POLICY IF EXISTS "Company members can read blog posts" ON blog_posts;
+CREATE POLICY "Company members can read blog posts" ON blog_posts FOR SELECT
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1333,8 +1340,8 @@ CREATE POLICY "Company members can read blog posts"
 
 -- Users can insert blog posts for their company
 DROP POLICY IF EXISTS "Users can insert blog posts" ON blog_posts;
-CREATE POLICY "Users can insert blog posts"
-    ON blog_posts FOR INSERT
+DROP POLICY IF EXISTS "Users can insert blog posts" ON blog_posts;
+CREATE POLICY "Users can insert blog posts" ON blog_posts FOR INSERT
     WITH CHECK (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1343,8 +1350,8 @@ CREATE POLICY "Users can insert blog posts"
 
 -- Users can update their company blog posts
 DROP POLICY IF EXISTS "Users can update blog posts" ON blog_posts;
-CREATE POLICY "Users can update blog posts"
-    ON blog_posts FOR UPDATE
+DROP POLICY IF EXISTS "Users can update blog posts" ON blog_posts;
+CREATE POLICY "Users can update blog posts" ON blog_posts FOR UPDATE
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1353,8 +1360,8 @@ CREATE POLICY "Users can update blog posts"
 
 -- Users can delete their company blog posts
 DROP POLICY IF EXISTS "Users can delete blog posts" ON blog_posts;
-CREATE POLICY "Users can delete blog posts"
-    ON blog_posts FOR DELETE
+DROP POLICY IF EXISTS "Users can delete blog posts" ON blog_posts;
+CREATE POLICY "Users can delete blog posts" ON blog_posts FOR DELETE
     USING (
         company_id IN (
             SELECT u.company_id FROM users u WHERE u.id = auth.uid()
@@ -1363,8 +1370,8 @@ CREATE POLICY "Users can delete blog posts"
 
 -- Public can read published posts (for the live website blog)
 DROP POLICY IF EXISTS "Public can read published blog posts" ON blog_posts;
-CREATE POLICY "Public can read published blog posts"
-    ON blog_posts FOR SELECT
+DROP POLICY IF EXISTS "Public can read published blog posts" ON blog_posts;
+CREATE POLICY "Public can read published blog posts" ON blog_posts FOR SELECT
     USING (status = 'published');
 
 -- Trigger
@@ -1483,8 +1490,8 @@ ALTER TABLE platform_blog_posts ENABLE ROW LEVEL SECURITY;
 
 -- Public can read published posts
 DROP POLICY IF EXISTS "Public can read published platform posts" ON platform_blog_posts;
-CREATE POLICY "Public can read published platform posts"
-    ON platform_blog_posts FOR SELECT
+DROP POLICY IF EXISTS "Public can read published platform posts" ON platform_blog_posts;
+CREATE POLICY "Public can read published platform posts" ON platform_blog_posts FOR SELECT
     USING (status = 'published');
 
 -- Service role can do everything (admin operations go through API with service key)
@@ -1706,6 +1713,7 @@ ALTER TABLE classification_guardrails ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contractor_invoices ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies: company members can read/write their own company's data
+DROP POLICY IF EXISTS "worker_profiles_company_access" ON worker_profiles;
 CREATE POLICY "worker_profiles_company_access" ON worker_profiles
   FOR ALL USING (
     company_id IN (
@@ -1713,6 +1721,7 @@ CREATE POLICY "worker_profiles_company_access" ON worker_profiles
     )
   );
 
+DROP POLICY IF EXISTS "classification_guardrails_company_access" ON classification_guardrails;
 CREATE POLICY "classification_guardrails_company_access" ON classification_guardrails
   FOR ALL USING (
     company_id IN (
@@ -1720,6 +1729,7 @@ CREATE POLICY "classification_guardrails_company_access" ON classification_guard
     )
   );
 
+DROP POLICY IF EXISTS "contractor_invoices_company_access" ON contractor_invoices;
 CREATE POLICY "contractor_invoices_company_access" ON contractor_invoices
   FOR ALL USING (
     company_id IN (
@@ -1831,15 +1841,19 @@ ALTER TABLE jenny_action_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE job_costs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lead_follow_ups ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "jenny_action_log_company_access" ON jenny_action_log;
 CREATE POLICY "jenny_action_log_company_access" ON jenny_action_log
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "jenny_action_configs_company_access" ON jenny_action_configs;
 CREATE POLICY "jenny_action_configs_company_access" ON jenny_action_configs
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "job_costs_company_access" ON job_costs;
 CREATE POLICY "job_costs_company_access" ON job_costs
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "lead_follow_ups_company_access" ON lead_follow_ups;
 CREATE POLICY "lead_follow_ups_company_access" ON lead_follow_ups
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -1854,6 +1868,7 @@ CREATE TABLE IF NOT EXISTS jenny_cron_runs (
 
 ALTER TABLE jenny_cron_runs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "jenny_cron_runs_company_access" ON jenny_cron_runs;
 CREATE POLICY "jenny_cron_runs_company_access" ON jenny_cron_runs
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -1914,9 +1929,11 @@ CREATE INDEX IF NOT EXISTS idx_estimate_items ON estimate_items(estimate_id);
 ALTER TABLE material_estimates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE estimate_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "material_estimates_company_access" ON material_estimates;
 CREATE POLICY "material_estimates_company_access" ON material_estimates
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "estimate_items_access" ON estimate_items;
 CREATE POLICY "estimate_items_access" ON estimate_items
   FOR ALL USING (estimate_id IN (SELECT id FROM material_estimates WHERE company_id IN (SELECT company_id FROM users WHERE id = auth.uid())));
 
@@ -2007,15 +2024,18 @@ ALTER TABLE company_markup_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE price_staleness_alerts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE material_price_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "markup_settings_company_access" ON company_markup_settings;
 CREATE POLICY "markup_settings_company_access" ON company_markup_settings
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "staleness_alerts_company_access" ON price_staleness_alerts;
 CREATE POLICY "staleness_alerts_company_access" ON price_staleness_alerts
   FOR ALL USING (
     company_id IS NULL -- platform-wide alerts visible to all
     OR company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "price_logs_company_access" ON material_price_logs;
 CREATE POLICY "price_logs_company_access" ON material_price_logs
   FOR ALL USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -2060,6 +2080,7 @@ CREATE INDEX IF NOT EXISTS idx_customer_sessions_active ON customer_sessions(is_
 ALTER TABLE customer_sessions ENABLE ROW LEVEL SECURITY;
 
 -- Service role can manage all sessions
+DROP POLICY IF EXISTS "customer_sessions_service_access" ON customer_sessions;
 CREATE POLICY "customer_sessions_service_access" ON customer_sessions
   FOR ALL USING (true);
 
@@ -2083,6 +2104,7 @@ CREATE INDEX IF NOT EXISTS idx_reschedule_requests_customer ON reschedule_reques
 
 ALTER TABLE reschedule_requests ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "reschedule_requests_service_access" ON reschedule_requests;
 CREATE POLICY "reschedule_requests_service_access" ON reschedule_requests
   FOR ALL USING (true);
 
@@ -2130,6 +2152,7 @@ CREATE INDEX IF NOT EXISTS idx_review_requests_status ON review_requests(company
 
 ALTER TABLE review_requests ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "review_requests_company_access" ON review_requests;
 CREATE POLICY "review_requests_company_access" ON review_requests
   FOR ALL USING (
     company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
@@ -2194,9 +2217,11 @@ ALTER TABLE portal_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE portal_documents ENABLE ROW LEVEL SECURITY;
 
 -- Service role (API) can access all
+DROP POLICY IF EXISTS "portal_messages_service_access" ON portal_messages;
 CREATE POLICY "portal_messages_service_access" ON portal_messages
   FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "portal_documents_service_access" ON portal_documents;
 CREATE POLICY "portal_documents_service_access" ON portal_documents
   FOR ALL USING (true);
 
@@ -2287,26 +2312,26 @@ ALTER TABLE jenny_voice_calls ENABLE ROW LEVEL SECURITY;
 ALTER TABLE jenny_pro_settings ENABLE ROW LEVEL SECURITY;
 
 -- Conversations: users can only see their company's conversations
-CREATE POLICY "Users see own company conversations"
-    ON jenny_sms_conversations FOR SELECT
+DROP POLICY IF EXISTS "Users see own company conversations" ON jenny_sms_conversations;
+CREATE POLICY "Users see own company conversations" ON jenny_sms_conversations FOR SELECT
     USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Messages: users can see messages from their company's conversations
-CREATE POLICY "Users see own company messages"
-    ON jenny_sms_messages FOR SELECT
+DROP POLICY IF EXISTS "Users see own company messages" ON jenny_sms_messages;
+CREATE POLICY "Users see own company messages" ON jenny_sms_messages FOR SELECT
     USING (conversation_id IN (
         SELECT id FROM jenny_sms_conversations
         WHERE company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
     ));
 
 -- Voice calls: users can only see their company's calls
-CREATE POLICY "Users see own company calls"
-    ON jenny_voice_calls FOR SELECT
+DROP POLICY IF EXISTS "Users see own company calls" ON jenny_voice_calls;
+CREATE POLICY "Users see own company calls" ON jenny_voice_calls FOR SELECT
     USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Settings: users can view/edit their company's settings
-CREATE POLICY "Users manage own company jenny pro settings"
-    ON jenny_pro_settings FOR ALL
+DROP POLICY IF EXISTS "Users manage own company jenny pro settings" ON jenny_pro_settings;
+CREATE POLICY "Users manage own company jenny pro settings" ON jenny_pro_settings FOR ALL
     USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- >>> LEGACY MIGRATION: 022_setup_service_orders.sql <<<
@@ -2340,8 +2365,8 @@ CREATE INDEX IF NOT EXISTS idx_setup_orders_company ON setup_service_orders(comp
 -- ROW LEVEL SECURITY
 ALTER TABLE setup_service_orders ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users see own company setup orders"
-    ON setup_service_orders FOR SELECT
+DROP POLICY IF EXISTS "Users see own company setup orders" ON setup_service_orders;
+CREATE POLICY "Users see own company setup orders" ON setup_service_orders FOR SELECT
     USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- >>> LEGACY MIGRATION: 023_recurring_jobs.sql <<<
@@ -2586,16 +2611,16 @@ CREATE INDEX IF NOT EXISTS idx_import_jobs_status ON import_jobs(status);
 -- ROW LEVEL SECURITY
 ALTER TABLE import_jobs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users see own company import jobs"
-    ON import_jobs FOR SELECT
+DROP POLICY IF EXISTS "Users see own company import jobs" ON import_jobs;
+CREATE POLICY "Users see own company import jobs" ON import_jobs FOR SELECT
     USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY "Users create own company import jobs"
-    ON import_jobs FOR INSERT
+DROP POLICY IF EXISTS "Users create own company import jobs" ON import_jobs;
+CREATE POLICY "Users create own company import jobs" ON import_jobs FOR INSERT
     WITH CHECK (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY "Users update own company import jobs"
-    ON import_jobs FOR UPDATE
+DROP POLICY IF EXISTS "Users update own company import jobs" ON import_jobs;
+CREATE POLICY "Users update own company import jobs" ON import_jobs FOR UPDATE
     USING (company_id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- >>> LEGACY MIGRATION: 029_quote_approval_settings.sql <<<
@@ -2642,6 +2667,7 @@ CREATE INDEX IF NOT EXISTS idx_quote_edit_history_company ON quote_edit_history(
 -- RLS
 ALTER TABLE quote_edit_history ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Quote edit history belongs to company" ON quote_edit_history;
 CREATE POLICY "Quote edit history belongs to company" ON quote_edit_history
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -2653,6 +2679,7 @@ CREATE POLICY "Quote edit history belongs to company" ON quote_edit_history
 
 DROP POLICY IF EXISTS "Invoice items for company invoices" ON invoice_items;
 
+DROP POLICY IF EXISTS "Invoice items for company invoices" ON invoice_items;
 CREATE POLICY "Invoice items for company invoices" ON invoice_items
     FOR ALL
     USING (
@@ -2693,8 +2720,8 @@ CREATE POLICY "Invoice items for company invoices" ON invoice_items
 -- ============================================
 ALTER TABLE recurring_jobs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Recurring jobs belong to company"
-    ON recurring_jobs FOR ALL
+DROP POLICY IF EXISTS "Recurring jobs belong to company" ON recurring_jobs;
+CREATE POLICY "Recurring jobs belong to company" ON recurring_jobs FOR ALL
     USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()))
     WITH CHECK (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -2703,20 +2730,20 @@ CREATE POLICY "Recurring jobs belong to company"
 -- ============================================
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users see own notifications"
-    ON notifications FOR SELECT
+DROP POLICY IF EXISTS "Users see own notifications" ON notifications;
+CREATE POLICY "Users see own notifications" ON notifications FOR SELECT
     USING (user_id = auth.uid());
 
-CREATE POLICY "System inserts notifications for company users"
-    ON notifications FOR INSERT
+DROP POLICY IF EXISTS "System inserts notifications for company users" ON notifications;
+CREATE POLICY "System inserts notifications for company users" ON notifications FOR INSERT
     WITH CHECK (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY "Users update own notifications"
-    ON notifications FOR UPDATE
+DROP POLICY IF EXISTS "Users update own notifications" ON notifications;
+CREATE POLICY "Users update own notifications" ON notifications FOR UPDATE
     USING (user_id = auth.uid());
 
-CREATE POLICY "Users delete own notifications"
-    ON notifications FOR DELETE
+DROP POLICY IF EXISTS "Users delete own notifications" ON notifications;
+CREATE POLICY "Users delete own notifications" ON notifications FOR DELETE
     USING (user_id = auth.uid());
 
 -- ============================================
@@ -2724,8 +2751,8 @@ CREATE POLICY "Users delete own notifications"
 -- ============================================
 ALTER TABLE google_calendar_connections ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users manage own calendar connection"
-    ON google_calendar_connections FOR ALL
+DROP POLICY IF EXISTS "Users manage own calendar connection" ON google_calendar_connections;
+CREATE POLICY "Users manage own calendar connection" ON google_calendar_connections FOR ALL
     USING (user_id = auth.uid())
     WITH CHECK (user_id = auth.uid());
 
@@ -2734,8 +2761,8 @@ CREATE POLICY "Users manage own calendar connection"
 -- ============================================
 ALTER TABLE payment_plans ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Payment plans belong to company"
-    ON payment_plans FOR ALL
+DROP POLICY IF EXISTS "Payment plans belong to company" ON payment_plans;
+CREATE POLICY "Payment plans belong to company" ON payment_plans FOR ALL
     USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()))
     WITH CHECK (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -2744,8 +2771,8 @@ CREATE POLICY "Payment plans belong to company"
 -- ============================================
 ALTER TABLE payment_plan_installments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Installments belong to company payment plans"
-    ON payment_plan_installments FOR ALL
+DROP POLICY IF EXISTS "Installments belong to company payment plans" ON payment_plan_installments;
+CREATE POLICY "Installments belong to company payment plans" ON payment_plan_installments FOR ALL
     USING (
         payment_plan_id IN (
             SELECT id FROM payment_plans
@@ -2764,8 +2791,8 @@ CREATE POLICY "Installments belong to company payment plans"
 -- ============================================
 ALTER TABLE webhooks ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Webhooks belong to company"
-    ON webhooks FOR ALL
+DROP POLICY IF EXISTS "Webhooks belong to company" ON webhooks;
+CREATE POLICY "Webhooks belong to company" ON webhooks FOR ALL
     USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()))
     WITH CHECK (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
@@ -2774,8 +2801,8 @@ CREATE POLICY "Webhooks belong to company"
 -- ============================================
 ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Webhook logs belong to company webhooks"
-    ON webhook_logs FOR ALL
+DROP POLICY IF EXISTS "Webhook logs belong to company webhooks" ON webhook_logs;
+CREATE POLICY "Webhook logs belong to company webhooks" ON webhook_logs FOR ALL
     USING (
         webhook_id IN (
             SELECT id FROM webhooks
@@ -2792,12 +2819,12 @@ CREATE POLICY "Webhook logs belong to company webhooks"
 -- ============================================
 -- 8. companies — RLS enabled since schema.sql but NO policies exist
 -- ============================================
-CREATE POLICY "Users can view their own company"
-    ON companies FOR SELECT
+DROP POLICY IF EXISTS "Users can view their own company" ON companies;
+CREATE POLICY "Users can view their own company" ON companies FOR SELECT
     USING (id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY "Owners and admins can update their company"
-    ON companies FOR UPDATE
+DROP POLICY IF EXISTS "Owners and admins can update their company" ON companies;
+CREATE POLICY "Owners and admins can update their company" ON companies FOR UPDATE
     USING (
         id IN (
             SELECT company_id FROM users

@@ -1,7 +1,4 @@
--- ============================================================
 -- SANDBOX CHUNK 1 of 3 — base schema
--- Run this first. Creates core tables.
--- ============================================================
 
 -- ToolTime Pro Database Schema
 -- Run this in Supabase SQL Editor (supabase.com > SQL Editor > New Query)
@@ -601,10 +598,12 @@ ALTER TABLE website_leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE website_domain_log ENABLE ROW LEVEL SECURITY;
 
 -- Users can read their own row (prevents circular RLS dependency)
+DROP POLICY IF EXISTS "Users can read own profile" ON users;
 CREATE POLICY "Users can read own profile" ON users
     FOR SELECT USING (id = auth.uid());
 
 -- Users can see other users in their company (uses EXISTS to avoid circular dependency)
+DROP POLICY IF EXISTS "Users see own company members" ON users;
 CREATE POLICY "Users see own company members" ON users
     FOR SELECT USING (
         company_id IN (
@@ -613,14 +612,17 @@ CREATE POLICY "Users see own company members" ON users
     );
 
 -- Users can update their own profile
+DROP POLICY IF EXISTS "Users can update own profile" ON users;
 CREATE POLICY "Users can update own profile" ON users
     FOR UPDATE USING (id = auth.uid());
 
 -- Users can insert their own profile (during signup)
+DROP POLICY IF EXISTS "Users can insert own profile" ON users;
 CREATE POLICY "Users can insert own profile" ON users
     FOR INSERT WITH CHECK (id = auth.uid());
 
 -- Admins and owners can create new team members in their company
+DROP POLICY IF EXISTS "Admins can insert team members" ON users;
 CREATE POLICY "Admins can insert team members" ON users
     FOR INSERT WITH CHECK (
         company_id IN (
@@ -631,28 +633,36 @@ CREATE POLICY "Admins can insert team members" ON users
         )
     );
 
+DROP POLICY IF EXISTS "Customers belong to company" ON customers;
 CREATE POLICY "Customers belong to company" ON customers
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Services belong to company" ON services;
 CREATE POLICY "Services belong to company" ON services
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Leads belong to company" ON leads;
 CREATE POLICY "Leads belong to company" ON leads
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Jobs belong to company" ON jobs;
 CREATE POLICY "Jobs belong to company" ON jobs
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Time entries belong to company" ON time_entries;
 CREATE POLICY "Time entries belong to company" ON time_entries
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Quotes belong to company" ON quotes;
 CREATE POLICY "Quotes belong to company" ON quotes
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Invoices belong to company" ON invoices;
 CREATE POLICY "Invoices belong to company" ON invoices
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Job assignments: users can manage assignments for jobs in their company
+DROP POLICY IF EXISTS "Job assignments for company jobs" ON job_assignments;
 CREATE POLICY "Job assignments for company jobs" ON job_assignments
     FOR ALL USING (
         job_id IN (
@@ -662,6 +672,7 @@ CREATE POLICY "Job assignments for company jobs" ON job_assignments
     );
 
 -- Job services: users can manage services for jobs in their company
+DROP POLICY IF EXISTS "Job services for company jobs" ON job_services;
 CREATE POLICY "Job services for company jobs" ON job_services
     FOR ALL USING (
         job_id IN (
@@ -671,6 +682,7 @@ CREATE POLICY "Job services for company jobs" ON job_services
     );
 
 -- Job checklists: users can manage checklists for jobs in their company
+DROP POLICY IF EXISTS "Job checklists for company jobs" ON job_checklists;
 CREATE POLICY "Job checklists for company jobs" ON job_checklists
     FOR ALL USING (
         job_id IN (
@@ -680,6 +692,7 @@ CREATE POLICY "Job checklists for company jobs" ON job_checklists
     );
 
 -- Job photos: users can manage photos for jobs in their company
+DROP POLICY IF EXISTS "Job photos for company jobs" ON job_photos;
 CREATE POLICY "Job photos for company jobs" ON job_photos
     FOR ALL USING (
         job_id IN (
@@ -689,6 +702,7 @@ CREATE POLICY "Job photos for company jobs" ON job_photos
     );
 
 -- Job notes: users can manage notes for jobs in their company
+DROP POLICY IF EXISTS "Job notes for company jobs" ON job_notes;
 CREATE POLICY "Job notes for company jobs" ON job_notes
     FOR ALL USING (
         job_id IN (
@@ -698,10 +712,12 @@ CREATE POLICY "Job notes for company jobs" ON job_notes
     );
 
 -- Quote edit history: users can view edit history for quotes in their company
+DROP POLICY IF EXISTS "Quote edit history belongs to company" ON quote_edit_history;
 CREATE POLICY "Quote edit history belongs to company" ON quote_edit_history
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Quote items: users can manage items for quotes in their company
+DROP POLICY IF EXISTS "Quote items for company quotes" ON quote_items;
 CREATE POLICY "Quote items for company quotes" ON quote_items
     FOR ALL USING (
         quote_id IN (
@@ -711,6 +727,7 @@ CREATE POLICY "Quote items for company quotes" ON quote_items
     );
 
 -- Invoice items: users can manage items for invoices in their company
+DROP POLICY IF EXISTS "Invoice items for company invoices" ON invoice_items;
 CREATE POLICY "Invoice items for company invoices" ON invoice_items
     FOR ALL
     USING (
@@ -727,18 +744,22 @@ CREATE POLICY "Invoice items for company invoices" ON invoice_items
     );
 
 -- Payments: users can manage payments in their company
+DROP POLICY IF EXISTS "Payments belong to company" ON payments;
 CREATE POLICY "Payments belong to company" ON payments
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Incidents: users can manage incidents in their company
+DROP POLICY IF EXISTS "Incidents belong to company" ON incidents;
 CREATE POLICY "Incidents belong to company" ON incidents
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Review requests: users can manage review requests in their company
+DROP POLICY IF EXISTS "Review requests belong to company" ON review_requests;
 CREATE POLICY "Review requests belong to company" ON review_requests
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Breaks: users can manage breaks for time entries in their company
+DROP POLICY IF EXISTS "Breaks for company time entries" ON breaks;
 CREATE POLICY "Breaks for company time entries" ON breaks
     FOR ALL USING (
         time_entry_id IN (
@@ -748,34 +769,42 @@ CREATE POLICY "Breaks for company time entries" ON breaks
     );
 
 -- Compliance alerts: users can manage alerts in their company
+DROP POLICY IF EXISTS "Compliance alerts belong to company" ON compliance_alerts;
 CREATE POLICY "Compliance alerts belong to company" ON compliance_alerts
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- SMS logs: users can view logs in their company
+DROP POLICY IF EXISTS "SMS logs belong to company" ON sms_logs;
 CREATE POLICY "SMS logs belong to company" ON sms_logs
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- QBO connections: users can manage connections in their company
+DROP POLICY IF EXISTS "QBO connections belong to company" ON qbo_connections;
 CREATE POLICY "QBO connections belong to company" ON qbo_connections
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- QBO sync log: users can view sync logs in their company
+DROP POLICY IF EXISTS "QBO sync logs belong to company" ON qbo_sync_log;
 CREATE POLICY "QBO sync logs belong to company" ON qbo_sync_log
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Website templates: readable by all authenticated users
+DROP POLICY IF EXISTS "Templates are readable" ON website_templates;
 CREATE POLICY "Templates are readable" ON website_templates
     FOR SELECT USING (true);
 
 -- Website sites: users can manage sites in their company
+DROP POLICY IF EXISTS "Website sites belong to company" ON website_sites;
 CREATE POLICY "Website sites belong to company" ON website_sites
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Website leads: users can manage leads for their company's sites
+DROP POLICY IF EXISTS "Website leads belong to company" ON website_leads;
 CREATE POLICY "Website leads belong to company" ON website_leads
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Website domain log: users can view domain logs for their company
+DROP POLICY IF EXISTS "Website domain logs belong to company" ON website_domain_log;
 CREATE POLICY "Website domain logs belong to company" ON website_domain_log
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
