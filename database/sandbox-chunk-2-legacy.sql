@@ -1,15 +1,11 @@
 -- SANDBOX CHUNK 2 of 3 — legacy numbered migrations
 
-
--- ----------------------------------------------------------
--- Drop tables that schema.sql creates in an outdated ('thin')
--- form so the legacy migrations below can recreate them with
--- their full column set. Safe because the sandbox is empty.
--- ----------------------------------------------------------
+-- Drop tables that schema.sql creates in stale/thin form
 DROP TABLE IF EXISTS website_sites CASCADE;
 DROP TABLE IF EXISTS website_templates CASCADE;
 DROP TABLE IF EXISTS website_leads CASCADE;
 DROP TABLE IF EXISTS website_domain_log CASCADE;
+
 
 -- >>> LEGACY MIGRATION: 001_add_missing_columns.sql <<<
 -- Migration: Add missing columns for full feature support
@@ -541,6 +537,10 @@ ALTER TABLE platform_admins ENABLE ROW LEVEL SECURITY;
 CREATE TRIGGER update_platform_admins_updated_at BEFORE UPDATE ON platform_admins
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+-- Drop thin website_templates left by migration 001 so the richer 003 version takes over
+DROP TABLE IF EXISTS website_sites CASCADE;
+DROP TABLE IF EXISTS website_templates CASCADE;
+
 -- >>> LEGACY MIGRATION: 003_website_builder.sql <<<
 -- ============================================
 -- TOOLTIME PRO — Website Builder Phase 1
@@ -916,6 +916,10 @@ ON CONFLICT (slug) DO NOTHING;
 -- WHERE table_schema = 'public' AND table_name LIKE 'website_%';
 --
 -- SELECT id, trade_category, name FROM website_templates ORDER BY sort_order;
+
+-- Drop thin website_templates left by migration 001 so the richer 003 version takes over
+DROP TABLE IF EXISTS website_sites CASCADE;
+DROP TABLE IF EXISTS website_templates CASCADE;
 
 -- >>> LEGACY MIGRATION: 003_website_builder_safe.sql <<<
 -- ============================================
