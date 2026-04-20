@@ -1102,7 +1102,8 @@ CREATE INDEX IF NOT EXISTS idx_compliance_alerts_type ON compliance_alerts(alert
 ALTER TABLE compliance_alerts ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy for compliance_alerts
-CREATE POLICY IF NOT EXISTS "Compliance alerts belong to company" ON compliance_alerts
+DROP POLICY IF EXISTS "Compliance alerts belong to company" ON compliance_alerts;
+CREATE POLICY "Compliance alerts belong to company" ON compliance_alerts
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- ============================================
@@ -1130,7 +1131,8 @@ CREATE INDEX IF NOT EXISTS idx_offline_sync_status ON offline_sync_queue(sync_st
 ALTER TABLE offline_sync_queue ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy for offline_sync_queue
-CREATE POLICY IF NOT EXISTS "Sync queue belongs to company" ON offline_sync_queue
+DROP POLICY IF EXISTS "Sync queue belongs to company" ON offline_sync_queue;
+CREATE POLICY "Sync queue belongs to company" ON offline_sync_queue
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- ============================================
@@ -1260,7 +1262,8 @@ $$ LANGUAGE plpgsql;
 -- Run this in Supabase SQL Editor to fix job assignment functionality
 
 -- Job assignments: users can manage assignments for jobs in their company
-CREATE POLICY IF NOT EXISTS "Job assignments for company jobs" ON job_assignments
+DROP POLICY IF EXISTS "Job assignments for company jobs" ON job_assignments;
+CREATE POLICY "Job assignments for company jobs" ON job_assignments
     FOR ALL USING (
         job_id IN (
             SELECT j.id FROM jobs j
@@ -1269,7 +1272,8 @@ CREATE POLICY IF NOT EXISTS "Job assignments for company jobs" ON job_assignment
     );
 
 -- Job services: users can manage services for jobs in their company
-CREATE POLICY IF NOT EXISTS "Job services for company jobs" ON job_services
+DROP POLICY IF EXISTS "Job services for company jobs" ON job_services;
+CREATE POLICY "Job services for company jobs" ON job_services
     FOR ALL USING (
         job_id IN (
             SELECT j.id FROM jobs j
@@ -1278,7 +1282,8 @@ CREATE POLICY IF NOT EXISTS "Job services for company jobs" ON job_services
     );
 
 -- Job checklists: users can manage checklists for jobs in their company
-CREATE POLICY IF NOT EXISTS "Job checklists for company jobs" ON job_checklists
+DROP POLICY IF EXISTS "Job checklists for company jobs" ON job_checklists;
+CREATE POLICY "Job checklists for company jobs" ON job_checklists
     FOR ALL USING (
         job_id IN (
             SELECT j.id FROM jobs j
@@ -1287,7 +1292,8 @@ CREATE POLICY IF NOT EXISTS "Job checklists for company jobs" ON job_checklists
     );
 
 -- Job photos: users can manage photos for jobs in their company
-CREATE POLICY IF NOT EXISTS "Job photos for company jobs" ON job_photos
+DROP POLICY IF EXISTS "Job photos for company jobs" ON job_photos;
+CREATE POLICY "Job photos for company jobs" ON job_photos
     FOR ALL USING (
         job_id IN (
             SELECT j.id FROM jobs j
@@ -1296,7 +1302,8 @@ CREATE POLICY IF NOT EXISTS "Job photos for company jobs" ON job_photos
     );
 
 -- Job notes: users can manage notes for jobs in their company
-CREATE POLICY IF NOT EXISTS "Job notes for company jobs" ON job_notes
+DROP POLICY IF EXISTS "Job notes for company jobs" ON job_notes;
+CREATE POLICY "Job notes for company jobs" ON job_notes
     FOR ALL USING (
         job_id IN (
             SELECT j.id FROM jobs j
@@ -1305,7 +1312,8 @@ CREATE POLICY IF NOT EXISTS "Job notes for company jobs" ON job_notes
     );
 
 -- Quote items: users can manage items for quotes in their company
-CREATE POLICY IF NOT EXISTS "Quote items for company quotes" ON quote_items
+DROP POLICY IF EXISTS "Quote items for company quotes" ON quote_items;
+CREATE POLICY "Quote items for company quotes" ON quote_items
     FOR ALL USING (
         quote_id IN (
             SELECT q.id FROM quotes q
@@ -1314,7 +1322,8 @@ CREATE POLICY IF NOT EXISTS "Quote items for company quotes" ON quote_items
     );
 
 -- Invoice items: users can manage items for invoices in their company
-CREATE POLICY IF NOT EXISTS "Invoice items for company invoices" ON invoice_items
+DROP POLICY IF EXISTS "Invoice items for company invoices" ON invoice_items;
+CREATE POLICY "Invoice items for company invoices" ON invoice_items
     FOR ALL USING (
         invoice_id IN (
             SELECT i.id FROM invoices i
@@ -1323,19 +1332,23 @@ CREATE POLICY IF NOT EXISTS "Invoice items for company invoices" ON invoice_item
     );
 
 -- Payments: users can manage payments in their company
-CREATE POLICY IF NOT EXISTS "Payments belong to company" ON payments
+DROP POLICY IF EXISTS "Payments belong to company" ON payments;
+CREATE POLICY "Payments belong to company" ON payments
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Incidents: users can manage incidents in their company
-CREATE POLICY IF NOT EXISTS "Incidents belong to company" ON incidents
+DROP POLICY IF EXISTS "Incidents belong to company" ON incidents;
+CREATE POLICY "Incidents belong to company" ON incidents
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Review requests: users can manage review requests in their company
-CREATE POLICY IF NOT EXISTS "Review requests belong to company" ON review_requests
+DROP POLICY IF EXISTS "Review requests belong to company" ON review_requests;
+CREATE POLICY "Review requests belong to company" ON review_requests
     FOR ALL USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
 -- Breaks: users can manage breaks for time entries in their company
-CREATE POLICY IF NOT EXISTS "Breaks for company time entries" ON breaks
+DROP POLICY IF EXISTS "Breaks for company time entries" ON breaks;
+CREATE POLICY "Breaks for company time entries" ON breaks
     FOR ALL USING (
         time_entry_id IN (
             SELECT t.id FROM time_entries t
