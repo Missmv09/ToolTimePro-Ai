@@ -32,6 +32,7 @@ export interface Database {
           booking_settings: Json | null
           trial_starts_at: string | null
           trial_ends_at: string | null
+          subscription_status: string | null
           industry: string | null
           onboarding_completed: boolean
           welcome_email_sent_at: string | null
@@ -71,6 +72,7 @@ export interface Database {
           booking_settings?: Json | null
           trial_starts_at?: string | null
           trial_ends_at?: string | null
+          subscription_status?: string | null
           industry?: string | null
           onboarding_completed?: boolean
           welcome_email_sent_at?: string | null
@@ -110,6 +112,7 @@ export interface Database {
           booking_settings?: Json | null
           trial_starts_at?: string | null
           trial_ends_at?: string | null
+          subscription_status?: string | null
           industry?: string | null
           onboarding_completed?: boolean
           welcome_email_sent_at?: string | null

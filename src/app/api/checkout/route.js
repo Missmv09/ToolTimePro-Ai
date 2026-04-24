@@ -28,6 +28,7 @@ export async function GET(request) {
     const onboarding = searchParams.get('onboarding');
     const extraWorkers = parseInt(searchParams.get('extraWorkers') || '0', 10);
     const billing = searchParams.get('billing') || 'monthly';
+    const skipTrial = searchParams.get('skipTrial') === 'true';
 
     const addons = addonsParam ? addonsParam.split(',').filter(Boolean) : [];
     const lineItems = [];
@@ -70,15 +71,17 @@ export async function GET(request) {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://tooltimepro.com'}/pricing`,
       allow_promotion_codes: true,
       billing_address_collection: 'required',
-      metadata: { plan: tier || standalone || '', tier: tier || '', standalone: standalone || '', addons: addons.join(','), onboarding: onboarding || '', extraWorkers: extraWorkers.toString(), billing },
+      metadata: { plan: tier || standalone || '', tier: tier || '', standalone: standalone || '', addons: addons.join(','), onboarding: onboarding || '', extraWorkers: extraWorkers.toString(), billing, skipTrial: skipTrial ? 'true' : 'false' },
     };
 
     if (hasRecurring) {
       sessionConfig.mode = 'subscription';
       sessionConfig.subscription_data = {
-        trial_period_days: 14,
         metadata: { plan: tier || standalone || '', tier: tier || '', standalone: standalone || '', addons: addons.join(','), extraWorkers: extraWorkers.toString(), billing },
       };
+      if (!skipTrial) {
+        sessionConfig.subscription_data.trial_period_days = 14;
+      }
     } else {
       sessionConfig.mode = 'payment';
     }

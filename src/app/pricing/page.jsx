@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { PRICE_IDS } from '@/lib/stripe-prices';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ============================================
 // PRICING DATA
@@ -237,6 +238,14 @@ export default function PricingPage() {
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [extraWorkers, setExtraWorkers] = useState(0);
   const t = useTranslations('pricing');
+  const { user, company } = useAuth();
+
+  // A user is "trial-ineligible" if they've ever started a trial on this
+  // account, regardless of whether it's still active or already converted.
+  // Logged-out visitors can still see the trial CTA — if their email is
+  // already taken, signup will catch it and prompt them to log in.
+  const hasUsedTrial = Boolean(company?.trial_starts_at || company?.stripe_customer_id);
+  const isLoggedIn = Boolean(user);
 
   const toggleAddon = (addonId) => {
     setSelectedAddons((prev) =>
@@ -296,9 +305,8 @@ export default function PricingPage() {
     ? ONBOARDING.find((o) => o.id === selectedOnboarding)?.price || 0
     : 0;
 
-  const handleCheckout = () => {
+  const buildCheckoutParams = () => {
     const params = new URLSearchParams();
-
     if (selectedTier) params.set('tier', selectedTier);
     if (selectedStandalone) params.set('standalone', selectedStandalone);
     // Jenny Lite is bundled free with every tier — don't send it as a paid add-on when a tier is selected.
@@ -309,11 +317,29 @@ export default function PricingPage() {
     if (selectedOnboarding) params.set('onboarding', selectedOnboarding);
     if (extraWorkers > 0) params.set('extraWorkers', extraWorkers.toString());
     params.set('billing', isAnnual ? 'annual' : 'monthly');
+    return params;
+  };
 
+  // Free trial path: send unauthenticated users to signup (no card).
+  // Authenticated users with no trial yet just hit signup-equivalent flow,
+  // but they realistically already have one — button is hidden in that case.
+  const handleStartTrial = () => {
+    window.location.href = '/auth/signup';
+  };
+
+  // Subscribe-now path: skip the trial and go straight to Stripe Checkout.
+  // Stripe Checkout collects email + card; webhook matches the email back
+  // to the company on completion.
+  const handleSubscribeNow = () => {
+    const params = buildCheckoutParams();
+    params.set('skipTrial', 'true');
     window.location.href = `/api/checkout?${params.toString()}`;
   };
 
   const hasSelection = selectedTier || selectedStandalone;
+  // Show the trial CTA only to visitors who haven't used a trial yet.
+  // Anyone logged-in with an existing trial sees only "Subscribe Now".
+  const showTrialCta = !hasUsedTrial;
 
   return (
     <div className="pricing-page">
@@ -704,10 +730,27 @@ export default function PricingPage() {
                 </div>
               )}
 
-              <button className="cta-btn" onClick={handleCheckout}>
-                {t('startTrialCta')}
+              {showTrialCta && (
+                <>
+                  <button className="cta-btn" onClick={handleStartTrial}>
+                    {t('startTrialCta')}
+                  </button>
+                  <p className="cta-note">{t('noCreditCard')}</p>
+                  <div className="cta-divider"><span>{t('ctaDivider')}</span></div>
+                </>
+              )}
+
+              <button
+                className={showTrialCta ? 'cta-btn cta-btn-secondary' : 'cta-btn'}
+                onClick={handleSubscribeNow}
+              >
+                {t('subscribeNowCta')}
               </button>
-              <p className="cta-note">{t('noCreditCard')}</p>
+              <p className="cta-note">
+                {hasUsedTrial && !isLoggedIn
+                  ? t('alreadyTrialed')
+                  : t('subscribeNowNote')}
+              </p>
             </div>
           </section>
         )}
@@ -1389,11 +1432,39 @@ export default function PricingPage() {
         .cta-btn:hover {
           background: var(--gold-light);
         }
+        .cta-btn-secondary {
+          background: transparent;
+          color: var(--gold);
+          border: 2px solid var(--gold);
+        }
+        .cta-btn-secondary:hover {
+          background: var(--gold);
+          color: var(--navy);
+        }
         .cta-note {
           text-align: center;
           font-size: 0.8rem;
           opacity: 0.7;
           margin: 0.5rem 0 0;
+        }
+        .cta-divider {
+          display: flex;
+          align-items: center;
+          text-align: center;
+          margin: 1rem 0 0;
+          opacity: 0.5;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+        .cta-divider::before,
+        .cta-divider::after {
+          content: '';
+          flex: 1;
+          border-bottom: 1px solid currentColor;
+        }
+        .cta-divider span {
+          padding: 0 0.75rem;
         }
         .dispatch-callout {
           background: linear-gradient(135deg, var(--navy), var(--navy-light));
