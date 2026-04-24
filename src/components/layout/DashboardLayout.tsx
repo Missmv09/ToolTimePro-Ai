@@ -40,6 +40,7 @@ import { PermissionKey } from '@/lib/permissions';
 import { FeatureKey } from '@/lib/plan-features';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import TrialBanner from '@/components/trial/TrialBanner';
+import TrialExpiredGate from '@/components/trial/TrialExpiredGate';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import HelpButton from '@/components/help/HelpButton';
 import CrispChat from '@/components/help/CrispChat';
@@ -314,7 +315,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <div className="p-6 lg:p-8 pt-2">
             <TrialBanner />
-            {children}
+            <TrialExpiredGate>{children}</TrialExpiredGate>
           </div>
         </main>
 

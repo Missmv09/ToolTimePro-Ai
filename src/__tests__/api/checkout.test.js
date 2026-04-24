@@ -148,4 +148,23 @@ describe('/api/checkout', () => {
     expect(config.allow_promotion_codes).toBe(true);
     expect(config.billing_address_collection).toBe('required');
   });
+
+  it('omits trial_period_days when skipTrial=true (Subscribe Now path)', async () => {
+    const request = makeRequest({ tier: 'starter', billing: 'monthly', skipTrial: 'true' });
+    await GET(request);
+
+    const config = mockSessionCreate.mock.calls[0][0];
+    expect(config.mode).toBe('subscription');
+    expect(config.subscription_data.trial_period_days).toBeUndefined();
+    expect(config.metadata.skipTrial).toBe('true');
+  });
+
+  it('keeps the 14-day trial when skipTrial is absent or false', async () => {
+    const request = makeRequest({ tier: 'pro', billing: 'monthly', skipTrial: 'false' });
+    await GET(request);
+
+    const config = mockSessionCreate.mock.calls[0][0];
+    expect(config.subscription_data.trial_period_days).toBe(14);
+    expect(config.metadata.skipTrial).toBe('false');
+  });
 });
