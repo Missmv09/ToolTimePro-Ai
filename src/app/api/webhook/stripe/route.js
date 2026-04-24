@@ -103,10 +103,15 @@ async function handleCheckoutComplete(session) {
     .single();
 
   if (existingUser?.company_id) {
-    // Build the update payload
+    // Build the update payload. We treat checkout.session.completed as the
+    // moment the company becomes a paying subscriber — even when the session
+    // started a Stripe-side trial, payment-method-on-file means we no longer
+    // need to gate the dashboard on trial_ends_at.
+    const skipTrial = metadata.skipTrial === 'true';
     const updateData = {
       stripe_customer_id: customerId,
       plan: plan || 'starter',
+      subscription_status: skipTrial ? 'active' : 'trialing',
       updated_at: new Date().toISOString()
     };
 
@@ -180,6 +185,7 @@ async function handleSubscriptionUpdate(subscription) {
     .from('companies')
     .update({
       ...planUpdate,
+      subscription_status: subscription.status,
       updated_at: new Date().toISOString()
     })
     .eq('stripe_customer_id', customerId);
@@ -197,6 +203,7 @@ async function handleSubscriptionCanceled(subscription) {
     .from('companies')
     .update({
       plan: 'starter',
+      subscription_status: 'canceled',
       updated_at: new Date().toISOString()
     })
     .eq('stripe_customer_id', customerId);
@@ -239,6 +246,14 @@ async function handlePaymentFailed(invoice) {
     .single();
 
   if (company) {
+    await getSupabase()
+      .from('companies')
+      .update({
+        subscription_status: 'past_due',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', company.id);
+
     const { error } = await getSupabase()
       .from('payments')
       .insert({
