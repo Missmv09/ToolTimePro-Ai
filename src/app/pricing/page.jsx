@@ -301,7 +301,11 @@ export default function PricingPage() {
 
     if (selectedTier) params.set('tier', selectedTier);
     if (selectedStandalone) params.set('standalone', selectedStandalone);
-    if (selectedAddons.length) params.set('addons', selectedAddons.join(','));
+    // Jenny Lite is bundled free with every tier — don't send it as a paid add-on when a tier is selected.
+    const checkoutAddons = selectedTier
+      ? selectedAddons.filter((id) => id !== 'jenny_lite')
+      : selectedAddons;
+    if (checkoutAddons.length) params.set('addons', checkoutAddons.join(','));
     if (selectedOnboarding) params.set('onboarding', selectedOnboarding);
     if (extraWorkers > 0) params.set('extraWorkers', extraWorkers.toString());
     params.set('billing', isAnnual ? 'annual' : 'monthly');
