@@ -333,6 +333,8 @@
       "goToDashboard": "Ir al Panel",
       "welcomeTitle": "Bienvenido a ToolTime Pro!",
       "welcomeMessage": "Tu suscripcion esta activa. Configuremos tu negocio.",
+      "upgradedTitle": "¡Estás suscrito!",
+      "upgradedMessage": "Tu suscripción está activa. Continúa justo donde lo dejaste.",
       "orderSummary": "Resumen del Pedido",
       "plan": "Plan:",
       "billing": "Facturacion:",

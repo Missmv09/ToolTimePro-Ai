@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { useAuth } from '@/contexts/AuthContext';
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
@@ -13,6 +14,10 @@ function CheckoutSuccessContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const t = useTranslations('misc.checkoutSuccess');
+  const { user } = useAuth();
+  // Existing trial users who upgrade are already logged in — they don't need
+  // the "check email / complete profile" onboarding steps.
+  const isExistingUser = !!user;
 
   useEffect(() => {
     if (sessionId) {
@@ -76,11 +81,11 @@ function CheckoutSuccessContent() {
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {t('welcomeTitle')}
+          {isExistingUser ? t('upgradedTitle') : t('welcomeTitle')}
         </h1>
 
         <p className="text-gray-600 mb-6">
-          {t('welcomeMessage')}
+          {isExistingUser ? t('upgradedMessage') : t('welcomeMessage')}
         </p>
 
         {session && (
@@ -100,15 +105,17 @@ function CheckoutSuccessContent() {
           </div>
         )}
 
-        <div className="bg-orange-50 rounded-lg p-4 mb-6 text-left">
-          <h3 className="font-semibold text-orange-900 mb-2">{t('whatsNext')}</h3>
-          <ul className="text-sm text-orange-800 space-y-2">
-            <li>{t('step1')}</li>
-            <li>{t('step2')}</li>
-            <li>{t('step3')}</li>
-            <li>{t('step4')}</li>
-          </ul>
-        </div>
+        {!isExistingUser && (
+          <div className="bg-orange-50 rounded-lg p-4 mb-6 text-left">
+            <h3 className="font-semibold text-orange-900 mb-2">{t('whatsNext')}</h3>
+            <ul className="text-sm text-orange-800 space-y-2">
+              <li>{t('step1')}</li>
+              <li>{t('step2')}</li>
+              <li>{t('step3')}</li>
+              <li>{t('step4')}</li>
+            </ul>
+          </div>
+        )}
 
         <div className="space-y-3">
           <Link
