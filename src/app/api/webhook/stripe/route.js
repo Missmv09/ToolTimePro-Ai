@@ -40,6 +40,11 @@ export async function POST(request) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
+  // TEMP DEBUG — remove once webhook is verified working in sandbox
+  console.log('[stripe-webhook] secret prefix:', webhookSecret.slice(0, 8), 'suffix:', webhookSecret.slice(-4), 'len:', webhookSecret.length);
+  console.log('[stripe-webhook] body bytes:', body.length, 'sig header present:', !!signature);
+  if (signature) console.log('[stripe-webhook] sig header sample:', signature.slice(0, 60));
+
   let event;
 
   try {
