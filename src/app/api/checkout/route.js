@@ -64,11 +64,18 @@ export async function GET(request) {
 
     const hasRecurring = tier || standalone || addons.length > 0 || extraWorkers > 0;
 
+    // Derive base URL: env var wins, otherwise use the request's own origin so
+    // sandbox deploys redirect back to themselves instead of prod.
+    const requestOrigin = (() => {
+      try { return new URL(request.url).origin; } catch { return null; }
+    })();
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || requestOrigin || 'https://tooltimepro.com';
+
     let sessionConfig = {
       payment_method_types: ['card'],
       line_items: lineItems,
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://tooltimepro.com'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://tooltimepro.com'}/pricing`,
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing`,
       allow_promotion_codes: true,
       billing_address_collection: 'required',
       metadata: { plan: tier || standalone || '', tier: tier || '', standalone: standalone || '', addons: addons.join(','), onboarding: onboarding || '', extraWorkers: extraWorkers.toString(), billing, skipTrial: skipTrial ? 'true' : 'false' },
