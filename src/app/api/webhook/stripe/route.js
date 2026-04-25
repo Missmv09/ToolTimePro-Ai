@@ -91,16 +91,41 @@ export async function POST(request) {
 async function handleCheckoutComplete(session) {
   const customerEmail = session.customer_email || session.customer_details?.email;
   const customerId = session.customer;
-  const metadata = session.metadata;
+  const metadata = session.metadata || {};
   const plan = metadata.plan || metadata.tier || metadata.standalone || '';
   const addons = metadata.addons ? metadata.addons.split(',').filter(Boolean) : [];
 
-  // Find the user by email to get their company_id
-  const { data: existingUser } = await getSupabase()
-    .from('users')
-    .select('id, company_id')
-    .eq('email', customerEmail)
-    .single();
+  // Resolve the company in this priority order so we don't lose track of the
+  // account when a user enters a different billing email at Stripe Checkout:
+  //   1. metadata.companyId (forwarded by /api/checkout when the user is logged in)
+  //   2. metadata.userEmail (the logged-in user's account email)
+  //   3. session.customer_email (whatever they typed at checkout)
+  let resolvedCompanyId = null;
+
+  if (metadata.companyId) {
+    const { data } = await getSupabase()
+      .from('companies')
+      .select('id')
+      .eq('id', metadata.companyId)
+      .single();
+    if (data?.id) resolvedCompanyId = data.id;
+  }
+
+  if (!resolvedCompanyId) {
+    const lookupEmail = metadata.userEmail || customerEmail;
+    if (lookupEmail) {
+      const { data: existingUser } = await getSupabase()
+        .from('users')
+        .select('id, company_id')
+        .eq('email', lookupEmail)
+        .single();
+      if (existingUser?.company_id) resolvedCompanyId = existingUser.company_id;
+    }
+  }
+
+  // Synthesize an existingUser-shaped object so the rest of the function
+  // keeps working unchanged.
+  const existingUser = resolvedCompanyId ? { company_id: resolvedCompanyId } : null;
 
   if (existingUser?.company_id) {
     // Build the update payload. We treat checkout.session.completed as the
@@ -138,7 +163,12 @@ async function handleCheckoutComplete(session) {
       console.error('Error updating company after checkout:', error.message);
     }
   } else {
-    console.error('No user/company found for email:', customerEmail);
+    console.error('No company found for checkout session', {
+      sessionId: session.id,
+      metadataCompanyId: metadata.companyId || null,
+      metadataUserEmail: metadata.userEmail || null,
+      customerEmail,
+    });
   }
 
   // Create setup service order if onboarding was purchased

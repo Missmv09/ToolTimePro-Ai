@@ -167,4 +167,20 @@ describe('/api/checkout', () => {
     expect(config.subscription_data.trial_period_days).toBe(14);
     expect(config.metadata.skipTrial).toBe('false');
   });
+
+  it('forwards userEmail and companyId so the webhook can match an existing trial user', async () => {
+    const request = makeRequest({
+      tier: 'pro',
+      billing: 'monthly',
+      userEmail: 'owner@example.com',
+      companyId: 'cmp-123',
+    });
+    await GET(request);
+
+    const config = mockSessionCreate.mock.calls[0][0];
+    expect(config.customer_email).toBe('owner@example.com');
+    expect(config.metadata.userEmail).toBe('owner@example.com');
+    expect(config.metadata.companyId).toBe('cmp-123');
+    expect(config.subscription_data.metadata.companyId).toBe('cmp-123');
+  });
 });

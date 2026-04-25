@@ -101,7 +101,10 @@ describe('/api/webhook/stripe', () => {
 
     expect(response.status).toBe(200);
     expect(mockSupabaseFrom).toHaveBeenCalledWith('users');
-    expect(consoleSpy).toHaveBeenCalledWith('No user/company found for email:', 'test@example.com');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'No company found for checkout session',
+      expect.objectContaining({ customerEmail: 'test@example.com' })
+    );
 
     consoleSpy.mockRestore();
   });
