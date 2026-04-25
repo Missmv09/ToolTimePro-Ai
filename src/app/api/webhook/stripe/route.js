@@ -59,7 +59,12 @@ export async function POST(request) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object;
-      await handleCheckoutComplete(session);
+      const debug = await handleCheckoutComplete(session);
+      // TEMP DEBUG — expose lookup + update result so we can diagnose the
+      // sandbox webhook silently no-op'ing. Remove once root cause is fixed.
+      if (debug) {
+        return NextResponse.json({ received: true, debug });
+      }
       break;
     }
     case 'customer.subscription.created':
@@ -95,6 +100,23 @@ async function handleCheckoutComplete(session) {
   const plan = metadata.plan || metadata.tier || metadata.standalone || '';
   const addons = metadata.addons ? metadata.addons.split(',').filter(Boolean) : [];
 
+  // TEMP DEBUG — collected and returned so we can read it from Stripe's
+  // delivery Response body without needing function logs.
+  const debug = {
+    sessionId: session.id,
+    customerId,
+    customerEmail,
+    metadataCompanyId: metadata.companyId || null,
+    metadataUserEmail: metadata.userEmail || null,
+    skipTrial: metadata.skipTrial === 'true',
+    supabaseUrlEnd: (process.env.NEXT_PUBLIC_SUPABASE_URL || '').slice(-30),
+    serviceRoleEnd: (process.env.SUPABASE_SERVICE_ROLE_KEY || '').slice(-6),
+    lookupBy: null,
+    lookupResult: null,
+    updateError: null,
+    rowsAfter: null,
+  };
+
   // Resolve the company in this priority order so we don't lose track of the
   // account when a user enters a different billing email at Stripe Checkout:
   //   1. metadata.companyId (forwarded by /api/checkout when the user is logged in)
@@ -103,22 +125,31 @@ async function handleCheckoutComplete(session) {
   let resolvedCompanyId = null;
 
   if (metadata.companyId) {
-    const { data } = await getSupabase()
+    debug.lookupBy = 'metadata.companyId';
+    const { data, error } = await getSupabase()
       .from('companies')
       .select('id')
       .eq('id', metadata.companyId)
       .single();
+    debug.lookupResult = { found: !!data?.id, error: error?.message || null };
     if (data?.id) resolvedCompanyId = data.id;
   }
 
   if (!resolvedCompanyId) {
     const lookupEmail = metadata.userEmail || customerEmail;
     if (lookupEmail) {
-      const { data: existingUser } = await getSupabase()
+      debug.lookupBy = `email:${lookupEmail}`;
+      const { data: existingUser, error } = await getSupabase()
         .from('users')
         .select('id, company_id')
         .eq('email', lookupEmail)
         .single();
+      debug.lookupResult = {
+        found: !!existingUser?.company_id,
+        userId: existingUser?.id || null,
+        companyId: existingUser?.company_id || null,
+        error: error?.message || null,
+      };
       if (existingUser?.company_id) resolvedCompanyId = existingUser.company_id;
     }
   }
@@ -158,6 +189,17 @@ async function handleCheckoutComplete(session) {
       .from('companies')
       .update(updateData)
       .eq('id', existingUser.company_id);
+
+    debug.updateError = error?.message || null;
+    debug.updatePayload = updateData;
+
+    // Read back the row so we can confirm what's actually stored.
+    const { data: rowAfter } = await getSupabase()
+      .from('companies')
+      .select('id, email, plan, stripe_customer_id, subscription_status')
+      .eq('id', existingUser.company_id)
+      .single();
+    debug.rowsAfter = rowAfter;
 
     if (error) {
       console.error('Error updating company after checkout:', error.message);
@@ -202,6 +244,8 @@ async function handleCheckoutComplete(session) {
       console.error('Failed to send welcome email:', err.message);
     }
   }
+
+  return debug;
 }
 
 async function handleSubscriptionUpdate(subscription) {
