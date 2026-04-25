@@ -317,6 +317,10 @@ export default function PricingPage() {
     if (selectedOnboarding) params.set('onboarding', selectedOnboarding);
     if (extraWorkers > 0) params.set('extraWorkers', extraWorkers.toString());
     params.set('billing', isAnnual ? 'annual' : 'monthly');
+    // Forward identity so the webhook can match the right company even
+    // when the user types a different billing email at Stripe Checkout.
+    if (user?.email) params.set('userEmail', user.email);
+    if (company?.id) params.set('companyId', company.id);
     return params;
   };
 

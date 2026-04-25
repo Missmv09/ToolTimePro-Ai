@@ -40,11 +40,6 @@ export async function POST(request) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
-  // TEMP DEBUG — remove once webhook is verified working in sandbox
-  console.log('[stripe-webhook] secret prefix:', webhookSecret.slice(0, 8), 'suffix:', webhookSecret.slice(-4), 'len:', webhookSecret.length);
-  console.log('[stripe-webhook] body bytes:', body.length, 'sig header present:', !!signature);
-  if (signature) console.log('[stripe-webhook] sig header sample:', signature.slice(0, 60));
-
   let event;
 
   try {
@@ -56,18 +51,7 @@ export async function POST(request) {
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return NextResponse.json(
-      {
-        error: 'Webhook signature verification failed',
-        debug: {
-          secretPrefix: webhookSecret.slice(0, 8),
-          secretSuffix: webhookSecret.slice(-4),
-          secretLength: webhookSecret.length,
-          bodyLength: body.length,
-          hasSigHeader: !!signature,
-          sigHeaderStart: signature ? signature.slice(0, 40) : null,
-          stripeError: err.message,
-        },
-      },
+      { error: 'Webhook signature verification failed' },
       { status: 400 }
     );
   }
@@ -107,16 +91,41 @@ export async function POST(request) {
 async function handleCheckoutComplete(session) {
   const customerEmail = session.customer_email || session.customer_details?.email;
   const customerId = session.customer;
-  const metadata = session.metadata;
+  const metadata = session.metadata || {};
   const plan = metadata.plan || metadata.tier || metadata.standalone || '';
   const addons = metadata.addons ? metadata.addons.split(',').filter(Boolean) : [];
 
-  // Find the user by email to get their company_id
-  const { data: existingUser } = await getSupabase()
-    .from('users')
-    .select('id, company_id')
-    .eq('email', customerEmail)
-    .single();
+  // Resolve the company in this priority order so we don't lose track of the
+  // account when a user enters a different billing email at Stripe Checkout:
+  //   1. metadata.companyId (forwarded by /api/checkout when the user is logged in)
+  //   2. metadata.userEmail (the logged-in user's account email)
+  //   3. session.customer_email (whatever they typed at checkout)
+  let resolvedCompanyId = null;
+
+  if (metadata.companyId) {
+    const { data } = await getSupabase()
+      .from('companies')
+      .select('id')
+      .eq('id', metadata.companyId)
+      .single();
+    if (data?.id) resolvedCompanyId = data.id;
+  }
+
+  if (!resolvedCompanyId) {
+    const lookupEmail = metadata.userEmail || customerEmail;
+    if (lookupEmail) {
+      const { data: existingUser } = await getSupabase()
+        .from('users')
+        .select('id, company_id')
+        .eq('email', lookupEmail)
+        .single();
+      if (existingUser?.company_id) resolvedCompanyId = existingUser.company_id;
+    }
+  }
+
+  // Synthesize an existingUser-shaped object so the rest of the function
+  // keeps working unchanged.
+  const existingUser = resolvedCompanyId ? { company_id: resolvedCompanyId } : null;
 
   if (existingUser?.company_id) {
     // Build the update payload. We treat checkout.session.completed as the
@@ -154,7 +163,12 @@ async function handleCheckoutComplete(session) {
       console.error('Error updating company after checkout:', error.message);
     }
   } else {
-    console.error('No user/company found for email:', customerEmail);
+    console.error('No company found for checkout session', {
+      sessionId: session.id,
+      metadataCompanyId: metadata.companyId || null,
+      metadataUserEmail: metadata.userEmail || null,
+      customerEmail,
+    });
   }
 
   // Create setup service order if onboarding was purchased
