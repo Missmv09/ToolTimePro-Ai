@@ -56,7 +56,18 @@ export async function POST(request) {
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return NextResponse.json(
-      { error: 'Webhook signature verification failed' },
+      {
+        error: 'Webhook signature verification failed',
+        debug: {
+          secretPrefix: webhookSecret.slice(0, 8),
+          secretSuffix: webhookSecret.slice(-4),
+          secretLength: webhookSecret.length,
+          bodyLength: body.length,
+          hasSigHeader: !!signature,
+          sigHeaderStart: signature ? signature.slice(0, 40) : null,
+          stripeError: err.message,
+        },
+      },
       { status: 400 }
     );
   }
