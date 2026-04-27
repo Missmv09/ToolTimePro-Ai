@@ -111,16 +111,29 @@ async function handleCheckoutComplete(session) {
     if (data?.id) resolvedCompanyId = data.id;
   }
 
-  if (!resolvedCompanyId) {
-    const lookupEmail = metadata.userEmail || customerEmail;
-    if (lookupEmail) {
-      const { data: existingUser } = await getSupabase()
-        .from('users')
-        .select('id, company_id')
-        .eq('email', lookupEmail)
-        .single();
-      if (existingUser?.company_id) resolvedCompanyId = existingUser.company_id;
-    }
+  const lookupEmail = metadata.userEmail || customerEmail;
+
+  if (!resolvedCompanyId && lookupEmail) {
+    const { data: existingUser } = await getSupabase()
+      .from('users')
+      .select('id, company_id')
+      .eq('email', lookupEmail)
+      .single();
+    if (existingUser?.company_id) resolvedCompanyId = existingUser.company_id;
+  }
+
+  // Fall back to looking up the company directly by email. The users row may
+  // not exist yet (signup trigger race) or may have a different email than
+  // the canonical companies row, but companies.email is always set by
+  // handle_new_signup. Without this fallback the webhook silently no-ops and
+  // returns 200, leaving Stripe convinced the update succeeded.
+  if (!resolvedCompanyId && lookupEmail) {
+    const { data: existingCompany } = await getSupabase()
+      .from('companies')
+      .select('id')
+      .eq('email', lookupEmail)
+      .single();
+    if (existingCompany?.id) resolvedCompanyId = existingCompany.id;
   }
 
   // Synthesize an existingUser-shaped object so the rest of the function
@@ -163,11 +176,13 @@ async function handleCheckoutComplete(session) {
       console.error('Error updating company after checkout:', error.message);
     }
   } else {
-    console.error('No company found for checkout session', {
+    console.error('No company found for checkout session — DB not updated', {
       sessionId: session.id,
+      stripeCustomerId: customerId,
       metadataCompanyId: metadata.companyId || null,
       metadataUserEmail: metadata.userEmail || null,
       customerEmail,
+      lookupEmailUsed: lookupEmail || null,
     });
   }
 
