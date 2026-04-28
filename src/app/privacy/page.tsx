@@ -60,29 +60,64 @@ export default function PrivacyPolicyPage() {
             </ul>
           </section>
 
-          <section>
+          <section id="sms">
             <h2 className="text-xl font-bold mb-3">4. SMS/Text Messaging</h2>
             <p className="mb-2">
               We use SMS messaging to send service-related notifications to customers on behalf of businesses
-              using our platform. These messages may include:
+              using our platform, and to send security-related messages (such as two-factor authentication
+              verification codes) to ToolTime Pro account holders. These messages may include:
             </p>
             <ul className="list-disc pl-6 space-y-1">
+              <li>Two-factor authentication (2FA) one-time verification codes sent to account holders when logging in from an unrecognized device.</li>
               <li>Quote and invoice notifications with links to view documents.</li>
               <li>Appointment confirmations and reminders.</li>
               <li>Job completion notifications and review requests.</li>
               <li>Schedule updates such as running late notifications.</li>
             </ul>
             <p className="mt-3">
-              <strong>Consent:</strong> SMS messages are only sent to customers who have opted in to receive text
-              messages. Consent is obtained by the business through their customer intake process.
+              <strong>Consent:</strong> SMS messages are only sent to recipients who have explicitly opted in.
+              Customers opt in to service notifications through the booking form&apos;s SMS consent checkbox
+              presented by the business. Account holders opt in to 2FA verification SMS by enabling two-factor
+              authentication in their account settings and checking the SMS consent box on the 2FA setup form.
+              No SMS messages are sent without prior, affirmative consent.
             </p>
             <p className="mt-2">
               <strong>Opt-out:</strong> Recipients can opt out at any time by replying STOP to any message.
               Reply HELP for assistance. Message and data rates may apply. Message frequency varies based on
-              service activity.
+              service activity (typically 1&ndash;5 messages per appointment) or, for 2FA, based on login activity
+              from new devices.
             </p>
             <p className="mt-2">
-              <strong>We do not sell, share, or use phone numbers or SMS data for marketing or advertising purposes.</strong>
+              <strong>No mobile information will be shared with third parties or affiliates for marketing or
+              promotional purposes.</strong> All categories of personal information described in this policy
+              exclude text messaging originator opt-in data and consent; this information will not be shared
+              with any third parties. Phone numbers and SMS content are used solely to deliver the messages
+              you have consented to receive.
+            </p>
+            <p className="mt-2">
+              For complete details about our SMS program, supported carriers, and the opt-in CTA, see our{' '}
+              <Link href="/sms" className="text-[#f5a623] hover:underline">SMS Terms &amp; Conditions</Link>.
+            </p>
+          </section>
+
+          <section id="2fa-sms">
+            <h2 className="text-xl font-bold mb-3">4a. Two-Factor Authentication (2FA) SMS Program</h2>
+            <p className="mb-2">
+              ToolTime Pro offers an optional two-factor authentication (2FA) feature that sends one-time
+              verification codes via SMS to confirm your identity when logging in from an unrecognized device.
+            </p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li><strong>Program name:</strong> ToolTime Pro Two-Factor Authentication.</li>
+              <li><strong>Who receives messages:</strong> Only ToolTime Pro account holders who have actively enabled 2FA in their account settings and provided a phone number.</li>
+              <li><strong>How users opt in:</strong> Account holders go to <em>Dashboard &rarr; Settings &rarr; Two-Factor Authentication</em>, enter their phone number, check the SMS consent box (&ldquo;I agree to receive SMS text messages containing verification codes for two-factor authentication...&rdquo;), and click <em>Enable 2FA</em>.</li>
+              <li><strong>Message content:</strong> A 6-digit verification code that expires in 10 minutes, plus standard compliance language (&ldquo;Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.&rdquo;).</li>
+              <li><strong>Message frequency:</strong> Only sent on login attempts from unrecognized devices (typically 0&ndash;3 per month per user).</li>
+              <li><strong>Opt out:</strong> Reply <strong>STOP</strong> to any 2FA SMS, or disable 2FA at any time from your account settings to stop receiving these messages.</li>
+            </ul>
+            <p className="mt-2">
+              2FA SMS data (phone numbers, verification codes, opt-in consent records) is used exclusively to
+              deliver the verification code to the account holder. <strong>This data is never sold, shared, or
+              disclosed to third parties or affiliates for marketing, promotional, or advertising purposes.</strong>
             </p>
           </section>
 
