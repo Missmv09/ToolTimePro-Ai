@@ -89,7 +89,7 @@ export default function SmsPage() {
             </ul>
           </section>
 
-          <section>
+          <section id="two-factor-authentication">
             <h2 className="text-xl font-bold mb-3">Two-Factor Authentication (2FA) SMS</h2>
             <p className="mb-4">
               If you enable two-factor authentication (2FA) in your ToolTime Pro account settings,
@@ -97,6 +97,15 @@ export default function SmsPage() {
               from unrecognized devices. By enabling 2FA and providing your phone number, you
               explicitly consent to receive these security-related text messages.
             </p>
+
+            <h3 className="font-bold mt-4 mb-2">How to opt in to 2FA SMS</h3>
+            <ol className="list-decimal pl-6 space-y-1 mb-4">
+              <li>Sign in to your ToolTime Pro account at <strong>app.tooltimepro.com</strong>.</li>
+              <li>Open <em>Dashboard &rarr; Settings</em> and scroll to the <em>Two-Factor Authentication</em> card.</li>
+              <li>Click <em>Set Up 2FA</em>, enter the phone number where you want to receive verification codes.</li>
+              <li>Check the SMS consent box (shown below) and click <em>Enable 2FA</em>.</li>
+              <li>You will then receive a 6-digit code by SMS the next time you log in from an unrecognized device.</li>
+            </ol>
 
             {/* Visual representation of the 2FA opt-in CTA */}
             <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50">
@@ -119,10 +128,25 @@ export default function SmsPage() {
               </div>
             </div>
 
-            <p className="mt-4">
-              2FA messages contain only a one-time verification code and standard compliance
-              language. You can disable 2FA at any time from your account settings to stop
-              receiving these messages.
+            <h3 className="font-bold mt-4 mb-2">Sample 2FA messages</h3>
+            <ul className="list-disc pl-6 space-y-1 mb-4 text-sm">
+              <li><code className="bg-gray-100 px-1 rounded">Your ToolTime Pro verification code is: 123456. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
+              <li><code className="bg-gray-100 px-1 rounded">Your ToolTime Pro verification code is: 789012. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
+            </ul>
+
+            <p className="mt-2">
+              <strong>Message frequency:</strong> 2FA codes are only sent on login attempts from unrecognized
+              devices (typically 0&ndash;3 messages per month per user).
+            </p>
+            <p className="mt-2">
+              <strong>Opt out:</strong> Reply <strong>STOP</strong> to any 2FA message, or disable 2FA from
+              your account settings at any time. Reply <strong>HELP</strong> for assistance.
+            </p>
+            <p className="mt-2">
+              <strong>Privacy:</strong> Phone numbers and 2FA verification data are never sold, shared, or
+              disclosed to third parties or affiliates for marketing or promotional purposes. See our{' '}
+              <Link href="/privacy#2fa-sms" className="text-[#f5a623] hover:underline">Privacy Policy &mdash; 2FA SMS section</Link>{' '}
+              for full details.
             </p>
           </section>
 
