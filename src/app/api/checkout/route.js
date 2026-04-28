@@ -99,6 +99,13 @@ export async function GET(request) {
       metadata: baseMetadata,
     };
 
+    // Stripe's standard idiom for "this checkout belongs to record X in my
+    // app." Redundant with metadata.companyId on purpose — gives the webhook
+    // a second, structured channel that doesn't depend on metadata format.
+    if (companyId) {
+      sessionConfig.client_reference_id = companyId;
+    }
+
     // Pre-fill the email field on Stripe Checkout when we know who the user
     // is. Locks the form to that email so the customer can't accidentally
     // pay under a different identity than the one they're logged in with.

@@ -238,7 +238,11 @@ export default function PricingPage() {
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [extraWorkers, setExtraWorkers] = useState(0);
   const t = useTranslations('pricing');
-  const { user, company } = useAuth();
+  const { user, company, isLoading: authLoading } = useAuth();
+  // A logged-in user shouldn't be able to fire Subscribe Now until their
+  // company has loaded — otherwise the URL params would be missing companyId,
+  // forcing the webhook to fall back to fragile email matching.
+  const authIncomplete = authLoading || (Boolean(user) && !company);
 
   // A user is "trial-ineligible" if they've ever started a trial on this
   // account, regardless of whether it's still active or already converted.
@@ -335,6 +339,7 @@ export default function PricingPage() {
   // Stripe Checkout collects email + card; webhook matches the email back
   // to the company on completion.
   const handleSubscribeNow = () => {
+    if (authIncomplete) return;
     const params = buildCheckoutParams();
     params.set('skipTrial', 'true');
     window.location.href = `/api/checkout?${params.toString()}`;
@@ -747,8 +752,9 @@ export default function PricingPage() {
               <button
                 className={showTrialCta ? 'cta-btn cta-btn-secondary' : 'cta-btn'}
                 onClick={handleSubscribeNow}
+                disabled={authIncomplete}
               >
-                {t('subscribeNowCta')}
+                {authIncomplete ? 'Loading…' : t('subscribeNowCta')}
               </button>
               <p className="cta-note">
                 {hasUsedTrial && !isLoggedIn
