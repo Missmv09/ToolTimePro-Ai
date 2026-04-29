@@ -447,7 +447,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const lastUserMessage = messages[messages.length - 1]?.content || '';
+    const lastUserMessage = (messages[messages.length - 1]?.content || '').trim();
+    if (!lastUserMessage) {
+      return NextResponse.json(
+        { error: 'Message content cannot be empty' },
+        { status: 400 },
+      );
+    }
 
     // Build system prompt with context
     let systemPrompt = getSystemPrompt(mode, language);
@@ -484,11 +490,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Build message history
-    const apiMessages = messages.slice(-10).map((m) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    }));
+    // Build message history — drop any turn that has empty content so the
+    // Anthropic API doesn't 400 on "text content blocks must be non-empty".
+    const apiMessages = messages
+      .slice(-10)
+      .map((m) => ({
+        role: m.role as 'user' | 'assistant',
+        content: typeof m.content === 'string' ? m.content.trim() : m.content,
+      }))
+      .filter((m) => (typeof m.content === 'string' ? m.content.length > 0 : !!m.content));
 
     try {
       const aiResult = await aiComplete({

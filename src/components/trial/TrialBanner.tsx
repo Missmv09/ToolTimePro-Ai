@@ -53,7 +53,7 @@ export default function TrialBanner() {
       <div className="flex items-center gap-3">
         <Sparkles size={18} className={isUrgent ? 'text-[#f5a623]' : 'text-blue-500'} />
         <p className={`text-sm ${isUrgent ? 'text-amber-700' : 'text-blue-700'}`}>
-          <strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''}</strong> left in your Pro trial.
+          <strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''}</strong> left in your free trial.
           {isUrgent && ' Subscribe now to avoid losing access.'}
         </p>
       </div>

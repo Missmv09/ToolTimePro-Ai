@@ -10,11 +10,17 @@
 const mockConstructEvent = jest.fn();
 const mockSupabaseFrom = jest.fn();
 const mockSendWelcomeEmail = jest.fn().mockResolvedValue(undefined);
+const mockCustomersRetrieve = jest.fn().mockResolvedValue({ id: 'cus_test', metadata: {}, deleted: false });
+const mockCustomersUpdate = jest.fn().mockResolvedValue({ id: 'cus_test' });
 
 jest.mock('stripe', () => {
   return jest.fn(() => ({
     webhooks: {
       constructEvent: mockConstructEvent,
+    },
+    customers: {
+      retrieve: mockCustomersRetrieve,
+      update: mockCustomersUpdate,
     },
   }));
 });
@@ -101,12 +107,135 @@ describe('/api/webhook/stripe', () => {
 
     expect(response.status).toBe(200);
     expect(mockSupabaseFrom).toHaveBeenCalledWith('users');
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('companies');
     expect(consoleSpy).toHaveBeenCalledWith(
-      'No company found for checkout session',
-      expect.objectContaining({ customerEmail: 'test@example.com' })
+      'No company found for checkout session — DB not updated',
+      expect.objectContaining({
+        customerEmail: 'test@example.com',
+        lookupEmailUsed: 'test@example.com',
+        stripeCustomerId: 'cus_123',
+      })
     );
 
     consoleSpy.mockRestore();
+  });
+
+  it('falls back to companies.email lookup when users row is missing', async () => {
+    // Regression test for silent-failure bug: webhook used to only look up
+    // companies via the users table. If a checkout completed before the users
+    // row existed (signup race) or with a different email, the webhook
+    // returned 200 OK without ever updating the company. This test ensures
+    // the companies.email fallback resolves the company and the update fires.
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          customer_email: 'orphan@example.com',
+          customer: 'cus_orphan',
+          subscription: 'sub_orphan',
+          metadata: { plan: 'elite', tier: 'elite', billing: 'monthly', skipTrial: 'true' },
+        },
+      },
+    });
+
+    // First .single() call = users lookup, returns null (no users row).
+    // Second .single() call = companies fallback, returns the company id.
+    mockSingle
+      .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } })
+      .mockResolvedValueOnce({ data: { id: 'company-orphan' }, error: null });
+
+    const request = makeWebhookRequest();
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('users');
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('companies');
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stripe_customer_id: 'cus_orphan',
+        plan: 'elite',
+        subscription_status: 'active',
+      })
+    );
+  });
+
+  it('resolves company by client_reference_id before falling back to email lookups', async () => {
+    // Regression test for the metadata-mismatch bug: when the user enters a
+    // different billing email at Stripe Checkout, all email-based lookups
+    // miss. client_reference_id carries the canonical company id straight
+    // from /api/checkout, so the webhook should resolve it without ever
+    // touching the users/companies email indices.
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          customer_email: 'different-billing@example.com',
+          customer: 'cus_ref',
+          subscription: 'sub_ref',
+          client_reference_id: 'company-from-ref',
+          metadata: { plan: 'elite', tier: 'elite', billing: 'monthly', skipTrial: 'true' },
+        },
+      },
+    });
+
+    mockSingle.mockResolvedValueOnce({ data: { id: 'company-from-ref' }, error: null });
+
+    const request = makeWebhookRequest();
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stripe_customer_id: 'cus_ref',
+        plan: 'elite',
+        subscription_status: 'active',
+      })
+    );
+    // After resolving, we write the company id back to the Stripe customer so
+    // future events on this customer can be traced even if local DB drifts.
+    expect(mockCustomersUpdate).toHaveBeenCalledWith('cus_ref', {
+      metadata: { companyId: 'company-from-ref' },
+    });
+  });
+
+  it('falls back to Stripe customer metadata when local DB lookups all miss', async () => {
+    // If a previous successful checkout wrote our company id onto the Stripe
+    // Customer object, we can recover it from there even when local pointers
+    // are stale or missing.
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          customer_email: 'unknown@example.com',
+          customer: 'cus_remembered',
+          subscription: 'sub_remembered',
+          metadata: { plan: 'pro', tier: 'pro', billing: 'monthly' },
+        },
+      },
+    });
+
+    mockSingle
+      .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } }) // users
+      .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } }) // companies.email
+      .mockResolvedValueOnce({ data: { id: 'company-remembered' }, error: null }); // companies.id from stripe metadata
+
+    mockCustomersRetrieve.mockResolvedValueOnce({
+      id: 'cus_remembered',
+      metadata: { companyId: 'company-remembered' },
+      deleted: false,
+    });
+
+    const request = makeWebhookRequest();
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockCustomersRetrieve).toHaveBeenCalledWith('cus_remembered');
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stripe_customer_id: 'cus_remembered',
+        plan: 'pro',
+      })
+    );
   });
 
   it('handles checkout.session.completed for existing users', async () => {

@@ -21,6 +21,10 @@ CREATE TABLE companies (
     plan VARCHAR(50) DEFAULT 'starter', -- starter, pro, elite
     addons TEXT[] DEFAULT '{}', -- purchased add-on IDs (jenny_exec_admin, jenny_pro, etc.)
     stripe_customer_id VARCHAR(255),
+    subscription_status TEXT, -- trialing, active, past_due, canceled, expired (set by Stripe webhook)
+    trial_starts_at TIMESTAMP WITH TIME ZONE,
+    trial_ends_at TIMESTAMP WITH TIME ZONE,
+    onboarding_completed BOOLEAN DEFAULT false,
     -- Professional details (compliance & invoicing)
     license_number VARCHAR(100),          -- Contractor license # (auto-prints on quotes/invoices)
     insurance_policy_number VARCHAR(100),  -- Insurance policy for commercial proposals
@@ -533,6 +537,7 @@ CREATE TABLE website_domain_log (
 -- ============================================
 -- INDEXES (Performance)
 -- ============================================
+CREATE INDEX idx_companies_subscription_status ON companies(subscription_status);
 CREATE INDEX idx_users_company ON users(company_id);
 CREATE INDEX idx_customers_company ON customers(company_id);
 CREATE INDEX idx_leads_company ON leads(company_id);

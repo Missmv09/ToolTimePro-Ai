@@ -39,45 +39,61 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1024, temperatur
 
   // Convert messages to Anthropic format
   // Anthropic uses system as a top-level param, not in messages array
-  const apiMessages = messages.map((m) => {
-    // Handle vision messages (content as array with image_url)
-    if (Array.isArray(m.content)) {
-      return {
-        role: m.role === 'system' ? 'user' : m.role,
-        content: m.content.map((part) => {
-          if (part.type === 'text') return part;
-          if (part.type === 'image_url') {
-            // Convert OpenAI image format to Anthropic format
-            const url = part.image_url.url;
-            const base64Match = url.match(/^data:(image\/\w+);base64,(.+)$/);
-            if (base64Match) {
+  const apiMessages = messages
+    .map((m) => {
+      // Handle vision messages (content as array with image_url)
+      if (Array.isArray(m.content)) {
+        const parts = m.content
+          .map((part) => {
+            if (part.type === 'text') {
+              const text = typeof part.text === 'string' ? part.text.trim() : '';
+              return text ? { type: 'text', text } : null;
+            }
+            if (part.type === 'image_url') {
+              // Convert OpenAI image format to Anthropic format
+              const url = part.image_url?.url;
+              if (!url) return null;
+              const base64Match = url.match(/^data:(image\/\w+);base64,(.+)$/);
+              if (base64Match) {
+                return {
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: base64Match[1],
+                    data: base64Match[2],
+                  },
+                };
+              }
+              // URL-based image
               return {
                 type: 'image',
                 source: {
-                  type: 'base64',
-                  media_type: base64Match[1],
-                  data: base64Match[2],
+                  type: 'url',
+                  url: url,
                 },
               };
             }
-            // URL-based image
-            return {
-              type: 'image',
-              source: {
-                type: 'url',
-                url: url,
-              },
-            };
-          }
-          return part;
-        }),
+            return part;
+          })
+          .filter(Boolean);
+        if (parts.length === 0) return null;
+        return {
+          role: m.role === 'system' ? 'user' : m.role,
+          content: parts,
+        };
+      }
+      const text = typeof m.content === 'string' ? m.content.trim() : '';
+      if (!text) return null;
+      return {
+        role: m.role === 'system' ? 'user' : m.role,
+        content: text,
       };
-    }
-    return {
-      role: m.role === 'system' ? 'user' : m.role,
-      content: m.content,
-    };
-  });
+    })
+    .filter(Boolean);
+
+  if (apiMessages.length === 0) {
+    return { error: 'Claude API error 400: messages array is empty after stripping blank content' };
+  }
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -130,9 +146,28 @@ async function callOpenAI({ systemPrompt, messages, maxTokens = 1024, temperatur
 
   const model = OPENAI_MODELS[tier] || OPENAI_MODELS.high;
 
+  const cleaned = messages
+    .map((m) => {
+      if (Array.isArray(m.content)) {
+        const parts = m.content.filter((p) => {
+          if (p.type === 'text') return typeof p.text === 'string' && p.text.trim().length > 0;
+          if (p.type === 'image_url') return !!p.image_url?.url;
+          return true;
+        });
+        return parts.length ? { role: m.role, content: parts } : null;
+      }
+      const text = typeof m.content === 'string' ? m.content.trim() : '';
+      return text ? { role: m.role, content: text } : null;
+    })
+    .filter(Boolean);
+
+  if (cleaned.length === 0) {
+    return { error: 'OpenAI API error 400: messages array is empty after stripping blank content' };
+  }
+
   const apiMessages = [
     { role: 'system', content: systemPrompt },
-    ...messages,
+    ...cleaned,
   ];
 
   try {
