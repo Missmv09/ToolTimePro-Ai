@@ -285,6 +285,30 @@ describe('/api/webhook/stripe', () => {
     });
   });
 
+  it('does not downgrade plan on customer.subscription.updated for trialing status', async () => {
+    // Regression test: trial subscriptions arrive with status='trialing', not
+    // 'active'. The handler used to reset plan to 'starter' for any non-active
+    // status, clobbering 'elite'/'pro' set moments earlier by
+    // checkout.session.completed.
+    mockConstructEvent.mockReturnValue({
+      type: 'customer.subscription.updated',
+      data: {
+        object: { id: 'sub_123', customer: 'cus_123', status: 'trialing' },
+      },
+    });
+
+    const request = makeWebhookRequest();
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.not.objectContaining({ plan: expect.anything() })
+    );
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ subscription_status: 'trialing' })
+    );
+  });
+
   it('handles subscription canceled', async () => {
     mockConstructEvent.mockReturnValue({
       type: 'customer.subscription.deleted',
