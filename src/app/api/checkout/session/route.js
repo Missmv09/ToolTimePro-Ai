@@ -29,7 +29,12 @@ export async function GET(request) {
     });
 
   } catch (error) {
-    console.error('Error fetching session:', error);
+    console.error('Error fetching session:', {
+      sessionId,
+      message: error.message,
+      type: error.type,
+      code: error.code,
+    });
     return NextResponse.json(
       { error: error.message },
       { status: 500 }

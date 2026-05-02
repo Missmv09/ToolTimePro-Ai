@@ -463,7 +463,10 @@ export async function GET(request: NextRequest) {
       .single();
 
     const addons = (company?.addons || []) as string[];
-    const hasPro = addons.includes('portal_pro') || company?.plan === 'elite';
+    const hasPro =
+      addons.includes('customer_portal_pro') ||
+      addons.includes('portal_pro') ||
+      company?.plan === 'elite';
 
     return NextResponse.json({ hasPortalPro: hasPro });
   }
