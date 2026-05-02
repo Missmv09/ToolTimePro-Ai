@@ -352,6 +352,7 @@ export default function DashboardPage() {
 
       {/* Customer Portal Pro Upsell — show for non-Elite users who don't have it */}
       {company && company.plan !== 'elite' && !company.is_beta_tester &&
+       !(company.addons as string[] || []).includes('customer_portal_pro') &&
        !(company.addons as string[] || []).includes('portal_pro') && (
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 sm:p-6 text-white mb-6 sm:mb-8">
           <div className="flex items-center justify-between">

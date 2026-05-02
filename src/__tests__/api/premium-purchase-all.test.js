@@ -492,7 +492,7 @@ describe('Premium Purchase Flow — Buy Everything', () => {
       expect(updatePayload.plan).toBe('starter');
     });
 
-    it('downgrades to starter when subscription becomes past_due', async () => {
+    it('marks subscription past_due without downgrading plan', async () => {
       const { mockUpdate } = setupSupabaseMocks();
 
       mockConstructEvent.mockReturnValue({
@@ -511,7 +511,12 @@ describe('Premium Purchase Flow — Buy Everything', () => {
 
       expect(response.status).toBe(200);
       const updatePayload = mockUpdate.mock.calls[0][0];
-      expect(updatePayload.plan).toBe('starter');
+      // past_due is dunning, not cancellation. Stripe will eventually emit
+      // subscription.deleted if the account never recovers — that's where the
+      // plan downgrade belongs (handleSubscriptionCanceled). Resetting plan
+      // here would knock paid customers down to Starter mid-retry.
+      expect(updatePayload.plan).toBeUndefined();
+      expect(updatePayload.subscription_status).toBe('past_due');
     });
   });
 

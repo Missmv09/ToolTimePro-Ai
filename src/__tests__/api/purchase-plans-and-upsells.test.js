@@ -610,7 +610,7 @@ describe('Webhook — subscription lifecycle events', () => {
     expect(updatePayload.updated_at).toBeDefined();
   });
 
-  it('subscription.updated with trialing status downgrades to starter', async () => {
+  it('subscription.updated with trialing status syncs status without touching plan', async () => {
     const { mockUpdate } = setupSupabaseMocks();
 
     mockConstructEvent.mockReturnValue({
@@ -623,12 +623,16 @@ describe('Webhook — subscription lifecycle events', () => {
     const response = await webhookPOST(makeWebhookRequest());
     expect(response.status).toBe(200);
 
-    // trialing !== 'active', so plan gets set to starter
+    // Trial subscriptions arrive as status='trialing' immediately after
+    // checkout.session.completed sets the chosen plan. The handler must NOT
+    // reset plan here, or every Elite/Pro purchase silently downgrades to
+    // Starter mid-flow.
     const updatePayload = mockUpdate.mock.calls[0][0];
-    expect(updatePayload.plan).toBe('starter');
+    expect(updatePayload.plan).toBeUndefined();
+    expect(updatePayload.subscription_status).toBe('trialing');
   });
 
-  it('subscription.updated with incomplete status downgrades to starter', async () => {
+  it('subscription.updated with incomplete status syncs status without touching plan', async () => {
     const { mockUpdate } = setupSupabaseMocks();
 
     mockConstructEvent.mockReturnValue({
@@ -639,7 +643,9 @@ describe('Webhook — subscription lifecycle events', () => {
     });
 
     await webhookPOST(makeWebhookRequest());
-    expect(mockUpdate.mock.calls[0][0].plan).toBe('starter');
+    const updatePayload = mockUpdate.mock.calls[0][0];
+    expect(updatePayload.plan).toBeUndefined();
+    expect(updatePayload.subscription_status).toBe('incomplete');
   });
 
   it('subscription.deleted always downgrades regardless of previous plan', async () => {
