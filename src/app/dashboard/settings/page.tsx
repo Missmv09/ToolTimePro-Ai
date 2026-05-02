@@ -1025,6 +1025,7 @@ function SettingsContent() {
           website_builder: { name: 'Website Builder', description: 'Custom business website' },
           keep_me_legal: { name: 'Compliance Autopilot', description: 'Automated compliance monitoring, law-change alerts & cert reminders' },
           quickbooks_sync: { name: 'QuickBooks Sync', description: 'Two-way QuickBooks integration' },
+          customer_portal_pro: { name: 'Customer Portal Pro', description: 'Branded customer portal with job tracker, photos, messaging & documents' },
           portal_pro: { name: 'Customer Portal Pro', description: 'Branded customer portal with job tracker, photos, messaging & documents' },
         }
 

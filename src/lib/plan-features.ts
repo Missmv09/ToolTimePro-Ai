@@ -101,6 +101,7 @@ const ADDON_FEATURE_MAP: Record<string, FeatureKey> = {
   jenny_exec_admin: 'jenny_exec_admin',
   keep_me_legal: 'compliance',
   quickbooks_sync: 'quickbooks_sync',
+  customer_portal_pro: 'customer_portal',
   portal_pro: 'customer_portal',
 };
 

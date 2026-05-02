@@ -81,14 +81,14 @@ const TIERS = [
 // Add-ons shown inline inside each plan card
 const PLAN_INLINE_ADDONS = {
   starter: [
-    { id: 'portal_pro', name: 'Customer Portal Pro', price: 24 },
+    { id: 'customer_portal_pro', name: 'Customer Portal Pro', price: 24 },
     { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 29 },
     { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12 },
     { id: 'website_builder', name: 'Website Builder', price: 25 },
     { id: 'extra_page', name: 'Extra Website Page', price: 10 },
   ],
   pro: [
-    { id: 'portal_pro', name: 'Customer Portal Pro', price: 24 },
+    { id: 'customer_portal_pro', name: 'Customer Portal Pro', price: 24 },
     { id: 'keep_me_legal', name: 'Compliance Autopilot', price: 29 },
     { id: 'quickbooks_sync', name: 'QuickBooks Sync', price: 12 },
     { id: 'website_builder', name: 'Website Builder', price: 25 },
@@ -192,7 +192,7 @@ const ADDONS = [
     hasAnnual: true,
   },
   {
-    id: 'portal_pro',
+    id: 'customer_portal_pro',
     name: 'Customer Portal Pro',
     monthlyPrice: 24,
     annualPrice: 240,
