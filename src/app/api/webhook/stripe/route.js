@@ -282,13 +282,13 @@ async function handleSubscriptionUpdate(subscription) {
   const customerId = subscription.customer;
   if (!customerId) return;
 
-  // Map Stripe subscription status to plan — active means keep plan, else downgrade
-  const planUpdate = subscription.status === 'active' ? {} : { plan: 'starter' };
-
+  // Only sync subscription_status here. The plan is set by checkout.session.completed
+  // and cleared by customer.subscription.deleted (handleSubscriptionCanceled).
+  // Resetting plan on any non-active status would clobber 'elite'/'pro' to 'starter'
+  // during the normal trialing/past_due/incomplete states.
   const { error } = await getSupabase()
     .from('companies')
     .update({
-      ...planUpdate,
       subscription_status: subscription.status,
       updated_at: new Date().toISOString()
     })
