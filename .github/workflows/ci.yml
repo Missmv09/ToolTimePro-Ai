@@ -22,12 +22,3 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
-      - name: Audit Stripe prices (test mode)
-        env:
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
-        run: |
-          if [ -z "$STRIPE_SECRET_KEY" ]; then
-            echo "::warning::STRIPE_TEST_SECRET_KEY not configured — skipping Stripe price audit"
-            exit 0
-          fi
-          node scripts/sync-stripe-prices.js

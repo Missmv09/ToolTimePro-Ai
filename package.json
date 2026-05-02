@@ -13,7 +13,8 @@
     "test:coverage": "jest --coverage",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "test:e2e": "cypress run"
+    "test:e2e": "cypress run",
+    "audit:stripe-prices": "node scripts/sync-stripe-prices.js"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",

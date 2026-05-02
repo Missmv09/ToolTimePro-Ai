@@ -1,5 +1,8 @@
 [build]
-  command = "npm run build"
+  # Stripe price audit runs before next build so price drift between the
+  # in-repo catalog (scripts/stripe-products.js) and the live/test Price
+  # objects in Stripe blocks the deploy. Skipped if no STRIPE_SECRET_KEY.
+  command = "if [ -n \"$STRIPE_SECRET_KEY\" ]; then npm run audit:stripe-prices || exit 1; else echo 'STRIPE_SECRET_KEY not set — skipping price audit'; fi && npm run build"
   publish = ".next"
 
 [build.environment]
@@ -16,7 +19,7 @@
 # See docs/SANDBOX.md for the full runbook.
 # ============================================================
 [context.sandbox]
-  command = "npm run build"
+  command = "if [ -n \"$STRIPE_SECRET_KEY\" ]; then npm run audit:stripe-prices || exit 1; else echo 'STRIPE_SECRET_KEY not set — skipping price audit'; fi && npm run build"
 
 [context.sandbox.environment]
   NEXT_PUBLIC_APP_ENV = "sandbox"
