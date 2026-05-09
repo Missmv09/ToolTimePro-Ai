@@ -26,22 +26,36 @@ let activePriceCache = null;
 let activePriceCachedAt = 0;
 const ACTIVE_PRICE_CACHE_TTL_MS = 5 * 60 * 1000;
 
-async function loadActivePricesByMetadata(stripe) {
-  if (activePriceCache && Date.now() - activePriceCachedAt < ACTIVE_PRICE_CACHE_TTL_MS) {
+function bustActivePriceCache() {
+  activePriceCache = null;
+  activePriceCachedAt = 0;
+}
+
+async function loadActivePricesByMetadata(stripe, { forceRefresh = false } = {}) {
+  if (!forceRefresh && activePriceCache && Date.now() - activePriceCachedAt < ACTIVE_PRICE_CACHE_TTL_MS) {
     return activePriceCache;
   }
   const map = {};
   let hasMore = true;
   let startingAfter;
+  // expand=data.product so we can filter out prices whose product has been
+  // archived. Stripe rejects those with the same "price is inactive" error
+  // even though the price row itself is still active.
   while (hasMore) {
-    const list = await stripe.prices.list({ limit: 100, active: true, starting_after: startingAfter });
+    const list = await stripe.prices.list({
+      limit: 100,
+      active: true,
+      starting_after: startingAfter,
+      expand: ['data.product'],
+    });
     for (const price of list.data) {
       const ttId = price.metadata?.tooltime_id;
       const ttKey = price.metadata?.tooltime_key;
-      if (ttId && ttKey) {
-        if (!map[ttId]) map[ttId] = {};
-        map[ttId][ttKey] = price.id;
-      }
+      if (!ttId || !ttKey) continue;
+      const product = price.product;
+      if (product && typeof product === 'object' && product.active === false) continue;
+      if (!map[ttId]) map[ttId] = {};
+      map[ttId][ttKey] = price.id;
     }
     hasMore = list.has_more;
     if (list.data.length > 0) startingAfter = list.data[list.data.length - 1].id;
@@ -60,8 +74,8 @@ function isInactivePriceError(err) {
 // so we can look up an active replacement if Stripe rejects the configured
 // price as inactive. Returns the new line_items array and a list of swaps
 // that happened (for logging).
-async function resolveLineItemsByMetadata(stripe, lineItems) {
-  const map = await loadActivePricesByMetadata(stripe);
+async function resolveLineItemsByMetadata(stripe, lineItems, { forceRefresh = false } = {}) {
+  const map = await loadActivePricesByMetadata(stripe, { forceRefresh });
   const swaps = [];
   const resolved = lineItems.map((item) => {
     const ctx = item._context;
@@ -205,27 +219,51 @@ export async function GET(request) {
       if (!isInactivePriceError(firstErr)) throw firstErr;
 
       // The configured PRICE_IDS env var is pointing at archived prices.
-      // Resolve fresh active price IDs by metadata and retry once.
-      const { resolved, swaps } = await resolveLineItemsByMetadata(stripe, lineItems);
-      if (swaps.length === 0) {
-        // Nothing to swap — surface a clear error so the operator knows
-        // exactly which (tier, billing, priceId) Stripe rejected.
-        const attempted = lineItems.map((it) => ({
+      // Resolve fresh active price IDs by metadata and retry. We make up to
+      // two retries: the first uses the cached metadata→price map, the
+      // second forces a fresh Stripe lookup in case the cache is stale.
+      let attemptSwaps;
+      let lastRetryErr;
+      let resolvedLineItems = lineItems;
+      for (const forceRefresh of [false, true]) {
+        const { resolved, swaps } = await resolveLineItemsByMetadata(stripe, lineItems, { forceRefresh });
+        if (swaps.length === 0) {
+          if (forceRefresh) break;
+          continue;
+        }
+        attemptSwaps = swaps;
+        resolvedLineItems = resolved;
+        const retryConfig = { ...sessionConfig, line_items: stripContext(resolved) };
+        try {
+          console.warn('Stripe price(s) inactive — retrying with metadata-resolved active prices:', { swaps, forceRefresh });
+          session = await stripe.checkout.sessions.create(retryConfig);
+          lastRetryErr = null;
+          break;
+        } catch (retryErr) {
+          lastRetryErr = retryErr;
+          if (!isInactivePriceError(retryErr)) break;
+          // Inactive again — bust the cache and try one more time with fresh data.
+          bustActivePriceCache();
+        }
+      }
+
+      if (!session) {
+        const attempted = (resolvedLineItems || lineItems).map((it) => ({
           tooltimeId: it._context?.tooltimeId,
           tooltimeKey: it._context?.tooltimeKey,
           priceId: it.price,
         }));
+        const baseDetails = lastRetryErr?.message || firstErr.message;
+        const noSwapHint = 'No active replacement price found in Stripe. POST /api/stripe/setup-products to (re)create the catalog, then update NEXT_PUBLIC_STRIPE_PRICES.';
+        const swapFailedHint = 'Found active replacement price(s) by metadata, but Stripe still rejected them as inactive. The replacement price\'s product may be archived. POST /api/stripe/setup-products to (re)create the catalog with active products, then copy the returned NEXT_PUBLIC_STRIPE_PRICES into Netlify env vars.';
         return NextResponse.json({
           error: 'Failed to create checkout session',
-          details: firstErr.message,
-          hint: 'No active replacement price found in Stripe. POST /api/stripe/setup-products to (re)create the catalog, then update NEXT_PUBLIC_STRIPE_PRICES.',
+          details: baseDetails,
+          hint: attemptSwaps?.length ? swapFailedHint : noSwapHint,
           attempted,
+          swaps: attemptSwaps || [],
         }, { status: 500 });
       }
-
-      console.warn('Stripe price(s) inactive — retrying with metadata-resolved active prices:', swaps);
-      const retryConfig = { ...sessionConfig, line_items: stripContext(resolved) };
-      session = await stripe.checkout.sessions.create(retryConfig);
     }
 
     return NextResponse.redirect(session.url, 303);
