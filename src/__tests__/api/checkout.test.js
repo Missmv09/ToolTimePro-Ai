@@ -213,7 +213,8 @@ describe('/api/checkout', () => {
       mockSessionCreate.mockRejectedValueOnce(
         Object.assign(new Error('The price specified is inactive. This field only accepts active prices.'), { type: 'StripeInvalidRequestError' })
       );
-      mockPricesList.mockResolvedValueOnce({ data: [], has_more: false });
+      // Both the cached lookup and the forced refresh return no candidates.
+      mockPricesList.mockResolvedValue({ data: [], has_more: false });
 
       const request = makeRequest({ tier: 'elite', billing: 'monthly' });
       const response = await isolatedGET(request);
@@ -226,6 +227,64 @@ describe('/api/checkout', () => {
         { tooltimeId: 'elite', tooltimeKey: 'monthly', priceId: 'price_elite_m' },
       ]);
       expect(body.hint).toMatch(/setup-products/);
+    });
+
+    it('surfaces a diagnostic error when the metadata-resolved replacement is also rejected as inactive', async () => {
+      // Original create + two retries (with cached then refreshed lookup) all reject.
+      const inactiveErr = () =>
+        Object.assign(new Error('The price specified is inactive. This field only accepts active prices.'), { type: 'StripeInvalidRequestError' });
+      mockSessionCreate
+        .mockRejectedValueOnce(inactiveErr())
+        .mockRejectedValueOnce(inactiveErr())
+        .mockRejectedValueOnce(inactiveErr());
+
+      // Both lookups return the same metadata-tagged price (it's "active" but
+      // rejected by Stripe — e.g. its product is archived).
+      mockPricesList.mockResolvedValue({
+        data: [
+          { id: 'price_elite_m_NEW', metadata: { tooltime_id: 'elite', tooltime_key: 'monthly' }, product: { active: true } },
+        ],
+        has_more: false,
+      });
+
+      const request = makeRequest({ tier: 'elite', billing: 'monthly' });
+      const response = await isolatedGET(request);
+
+      expect(response.status).toBe(500);
+      const body = await response.json();
+      expect(body.error).toBe('Failed to create checkout session');
+      expect(body.details).toMatch(/inactive/i);
+      expect(body.swaps).toEqual([
+        { tooltimeId: 'elite', tooltimeKey: 'monthly', from: 'price_elite_m', to: 'price_elite_m_NEW' },
+      ]);
+      expect(body.attempted).toEqual([
+        { tooltimeId: 'elite', tooltimeKey: 'monthly', priceId: 'price_elite_m_NEW' },
+      ]);
+      expect(body.hint).toMatch(/product may be archived/i);
+    });
+
+    it('skips replacement prices whose product has been archived', async () => {
+      mockSessionCreate
+        .mockRejectedValueOnce(
+          Object.assign(new Error('The price specified is inactive. This field only accepts active prices.'), { type: 'StripeInvalidRequestError' })
+        );
+
+      // The only metadata match has product.active=false, so it should be filtered out.
+      mockPricesList.mockResolvedValue({
+        data: [
+          { id: 'price_elite_m_OLD', metadata: { tooltime_id: 'elite', tooltime_key: 'monthly' }, product: { active: false } },
+        ],
+        has_more: false,
+      });
+
+      const request = makeRequest({ tier: 'elite', billing: 'monthly' });
+      const response = await isolatedGET(request);
+
+      expect(response.status).toBe(500);
+      const body = await response.json();
+      // No active replacement → the "no replacement found" hint, not the swap-failed hint.
+      expect(body.hint).toMatch(/setup-products/);
+      expect(body.attempted[0].priceId).toBe('price_elite_m');
     });
 
     it('does not retry when the error is unrelated to inactive prices', async () => {
