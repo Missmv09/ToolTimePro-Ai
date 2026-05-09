@@ -107,9 +107,26 @@ export default function SmsPage() {
               <li>You will then receive a 6-digit code by SMS the next time you log in from an unrecognized device.</li>
             </ol>
 
-            {/* Visual representation of the 2FA opt-in CTA */}
-            <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50">
-              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">2FA Opt-In Example (shown in Account Settings)</p>
+            {/* Actual screenshot of the production 2FA consent UI */}
+            <figure className="border border-gray-200 rounded-xl p-4 bg-white">
+              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">
+                Screenshot &mdash; 2FA SMS consent checkbox in Account Settings
+              </p>
+              <img
+                src="/sms-2fa-consent.png"
+                alt="Screenshot of the ToolTime Pro Two-Factor Authentication settings page showing an unchecked SMS consent checkbox with the label: 'I agree to receive SMS text messages containing verification codes for two-factor authentication at the phone number provided above. Msg & data rates may apply. Frequency varies based on login activity. Reply STOP to opt out or HELP for help at any time.'"
+                className="w-full max-w-[720px] mx-auto rounded-lg border border-gray-200 shadow-sm"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-[#5c5c70] mt-3 text-center">
+                Captured from app.tooltimepro.com &rarr; Dashboard &rarr; Settings &rarr; Two-Factor Authentication.
+                The consent checkbox is unchecked by default; users must affirmatively check it before 2FA SMS can be enabled.
+              </figcaption>
+            </figure>
+
+            {/* Interactive example of the same opt-in CTA */}
+            <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50 mt-4">
+              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">Interactive example &mdash; same consent label as shown above</p>
               <div className="bg-[#fef3d6] rounded-xl p-4">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
