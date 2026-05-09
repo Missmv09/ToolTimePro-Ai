@@ -1318,28 +1318,20 @@
             return addOns;
         }
 
-        async function startCheckout(plan) {
-            try {
-                const addOns = getAddOns(plan);
-                const response = await fetch('/api/checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        plan: plan,
-                        billing: currentBilling,
-                        addOns: addOns
-                    })
-                });
-                const data = await response.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert('Unable to start checkout. Please try again.');
-                }
-            } catch (error) {
-                console.error('Checkout error:', error);
-                alert('Unable to start checkout. Please try again.');
-            }
+        function startCheckout(plan) {
+            // The static marketing site has no auth context, so it can't drive
+            // /api/checkout directly — the webhook would have no company to
+            // attach the subscription to. Send visitors to the app's signup
+            // page, which creates the account, starts the 14-day trial, and
+            // (once they confirm + set a password) lands them in onboarding.
+            const addOns = getAddOns(plan);
+            const params = new URLSearchParams({
+                plan: plan,
+                billing: currentBilling,
+            });
+            if (addOns.length) params.set('addons', addOns.join(','));
+            window.location.href =
+                'https://app.tooltimepro.com/auth/signup?' + params.toString();
         }
 
         document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));t&&(t.scrollIntoView({behavior:'smooth',block:'start'}),document.getElementById('navLinks').classList.remove('active'))})});
