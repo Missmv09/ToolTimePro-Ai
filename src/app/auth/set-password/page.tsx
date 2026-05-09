@@ -157,8 +157,26 @@ export default function SetPasswordPage() {
     // Fire the welcome email in the background (non-blocking)
     triggerWelcomeEmail();
 
-    // Redirect based on user role
+    // If the user came here via the "Subscribe Now" path on /pricing, finish
+    // their checkout instead of dropping them on /onboarding. The pricing page
+    // stashed the params in localStorage right before sending them to /auth/signup.
+    let pendingCheckoutParams: string | null = null;
+    try {
+      const raw = localStorage.getItem('pendingCheckout');
+      if (raw) {
+        const parsed = JSON.parse(raw) as { params?: string; savedAt?: number };
+        // Discard intents older than 24h to avoid resurrecting stale carts.
+        const fresh = parsed.savedAt && Date.now() - parsed.savedAt < 24 * 60 * 60 * 1000;
+        if (fresh && parsed.params) pendingCheckoutParams = parsed.params;
+        localStorage.removeItem('pendingCheckout');
+      }
+    } catch {}
+
     setTimeout(() => {
+      if (pendingCheckoutParams) {
+        window.location.href = `/api/checkout?${pendingCheckoutParams}`;
+        return;
+      }
       if (dbUser?.role === 'worker') {
         router.push('/worker');
       } else if (company?.onboarding_completed) {
