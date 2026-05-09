@@ -43,17 +43,17 @@ function formatDollars(cents) {
 }
 
 // ============================================================
-// 1. Pricing & Plans — parsed from setup-stripe-products.js
+// 1. Pricing & Plans — parsed from stripe-products.js
 // ============================================================
 
 function extractProducts() {
-  const scriptPath = path.join(ROOT, 'scripts', 'setup-stripe-products.js');
+  const scriptPath = path.join(ROOT, 'scripts', 'stripe-products.js');
   const src = fs.readFileSync(scriptPath, 'utf8');
 
   // Extract the PRODUCTS array using a regex that captures the array content
   const match = src.match(/const PRODUCTS\s*=\s*\[([\s\S]*?)\n\];/);
   if (!match) {
-    console.error('Could not parse PRODUCTS array from setup-stripe-products.js');
+    console.error('Could not parse PRODUCTS array from stripe-products.js');
     process.exit(1);
   }
 
