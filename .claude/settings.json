@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0; git fetch --quiet origin sandbox main 2>/dev/null; git rev-parse --verify --quiet origin/sandbox >/dev/null 2>&1 || exit 0; git rev-parse --verify --quiet origin/main >/dev/null 2>&1 || exit 0; if [ -n \"$(git diff origin/main...origin/sandbox 2>/dev/null)\" ]; then files=$(git diff --name-only origin/main...origin/sandbox 2>/dev/null | wc -l | tr -d ' '); printf '{\"systemMessage\":\"Reminder: sandbox has unpromoted changes in %s file(s) not yet on main. Open a PR sandbox -> main to promote to prod.\"}\\n' \"$files\"; fi; exit 0",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

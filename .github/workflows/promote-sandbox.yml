@@ -1,0 +1,71 @@
+name: Auto-open sandbox → main promotion PR
+
+on:
+  push:
+    branches: [sandbox]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if sandbox has real content ahead of main
+        id: diff
+        run: |
+          if [ -n "$(git diff origin/main...origin/sandbox)" ]; then
+            files=$(git diff --name-only origin/main...origin/sandbox | wc -l | tr -d ' ')
+            commits=$(git rev-list --count --no-merges origin/main..origin/sandbox)
+            echo "ahead=true" >> "$GITHUB_OUTPUT"
+            echo "files=$files" >> "$GITHUB_OUTPUT"
+            echo "commits=$commits" >> "$GITHUB_OUTPUT"
+          else
+            echo "ahead=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update promotion PR
+        if: steps.diff.outputs.ahead == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILES: ${{ steps.diff.outputs.files }}
+          COMMITS: ${{ steps.diff.outputs.commits }}
+        run: |
+          existing=$(gh pr list --base main --head sandbox --state open --json number --jq '.[0].number')
+          body=$(cat <<EOF
+          Automated promotion PR opened by \`.github/workflows/promote-sandbox.yml\`.
+
+          ## What's in this PR
+
+          Sandbox is ahead of main by **${COMMITS} commit(s)** affecting **${FILES} file(s)**.
+
+          ## Before merging
+
+          - [ ] Smoke-test the changes on https://sandbox.tooltimepro.com
+          - [ ] Confirm CI is green
+          - [ ] Verify no sandbox-only debug code is being promoted (search the diff for "Temp:" or "sandbox-only:")
+
+          Closing this PR without merging will keep sandbox ahead of prod. The workflow will re-open it on the next push to \`sandbox\`.
+          EOF
+          )
+          if [ -n "$existing" ]; then
+            echo "Updating existing PR #$existing"
+            gh pr edit "$existing" --body "$body"
+          else
+            echo "Opening new PR"
+            gh pr create \
+              --base main \
+              --head sandbox \
+              --title "promote: sandbox -> main" \
+              --body "$body"
+          fi
+
+      - name: No-op when sandbox is in sync
+        if: steps.diff.outputs.ahead != 'true'
+        run: echo "sandbox has no unpromoted content vs main — nothing to do."
