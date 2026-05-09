@@ -113,7 +113,7 @@ export default function SmsPage() {
                 Screenshot &mdash; 2FA SMS consent checkbox in Account Settings
               </p>
               <img
-                src="/sms-2fa-consent.png"
+                src="/2fa.png"
                 alt="Screenshot of the ToolTime Pro Two-Factor Authentication settings page showing an unchecked SMS consent checkbox with the label: 'I agree to receive SMS text messages containing verification codes for two-factor authentication at the phone number provided above. Msg & data rates may apply. Frequency varies based on login activity. Reply STOP to opt out or HELP for help at any time.'"
                 className="w-full max-w-[720px] mx-auto rounded-lg border border-gray-200 shadow-sm"
                 loading="lazy"
