@@ -1,0 +1,52 @@
+name: Sync Crisp Helpdesk
+
+# Manual-only: pushes wiki/*.md into Crisp's knowledge base.
+# Does NOT regenerate wiki content or push commits — pure one-way sync.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview what would sync without calling the Crisp API'
+        type: boolean
+        default: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify Crisp secrets are configured
+        env:
+          CRISP_API_IDENTIFIER: ${{ secrets.CRISP_API_IDENTIFIER }}
+          CRISP_API_KEY: ${{ secrets.CRISP_API_KEY }}
+          CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+        run: |
+          missing=()
+          [ -z "$CRISP_API_IDENTIFIER" ] && missing+=("CRISP_API_IDENTIFIER")
+          [ -z "$CRISP_API_KEY" ] && missing+=("CRISP_API_KEY")
+          [ -z "$CRISP_WEBSITE_ID" ] && missing+=("CRISP_WEBSITE_ID")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required GitHub repo secrets: ${missing[*]}"
+            echo "Add them at: Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "All Crisp secrets are configured."
+
+      - name: Sync wiki to Crisp
+        env:
+          CRISP_API_IDENTIFIER: ${{ secrets.CRISP_API_IDENTIFIER }}
+          CRISP_API_KEY: ${{ secrets.CRISP_API_KEY }}
+          CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/sync-to-crisp.js --dry-run
+          else
+            node scripts/sync-to-crisp.js
+          fi
