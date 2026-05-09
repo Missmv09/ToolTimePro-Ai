@@ -13,7 +13,9 @@
     "test:coverage": "jest --coverage",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "test:e2e": "cypress run"
+    "test:e2e": "cypress run",
+    "sync:crisp": "node scripts/sync-to-crisp.js",
+    "sync:crisp:dry": "node scripts/sync-to-crisp.js --dry-run"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",
