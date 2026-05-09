@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       # Pricing / product catalog changes
+      - 'scripts/stripe-products.js'
       - 'scripts/setup-stripe-products.js'
       - 'src/lib/stripe-prices.js'
       # API route changes
