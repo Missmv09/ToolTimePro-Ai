@@ -77,6 +77,19 @@ export default function TermsPage() {
               SMS data and phone numbers are not shared with third parties for marketing purposes.
               Phone numbers are only used for delivering service notifications on behalf of your business.
             </p>
+            <p className="mt-3">
+              <strong>Two-Factor Authentication (2FA) SMS:</strong> Account holders who enable
+              two-factor authentication in <em>Dashboard &rarr; Settings &rarr; Two-Factor Authentication</em>
+              will receive one-time SMS verification codes when logging in from unrecognized devices.
+              Enrollment requires affirmative consent via an unchecked SMS consent checkbox. Message
+              frequency is 0&ndash;3 messages per month per user. Reply <strong>STOP</strong> to opt out
+              or <strong>HELP</strong> for help. Standard message and data rates may apply. Phone numbers
+              used for 2FA are never sold, shared with third parties or affiliates, or used for marketing.
+              Full program details are available at{' '}
+              <Link href="/sms#two-factor-authentication" className="text-[#f5a623] hover:underline">
+                /sms#two-factor-authentication
+              </Link>.
+            </p>
           </section>
 
           <section>
