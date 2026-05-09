@@ -8,6 +8,7 @@
  */
 
 const mockSessionCreate = jest.fn();
+const mockPricesList = jest.fn();
 
 jest.mock('stripe', () => {
   return jest.fn(() => ({
@@ -15,6 +16,9 @@ jest.mock('stripe', () => {
       sessions: {
         create: mockSessionCreate,
       },
+    },
+    prices: {
+      list: mockPricesList,
     },
   }));
 });
@@ -47,6 +51,7 @@ describe('/api/checkout', () => {
     mockSessionCreate.mockResolvedValue({
       url: 'https://checkout.stripe.com/test-session',
     });
+    mockPricesList.mockResolvedValue({ data: [], has_more: false });
   });
 
   it('creates a subscription session for a tier plan', async () => {
@@ -166,6 +171,131 @@ describe('/api/checkout', () => {
     const config = mockSessionCreate.mock.calls[0][0];
     expect(config.subscription_data.trial_period_days).toBe(14);
     expect(config.metadata.skipTrial).toBe('false');
+  });
+
+  describe('inactive-price self-heal', () => {
+    // The route caches the active-prices map at module scope. Reset modules
+    // between tests so each test starts with an empty cache.
+    let isolatedGET;
+    beforeEach(() => {
+      jest.resetModules();
+      isolatedGET = require('@/app/api/checkout/route').GET;
+    });
+
+    it('retries with a metadata-resolved active price when Stripe rejects the configured price as inactive', async () => {
+      mockSessionCreate
+        .mockRejectedValueOnce(Object.assign(new Error('The price specified is inactive. This field only accepts active prices.'), { type: 'StripeInvalidRequestError' }))
+        .mockResolvedValueOnce({ url: 'https://checkout.stripe.com/recovered-session' });
+
+      mockPricesList.mockResolvedValueOnce({
+        data: [
+          { id: 'price_elite_m_NEW', metadata: { tooltime_id: 'elite', tooltime_key: 'monthly' } },
+        ],
+        has_more: false,
+      });
+
+      const request = makeRequest({ tier: 'elite', billing: 'monthly', skipTrial: 'true' });
+      const response = await isolatedGET(request);
+
+      expect(mockSessionCreate).toHaveBeenCalledTimes(2);
+      expect(mockPricesList).toHaveBeenCalled();
+
+      const firstCall = mockSessionCreate.mock.calls[0][0];
+      expect(firstCall.line_items[0].price).toBe('price_elite_m');
+
+      const secondCall = mockSessionCreate.mock.calls[1][0];
+      expect(secondCall.line_items[0].price).toBe('price_elite_m_NEW');
+
+      expect(response.status).toBe(303);
+    });
+
+    it('returns a clear error with attempted price details when no active replacement exists', async () => {
+      mockSessionCreate.mockRejectedValueOnce(
+        Object.assign(new Error('The price specified is inactive. This field only accepts active prices.'), { type: 'StripeInvalidRequestError' })
+      );
+      // Both the cached lookup and the forced refresh return no candidates.
+      mockPricesList.mockResolvedValue({ data: [], has_more: false });
+
+      const request = makeRequest({ tier: 'elite', billing: 'monthly' });
+      const response = await isolatedGET(request);
+
+      expect(response.status).toBe(500);
+      const body = await response.json();
+      expect(body.error).toBe('Failed to create checkout session');
+      expect(body.details).toMatch(/inactive/i);
+      expect(body.attempted).toEqual([
+        { tooltimeId: 'elite', tooltimeKey: 'monthly', priceId: 'price_elite_m' },
+      ]);
+      expect(body.hint).toMatch(/setup-products/);
+    });
+
+    it('surfaces a diagnostic error when the metadata-resolved replacement is also rejected as inactive', async () => {
+      // Original create + two retries (with cached then refreshed lookup) all reject.
+      const inactiveErr = () =>
+        Object.assign(new Error('The price specified is inactive. This field only accepts active prices.'), { type: 'StripeInvalidRequestError' });
+      mockSessionCreate
+        .mockRejectedValueOnce(inactiveErr())
+        .mockRejectedValueOnce(inactiveErr())
+        .mockRejectedValueOnce(inactiveErr());
+
+      // Both lookups return the same metadata-tagged price (it's "active" but
+      // rejected by Stripe — e.g. its product is archived).
+      mockPricesList.mockResolvedValue({
+        data: [
+          { id: 'price_elite_m_NEW', metadata: { tooltime_id: 'elite', tooltime_key: 'monthly' }, product: { active: true } },
+        ],
+        has_more: false,
+      });
+
+      const request = makeRequest({ tier: 'elite', billing: 'monthly' });
+      const response = await isolatedGET(request);
+
+      expect(response.status).toBe(500);
+      const body = await response.json();
+      expect(body.error).toBe('Failed to create checkout session');
+      expect(body.details).toMatch(/inactive/i);
+      expect(body.swaps).toEqual([
+        { tooltimeId: 'elite', tooltimeKey: 'monthly', from: 'price_elite_m', to: 'price_elite_m_NEW' },
+      ]);
+      expect(body.attempted).toEqual([
+        { tooltimeId: 'elite', tooltimeKey: 'monthly', priceId: 'price_elite_m_NEW' },
+      ]);
+      expect(body.hint).toMatch(/product may be archived/i);
+    });
+
+    it('skips replacement prices whose product has been archived', async () => {
+      mockSessionCreate
+        .mockRejectedValueOnce(
+          Object.assign(new Error('The price specified is inactive. This field only accepts active prices.'), { type: 'StripeInvalidRequestError' })
+        );
+
+      // The only metadata match has product.active=false, so it should be filtered out.
+      mockPricesList.mockResolvedValue({
+        data: [
+          { id: 'price_elite_m_OLD', metadata: { tooltime_id: 'elite', tooltime_key: 'monthly' }, product: { active: false } },
+        ],
+        has_more: false,
+      });
+
+      const request = makeRequest({ tier: 'elite', billing: 'monthly' });
+      const response = await isolatedGET(request);
+
+      expect(response.status).toBe(500);
+      const body = await response.json();
+      // No active replacement → the "no replacement found" hint, not the swap-failed hint.
+      expect(body.hint).toMatch(/setup-products/);
+      expect(body.attempted[0].priceId).toBe('price_elite_m');
+    });
+
+    it('does not retry when the error is unrelated to inactive prices', async () => {
+      mockSessionCreate.mockRejectedValueOnce(new Error('Network down'));
+      const request = makeRequest({ tier: 'pro', billing: 'monthly' });
+      const response = await isolatedGET(request);
+
+      expect(mockSessionCreate).toHaveBeenCalledTimes(1);
+      expect(mockPricesList).not.toHaveBeenCalled();
+      expect(response.status).toBe(500);
+    });
   });
 
   it('forwards userEmail and companyId so the webhook can match an existing trial user', async () => {
