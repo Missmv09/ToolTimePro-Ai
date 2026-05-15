@@ -78,7 +78,7 @@ class CrispClient {
     this.auth = 'Basic ' + Buffer.from(`${identifier}:${key}`).toString('base64');
     // 'plugin' for a marketplace plugin token, 'user' for a workspace
     // API token (Settings > Advanced Configuration > API Token).
-    this.tier = process.env.CRISP_API_TIER || 'user';
+    this.tier = process.env.CRISP_API_TIER || 'plugin';
   }
 
   async request(method, endpoint, body) {
