@@ -6,9 +6,13 @@
  * Each wiki/*.md file becomes a Crisp helpdesk article, organized into categories.
  *
  * Required env vars:
- *   CRISP_API_IDENTIFIER  — Crisp API plugin identifier (from marketplace.crisp.chat)
- *   CRISP_API_KEY         — Crisp API plugin secret key
+ *   CRISP_API_IDENTIFIER  — Crisp API token identifier
+ *   CRISP_API_KEY         — Crisp API token secret key
  *   CRISP_WEBSITE_ID      — Your Crisp website ID
+ *
+ * Get the token from: Crisp app > Settings > Workspace Settings >
+ * Advanced Configuration > API Token (tier defaults to 'user').
+ * For a legacy marketplace plugin token, set CRISP_API_TIER=plugin.
  *
  * Usage:
  *   CRISP_API_IDENTIFIER=xxx CRISP_API_KEY=yyy CRISP_WEBSITE_ID=zzz node scripts/sync-to-crisp.js
@@ -72,6 +76,9 @@ class CrispClient {
     this.websiteId = websiteId;
     this.baseUrl = `https://api.crisp.chat/v1/website/${websiteId}/helpdesk`;
     this.auth = 'Basic ' + Buffer.from(`${identifier}:${key}`).toString('base64');
+    // 'plugin' for a marketplace plugin token, 'user' for a workspace
+    // API token (Settings > Advanced Configuration > API Token).
+    this.tier = process.env.CRISP_API_TIER || 'user';
   }
 
   async request(method, endpoint, body) {
@@ -81,7 +88,7 @@ class CrispClient {
       headers: {
         'Authorization': this.auth,
         'Content-Type': 'application/json',
-        'X-Crisp-Tier': 'plugin',
+        'X-Crisp-Tier': this.tier,
       },
     };
     if (body) {
