@@ -44,6 +44,9 @@ jobs:
           CRISP_API_IDENTIFIER: ${{ secrets.CRISP_API_IDENTIFIER }}
           CRISP_API_KEY: ${{ secrets.CRISP_API_KEY }}
           CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+          # Workspace API tokens authenticate as tier 'plugin'. Override
+          # with a CRISP_API_TIER repo secret if ever needed.
+          CRISP_API_TIER: ${{ secrets.CRISP_API_TIER || 'plugin' }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             node scripts/sync-to-crisp.js --dry-run
