@@ -46,29 +46,39 @@ jobs:
           CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
           CRISP_API_TIER: ${{ secrets.CRISP_API_TIER || 'plugin' }}
         run: |
+          # Trim like the script does so the diagnostic matches reality
+          ID=$(printf '%s' "$CRISP_API_IDENTIFIER" | tr -d '[:space:]')
+          KEY=$(printf '%s' "$CRISP_API_KEY" | tr -d '[:space:]')
+          WID=$(printf '%s' "$CRISP_WEBSITE_ID" | tr -d '[:space:]')
           echo "=== Credential shape (no secrets printed) ==="
-          printf 'IDENTIFIER length: %s\n' "${#CRISP_API_IDENTIFIER}"
-          printf 'KEY        length: %s\n' "${#CRISP_API_KEY}"
-          printf 'WEBSITE_ID len   : %s\n' "${#CRISP_WEBSITE_ID}"
-          printf 'TIER             : %s\n' "$CRISP_API_TIER"
-          # Detect leading/trailing whitespace without revealing the value
-          case "$CRISP_API_IDENTIFIER" in
-            " "*|*" "|*$'\t'*|*$'\n'*) echo "WARNING: IDENTIFIER has stray whitespace" ;;
-            *) echo "IDENTIFIER: no stray whitespace" ;;
+          printf 'IDENTIFIER length (raw/trimmed): %s / %s\n' "${#CRISP_API_IDENTIFIER}" "${#ID}"
+          printf 'KEY        length (raw/trimmed): %s / %s\n' "${#CRISP_API_KEY}" "${#KEY}"
+          printf 'WEBSITE_ID length (raw/trimmed): %s / %s  (expected 36)\n' "${#CRISP_WEBSITE_ID}" "${#WID}"
+          printf 'TIER                           : %s\n' "$CRISP_API_TIER"
+          BASE="https://api.crisp.chat/v1/website/$WID/helpdesk"
+
+          echo "=== Test 1: GET /locale (read) ==="
+          g=$(curl -s -o /tmp/g.json -w '%{http_code}' \
+            -u "$ID:$KEY" -H "X-Crisp-Tier: $CRISP_API_TIER" "$BASE/locale")
+          echo ">>> GET status: $g"
+          cat /tmp/g.json; echo
+
+          echo "=== Test 2: POST /locale/en/category (the actual failing call) ==="
+          p=$(curl -s -o /tmp/p.json -w '%{http_code}' -X POST \
+            -u "$ID:$KEY" -H "X-Crisp-Tier: $CRISP_API_TIER" \
+            -H 'Content-Type: application/json' \
+            -d '{"name":"__diag_probe__","order":999}' \
+            "$BASE/locale/en/category")
+          echo ">>> POST status: $p"
+          cat /tmp/p.json; echo
+
+          echo "============================================"
+          echo ">>> SUMMARY: GET=$g  POST=$p  (200/201 = OK)"
+          echo "============================================"
+          case "$p" in
+            2*) echo "Auth + write OK" ;;
+            *)  echo "Write call failed — see POST status/body above"; exit 1 ;;
           esac
-          case "$CRISP_API_KEY" in
-            " "*|*" "|*$'\t'*|*$'\n'*) echo "WARNING: KEY has stray whitespace" ;;
-            *) echo "KEY: no stray whitespace" ;;
-          esac
-          echo "=== Test auth call: GET website base ==="
-          code=$(curl -s -o /tmp/resp.json -w '%{http_code}' \
-            -u "$CRISP_API_IDENTIFIER:$CRISP_API_KEY" \
-            -H "X-Crisp-Tier: $CRISP_API_TIER" \
-            "https://api.crisp.chat/v1/website/$CRISP_WEBSITE_ID/helpdesk/locale")
-          echo "HTTP status: $code"
-          echo "Response body:"
-          cat /tmp/resp.json
-          echo
           echo "(200 = creds OK; 401 = bad creds/tier; 404 = website/tier scope issue)"
 
       - name: Sync wiki to Crisp
