@@ -39,6 +39,38 @@ jobs:
           fi
           echo "All Crisp secrets are configured."
 
+      - name: Diagnose Crisp credentials
+        env:
+          CRISP_API_IDENTIFIER: ${{ secrets.CRISP_API_IDENTIFIER }}
+          CRISP_API_KEY: ${{ secrets.CRISP_API_KEY }}
+          CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+          CRISP_API_TIER: ${{ secrets.CRISP_API_TIER || 'plugin' }}
+        run: |
+          echo "=== Credential shape (no secrets printed) ==="
+          printf 'IDENTIFIER length: %s\n' "${#CRISP_API_IDENTIFIER}"
+          printf 'KEY        length: %s\n' "${#CRISP_API_KEY}"
+          printf 'WEBSITE_ID len   : %s\n' "${#CRISP_WEBSITE_ID}"
+          printf 'TIER             : %s\n' "$CRISP_API_TIER"
+          # Detect leading/trailing whitespace without revealing the value
+          case "$CRISP_API_IDENTIFIER" in
+            " "*|*" "|*$'\t'*|*$'\n'*) echo "WARNING: IDENTIFIER has stray whitespace" ;;
+            *) echo "IDENTIFIER: no stray whitespace" ;;
+          esac
+          case "$CRISP_API_KEY" in
+            " "*|*" "|*$'\t'*|*$'\n'*) echo "WARNING: KEY has stray whitespace" ;;
+            *) echo "KEY: no stray whitespace" ;;
+          esac
+          echo "=== Test auth call: GET website base ==="
+          code=$(curl -s -o /tmp/resp.json -w '%{http_code}' \
+            -u "$CRISP_API_IDENTIFIER:$CRISP_API_KEY" \
+            -H "X-Crisp-Tier: $CRISP_API_TIER" \
+            "https://api.crisp.chat/v1/website/$CRISP_WEBSITE_ID/helpdesk/locale")
+          echo "HTTP status: $code"
+          echo "Response body:"
+          cat /tmp/resp.json
+          echo
+          echo "(200 = creds OK; 401 = bad creds/tier; 404 = website/tier scope issue)"
+
       - name: Sync wiki to Crisp
         env:
           CRISP_API_IDENTIFIER: ${{ secrets.CRISP_API_IDENTIFIER }}
