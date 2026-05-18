@@ -266,9 +266,11 @@ function getTitleFromMd(content) {
 }
 
 async function main() {
-  const identifier = process.env.CRISP_API_IDENTIFIER;
-  const key = process.env.CRISP_API_KEY;
-  const websiteId = process.env.CRISP_WEBSITE_ID;
+  // Trim defensively — a trailing newline pasted into a CI secret
+  // silently malforms the request URL and yields 401 invalid_session.
+  const identifier = (process.env.CRISP_API_IDENTIFIER || '').trim();
+  const key = (process.env.CRISP_API_KEY || '').trim();
+  const websiteId = (process.env.CRISP_WEBSITE_ID || '').trim();
 
   if (!DRY_RUN && (!identifier || !key || !websiteId)) {
     console.error('Missing required env vars: CRISP_API_IDENTIFIER, CRISP_API_KEY, CRISP_WEBSITE_ID');
