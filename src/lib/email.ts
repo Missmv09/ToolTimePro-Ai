@@ -292,6 +292,57 @@ export async function sendImmediateWelcomeEmail({
 // Subscription Welcome Email (after Stripe payment)
 // ============================================
 
+// ============================================
+// Subscription Welcome Email (after Stripe payment)
+// ============================================
+
+export async function sendCheckoutWelcomeWithLoginLink({
+  to,
+  name,
+  plan,
+  loginUrl,
+}: {
+  to: string;
+  name: string;
+  plan: string;
+  loginUrl: string;
+}) {
+  const planName = formatPlanName(plan);
+  const firstName = name?.split(' ')[0] || 'there';
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Your ToolTime Pro account is ready — log in',
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Welcome, ${firstName}!</h2>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Thanks for subscribing to <strong>${planName}</strong>. We've created your account &mdash;
+        click the button below to log in. No password needed for this first login.
+      </p>
+
+      ${ctaButton('Log in to ToolTime Pro', loginUrl)}
+
+      <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-top: 24px;">
+        Once you're in, you'll set up your password, finish your company profile, and
+        invite your team. The whole onboarding takes about 5 minutes.
+      </p>
+
+      <p style="color: #9ca3af; font-size: 13px; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+        For your security, this login link expires in 1 hour. If it's expired by the time
+        you click it, just go to ${BASE_URL}/auth/login and request a new one.
+      </p>
+    `),
+  });
+
+  if (error) {
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function sendWelcomeEmail({
   to,
   plan,

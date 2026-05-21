@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendWelcomeEmail } from '@/lib/email';
+import { autoCreateCompanyForCheckout } from '@/lib/auto-provision';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -179,7 +180,52 @@ async function handleCheckoutComplete(session) {
     }
   }
 
-  if (resolvedCompanyId) {
+  // No matching company → first-time customer paid before signing up.
+  // Provision an account from the checkout email and skip the regular
+  // welcome email (autoCreate sends a magic-link login email instead).
+  let autoProvisioned = false;
+  if (!resolvedCompanyId && customerEmail) {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (session.success_url ? new URL(session.success_url).origin : null) ||
+      'https://tooltimepro.com';
+    const skipTrial = metadata.skipTrial === 'true';
+    try {
+      const result = await autoCreateCompanyForCheckout({
+        email: customerEmail,
+        fullName: session.customer_details?.name || '',
+        plan: plan || 'starter',
+        addons,
+        stripeCustomerId: customerId,
+        skipTrial,
+        baseUrl,
+      });
+      if (result.companyId) {
+        resolvedCompanyId = result.companyId;
+        resolutionSource = 'auto_created';
+        autoProvisioned = true;
+        console.info('Company auto-provisioned after checkout', {
+          sessionId: session.id,
+          companyId: resolvedCompanyId,
+          email: customerEmail,
+        });
+      } else if (result.error) {
+        console.error('Auto-provision failed for checkout session', {
+          sessionId: session.id,
+          email: customerEmail,
+          error: result.error,
+        });
+      }
+    } catch (err) {
+      console.error('Auto-provision threw for checkout session', {
+        sessionId: session.id,
+        email: customerEmail,
+        error: err.message,
+      });
+    }
+  }
+
+  if (resolvedCompanyId && !autoProvisioned) {
     // Treat checkout.session.completed as the moment the company becomes a
     // paying subscriber — even when the session started a Stripe-side trial,
     // payment-method-on-file means we no longer need to gate on trial_ends_at.
@@ -222,20 +268,7 @@ async function handleCheckoutComplete(session) {
         stripeCustomerId: customerId,
       });
     }
-
-    // Persist company id back to the Stripe Customer so any future event on
-    // this customer can be resolved to the same company even if our local DB
-    // pointers go stale.
-    if (customerId) {
-      try {
-        await getStripe().customers.update(customerId, {
-          metadata: { companyId: resolvedCompanyId },
-        });
-      } catch (err) {
-        console.error('Failed to write companyId back to Stripe customer:', err.message);
-      }
-    }
-  } else {
+  } else if (!resolvedCompanyId) {
     console.error('No company found for checkout session — DB not updated', {
       sessionId: session.id,
       stripeCustomerId: customerId,
@@ -245,6 +278,19 @@ async function handleCheckoutComplete(session) {
       customerEmail,
       lookupEmailUsed: lookupEmail || null,
     });
+  }
+
+  // Persist company id back to the Stripe Customer so any future event on
+  // this customer can be resolved to the same company even if local DB
+  // pointers go stale. Runs for both lookup-resolved and auto-provisioned.
+  if (resolvedCompanyId && customerId) {
+    try {
+      await getStripe().customers.update(customerId, {
+        metadata: { companyId: resolvedCompanyId },
+      });
+    } catch (err) {
+      console.error('Failed to write companyId back to Stripe customer:', err.message);
+    }
   }
 
   const onboarding = metadata.onboarding;
@@ -265,7 +311,8 @@ async function handleCheckoutComplete(session) {
     }
   }
 
-  if (customerEmail) {
+  // Auto-provisioned customers got a magic-link login email — don't double up.
+  if (customerEmail && !autoProvisioned) {
     try {
       await sendWelcomeEmail({
         to: customerEmail,
