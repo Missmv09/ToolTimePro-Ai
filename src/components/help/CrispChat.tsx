@@ -48,6 +48,14 @@ export default function CrispChat() {
     // Brand colors: ToolTime Pro gold
     window.$crisp.push(['config', 'color:theme', ['#f5a623']]);
 
+    // Hide the floating bubble — Ask Jenny is the visible help launcher.
+    // Crisp is summoned on demand via the drawer's "Talk to a human" button,
+    // and re-hides itself when the user closes the chat.
+    window.$crisp.push(['do', 'chat:hide']);
+    window.$crisp.push(['on', 'chat:closed', () => {
+      window.$crisp.push(['do', 'chat:hide']);
+    }]);
+
     return () => {
       // Cleanup on unmount (e.g., logout)
       const existingScript = document.getElementById('crisp-widget-script');
