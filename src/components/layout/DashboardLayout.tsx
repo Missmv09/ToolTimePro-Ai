@@ -44,6 +44,7 @@ import TrialExpiredGate from '@/components/trial/TrialExpiredGate';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import HelpButton from '@/components/help/HelpButton';
 import CrispChat from '@/components/help/CrispChat';
+import AskJennyDrawer from '@/components/help/AskJennyDrawer';
 import SessionTimeoutWarning from '@/components/auth/SessionTimeoutWarning';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 
@@ -327,8 +328,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           />
         )}
 
-        {/* Crisp live chat widget */}
+        {/* Crisp live chat widget (live human chat) */}
         <CrispChat />
+
+        {/* Ask Jenny — AI self-help grounded in wiki/*.md */}
+        <AskJennyDrawer />
       </div>
     </ProtectedRoute>
   );

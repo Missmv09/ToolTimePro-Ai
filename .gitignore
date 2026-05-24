@@ -7,3 +7,6 @@ tsconfig.tsbuildinfo
 
 # Local Netlify folder
 .netlify
+
+# Generated at build time by scripts/build-help-knowledge.js
+src/lib/help-knowledge.generated.js
