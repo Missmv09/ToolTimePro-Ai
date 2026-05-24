@@ -74,6 +74,12 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 | `/api/google-calendar/disconnect` | `POST` | `src/app/api/google-calendar/disconnect/route.js` |
 | `/api/google-calendar/sync` | `POST` | `src/app/api/google-calendar/sync/route.js` |
 
+## Help
+
+| Endpoint | Methods | Source |
+|----------|---------|--------|
+| `/api/help/ask-jenny` | `POST` | `src/app/api/help/ask-jenny/route.js` |
+
 ## Import Customers
 
 | Endpoint | Methods | Source |
@@ -273,6 +279,6 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 ---
 
-> **Total endpoints:** 92 routes across 34 groups
+> **Total endpoints:** 93 routes across 35 groups
 
-_Last generated: 2026-05-21_
+_Last generated: 2026-05-24_
