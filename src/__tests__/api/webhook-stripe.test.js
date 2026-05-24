@@ -12,6 +12,7 @@ const mockSupabaseFrom = jest.fn();
 const mockSendWelcomeEmail = jest.fn().mockResolvedValue(undefined);
 const mockCustomersRetrieve = jest.fn().mockResolvedValue({ id: 'cus_test', metadata: {}, deleted: false });
 const mockCustomersUpdate = jest.fn().mockResolvedValue({ id: 'cus_test' });
+const mockAutoCreate = jest.fn().mockResolvedValue({ companyId: null, error: 'mocked' });
 
 jest.mock('stripe', () => {
   return jest.fn(() => ({
@@ -33,6 +34,10 @@ jest.mock('@supabase/supabase-js', () => ({
 
 jest.mock('@/lib/email', () => ({
   sendWelcomeEmail: mockSendWelcomeEmail,
+}));
+
+jest.mock('@/lib/auto-provision', () => ({
+  autoCreateCompanyForCheckout: mockAutoCreate,
 }));
 
 process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
@@ -259,6 +264,54 @@ describe('/api/webhook/stripe', () => {
     expect(response.status).toBe(200);
     expect(mockSupabaseFrom).toHaveBeenCalledWith('companies');
     expect(mockUpdate).toHaveBeenCalled();
+  });
+
+  it('auto-provisions a company when no user matches and skips the duplicate welcome email', async () => {
+    // Regression test: customers who pay via Stripe Checkout without first
+    // signing up would previously get a 200 OK from the webhook with no
+    // company row created (a "ghost subscription"). The webhook should now
+    // call autoCreateCompanyForCheckout, which creates the account and sends
+    // a magic-link login email — replacing the regular welcome email.
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_live_autoprov',
+          customer_email: 'fresh@example.com',
+          customer_details: { email: 'fresh@example.com', name: 'Fresh Buyer' },
+          customer: 'cus_autoprov',
+          metadata: { plan: 'pro', tier: 'pro', billing: 'monthly', skipTrial: 'true' },
+        },
+      },
+    });
+
+    // All five lookup paths return null so the auto-provision branch runs.
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116' } });
+    mockAutoCreate.mockResolvedValueOnce({
+      companyId: 'company-auto-created',
+      error: null,
+    });
+
+    const request = makeWebhookRequest();
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockAutoCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'fresh@example.com',
+        fullName: 'Fresh Buyer',
+        plan: 'pro',
+        stripeCustomerId: 'cus_autoprov',
+        skipTrial: true,
+      })
+    );
+    // Welcome email is suppressed because auto-provision already sent the
+    // magic-link login email.
+    expect(mockSendWelcomeEmail).not.toHaveBeenCalled();
+    // The new company id is written back to the Stripe customer.
+    expect(mockCustomersUpdate).toHaveBeenCalledWith('cus_autoprov', {
+      metadata: { companyId: 'company-auto-created' },
+    });
   });
 
   it('sends welcome email on checkout completion', async () => {

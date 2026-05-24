@@ -14,7 +14,8 @@
     "test:coverage": "jest --coverage",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "test:e2e": "cypress run"
+    "test:e2e": "cypress run",
+    "recover:trial-emails": "node scripts/recover-trial-emails.js"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",
