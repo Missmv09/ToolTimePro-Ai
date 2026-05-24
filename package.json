@@ -15,8 +15,6 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:e2e": "cypress run",
-    "sync:crisp": "node scripts/sync-to-crisp.js",
-    "sync:crisp:dry": "node scripts/sync-to-crisp.js --dry-run",
     "recover:trial-emails": "node scripts/recover-trial-emails.js"
   },
   "dependencies": {
