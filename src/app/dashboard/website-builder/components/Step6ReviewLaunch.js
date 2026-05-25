@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw } from 'lucide-react';
+import { Check, Edit2, Globe, Palette, FileText, ExternalLink, ArrowRight, RefreshCw, Copy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import SitePreviewFrame from './SitePreviewFrame';
 import { clearWizardState } from './WebsiteWizard';
+import { dnsRecordsFor } from '@/lib/site-dns';
 
 // Decode a JWT payload client-side to check expiry before sending
 function isTokenExpired(token) {
@@ -256,53 +257,109 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
 
   // Launch success screen
   if (siteId) {
+    const domainType = wizardData.selectedDomain?.type;
+    const isByo = domainType === 'existing';
+    const dnsRecords = isByo ? dnsRecordsFor(wizardData.selectedDomain?.domainName) : null;
+
+    const subtitle = isByo
+      ? `Your site is built. Add the DNS records below at your registrar to make ${wizardData.selectedDomain?.domainName} go live. This usually takes 24-48 hours after you update DNS.`
+      : (launched
+        ? `${wizardData.selectedDomain?.domainName} is live and ready for customers.`
+        : `We're setting up ${wizardData.selectedDomain?.domainName} right now. You'll be notified when it's live.`);
+
+    const heading = isByo
+      ? 'Your Website is Built — Connect Your DNS'
+      : (launched ? 'Your Website is LIVE!' : 'Your Website is Being Built!');
+
     return (
       <div className="max-w-2xl mx-auto text-center">
-        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${launched ? 'bg-green-100' : 'bg-gold-100'}`}>
-          {launched ? (
+        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${launched && !isByo ? 'bg-green-100' : 'bg-gold-100'}`}>
+          {launched && !isByo ? (
             <Check size={40} className="text-green-600" />
+          ) : isByo ? (
+            <Globe size={36} className="text-gold-600" />
           ) : (
             <RefreshCw size={32} className="text-gold-600 animate-spin" />
           )}
         </div>
 
-        <h2 className="text-2xl font-bold text-navy-500 mb-2">
-          {launched ? 'Your Website is LIVE!' : 'Your Website is Being Built!'}
-        </h2>
-        <p className="text-gray-500 mb-8">
-          {launched
-            ? `${wizardData.selectedDomain?.domainName} is live and ready for customers.`
-            : `We're setting up ${wizardData.selectedDomain?.domainName} right now. You'll be notified when it's live.`}
-        </p>
+        <h2 className="text-2xl font-bold text-navy-500 mb-2">{heading}</h2>
+        <p className="text-gray-500 mb-8">{subtitle}</p>
 
-        {/* Progress steps */}
-        <div className="card text-left mb-8">
-          <p className="text-sm font-semibold text-navy-500 mb-4">What&apos;s happening now:</p>
-          <div className="space-y-3">
-            {[
-              { key: 'domain_registered', label: 'Domain registered' },
-              { key: 'dns_configured', label: 'Setting up hosting' },
-              { key: 'site_generated', label: 'Building your pages' },
-              { key: 'deployed', label: 'Deploying to the web' },
-              { key: 'live', label: 'Going live!' },
-            ].map((step) => (
-              <div key={step.key} className="flex items-center gap-3">
-                {publishSteps[step.key] ? (
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                    <Check size={14} className="text-green-600" />
-                  </div>
-                ) : (
-                  <div className="w-6 h-6 border-2 border-gray-200 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-gray-300 rounded-full" />
-                  </div>
-                )}
-                <span className={`text-sm ${publishSteps[step.key] ? 'text-navy-500 font-medium' : 'text-gray-400'}`}>
-                  {step.label}
-                </span>
-              </div>
-            ))}
+        {/* BYO DNS records */}
+        {isByo && dnsRecords && (
+          <div className="card text-left mb-8">
+            <p className="text-sm font-semibold text-navy-500 mb-3">DNS records to add at your registrar</p>
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                  <tr>
+                    <th className="text-left px-3 py-2">Type</th>
+                    <th className="text-left px-3 py-2">Host</th>
+                    <th className="text-left px-3 py-2">Value</th>
+                    <th className="text-left px-3 py-2">TTL</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dnsRecords.map((r, i) => (
+                    <tr key={`${r.type}-${r.host}`} className={i > 0 ? 'border-t border-gray-100' : ''}>
+                      <td className="px-3 py-2 font-mono font-semibold text-navy-500">{r.type}</td>
+                      <td className="px-3 py-2 font-mono">{r.host}</td>
+                      <td className="px-3 py-2 font-mono text-navy-500">{r.value}</td>
+                      <td className="px-3 py-2 text-gray-500">{r.ttl}</td>
+                      <td className="px-3 py-2 text-right">
+                        <button
+                          onClick={() => navigator.clipboard.writeText(r.value)}
+                          className="text-gold-600 hover:text-gold-700 text-xs inline-flex items-center gap-1"
+                        >
+                          <Copy size={12} /> Copy
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              Need help? See guides for{' '}
+              <a href="https://www.godaddy.com/help/manage-dns-records-680" target="_blank" rel="noopener noreferrer" className="underline text-gold-600">GoDaddy</a>,{' '}
+              <a href="https://www.namecheap.com/support/knowledgebase/article.aspx/319/2237/how-can-i-set-up-an-a-address-record-for-my-domain/" target="_blank" rel="noopener noreferrer" className="underline text-gold-600">Namecheap</a>, or{' '}
+              <a href="https://support.google.com/domains/answer/3290309" target="_blank" rel="noopener noreferrer" className="underline text-gold-600">Google Domains</a>.
+            </p>
           </div>
-        </div>
+        )}
+
+        {/* Progress steps (subdomain path only) */}
+        {!isByo && (
+          <div className="card text-left mb-8">
+            <p className="text-sm font-semibold text-navy-500 mb-4">What&apos;s happening now:</p>
+            <div className="space-y-3">
+              {[
+                { key: 'domain_registered', label: 'Setting up your address' },
+                { key: 'dns_configured', label: 'Configuring hosting' },
+                { key: 'site_generated', label: 'Building your pages' },
+                { key: 'deployed', label: 'Deploying to the web' },
+                { key: 'live', label: 'Going live!' },
+              ].map((step) => (
+                <div key={step.key} className="flex items-center gap-3">
+                  {publishSteps[step.key] ? (
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                      <Check size={14} className="text-green-600" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 border-2 border-gray-200 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full" />
+                    </div>
+                  )}
+                  <span className={`text-sm ${publishSteps[step.key] ? 'text-navy-500 font-medium' : 'text-gray-400'}`}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Error state */}
         {launchError && (
@@ -311,17 +368,28 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
           </div>
         )}
 
-        {/* CTAs */}
-        {launched && (siteUrl || wizardData.selectedDomain?.domainName) && (
+        {/* CTAs — only show "Visit" for subdomain since BYO DNS isn't propagated yet */}
+        {launched && !isByo && siteUrl && (
           <div className="space-y-3 mb-8">
             <a
-              href={siteUrl || `https://${wizardData.selectedDomain?.domainName}`}
+              href={siteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary w-full flex items-center justify-center gap-2 py-3"
             >
               <ExternalLink size={18} />
               Visit Your Website
+            </a>
+          </div>
+        )}
+        {launched && isByo && (
+          <div className="space-y-3 mb-8">
+            <a
+              href="/dashboard/website-builder"
+              className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+            >
+              <ArrowRight size={18} />
+              Go to dashboard
             </a>
           </div>
         )}
@@ -426,9 +494,6 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
             {wizardData.selectedDomain && (
               <div>
                 <p className="text-navy-500 font-semibold">{wizardData.selectedDomain.domainName}</p>
-                {wizardData.selectedDomain.type === 'new' && (
-                  <p className="text-sm text-gray-500">${wizardData.selectedDomain.price}/year (auto-renews)</p>
-                )}
                 {wizardData.selectedDomain.type === 'existing' && (
                   <p className="text-sm text-green-600">Your existing domain — DNS setup after launch</p>
                 )}
@@ -459,16 +524,10 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
                   <span className="font-semibold text-navy-500">$25/month</span>
                 )}
               </div>
-              {wizardData.selectedDomain?.type === 'new' && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Domain Registration</span>
-                  <span className="font-semibold text-navy-500">${wizardData.selectedDomain?.price || '12.99'}/year</span>
-                </div>
-              )}
               {wizardData.selectedDomain?.type === 'existing' && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Custom Domain</span>
-                  <span className="font-semibold text-green-600">Included</span>
+                  <span className="font-semibold text-green-600">Connect your own — no extra fee</span>
                 </div>
               )}
               {wizardData.selectedDomain?.type === 'subdomain' && (
@@ -506,8 +565,8 @@ export default function Step6ReviewLaunch({ wizardData, setWizardData, onGoToSte
               />
               <span className="text-sm text-gray-600">
                 {isOnTrial
-                  ? `I confirm the above information is correct and I agree to the Website Builder terms. The Website Builder is included in my free trial — billing of $25/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''} begins when my trial ends.`
-                  : `I confirm the above information is correct and I agree to the Website Builder terms ($25/month${wizardData.selectedDomain?.type === 'new' ? ' + domain registration fee' : ''}).`
+                  ? 'I confirm the above information is correct and I agree to the Website Builder terms. The Website Builder is included in my free trial — billing of $25/month begins when my trial ends.'
+                  : 'I confirm the above information is correct and I agree to the Website Builder terms ($25/month).'
                 }
               </span>
             </label>

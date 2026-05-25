@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { registerDomain, setDNSRecords } from '@/lib/namecom';
 import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
@@ -212,76 +211,22 @@ export async function POST(request) {
     }
 
     const cleanDomain = selectedDomain.domainName.toLowerCase().trim();
-    const domainType = selectedDomain.type || 'new'; // 'new' | 'existing' | 'subdomain'
+    // 'new' is a legacy value from before we removed in-app domain registration.
+    // Any 'new' selection coming in from a stale client is treated as a BYO
+    // ("existing") domain — the customer registers it themselves at their
+    // registrar of choice and then connects it via DNS.
+    const rawType = selectedDomain.type || 'subdomain';
+    const domainType = rawType === 'new' ? 'existing' : rawType;
 
-    // Only register via Name.com for brand-new domain purchases
-    if (domainType === 'new') {
-      await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'pending');
+    await supabase
+      .from('website_sites')
+      .update({ domain_status: domainType === 'subdomain' ? 'active' : 'pending' })
+      .eq('id', site.id);
 
-      const { data: company } = await supabase
-        .from('companies')
-        .select('name, email, phone, address, city, state, zip')
-        .eq('id', dbUser.company_id)
-        .single();
-
-      const contacts = {
-        firstName: user.user_metadata?.first_name || 'ToolTime',
-        lastName: user.user_metadata?.last_name || 'Pro Customer',
-        companyName: company?.name || businessName,
-        address1: company?.address || '',
-        city: company?.city || '',
-        state: company?.state || 'CA',
-        zip: company?.zip || '',
-        phone: company?.phone || phone,
-        email: user.email || company?.email || email,
-      };
-
-      try {
-        const regResult = await registerDomain(cleanDomain, contacts);
-
-        if (regResult.success) {
-          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'success', {
-            expireDate: regResult.expireDate,
-          });
-
-          try {
-            const dnsResult = await setDNSRecords(cleanDomain);
-            await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update',
-              dnsResult.success ? 'success' : 'failed', { records: dnsResult.records });
-
-            await supabase
-              .from('website_sites')
-              .update({
-                domain_status: dnsResult.success ? 'active' : 'pending',
-                domain_registered_at: new Date().toISOString(),
-                domain_expires_at: regResult.expireDate || null,
-                domain_auto_renew: true,
-              })
-              .eq('id', site.id);
-          } catch (dnsError) {
-            console.error('[Create Site] DNS error:', dnsError.message);
-            await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'dns_update', 'failed', null, { error: dnsError.message });
-          }
-        } else {
-          await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: regResult.error });
-        }
-      } catch (domainError) {
-        console.error('[Create Site] Domain registration error:', domainError.message);
-        await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain, 'register', 'failed', null, { error: domainError.message });
-      }
-    } else {
-      // Subdomain or existing domain — no Name.com registration needed
-      await supabase
-        .from('website_sites')
-        .update({
-          domain_status: domainType === 'subdomain' ? 'active' : 'pending',
-        })
-        .eq('id', site.id);
-
-      await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain,
-        domainType === 'subdomain' ? 'subdomain_setup' : 'existing_domain',
-        'success', { type: domainType });
-    }
+    await logDomainAction(supabase, site.id, user.id, dbUser.company_id, cleanDomain,
+      domainType === 'subdomain' ? 'subdomain_setup' : 'existing_domain',
+      domainType === 'subdomain' ? 'success' : 'pending',
+      { type: domainType });
 
     // Set site live immediately — no async build step yet.
     // (When a real build pipeline exists, this will be replaced by a webhook/job.)
