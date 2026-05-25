@@ -745,6 +745,7 @@
       "upgradeToElite": "Upgrade to Elite"
     },
     "smartQuote": {
+      "backToHome": "Back to Home",
       "bannerText": "This is a preview of Smart Quoting — AI-powered estimates in seconds.",
       "bannerSignUp": "Sign up",
       "bannerSuffix": "to create and send quotes to your customers.",
@@ -784,6 +785,7 @@
       "poweredBy": "Powered by"
     },
     "estimator": {
+      "backToHome": "Back to Home",
       "bannerText": "This is a preview of the Smart Material Estimator — 21 trades supported.",
       "bannerSignUp": "Sign up",
       "bannerSuffix": "to estimate materials for any job.",

@@ -185,7 +185,13 @@ export default function DemoBookingPage() {
 
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <Link href="/" className="text-[#5c5c70] hover:text-[#1a1a2e] text-sm inline-flex items-center gap-1">
+              ← {t('backToHome')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#00c853] rounded-lg flex items-center justify-center text-xl text-white font-bold">
               GS
@@ -195,7 +201,6 @@ export default function DemoBookingPage() {
               <p className="text-sm text-[#5c5c70]">{t('onlineBooking')}</p>
             </div>
           </div>
-          <LanguageSwitcher />
         </div>
       </header>
 

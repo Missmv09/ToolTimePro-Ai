@@ -745,6 +745,7 @@
       "upgradeToElite": "Actualizar a Elite"
     },
     "smartQuote": {
+      "backToHome": "Volver al Inicio",
       "bannerText": "Esta es una vista previa de Cotizacion Inteligente — estimaciones con IA en segundos.",
       "bannerSignUp": "Registrese",
       "bannerSuffix": "para crear y enviar cotizaciones a sus clientes.",
@@ -784,6 +785,7 @@
       "poweredBy": "Impulsado por"
     },
     "estimator": {
+      "backToHome": "Volver al Inicio",
       "bannerText": "Esta es una vista previa del Estimador Inteligente de Materiales — 21 oficios soportados.",
       "bannerSignUp": "Registrese",
       "bannerSuffix": "para estimar materiales para cualquier trabajo.",
