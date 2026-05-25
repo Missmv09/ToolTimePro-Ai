@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 const chatMessagesEn = [
   { sender: 'customer', text: 'Hi, do you do pool cleaning?' },
@@ -209,6 +210,8 @@ export default function ChatbotDemoPage() {
             </div>
           </div>
         </div>
+
+        <DemoLeadCapture featureName="Jenny AI Chatbot" source="chatbot_demo" />
 
         {/* Bottom CTA Section */}
         <div className="mt-16 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 md:p-12 text-center text-white">

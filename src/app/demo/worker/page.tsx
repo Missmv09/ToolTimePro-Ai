@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // Demo data for worker app
 const demoUser = {
@@ -402,6 +403,10 @@ export default function WorkerDemoPage() {
           </div>
         </div>
       )}
+
+      <div className="max-w-md mx-auto px-4 pb-32">
+        <DemoLeadCapture featureName="Worker Mobile App" source="worker_demo" />
+      </div>
 
       {/* CTA Overlay */}
       <div className="fixed bottom-20 left-4 right-4 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 text-white shadow-lg">

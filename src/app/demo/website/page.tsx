@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // Industry options with default content
 const industryOptions = [
@@ -655,6 +656,8 @@ export default function WebsiteDemoPage() {
 
             {/* Website Preview */}
             {renderWebsitePreview()}
+
+            <DemoLeadCapture featureName="Website Builder" source="website_demo" />
 
             {/* CTA Section */}
             <div className="mt-8 bg-gradient-to-r from-navy-500 to-navy-600 rounded-xl p-8 text-center text-white">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // ============================================
 // DEMO DATA
@@ -790,6 +791,10 @@ export default function DispatchBoardPage() {
           {notificationMessage}
         </div>
       )}
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+        <DemoLeadCapture featureName="Dispatch Board" source="dispatch_demo" />
+      </div>
 
       {/* Upgrade CTA for non-Elite users */}
       <div className="upgrade-banner">
