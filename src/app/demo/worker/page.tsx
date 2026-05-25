@@ -96,7 +96,7 @@ export default function WorkerDemoPage() {
             {/* Today&apos;s Overview */}
             <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 mb-4 text-white">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-bold text-lg">{t('todaysJobs')}</h2>
+                <h2 className="font-bold text-lg text-white">{t('todaysJobs')}</h2>
                 <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
                   {demoJobs.length} jobs
                 </span>
