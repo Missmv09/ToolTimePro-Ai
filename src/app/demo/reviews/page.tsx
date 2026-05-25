@@ -127,6 +127,11 @@ export default function DemoReviewsPage() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
+        <div className="mb-4">
+          <Link href="/" className="text-[#5c5c70] hover:text-[#1a1a2e] text-sm inline-flex items-center gap-1">
+            ← {t('backToHome')}
+          </Link>
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-[#1a1a2e]">{t('title')}</h1>
