@@ -18,6 +18,7 @@
       }
     },
     "booking": {
+      "backToHome": "Volver al Inicio",
       "bannerText": "Esta es una vista previa de la experiencia de reservas en linea.",
       "bannerSignUp": "Registrese",
       "bannerSuffix": "para obtener su propia pagina de reservas.",
@@ -262,6 +263,7 @@
       "poweredBy": "Desarrollado por"
     },
     "reviews": {
+      "backToHome": "Volver al Inicio",
       "bannerText": "Esta es una vista previa de la Maquina de Resenas — impulsada por Jenny AI.",
       "bannerSignUp": "Registrese",
       "bannerSuffix": "para automatizar sus solicitudes de resenas.",

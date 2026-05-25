@@ -18,6 +18,7 @@
       }
     },
     "booking": {
+      "backToHome": "Back to Home",
       "bannerText": "This is a preview of the customer booking experience.",
       "bannerSignUp": "Sign up",
       "bannerSuffix": "to get your own booking page.",
@@ -262,6 +263,7 @@
       "poweredBy": "Powered by"
     },
     "reviews": {
+      "backToHome": "Back to Home",
       "bannerText": "This is a preview of the Review Machine — powered by Jenny AI.",
       "bannerSignUp": "Sign up",
       "bannerSuffix": "to automate your review requests.",
