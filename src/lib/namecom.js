@@ -7,17 +7,40 @@
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+const PROD_USERNAME = process.env.NAMECOM_USERNAME;
+const PROD_TOKEN = process.env.NAMECOM_API_TOKEN;
+const TEST_USERNAME = process.env.NAMECOM_TEST_USERNAME;
+const TEST_TOKEN = process.env.NAMECOM_TEST_TOKEN;
+
+const hasProdCreds = !!(PROD_USERNAME && PROD_TOKEN);
+// In production, only use the real API if prod creds are present. We do NOT
+// silently fall back to the sandbox in prod — that has historically caused
+// "registrations" that never actually existed at the registrar.
+const useProdApi = isProduction && hasProdCreds;
+const apiMode = useProdApi ? 'production' : 'sandbox';
+
 const config = {
-  baseUrl: isProduction
+  baseUrl: useProdApi
     ? 'https://api.name.com/v4'
     : 'https://api.dev.name.com/v4',
-  username: isProduction
-    ? process.env.NAMECOM_USERNAME
-    : process.env.NAMECOM_TEST_USERNAME,
-  token: isProduction
-    ? process.env.NAMECOM_API_TOKEN
-    : process.env.NAMECOM_TEST_TOKEN,
+  username: useProdApi ? PROD_USERNAME : TEST_USERNAME,
+  token: useProdApi ? PROD_TOKEN : TEST_TOKEN,
+  mode: apiMode,
 };
+
+function assertRealRegistrarForProd(action) {
+  if (isProduction && !hasProdCreds) {
+    throw new Error(
+      `[Name.com] Refusing to ${action} in production: NAMECOM_USERNAME and/or NAMECOM_API_TOKEN are not set. ` +
+      `Configure them in the Netlify environment before retrying — silently using the sandbox API would lead to ` +
+      `a fake registration that does not exist at the real registrar.`
+    );
+  }
+}
+
+export function getApiMode() {
+  return config.mode;
+}
 
 function getAuthHeader() {
   const credentials = `${config.username}:${config.token}`;
@@ -112,6 +135,7 @@ export async function checkDomain(domainName) {
 export async function registerDomain(domainName, contacts) {
   if (!domainName) throw new Error('Domain name is required');
   if (!contacts) throw new Error('Contact information is required');
+  assertRealRegistrarForProd('register a domain');
   const clean = domainName.toLowerCase().trim();
   const contactInfo = {
     firstName: contacts.firstName || 'ToolTime',
@@ -149,15 +173,39 @@ export async function registerDomain(domainName, contacts) {
       expireDate: data.domain?.expireDate,
       autoRenew: data.domain?.autoRenewEnabled,
       locked: data.domain?.locked,
+      apiMode: config.mode,
     };
   } catch (error) {
-    console.error('[Name.com] Register domain error:', error.message);
-    return { success: false, domainName: clean, error: error.message, details: error.details };
+    console.error(`[Name.com][${config.mode}] Register domain error:`, error.message);
+    return { success: false, domainName: clean, error: error.message, details: error.details, apiMode: config.mode };
+  }
+}
+
+export async function verifyDomainRegistered(domainName) {
+  if (!domainName) throw new Error('Domain name is required');
+  const clean = domainName.toLowerCase().trim();
+  try {
+    const info = await namecomRequest(`/domains/${clean}`);
+    return {
+      verified: !!info?.domainName,
+      domainName: info?.domainName || clean,
+      expireDate: info?.expireDate,
+      apiMode: config.mode,
+    };
+  } catch (error) {
+    return {
+      verified: false,
+      domainName: clean,
+      error: error.message,
+      status: error.status,
+      apiMode: config.mode,
+    };
   }
 }
 
 export async function setDNSRecords(domainName) {
   if (!domainName) throw new Error('Domain name is required');
+  assertRealRegistrarForProd('set DNS records');
   const clean = domainName.toLowerCase().trim();
   const records = [];
   const errors = [];
@@ -179,7 +227,13 @@ export async function setDNSRecords(domainName) {
   } catch (error) {
     errors.push({ type: 'CNAME', error: error.message });
   }
-  return { success: errors.length === 0, domainName: clean, records, errors: errors.length > 0 ? errors : undefined };
+  return {
+    success: errors.length === 0,
+    domainName: clean,
+    records,
+    errors: errors.length > 0 ? errors : undefined,
+    apiMode: config.mode,
+  };
 }
 
 export async function getDomainInfo(domainName) {
@@ -282,13 +336,16 @@ export function generateDomainSuggestions(businessName, state = 'CA') {
 }
 
 const namecom = {
-  searchDomains, checkDomain, registerDomain, setDNSRecords, getDomainInfo,
+  searchDomains, checkDomain, registerDomain, verifyDomainRegistered, setDNSRecords, getDomainInfo,
   setAutoRenew, getAuthCode, unlockDomain, listAllDomains, generateDomainSuggestions,
+  getApiMode,
   getConfig: () => ({
     baseUrl: config.baseUrl,
     username: config.username ? `${config.username.substring(0, 3)}***` : 'NOT SET',
     hasToken: !!config.token,
     isProduction,
+    apiMode: config.mode,
+    hasProdCreds,
   }),
 };
 
