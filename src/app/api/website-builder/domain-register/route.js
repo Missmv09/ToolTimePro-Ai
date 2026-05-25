@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { registerDomain, setDNSRecords } from '@/lib/namecom';
+import { registerDomain, setDNSRecords, verifyDomainRegistered, getApiMode } from '@/lib/namecom';
 import { authenticateRequest } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
@@ -80,14 +80,42 @@ export async function POST(request) {
       email: user.email || company?.email || '',
     };
 
+    const apiMode = getApiMode();
+
+    // Refuse to take real money in production without real registrar creds.
+    if (process.env.NODE_ENV === 'production' && apiMode !== 'production') {
+      await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'register', 'failed', null, {
+        error: 'Name.com production credentials missing',
+        apiMode,
+      });
+      return NextResponse.json({
+        error: 'Domain registration is temporarily unavailable. Our registrar is not configured for production. Please contact support — no charge has been made.',
+      }, { status: 503 });
+    }
+
     // Log attempt
-    await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'register', 'pending');
+    await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'register', 'pending', { apiMode });
 
     // Register domain
     const regResult = await registerDomain(cleanDomain, contacts);
     if (!regResult.success) {
-      await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'register', 'failed', null, { error: regResult.error });
+      await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'register', 'failed', null, { error: regResult.error, apiMode });
       return NextResponse.json({ error: `Domain registration failed: ${regResult.error}` }, { status: 500 });
+    }
+
+    // Verify the domain actually persisted at the registrar. If the API call
+    // claimed success but the domain can't be looked up afterward, treat it as
+    // a failure so we don't mark a non-existent domain as "active".
+    const verify = await verifyDomainRegistered(cleanDomain);
+    if (!verify.verified) {
+      await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'register', 'failed', null, {
+        error: 'Post-registration verification failed — domain not found at registrar',
+        verifyError: verify.error,
+        apiMode,
+      });
+      return NextResponse.json({
+        error: 'Domain registration could not be verified at the registrar. Please contact support before retrying to avoid duplicate charges.',
+      }, { status: 502 });
     }
 
     // Set DNS records
@@ -95,7 +123,7 @@ export async function POST(request) {
     try {
       dnsResult = await setDNSRecords(cleanDomain);
       await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'dns_update',
-        dnsResult.success ? 'success' : 'failed', { records: dnsResult.records });
+        dnsResult.success ? 'success' : 'failed', { records: dnsResult.records, apiMode });
     } catch (dnsError) {
       console.error('[Domain Register] DNS setup error:', dnsError.message);
     }
@@ -114,7 +142,7 @@ export async function POST(request) {
       .eq('id', siteId);
 
     await logDomainAction(site.id, user.id, site.company_id, cleanDomain, 'register', 'success', {
-      expireDate: regResult.expireDate, dnsConfigured: dnsResult.success,
+      expireDate: regResult.expireDate, dnsConfigured: dnsResult.success, apiMode,
     });
 
     return NextResponse.json({
