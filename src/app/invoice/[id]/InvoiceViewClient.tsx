@@ -32,6 +32,15 @@ const PAYMENT_METHOD_LABELS: Record<string, { label: string; icon: string }> = {
   other: { label: 'Other', icon: '💳' },
 };
 
+type PaymentTerms = 'due_on_receipt' | 'net_15' | 'net_30' | 'net_60';
+
+const PAYMENT_TERMS_LABELS: Record<PaymentTerms, string> = {
+  due_on_receipt: 'Due on receipt',
+  net_15: 'Net 15',
+  net_30: 'Net 30',
+  net_60: 'Net 60',
+};
+
 interface InvoiceWithDetails {
   id: string;
   invoice_number: string | null;
@@ -45,8 +54,10 @@ interface InvoiceWithDetails {
   due_date: string | null;
   notes: string | null;
   created_at: string;
+  po_number: string | null;
+  payment_terms: PaymentTerms | null;
   company: Company | null;
-  customer: Customer | null;
+  customer: (Customer & { customer_type?: 'residential' | 'commercial' | null; business_name?: string | null }) | null;
 }
 
 export default function InvoiceViewClient({ params }: { params: { id: string } }) {
@@ -286,13 +297,20 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
               </div>
               <div>
                 <div className="text-xs font-medium text-gray-400 uppercase mb-1">{t('billTo')}</div>
-                <div className="font-semibold text-gray-800">{invoice.customer?.name || 'Customer'}</div>
+                {invoice.customer?.customer_type === 'commercial' && invoice.customer?.business_name ? (
+                  <>
+                    <div className="font-semibold text-gray-800">{invoice.customer.business_name}</div>
+                    <div className="text-sm text-gray-600">Attn: {invoice.customer.name}</div>
+                  </>
+                ) : (
+                  <div className="font-semibold text-gray-800">{invoice.customer?.name || 'Customer'}</div>
+                )}
                 {customerAddress && <div className="text-sm text-gray-600">{customerAddress}</div>}
                 {invoice.customer?.email && <div className="text-sm text-gray-600">{invoice.customer.email}</div>}
                 {invoice.customer?.phone && <div className="text-sm text-gray-600">{invoice.customer.phone}</div>}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-100">
               <div>
                 <div className="text-xs text-gray-400">{t('invoiceDate')}</div>
                 <div className="text-sm font-medium text-gray-800">{formatDate(invoice.created_at)}</div>
@@ -304,6 +322,20 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
                   {isOverdue && ` (${t('overdue')})`}
                 </div>
               </div>
+              {invoice.payment_terms && (
+                <div>
+                  <div className="text-xs text-gray-400">Terms</div>
+                  <div className="text-sm font-medium text-gray-800">
+                    {PAYMENT_TERMS_LABELS[invoice.payment_terms] || invoice.payment_terms}
+                  </div>
+                </div>
+              )}
+              {invoice.po_number && (
+                <div>
+                  <div className="text-xs text-gray-400">PO Number</div>
+                  <div className="text-sm font-medium text-gray-800">{invoice.po_number}</div>
+                </div>
+              )}
             </div>
           </div>
 
