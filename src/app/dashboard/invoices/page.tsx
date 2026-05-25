@@ -5,11 +5,34 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
+type PaymentTerms = 'due_on_receipt' | 'net_15' | 'net_30' | 'net_60'
+
+const PAYMENT_TERMS_OPTIONS: { value: PaymentTerms; label: string; days: number }[] = [
+  { value: 'due_on_receipt', label: 'Due on receipt', days: 0 },
+  { value: 'net_15', label: 'Net 15', days: 15 },
+  { value: 'net_30', label: 'Net 30', days: 30 },
+  { value: 'net_60', label: 'Net 60', days: 60 },
+]
+
+interface InvoiceCustomer {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  address?: string
+  city?: string
+  state?: string
+  zip?: string
+  sms_consent?: boolean
+  customer_type?: 'residential' | 'commercial' | null
+  business_name?: string | null
+}
+
 interface Invoice {
   id: string
   invoice_number: string
   customer_id: string
-  customer: { id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string; sms_consent?: boolean } | null
+  customer: InvoiceCustomer | null
   status: string
   subtotal: number
   tax_rate: number
@@ -20,12 +43,14 @@ interface Invoice {
   paid_at: string | null
   sent_at: string | null
   created_at: string
+  po_number?: string | null
+  payment_terms?: PaymentTerms | null
   items?: { id: string; description: string; quantity: number; unit_price: number; total: number }[]
 }
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [customers, setCustomers] = useState<{ id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string; sms_consent?: boolean }[]>([])
+  const [customers, setCustomers] = useState<InvoiceCustomer[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
@@ -42,7 +67,7 @@ export default function InvoicesPage() {
       .from('invoices')
       .select(`
         *,
-        customer:customers(id, name, email, phone, address, city, state, zip, sms_consent),
+        customer:customers(id, name, email, phone, address, city, state, zip, sms_consent, customer_type, business_name),
         items:invoice_items(*)
       `)
       .eq('company_id', compId)
@@ -52,7 +77,26 @@ export default function InvoicesPage() {
       query = query.eq('status', filter)
     }
 
-    const { data, error } = await query
+    let { data, error } = await query
+
+    if (error?.message?.includes('customer_type') || error?.message?.includes('business_name')) {
+      // Migration 037 not applied — retry without commercial columns
+      let fallback = supabase
+        .from('invoices')
+        .select(`
+          *,
+          customer:customers(id, name, email, phone, address, city, state, zip, sms_consent),
+          items:invoice_items(*)
+        `)
+        .eq('company_id', compId)
+        .order('created_at', { ascending: false })
+      if (filter !== 'all') {
+        fallback = fallback.eq('status', filter)
+      }
+      const retry = await fallback
+      data = retry.data
+      error = retry.error
+    }
 
     if (error) {
       console.error('Error fetching invoices:', error)
@@ -63,11 +107,21 @@ export default function InvoicesPage() {
   }, [filter])
 
   const fetchCustomers = useCallback(async (compId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('customers')
-      .select('id, name, email, phone, address, city, state, zip')
+      .select('id, name, email, phone, address, city, state, zip, customer_type, business_name')
       .eq('company_id', compId)
       .order('name')
+    if (error?.message?.includes('customer_type') || error?.message?.includes('business_name')) {
+      // Migration 037 not applied yet — fall back to the legacy column set
+      const retry = await supabase
+        .from('customers')
+        .select('id, name, email, phone, address, city, state, zip')
+        .eq('company_id', compId)
+        .order('name')
+      setCustomers(retry.data || [])
+      return
+    }
     setCustomers(data || [])
   }, [])
 
@@ -443,7 +497,19 @@ export default function InvoicesPage() {
                       <p className="text-sm text-gray-500">{new Date(invoice.created_at).toLocaleDateString()}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-gray-900">{invoice.customer?.name || '-'}</p>
+                      <p className="text-sm text-gray-900 flex items-center gap-2">
+                        {invoice.customer?.customer_type === 'commercial' && invoice.customer?.business_name
+                          ? invoice.customer.business_name
+                          : invoice.customer?.name || '-'}
+                        {invoice.customer?.customer_type === 'commercial' && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">
+                            Commercial
+                          </span>
+                        )}
+                      </p>
+                      {invoice.po_number && (
+                        <p className="text-xs text-gray-500">PO #{invoice.po_number}</p>
+                      )}
                       <p className="text-sm text-gray-500">{invoice.customer?.email}</p>
                     </td>
                     <td className="px-6 py-4">
@@ -536,11 +602,19 @@ export default function InvoicesPage() {
             if (companyId) {
               await fetchInvoices(companyId)
               // Fetch the just-saved invoice with full customer/items data to send it
-              const { data } = await supabase
+              let { data } = await supabase
                 .from('invoices')
-                .select('*, customer:customers(id, name, email, phone, address, city, state, zip, sms_consent), items:invoice_items(*)')
+                .select('*, customer:customers(id, name, email, phone, address, city, state, zip, sms_consent, customer_type, business_name), items:invoice_items(*)')
                 .eq('id', invoiceId)
                 .single()
+              if (!data) {
+                const retry = await supabase
+                  .from('invoices')
+                  .select('*, customer:customers(id, name, email, phone, address, city, state, zip, sms_consent), items:invoice_items(*)')
+                  .eq('id', invoiceId)
+                  .single()
+                data = retry.data
+              }
               if (data) {
                 await sendInvoice(data as Invoice)
               }
@@ -566,16 +640,25 @@ const STATE_TAX_RATES: Record<string, number> = {
 function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAndSend }: {
   invoice: Invoice | null
   companyId: string
-  customers: { id: string; name: string; email: string; phone?: string; address?: string; city?: string; state?: string; zip?: string }[]
+  customers: InvoiceCustomer[]
   onClose: () => void
   onSave: () => void
   onSaveAndSend?: (invoiceId: string) => void
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    customer_id: string
+    notes: string
+    due_date: string
+    tax_rate: string
+    po_number: string
+    payment_terms: PaymentTerms | ''
+  }>({
     customer_id: invoice?.customer_id || '',
     notes: invoice?.notes || '',
     due_date: invoice?.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     tax_rate: invoice?.tax_rate ? String(invoice.tax_rate) : '0',
+    po_number: invoice?.po_number || '',
+    payment_terms: (invoice?.payment_terms as PaymentTerms | undefined) || '',
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     invoice?.items?.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })) ||
@@ -587,6 +670,20 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAn
   const [sendAfterSave, setSendAfterSave] = useState(false)
 
   const selectedCustomer = customers.find(c => c.id === formData.customer_id) || null
+
+  const dueDateFromTerms = (terms: PaymentTerms): string => {
+    const opt = PAYMENT_TERMS_OPTIONS.find(o => o.value === terms)
+    const days = opt?.days ?? 30
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  }
+
+  const handleTermsChange = (terms: PaymentTerms | '') => {
+    if (!terms) {
+      setFormData({ ...formData, payment_terms: '' })
+      return
+    }
+    setFormData({ ...formData, payment_terms: terms, due_date: dueDateFromTerms(terms) })
+  }
 
   const addItem = () => setItems([...items, { description: '', quantity: 1, unit_price: 0 }])
   const removeItem = (index: number) => setItems(items.filter((_, i) => i !== index))
@@ -625,12 +722,24 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAn
         total,
         status: invoice?.status || 'draft',
         updated_at: new Date().toISOString(),
+        ...(formData.po_number ? { po_number: formData.po_number } : { po_number: null }),
+        ...(formData.payment_terms ? { payment_terms: formData.payment_terms } : { payment_terms: null }),
+      }
+
+      const stripCommercialColumns = (payload: typeof invoiceData) => {
+        const { po_number: _po, payment_terms: _pt, ...rest } = payload
+        return rest
       }
 
       let invoiceId = invoice?.id
 
       if (invoice) {
-        const { error: updateError } = await supabase.from('invoices').update(invoiceData).eq('id', invoice.id)
+        let { error: updateError } = await supabase.from('invoices').update(invoiceData).eq('id', invoice.id)
+        if (updateError?.message?.includes('po_number') || updateError?.message?.includes('payment_terms')) {
+          // Migration 037 not applied — retry without commercial columns
+          const retry = await supabase.from('invoices').update(stripCommercialColumns(invoiceData)).eq('id', invoice.id)
+          updateError = retry.error
+        }
         if (updateError) {
           throw new Error(`Failed to update invoice: ${updateError.message}`)
         }
@@ -639,7 +748,12 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAn
           throw new Error(`Failed to update line items: ${deleteItemsError.message}`)
         }
       } else {
-        const { data, error: insertError } = await supabase.from('invoices').insert(invoiceData).select().single()
+        let { data, error: insertError } = await supabase.from('invoices').insert(invoiceData).select().single()
+        if (insertError?.message?.includes('po_number') || insertError?.message?.includes('payment_terms')) {
+          const retry = await supabase.from('invoices').insert(stripCommercialColumns(invoiceData)).select().single()
+          data = retry.data
+          insertError = retry.error
+        }
         if (insertError) {
           throw new Error(`Failed to create invoice: ${insertError.message}`)
         }
@@ -695,16 +809,29 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAn
                   const autoTaxRate = cust?.state && STATE_TAX_RATES[cust.state.toUpperCase()] !== undefined
                     ? String(STATE_TAX_RATES[cust.state.toUpperCase()])
                     : formData.tax_rate
-                  setFormData({ ...formData, customer_id: custId, tax_rate: autoTaxRate })
+                  // Commercial customers default to Net 30 unless terms are already set
+                  const shouldDefaultTerms = cust?.customer_type === 'commercial' && !formData.payment_terms
+                  const nextTerms: PaymentTerms | '' = shouldDefaultTerms ? 'net_30' : formData.payment_terms
+                  const nextDueDate = shouldDefaultTerms ? dueDateFromTerms('net_30') : formData.due_date
+                  setFormData({
+                    ...formData,
+                    customer_id: custId,
+                    tax_rate: autoTaxRate,
+                    payment_terms: nextTerms,
+                    due_date: nextDueDate,
+                  })
                   setCustomerError(null)
                 }}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${customerError ? 'border-red-500' : ''}`}
                 required
               >
                 <option value="">Select customer...</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
+                {customers.map((c) => {
+                  const display = c.customer_type === 'commercial' && c.business_name
+                    ? `${c.business_name} (${c.name})`
+                    : c.name
+                  return <option key={c.id} value={c.id}>{display}</option>
+                })}
               </select>
               {customerError && <p className="text-red-500 text-xs mt-1">{customerError}</p>}
             </div>
@@ -719,10 +846,45 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAn
             </div>
           </div>
 
+          {/* Payment Terms + PO Number */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
+              <select
+                value={formData.payment_terms}
+                onChange={(e) => handleTermsChange(e.target.value as PaymentTerms | '')}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">— None (use due date) —</option>
+                {PAYMENT_TERMS_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                PO Number{selectedCustomer?.customer_type === 'commercial' && (
+                  <span className="ml-1 text-xs text-gray-500 font-normal">(recommended for commercial)</span>
+                )}
+              </label>
+              <input
+                type="text"
+                value={formData.po_number}
+                onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g. PO-12345"
+              />
+            </div>
+          </div>
+
           {/* Customer Address */}
           {selectedCustomer && (selectedCustomer.address || selectedCustomer.city || selectedCustomer.state) && (
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs font-medium text-gray-500 mb-1">Customer Address</p>
+              <p className="text-xs font-medium text-gray-500 mb-1">
+                {selectedCustomer.customer_type === 'commercial' && selectedCustomer.business_name
+                  ? `Bill To: ${selectedCustomer.business_name}`
+                  : 'Customer Address'}
+              </p>
               <p className="text-sm text-gray-800">
                 {[selectedCustomer.address, [selectedCustomer.city, selectedCustomer.state, selectedCustomer.zip].filter(Boolean).join(', ')].filter(Boolean).join(', ')}
               </p>

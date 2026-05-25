@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 
+type CustomerType = 'residential' | 'commercial'
+
 interface Customer {
   id: string
   name: string
@@ -19,6 +21,8 @@ interface Customer {
   source: string
   sms_consent: boolean
   sms_consent_date: string | null
+  customer_type?: CustomerType | null
+  business_name?: string | null
   created_at: string
   jobs?: { id: string; status: string }[]
   invoices?: { id: string; status: string; total: number }[]
@@ -29,6 +33,7 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState<'all' | CustomerType>('all')
   const [showModal, setShowModal] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
 
@@ -77,11 +82,19 @@ export default function CustomersPage() {
     setLoading(false)
   }
 
-  const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.phone?.includes(searchTerm)
-  )
+  const filteredCustomers = customers.filter(c => {
+    const matchesSearch =
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.phone?.includes(searchTerm)
+    if (!matchesSearch) return false
+    if (typeFilter === 'all') return true
+    const t = c.customer_type || 'residential'
+    return t === typeFilter
+  })
+
+  const commercialCount = customers.filter(c => c.customer_type === 'commercial').length
 
   const deleteCustomer = async (id: string) => {
     if (!confirm('Are you sure you want to delete this customer?')) return
@@ -129,15 +142,34 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search + Type Filter */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center gap-3">
         <input
           type="text"
-          placeholder="Search customers by name, email, or phone..."
+          placeholder="Search customers by name, business, email, or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full md:w-96 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
         />
+        <div className="flex gap-2">
+          {([
+            { key: 'all', label: 'All' },
+            { key: 'residential', label: 'Residential' },
+            { key: 'commercial', label: 'Commercial' },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTypeFilter(key)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                typeFilter === key
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Stats */}
@@ -145,6 +177,9 @@ export default function CustomersPage() {
         <div className="bg-white p-4 rounded-lg border">
           <p className="text-sm text-gray-500">Total Customers</p>
           <p className="text-2xl font-bold">{customers.length}</p>
+          {commercialCount > 0 && (
+            <p className="text-xs text-gray-500 mt-1">{commercialCount} commercial</p>
+          )}
         </div>
         <div className="bg-white p-4 rounded-lg border">
           <p className="text-sm text-gray-500">Active Jobs</p>
@@ -186,11 +221,21 @@ export default function CustomersPage() {
           {filteredCustomers.map((customer) => (
             <div key={customer.id} className="bg-white rounded-xl border p-6 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <Link href={`/dashboard/customers/${customer.id}`} className="font-semibold text-gray-900 hover:text-blue-600">
-                    {customer.name}
+                <div className="min-w-0">
+                  {customer.customer_type === 'commercial' && (
+                    <span className="inline-block mb-1 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">
+                      Commercial
+                    </span>
+                  )}
+                  <Link href={`/dashboard/customers/${customer.id}`} className="block font-semibold text-gray-900 hover:text-blue-600 truncate">
+                    {customer.customer_type === 'commercial' && customer.business_name
+                      ? customer.business_name
+                      : customer.name}
                   </Link>
-                  <p className="text-sm text-gray-500">{customer.email}</p>
+                  {customer.customer_type === 'commercial' && customer.business_name && (
+                    <p className="text-xs text-gray-500 truncate">Contact: {customer.name}</p>
+                  )}
+                  <p className="text-sm text-gray-500 truncate">{customer.email}</p>
                 </div>
                 <div className="flex gap-1">
                   <button
@@ -299,6 +344,8 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
   onSave: () => void
 }) {
   const [formData, setFormData] = useState({
+    customer_type: (customer?.customer_type as CustomerType) || 'residential',
+    business_name: customer?.business_name || '',
     name: customer?.name || '',
     email: customer?.email || '',
     phone: customer?.phone || '',
@@ -369,6 +416,15 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
 
       let { error } = await saveData(data)
 
+      // Retry without customer_type/business_name if migration 037 not applied yet
+      if (error?.message?.includes('customer_type') || error?.message?.includes('business_name')) {
+        const stripped = Object.fromEntries(
+          Object.entries(data).filter(([k]) => k !== 'customer_type' && k !== 'business_name')
+        )
+        const retry = await saveData(stripped as typeof data)
+        error = retry.error
+      }
+
       // Retry without sms_consent_date if column doesn't exist yet
       if (error?.message?.includes('sms_consent_date')) {
         const { sms_consent_date: _, ...dataWithoutConsentDate } = data as typeof data & { sms_consent_date?: string }
@@ -406,14 +462,54 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
         <h2 className="text-xl font-bold mb-4">{customer ? 'Edit Customer' : 'Add New Customer'}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Customer Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(['residential', 'commercial'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, customer_type: t })}
+                  className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                    formData.customer_type === t
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {t === 'residential' ? 'Residential' : 'Commercial'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Business Name (commercial only) */}
+          {formData.customer_type === 'commercial' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.business_name}
+                onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Acme Corp"
+              />
+              <p className="text-xs text-gray-500 mt-1">Shown on invoices and quotes as the bill-to entity.</p>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {formData.customer_type === 'commercial' ? 'Primary Contact Name *' : 'Name *'}
+            </label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder={formData.customer_type === 'commercial' ? 'Jane Smith (on-site contact)' : ''}
             />
           </div>
 
