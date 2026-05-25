@@ -1,5 +1,22 @@
 {
   "demo": {
+    "common": {
+      "leadCapture": {
+        "teaser": "Want a personalized walkthrough of {feature} for your business?",
+        "button": "Get a personalized demo",
+        "modalTitle": "See {feature} in action",
+        "modalDesc": "Tell us a little about your business and we'll send a personalized demo and follow up within one business day.",
+        "name": "Your name",
+        "email": "Email",
+        "phone": "Phone (optional)",
+        "business": "Business name (optional)",
+        "submit": "Request my demo",
+        "sending": "Sending...",
+        "cancel": "Cancel",
+        "success": "Got it! We'll be in touch within one business day.",
+        "error": "Couldn't send. Please try again."
+      }
+    },
     "booking": {
       "bannerText": "This is a preview of the customer booking experience.",
       "bannerSignUp": "Sign up",

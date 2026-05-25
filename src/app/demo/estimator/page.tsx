@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 import {
   Calculator,
   DollarSign,
@@ -318,6 +319,8 @@ export default function EstimatorDemo() {
             </div>
           </div>
         )}
+
+        <DemoLeadCapture featureName="Smart Material Estimator" source="estimator_demo" />
 
         {/* CTA */}
         <div className="bg-[#fef3d6] rounded-xl p-8 text-center">
