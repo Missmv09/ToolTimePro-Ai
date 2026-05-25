@@ -102,7 +102,7 @@ export default function QuickBooksDemoPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-bold">{t('title')}</h1>
+              <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
               <p className="text-white/70 mt-1">{t('subtitle')}</p>
             </div>
             <span className="ml-auto bg-white/10 text-white px-4 py-1.5 rounded-full text-sm font-medium border border-white/20">

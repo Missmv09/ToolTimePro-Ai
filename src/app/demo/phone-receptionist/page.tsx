@@ -181,7 +181,7 @@ export default function PhoneReceptionistDemo() {
               📞
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold drop-shadow-lg">{t('title')}</h1>
+              <h1 className="text-3xl font-extrabold drop-shadow-lg text-white">{t('title')}</h1>
               <p className="text-white/90 mt-1">{t('subtitle')}</p>
             </div>
             <span className="ml-auto bg-[#f5a623] text-[#1a1a2e] px-4 py-1.5 rounded-full text-sm font-bold">

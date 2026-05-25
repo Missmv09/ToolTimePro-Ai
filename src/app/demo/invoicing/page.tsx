@@ -71,7 +71,7 @@ export default function InvoicingDemoPage() {
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-4xl">💰</span>
-            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
             <div className="ml-auto"><LanguageSwitcher /></div>
           </div>
           <p className="text-white/80">{t('subtitle')}</p>
@@ -253,7 +253,7 @@ export default function InvoicingDemoPage() {
 
             {/* Payment Methods */}
             <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-6 text-white">
-              <h3 className="font-semibold mb-4">{t('acceptedPaymentMethods')}</h3>
+              <h3 className="font-semibold mb-4 text-white">{t('acceptedPaymentMethods')}</h3>
               <div className="flex gap-3 mb-4">
                 <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">💳 {t('creditCard')}</div>
                 <div className="bg-white/10 rounded-lg px-3 py-2 text-sm font-medium">🏦 {t('ach')}</div>
@@ -282,7 +282,7 @@ export default function InvoicingDemoPage() {
 
         {/* Bottom CTA */}
         <div className="mt-12 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">{t('stopChasing')}</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">{t('stopChasing')}</h2>
           <p className="text-white/80 mb-6 max-w-2xl mx-auto">
             {t('stopChasingDesc')}
           </p>

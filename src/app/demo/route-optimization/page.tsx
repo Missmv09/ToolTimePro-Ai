@@ -91,7 +91,7 @@ export default function RouteOptimizationDemo() {
               🗺️
             </div>
             <div>
-              <h1 className="text-3xl font-bold">{t('title')}</h1>
+              <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
               <p className="text-white/70 mt-1">{t('subtitle')}</p>
             </div>
             <span className="ml-auto bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] px-4 py-1.5 rounded-full text-sm font-bold">
