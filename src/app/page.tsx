@@ -22,7 +22,7 @@ const demoCardConfig = [
   { icon: '🗺️', href: '/demo/route-optimization' },
   { icon: '📋', href: '/demo/dispatch' },
   { icon: '📗', href: '/demo/quickbooks' },
-  { icon: '👤', href: '/portal' },
+  { icon: '👤', href: '/demo/customer-portal' },
   { icon: '🌐', href: '/demo/website' },
   { icon: '📊', href: '/demo/dashboard' },
 ];
