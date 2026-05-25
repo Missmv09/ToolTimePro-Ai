@@ -67,13 +67,27 @@ describe('/api/website-builder/leads', () => {
   });
 
   describe('validation', () => {
-    it('returns 400 when siteId is missing', async () => {
+    it('returns 400 when siteId, companyId, and source are all missing', async () => {
       const request = makeRequest({ name: 'John' });
       const response = await POST(request);
       const body = await response.json();
 
       expect(response.status).toBe(400);
-      expect(body.error).toBe('siteId or companyId is required');
+      expect(body.error).toBe('siteId, companyId, or source is required');
+    });
+
+    it('accepts anonymous lead when source is provided without siteId or companyId', async () => {
+      const request = makeRequest({
+        name: 'Jane',
+        email: 'jane@example.com',
+        source: 'smart_quote_demo',
+      });
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(mockCrmLeadsInsert).toHaveBeenCalled();
     });
 
     it('returns 400 when name is missing', async () => {

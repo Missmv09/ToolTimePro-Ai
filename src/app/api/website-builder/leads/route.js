@@ -37,8 +37,8 @@ export async function POST(request) {
 
     const { siteId, companyId: bodyCompanyId, name, phone, email, message, service, source } = body;
 
-    if (!siteId && !bodyCompanyId) {
-      return NextResponse.json({ error: 'siteId or companyId is required' }, { status: 400, headers: corsHeaders });
+    if (!siteId && !bodyCompanyId && !source) {
+      return NextResponse.json({ error: 'siteId, companyId, or source is required' }, { status: 400, headers: corsHeaders });
     }
     if (!name || typeof name !== 'string' || name.trim().length < 1) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400, headers: corsHeaders });
