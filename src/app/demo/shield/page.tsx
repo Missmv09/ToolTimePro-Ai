@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // Demo data
 const complianceScore = 85;
@@ -453,6 +454,8 @@ export default function ShieldDemoPage() {
             </div>
           </div>
         )}
+
+        <DemoLeadCapture featureName="Compliance Shield" source="shield_demo" />
 
         {/* Bottom CTA */}
         <div className="mt-8 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">

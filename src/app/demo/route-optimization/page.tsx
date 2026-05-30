@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // Demo jobs for route optimization
 const demoJobs = [
@@ -413,6 +414,8 @@ export default function RouteOptimizationDemo() {
             ))}
           </div>
         </div>
+
+        <DemoLeadCapture featureName="Route Optimization" source="route_optimization_demo" />
 
         {/* CTA Section */}
         <div className="mt-16 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-2xl p-10 text-center text-white">

@@ -1,6 +1,24 @@
 {
   "demo": {
+    "common": {
+      "leadCapture": {
+        "teaser": "¿Quiere un recorrido personalizado de {feature} para su negocio?",
+        "button": "Obtener una demo personalizada",
+        "modalTitle": "Vea {feature} en accion",
+        "modalDesc": "Cuentenos sobre su negocio y le enviaremos una demo personalizada con seguimiento en un dia habil.",
+        "name": "Su nombre",
+        "email": "Correo electronico",
+        "phone": "Telefono (opcional)",
+        "business": "Nombre del negocio (opcional)",
+        "submit": "Solicitar mi demo",
+        "sending": "Enviando...",
+        "cancel": "Cancelar",
+        "success": "¡Recibido! Le contactaremos en un dia habil.",
+        "error": "No se pudo enviar. Intente de nuevo."
+      }
+    },
     "booking": {
+      "backToHome": "Volver al Inicio",
       "bannerText": "Esta es una vista previa de la experiencia de reservas en linea.",
       "bannerSignUp": "Registrese",
       "bannerSuffix": "para obtener su propia pagina de reservas.",
@@ -245,6 +263,7 @@
       "poweredBy": "Desarrollado por"
     },
     "reviews": {
+      "backToHome": "Volver al Inicio",
       "bannerText": "Esta es una vista previa de la Maquina de Resenas — impulsada por Jenny AI.",
       "bannerSignUp": "Registrese",
       "bannerSuffix": "para automatizar sus solicitudes de resenas.",

@@ -312,10 +312,10 @@ function buildTiers(services: ServiceMatch[], subtotal: number) {
   return {
     good: {
       name: 'Good',
-      description: 'Essential services only',
+      description: 'Essential service only',
       services: services.map(s => s.name),
       multiplier: 1.0,
-      extras: ['Core services included', 'Standard scheduling', 'Basic cleanup'],
+      extras: ['Core service included', 'Standard scheduling', 'Basic cleanup of work area'],
     },
     better: {
       name: 'Better',
@@ -325,8 +325,8 @@ function buildTiers(services: ServiceMatch[], subtotal: number) {
       extras: [
         'Everything in Good',
         'Priority scheduling',
-        'Detailed cleanup and hauling',
-        'Post-service yard inspection',
+        'Thorough cleanup and debris removal',
+        'Post-service walkthrough with you',
       ],
     },
     best: {
@@ -338,8 +338,8 @@ function buildTiers(services: ServiceMatch[], subtotal: number) {
         'Everything in Better',
         'Same-day / next-day availability',
         'Before & after photos sent to you',
-        'Satisfaction guarantee with free follow-up',
-        'Seasonal maintenance recommendations',
+        'Satisfaction guarantee with free touch-up if needed',
+        'Maintenance recommendations to keep results lasting',
       ],
     },
   };

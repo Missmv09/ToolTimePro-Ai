@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // Demo services
 const demoServices = [
@@ -644,6 +645,8 @@ export default function DemoBookingPage() {
                 </div>
               </div>
             </div>
+
+            <DemoLeadCapture featureName="Online Booking" source="booking_demo" />
 
             {/* Demo CTA */}
             <div className="bg-[#fef3d6] rounded-xl p-6 max-w-md mx-auto">

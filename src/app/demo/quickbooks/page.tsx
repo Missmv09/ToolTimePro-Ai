@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // Demo sync data
 const demoInvoices = [
@@ -385,6 +386,8 @@ export default function QuickBooksDemoPage() {
             ))}
           </div>
         </div>
+
+        <DemoLeadCapture featureName="QuickBooks Sync" source="quickbooks_demo" />
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-[#2ca01c] to-[#238c17] rounded-2xl p-10 text-center text-white">

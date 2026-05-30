@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import DemoLeadCapture from '@/components/demo/DemoLeadCapture';
 
 // Demo call scenarios
 const demoScenarios = [
@@ -441,6 +442,8 @@ export default function PhoneReceptionistDemo() {
             ))}
           </div>
         </div>
+
+        <DemoLeadCapture featureName="Jenny AI Phone Receptionist" source="phone_receptionist_demo" />
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-2xl p-10 text-center text-white">
