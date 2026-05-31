@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { authenticateRequest } from '@/lib/server-auth';
 import { normalizeDomain, isValidDomain, dnsRecordsFor } from '@/lib/site-dns';
+import { mapDbError } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,8 +90,8 @@ export async function POST(request) {
       })
       .eq('id', site.id);
     if (updateError) {
-      console.error('[Connect Domain] DB error:', updateError);
-      return NextResponse.json({ error: 'Failed to save domain. Please try again.' }, { status: 500 });
+      const mapped = mapDbError(updateError, { route: 'connect-domain', op: 'update', siteId: site.id, userId: user.id });
+      return NextResponse.json({ error: mapped.customer, code: mapped.code }, { status: mapped.httpStatus });
     }
 
     await logDomainAction(supabase, site.id, user.id, site.company_id, clean, 'existing_domain', 'pending', { source: 'connect-domain' });
