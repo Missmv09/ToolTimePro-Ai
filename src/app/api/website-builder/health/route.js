@@ -25,6 +25,56 @@ function decodeJwtPayload(token) {
   }
 }
 
+// Supabase issues two key formats in the wild:
+//   1. Legacy JWT format ("eyJhbG…") — encodes role/ref/iss in the payload.
+//   2. New opaque format (sb_secret_… for service role, sb_publishable_… for
+//      anon) introduced in late 2025. These don't encode the project ref.
+// Both work with @supabase/supabase-js and PostgREST. This describer figures
+// out which format a key is in and whether it matches the expected role.
+function describeKey(key, expectedRole) {
+  if (!key) return { format: 'MISSING', valid: false };
+  if (key.startsWith('sb_secret_')) {
+    return {
+      format: 'sb_secret (new opaque)',
+      role: 'service_role',
+      valid: expectedRole === 'service_role',
+      note: expectedRole !== 'service_role'
+        ? `Expected ${expectedRole} key but got a service_role (sb_secret_*) key.`
+        : null,
+    };
+  }
+  if (key.startsWith('sb_publishable_')) {
+    return {
+      format: 'sb_publishable (new opaque)',
+      role: 'anon/publishable',
+      valid: expectedRole === 'anon',
+      note: expectedRole !== 'anon'
+        ? `Expected ${expectedRole} key but got an anon/publishable (sb_publishable_*) key. This will get "permission denied" on any write.`
+        : null,
+    };
+  }
+  if (key.startsWith('eyJ')) {
+    const payload = decodeJwtPayload(key);
+    if (!payload) return { format: 'malformed jwt', valid: false, note: 'Key starts with eyJ but does not parse as a JWT.' };
+    return {
+      format: 'jwt (legacy)',
+      role: payload.role || '(none)',
+      ref: payload.ref || '(none)',
+      iss: payload.iss || '(none)',
+      exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : '(none)',
+      valid: payload.role === expectedRole,
+      note: payload.role !== expectedRole
+        ? `JWT has role="${payload.role}", expected "${expectedRole}". This is the most common cause of "permission denied for table" errors.`
+        : null,
+    };
+  }
+  return {
+    format: 'unknown',
+    valid: false,
+    note: 'Key does not match any known Supabase format. Expected sb_secret_*, sb_publishable_*, or eyJ… (JWT).',
+  };
+}
+
 function shortKey(key) {
   if (!key) return null;
   if (key.length <= 12) return '***';
@@ -67,34 +117,22 @@ export async function GET(request) {
   if (!supabaseUrl) diagnoses.push('NEXT_PUBLIC_SUPABASE_URL is missing.');
   if (!serviceKey) diagnoses.push('SUPABASE_SERVICE_ROLE_KEY is missing.');
 
-  // 2. JWT decode — verify the service-role key really is a service-role key
-  if (serviceKey) {
-    const payload = decodeJwtPayload(serviceKey);
-    if (!payload) {
-      checks.serviceRoleKeyShape = 'not a valid JWT';
-      diagnoses.push('SUPABASE_SERVICE_ROLE_KEY is not a valid JWT. Did someone paste a random string?');
-    } else {
-      checks.serviceRoleKeyShape = {
-        role: payload.role || '(none)',
-        ref: payload.ref || '(none)',
-        iss: payload.iss || '(none)',
-        exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : '(none)',
-      };
-      if (payload.role !== 'service_role') {
-        diagnoses.push(`SUPABASE_SERVICE_ROLE_KEY has role="${payload.role}" — should be "service_role". This is the most common cause of "permission denied for table" errors.`);
-      }
-    }
+  // 2. Key format + role check (works for both legacy JWT and new opaque keys)
+  const serviceKeyInfo = describeKey(serviceKey, 'service_role');
+  const anonKeyInfo = describeKey(anonKey, 'anon');
+  checks.serviceRoleKeyShape = serviceKeyInfo;
+  checks.anonKeyShape = anonKeyInfo;
+  if (serviceKeyInfo.note) diagnoses.push(`SERVICE_ROLE_KEY: ${serviceKeyInfo.note}`);
+  if (anonKeyInfo.note) diagnoses.push(`ANON_KEY: ${anonKeyInfo.note}`);
 
-    // Sanity check: anon and service-role keys should belong to the same Supabase project
-    const anonPayload = anonKey ? decodeJwtPayload(anonKey) : null;
-    if (anonPayload && payload && anonPayload.ref !== payload.ref) {
-      diagnoses.push(`Anon key project ref (${anonPayload.ref}) does not match service-role key project ref (${payload.ref}). One of the env vars is from the wrong Supabase project.`);
-    }
-
-    // Sanity check: the supabase URL should reference the same project ref as the keys
-    if (supabaseUrl && payload?.ref && !supabaseUrl.includes(payload.ref)) {
-      diagnoses.push(`NEXT_PUBLIC_SUPABASE_URL (${supabaseUrl}) does not contain the service-role key project ref (${payload.ref}). URL is pointing at a different Supabase project than the keys.`);
-    }
+  // Cross-project checks only meaningful for legacy JWT keys (the new opaque
+  // format doesn't expose the project ref). The PostgREST probe below
+  // catches mismatches end-to-end anyway via a real round-trip.
+  if (serviceKeyInfo.format === 'jwt (legacy)' && anonKeyInfo.format === 'jwt (legacy)' && serviceKeyInfo.ref !== anonKeyInfo.ref) {
+    diagnoses.push(`Anon key project ref (${anonKeyInfo.ref}) does not match service-role key project ref (${serviceKeyInfo.ref}). One env var is from the wrong Supabase project.`);
+  }
+  if (serviceKeyInfo.format === 'jwt (legacy)' && supabaseUrl && !supabaseUrl.includes(serviceKeyInfo.ref)) {
+    diagnoses.push(`NEXT_PUBLIC_SUPABASE_URL (host: ${supabaseHost}) does not contain the service-role key project ref (${serviceKeyInfo.ref}). URL is pointing at a different Supabase project than the keys.`);
   }
 
   // 3. Live database connectivity — read against website_sites
