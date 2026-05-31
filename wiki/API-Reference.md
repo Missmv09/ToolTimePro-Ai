@@ -260,10 +260,10 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 | Endpoint | Methods | Source |
 |----------|---------|--------|
+| `/api/website-builder/connect-domain` | `POST` | `src/app/api/website-builder/connect-domain/route.js` |
 | `/api/website-builder/create-site` | `POST` | `src/app/api/website-builder/create-site/route.js` |
 | `/api/website-builder/delete-site` | `DELETE` | `src/app/api/website-builder/delete-site/route.js` |
-| `/api/website-builder/domain-register` | `POST` | `src/app/api/website-builder/domain-register/route.js` |
-| `/api/website-builder/domain-search` | `POST` | `src/app/api/website-builder/domain-search/route.js` |
+| `/api/website-builder/domain-register` | `GET` `POST` | `src/app/api/website-builder/domain-register/route.js` |
 | `/api/website-builder/leads` | `POST` | `src/app/api/website-builder/leads/route.js` |
 | `/api/website-builder/public-site` | `GET` | `src/app/api/website-builder/public-site/route.js` |
 | `/api/website-builder/publish-status` | `GET` | `src/app/api/website-builder/publish-status/route.js` |
@@ -281,4 +281,4 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 
 > **Total endpoints:** 93 routes across 35 groups
 
-_Last generated: 2026-05-30_
+_Last generated: 2026-05-31_
