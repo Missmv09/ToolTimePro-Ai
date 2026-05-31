@@ -294,6 +294,12 @@ export default function CustomersPage() {
                 >
                   New Quote
                 </Link>
+                <Link
+                  href={`/dashboard/invoices?customer=${customer.id}&new=1`}
+                  className="flex-1 text-center py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+                >
+                  New Invoice
+                </Link>
               </div>
             </div>
           ))}
