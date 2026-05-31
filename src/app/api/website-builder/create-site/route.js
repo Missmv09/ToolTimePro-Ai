@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { authenticateRequest } from '@/lib/server-auth';
+import { mapDbError } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -154,8 +155,8 @@ export async function POST(request) {
         .single();
 
       if (updateError) {
-        console.error('[Create Site] DB update error:', updateError);
-        return NextResponse.json({ error: 'Failed to update site record' }, { status: 500 });
+        const mapped = mapDbError(updateError, { route: 'create-site', op: 'update', siteId: existingSite.id, userId: user.id });
+        return NextResponse.json({ error: mapped.customer, code: mapped.code }, { status: mapped.httpStatus });
       }
       site = updatedSite;
     } else {
@@ -204,8 +205,8 @@ export async function POST(request) {
         .single();
 
       if (insertError) {
-        console.error('[Create Site] DB insert error:', insertError);
-        return NextResponse.json({ error: `Failed to create site record: ${insertError.message}` }, { status: 500 });
+        const mapped = mapDbError(insertError, { route: 'create-site', op: 'insert', userId: user.id, companyId: dbUser.company_id });
+        return NextResponse.json({ error: mapped.customer, code: mapped.code }, { status: mapped.httpStatus });
       }
       site = newSite;
     }
