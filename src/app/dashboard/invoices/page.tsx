@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
 type PaymentTerms = 'due_on_receipt' | 'net_15' | 'net_30' | 'net_60'
@@ -49,6 +49,14 @@ interface Invoice {
 }
 
 export default function InvoicesPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" /></div>}>
+      <InvoicesContent />
+    </Suspense>
+  )
+}
+
+function InvoicesContent() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [customers, setCustomers] = useState<InvoiceCustomer[]>([])
   const [loading, setLoading] = useState(true)
@@ -57,6 +65,9 @@ export default function InvoicesPage() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
 
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const presetCustomerId = searchParams.get('customer')
+  const shouldOpenNew = searchParams.get('new') === '1'
   const { user, dbUser, company, isLoading: authLoading } = useAuth()
 
   // Get company_id from AuthContext
@@ -150,6 +161,14 @@ export default function InvoicesPage() {
       fetchInvoices(companyId)
     }
   }, [filter, companyId, fetchInvoices])
+
+  // Auto-open the "New Invoice" modal when arriving from a customer card link
+  useEffect(() => {
+    if (shouldOpenNew && presetCustomerId && customers.length > 0 && !showModal) {
+      setEditingInvoice(null)
+      setShowModal(true)
+    }
+  }, [shouldOpenNew, presetCustomerId, customers.length, showModal])
 
   const updateInvoiceStatus = async (invoiceId: string, newStatus: string) => {
     try {
@@ -592,9 +611,14 @@ export default function InvoicesPage() {
           invoice={editingInvoice}
           companyId={companyId!}
           customers={customers}
-          onClose={() => setShowModal(false)}
+          presetCustomerId={editingInvoice ? null : presetCustomerId}
+          onClose={() => {
+            setShowModal(false)
+            if (shouldOpenNew) router.replace('/dashboard/invoices')
+          }}
           onSave={() => {
             setShowModal(false)
+            if (shouldOpenNew) router.replace('/dashboard/invoices')
             if (companyId) fetchInvoices(companyId)
           }}
           onSaveAndSend={async (invoiceId: string) => {
@@ -637,14 +661,30 @@ const STATE_TAX_RATES: Record<string, number> = {
   WA: 6.5, WV: 6, WI: 5, WY: 4,
 }
 
-function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAndSend }: {
+function InvoiceModal({ invoice, companyId, customers, presetCustomerId, onClose, onSave, onSaveAndSend }: {
   invoice: Invoice | null
   companyId: string
   customers: InvoiceCustomer[]
+  presetCustomerId?: string | null
   onClose: () => void
   onSave: () => void
   onSaveAndSend?: (invoiceId: string) => void
 }) {
+  const presetCustomer = presetCustomerId ? customers.find(c => c.id === presetCustomerId) : undefined
+  const initialTaxRate =
+    invoice?.tax_rate != null ? String(invoice.tax_rate) :
+    presetCustomer?.state && STATE_TAX_RATES[presetCustomer.state.toUpperCase()] !== undefined
+      ? String(STATE_TAX_RATES[presetCustomer.state.toUpperCase()])
+      : '0'
+  const initialTerms: PaymentTerms | '' =
+    (invoice?.payment_terms as PaymentTerms | undefined) ||
+    (presetCustomer?.customer_type === 'commercial' ? 'net_30' : '')
+  const initialDueDate =
+    invoice?.due_date ||
+    (initialTerms
+      ? new Date(Date.now() + (PAYMENT_TERMS_OPTIONS.find(o => o.value === initialTerms)?.days ?? 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+
   const [formData, setFormData] = useState<{
     customer_id: string
     notes: string
@@ -653,12 +693,12 @@ function InvoiceModal({ invoice, companyId, customers, onClose, onSave, onSaveAn
     po_number: string
     payment_terms: PaymentTerms | ''
   }>({
-    customer_id: invoice?.customer_id || '',
+    customer_id: invoice?.customer_id || presetCustomerId || '',
     notes: invoice?.notes || '',
-    due_date: invoice?.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    tax_rate: invoice?.tax_rate ? String(invoice.tax_rate) : '0',
+    due_date: initialDueDate,
+    tax_rate: initialTaxRate,
     po_number: invoice?.po_number || '',
-    payment_terms: (invoice?.payment_terms as PaymentTerms | undefined) || '',
+    payment_terms: initialTerms,
   })
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     invoice?.items?.map(i => ({ description: i.description, quantity: i.quantity, unit_price: i.unit_price })) ||
