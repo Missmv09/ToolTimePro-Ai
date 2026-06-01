@@ -1007,6 +1007,22 @@ function SettingsContent() {
 
           {/* Stripe Payments Integration */}
           <StripeConnectCard />
+
+          {/* Other payment methods note */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+            <p className="text-sm text-blue-900">
+              <span className="font-semibold">Want to offer Zelle, Venmo, Cash App, check, or other payment options?</span>{' '}
+              Stripe is just for credit-card payments. To add other payment methods that show up on your invoices, go to{' '}
+              <button
+                type="button"
+                onClick={() => setActiveTab('account')}
+                className="underline font-medium hover:text-blue-700"
+              >
+                Settings → Account
+              </button>{' '}
+              and scroll down to <span className="font-medium">Payment Methods</span>.
+            </p>
+          </div>
         </div>
       )}
 
