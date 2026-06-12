@@ -15,6 +15,7 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:e2e": "cypress run",
+    "smoke": "node scripts/smoke-test.js",
     "recover:trial-emails": "node scripts/recover-trial-emails.js"
   },
   "dependencies": {

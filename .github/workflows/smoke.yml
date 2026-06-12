@@ -1,0 +1,75 @@
+name: Smoke (deployed)
+
+# Post-deploy smoke tests against a LIVE url (sandbox or prod). Unlike ci.yml —
+# which runs unit tests + build against placeholder env vars on every push —
+# this exercises a real running deployment: the health/env diagnostic plus the
+# critical public pages and the booking/quote demos via Cypress.
+#
+# Trigger it three ways:
+#   • Manually (Actions tab → "Run workflow") with a base_url input
+#   • On a daily schedule against the repo variable SMOKE_BASE_URL
+#
+# Configure once in repo Settings:
+#   • Variables → SMOKE_BASE_URL   e.g. https://sandbox--<site>.netlify.app
+#   • Secrets   → HEALTH_CHECK_TOKEN (same value as the Netlify env var)
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to smoke test (defaults to the SMOKE_BASE_URL repo variable)'
+        required: false
+        type: string
+  schedule:
+    # 14:00 UTC daily — adjust or remove as needed.
+    - cron: '0 14 * * *'
+
+jobs:
+  resolve-url:
+    runs-on: ubuntu-latest
+    outputs:
+      base_url: ${{ steps.pick.outputs.base_url }}
+    steps:
+      - id: pick
+        run: |
+          URL="${{ github.event.inputs.base_url }}"
+          if [ -z "$URL" ]; then URL="${{ vars.SMOKE_BASE_URL }}"; fi
+          if [ -z "$URL" ]; then
+            echo "::warning::No base URL provided (set the SMOKE_BASE_URL repo variable or pass base_url). Skipping."
+          fi
+          echo "base_url=$URL" >> "$GITHUB_OUTPUT"
+
+  http-smoke:
+    needs: resolve-url
+    if: needs.resolve-url.outputs.base_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: HTTP smoke (health + public pages)
+        env:
+          SMOKE_BASE_URL: ${{ needs.resolve-url.outputs.base_url }}
+          HEALTH_CHECK_TOKEN: ${{ secrets.HEALTH_CHECK_TOKEN }}
+        run: node scripts/smoke-test.js
+
+  cypress-smoke:
+    needs: resolve-url
+    if: needs.resolve-url.outputs.base_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Run Cypress against the deployment
+        uses: cypress-io/github-action@v6
+        with:
+          install-command: npm ci
+          config: baseUrl=${{ needs.resolve-url.outputs.base_url }}
+        env:
+          # All current specs hit public/demo routes, so they run against a live
+          # deploy with no seeded data or login required.
+          CYPRESS_baseUrl: ${{ needs.resolve-url.outputs.base_url }}
