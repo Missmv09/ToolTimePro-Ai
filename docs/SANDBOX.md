@@ -82,6 +82,45 @@ Copy the signing secret into `STRIPE_WEBHOOK_SECRET` (sandbox scope).
 3. Merge to `sandbox` → Netlify rebuilds the sandbox URL → smoke-test it there.
 4. When you're happy, open a second PR from `sandbox` → `main`. Merging that promotes the changes to prod.
 
+## Smoke-testing a deploy (so you don't click through by hand)
+
+Two automated layers run against a **live** URL (sandbox or prod) — they replace
+most of the manual click-testing. What they can't cover (real card checkout, SMS
+delivery, email receipt, visual/UX judgment) still needs a human.
+
+### 1. HTTP smoke — fast, no browser
+
+Checks the health/env diagnostic plus every critical public page returns OK:
+
+```bash
+# against the sandbox
+HEALTH_CHECK_TOKEN=<token> npm run smoke -- https://sandbox--<site>.netlify.app
+# or via env var
+SMOKE_BASE_URL=https://sandbox--<site>.netlify.app HEALTH_CHECK_TOKEN=<token> npm run smoke
+```
+
+Exits non-zero if anything fails, so it doubles as a CI gate. Without
+`HEALTH_CHECK_TOKEN` it still checks the pages and just skips the DB/env probe.
+
+### 2. Cypress E2E — real browser, demo flows
+
+Runs the public-page, booking-demo, and quote-portal specs (all hit
+self-contained demo/public routes — no login or seeded data needed):
+
+```bash
+npx cypress run --config baseUrl=https://sandbox--<site>.netlify.app
+```
+
+### 3. CI: `.github/workflows/smoke.yml`
+
+Runs both layers on a daily schedule and on manual dispatch. Configure once:
+
+- **Settings → Variables → `SMOKE_BASE_URL`** — e.g. the sandbox URL
+- **Settings → Secrets → `HEALTH_CHECK_TOKEN`** — same value as the Netlify env var
+
+Then trigger from the Actions tab ("Smoke (deployed)" → Run workflow), optionally
+overriding the URL to point at prod after a release.
+
 ## Recommended: require CI to pass before merging to `main`
 
 In GitHub → Settings → Branches → Branch protection rules → add rule for `main`:
