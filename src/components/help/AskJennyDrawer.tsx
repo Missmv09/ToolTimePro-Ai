@@ -93,13 +93,15 @@ export default function AskJennyDrawer() {
 
   return (
     <>
-      {/* Floating launcher — bottom-left so it doesn't collide with Crisp's bubble */}
+      {/* Floating launcher — bottom-left so it doesn't collide with Crisp's bubble.
+          On large screens it's offset past the 16rem-wide sidebar so it doesn't
+          overlap the user profile section at the bottom of the nav. */}
       {!open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open Ask Jenny help"
-          className="fixed bottom-5 left-5 z-40 flex items-center gap-2 rounded-full bg-navy-700 px-4 py-3 text-white shadow-lg shadow-navy-900/20 transition hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-navy-400"
+          className="fixed bottom-5 left-5 lg:left-72 z-40 flex items-center gap-2 rounded-full bg-navy-700 px-4 py-3 text-white shadow-lg shadow-navy-900/20 transition hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-navy-400"
         >
           <Sparkles className="h-5 w-5" />
           <span className="text-sm font-medium">Ask Jenny</span>
@@ -111,7 +113,7 @@ export default function AskJennyDrawer() {
         <div
           role="dialog"
           aria-label="Ask Jenny help"
-          className="fixed bottom-5 left-5 z-40 flex h-[560px] w-[360px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
+          className="fixed bottom-5 left-5 lg:left-72 z-40 flex h-[560px] w-[360px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
         >
           <header className="flex items-center justify-between border-b border-gray-200 bg-navy-700 px-4 py-3 text-white">
             <div className="flex items-center gap-2">

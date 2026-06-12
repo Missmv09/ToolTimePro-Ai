@@ -90,62 +90,105 @@ export default function SmsPage() {
           </section>
 
           <section id="two-factor-authentication">
-            <h2 className="text-xl font-bold mb-3">Two-Factor Authentication (2FA) SMS</h2>
-            <p className="mb-4">
+            <h2 className="text-xl font-bold mb-3">Two-Factor Authentication (2FA) SMS &mdash; Public Opt-In Walk-Through</h2>
+            <p className="mb-2">
               If you enable two-factor authentication (2FA) in your ToolTime Pro account settings,
               you will receive SMS messages containing one-time verification codes when logging in
-              from unrecognized devices. By enabling 2FA and providing your phone number, you
-              explicitly consent to receive these security-related text messages.
+              from unrecognized devices. By affirmatively checking the unchecked SMS consent checkbox
+              shown in Step 4 below, you explicitly consent to receive these security-related text messages.
             </p>
-
-            <h3 className="font-bold mt-4 mb-2">How to opt in to 2FA SMS</h3>
-            <ol className="list-decimal pl-6 space-y-1 mb-4">
-              <li>Sign in to your ToolTime Pro account at <strong>app.tooltimepro.com</strong>.</li>
-              <li>Open <em>Dashboard &rarr; Settings</em> and scroll to the <em>Two-Factor Authentication</em> card.</li>
-              <li>Click <em>Set Up 2FA</em>, enter the phone number where you want to receive verification codes.</li>
-              <li>Check the SMS consent box (shown below) and click <em>Enable 2FA</em>.</li>
-              <li>You will then receive a 6-digit code by SMS the next time you log in from an unrecognized device.</li>
-            </ol>
-
-            {/* Actual screenshot of the production 2FA consent UI */}
-            <figure className="border border-gray-200 rounded-xl p-4 bg-white">
-              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">
-                Screenshot &mdash; 2FA SMS consent checkbox in Account Settings
+            <div className="border-l-4 border-[#f5a623] bg-[#fef3d6]/50 rounded-r-lg p-4 my-4">
+              <p className="text-sm text-[#1a1a2e]">
+                <strong>Public CTA evidence for A2P 10DLC reviewers:</strong> The screenshots below
+                document the complete opt-in journey end-users follow to provide express written
+                consent to receive 2FA SMS. No account or login is required to view this evidence.
+                The opt-in CTA is highlighted in <strong>Step 4</strong>.
               </p>
+            </div>
+
+            <h3 className="font-bold mt-6 mb-3 text-lg">Step 1 &mdash; Sign in to ToolTime Pro and open the Dashboard</h3>
+            <figure className="border border-gray-200 rounded-xl p-4 bg-white">
               <img
-                src="/2fa.png"
-                alt="Screenshot of the ToolTime Pro Two-Factor Authentication settings page showing an unchecked SMS consent checkbox with the label: 'I agree to receive SMS text messages containing verification codes for two-factor authentication at the phone number provided above. Msg & data rates may apply. Frequency varies based on login activity. Reply STOP to opt out or HELP for help at any time.'"
-                className="w-full max-w-[720px] mx-auto rounded-lg border border-gray-200 shadow-sm"
+                src="/2fa-step-1.png"
+                alt="Screenshot of the ToolTime Pro Dashboard after sign-in, showing the left navigation sidebar with the Settings menu item."
+                className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
                 loading="lazy"
               />
               <figcaption className="text-xs text-[#5c5c70] mt-3 text-center">
-                Captured from app.tooltimepro.com &rarr; Dashboard &rarr; Settings &rarr; Two-Factor Authentication.
-                The consent checkbox is unchecked by default; users must affirmatively check it before 2FA SMS can be enabled.
+                Account holders sign in at <strong>app.tooltimepro.com</strong> and are taken to the Dashboard.
+                The <em>Settings</em> link is in the left navigation sidebar.
               </figcaption>
             </figure>
 
-            {/* Interactive example of the same opt-in CTA */}
-            <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50 mt-4">
-              <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">Interactive example &mdash; same consent label as shown above</p>
-              <div className="bg-[#fef3d6] rounded-xl p-4">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked
-                    readOnly
-                    className="mt-1 w-5 h-5 rounded border-gray-300 text-[#f5a623] focus:ring-[#f5a623] cursor-pointer"
-                  />
-                  <span className="text-sm text-[#1a1a2e]">
-                    I agree to receive SMS text messages containing verification codes for
-                    two-factor authentication at the phone number provided above.
-                    Msg &amp; data rates may apply. Frequency varies based on login activity.
-                    Reply <strong>STOP</strong> to opt out or <strong>HELP</strong> for help at any time.
-                  </span>
-                </label>
-              </div>
-            </div>
+            <h3 className="font-bold mt-6 mb-3 text-lg">Step 2 &mdash; Open Settings and locate the Two-Factor Authentication card</h3>
+            <figure className="border border-gray-200 rounded-xl p-4 bg-white">
+              <img
+                src="/2fa-step-2.png"
+                alt="Screenshot of the ToolTime Pro Settings page with the Two-Factor Authentication card visible."
+                className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-[#5c5c70] mt-3 text-center">
+                The <em>Two-Factor Authentication</em> card appears on the Settings page with a
+                <em> Set Up 2FA</em> button.
+              </figcaption>
+            </figure>
 
-            <h3 className="font-bold mt-4 mb-2">Sample 2FA messages</h3>
+            <h3 className="font-bold mt-6 mb-3 text-lg">Step 3 &mdash; Click &ldquo;Set Up 2FA&rdquo; and enter phone number</h3>
+            <figure className="border border-gray-200 rounded-xl p-4 bg-white">
+              <img
+                src="/2fa.png"
+                alt="Screenshot of the ToolTime Pro Two-Factor Authentication form showing the phone number entry field and the unchecked SMS consent checkbox with the full opt-in disclosure label."
+                className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-[#5c5c70] mt-3 text-center">
+                Phone number entry field is shown above the consent checkbox. The checkbox is
+                <strong> unchecked by default</strong> &mdash; no SMS is sent unless the user
+                affirmatively checks it.
+              </figcaption>
+            </figure>
+
+            <h3 className="font-bold mt-6 mb-3 text-lg">
+              <span className="inline-block bg-[#f5a623] text-white px-2 py-0.5 rounded mr-2 text-sm">CTA</span>
+              Step 4 &mdash; Affirmatively check the SMS consent box (the opt-in action)
+            </h3>
+            <figure className="border-2 border-[#f5a623] rounded-xl p-4 bg-[#fef3d6]/30">
+              <img
+                src="/2fa-step-4.png"
+                alt="Screenshot of the ToolTime Pro Two-Factor Authentication form with the SMS consent checkbox now affirmatively checked by the user, indicating express written consent to receive 2FA SMS."
+                className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-[#1a1a2e] mt-3 text-center">
+                <strong>This is the explicit opt-in CTA.</strong> The user has now checked the SMS
+                consent box, providing express written consent. The exact disclosure text presented
+                to the user reads:
+              </figcaption>
+              <blockquote className="text-xs italic text-[#1a1a2e] mt-2 mx-auto max-w-[700px] border-l-2 border-[#f5a623] pl-3">
+                &ldquo;I agree to receive SMS text messages containing verification codes for
+                two-factor authentication at the phone number provided above. Msg &amp; data rates
+                may apply. Frequency varies based on login activity. Reply <strong>STOP</strong> to opt out
+                or <strong>HELP</strong> for help at any time.&rdquo;
+              </blockquote>
+            </figure>
+
+            <h3 className="font-bold mt-6 mb-3 text-lg">Step 5 &mdash; Click &ldquo;Enable 2FA&rdquo; to save consent</h3>
+            <figure className="border border-gray-200 rounded-xl p-4 bg-white">
+              <img
+                src="/2fa-step-5.png"
+                alt="Screenshot confirming Two-Factor Authentication SMS is now enabled on the account, with consent recorded."
+                className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-[#5c5c70] mt-3 text-center">
+                After clicking <em>Enable 2FA</em>, consent is recorded with a timestamp and 2FA SMS
+                is now active for the account. Users will receive a 6-digit code at the registered
+                phone number the next time they log in from an unrecognized device.
+              </figcaption>
+            </figure>
+
+            <h3 className="font-bold mt-6 mb-2">Sample 2FA messages</h3>
             <ul className="list-disc pl-6 space-y-1 mb-4 text-sm">
               <li><code className="bg-gray-100 px-1 rounded">Your ToolTime Pro verification code is: 123456. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
               <li><code className="bg-gray-100 px-1 rounded">Your ToolTime Pro verification code is: 789012. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
