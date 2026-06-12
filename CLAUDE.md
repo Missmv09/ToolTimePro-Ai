@@ -9,6 +9,7 @@ ToolTime Pro is a field service management SaaS for contractors (landscaping, pl
 1. **Run `npm run build`** — catches TypeScript errors that `npm test` misses
 2. **Run `npm test`** — all 382+ tests must pass
 3. **Run `npm run lint`** — no new lint errors
+4. **Run `npm run i18n:check`** — every `t('key')` must resolve in the `en` catalog (CI fails otherwise). Add `--strict` to also require `es` parity.
 
 ### Code Standards
 - **Use `.js` for API routes** that use complex SDK types (Stripe, external APIs) to avoid TypeScript inference issues
