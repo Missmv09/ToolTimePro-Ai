@@ -413,8 +413,10 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
             </div>
           </div>
 
-          {/* Pay Now Button */}
-          {invoice.status !== 'paid' && balanceDue > 0 && !paymentSuccess && (
+          {/* Pay Now Button — only when the company has actually onboarded Stripe Connect.
+              Otherwise the API returns 500 and the customer hits a dead-end.
+              Customers can still pay via the alternative methods below (Zelle/Venmo/check/etc). */}
+          {invoice.status !== 'paid' && balanceDue > 0 && !paymentSuccess && invoice.company?.stripe_connect_onboarded && (
             <div className="px-6 pb-6">
               {payError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-lg mb-3">
