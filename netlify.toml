@@ -69,3 +69,9 @@
 # Pings Supabase to prevent free-tier project from pausing (7-day inactivity limit)
 [functions."supabase-keepalive-cron"]
   schedule = "0 6 */3 * *"
+
+# Google Calendar Sync — runs every 30 minutes
+# Pushes each connected user's upcoming (next 30 days) jobs to their Google
+# Calendar so the sync is automatic without clicking "Sync Now".
+[functions."calendar-sync-cron"]
+  schedule = "*/30 * * * *"

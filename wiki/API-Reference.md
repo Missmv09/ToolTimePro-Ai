@@ -73,6 +73,7 @@ Complete list of ToolTime Pro API endpoints, auto-generated from source code.
 | `/api/google-calendar/connect` | `POST` | `src/app/api/google-calendar/connect/route.js` |
 | `/api/google-calendar/disconnect` | `POST` | `src/app/api/google-calendar/disconnect/route.js` |
 | `/api/google-calendar/sync` | `POST` | `src/app/api/google-calendar/sync/route.js` |
+| `/api/google-calendar/sync-all` | `GET`, `POST` | `src/app/api/google-calendar/sync-all/route.js` |
 
 ## Help
 

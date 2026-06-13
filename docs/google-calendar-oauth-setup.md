@@ -122,6 +122,20 @@ this guide is what turns the feature on.
 
 ---
 
+## Automatic sync
+
+Once a user connects, their upcoming jobs sync to Google Calendar **two ways**:
+
+- **Manual:** the **Sync Now** button in Settings (per-user, on demand).
+- **Automatic:** a scheduled function (`calendar-sync-cron`, every 30 minutes —
+  see `netlify.toml`) calls `/api/google-calendar/sync-all`, which pushes the
+  next 30 days of jobs for **every** connected user.
+
+The cron route is authenticated with the existing **`CRON_SECRET`** env var
+(the same one the other cron jobs use), so no new secret is required — just make
+sure `CRON_SECRET` is set in Netlify. A single user's revoked/expired token does
+not stop the others from syncing; failures are logged per connection.
+
 ## Troubleshooting
 - **"Google Calendar is not configured"** → env vars missing or site not
   redeployed after adding them.
