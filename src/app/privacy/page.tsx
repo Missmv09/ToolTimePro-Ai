@@ -160,6 +160,19 @@ export default function PrivacyPolicyPage() {
               used exclusively to provide the calendar sync feature within ToolTime Pro.
             </p>
 
+            <h3 className="font-bold mt-4 mb-2">Limited Use Disclosure</h3>
+            <p>
+              ToolTime Pro&apos;s use and transfer of information received from Google APIs adheres to the{' '}
+              <a href="https://developers.google.com/terms/api-services-user-data-policy" className="text-[#f5a623] hover:underline" target="_blank" rel="noopener noreferrer">
+                Google API Services User Data Policy
+              </a>, including the Limited Use requirements. We do not use Google user data for serving
+              advertisements, do not transfer it to others except as necessary to provide or improve the
+              calendar sync feature (or as required by law), do not allow humans to read the data unless we
+              have your affirmative consent, it is necessary for security purposes (such as investigating
+              abuse), or it is required by law, and we do not use the data for any purpose other than
+              providing the Google Calendar integration you have requested.
+            </p>
+
             <h3 className="font-bold mt-4 mb-2">Revoking Access</h3>
             <p>
               You can disconnect Google Calendar at any time from your ToolTime Pro Settings page. When you
