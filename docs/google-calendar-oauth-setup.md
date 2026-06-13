@@ -1,5 +1,9 @@
 # Google Calendar Integration — Google Cloud Setup Guide
 
+> **Audience:** internal — the operator/developer setting up the integration.
+> This is a one-time configuration runbook, not customer-facing documentation.
+> Production domain is **`www.tooltimepro.com`** (`NEXT_PUBLIC_APP_URL`).
+
 This is the click-by-click guide for getting ToolTime Pro's Google Calendar
 integration approved and live. The **application code is already complete**
 (connect → callback → sync, with token refresh). Everything below is the
@@ -18,7 +22,7 @@ this guide is what turns the feature on.
 | Google API to enable | **Google Calendar API** |
 | OAuth client type | **Web application** |
 | Scope requested | `https://www.googleapis.com/auth/calendar.events` (sensitive, **not** restricted) |
-| Authorized redirect URI | `https://app.tooltimepro.com/api/google-calendar/callback` |
+| Authorized redirect URI | `https://www.tooltimepro.com/api/google-calendar/callback` |
 | Netlify env vars | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | Verification needed? | **Yes** for production (the scope is sensitive) |
 | Security audit (CASA) needed? | **No** — `calendar.events` is sensitive but not restricted |
@@ -51,11 +55,11 @@ this guide is what turns the feature on.
    - User support email: `support@tooltimepro.com`
    - App logo: upload the ToolTime Pro logo (required for verification).
 4. **App domain**:
-   - Application home page: `https://tooltimepro.com`
-   - Privacy policy: `https://tooltimepro.com/privacy`
-   - Terms of service: `https://tooltimepro.com/terms` (if available)
+   - Application home page: `https://www.tooltimepro.com`
+   - Privacy policy: `https://www.tooltimepro.com/privacy`
+   - Terms of service: `https://www.tooltimepro.com/terms` (if available)
 5. **Authorized domains**: add `tooltimepro.com`.
-   *(This single domain covers `tooltimepro.com` and `app.tooltimepro.com`.)*
+   *(This single domain covers `tooltimepro.com`, `www.tooltimepro.com`, and `app.tooltimepro.com`.)*
 6. Developer contact email: `support@tooltimepro.com`.
 7. **Save and Continue**.
 
@@ -80,7 +84,7 @@ this guide is what turns the feature on.
 3. Name: `ToolTime Pro Web`.
 4. **Authorized redirect URIs → Add URI** — paste **exactly**:
    ```
-   https://app.tooltimepro.com/api/google-calendar/callback
+   https://www.tooltimepro.com/api/google-calendar/callback
    ```
    *(The code builds this from `NEXT_PUBLIC_APP_URL` + `/api/google-calendar/callback`.
    If you ever change `NEXT_PUBLIC_APP_URL`, update this URI to match.)*
@@ -96,7 +100,7 @@ this guide is what turns the feature on.
 2. Add:
    - `GOOGLE_CLIENT_ID` = *(the Client ID from step 6)*
    - `GOOGLE_CLIENT_SECRET` = *(the Client secret from step 6)*
-3. Confirm `NEXT_PUBLIC_APP_URL` = `https://app.tooltimepro.com` (the redirect
+3. Confirm `NEXT_PUBLIC_APP_URL` = `https://www.tooltimepro.com` (the redirect
    URI is derived from it).
 4. **Redeploy** the site so the new env vars take effect.
 5. Smoke test: log in → Settings → **Connect Google Calendar**. You should get

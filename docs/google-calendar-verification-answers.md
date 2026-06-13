@@ -55,7 +55,7 @@ Keep it short (60–120s) and narrate what's happening.
 ---
 
 ## Privacy policy — what reviewers verify
-Live at: **https://tooltimepro.com/privacy** (Section 5, "Google Calendar
+Live at: **https://www.tooltimepro.com/privacy** (Section 5, "Google Calendar
 Integration"). It already states:
 
 - The exact scope used (`calendar.events`) and what it allows.
@@ -81,10 +81,10 @@ No further privacy-policy edits should be needed for submission.
 | Field | Answer |
 | --- | --- |
 | App name | ToolTime Pro |
-| App home page | https://tooltimepro.com |
-| Privacy policy | https://tooltimepro.com/privacy |
+| App home page | https://www.tooltimepro.com |
+| Privacy policy | https://www.tooltimepro.com/privacy |
 | Authorized domain | tooltimepro.com |
-| Redirect URI | https://app.tooltimepro.com/api/google-calendar/callback |
+| Redirect URI | https://www.tooltimepro.com/api/google-calendar/callback |
 | Scopes | https://www.googleapis.com/auth/calendar.events |
 | Restricted scopes? | No (sensitive only — no CASA audit) |
 | Data accessed | Only events ToolTime Pro creates on the user's calendar |
