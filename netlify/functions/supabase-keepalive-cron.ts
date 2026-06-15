@@ -1,5 +1,5 @@
 // Netlify Scheduled Function: Supabase Keep-Alive
-// Runs an actual database query every 3 days to prevent the free-tier project
+// Runs an actual database query every 3 days to prevent free-tier projects
 // from being paused due to inactivity (Supabase pauses after 7 days).
 //
 // IMPORTANT: Supabase determines inactivity based on real database queries,
@@ -8,53 +8,54 @@
 // performs a lightweight SELECT against a real table to generate genuine
 // database activity.
 //
-// TARGETING: The keep-alive must always hit the PRODUCTION project. It is
-// deliberately decoupled from NEXT_PUBLIC_SUPABASE_URL — that var is the
-// app's runtime pointer and can drift to a Sandbox project during testing,
-// which would let Prod pause while Sandbox stays warm. Set
-// SUPABASE_KEEPALIVE_URL / SUPABASE_KEEPALIVE_KEY to pin this to Prod. If
-// those are unset it falls back to the NEXT_PUBLIC_* vars for compatibility.
+// TARGETING: This keep-alive pings EVERY configured project in a single run,
+// so both Production and Sandbox stay warm regardless of which Netlify deploy
+// context the cron happens to fire in.
+//
+//   - Production: SUPABASE_KEEPALIVE_URL / SUPABASE_KEEPALIVE_KEY
+//     (falls back to NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY
+//      for backwards compatibility). Pinning the dedicated vars keeps Prod from
+//      drifting if NEXT_PUBLIC_* is ever repointed at Sandbox during testing.
+//   - Sandbox: SUPABASE_SANDBOX_URL / SUPABASE_SANDBOX_KEY (optional — the
+//     sandbox target is simply skipped if these are unset).
 
-export default async function handler() {
-  const supabaseUrl =
-    process.env.SUPABASE_KEEPALIVE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey =
-    process.env.SUPABASE_KEEPALIVE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+type Target = {
+  label: string;
+  url: string;
+  key: string;
+  source: string;
+};
 
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('[Supabase Keep-Alive] Missing environment variables');
-    return new Response(JSON.stringify({ error: 'Missing Supabase config' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+type TargetResult = {
+  label: string;
+  host: string;
+  ok: boolean;
+  status?: number;
+  error?: string;
+};
 
-  // Log which project host is actually being kept alive so the target can be
-  // verified from Netlify function logs without guessing.
-  let targetHost = supabaseUrl;
+async function pingTarget(target: Target): Promise<TargetResult> {
+  let host = target.url;
   try {
-    targetHost = new URL(supabaseUrl).host;
+    host = new URL(target.url).host;
   } catch {
     // keep raw value if it isn't a parseable URL
   }
-  const usingDedicatedTarget = Boolean(process.env.SUPABASE_KEEPALIVE_URL);
+
   console.log(
-    `[Supabase Keep-Alive] Target host: ${targetHost} (source: ${
-      usingDedicatedTarget ? 'SUPABASE_KEEPALIVE_URL' : 'NEXT_PUBLIC_SUPABASE_URL'
-    })`
+    `[Supabase Keep-Alive] Pinging ${target.label} host: ${host} (source: ${target.source})`
   );
 
   try {
     // Lightweight SELECT against a core table. This forces PostgREST to
     // execute real SQL against the database, which counts as activity.
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/companies?select=id&limit=1`,
+      `${target.url}/rest/v1/companies?select=id&limit=1`,
       {
         method: 'GET',
         headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': target.key,
+          'Authorization': `Bearer ${target.key}`,
           'Accept': 'application/json',
         },
       }
@@ -63,30 +64,79 @@ export default async function handler() {
     if (!response.ok) {
       const body = await response.text();
       console.error(
-        `[Supabase Keep-Alive] Query failed for ${targetHost}: ${response.status} ${body}`
+        `[Supabase Keep-Alive] Query failed for ${target.label} (${host}): ${response.status} ${body}`
       );
-      return new Response(
-        JSON.stringify({ error: 'Keep-alive query failed', status: response.status }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } }
-      );
+      return { label: target.label, host, ok: false, status: response.status };
     }
 
     console.log(
-      `[Supabase Keep-Alive] DB query OK for ${targetHost}: ${response.status}`
+      `[Supabase Keep-Alive] DB query OK for ${target.label} (${host}): ${response.status}`
     );
-
-    return new Response(
-      JSON.stringify({ success: true, status: response.status, host: targetHost }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return { label: target.label, host, ok: true, status: response.status };
   } catch (error) {
-    console.error('[Supabase Keep-Alive] Error:', error);
-    return new Response(JSON.stringify({ error: 'Keep-alive ping failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
+    console.error(
+      `[Supabase Keep-Alive] Error pinging ${target.label} (${host}):`,
+      error
+    );
+    return {
+      label: target.label,
+      host,
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+export default async function handler() {
+  const targets: Target[] = [];
+
+  // Production target (dedicated vars preferred, NEXT_PUBLIC_* fallback).
+  const prodUrl =
+    process.env.SUPABASE_KEEPALIVE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const prodKey =
+    process.env.SUPABASE_KEEPALIVE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (prodUrl && prodKey) {
+    targets.push({
+      label: 'production',
+      url: prodUrl,
+      key: prodKey,
+      source: process.env.SUPABASE_KEEPALIVE_URL
+        ? 'SUPABASE_KEEPALIVE_URL'
+        : 'NEXT_PUBLIC_SUPABASE_URL',
     });
   }
+
+  // Sandbox target (optional).
+  const sandboxUrl = process.env.SUPABASE_SANDBOX_URL;
+  const sandboxKey = process.env.SUPABASE_SANDBOX_KEY;
+  if (sandboxUrl && sandboxKey) {
+    targets.push({
+      label: 'sandbox',
+      url: sandboxUrl,
+      key: sandboxKey,
+      source: 'SUPABASE_SANDBOX_URL',
+    });
+  }
+
+  if (targets.length === 0) {
+    console.error('[Supabase Keep-Alive] No targets configured');
+    return new Response(
+      JSON.stringify({ error: 'Missing Supabase config' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const results = await Promise.all(targets.map(pingTarget));
+  const allOk = results.every((r) => r.ok);
+
+  return new Response(
+    JSON.stringify({ success: allOk, results }),
+    {
+      // 502 if any target failed so the failure surfaces in Netlify logs,
+      // but all targets are always attempted regardless of one another.
+      status: allOk ? 200 : 502,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 }
