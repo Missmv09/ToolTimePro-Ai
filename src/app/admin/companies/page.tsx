@@ -12,6 +12,7 @@ import {
   ArrowUpDown,
   Plus,
   X,
+  UserCheck,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -121,6 +122,45 @@ export default function AdminCompaniesPage() {
     }
   };
 
+  // Grant Existing (by email) modal state
+  const [showGrantModal, setShowGrantModal] = useState(false);
+  const [grantForm, setGrantForm] = useState({ email: '', beta_notes: '' });
+  const [grantLoading, setGrantLoading] = useState(false);
+  const [grantError, setGrantError] = useState('');
+  const [grantSuccess, setGrantSuccess] = useState('');
+
+  const handleGrantExisting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGrantLoading(true);
+    setGrantError('');
+    setGrantSuccess('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/admin/companies/grant-beta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token || ''}`,
+        },
+        body: JSON.stringify(grantForm),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setGrantError(data.error || 'Failed to grant access');
+        return;
+      }
+
+      setGrantSuccess(data.message || 'Access granted.');
+      setGrantForm({ email: '', beta_notes: '' });
+      fetchCompanies();
+    } catch (err) {
+      setGrantError(err instanceof Error ? err.message : 'Failed to grant access');
+    } finally {
+      setGrantLoading(false);
+    }
+  };
+
   // Debounced search
   const [searchInput, setSearchInput] = useState('');
   useEffect(() => {
@@ -154,14 +194,102 @@ export default function AdminCompaniesPage() {
           <h1 className="text-2xl font-bold text-white">Companies</h1>
           <p className="text-gray-400 mt-1">Manage all ToolTime Pro customer companies</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium transition-colors"
-        >
-          <Plus size={18} />
-          Add Beta Tester
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowGrantModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors"
+          >
+            <UserCheck size={18} />
+            Grant Existing
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium transition-colors"
+          >
+            <Plus size={18} />
+            Add Beta Tester
+          </button>
+        </div>
       </div>
+
+      {/* Grant Existing (by email) Modal */}
+      {showGrantModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">Grant Beta Access</h2>
+              <button
+                onClick={() => { setShowGrantModal(false); setGrantError(''); setGrantSuccess(''); }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-400 mb-4">
+              Upgrade an account that has <strong>already signed up</strong> to full beta access.
+              Enter the email they registered with.
+            </p>
+
+            {grantError && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                {grantError}
+              </div>
+            )}
+            {grantSuccess && (
+              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
+                {grantSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleGrantExisting} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Account Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={grantForm.email}
+                  onChange={(e) => setGrantForm({ ...grantForm, email: e.target.value })}
+                  placeholder="e.g. someone@gmail.com"
+                  className="w-full px-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Notes</label>
+                <textarea
+                  value={grantForm.beta_notes}
+                  onChange={(e) => setGrantForm({ ...grantForm, beta_notes: e.target.value })}
+                  placeholder="Optional notes about this beta tester..."
+                  rows={2}
+                  className="w-full px-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none"
+                />
+              </div>
+
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 text-sm text-purple-300">
+                Sets <strong>Elite plan</strong>, <strong>beta tester</strong> status, all features, and a <strong>1-year trial</strong> on their existing company.
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowGrantModal(false); setGrantError(''); setGrantSuccess(''); }}
+                  className="flex-1 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg font-medium transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={grantLoading}
+                  className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                >
+                  {grantLoading ? 'Granting...' : 'Grant Access'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Beta Tester Modal */}
       {showAddModal && (
