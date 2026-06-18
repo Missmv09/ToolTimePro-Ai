@@ -34,10 +34,22 @@ type TargetResult = {
   error?: string;
 };
 
+// Normalize a configured base URL so a stray trailing slash, surrounding
+// whitespace, or an accidental "/rest/v1" suffix can't produce a malformed
+// request path (PostgREST rejects "//rest/v1/..." with a 404 PGRST125).
+function normalizeBaseUrl(raw: string): string {
+  return raw
+    .trim()
+    .replace(/\/+$/, '')        // drop trailing slash(es)
+    .replace(/\/rest\/v1$/, ''); // drop an accidental REST path suffix
+}
+
 async function pingTarget(target: Target): Promise<TargetResult> {
-  let host = target.url;
+  const baseUrl = normalizeBaseUrl(target.url);
+
+  let host = baseUrl;
   try {
-    host = new URL(target.url).host;
+    host = new URL(baseUrl).host;
   } catch {
     // keep raw value if it isn't a parseable URL
   }
@@ -50,7 +62,7 @@ async function pingTarget(target: Target): Promise<TargetResult> {
     // Lightweight SELECT against a core table. This forces PostgREST to
     // execute real SQL against the database, which counts as activity.
     const response = await fetch(
-      `${target.url}/rest/v1/companies?select=id&limit=1`,
+      `${baseUrl}/rest/v1/companies?select=id&limit=1`,
       {
         method: 'GET',
         headers: {
