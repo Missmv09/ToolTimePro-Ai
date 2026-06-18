@@ -55,6 +55,26 @@ Site settings → Environment variables. For each variable below, set "Specific 
 
 Any var left unscoped falls through to its production value — double-check the list above covers every secret that writes to a shared external system.
 
+### Keep the sandbox Supabase from pausing
+
+Free-tier Supabase projects pause after 7 days of no real database activity. The
+`supabase-keepalive-cron` function pings **every configured project in one run**,
+so it can keep Prod and Sandbox warm together — but the sandbox only gets pinged
+if you tell it where the sandbox project lives.
+
+Add these two vars in Netlify (scope them to **production / all** — the cron runs
+in the prod deploy context, *not* the sandbox branch deploy):
+
+| Variable | Value |
+|---|---|
+| `SUPABASE_SANDBOX_URL` | sandbox project URL |
+| `SUPABASE_SANDBOX_KEY` | sandbox anon key |
+
+Without these, the cron keeps Prod alive but the sandbox project will pause after
+a week of inactivity. You can confirm both are being pinged in the Netlify
+function logs — each run logs one `Pinging production…` and one `Pinging
+sandbox…` line.
+
 ### 5. Seed Stripe test-mode products
 
 ```bash
