@@ -203,6 +203,9 @@ function JobsContent() {
     }
 
     // ---------- ATTEMPT 1: Server-side API (bypasses RLS) ----------
+    // The direct client delete cannot succeed under RLS, so the server-side
+    // admin route is the real path. If it RESPONDS with an error we surface
+    // that error verbatim — falling back to the client would only hide it.
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
@@ -224,13 +227,17 @@ function JobsContent() {
           return
         }
 
+        // The API answered but couldn't delete — show the real reason.
         console.error('[deleteJob] API failed:', result.error, result.details, 'Log:', result.log)
+        alert(`Could not delete job: ${result.error || `HTTP ${res.status}`}${result.details ? `\n\nDetails: ${result.details}` : ''}`)
+        return
       }
     } catch (apiErr) {
       console.warn('[deleteJob] API unreachable:', apiErr, '- falling back to direct delete')
     }
 
     // ---------- ATTEMPT 2: Direct Supabase client fallback ----------
+    // Only reached when the API was unreachable or there was no session token.
     // A DELETE blocked by RLS affects 0 rows but returns NO error, so verify
     // the row is actually gone before treating it as a success.
     const { data: deleted, error } = await supabase
