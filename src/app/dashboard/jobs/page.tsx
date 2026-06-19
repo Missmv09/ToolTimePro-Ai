@@ -202,11 +202,55 @@ function JobsContent() {
       return
     }
 
-    const { error } = await supabase.from('jobs').delete().eq('id', jobId)
+    // ---------- ATTEMPT 1: Server-side API (bypasses RLS) ----------
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (token) {
+        const res = await fetch('/api/jobs/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ jobId }),
+        })
+
+        const result = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+
+        if (res.ok && result.success) {
+          if (companyId) fetchJobs(companyId)
+          return
+        }
+
+        console.error('[deleteJob] API failed:', result.error, result.details, 'Log:', result.log)
+      }
+    } catch (apiErr) {
+      console.warn('[deleteJob] API unreachable:', apiErr, '- falling back to direct delete')
+    }
+
+    // ---------- ATTEMPT 2: Direct Supabase client fallback ----------
+    // A DELETE blocked by RLS affects 0 rows but returns NO error, so verify
+    // the row is actually gone before treating it as a success.
+    const { data: deleted, error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('id', jobId)
+      .select('id')
+
     if (error) {
-      alert('Failed to delete job. Please try again.')
+      console.error('[deleteJob] Direct delete failed:', error)
+      alert(`Failed to delete job: ${error.message}`)
       return
     }
+
+    if (!deleted || deleted.length === 0) {
+      console.error('[deleteJob] Direct delete removed 0 rows (likely blocked by RLS)')
+      alert('Could not delete this job — it may be blocked by a database security policy. Please contact support.')
+      return
+    }
+
     if (companyId) fetchJobs(companyId)
   }
 
