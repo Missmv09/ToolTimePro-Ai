@@ -93,7 +93,7 @@ export default function PortalPhotos() {
                     <div className="flex items-center gap-2 mt-1">
                       <Calendar className="w-3.5 h-3.5 text-gray-400" />
                       <span className="text-xs text-gray-500">
-                        {new Date(job.scheduled_date).toLocaleDateString()}
+                        {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString()}
                       </span>
                       <span className="text-xs text-gray-400">{job.photos.length} {t('photos')}</span>
                     </div>
