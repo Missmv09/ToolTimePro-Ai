@@ -65,7 +65,7 @@ export default function PortalHistory() {
   // Group by year
   const grouped = new Map<string, HistoryJob[]>();
   for (const job of filtered) {
-    const year = new Date(job.scheduled_date).getFullYear().toString();
+    const year = new Date(job.scheduled_date + 'T00:00:00').getFullYear().toString();
     const list = grouped.get(year) || [];
     list.push(job);
     grouped.set(year, list);
@@ -169,7 +169,7 @@ export default function PortalHistory() {
                           <div className="flex items-center gap-3 mt-2">
                             <span className="text-xs text-gray-400 flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
-                              {new Date(job.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                             <span className={`px-2 py-0.5 rounded text-xs font-medium ${config.color}`}>
                               {config.label}

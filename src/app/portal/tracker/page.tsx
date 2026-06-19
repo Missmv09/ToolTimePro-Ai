@@ -104,7 +104,7 @@ export default function PortalTracker() {
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="w-4 h-4 text-gray-400" />
-                      {new Date(job.scheduled_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                       {job.scheduled_time_start && ` at ${job.scheduled_time_start}`}
                       {job.scheduled_time_end && ` — ${job.scheduled_time_end}`}
                     </div>
