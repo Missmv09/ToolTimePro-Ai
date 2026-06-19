@@ -71,6 +71,7 @@ function JobsContent() {
 
                 const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
           headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
         })
 
         if (res.ok) {
