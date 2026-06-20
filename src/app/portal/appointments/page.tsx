@@ -133,7 +133,7 @@ export default function PortalAppointments() {
                 <div className="mt-3 space-y-1.5">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    {new Date(job.scheduled_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
                   {job.scheduled_time_start && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -174,7 +174,7 @@ export default function PortalAppointments() {
                 <div>
                   <p className="font-medium text-gray-800 text-sm">{job.title}</p>
                   <p className="text-xs text-gray-400">
-                    {new Date(job.scheduled_date).toLocaleDateString()}
+                    {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -209,7 +209,7 @@ export default function PortalAppointments() {
                 </div>
 
                 <p className="text-sm text-gray-500 mb-4">
-                  {t('rescheduleDescription')} <strong>{rescheduleJob.title}</strong> ({t('rescheduleCurrently', { date: new Date(rescheduleJob.scheduled_date).toLocaleDateString() })}).
+                  {t('rescheduleDescription')} <strong>{rescheduleJob.title}</strong> ({t('rescheduleCurrently', { date: new Date(rescheduleJob.scheduled_date + 'T00:00:00').toLocaleDateString() })}).
                 </p>
 
                 <div className="space-y-3">

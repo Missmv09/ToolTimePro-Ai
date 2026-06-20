@@ -101,7 +101,7 @@ export default function PortalDashboard() {
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{job.title}</p>
                 <p className="text-sm text-gray-500">
-                  {new Date(job.scheduled_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                   {job.scheduled_time_start && ` at ${job.scheduled_time_start}`}
                 </p>
               </div>
