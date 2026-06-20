@@ -20,6 +20,7 @@ interface Job {
   priority: string
   total_amount: number
   quote_id: string | null
+  required_service_id: string | null
   customer: { id: string; name: string } | null
   assigned_users: { user: { id: string; full_name: string } }[]
 }
@@ -474,8 +475,25 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
     priority: job?.priority || 'normal',
     price: job?.total_amount?.toString() || initialQuote?.total?.toString() || '',
     assigned_worker_id: job?.assigned_users?.[0]?.user?.id || '',
+    required_service_id: job?.required_service_id || '',
   })
+  const [services, setServices] = useState<{ id: string; name: string; requires_license: boolean }[]>([])
   const [saving, setSaving] = useState(false)
+
+  // Load the company's active services so a job can declare which skill it needs.
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('services')
+      .select('id, name, requires_license')
+      .eq('company_id', companyId)
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data }) => {
+        if (!cancelled) setServices(data || [])
+      })
+    return () => { cancelled = true }
+  }, [companyId])
   const [errors, setErrors] = useState<{ address?: string; scheduled_date?: string; scheduled_time_start?: string }>({})
 
   const validateForm = (): boolean => {
@@ -566,6 +584,7 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
       scheduled_time_end: formData.scheduled_time_end || null,
       priority: formData.priority,
       total_amount: formData.price ? Number(formData.price) : null,
+      required_service_id: formData.required_service_id || null,
       company_id: companyId,
       status: job?.status || 'scheduled',
     }
@@ -871,6 +890,27 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
               />
             </div>
           </div>
+
+          {services.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Required Skill / Service</label>
+              <select
+                value={formData.required_service_id}
+                onChange={(e) => setFormData({ ...formData, required_service_id: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Any worker (no special skill)</option>
+                {services.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}{s.requires_license ? ' (license required)' : ''}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                The Route Optimizer will only assign this job to a worker qualified for the selected service.
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
