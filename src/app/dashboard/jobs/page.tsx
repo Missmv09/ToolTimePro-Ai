@@ -46,6 +46,8 @@ function JobsContent() {
   const initialFilter = searchParams.get('filter') || 'all'
 
   const [filter, setFilter] = useState<string>(initialFilter)
+  // TEMPORARY DIAGNOSTIC — remove once the All-vs-Scheduled issue is understood
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
   const { user, dbUser, isLoading: authLoading } = useAuth()
@@ -77,6 +79,9 @@ function JobsContent() {
           const result = await res.json()
           // Only update state if this is still the latest request
           if (currentFetchId !== fetchIdRef.current) return
+          // TEMPORARY DIAGNOSTIC
+          console.log('[fetchJobs][DIAGNOSTIC] path=API filter=%s returnedCount=%d', filter, (result.jobs || []).length, result.debug)
+          setDebugInfo({ path: 'API (service role, bypasses RLS)', returnedForThisTab: (result.jobs || []).length, ...(result.debug || {}) })
           setJobs(result.jobs || [])
           setLoading(false)
           return
@@ -118,6 +123,20 @@ function JobsContent() {
     if (error) {
       console.error('[fetchJobs] Direct query error:', error)
     } else {
+      // TEMPORARY DIAGNOSTIC — fallback path is subject to RLS, so counts here
+      // may differ from the API path. That difference is itself a useful signal.
+      const breakdown: Record<string, number> = {}
+      for (const j of (data || [])) {
+        const s = (j as Job).status ?? '(null)'
+        breakdown[s] = (breakdown[s] || 0) + 1
+      }
+      console.log('[fetchJobs][DIAGNOSTIC] path=FALLBACK(RLS) filter=%s returnedCount=%d breakdown=%o', filter, (data || []).length, breakdown)
+      setDebugInfo({
+        path: 'FALLBACK direct query (subject to RLS — API was unreachable or returned an error)',
+        filterApplied: filter,
+        returnedForThisTab: (data || []).length,
+        statusBreakdown_thisTab: breakdown,
+      })
       setJobs(data || [])
     }
     setLoading(false)
@@ -304,6 +323,14 @@ function JobsContent() {
           + New Job
         </button>
       </div>
+
+      {/* TEMPORARY DIAGNOSTIC BANNER — remove once the issue is understood */}
+      {debugInfo && (
+        <div className="mb-4 p-3 rounded-lg border border-amber-300 bg-amber-50 text-xs text-amber-900 font-mono whitespace-pre-wrap break-all">
+          <span className="font-bold">🔍 DIAGNOSTIC (temporary):</span>{'\n'}
+          {JSON.stringify(debugInfo, null, 2)}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">

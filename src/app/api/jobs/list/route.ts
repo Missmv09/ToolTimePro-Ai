@@ -68,8 +68,38 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch jobs', details: jobsError.message }, { status: 500 })
     }
 
+    // ---------- TEMPORARY DIAGNOSTIC ----------
+    // Ground-truth, UNFILTERED snapshot of every job for this company so we can
+    // see exactly what exists in the DB regardless of which tab is active.
+    // Remove once the "All vs Scheduled" discrepancy is understood.
+    const { data: allJobsRaw, error: allJobsErr } = await adminClient
+      .from('jobs')
+      .select('id, status, scheduled_date, company_id')
+      .eq('company_id', profile.company_id)
+      .limit(5000)
+
+    const statusBreakdown: Record<string, number> = {}
+    for (const j of allJobsRaw || []) {
+      const s = j.status ?? '(null)'
+      statusBreakdown[s] = (statusBreakdown[s] || 0) + 1
+    }
+    const debug = {
+      callerUserId: authData.user.id,
+      companyId: profile.company_id,
+      filterApplied: filter,
+      customerFilterApplied: customerFilter || null,
+      totalJobsForCompany_unfiltered: allJobsRaw?.length ?? 0,
+      statusBreakdown_unfiltered: statusBreakdown,
+      allJobsErr: allJobsErr?.message || null,
+      sample: (allJobsRaw || []).slice(0, 20).map(j => ({
+        id: j.id, status: j.status, scheduled_date: j.scheduled_date,
+      })),
+    }
+    console.log('[JobsList][DIAGNOSTIC]', JSON.stringify(debug))
+    // ------------------------------------------
+
     if (!jobs || jobs.length === 0) {
-      return NextResponse.json({ jobs: [] })
+      return NextResponse.json({ jobs: [], debug })
     }
 
     // Fetch ALL assignments for these jobs separately (avoids any PostgREST join issues)
@@ -105,7 +135,7 @@ export async function GET(request: NextRequest) {
         .map(a => ({ user: { id: a.user_id, full_name: userMap[a.user_id] || 'Unknown' } })),
     }))
 
-    return NextResponse.json({ jobs: jobsWithAssignments })
+    return NextResponse.json({ jobs: jobsWithAssignments, debug })
   } catch (err) {
     return NextResponse.json(
       { error: 'Unexpected error', details: err instanceof Error ? err.message : 'Unknown' },
