@@ -1,4 +1,4 @@
-import { clearGeocodeCache, seedGeocodeCache } from '@/lib/geocoding';
+import { clearGeocodeCache, seedGeocodeCache, buildAddressQuery } from '@/lib/geocoding';
 
 // We test the cache/seed functions synchronously; actual geocoding
 // requires network access, so we test the API integration logic separately.
@@ -35,6 +35,38 @@ describe('geocoding', () => {
       // After normalization: "123 main st" should match "123 main st"
       // Note: the seed normalizes too, so this should match
       expect(result).toEqual({ lat: 39.78, lng: -89.65 });
+    });
+  });
+
+  describe('buildAddressQuery', () => {
+    it('joins parts with comma + space', () => {
+      expect(buildAddressQuery('1048 Farley Ave', 'Mountain View', 'CA')).toBe(
+        '1048 Farley Ave, Mountain View, CA'
+      );
+    });
+
+    it('trims trailing/leading whitespace on each part (no stray comma spacing)', () => {
+      // Regression: a trailing space in the stored address previously produced
+      // "1048 Farley Ave , mountain view" (note the space before the comma).
+      expect(buildAddressQuery('1048 Farley Ave ', 'mountain view')).toBe(
+        '1048 Farley Ave, mountain view'
+      );
+    });
+
+    it('collapses internal whitespace', () => {
+      expect(buildAddressQuery('1048   Farley   Ave', 'Mountain  View')).toBe(
+        '1048 Farley Ave, Mountain View'
+      );
+    });
+
+    it('drops empty, whitespace-only, null, and undefined parts', () => {
+      expect(buildAddressQuery('123 Main St', '', '   ', null, undefined, 'Springfield')).toBe(
+        '123 Main St, Springfield'
+      );
+    });
+
+    it('returns an empty string when no usable parts are provided', () => {
+      expect(buildAddressQuery(null, undefined, '  ')).toBe('');
     });
   });
 

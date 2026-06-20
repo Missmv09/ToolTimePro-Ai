@@ -31,6 +31,8 @@ interface RouteJob {
   title: string;
   address: string | null;
   city: string | null;
+  state: string | null;
+  zip: string | null;
   scheduled_date: string;
   scheduled_time_start: string | null;
   scheduled_time_end: string | null;
@@ -351,7 +353,7 @@ export default function RouteOptimizerPage() {
     const { data, error } = await supabase
       .from('jobs')
       .select(`
-        id, title, address, city, scheduled_date, scheduled_time_start, scheduled_time_end, status, total_amount,
+        id, title, address, city, state, zip, scheduled_date, scheduled_time_start, scheduled_time_end, status, total_amount,
         customer:customers(name),
         assigned_users:job_assignments(user:users(full_name))
       `)
@@ -393,6 +395,8 @@ export default function RouteOptimizerPage() {
             id: j.id,
             address: j.address,
             city: j.city,
+            state: j.state,
+            zip: j.zip,
             lat: j.lat,
             lng: j.lng,
             scheduledTime: j.scheduled_time_start,

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { optimizeRoute, optimizeMultiWorkerRoutes, RoutePoint, RouteOptions } from '@/lib/route-optimization';
-import { geocodeAddress } from '@/lib/geocoding';
+import { geocodeJobAddress, buildAddressQuery } from '@/lib/geocoding';
 
 interface JobInput {
   id: string;
   address: string | null;
   city: string | null;
+  state?: string | null;
+  zip?: string | null;
   lat?: number | null;
   lng?: number | null;
   scheduledTime?: string | null;
@@ -79,19 +81,29 @@ export async function POST(request: NextRequest) {
       }
 
       if (lat == null || lng == null) {
-        const fullAddress = [job.address, job.city].filter(Boolean).join(', ');
+        const fullAddress = buildAddressQuery(job.address, job.city, job.state, job.zip);
         if (!fullAddress) {
           geocodeErrors.push(`Job ${job.id}: No address provided`);
           continue;
         }
 
-        const coords = await geocodeAddress(fullAddress);
-        if (!coords) {
+        const geocoded = await geocodeJobAddress({
+          address: job.address,
+          city: job.city,
+          state: job.state,
+          zip: job.zip,
+        });
+        if (!geocoded) {
           geocodeErrors.push(`Job ${job.id}: Could not geocode "${fullAddress}"`);
           continue;
         }
-        lat = coords.lat;
-        lng = coords.lng;
+        lat = geocoded.coords.lat;
+        lng = geocoded.coords.lng;
+        if (geocoded.approximate) {
+          geocodeErrors.push(
+            `Job ${job.id}: Used approximate location "${geocoded.query}" (could not pinpoint "${fullAddress}")`
+          );
+        }
       }
 
       points.push({

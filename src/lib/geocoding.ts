@@ -23,6 +23,20 @@ function normalizeAddress(address: string): string {
   return address.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
+/**
+ * Build a clean, geocodable address string from structured parts.
+ * Trims each part, drops empty/whitespace-only parts, and collapses
+ * internal whitespace so we never produce artifacts like
+ * "1048 Farley Ave , mountain view" (note the stray space before the comma)
+ * when a stored field has trailing/leading whitespace.
+ */
+export function buildAddressQuery(...parts: Array<string | null | undefined>): string {
+  return parts
+    .map((p) => (p ?? '').trim().replace(/\s+/g, ' '))
+    .filter((p) => p.length > 0)
+    .join(', ');
+}
+
 async function throttle(): Promise<void> {
   const now = Date.now();
   const elapsed = now - lastRequestTime;
@@ -96,6 +110,45 @@ export async function geocodeAddress(address: string): Promise<GeoCoordinates | 
     failureCacheTimestamps.set(key, Date.now());
     return null;
   }
+}
+
+/**
+ * Geocode a job from its structured address parts, degrading gracefully.
+ *
+ * Tries the most specific query first (street + city), then falls back to
+ * progressively coarser queries (e.g. city only). This keeps the route
+ * optimizer usable when a job has an incomplete address (missing state/zip),
+ * placing it at the city center rather than dropping it entirely.
+ *
+ * Returns the coordinates plus the query that actually resolved, and whether
+ * it was an approximate (fallback) match, so callers can surface a warning.
+ */
+export async function geocodeJobAddress(
+  parts: { address?: string | null; city?: string | null; state?: string | null; zip?: string | null }
+): Promise<{ coords: GeoCoordinates; query: string; approximate: boolean } | null> {
+  const { address, city, state, zip } = parts;
+
+  // Ordered from most to least specific. Later entries are approximate.
+  const candidates: Array<{ query: string; approximate: boolean }> = [
+    { query: buildAddressQuery(address, city, state, zip), approximate: false },
+    { query: buildAddressQuery(address, city, state), approximate: false },
+    { query: buildAddressQuery(city, state, zip), approximate: true },
+    { query: buildAddressQuery(city, state), approximate: true },
+    { query: buildAddressQuery(city), approximate: true },
+  ];
+
+  const tried = new Set<string>();
+  for (const candidate of candidates) {
+    if (!candidate.query || tried.has(candidate.query)) continue;
+    tried.add(candidate.query);
+
+    const coords = await geocodeAddress(candidate.query);
+    if (coords) {
+      return { coords, query: candidate.query, approximate: candidate.approximate };
+    }
+  }
+
+  return null;
 }
 
 /**
