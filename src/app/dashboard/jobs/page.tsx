@@ -71,6 +71,7 @@ function JobsContent() {
 
                 const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
           headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
         })
 
         if (res.ok) {
@@ -377,7 +378,7 @@ function JobsContent() {
                   </td>
                   <td className="px-6 py-4">
                     <p className="text-sm text-gray-900">
-                      {job.scheduled_date ? new Date(job.scheduled_date).toLocaleDateString() : 'Unscheduled'}
+                      {job.scheduled_date ? new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString() : 'Unscheduled'}
                     </p>
                     <p className="text-sm text-gray-500">
                       {job.scheduled_time_start || ''} {job.scheduled_time_end ? `- ${job.scheduled_time_end}` : ''}

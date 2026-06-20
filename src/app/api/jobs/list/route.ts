@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
+// Prevent the browser/CDN from caching list responses. Because the "All" tab
+// and the status tabs hit different URLs (e.g. `/api/jobs/list` vs
+// `/api/jobs/list?filter=scheduled`), a cached empty "All" response would make
+// newly created jobs appear under a status tab but not under "All".
+const NO_STORE_HEADERS = { 'Cache-Control': 'no-store, max-age=0' }
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization')
@@ -69,7 +75,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!jobs || jobs.length === 0) {
-      return NextResponse.json({ jobs: [] })
+      return NextResponse.json({ jobs: [] }, { headers: NO_STORE_HEADERS })
     }
 
     // Fetch ALL assignments for these jobs separately (avoids any PostgREST join issues)
@@ -105,7 +111,7 @@ export async function GET(request: NextRequest) {
         .map(a => ({ user: { id: a.user_id, full_name: userMap[a.user_id] || 'Unknown' } })),
     }))
 
-    return NextResponse.json({ jobs: jobsWithAssignments })
+    return NextResponse.json({ jobs: jobsWithAssignments }, { headers: NO_STORE_HEADERS })
   } catch (err) {
     return NextResponse.json(
       { error: 'Unexpected error', details: err instanceof Error ? err.message : 'Unknown' },
