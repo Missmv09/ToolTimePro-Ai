@@ -654,7 +654,14 @@ CREATE POLICY "Invoices belong to company" ON invoices
 
 -- Job assignments: users can manage assignments for jobs in their company
 CREATE POLICY "Job assignments for company jobs" ON job_assignments
-    FOR ALL USING (
+    FOR ALL
+    USING (
+        job_id IN (
+            SELECT j.id FROM jobs j
+            WHERE j.company_id = (SELECT company_id FROM users WHERE id = auth.uid())
+        )
+    )
+    WITH CHECK (
         job_id IN (
             SELECT j.id FROM jobs j
             WHERE j.company_id = (SELECT company_id FROM users WHERE id = auth.uid())
