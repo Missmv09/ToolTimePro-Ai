@@ -335,27 +335,16 @@ export default function PricingPage() {
     window.location.href = '/auth/signup';
   };
 
-  // Subscribe-now path: skip the trial and go straight to Stripe Checkout.
-  // Logged-out visitors must sign up first — otherwise the webhook has no
-  // company to attach the subscription to and the post-payment email link
-  // dead-ends at /dashboard with no auth session. Stash the checkout intent
-  // in localStorage so /auth/set-password can resume it after password setup.
+  // Subscribe-now path: skip the trial and go straight to Stripe Checkout —
+  // for logged-out visitors too. Someone clicking "Subscribe Now" wants to pay
+  // immediately, not detour through a signup form. Stripe collects their email
+  // and payment, and the webhook (autoCreateCompanyForCheckout) provisions the
+  // company and emails a magic-link login afterward, so there's no need to make
+  // them create an account first.
   const handleSubscribeNow = () => {
     if (authIncomplete) return;
     const params = buildCheckoutParams();
     params.set('skipTrial', 'true');
-
-    if (!isLoggedIn) {
-      try {
-        localStorage.setItem(
-          'pendingCheckout',
-          JSON.stringify({ params: params.toString(), savedAt: Date.now() })
-        );
-      } catch {}
-      window.location.href = '/auth/signup';
-      return;
-    }
-
     window.location.href = `/api/checkout?${params.toString()}`;
   };
 
