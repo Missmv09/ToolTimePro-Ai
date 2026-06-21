@@ -26,6 +26,17 @@ export interface RouteOptions {
   startTimeMinutes?: number;
   /** Whether to enforce time-window constraints. Default: false */
   enforceTimeWindows?: boolean;
+  /**
+   * Precomputed real road distances (miles) between points, aligned to the
+   * `points` array order. When provided, used instead of the Haversine
+   * estimate so reported distances/savings reflect actual roads.
+   */
+  distanceMatrix?: number[][];
+  /**
+   * Precomputed real road durations (minutes), aligned to `points`. When
+   * provided, drive times are summed from this instead of distance ÷ speed.
+   */
+  durationMatrix?: number[][];
 }
 
 /** Result for multi-worker optimization */
@@ -410,7 +421,15 @@ export function optimizeRoute(
     };
   }
 
-  const matrix = buildDistanceMatrix(points, roadFactor);
+  // Prefer real road distances when provided; otherwise estimate via Haversine.
+  const matrix =
+    options?.distanceMatrix && options.distanceMatrix.length === points.length
+      ? options.distanceMatrix
+      : buildDistanceMatrix(points, roadFactor);
+  const durationMatrix =
+    options?.durationMatrix && options.durationMatrix.length === points.length
+      ? options.durationMatrix
+      : undefined;
 
   // Calculate original route distance (as-is order)
   const originalOrder = points.map((_, i) => i);
@@ -439,8 +458,13 @@ export function optimizeRoute(
   const optimizedDistance = routeDistance(optimizedOrder, matrix);
 
   const milesSaved = Math.max(0, originalDistance - optimizedDistance);
-  const originalTime = (originalDistance / speedMph) * 60;
-  const optimizedTime = (optimizedDistance / speedMph) * 60;
+  // Use real road durations when available; otherwise derive from distance/speed.
+  const originalTime = durationMatrix
+    ? routeDistance(originalOrder, durationMatrix)
+    : (originalDistance / speedMph) * 60;
+  const optimizedTime = durationMatrix
+    ? routeDistance(optimizedOrder, durationMatrix)
+    : (optimizedDistance / speedMph) * 60;
   const timeSaved = Math.max(0, originalTime - optimizedTime);
   const fuelSaved = milesSaved * fuelCost;
   const percentImprovement = originalDistance > 0

@@ -27,6 +27,7 @@ import {
   Radio,
   CalendarDays,
   Route,
+  TrendingDown,
   CalendarCheck,
   Phone,
   Brain,
@@ -75,6 +76,7 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeatur
   items.push({ href: '/dashboard/recurring-jobs', label: 'Recurring Jobs', icon: Repeat });
 
   if (canAccessFeature('route_optimizer')) items.push({ href: '/dashboard/route-optimizer', label: 'Route Optimizer', icon: Route });
+  if (canAccessFeature('route_optimizer')) items.push({ href: '/dashboard/route-roi', label: 'Savings Report', icon: TrendingDown });
   if (canAccessFeature('booking')) items.push({ href: '/dashboard/booking', label: 'Online Booking', icon: CalendarCheck });
 
   // Permission-gated admin features
