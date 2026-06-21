@@ -244,6 +244,23 @@ function JobDetailContent() {
         console.error('Failed to update job status:', statusError.message);
       }
 
+      // Text the customer an "on the way" tracking link (best effort).
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          fetch('/api/track/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ jobId }),
+          }).catch(() => {});
+        }
+      } catch {
+        // Non-fatal — clock-in already succeeded.
+      }
+
     } catch (err) {
       console.error('Error clocking in:', err);
       alert('Failed to clock in. Please try again.');

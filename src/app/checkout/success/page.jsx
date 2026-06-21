@@ -39,6 +39,22 @@ function CheckoutSuccessContent() {
     }
   }, [sessionId]);
 
+  // Safety net: ensure the buyer's account is provisioned and the login /
+  // set-password email is sent, even if the Stripe webhook never fired. The
+  // endpoint is idempotent — if the webhook already created the company it
+  // returns early without sending a duplicate email.
+  useEffect(() => {
+    if (!sessionId) return;
+    fetch('/api/checkout/provision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId }),
+    }).catch((err) => {
+      // Non-blocking — the user has paid. Webhook or /auth/login can recover.
+      console.error('Provision fallback failed:', err);
+    });
+  }, [sessionId]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -81,11 +97,15 @@ function CheckoutSuccessContent() {
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {isExistingUser ? t('upgradedTitle') : t('welcomeTitle')}
+          {isExistingUser ? t('upgradedTitle') : t('checkEmailTitle')}
         </h1>
 
         <p className="text-gray-600 mb-6">
-          {isExistingUser ? t('upgradedMessage') : t('welcomeMessage')}
+          {isExistingUser
+            ? t('upgradedMessage')
+            : session?.customer_email
+              ? t('checkEmailMessage', { email: session.customer_email })
+              : t('checkEmailMessageNoAddr')}
         </p>
 
         {session && (
@@ -118,11 +138,13 @@ function CheckoutSuccessContent() {
         )}
 
         <div className="space-y-3">
+          {/* New buyers have no session yet — they must use the emailed login
+              link first, so send them to login, not the dead-end dashboard. */}
           <Link
-            href="/dashboard"
+            href={isExistingUser ? '/dashboard' : '/auth/login'}
             className="block w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            {t('goToDashboard')}
+            {isExistingUser ? t('goToDashboard') : t('goToLogin')}
           </Link>
         </div>
 
