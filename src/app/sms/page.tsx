@@ -115,7 +115,7 @@ export default function SmsPage() {
                 loading="lazy"
               />
               <figcaption className="text-xs text-[#5c5c70] mt-3 text-center">
-                Account holders sign in at <strong>app.tooltimepro.com</strong> and are taken to the Dashboard.
+                Account holders sign in at <strong>tooltimepro.com</strong> and are taken to the Dashboard.
                 The <em>Settings</em> link is in the left navigation sidebar.
               </figcaption>
             </figure>
