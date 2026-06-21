@@ -186,6 +186,42 @@ function JobDetailContent() {
     return () => clearInterval(interval);
   }, [activeTimeEntry]);
 
+  // While the job is in progress, post the tech's GPS every 30s so the
+  // customer's tracking page shows a live "on the way" pin.
+  useEffect(() => {
+    if (!jobId || !activeTimeEntry || job?.status !== 'in_progress') return
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return
+
+    let cancelled = false
+    const postLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          if (cancelled) return
+          try {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.access_token) return
+            await fetch('/api/track/location', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+              body: JSON.stringify({ jobId, lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            })
+          } catch {
+            // Non-fatal — tracking is best-effort.
+          }
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+      )
+    }
+
+    postLocation()
+    const interval = setInterval(postLocation, 30000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [jobId, activeTimeEntry, job?.status]);
+
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -242,6 +278,23 @@ function JobDetailContent() {
         .eq('id', jobId);
       if (statusError) {
         console.error('Failed to update job status:', statusError.message);
+      }
+
+      // Text the customer an "on the way" tracking link (best effort).
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          fetch('/api/track/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ jobId }),
+          }).catch(() => {});
+        }
+      } catch {
+        // Non-fatal — clock-in already succeeded.
       }
 
     } catch (err) {

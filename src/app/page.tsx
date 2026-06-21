@@ -76,6 +76,7 @@ export default function Home() {
     { title: t('features_11_title'), description: t('features_11_desc') },
     { title: t('features_12_title'), description: t('features_12_desc') },
     { title: t('features_13_title'), description: t('features_13_desc') },
+    { title: t('features_14_title'), description: t('features_14_desc'), badge: '🚐 ' + t('features_14_badge'), highlight: true },
   ], [t]);
 
   const demoCards = useMemo(() => demoCardConfig.map((cfg, i) => ({

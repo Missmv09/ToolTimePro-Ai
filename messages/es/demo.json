@@ -628,7 +628,31 @@
       "ctaDescription": "La optimizacion de rutas se paga sola en ahorro de combustible. Los clientes del plan Elite ahorran un promedio de $400/mes.",
       "getRouteOptimization": "Obtener Optimizacion de Rutas",
       "seeDispatchDemo": "Ver Demo de Despacho",
-      "ctaFootnote": "Incluido con plan Elite ($129/mes)"
+      "ctaFootnote": "Incluido con plan Elite ($129/mes)",
+      "smarterTitle": "No solo rutas más cortas — más inteligentes",
+      "smarterSubtitle": "Lo que distingue a ToolTime Pro de los planificadores de rutas básicos",
+      "smarter": {
+        "0": {
+          "icon": "🎓",
+          "title": "Según Habilidades y Licencias",
+          "description": "Cada trabajo va a un trabajador realmente calificado — según sus habilidades y verificando la vigencia de licencias/certificaciones. ¿Certificación vencida? Se omite automáticamente, y los trabajos sin cobertura se señalan, nunca se asignan mal."
+        },
+        "1": {
+          "icon": "🛣️",
+          "title": "Distancias Reales por Carretera",
+          "description": "Calculamos rutas sobre la red vial real, no estimaciones en línea recta — así las millas, los tiempos y el ahorro que ves son reales."
+        },
+        "2": {
+          "icon": "📍",
+          "title": "Precisión Exacta",
+          "description": "Autocompletado de direcciones y corrección del punto en el mapa una sola vez para que cada parada esté justo donde debe — fijada para siempre, sin volver a geocodificar."
+        },
+        "3": {
+          "icon": "📊",
+          "title": "Reporte de Ahorro Comprobado",
+          "description": "Un conteo continuo de millas, combustible, horas y CO₂ ahorrados — el retorno de la optimización, en blanco y negro, cada mes."
+        }
+      }
     },
     "website": {
       "backToHome": "Volver al Inicio",

@@ -415,6 +415,32 @@ export default function RouteOptimizationDemo() {
           </div>
         </div>
 
+        {/* Differentiators — what makes ours smarter */}
+        <div className="mt-16">
+          <div className="text-center mb-10">
+            <span className="inline-block bg-[#1a1a2e] px-4 py-2 rounded-full text-sm font-bold text-white mb-4">
+              ⚡ {t('smarterSubtitle')}
+            </span>
+            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('smarterTitle')}</h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {[0, 1, 2, 3].map((index) => (
+              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#f5a623] hover:shadow-lg transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 min-w-12 bg-[#fef3d6] rounded-xl flex items-center justify-center text-2xl">
+                    {t(`smarter.${index}.icon`)}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#1a1a2e] mb-1">{t(`smarter.${index}.title`)}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed">{t(`smarter.${index}.description`)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <DemoLeadCapture featureName="Route Optimization" source="route_optimization_demo" />
 
         {/* CTA Section */}
