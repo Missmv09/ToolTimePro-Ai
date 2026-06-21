@@ -82,6 +82,10 @@ function JennyProDashboard() {
   const [settings, setSettings] = useState<JennyProSettings>(DEFAULT_SETTINGS);
   const [savingSettings, setSavingSettings] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [jennyNumber, setJennyNumber] = useState('');
+  const [savingNumber, setSavingNumber] = useState(false);
+  const [numberSaved, setNumberSaved] = useState(false);
+  const [numberError, setNumberError] = useState('');
 
   const fetchConversations = useCallback(async () => {
     if (!dbUser?.company_id) return;
@@ -163,10 +167,57 @@ function JennyProDashboard() {
     setSavingSettings(false);
   }, [dbUser?.company_id, settings]);
 
+  const fetchNumber = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    try {
+      const { data } = await supabase
+        .from('company_phone_numbers')
+        .select('phone_number')
+        .eq('company_id', dbUser.company_id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      if (data?.phone_number) setJennyNumber(data.phone_number);
+    } catch {
+      // table may not exist yet — leave blank
+    }
+  }, [dbUser?.company_id]);
+
+  const saveNumber = useCallback(async () => {
+    if (!dbUser?.company_id || !jennyNumber.trim()) return;
+    setSavingNumber(true);
+    setNumberError('');
+    setNumberSaved(false);
+    // Normalize to E.164 (US default).
+    const digits = jennyNumber.replace(/\D/g, '');
+    const e164 = jennyNumber.trim().startsWith('+')
+      ? `+${digits}`
+      : digits.length === 10
+      ? `+1${digits}`
+      : `+${digits}`;
+    const { error } = await supabase.from('company_phone_numbers').upsert(
+      {
+        company_id: dbUser.company_id,
+        phone_number: e164,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'phone_number' }
+    );
+    if (error) {
+      setNumberError('Could not save — that number may already be assigned to another company.');
+    } else {
+      setJennyNumber(e164);
+      setNumberSaved(true);
+    }
+    setSavingNumber(false);
+  }, [dbUser?.company_id, jennyNumber]);
+
   useEffect(() => {
     fetchConversations();
     fetchSettings();
-  }, [fetchConversations, fetchSettings]);
+    fetchNumber();
+  }, [fetchConversations, fetchSettings, fetchNumber]);
 
   const isBetaTester = company?.is_beta_tester;
 
@@ -498,6 +549,41 @@ function JennyProDashboard() {
                 <p className="text-xs text-green-600">Saved ✓</p>
               )}
             </div>
+          </div>
+
+          {/* Jenny Phone Number — multi-tenant routing */}
+          <div className="bg-white rounded-xl border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Your Jenny Phone Number</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              The business phone number Jenny answers on. Inbound texts and calls to this number
+              are routed to <span className="font-medium">your</span> company, so Jenny replies as
+              your business with your services and books into your calendar.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+              <input
+                type="tel"
+                className="flex-1 border rounded-lg p-3 text-sm"
+                value={jennyNumber}
+                onChange={(e) => setJennyNumber(e.target.value)}
+                placeholder="+1 765 789 5752"
+              />
+              <button
+                onClick={saveNumber}
+                disabled={savingNumber || !jennyNumber.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+              >
+                {savingNumber ? 'Saving…' : 'Save Number'}
+              </button>
+            </div>
+            {numberSaved && !numberError && (
+              <p className="text-xs text-green-600 mt-2">Saved ✓ — Jenny is now routed to your company.</p>
+            )}
+            {numberError && <p className="text-xs text-red-600 mt-2">{numberError}</p>}
+            <p className="text-xs text-gray-500 mt-3">
+              Then point this number&apos;s Twilio webhooks at
+              <code className="mx-1 px-1 bg-gray-100 rounded">/api/jenny-pro/sms-webhook</code> and
+              <code className="mx-1 px-1 bg-gray-100 rounded">/api/jenny-pro/voice</code>.
+            </p>
           </div>
 
           {/* Twilio Status */}

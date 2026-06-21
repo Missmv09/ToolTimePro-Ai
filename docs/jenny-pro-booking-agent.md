@@ -99,10 +99,24 @@ Migration `038_jenny_sms_booking_agent.sql` adds:
 (The `jenny_sms_conversations`, `jenny_sms_messages`, `jenny_voice_calls`, and
 `jenny_pro_settings` tables come from `021_jenny_pro_sms_conversations.sql`.)
 
-## Notes / limitations
+## Multi-tenant routing (number → company)
 
-- Single-tenant number routing: the webhook maps `TWILIO_PHONE_NUMBER` to the
-  first company. A `phone_numbers` table would make this multi-tenant.
+Each contractor's Twilio number maps to their company, so Jenny answers as the
+right business. Resolution order (`src/lib/jenny-company.js`):
+
+1. **`company_phone_numbers` table** — the real path. An inbound text/call to a
+   number is matched (by last 10 digits) to the owning company. A contractor
+   registers their number in **Dashboard → Jenny Pro → Settings → Your Jenny
+   Phone Number** (migration `039_company_phone_numbers.sql`). One number → one
+   company (unique); a company may have several numbers.
+2. **`JENNY_COMPANY_ID` env var** — explicit pin for a single live/test business.
+3. **First company** — legacy single-tenant fallback.
+
+To onboard a contractor: provision a Twilio number, point its SMS + voice
+webhooks at `/api/jenny-pro/sms-webhook` and `/api/jenny-pro/voice`, and register
+the number on their company (dashboard, or insert into `company_phone_numbers`).
+
+## Notes / limitations
 - The voice receptionist uses Twilio `<Gather input="speech">` + Amazon Polly
   voices (`Polly.Joanna` EN, `Polly.Lupe` ES). It needs a provisioned Twilio
   **Voice** number and live phone testing to validate end-to-end.
