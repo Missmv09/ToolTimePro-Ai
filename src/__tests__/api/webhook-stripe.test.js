@@ -57,14 +57,19 @@ function makeWebhookRequest(body = '{}', signature = 'sig_test') {
 }
 
 describe('/api/webhook/stripe', () => {
-  let mockSelect, mockEq, mockSingle, mockUpdate, mockInsert;
+  let mockSelect, mockEq, mockSingle, mockUpdate, mockInsert, mockLimit;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockSingle = jest.fn().mockResolvedValue({ data: null, error: null });
+    // The orphan-detection check queries users by company_id with .limit(1).
+    // Default to a non-empty result: a real resolved customer always has a
+    // users row, so they're NOT treated as an orphan and follow the normal
+    // update path. Orphan-heal tests override this to return [].
+    mockLimit = jest.fn().mockResolvedValue({ data: [{ id: 'user-existing' }], error: null });
     mockEq = jest.fn().mockReturnThis();
-    mockEq.mockReturnValue({ single: mockSingle, eq: mockEq });
+    mockEq.mockReturnValue({ single: mockSingle, eq: mockEq, limit: mockLimit });
     mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
     mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
     mockInsert = jest.fn().mockResolvedValue({ data: null, error: null });
@@ -311,6 +316,54 @@ describe('/api/webhook/stripe', () => {
     // The new company id is written back to the Stripe customer.
     expect(mockCustomersUpdate).toHaveBeenCalledWith('cus_autoprov', {
       metadata: { companyId: 'company-auto-created' },
+    });
+  });
+
+  it('heals an orphaned company (no users row) via auto-provision instead of the plain welcome email', async () => {
+    // Regression test: if a company row exists but its auth login was deleted
+    // or never finished (no users row), the customer cannot sign in. The plain
+    // "Go to Dashboard" welcome email would dead-end them on the login page.
+    // The webhook must instead route through autoCreateCompanyForCheckout,
+    // which recreates the auth user + users link and sends a magic-link
+    // set-password email — and must NOT send the plain welcome email.
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_orphan_heal',
+          customer_email: 'reused@example.com',
+          customer_details: { email: 'reused@example.com', name: 'Reused Buyer' },
+          customer: 'cus_orphan_heal',
+          metadata: { plan: 'pro', tier: 'pro', billing: 'monthly', skipTrial: 'true' },
+        },
+      },
+    });
+
+    // users.email lookup misses, companies.email resolves the leftover company.
+    mockSingle
+      .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } })
+      .mockResolvedValueOnce({ data: { id: 'company-orphan' }, error: null });
+    // No users row exists for that company → it's an orphan.
+    mockLimit.mockResolvedValue({ data: [], error: null });
+    mockAutoCreate.mockResolvedValueOnce({ companyId: 'company-orphan', error: null });
+
+    const request = makeWebhookRequest();
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockAutoCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'reused@example.com',
+        fullName: 'Reused Buyer',
+        plan: 'pro',
+        stripeCustomerId: 'cus_orphan_heal',
+        skipTrial: true,
+      })
+    );
+    // The dead-end plain welcome email must be suppressed.
+    expect(mockSendWelcomeEmail).not.toHaveBeenCalled();
+    expect(mockCustomersUpdate).toHaveBeenCalledWith('cus_orphan_heal', {
+      metadata: { companyId: 'company-orphan' },
     });
   });
 

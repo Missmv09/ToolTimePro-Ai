@@ -96,6 +96,26 @@ async function handleCheckoutComplete(session) {
   const clientReferenceId = session.client_reference_id || null;
   const plan = metadata.plan || metadata.tier || metadata.standalone || '';
   const addons = metadata.addons ? metadata.addons.split(',').filter(Boolean) : [];
+  const skipTrial = metadata.skipTrial === 'true';
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (session.success_url ? new URL(session.success_url).origin : null) ||
+    'https://tooltimepro.com';
+
+  // Provisions (or heals) an account from the checkout email via the shared
+  // helper: creates/reuses the auth user, ensures the company + users link,
+  // and sends the magic-link set-password email. Used for brand-new buyers AND
+  // for "orphaned" companies whose auth login was deleted or never finished.
+  const provisionFromCheckout = () =>
+    autoCreateCompanyForCheckout({
+      email: customerEmail,
+      fullName: session.customer_details?.name || '',
+      plan: plan || 'starter',
+      addons,
+      stripeCustomerId: customerId,
+      skipTrial,
+      baseUrl,
+    });
 
   // Resolve the company through a priority chain so we don't lose track of the
   // account when a user enters a different billing email at Stripe Checkout:
@@ -185,21 +205,8 @@ async function handleCheckoutComplete(session) {
   // welcome email (autoCreate sends a magic-link login email instead).
   let autoProvisioned = false;
   if (!resolvedCompanyId && customerEmail) {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (session.success_url ? new URL(session.success_url).origin : null) ||
-      'https://tooltimepro.com';
-    const skipTrial = metadata.skipTrial === 'true';
     try {
-      const result = await autoCreateCompanyForCheckout({
-        email: customerEmail,
-        fullName: session.customer_details?.name || '',
-        plan: plan || 'starter',
-        addons,
-        stripeCustomerId: customerId,
-        skipTrial,
-        baseUrl,
-      });
+      const result = await provisionFromCheckout();
       if (result.companyId) {
         resolvedCompanyId = result.companyId;
         resolutionSource = 'auto_created';
@@ -222,6 +229,46 @@ async function handleCheckoutComplete(session) {
         email: customerEmail,
         error: err.message,
       });
+    }
+  }
+
+  // A resolved company with no auth-backed user row means the login was
+  // deleted or never finished — the customer literally cannot sign in, so the
+  // plain "Go to Dashboard" welcome below would dead-end them on the login
+  // page. Heal the account through the shared helper instead: it recreates the
+  // auth user + users link and sends a magic-link set-password email.
+  if (resolvedCompanyId && !autoProvisioned && customerEmail) {
+    const { data: companyUsers } = await getSupabase()
+      .from('users')
+      .select('id')
+      .eq('company_id', resolvedCompanyId)
+      .limit(1);
+    if (!companyUsers || companyUsers.length === 0) {
+      try {
+        const result = await provisionFromCheckout();
+        if (result.companyId) {
+          resolvedCompanyId = result.companyId;
+          resolutionSource = 'reprovisioned_orphan';
+          autoProvisioned = true;
+          console.info('Orphaned company healed after checkout', {
+            sessionId: session.id,
+            companyId: resolvedCompanyId,
+            email: customerEmail,
+          });
+        } else if (result.error) {
+          console.error('Orphan heal failed for checkout session', {
+            sessionId: session.id,
+            email: customerEmail,
+            error: result.error,
+          });
+        }
+      } catch (err) {
+        console.error('Orphan heal threw for checkout session', {
+          sessionId: session.id,
+          email: customerEmail,
+          error: err.message,
+        });
+      }
     }
   }
 
