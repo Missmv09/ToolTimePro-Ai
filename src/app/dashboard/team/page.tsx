@@ -38,7 +38,8 @@ import {
   CheckCircle,
   Trash2,
   ShieldCheck,
-  MapPin
+  MapPin,
+  Wrench
 } from 'lucide-react'
 
 // Generate a random secure temporary password
@@ -213,6 +214,8 @@ export default function TeamPage() {
   const [editingCert, setEditingCert] = useState<WorkerCertification | null>(null)
   const [selectedWorkerForNote, setSelectedWorkerForNote] = useState<TeamMember | null>(null)
   const [selectedWorkerForCert, setSelectedWorkerForCert] = useState<TeamMember | null>(null)
+  const [showSkillsModal, setShowSkillsModal] = useState(false)
+  const [selectedWorkerForSkills, setSelectedWorkerForSkills] = useState<TeamMember | null>(null)
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<TeamMember | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -675,6 +678,19 @@ export default function TeamPage() {
                             </button>
                           </>
                         )}
+                        {canManageTeam && isFieldWorker(member.role) && (
+                          <button
+                            onClick={() => {
+                              setSelectedWorkerForSkills(member)
+                              setShowSkillsModal(true)
+                            }}
+                            className="px-3 py-1.5 text-sm border border-navy-500 text-navy-600 rounded-lg hover:bg-navy-50 flex items-center gap-1 transition-colors"
+                            title="Manage which services this worker can perform"
+                          >
+                            <Wrench size={14} />
+                            Skills
+                          </button>
+                        )}
                         {canManageTeam && (
                           <button
                             onClick={() => {
@@ -946,6 +962,22 @@ export default function TeamPage() {
           onSave={() => {
             setEditingNote(null)
             if (companyId) fetchWorkerNotes(companyId)
+          }}
+        />
+      )}
+
+      {/* Worker Skills Modal */}
+      {showSkillsModal && selectedWorkerForSkills && (
+        <WorkerSkillsModal
+          worker={selectedWorkerForSkills}
+          companyId={companyId!}
+          onClose={() => {
+            setShowSkillsModal(false)
+            setSelectedWorkerForSkills(null)
+          }}
+          onSave={() => {
+            setShowSkillsModal(false)
+            setSelectedWorkerForSkills(null)
           }}
         />
       )}
@@ -1444,6 +1476,240 @@ function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+// Worker Skills Modal — assign which services a worker can perform.
+// For services flagged "requires_license", a non-expired certification date is required.
+interface SkillService {
+  id: string
+  name: string
+  requires_license: boolean
+}
+
+interface SkillSelection {
+  checked: boolean
+  certExpiry: string // YYYY-MM-DD, only used for licensed services
+}
+
+function WorkerSkillsModal({ worker, companyId, onClose, onSave }: {
+  worker: TeamMember
+  companyId: string
+  onClose: () => void
+  onSave: () => void
+}) {
+  const [services, setServices] = useState<SkillService[]>([])
+  const [selections, setSelections] = useState<Record<string, SkillSelection>>({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const today = new Date().toISOString().split('T')[0]
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const [servicesRes, skillsRes] = await Promise.all([
+        supabase
+          .from('services')
+          .select('id, name, requires_license')
+          .eq('company_id', companyId)
+          .eq('is_active', true)
+          .order('name'),
+        supabase
+          .from('worker_skills')
+          .select('service_id, cert_expiry')
+          .eq('user_id', worker.id),
+      ])
+
+      if (cancelled) return
+
+      const svcList = (servicesRes.data || []) as SkillService[]
+      setServices(svcList)
+
+      const existing: Record<string, SkillSelection> = {}
+      for (const svc of svcList) {
+        existing[svc.id] = { checked: false, certExpiry: '' }
+      }
+      for (const row of skillsRes.data || []) {
+        existing[(row as { service_id: string }).service_id] = {
+          checked: true,
+          certExpiry: (row as { cert_expiry: string | null }).cert_expiry || '',
+        }
+      }
+      setSelections(existing)
+      setLoading(false)
+    }
+    load()
+    return () => { cancelled = true }
+  }, [companyId, worker.id])
+
+  const toggle = (serviceId: string) => {
+    setSelections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], checked: !prev[serviceId]?.checked },
+    }))
+  }
+
+  const setExpiry = (serviceId: string, value: string) => {
+    setSelections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], certExpiry: value },
+    }))
+  }
+
+  const handleSave = async () => {
+    setError(null)
+
+    // Validate: licensed + selected services need a (non-expired) cert date.
+    for (const svc of services) {
+      const sel = selections[svc.id]
+      if (svc.requires_license && sel?.checked) {
+        if (!sel.certExpiry) {
+          setError(`"${svc.name}" requires a certification expiry date.`)
+          return
+        }
+      }
+    }
+
+    setSaving(true)
+
+    // Replace this worker's skills with the current selection.
+    const { error: delErr } = await supabase
+      .from('worker_skills')
+      .delete()
+      .eq('user_id', worker.id)
+
+    if (delErr) {
+      setError(delErr.message)
+      setSaving(false)
+      return
+    }
+
+    const rows = services
+      .filter((svc) => selections[svc.id]?.checked)
+      .map((svc) => ({
+        company_id: companyId,
+        user_id: worker.id,
+        service_id: svc.id,
+        cert_expiry: svc.requires_license ? selections[svc.id].certExpiry : null,
+      }))
+
+    if (rows.length > 0) {
+      const { error: insErr } = await supabase.from('worker_skills').insert(rows)
+      if (insErr) {
+        setError(insErr.message)
+        setSaving(false)
+        return
+      }
+    }
+
+    setSaving(false)
+    onSave()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto shadow-dropdown">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-navy-500 flex items-center gap-2">
+            <Wrench size={20} /> Skills &amp; Services
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Select the services <strong>{worker.full_name}</strong> is qualified to perform. The
+          Route Optimizer will only assign matching jobs — and for licensed services, only when
+          the certification is still valid.
+        </p>
+
+        {loading ? (
+          <div className="py-10 flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy-500"></div>
+          </div>
+        ) : services.length === 0 ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+            <p className="text-sm text-gray-600">
+              No active services yet. Add services under{' '}
+              <Link href="/dashboard/services" className="text-navy-600 underline">
+                Services
+              </Link>{' '}
+              first, then assign them here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {services.map((svc) => {
+              const sel = selections[svc.id] || { checked: false, certExpiry: '' }
+              const expired = svc.requires_license && sel.checked && sel.certExpiry && sel.certExpiry < today
+              return (
+                <div
+                  key={svc.id}
+                  className={`border rounded-lg p-3 ${sel.checked ? 'border-navy-200 bg-navy-50/40' : 'border-gray-200'}`}
+                >
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={sel.checked}
+                      onChange={() => toggle(svc.id)}
+                      className="w-4 h-4 text-navy-500 border-gray-300 rounded focus:ring-navy-500"
+                    />
+                    <span className="text-sm font-medium text-gray-800">{svc.name}</span>
+                    {svc.requires_license && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        🪪 License
+                      </span>
+                    )}
+                  </label>
+                  {svc.requires_license && sel.checked && (
+                    <div className="mt-2 pl-6">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Certification expires
+                      </label>
+                      <input
+                        type="date"
+                        value={sel.certExpiry}
+                        onChange={(e) => setExpiry(svc.id, e.target.value)}
+                        className={`px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent ${
+                          expired ? 'border-red-400 text-red-600' : 'border-gray-200'
+                        }`}
+                      />
+                      {expired && (
+                        <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                          <AlertTriangle size={12} /> Expired — worker won&apos;t be eligible for these jobs.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+
+        <div className="flex gap-3 pt-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving || loading || services.length === 0}
+            className="flex-1 px-4 py-2 bg-navy-500 text-white rounded-lg hover:bg-navy-600 disabled:opacity-50 transition-colors"
+          >
+            {saving ? 'Saving...' : 'Save Skills'}
+          </button>
+        </div>
       </div>
     </div>
   )
