@@ -109,8 +109,11 @@ const ALL_ADDONS_CSV = ALL_ADDONS.join(',');
 // ── Supabase chain helpers ──
 function setupSupabaseMocks(overrides = {}) {
   const mockSingle = jest.fn().mockResolvedValue(overrides.singleResult || { data: null, error: null });
+  // Orphan-detection check: users-by-company_id with .limit(1). Default to a
+  // non-empty result so resolved customers follow the normal update path.
+  const mockLimit = jest.fn().mockResolvedValue(overrides.limitResult || { data: [{ id: 'user-existing' }], error: null });
   const mockEq = jest.fn().mockReturnThis();
-  mockEq.mockReturnValue({ single: mockSingle, eq: mockEq });
+  mockEq.mockReturnValue({ single: mockSingle, eq: mockEq, limit: mockLimit });
   const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
   const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
   const mockInsert = jest.fn().mockResolvedValue({ data: null, error: null });
@@ -121,7 +124,7 @@ function setupSupabaseMocks(overrides = {}) {
     insert: mockInsert,
   });
 
-  return { mockSingle, mockEq, mockSelect, mockUpdate, mockInsert };
+  return { mockSingle, mockEq, mockSelect, mockUpdate, mockInsert, mockLimit };
 }
 
 // ══════════════════════════════════════════════════
