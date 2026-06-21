@@ -3,6 +3,7 @@ import { runJennyAgent } from '@/lib/jenny-sms-agent';
 import { createBooking } from '@/lib/booking-core';
 import { classifyKeyword, detectLanguage, resolveReplyLanguage, t } from '@/lib/jenny-language';
 import { notifyOperatorInApp, notifyOperatorSMS } from '@/lib/jenny-notify';
+import { resolveCompanyByNumber } from '@/lib/jenny-company';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,16 +78,11 @@ export async function POST(request) {
 
     const supabase = getSupabase();
 
-    // Resolve the company that owns this Twilio number.
-    // Single-tenant today (matches TWILIO_PHONE_NUMBER); a phone_numbers table
-    // would make this multi-tenant later.
-    let companyId = null;
-    const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
-    if (!twilioNumber || to === twilioNumber || !to) {
-      const { data: companies } = await supabase.from('companies').select('id').limit(1);
-      if (companies?.length) companyId = companies[0].id;
-    }
-    if (!companyId) return twiml(null);
+    // Resolve which company owns this Twilio number (multi-tenant routing →
+    // JENNY_COMPANY_ID pin → first company).
+    const company = await resolveCompanyByNumber(supabase, to);
+    if (!company) return twiml(null);
+    const companyId = company.id;
 
     // Load per-company Jenny Pro config.
     const { data: settings } = await supabase

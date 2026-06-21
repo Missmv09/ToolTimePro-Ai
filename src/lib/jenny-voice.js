@@ -5,6 +5,7 @@
 // the logged turns — the SMS and voice agents share one brain.
 
 const { createClient } = require('@supabase/supabase-js');
+const { resolveCompanyByNumber } = require('./jenny-company');
 
 let supabaseInstance = null;
 function getServiceSupabase() {
@@ -19,13 +20,9 @@ function getServiceSupabase() {
   return supabaseInstance;
 }
 
+// Delegates to the shared multi-tenant resolver (number mapping → pin → first).
 async function resolveCompany(supabase, toNumber) {
-  const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
-  if (!twilioNumber || toNumber === twilioNumber || !toNumber) {
-    const { data } = await supabase.from('companies').select('id, name').limit(1);
-    if (data?.length) return data[0];
-  }
-  return null;
+  return resolveCompanyByNumber(supabase, toNumber);
 }
 
 function escapeXml(str) {
