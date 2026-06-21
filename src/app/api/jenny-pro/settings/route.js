@@ -66,6 +66,7 @@ export async function POST(request) {
     emergency_keywords,
     escalation_phone,
     language,
+    operator_language,
     auto_booking,
   } = body;
 
@@ -79,6 +80,7 @@ export async function POST(request) {
         emergency_keywords,
         escalation_phone,
         language,
+        operator_language,
         auto_booking,
         updated_at: new Date().toISOString(),
       },
