@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { optimizeRoute, optimizeMultiWorkerRoutes, RoutePoint, RouteOptions, OptimizedRoute } from '@/lib/route-optimization';
 import { geocodeJobAddress, buildAddressQuery } from '@/lib/geocoding';
+import { getRoadMatrix, extractSubMatrix, RoadMatrix } from '@/lib/road-routing';
 import {
   assignJobsToWorkers,
   AssignableWorker,
@@ -9,6 +10,28 @@ import {
   ServiceMeta,
   SkilledJob,
 } from '@/lib/worker-assignment';
+
+/**
+ * Build per-route options carrying the real road sub-matrices for the given
+ * points (identified by id), falling back to the base options when road data
+ * isn't available.
+ */
+function roadOptionsForPoints(
+  routePoints: RoutePoint[],
+  indexById: Map<string, number>,
+  roadMatrix: RoadMatrix | null,
+  base: RouteOptions
+): RouteOptions {
+  if (!roadMatrix) return base;
+  const idx = routePoints.map((p) => indexById.get(p.id));
+  if (idx.some((i) => i === undefined)) return base;
+  const indices = idx as number[];
+  return {
+    ...base,
+    distanceMatrix: extractSubMatrix(roadMatrix.distancesMiles, indices),
+    durationMatrix: extractSubMatrix(roadMatrix.durationsMin, indices),
+  };
+}
 
 interface JobInput {
   id: string;
@@ -184,13 +207,19 @@ export async function POST(request: NextRequest) {
       fixedStartIndex = 0;
     }
 
-    const routeOptions: RouteOptions | undefined = settings ? {
+    const routeOptions: RouteOptions = settings ? {
       avgSpeedMph: settings.avgSpeedMph,
       fuelCostPerMile: settings.fuelCostPerMile,
       roadFactor: settings.roadFactor,
       enforceTimeWindows: settings.timeWindowEnabled ?? false,
       startTimeMinutes: settings.startTimeMinutes,
-    } : undefined;
+    } : {};
+
+    // Fetch real road distances once for all points; null = service unavailable,
+    // in which case we transparently fall back to the straight-line estimate.
+    const roadMatrix = await getRoadMatrix(points.map((p) => ({ lat: p.lat, lng: p.lng })));
+    const indexById = new Map(points.map((p, i) => [p.id, i]));
+    const roadDistance = roadMatrix != null;
 
     // Skill-aware multi-worker mode: assign jobs to specific selected workers,
     // honoring required skills and (for licensed services) certification expiry.
@@ -261,7 +290,11 @@ export async function POST(request: NextRequest) {
             routePoints = [points[0], ...assigned];
             fixedIdx = 0;
           }
-          const r = optimizeRoute(routePoints, fixedIdx, routeOptions);
+          const r = optimizeRoute(
+            routePoints,
+            fixedIdx,
+            roadOptionsForPoints(routePoints, indexById, roadMatrix, routeOptions)
+          );
           return { workerId: w.id, workerLabel: w.label || w.id, jobCount: assigned.length, ...r };
         })
         .filter((r): r is NonNullable<typeof r> => r !== null);
@@ -277,6 +310,7 @@ export async function POST(request: NextRequest) {
         ...combined,
         workerRoutes,
         unassignedJobs: unassignedJobs.length > 0 ? unassignedJobs : undefined,
+        roadDistance,
         geocodeErrors: geocodeErrors.length > 0 ? geocodeErrors : undefined,
       });
     }
@@ -301,10 +335,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const result = optimizeRoute(points, fixedStartIndex, routeOptions);
+    const result = optimizeRoute(
+      points,
+      fixedStartIndex,
+      roadOptionsForPoints(points, indexById, roadMatrix, routeOptions)
+    );
 
     return NextResponse.json({
       ...result,
+      roadDistance,
       geocodeErrors: geocodeErrors.length > 0 ? geocodeErrors : undefined,
     });
   } catch (error) {

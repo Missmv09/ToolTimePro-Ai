@@ -1,7 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { geocodeJobAddress } from '@/lib/geocoding'
 
 export const dynamic = 'force-dynamic'
+
+interface JobAddressFields {
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  zip?: string | null
+  lat?: number | null
+  lng?: number | null
+}
+
+/**
+ * Geocode a job's address on save and persist the coordinates, so the Route
+ * Optimizer never has to geocode it live again. Returns the coordinate fields
+ * to merge into the row, or null to leave coordinates untouched.
+ *
+ * Skips geocoding (and preserves any existing/manual pin) when the address is
+ * unchanged and coordinates already exist.
+ */
+async function resolveJobCoordinates(jobData: JobAddressFields, existing: JobAddressFields | null) {
+  const hasAddress = (jobData.address || '').trim().length > 0
+  if (!hasAddress) return null
+
+  if (existing) {
+    const addrUnchanged =
+      (existing.address || '') === (jobData.address || '') &&
+      (existing.city || '') === (jobData.city || '') &&
+      (existing.state || '') === (jobData.state || '') &&
+      (existing.zip || '') === (jobData.zip || '')
+    const hasCoords = existing.lat != null && existing.lng != null
+    // Address unchanged and we already have a pin (possibly hand-corrected) — keep it.
+    if (addrUnchanged && hasCoords) return null
+  }
+
+  const geo = await geocodeJobAddress({
+    address: jobData.address,
+    city: jobData.city,
+    state: jobData.state,
+    zip: jobData.zip,
+  })
+  if (!geo) return null
+
+  return {
+    lat: geo.coords.lat,
+    lng: geo.coords.lng,
+    geo_precision: geo.approximate ? 'approximate' : 'exact',
+    geocoded_at: new Date().toISOString(),
+  }
+}
 
 export async function POST(request: NextRequest) {
   const log: string[] = []
@@ -69,7 +118,7 @@ export async function POST(request: NextRequest) {
       // Verify job exists and belongs to company
       const { data: existingJob, error: fetchJobErr } = await adminClient
         .from('jobs')
-        .select('id, company_id')
+        .select('id, company_id, address, city, state, zip, lat, lng')
         .eq('id', existingJobId)
         .single()
 
@@ -82,11 +131,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Job belongs to another company', log }, { status: 403 })
       }
 
+      // Re-geocode only if the address changed or no pin exists yet.
+      const coords = await resolveJobCoordinates(jobData, existingJob)
+      if (coords) log.push(`Geocoded (${coords.geo_precision})`)
+
       // Don't overwrite company_id, created_at, or id
       const { company_id: _c, id: _id, created_at: _ca, ...updateFields } = jobData
       const { error: updateError } = await adminClient
         .from('jobs')
-        .update({ ...updateFields, updated_at: new Date().toISOString() })
+        .update({ ...updateFields, ...(coords || {}), updated_at: new Date().toISOString() })
         .eq('id', existingJobId)
 
       if (updateError) {
@@ -95,10 +148,12 @@ export async function POST(request: NextRequest) {
       }
       log.push(`Job updated: ${existingJobId}`)
     } else {
-      // INSERT new job
+      // INSERT new job — geocode the address up front so coordinates persist.
+      const coords = await resolveJobCoordinates(jobData, null)
+      if (coords) log.push(`Geocoded (${coords.geo_precision})`)
       const { data: newJob, error: insertError } = await adminClient
         .from('jobs')
-        .insert(jobData)
+        .insert({ ...jobData, ...(coords || {}) })
         .select('id')
         .single()
 
