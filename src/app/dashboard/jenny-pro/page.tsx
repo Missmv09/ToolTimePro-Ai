@@ -86,6 +86,8 @@ function JennyProDashboard() {
   const [savingNumber, setSavingNumber] = useState(false);
   const [numberSaved, setNumberSaved] = useState(false);
   const [numberError, setNumberError] = useState('');
+  const [areaCode, setAreaCode] = useState('');
+  const [provisioning, setProvisioning] = useState(false);
 
   const fetchConversations = useCallback(async () => {
     if (!dbUser?.company_id) return;
@@ -212,6 +214,30 @@ function JennyProDashboard() {
     }
     setSavingNumber(false);
   }, [dbUser?.company_id, jennyNumber]);
+
+  const provisionNumber = useCallback(async () => {
+    setProvisioning(true);
+    setNumberError('');
+    setNumberSaved(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/jenny-pro/provision-number', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _authToken: session?.access_token, areaCode }),
+      });
+      const data = await res.json();
+      if (res.ok && data.phoneNumber) {
+        setJennyNumber(data.phoneNumber);
+        setNumberSaved(true);
+      } else {
+        setNumberError(data.error || 'Could not get a number. Please try again.');
+      }
+    } catch {
+      setNumberError('Could not get a number. Please try again.');
+    }
+    setProvisioning(false);
+  }, [areaCode]);
 
   useEffect(() => {
     fetchConversations();
@@ -555,35 +581,73 @@ function JennyProDashboard() {
           <div className="bg-white rounded-xl border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Your Jenny Phone Number</h3>
             <p className="text-sm text-gray-600 mb-4">
-              The business phone number Jenny answers on. Inbound texts and calls to this number
-              are routed to <span className="font-medium">your</span> company, so Jenny replies as
-              your business with your services and books into your calendar.
+              The dedicated business number Jenny answers on. Texts and calls to it are routed to
+              <span className="font-medium"> your</span> company, so Jenny replies as your business,
+              with your services, and books into your calendar.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-              <input
-                type="tel"
-                className="flex-1 border rounded-lg p-3 text-sm"
-                value={jennyNumber}
-                onChange={(e) => setJennyNumber(e.target.value)}
-                placeholder="+1 765 789 5752"
-              />
-              <button
-                onClick={saveNumber}
-                disabled={savingNumber || !jennyNumber.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
-              >
-                {savingNumber ? 'Saving…' : 'Save Number'}
-              </button>
-            </div>
-            {numberSaved && !numberError && (
-              <p className="text-xs text-green-600 mt-2">Saved ✓ — Jenny is now routed to your company.</p>
+
+            {jennyNumber ? (
+              <div className="flex items-center justify-between gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Active number</p>
+                  <p className="text-lg font-semibold text-gray-900">{jennyNumber}</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                  Connected
+                </span>
+              </div>
+            ) : (
+              <>
+                {/* Auto-provision (recommended) */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    className="w-full sm:w-40 border rounded-lg p-3 text-sm"
+                    value={areaCode}
+                    onChange={(e) => setAreaCode(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                    placeholder="Area code (optional)"
+                  />
+                  <button
+                    onClick={provisionNumber}
+                    disabled={provisioning}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    {provisioning ? 'Getting your number…' : 'Get my Jenny number'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  We&apos;ll set you up with a dedicated number and wire it automatically — no Twilio setup needed.
+                </p>
+
+                {/* Manual fallback — register an existing number */}
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-xs text-gray-500 mb-2">Already have a number? Connect it instead:</p>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                    <input
+                      type="tel"
+                      className="flex-1 border rounded-lg p-3 text-sm"
+                      value={jennyNumber}
+                      onChange={(e) => setJennyNumber(e.target.value)}
+                      placeholder="+1 765 789 5752"
+                    />
+                    <button
+                      onClick={saveNumber}
+                      disabled={savingNumber || !jennyNumber.trim()}
+                      className="px-4 py-2 bg-white border text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-60"
+                    >
+                      {savingNumber ? 'Saving…' : 'Connect Number'}
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
-            {numberError && <p className="text-xs text-red-600 mt-2">{numberError}</p>}
-            <p className="text-xs text-gray-500 mt-3">
-              Then point this number&apos;s Twilio webhooks at
-              <code className="mx-1 px-1 bg-gray-100 rounded">/api/jenny-pro/sms-webhook</code> and
-              <code className="mx-1 px-1 bg-gray-100 rounded">/api/jenny-pro/voice</code>.
-            </p>
+
+            {numberSaved && !numberError && (
+              <p className="text-xs text-green-600 mt-3">Saved ✓ — Jenny is now routed to your company.</p>
+            )}
+            {numberError && <p className="text-xs text-red-600 mt-3">{numberError}</p>}
           </div>
 
           {/* Twilio Status */}
