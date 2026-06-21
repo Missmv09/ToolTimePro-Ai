@@ -57,6 +57,7 @@ interface OptimizationResult {
   fuelSaved: number;
   percentImprovement: number;
   geocodeErrors?: string[];
+  roadDistance?: boolean;
   workerRoutes?: Array<{ workerId: string; workerLabel: string; jobCount: number; totalDistanceMiles: number; milesSaved: number }>;
   unassignedJobs?: Array<{ id: string; label: string; reason: string }>;
 }
@@ -853,6 +854,14 @@ export default function RouteOptimizerPage() {
             <p className="text-xs text-orange-600">{t('savings.fuelSaved')}</p>
           </div>
         </div>
+      )}
+
+      {optimizedResult && (
+        <p className="text-xs text-gray-400 -mt-3 mb-6">
+          {optimizedResult.roadDistance
+            ? '✓ Distances & times from the real road network'
+            : 'Distances estimated (straight-line × road factor) — road routing unavailable'}
+        </p>
       )}
 
       {/* Route comparison stats */}
