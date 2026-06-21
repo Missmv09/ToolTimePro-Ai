@@ -43,6 +43,7 @@ interface RouteJob {
   assigned_users: { user: { full_name: string } | { full_name: string }[] | null }[];
   lat?: number | null;
   lng?: number | null;
+  geo_precision?: string | null;
 }
 
 interface OptimizationResult {
@@ -109,10 +110,11 @@ function getAssignedNames(assigned: RouteJob['assigned_users']): string {
 }
 
 // Dynamic Leaflet map component (loaded client-side only)
-function RouteMap({ jobs, optimizedOrder, isOptimized }: {
+function RouteMap({ jobs, optimizedOrder, isOptimized, onPinMoved }: {
   jobs: RouteJob[];
   optimizedOrder: Array<{ id: string; lat: number; lng: number }> | null;
   isOptimized: boolean;
+  onPinMoved?: (jobId: string, lat: number, lng: number) => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -176,12 +178,24 @@ function RouteMap({ jobs, optimizedOrder, isOptimized }: {
           iconAnchor: [16, 16],
         });
 
-        const marker = L.default.marker([point.lat, point.lng], { icon });
+        // Allow dragging to correct a pin only before optimizing (dragging an
+        // optimized route would invalidate the computed order).
+        const draggable = !isOptimized && !!onPinMoved;
+        const approximate = job?.geo_precision === 'approximate';
+        const marker = L.default.marker([point.lat, point.lng], { icon, draggable });
         marker.bindPopup(`
           <strong>${index + 1}. ${customerName}</strong><br/>
           ${job?.address || ''}${job?.city ? `, ${job.city}` : ''}<br/>
           ${job?.scheduled_time_start ? `Time: ${job.scheduled_time_start}` : ''}
+          ${approximate ? '<br/><em style="color:#b45309">Approximate — drag to correct</em>' : ''}
+          ${draggable ? '<br/><span style="color:#6b7280;font-size:11px">Drag the pin to set the exact spot</span>' : ''}
         `);
+        if (draggable && job) {
+          marker.on('dragend', () => {
+            const pos = marker.getLatLng();
+            onPinMoved!(job.id, pos.lat, pos.lng);
+          });
+        }
         layerGroup.addLayer(marker);
         bounds.push([point.lat, point.lng]);
       });
@@ -207,7 +221,7 @@ function RouteMap({ jobs, optimizedOrder, isOptimized }: {
     return () => {
       isMounted = false;
     };
-  }, [jobs, optimizedOrder, isOptimized]);
+  }, [jobs, optimizedOrder, isOptimized, onPinMoved]);
 
   // Cleanup map on unmount
   useEffect(() => {
@@ -358,7 +372,7 @@ export default function RouteOptimizerPage() {
     const { data, error } = await supabase
       .from('jobs')
       .select(`
-        id, title, address, city, state, zip, required_service_id, scheduled_date, scheduled_time_start, scheduled_time_end, status, total_amount,
+        id, title, address, city, state, zip, required_service_id, lat, lng, geo_precision, scheduled_date, scheduled_time_start, scheduled_time_end, status, total_amount,
         customer:customers(name),
         assigned_users:job_assignments(user:users(full_name))
       `)
@@ -476,6 +490,35 @@ export default function RouteOptimizerPage() {
       });
       setJobs(updatedJobs);
 
+      // Persist coordinates the optimizer just geocoded for jobs that had none,
+      // so future runs are instant (no live geocoding). Mark approximate hits so
+      // they can be corrected via the draggable pin.
+      const approxIds = new Set<string>(
+        (data.geocodeErrors || [])
+          .map((e: string) => /^Job (\S+): Used approximate location/.exec(e)?.[1])
+          .filter(Boolean) as string[]
+      );
+      const toPersist = jobs
+        .filter((j) => (j.lat == null || j.lng == null))
+        .map((j) => {
+          const point = data.orderedPoints.find((p: { id: string }) => p.id === j.id);
+          return point ? { id: j.id, lat: point.lat, lng: point.lng, approximate: approxIds.has(j.id) } : null;
+        })
+        .filter(Boolean) as Array<{ id: string; lat: number; lng: number; approximate: boolean }>;
+      // Fire-and-forget; don't block the UI on these writes.
+      toPersist.forEach((p) => {
+        supabase
+          .from('jobs')
+          .update({
+            lat: p.lat,
+            lng: p.lng,
+            geo_precision: p.approximate ? 'approximate' : 'exact',
+            geocoded_at: new Date().toISOString(),
+          })
+          .eq('id', p.id)
+          .then(() => {});
+      });
+
       setOptimizedResult({
         ...data,
         _optimizedJobOrder: optimizedJobOrder,
@@ -492,6 +535,21 @@ export default function RouteOptimizerPage() {
     setOptimizedResult(null);
     setOptimizeError(null);
   };
+
+  // Persist a hand-corrected pin location for a job. Marks it 'manual' so it's
+  // never overwritten by geocoding again, and clears the current optimization
+  // since coordinates changed.
+  const handlePinMoved = useCallback((jobId: string, lat: number, lng: number) => {
+    setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, lat, lng, geo_precision: 'manual' } : j)));
+    setOptimizedResult(null);
+    supabase
+      .from('jobs')
+      .update({ lat, lng, geo_precision: 'manual', geocoded_at: new Date().toISOString() })
+      .eq('id', jobId)
+      .then(({ error }) => {
+        if (error) console.error('Failed to save corrected location:', error);
+      });
+  }, []);
 
   // Build display list: optimized order or original
   const displayJobs = optimizedResult
@@ -880,7 +938,13 @@ export default function RouteOptimizerPage() {
             jobs={displayJobs}
             optimizedOrder={optimizedResult?.orderedPoints.filter((p) => p.id !== 'start') || null}
             isOptimized={!!optimizedResult}
+            onPinMoved={handlePinMoved}
           />
+          {!optimizedResult && (
+            <p className="text-xs text-gray-500 mt-2">
+              Tip: drag any pin to correct its location — it&apos;s saved to the job permanently.
+            </p>
+          )}
         </div>
       )}
 
