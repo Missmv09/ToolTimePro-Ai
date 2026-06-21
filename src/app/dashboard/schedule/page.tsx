@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import JennyReschedule from '@/components/JennyReschedule'
 
 interface Job {
   id: string
@@ -160,6 +161,10 @@ export default function SchedulePage() {
         >
           + New Job
         </Link>
+      </div>
+
+      <div className="mb-6">
+        <JennyReschedule onApplied={() => { if (companyId) fetchJobs(companyId, selectedDate) }} />
       </div>
 
       {/* Controls */}
