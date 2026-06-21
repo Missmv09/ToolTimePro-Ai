@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
 
 interface Job {
   id: string
@@ -477,6 +478,11 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
     price: job?.total_amount?.toString() || initialQuote?.total?.toString() || '',
     assigned_worker_id: job?.assigned_users?.[0]?.user?.id || '',
     required_service_id: job?.required_service_id || '',
+    lat: null as number | null,
+    lng: null as number | null,
+    // True only when the current address/coords came from an autocomplete pick,
+    // so we send coordinates and skip server-side geocoding.
+    coordsFromAutocomplete: false,
   })
   const [services, setServices] = useState<{ id: string; name: string; requires_license: boolean }[]>([])
   const [saving, setSaving] = useState(false)
@@ -586,6 +592,11 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
       priority: formData.priority,
       total_amount: formData.price ? Number(formData.price) : null,
       required_service_id: formData.required_service_id || null,
+      // Send precise coordinates only when chosen via autocomplete; otherwise
+      // let the server geocode the typed address.
+      ...(formData.coordsFromAutocomplete && formData.lat != null && formData.lng != null
+        ? { lat: formData.lat, lng: formData.lng }
+        : {}),
       company_id: companyId,
       status: job?.status || 'scheduled',
     }
@@ -760,12 +771,24 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
-            <input
-              type="text"
+            <AddressAutocomplete
               required
               value={formData.address}
-              onChange={(e) => {
-                setFormData({ ...formData, address: e.target.value })
+              onChange={(v) => {
+                setFormData((prev) => ({ ...prev, address: v, coordsFromAutocomplete: false }))
+                if (errors.address) setErrors({ ...errors, address: undefined })
+              }}
+              onSelect={(s) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  address: s.address || prev.address,
+                  city: s.city || prev.city,
+                  state: s.state || prev.state,
+                  zip: s.zip || prev.zip,
+                  lat: s.lat,
+                  lng: s.lng,
+                  coordsFromAutocomplete: true,
+                }))
                 if (errors.address) setErrors({ ...errors, address: undefined })
               }}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.address ? 'border-red-500' : ''}`}

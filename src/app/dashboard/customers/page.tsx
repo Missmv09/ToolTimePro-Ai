@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
 
 type CustomerType = 'residential' | 'commercial'
 
@@ -546,10 +547,18 @@ function CustomerModal({ customer, companyId, onClose, onSave }: {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-            <input
-              type="text"
+            <AddressAutocomplete
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              onChange={(v) => setFormData({ ...formData, address: v })}
+              onSelect={(s) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  address: s.address || prev.address,
+                  city: s.city || prev.city,
+                  state: s.state || prev.state,
+                  zip: s.zip || prev.zip,
+                }))
+              }
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="123 Main St"
             />

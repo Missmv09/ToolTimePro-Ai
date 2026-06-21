@@ -25,6 +25,17 @@ async function resolveJobCoordinates(jobData: JobAddressFields, existing: JobAdd
   const hasAddress = (jobData.address || '').trim().length > 0
   if (!hasAddress) return null
 
+  // Coordinates supplied by the client (address autocomplete) are authoritative
+  // and precise — store them directly without geocoding.
+  if (jobData.lat != null && jobData.lng != null) {
+    return {
+      lat: jobData.lat,
+      lng: jobData.lng,
+      geo_precision: 'exact',
+      geocoded_at: new Date().toISOString(),
+    }
+  }
+
   if (existing) {
     const addrUnchanged =
       (existing.address || '') === (jobData.address || '') &&
