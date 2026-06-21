@@ -112,9 +112,29 @@ right business. Resolution order (`src/lib/jenny-company.js`):
 2. **`JENNY_COMPANY_ID` env var** — explicit pin for a single live/test business.
 3. **First company** — legacy single-tenant fallback.
 
-To onboard a contractor: provision a Twilio number, point its SMS + voice
-webhooks at `/api/jenny-pro/sms-webhook` and `/api/jenny-pro/voice`, and register
-the number on their company (dashboard, or insert into `company_phone_numbers`).
+### Onboarding a contractor
+
+**Automatic (recommended):** in **Dashboard → Jenny Pro → Settings → Your Jenny
+Phone Number**, click **"Get my Jenny number."** This calls
+`POST /api/jenny-pro/provision-number`, which:
+1. buys a US local number (optionally near a requested area code),
+2. sets its voice + SMS webhooks to `/api/jenny-pro/voice` and
+   `/api/jenny-pro/sms-webhook`,
+3. attaches it to the A2P Messaging Service (`TWILIO_MESSAGING_SERVICE_SID`) for
+   SMS deliverability, and
+4. saves the number → company mapping.
+
+It's idempotent (one active number per company). The contractor never touches
+the Twilio console.
+
+> Because numbers are added to the Messaging Service, set the Messaging
+> Service's **inbound** webhook to `/api/jenny-pro/sms-webhook` once, at the
+> account level — Jenny routes by the `To` number, so all tenants share that one
+> inbound setting.
+
+**Manual:** provision a Twilio number yourself, point its SMS + voice webhooks at
+the two routes, and register it via the dashboard's "Connect Number" field (or
+insert into `company_phone_numbers`).
 
 ## Notes / limitations
 - The voice receptionist uses Twilio `<Gather input="speech">` + Amazon Polly
