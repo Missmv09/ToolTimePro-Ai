@@ -33,6 +33,7 @@ interface RouteJob {
   city: string | null;
   state: string | null;
   zip: string | null;
+  required_service_id: string | null;
   scheduled_date: string;
   scheduled_time_start: string | null;
   scheduled_time_end: string | null;
@@ -55,6 +56,8 @@ interface OptimizationResult {
   fuelSaved: number;
   percentImprovement: number;
   geocodeErrors?: string[];
+  workerRoutes?: Array<{ workerId: string; workerLabel: string; jobCount: number; totalDistanceMiles: number; milesSaved: number }>;
+  unassignedJobs?: Array<{ id: string; label: string; reason: string }>;
 }
 
 interface RouteSettings {
@@ -252,6 +255,8 @@ export default function RouteOptimizerPage() {
   // Multi-worker state
   const [workerCount, setWorkerCount] = useState(1);
   const [showMultiWorker, setShowMultiWorker] = useState(false);
+  const [fieldWorkers, setFieldWorkers] = useState<{ id: string; full_name: string }[]>([]);
+  const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
 
   // Fetch settings on mount
   useEffect(() => {
@@ -353,7 +358,7 @@ export default function RouteOptimizerPage() {
     const { data, error } = await supabase
       .from('jobs')
       .select(`
-        id, title, address, city, state, zip, scheduled_date, scheduled_time_start, scheduled_time_end, status, total_amount,
+        id, title, address, city, state, zip, required_service_id, scheduled_date, scheduled_time_start, scheduled_time_end, status, total_amount,
         customer:customers(name),
         assigned_users:job_assignments(user:users(full_name))
       `)
@@ -378,6 +383,19 @@ export default function RouteOptimizerPage() {
     }
   }, [companyId, selectedDate, fetchJobs]);
 
+  // Load active field workers for skill-aware multi-worker assignment.
+  useEffect(() => {
+    if (!companyId) return;
+    supabase
+      .from('users')
+      .select('id, full_name, role')
+      .eq('company_id', companyId)
+      .eq('is_active', true)
+      .in('role', ['worker', 'worker_admin'])
+      .order('full_name')
+      .then(({ data }) => setFieldWorkers((data || []).map((w) => ({ id: w.id, full_name: w.full_name }))));
+  }, [companyId]);
+
   const handleOptimize = async () => {
     setIsOptimizing(true);
     setOptimizeError(null);
@@ -397,6 +415,7 @@ export default function RouteOptimizerPage() {
             city: j.city,
             state: j.state,
             zip: j.zip,
+            requiredServiceId: j.required_service_id,
             lat: j.lat,
             lng: j.lng,
             scheduledTime: j.scheduled_time_start,
@@ -410,7 +429,18 @@ export default function RouteOptimizerPage() {
             roadFactor: settings.road_factor,
             timeWindowEnabled: settings.time_window_enabled,
           },
-          ...(workerCount > 1 ? { workerCount } : {}),
+          routeDate: selectedDate,
+          // Skill-aware assignment when specific workers are selected;
+          // otherwise fall back to count-based geographic splitting.
+          ...(selectedWorkerIds.length > 0
+            ? {
+                workers: fieldWorkers
+                  .filter((w) => selectedWorkerIds.includes(w.id))
+                  .map((w) => ({ id: w.id, label: w.full_name })),
+              }
+            : workerCount > 1
+            ? { workerCount }
+            : {}),
           ...(settings.office_lat && settings.office_lng ? {
             startLocation: { lat: settings.office_lat, lng: settings.office_lng, label: settings.office_address || 'Office' },
           } : {}),
@@ -674,21 +704,55 @@ export default function RouteOptimizerPage() {
           <p className="text-sm text-gray-500 mb-3">
             {t('multiWorker.description')}
           </p>
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">{t('multiWorker.numberOfWorkers')}</label>
-            <input
-              type="number"
-              value={workerCount}
-              onChange={(e) => setWorkerCount(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
-              className="w-20 px-3 py-2 border rounded-lg text-center"
-              min={1}
-              max={10}
-            />
-          </div>
-          {workerCount > 1 && (
-            <p className="text-xs text-[#f5a623] mt-2 font-medium">
-              {t('multiWorker.splitNotice', { count: workerCount })}
-            </p>
+          {fieldWorkers.length > 0 ? (
+            <>
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Select who&apos;s working today — jobs are assigned by skill &amp; certification:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {fieldWorkers.map((w) => {
+                  const checked = selectedWorkerIds.includes(w.id);
+                  return (
+                    <label
+                      key={w.id}
+                      className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors ${
+                        checked ? 'border-[#1a1a2e] bg-gray-50' : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() =>
+                          setSelectedWorkerIds((prev) =>
+                            prev.includes(w.id) ? prev.filter((id) => id !== w.id) : [...prev, w.id]
+                          )
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-gray-800">{w.full_name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {selectedWorkerIds.length > 0 && (
+                <p className="text-xs text-[#f5a623] mt-3 font-medium">
+                  Splitting jobs across {selectedWorkerIds.length} worker{selectedWorkerIds.length !== 1 ? 's' : ''}.
+                  Jobs requiring a skill go only to qualified, certified workers — anything no one can cover is flagged below.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-700">{t('multiWorker.numberOfWorkers')}</label>
+              <input
+                type="number"
+                value={workerCount}
+                onChange={(e) => setWorkerCount(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
+                className="w-20 px-3 py-2 border rounded-lg text-center"
+                min={1}
+                max={10}
+              />
+            </div>
           )}
         </div>
       )}
@@ -760,6 +824,52 @@ export default function RouteOptimizerPage() {
               <li key={i}>{err}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Unassignable jobs — no qualified/certified worker available */}
+      {optimizedResult?.unassignedJobs && optimizedResult.unassignedJobs.length > 0 && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-800">
+                {optimizedResult.unassignedJobs.length} job{optimizedResult.unassignedJobs.length !== 1 ? 's' : ''} couldn&apos;t be assigned
+              </p>
+              <ul className="text-sm text-red-700 mt-1 space-y-1">
+                {optimizedResult.unassignedJobs.map((u) => (
+                  <li key={u.id}>
+                    <span className="font-medium">{u.label}</span> — {u.reason}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-red-500 mt-2">
+                Assign the required skill (and a valid certification) to a worker under Team → Skills,
+                add another qualified worker to today&apos;s crew, or change the job&apos;s required service.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Per-worker route breakdown */}
+      {optimizedResult?.workerRoutes && optimizedResult.workerRoutes.length > 0 && (
+        <div className="mb-6 bg-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="w-5 h-5 text-[#1a1a2e]" />
+            <h3 className="font-semibold text-gray-900">Route assignments by worker</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {optimizedResult.workerRoutes.map((wr) => (
+              <div key={wr.workerId} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
+                <p className="font-medium text-gray-900">{wr.workerLabel}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {wr.jobCount} stop{wr.jobCount !== 1 ? 's' : ''} · {wr.totalDistanceMiles} mi
+                  {wr.milesSaved > 0 && <span className="text-green-600"> · saves {wr.milesSaved} mi</span>}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
