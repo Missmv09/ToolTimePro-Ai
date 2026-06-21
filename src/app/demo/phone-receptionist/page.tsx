@@ -95,6 +95,33 @@ const demoScenarios = [
       existingCustomer: true,
     },
   },
+  {
+    id: 'spanish',
+    name: 'Cliente en Español',
+    icon: '🇲🇽',
+    description: 'Jenny books a job entirely in Spanish',
+    transcript: [
+      { speaker: 'ai', text: '¡Gracias por llamar a Jardinería Sol! Soy Jenny, la asistente virtual. ¿En qué le puedo ayudar hoy?' },
+      { speaker: 'customer', text: 'Hola, necesito que vengan a cortar el césped de mi jardín.' },
+      { speaker: 'ai', text: '¡Con mucho gusto! ¿Me puede dar su nombre, por favor?' },
+      { speaker: 'customer', text: 'Sí, soy María González.' },
+      { speaker: 'ai', text: 'Perfecto, María. ¿Y cuál es la dirección donde necesita el servicio?' },
+      { speaker: 'customer', text: 'Calle Primavera 482, en Fresno.' },
+      { speaker: 'ai', text: 'Muy bien. Tenemos disponibilidad mañana por la mañana o el jueves por la tarde. ¿Cuál le conviene más?' },
+      { speaker: 'customer', text: 'Mañana en la mañana está bien.' },
+      { speaker: 'ai', text: '¡Listo, María! Su cita para cortar el césped quedó agendada para mañana a las 9:00 AM. Le enviaré una confirmación por mensaje de texto. ¿Algo más en que le pueda ayudar?' },
+      { speaker: 'customer', text: 'No, eso es todo. ¡Muchas gracias!' },
+      { speaker: 'ai', text: '¡Gracias a usted por elegir Jardinería Sol! Nos vemos mañana. ¡Que tenga buen día!' },
+    ],
+    leadCaptured: {
+      name: 'María González',
+      phone: '555-823-4471',
+      address: 'Calle Primavera 482, Fresno',
+      service: 'Corte de Césped',
+      notes: 'Cliente en español — cita agendada para mañana 9:00 AM',
+      estimatedValue: '$65-85/visita',
+    },
+  },
 ];
 
 // Stats for the feature section - icons only, labels come from translations
