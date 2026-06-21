@@ -94,6 +94,7 @@ function JennyProDashboard() {
   });
   const [portingSubmitting, setPortingSubmitting] = useState(false);
   const [portError, setPortError] = useState('');
+  const [showPorting, setShowPorting] = useState(false);
 
   const fetchConversations = useCallback(async () => {
     if (!dbUser?.company_id) return;
@@ -672,9 +673,12 @@ function JennyProDashboard() {
                   >
                     {provisioning ? 'Getting your number…' : 'Get my Jenny number'}
                   </button>
+                  <span className="inline-flex items-center px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                    Recommended · ready in seconds
+                  </span>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  We&apos;ll set you up with a dedicated number and wire it automatically — no Twilio setup needed.
+                  We&apos;ll set you up with a dedicated number and wire it automatically — no Twilio setup needed. Live in seconds.
                 </p>
 
                 {/* Manual fallback — register an existing number */}
@@ -706,14 +710,29 @@ function JennyProDashboard() {
             {numberError && <p className="text-xs text-red-600 mt-3">{numberError}</p>}
           </div>
 
-          {/* Port an existing number */}
+          {/* Port an existing number (advanced — most contractors use a new number) */}
           <div className="bg-white rounded-xl border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Use Your Existing Number</h3>
+            <button
+              type="button"
+              onClick={() => setShowPorting((v) => !v)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Keep your existing number instead</h3>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Advanced — port a number your customers already know. Takes 1–4 weeks.
+                </p>
+              </div>
+              <span className="text-gray-400 text-sm ml-4">{showPorting || portRequest ? '▲' : '▼'}</span>
+            </button>
+
+            {(showPorting || portRequest) && (
+            <div className="mt-4">
             <p className="text-sm text-gray-600 mb-4">
-              Already have a business number your customers know? Port it to Jenny and she&apos;ll
-              answer texts and calls on <span className="font-medium">that</span> number. Porting is a
-              carrier process that usually takes 1–4 weeks — you&apos;ll get an email to sign the
-              authorization, and we&apos;ll connect it automatically when it&apos;s done.
+              Port your existing business number to Jenny and she&apos;ll answer texts and calls on
+              <span className="font-medium"> that</span> number. Porting is a carrier process that
+              usually takes 1–4 weeks — you&apos;ll get an email to sign the authorization, and we&apos;ll
+              connect it automatically when it&apos;s done.
             </p>
 
             {portRequest ? (
@@ -785,6 +804,8 @@ function JennyProDashboard() {
                   Have a recent bill from your current carrier handy — it&apos;s needed to verify ownership.
                 </p>
               </div>
+            )}
+            </div>
             )}
           </div>
 
