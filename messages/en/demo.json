@@ -628,7 +628,31 @@
       "ctaDescription": "Route optimization pays for itself in fuel savings alone. Elite plan customers save an average of $400/month.",
       "getRouteOptimization": "Get Route Optimization",
       "seeDispatchDemo": "See Dispatch Demo",
-      "ctaFootnote": "Included with Elite plan ($129/mo)"
+      "ctaFootnote": "Included with Elite plan ($129/mo)",
+      "smarterTitle": "Not just shorter routes — smarter ones",
+      "smarterSubtitle": "What sets ToolTime Pro apart from basic route planners",
+      "smarter": {
+        "0": {
+          "icon": "🎓",
+          "title": "Skill & License Aware",
+          "description": "Every job goes to a worker who's actually qualified — matching skills and checking license/certification expiry. An expired cert? They're automatically skipped, and uncoverable jobs are flagged, never misassigned."
+        },
+        "1": {
+          "icon": "🛣️",
+          "title": "Real Road Distances",
+          "description": "We route on the actual road network, not straight-line guesses — so the miles, drive times, and savings you see are the real thing."
+        },
+        "2": {
+          "icon": "📍",
+          "title": "Pinpoint Accuracy",
+          "description": "Address autocomplete and one-time pin correction mean every stop is exactly where it should be — locked in for good, no re-geocoding."
+        },
+        "3": {
+          "icon": "📊",
+          "title": "Proven Savings Report",
+          "description": "A running tally of miles, fuel, hours, and CO₂ saved — the ROI of optimization, in black and white, every month."
+        }
+      }
     },
     "website": {
       "backToHome": "Back to Home",
