@@ -140,21 +140,38 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
     channel,
   });
 
-  let result;
+  let ai;
   try {
-    const ai = await aiComplete({
+    ai = await aiComplete({
       systemPrompt,
       messages: [...history, { role: 'user', content: message }],
       maxTokens: 400,
       temperature: 0.4,
       tier: 'fast',
     });
-    result = parseAIJson(ai.content);
   } catch (err) {
-    console.error('[jenny-agent] AI/parse error:', err.message);
-    // Graceful fallback so the customer always gets a reply.
+    // Both providers unavailable — always give the customer a reply.
+    console.error('[jenny-agent] AI providers unavailable:', err.message);
     return {
       reply: t(lang).fallback,
+      language: lang,
+      intent: 'other',
+      readyToBook: false,
+      booking: null,
+      emergency: false,
+    };
+  }
+
+  let result;
+  try {
+    result = parseAIJson(ai.content);
+  } catch (err) {
+    // Model replied with prose instead of JSON — still talk to the customer
+    // (just don't auto-book on this turn).
+    console.error('[jenny-agent] non-JSON reply, using raw text:', err.message);
+    const raw = typeof ai.content === 'string' ? ai.content.trim() : '';
+    return {
+      reply: raw || t(lang).fallback,
       language: lang,
       intent: 'other',
       readyToBook: false,
