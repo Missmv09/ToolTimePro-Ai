@@ -128,6 +128,28 @@ export async function autoCreateCompanyForCheckout({
     return { companyId: company.id, error: `company update failed: ${updateError.message}` };
   }
 
+  // Guarantee a users row links this auth user to the company. handle_new_signup
+  // only creates it when it inserts a *fresh* company; for an existing company
+  // whose auth login was deleted or never finished (an "orphan"), the company
+  // INSERT fails on the unique email and the users INSERT never runs — leaving
+  // a customer who can't sign in. Re-creating the link here makes provisioning
+  // idempotent and self-healing. (No-op re-affirm for normal fresh signups.)
+  const { error: linkError } = await admin
+    .from('users')
+    .upsert(
+      {
+        id: authUserId,
+        email: normalizedEmail,
+        full_name: derivedName,
+        company_id: company.id,
+        role: 'owner',
+      },
+      { onConflict: 'id' }
+    );
+  if (linkError) {
+    return { companyId: company.id, error: `user link failed: ${linkError.message}` };
+  }
+
   // Issue a magic link the customer can click from the welcome email to log
   // in without needing to set a password first. generateLink can clear
   // user_metadata, so we re-affirm needs_password after.

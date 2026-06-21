@@ -74,7 +74,19 @@ export async function POST(request) {
         .ilike('email', email)
         .maybeSingle();
       if (existingCompany?.id) {
-        return NextResponse.json({ status: 'already_provisioned' }, { status: 200 });
+        // A company exists, but if it has no auth-backed user row it's an
+        // orphan (login deleted or never finished) — fall through to autoCreate
+        // below, which heals the account and emails a set-password link.
+        // Otherwise the webhook (or a prior run) already handled it: do nothing.
+        const { data: companyUsers } = await admin
+          .from('users')
+          .select('id')
+          .eq('company_id', existingCompany.id)
+          .limit(1);
+        if (companyUsers && companyUsers.length > 0) {
+          return NextResponse.json({ status: 'already_provisioned' }, { status: 200 });
+        }
+        break; // orphaned company — heal it via autoCreate below
       }
       if (attempt < GRACE_ATTEMPTS - 1) {
         await new Promise((r) => setTimeout(r, GRACE_DELAY_MS));
