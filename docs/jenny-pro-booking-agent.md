@@ -136,6 +136,28 @@ the Twilio console.
 the two routes, and register it via the dashboard's "Connect Number" field (or
 insert into `company_phone_numbers`).
 
+### Bring your own number (porting)
+
+For contractors who want Jenny on their **existing** business number, port it
+into Twilio. Once ported, Jenny owns SMS + voice on their real number.
+
+- **Dashboard → Jenny Pro → Settings → Use Your Existing Number** collects the
+  number, the authorized representative (for the LOA e-signature), the current
+  carrier + account number, and starts the request
+  (`POST /api/jenny-pro/port-request`, tracked in `number_port_requests`,
+  migration `040`).
+- Porting is an async carrier process (typically **1–4 weeks**), is **Public
+  Beta** on Twilio, and must be **enabled on your account**. A recent carrier
+  bill is required to verify ownership.
+- Set the port request's status-callback to `POST /api/jenny-pro/port-status`.
+  On `completed`, that webhook auto-wires the now-owned number to the company
+  (`src/lib/jenny-twilio-wire.js`: webhooks + Messaging Service + mapping) and
+  notifies the contractor — no extra steps.
+
+> This flow can't be exercised end-to-end without porting enabled on a real
+> Twilio account; verify live. The intake, status tracking, and
+> auto-wire-on-completion are fully built.
+
 ## Notes / limitations
 - The voice receptionist uses Twilio `<Gather input="speech">` + Amazon Polly
   voices (`Polly.Joanna` EN, `Polly.Lupe` ES). It needs a provisioned Twilio

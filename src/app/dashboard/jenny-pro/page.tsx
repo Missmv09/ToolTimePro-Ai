@@ -88,6 +88,12 @@ function JennyProDashboard() {
   const [numberError, setNumberError] = useState('');
   const [areaCode, setAreaCode] = useState('');
   const [provisioning, setProvisioning] = useState(false);
+  const [portRequest, setPortRequest] = useState<{ phone_number: string; status: string } | null>(null);
+  const [portForm, setPortForm] = useState({
+    phoneNumber: '', repName: '', repEmail: '', currentCarrier: '', accountNumber: '',
+  });
+  const [portingSubmitting, setPortingSubmitting] = useState(false);
+  const [portError, setPortError] = useState('');
 
   const fetchConversations = useCallback(async () => {
     if (!dbUser?.company_id) return;
@@ -239,11 +245,61 @@ function JennyProDashboard() {
     setProvisioning(false);
   }, [areaCode]);
 
+  const fetchPortRequest = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    try {
+      const { data } = await supabase
+        .from('number_port_requests')
+        .select('phone_number, status')
+        .eq('company_id', dbUser.company_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setPortRequest(data);
+    } catch {
+      // table may not exist yet
+    }
+  }, [dbUser?.company_id]);
+
+  const startPort = useCallback(async () => {
+    if (!portForm.phoneNumber.trim() || !portForm.repEmail.trim()) {
+      setPortError('Your number and an authorized representative email are required.');
+      return;
+    }
+    setPortingSubmitting(true);
+    setPortError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/jenny-pro/port-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _authToken: session?.access_token,
+          phoneNumber: portForm.phoneNumber,
+          authorizedRepName: portForm.repName,
+          authorizedRepEmail: portForm.repEmail,
+          currentCarrier: portForm.currentCarrier,
+          accountNumber: portForm.accountNumber,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.portRequest) {
+        setPortRequest({ phone_number: data.portRequest.phone_number, status: data.portRequest.status });
+      } else {
+        setPortError(data.error || 'Could not start the port. Please try again.');
+      }
+    } catch {
+      setPortError('Could not start the port. Please try again.');
+    }
+    setPortingSubmitting(false);
+  }, [portForm]);
+
   useEffect(() => {
     fetchConversations();
     fetchSettings();
     fetchNumber();
-  }, [fetchConversations, fetchSettings, fetchNumber]);
+    fetchPortRequest();
+  }, [fetchConversations, fetchSettings, fetchNumber, fetchPortRequest]);
 
   const isBetaTester = company?.is_beta_tester;
 
@@ -648,6 +704,88 @@ function JennyProDashboard() {
               <p className="text-xs text-green-600 mt-3">Saved ✓ — Jenny is now routed to your company.</p>
             )}
             {numberError && <p className="text-xs text-red-600 mt-3">{numberError}</p>}
+          </div>
+
+          {/* Port an existing number */}
+          <div className="bg-white rounded-xl border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Use Your Existing Number</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Already have a business number your customers know? Port it to Jenny and she&apos;ll
+              answer texts and calls on <span className="font-medium">that</span> number. Porting is a
+              carrier process that usually takes 1–4 weeks — you&apos;ll get an email to sign the
+              authorization, and we&apos;ll connect it automatically when it&apos;s done.
+            </p>
+
+            {portRequest ? (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Porting</p>
+                    <p className="text-lg font-semibold text-gray-900">{portRequest.phone_number}</p>
+                  </div>
+                  <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium capitalize">
+                    {portRequest.status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                {portRequest.status !== 'completed' && (
+                  <p className="text-xs text-gray-500 mt-3">
+                    Check your email for the authorization to sign. We&apos;ll connect the number to
+                    Jenny automatically once the carrier completes the transfer.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input
+                    type="tel"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.phoneNumber}
+                    onChange={(e) => setPortForm((f) => ({ ...f, phoneNumber: e.target.value }))}
+                    placeholder="Your current number *"
+                  />
+                  <input
+                    type="text"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.currentCarrier}
+                    onChange={(e) => setPortForm((f) => ({ ...f, currentCarrier: e.target.value }))}
+                    placeholder="Current carrier (e.g. Verizon)"
+                  />
+                  <input
+                    type="text"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.repName}
+                    onChange={(e) => setPortForm((f) => ({ ...f, repName: e.target.value }))}
+                    placeholder="Authorized name on the account"
+                  />
+                  <input
+                    type="email"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.repEmail}
+                    onChange={(e) => setPortForm((f) => ({ ...f, repEmail: e.target.value }))}
+                    placeholder="Email to sign authorization *"
+                  />
+                  <input
+                    type="text"
+                    className="border rounded-lg p-3 text-sm sm:col-span-2"
+                    value={portForm.accountNumber}
+                    onChange={(e) => setPortForm((f) => ({ ...f, accountNumber: e.target.value }))}
+                    placeholder="Account number with current carrier"
+                  />
+                </div>
+                <button
+                  onClick={startPort}
+                  disabled={portingSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {portingSubmitting ? 'Starting…' : 'Start porting my number'}
+                </button>
+                {portError && <p className="text-xs text-red-600">{portError}</p>}
+                <p className="text-xs text-gray-500">
+                  Have a recent bill from your current carrier handy — it&apos;s needed to verify ownership.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Twilio Status */}
