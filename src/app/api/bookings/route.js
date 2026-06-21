@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Twilio from 'twilio';
+import { createBooking } from '@/lib/booking-core';
 
 // Lazy initialization for Twilio
 let twilioClient = null;
@@ -90,228 +91,28 @@ function getSupabase() {
   return supabaseInstance;
 }
 
-// Calculate end time based on start time and duration
-function calculateEndTime(startTime, durationMinutes) {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const totalMinutes = hours * 60 + minutes + durationMinutes;
-  const endHours = Math.floor(totalMinutes / 60);
-  const endMinutes = totalMinutes % 60;
-  return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
-}
-
 export async function POST(request) {
   try {
     const body = await request.json();
 
-    const {
-      companyId,
-      serviceId,
-      serviceName,
-      scheduledDate,
-      scheduledTimeStart,
-      durationMinutes,
-      customerName,
-      customerEmail,
-      customerPhone,
-      customerAddress,
-      customerCity,
-      customerState,
-      customerZip,
-      notes,
-      smsConsent,
-    } = body;
-
-    // Validate required fields (email & address optional for chatbot bookings)
-    if (!companyId || !serviceName || !scheduledDate || !scheduledTimeStart || !customerName || !customerPhone) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    const { customerName, customerPhone, smsConsent, notes } = body;
 
     const supabase = getSupabase();
-    const isChatbotBooking = notes && notes.includes('booked via Jenny AI chat');
 
-    // Find an available time slot
-    // For chatbot bookings the requested time is a rough preference, so
-    // auto-advance to the next open slot instead of rejecting outright.
-    let finalDate = scheduledDate;
-    let finalTimeStart = scheduledTimeStart;
+    // Web bookings are strict about slot conflicts; chatbot/agent bookings
+    // (marked in the notes) auto-advance to the next opening.
+    const autoAdvance = !!(notes && notes.includes('booked via Jenny AI'));
 
-    // Get all booked slots for the requested date
-    const { data: existingJobs, error: checkError } = await supabase
-      .from('jobs')
-      .select('scheduled_time_start')
-      .eq('company_id', companyId)
-      .eq('scheduled_date', scheduledDate)
-      .neq('status', 'cancelled');
+    const result = await createBooking(supabase, { ...body, autoAdvance });
 
-    if (checkError) {
-      console.error('Error checking availability:', checkError);
+    if (!result.ok) {
       return NextResponse.json(
-        { error: 'Failed to check availability' },
-        { status: 500 }
+        { error: result.error },
+        { status: result.status || 500 }
       );
     }
 
-    const bookedTimes = new Set((existingJobs || []).map(j => j.scheduled_time_start));
-
-    if (bookedTimes.has(finalTimeStart)) {
-      if (!isChatbotBooking) {
-        // Non-chatbot bookings: strict — reject the conflict
-        return NextResponse.json(
-          { error: 'This time slot is no longer available. Please select a different time.' },
-          { status: 409 }
-        );
-      }
-
-      // Chatbot bookings: find the next open hourly slot (08:00–17:00)
-      const slots = [];
-      for (let h = 8; h <= 17; h++) {
-        slots.push(`${String(h).padStart(2, '0')}:00`);
-      }
-      const nextOpen = slots.find(s => !bookedTimes.has(s));
-
-      if (nextOpen) {
-        finalTimeStart = nextOpen;
-      } else {
-        // Entire day full — move to the next business day
-        const d = new Date(scheduledDate + 'T00:00:00');
-        do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6);
-        finalDate = d.toISOString().split('T')[0];
-        finalTimeStart = '09:00';
-      }
-    }
-
-    // Calculate end time
-    const scheduledTimeEnd = calculateEndTime(finalTimeStart, durationMinutes || 60);
-
-    // Check if customer already exists (by email if available, otherwise by phone)
-    let customerId = null;
-    let existingCustomerQuery = supabase
-      .from('customers')
-      .select('id')
-      .eq('company_id', companyId);
-
-    if (customerEmail) {
-      existingCustomerQuery = existingCustomerQuery.eq('email', customerEmail);
-    } else {
-      existingCustomerQuery = existingCustomerQuery.eq('phone', customerPhone);
-    }
-
-    const { data: existingCustomer } = await existingCustomerQuery.single();
-
-    if (existingCustomer) {
-      customerId = existingCustomer.id;
-
-      // Update customer info (only set fields that are provided)
-      const updateData = { name: customerName, phone: customerPhone, updated_at: new Date().toISOString() };
-      if (customerAddress) updateData.address = customerAddress;
-      if (customerCity) updateData.city = customerCity;
-      if (customerState) updateData.state = customerState;
-      if (customerZip) updateData.zip = customerZip;
-      if (smsConsent) {
-        updateData.sms_consent = true;
-        updateData.sms_consent_date = new Date().toISOString();
-      }
-
-      await supabase
-        .from('customers')
-        .update(updateData)
-        .eq('id', customerId);
-    } else {
-      // Create new customer
-      const newCustomerRow = {
-          company_id: companyId,
-          name: customerName,
-          phone: customerPhone,
-          source: 'online_booking',
-          sms_consent: !!smsConsent,
-          sms_consent_date: smsConsent ? new Date().toISOString() : null,
-        };
-      if (customerEmail) newCustomerRow.email = customerEmail;
-      if (customerAddress) newCustomerRow.address = customerAddress;
-      if (customerCity) newCustomerRow.city = customerCity;
-      if (customerState) newCustomerRow.state = customerState;
-      if (customerZip) newCustomerRow.zip = customerZip;
-
-      const { data: newCustomer, error: customerError } = await supabase
-        .from('customers')
-        .insert(newCustomerRow)
-        .select('id')
-        .single();
-
-      if (customerError) {
-        console.error('Error creating customer:', customerError);
-        return NextResponse.json(
-          { error: 'Failed to create customer record' },
-          { status: 500 }
-        );
-      }
-
-      customerId = newCustomer.id;
-    }
-
-    // Create the job (booking)
-    const jobRow = {
-        company_id: companyId,
-        customer_id: customerId,
-        title: serviceName,
-        description: notes || `Online booking for ${serviceName}`,
-        scheduled_date: finalDate,
-        scheduled_time_start: finalTimeStart,
-        scheduled_time_end: scheduledTimeEnd,
-        status: 'scheduled',
-        priority: 'normal',
-        notes: notes || null,
-      };
-    if (customerAddress) jobRow.address = customerAddress;
-    if (customerCity) jobRow.city = customerCity;
-    if (customerState) jobRow.state = customerState;
-    if (customerZip) jobRow.zip = customerZip;
-
-    const { data: job, error: jobError } = await supabase
-      .from('jobs')
-      .insert(jobRow)
-      .select()
-      .single();
-
-    if (jobError) {
-      console.error('Error creating job:', jobError);
-      return NextResponse.json(
-        { error: 'Failed to create booking' },
-        { status: 500 }
-      );
-    }
-
-    // Run lead creation and company name fetch in parallel (independent queries)
-    const [leadResult, companyResult] = await Promise.all([
-      supabase
-        .from('leads')
-        .insert({
-          company_id: companyId,
-          customer_id: customerId,
-          name: customerName,
-          email: customerEmail || null,
-          phone: customerPhone,
-          address: customerAddress || null,
-          service_requested: serviceName,
-          message: notes || `Booked ${serviceName} for ${finalDate}`,
-          source: 'online_booking',
-          status: 'new',
-        }),
-      supabase
-        .from('companies')
-        .select('name')
-        .eq('id', companyId)
-        .single(),
-    ]);
-
-    if (leadResult.error) {
-      console.error('Lead insert error:', leadResult.error);
-    }
-
-    const companyName = companyResult.data?.name || 'Our team';
+    const { booking, companyName, leadCreated } = result;
 
     // Only send SMS if customer consented
     let smsResult = { sent: false, reason: 'no_consent' };
@@ -319,9 +120,9 @@ export async function POST(request) {
       smsResult = await sendConfirmationSMS({
         to: customerPhone,
         customerName,
-        serviceName,
-        date: finalDate,
-        time: finalTimeStart,
+        serviceName: booking.service,
+        date: booking.date,
+        time: booking.time,
         companyName,
       });
     }
@@ -329,13 +130,13 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       booking: {
-        id: job.id,
-        service: serviceName,
-        date: finalDate,
-        time: finalTimeStart,
-        customer: customerName,
+        id: booking.id,
+        service: booking.service,
+        date: booking.date,
+        time: booking.time,
+        customer: booking.customer,
       },
-      leadCreated: !leadResult.error,
+      leadCreated,
       smsStatus: smsResult.sent ? 'sent' : 'not_sent',
       smsDetail: smsResult.sent ? undefined : (smsResult.reason || smsResult.error),
     });

@@ -27,6 +27,7 @@ interface SMSConversation {
   status: 'active' | 'resolved' | 'needs_response';
   message_count: number;
   lead_id: string | null;
+  booking_id?: string | null;
 }
 
 interface JennyProStats {
@@ -35,6 +36,26 @@ interface JennyProStats {
   bookingsMade: number;
   avgResponseTime: string;
 }
+
+interface JennyProSettings {
+  business_hours_greeting: string;
+  after_hours_greeting: string;
+  emergency_keywords: string;
+  escalation_phone: string;
+  language: 'en' | 'es' | 'both';
+  operator_language: 'en' | 'es';
+  auto_booking: boolean;
+}
+
+const DEFAULT_SETTINGS: JennyProSettings = {
+  business_hours_greeting: '',
+  after_hours_greeting: '',
+  emergency_keywords: 'emergency, urgent, burst, leak, flood, fire, broken',
+  escalation_phone: '',
+  language: 'both',
+  operator_language: 'en',
+  auto_booking: true,
+};
 
 export default function JennyProPage() {
   const { company, dbUser } = useAuth();
@@ -58,6 +79,9 @@ function JennyProDashboard() {
     bookingsMade: 0,
     avgResponseTime: '--',
   });
+  const [settings, setSettings] = useState<JennyProSettings>(DEFAULT_SETTINGS);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const fetchConversations = useCallback(async () => {
     if (!dbUser?.company_id) return;
@@ -75,7 +99,7 @@ function JennyProDashboard() {
         setStats({
           totalConversations: data.length,
           leadsCapture: data.filter((c: SMSConversation) => c.lead_id).length,
-          bookingsMade: 0,
+          bookingsMade: data.filter((c: { booking_id?: string | null }) => c.booking_id).length,
           avgResponseTime: data.length > 0 ? '< 30s' : '--',
         });
       }
@@ -85,9 +109,64 @@ function JennyProDashboard() {
     setLoading(false);
   }, [dbUser?.company_id]);
 
+  const fetchSettings = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    try {
+      const { data } = await supabase
+        .from('jenny_pro_settings')
+        .select('*')
+        .eq('company_id', dbUser.company_id)
+        .maybeSingle();
+      if (data) {
+        setSettings({
+          business_hours_greeting: data.business_hours_greeting || '',
+          after_hours_greeting: data.after_hours_greeting || '',
+          emergency_keywords: Array.isArray(data.emergency_keywords)
+            ? data.emergency_keywords.join(', ')
+            : (data.emergency_keywords || DEFAULT_SETTINGS.emergency_keywords),
+          escalation_phone: data.escalation_phone || '',
+          language: (data.language as JennyProSettings['language']) || 'both',
+          operator_language: (data.operator_language as JennyProSettings['operator_language']) || 'en',
+          auto_booking: data.auto_booking !== false,
+        });
+      }
+    } catch {
+      // Settings table/columns may not exist yet — keep defaults
+    }
+  }, [dbUser?.company_id]);
+
+  const saveSettings = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    setSavingSettings(true);
+    try {
+      await supabase.from('jenny_pro_settings').upsert(
+        {
+          company_id: dbUser.company_id,
+          business_hours_greeting: settings.business_hours_greeting,
+          after_hours_greeting: settings.after_hours_greeting,
+          emergency_keywords: settings.emergency_keywords
+            .split(',')
+            .map((k) => k.trim())
+            .filter(Boolean),
+          escalation_phone: settings.escalation_phone,
+          language: settings.language,
+          operator_language: settings.operator_language,
+          auto_booking: settings.auto_booking,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'company_id' }
+      );
+      setSavedAt(Date.now());
+    } catch {
+      // ignore — best effort
+    }
+    setSavingSettings(false);
+  }, [dbUser?.company_id, settings]);
+
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+    fetchSettings();
+  }, [fetchConversations, fetchSettings]);
 
   const isBetaTester = company?.is_beta_tester;
 
@@ -288,15 +367,40 @@ function JennyProDashboard() {
           <div className="bg-white rounded-xl border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Jenny Pro Settings</h3>
 
-            {/* Business Hours */}
+            {/* Auto-booking toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-blue-50 rounded-lg border border-blue-100 mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Auto-book appointments</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  When Jenny has the name, service, date and time, she books the job automatically
+                  and notifies you. Turn off to review every request before it&apos;s confirmed.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, auto_booking: !s.auto_booking }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.auto_booking ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.auto_booking}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    settings.auto_booking ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Hours Greeting</label>
                 <textarea
                   className="w-full border rounded-lg p-3 text-sm"
                   rows={2}
-                  defaultValue={`Thank you for calling ${company?.name || 'our office'}! I'm Jenny, your AI assistant. How can I help you today?`}
-                  placeholder="Greeting for business hours calls..."
+                  value={settings.business_hours_greeting}
+                  onChange={(e) => setSettings((s) => ({ ...s, business_hours_greeting: e.target.value }))}
+                  placeholder={`Thank you for calling ${company?.name || 'our office'}! I'm Jenny, your AI assistant. How can I help you today?`}
                 />
               </div>
 
@@ -305,8 +409,9 @@ function JennyProDashboard() {
                 <textarea
                   className="w-full border rounded-lg p-3 text-sm"
                   rows={2}
-                  defaultValue={`Thank you for calling ${company?.name || 'our office'}. Our office is currently closed, but I can help with emergencies and take messages.`}
-                  placeholder="Greeting for after-hours calls..."
+                  value={settings.after_hours_greeting}
+                  onChange={(e) => setSettings((s) => ({ ...s, after_hours_greeting: e.target.value }))}
+                  placeholder={`Thank you for calling ${company?.name || 'our office'}. Our office is currently closed, but I can help with emergencies and take messages.`}
                 />
               </div>
 
@@ -315,11 +420,13 @@ function JennyProDashboard() {
                 <input
                   type="text"
                   className="w-full border rounded-lg p-3 text-sm"
-                  defaultValue="emergency, urgent, burst, leak, flood, fire, broken"
+                  value={settings.emergency_keywords}
+                  onChange={(e) => setSettings((s) => ({ ...s, emergency_keywords: e.target.value }))}
                   placeholder="Keywords that trigger emergency handling..."
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  When a caller mentions these words, Jenny escalates to your on-call number immediately.
+                  When a customer uses these words (in English or Spanish), Jenny skips booking and
+                  escalates to your on-call number immediately.
                 </p>
               </div>
 
@@ -328,28 +435,68 @@ function JennyProDashboard() {
                 <input
                   type="tel"
                   className="w-full border rounded-lg p-3 text-sm"
-                  defaultValue={company?.phone || ''}
-                  placeholder="Phone number for emergency escalation..."
+                  value={settings.escalation_phone}
+                  onChange={(e) => setSettings((s) => ({ ...s, escalation_phone: e.target.value }))}
+                  placeholder="Phone number for missed-call ring + emergency escalation..."
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Jenny rings this number first on inbound calls. If you don&apos;t pick up, she texts the
+                  caller to keep the lead alive.
+                </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-                <select className="w-full border rounded-lg p-3 text-sm">
-                  <option value="en">English</option>
-                  <option value="es">Spanish</option>
-                  <option value="both">Bilingual (English + Spanish)</option>
-                </select>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Customer Language</label>
+                  <select
+                    className="w-full border rounded-lg p-3 text-sm"
+                    value={settings.language}
+                    onChange={(e) =>
+                      setSettings((s) => ({ ...s, language: e.target.value as JennyProSettings['language'] }))
+                    }
+                  >
+                    <option value="both">Bilingual — auto-detect EN/ES (recommended)</option>
+                    <option value="es">Spanish only</option>
+                    <option value="en">English only</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    How Jenny talks to your customers. Bilingual mirrors whichever language they text or speak.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Notification Language</label>
+                  <select
+                    className="w-full border rounded-lg p-3 text-sm"
+                    value={settings.operator_language}
+                    onChange={(e) =>
+                      setSettings((s) => ({
+                        ...s,
+                        operator_language: e.target.value as JennyProSettings['operator_language'],
+                      }))
+                    }
+                  >
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    The language for your booking and missed-call alerts.
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="mt-6 flex items-center gap-3">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                Save Settings
+              <button
+                onClick={saveSettings}
+                disabled={savingSettings}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+              >
+                {savingSettings ? 'Saving…' : 'Save Settings'}
               </button>
-              <p className="text-xs text-gray-500">
-                Voice settings will apply once Twilio campaign is approved.
-              </p>
+              {savedAt && !savingSettings && (
+                <p className="text-xs text-green-600">Saved ✓</p>
+              )}
             </div>
           </div>
 
