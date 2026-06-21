@@ -70,6 +70,10 @@ TWILIO_ACCOUNT_SID=...
 TWILIO_AUTH_TOKEN=...
 TWILIO_PHONE_NUMBER=...         # the business number
 TWILIO_MESSAGING_SERVICE_SID=... # A2P 10DLC campaign (preferred for sends)
+JENNY_COMPANY_ID=...           # OPTIONAL: pin Jenny to one company. Set this if
+                               # the DB has more than one company (e.g. test/demo
+                               # records) so Jenny always serves the right business.
+                               # Without it, the webhook uses the first company found.
 ```
 
 On the Twilio phone number, set the webhooks:

@@ -20,6 +20,16 @@ function getServiceSupabase() {
 }
 
 async function resolveCompany(supabase, toNumber) {
+  // Explicit pin wins (set JENNY_COMPANY_ID when test/demo companies exist).
+  const pinned = process.env.JENNY_COMPANY_ID;
+  if (pinned) {
+    const { data } = await supabase
+      .from('companies')
+      .select('id, name')
+      .eq('id', pinned)
+      .maybeSingle();
+    if (data) return data;
+  }
   const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
   if (!twilioNumber || toNumber === twilioNumber || !toNumber) {
     const { data } = await supabase.from('companies').select('id, name').limit(1);
