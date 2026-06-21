@@ -57,15 +57,28 @@ export async function POST(request) {
     }
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // If the webhook already created the company for this email, do nothing —
-    // it already sent the login email. This is the idempotency guard.
-    const { data: existingCompany } = await admin
-      .from('companies')
-      .select('id')
-      .ilike('email', email)
-      .maybeSingle();
-    if (existingCompany?.id) {
-      return NextResponse.json({ status: 'already_provisioned' }, { status: 200 });
+    // Give the Stripe webhook a head start. When the webhook is healthy it
+    // provisions the company and sends the login email within a few seconds;
+    // if we provisioned immediately we'd race it and the loser would send a
+    // SECOND, conflicting email (the plain "Welcome — Go to Dashboard" one),
+    // which dumps new buyers on the dashboard instead of set-password. So we
+    // poll for an existing company across a short grace window and only fall
+    // through to provisioning here if nothing appears — i.e. the webhook
+    // genuinely didn't fire. Kept well under the serverless timeout.
+    const GRACE_ATTEMPTS = 4;
+    const GRACE_DELAY_MS = 2000;
+    for (let attempt = 0; attempt < GRACE_ATTEMPTS; attempt++) {
+      const { data: existingCompany } = await admin
+        .from('companies')
+        .select('id')
+        .ilike('email', email)
+        .maybeSingle();
+      if (existingCompany?.id) {
+        return NextResponse.json({ status: 'already_provisioned' }, { status: 200 });
+      }
+      if (attempt < GRACE_ATTEMPTS - 1) {
+        await new Promise((r) => setTimeout(r, GRACE_DELAY_MS));
+      }
     }
 
     const metadata = session.metadata || {};
