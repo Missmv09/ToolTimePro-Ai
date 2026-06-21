@@ -44,7 +44,7 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
     .from('jobs')
     .select(`
       id, status, scheduled_date, scheduled_time_start, scheduled_time_end,
-      address, city, lat, lng,
+      address, city, lat, lng, tech_lat, tech_lng, tech_location_at,
       company:companies(name),
       customer:customers(name),
       assigned_users:job_assignments(user:users(full_name))
@@ -62,7 +62,21 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
   const techUser = Array.isArray(firstAssignment) ? firstAssignment[0] : firstAssignment
   const { label, phase } = statusLabel(job.status)
 
+  // Expose the technician's live position only while en route and only if the
+  // fix is recent (within 10 minutes) — stale or off-job positions stay hidden.
+  let techLocation: { lat: number; lng: number } | null = null
+  if (
+    job.status === 'in_progress' &&
+    job.tech_lat != null &&
+    job.tech_lng != null &&
+    job.tech_location_at &&
+    Date.now() - new Date(job.tech_location_at).getTime() < 10 * 60 * 1000
+  ) {
+    techLocation = { lat: job.tech_lat, lng: job.tech_lng }
+  }
+
   return NextResponse.json({
+    techLocation,
     companyName: company?.name || 'Your service provider',
     customerName: customer?.name || null,
     techFirstName: firstName(techUser?.full_name),
