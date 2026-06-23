@@ -4,6 +4,7 @@ import { createBooking } from '@/lib/booking-core';
 import { classifyKeyword, detectLanguage, resolveReplyLanguage, t } from '@/lib/jenny-language';
 import { notifyOperatorInApp, notifyOperatorSMS } from '@/lib/jenny-notify';
 import { resolveCompanyByNumber } from '@/lib/jenny-company';
+import { getUpcomingBookings, isDuplicate, rescheduleBooking } from '@/lib/jenny-bookings';
 
 export const dynamic = 'force-dynamic';
 
@@ -221,6 +222,10 @@ export async function POST(request) {
       }));
     }
 
+    // Jenny's awareness of this customer's existing appointments (prevents
+    // duplicate bookings and lets her reschedule instead).
+    const existingBookings = await getUpcomingBookings(supabase, companyId, from);
+
     const result = await runJennyAgent({
       supabase,
       companyId,
@@ -228,6 +233,7 @@ export async function POST(request) {
       history,
       message: body,
       channel: 'sms',
+      existingBookings,
     });
 
     // Persist language/intent on the conversation.
@@ -262,6 +268,31 @@ export async function POST(request) {
     const autoBookingOn = !settings || settings.auto_booking !== false;
     if (result.readyToBook && result.booking && autoBookingOn) {
       const b = result.booking;
+
+      // ── Reschedule an existing appointment instead of duplicating ────────
+      if (result.isReschedule && existingBookings.length) {
+        const target = existingBookings[0];
+        const r = await rescheduleBooking(supabase, target.id, {
+          date: b.scheduledDate,
+          time: b.scheduledTimeStart,
+          durationMinutes: 60,
+        });
+        if (r.ok && conversationId) {
+          await supabase
+            .from('jenny_sms_conversations')
+            .update({ booking_id: target.id, customer_name: b.customerName })
+            .eq('id', conversationId);
+        }
+        await logOutbound(result.reply);
+        return twiml(result.reply);
+      }
+
+      // ── Don't create a duplicate for a slot they already hold ────────────
+      if (isDuplicate(existingBookings, b.scheduledDate, b.scheduledTimeStart)) {
+        await logOutbound(result.reply);
+        return twiml(result.reply);
+      }
+
       const bookingRes = await createBooking(supabase, {
         companyId,
         serviceName: b.serviceName,
