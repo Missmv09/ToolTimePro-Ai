@@ -9,7 +9,7 @@ import {
 import { runJennyAgent } from '@/lib/jenny-sms-agent';
 import { createBooking } from '@/lib/booking-core';
 import { notifyOperatorInApp } from '@/lib/jenny-notify';
-import { getUpcomingBookings, isDuplicate, rescheduleBooking } from '@/lib/jenny-bookings';
+import { getUpcomingBookings, isDuplicate, rescheduleBooking, cancelBooking } from '@/lib/jenny-bookings';
 
 export const dynamic = 'force-dynamic';
 
@@ -115,6 +115,19 @@ export async function POST(request) {
 
     // Emergency — escalate by voice and end.
     if (result.emergency) {
+      return voiceResponse(buildSay(result.reply, lang) + '<Hangup/>');
+    }
+
+    // Cancellation — cancel the existing appointment and end.
+    if (result.isCancellation && existingBookings.length) {
+      await cancelBooking(supabase, existingBookings[0].id);
+      await notifyOperatorInApp(supabase, {
+        companyId: company.id,
+        type: 'new_lead',
+        title: 'Appointment cancelled (call)',
+        message: `Jenny cancelled an appointment for ${caller} (${existingBookings[0].scheduled_date}).`,
+        link: '/dashboard/dispatch',
+      });
       return voiceResponse(buildSay(result.reply, lang) + '<Hangup/>');
     }
 

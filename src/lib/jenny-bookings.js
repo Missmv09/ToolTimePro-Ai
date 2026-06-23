@@ -55,4 +55,13 @@ async function rescheduleBooking(supabase, jobId, { date, time, durationMinutes 
   return { ok: !error, error };
 }
 
-module.exports = { getUpcomingBookings, isDuplicate, rescheduleBooking };
+/** Cancel an existing appointment (soft — status only, keeps the record). */
+async function cancelBooking(supabase, jobId) {
+  const { error } = await supabase
+    .from('jobs')
+    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+    .eq('id', jobId);
+  return { ok: !error, error };
+}
+
+module.exports = { getUpcomingBookings, isDuplicate, rescheduleBooking, cancelBooking };
