@@ -66,6 +66,26 @@ export async function GET(request) {
     // columns may not exist yet — default everything enabled
   }
 
+  // Per-company review links — set by the contractor under Jenny Actions
+  // (review_request config). Falls back to the companies.* columns below.
+  const reviewLinkMap = new Map();
+  try {
+    const { data: configs } = await supabase
+      .from('jenny_action_configs')
+      .select('company_id, config')
+      .eq('action_type', 'review_request');
+    (configs || []).forEach((c) => {
+      if (c.config) {
+        reviewLinkMap.set(c.company_id, {
+          google: c.config.google_review_link || '',
+          yelp: c.config.yelp_review_link || '',
+        });
+      }
+    });
+  } catch {
+    // table may not exist yet
+  }
+
   let remindersSent = 0;
   let followupsSent = 0;
 
@@ -82,11 +102,23 @@ export async function GET(request) {
     .is('reminder_sent_at', null)
     .limit(500);
 
+  // Dedupe by customer+date so duplicate job records don't trigger multiple
+  // reminders for the same appointment — one reminder per customer per day.
+  const remindedKeys = new Set();
+
   for (const job of upcoming || []) {
     const s = settingsMap.get(job.company_id);
     if (s && s.reminders_enabled === false) continue;
     const cust = job.customer;
     if (!cust?.phone || !cust?.sms_consent) continue;
+
+    const key = `${job.company_id}|${cust.phone.replace(/\D/g, '').slice(-10)}|${job.scheduled_date}`;
+    if (remindedKeys.has(key)) {
+      // Already reminded this customer for this day — mark the dupe as handled
+      // so it isn't picked up on a later run, but don't text again.
+      await supabase.from('jobs').update({ reminder_sent_at: new Date().toISOString() }).eq('id', job.id);
+      continue;
+    }
 
     const r = await sendSMS({
       to: cust.phone,
@@ -99,13 +131,20 @@ export async function GET(request) {
       }),
     });
     if (r.success) {
-      await supabase.from('jobs').update({ reminder_sent_at: new Date().toISOString() }).eq('id', job.id);
+      remindedKeys.add(key);
+      const { error: markErr } = await supabase
+        .from('jobs')
+        .update({ reminder_sent_at: new Date().toISOString() })
+        .eq('id', job.id);
+      if (markErr) console.error('[reminders] failed to mark reminder_sent_at:', markErr.message);
       remindersSent++;
     }
   }
 
-  // ── 2. Post-job follow-up + review (completed 1h–36h ago) ────────────────
-  const windowStart = new Date(Date.now() - 36 * 3600 * 1000).toISOString();
+  // ── 2. Post-job follow-up + review (completed ~1h–27h ago) ───────────────
+  // Window is sized to the daily cron so each completed job is caught once; the
+  // followup_sent_at flag is the backstop against any double-send.
+  const windowStart = new Date(Date.now() - 27 * 3600 * 1000).toISOString();
   const windowEnd = new Date(Date.now() - 1 * 3600 * 1000).toISOString();
 
   const { data: done } = await supabase
@@ -123,7 +162,12 @@ export async function GET(request) {
     const cust = job.customer;
     if (!cust?.phone || !cust?.sms_consent) continue;
 
-    const reviewLink = job.company?.google_review_link || job.company?.yelp_review_link || '';
+    const links = reviewLinkMap.get(job.company_id) || {};
+    const googleLink = links.google || job.company?.google_review_link || '';
+    const yelpLink = links.yelp || job.company?.yelp_review_link || '';
+    const reviewLink = googleLink || yelpLink || '';
+    const reviewPlatform = googleLink ? 'google' : (yelpLink ? 'yelp' : 'none');
+
     const r = await sendSMS({
       to: cust.phone,
       body: SMS_TEMPLATES.jobComplete({
@@ -142,7 +186,7 @@ export async function GET(request) {
           customer_name: cust.name,
           customer_phone: cust.phone,
           review_link: reviewLink || null,
-          review_platform: job.company?.google_review_link ? 'google' : (job.company?.yelp_review_link ? 'yelp' : 'none'),
+          review_platform: reviewPlatform,
           status: 'sent',
           channel: 'sms',
           sent_at: new Date().toISOString(),
