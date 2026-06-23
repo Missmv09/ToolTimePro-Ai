@@ -24,7 +24,12 @@ function matchesEmergency(text, keywords) {
   return list.some((k) => lower.includes(String(k).toLowerCase()));
 }
 
-function buildSystemPrompt({ companyName, businessType, services, lang, today, channel, businessInfo }) {
+function buildSystemPrompt({ companyName, businessType, services, lang, today, channel, businessInfo, existingBookings }) {
+  const existingLines = existingBookings && existingBookings.length
+    ? existingBookings
+        .map((b) => `- ${b.title || 'Appointment'} on ${b.scheduled_date} at ${b.scheduled_time_start}`)
+        .join('\n')
+    : '';
   const serviceLines = services && services.length
     ? services
         .map((s) => {
@@ -67,7 +72,7 @@ Today's date is ${today}. Convert relative dates ("tomorrow", "next Tuesday", "t
 
 Services offered:
 ${serviceLines}
-${businessInfo ? `\nAbout this business (use this to answer accurately — pricing, service area, hours, specials, tone):\n${businessInfo}\n` : ''}
+${businessInfo ? `\nAbout this business (use this to answer accurately — pricing, service area, hours, specials, tone):\n${businessInfo}\n` : ''}${existingLines ? `\nIMPORTANT — this customer ALREADY has these upcoming appointments:\n${existingLines}\nDo NOT create a duplicate. If they want to MOVE one to a different day/time, set "is_reschedule": true and put the NEW date/time in "booking". If they're just confirming or chatting, set ready_to_book false and don't book again. Only book a brand-new appointment if it's clearly a different/additional job.\n` : ''}
 Your goal is to collect, conversationally and warmly:
 1. The customer's name
 2. The service they need (match to a service above when possible)
@@ -82,6 +87,7 @@ You MUST reply with a single JSON object and NOTHING else, in this exact shape:
   "language": "en" or "es",
   "intent": "booking" | "question" | "emergency" | "other",
   "ready_to_book": true or false,
+  "is_reschedule": true or false (true ONLY when moving an existing appointment to a new day/time),
   "booking": {
     "customerName": "string",
     "serviceName": "string",
@@ -108,7 +114,7 @@ Set "ready_to_book" to true ONLY when you have name, service, a concrete date, a
  * @param {'sms'|'voice'} [opts.channel='sms']
  * @returns {Promise<{ reply, language, intent, readyToBook, booking, emergency }>}
  */
-async function runJennyAgent({ supabase, companyId, company, settings, history = [], message, channel = 'sms' }) {
+async function runJennyAgent({ supabase, companyId, company, settings, history = [], message, channel = 'sms', existingBookings = [] }) {
   const detected = detectLanguage(message);
   const lang = resolveReplyLanguage(detected, settings?.language);
 
@@ -152,6 +158,7 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
     today: todayISO(),
     channel,
     businessInfo: settings?.business_info || '',
+    existingBookings,
   });
 
   let ai;
@@ -209,6 +216,7 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
     language: result.language === 'es' || result.language === 'en' ? result.language : lang,
     intent: result.intent || 'other',
     readyToBook: !!(result.ready_to_book && hasRequired),
+    isReschedule: !!(result.is_reschedule && hasRequired),
     booking: hasRequired ? booking : null,
     emergency: false,
   };

@@ -117,6 +117,35 @@ describe('runJennyAgent', () => {
     expect(res.booking).toBeNull();
   });
 
+  it('parses is_reschedule into isReschedule', async () => {
+    mockAiComplete.mockResolvedValue({
+      content: JSON.stringify({
+        reply: 'Moved your Lawn Care to 10 AM!',
+        language: 'en',
+        intent: 'booking',
+        ready_to_book: true,
+        is_reschedule: true,
+        booking: {
+          customerName: 'Sarah',
+          serviceName: 'Lawn Care',
+          scheduledDate: '2026-07-02',
+          scheduledTimeStart: '10:00',
+        },
+      }),
+    });
+
+    const res = await runJennyAgent({
+      supabase: makeSupabase(),
+      companyId: 'c1',
+      settings: {},
+      message: 'can you move it to 10',
+      existingBookings: [{ id: 'j1', title: 'Lawn Care', scheduled_date: '2026-07-02', scheduled_time_start: '09:00' }],
+    });
+
+    expect(res.readyToBook).toBe(true);
+    expect(res.isReschedule).toBe(true);
+  });
+
   it('replies in Spanish when the customer writes Spanish', async () => {
     mockAiComplete.mockResolvedValue({
       content: JSON.stringify({

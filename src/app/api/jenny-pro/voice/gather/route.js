@@ -9,6 +9,7 @@ import {
 import { runJennyAgent } from '@/lib/jenny-sms-agent';
 import { createBooking } from '@/lib/booking-core';
 import { notifyOperatorInApp } from '@/lib/jenny-notify';
+import { getUpcomingBookings, isDuplicate, rescheduleBooking } from '@/lib/jenny-bookings';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,8 @@ export async function POST(request) {
       }));
     }
 
+    const existingBookings = await getUpcomingBookings(supabase, company.id, caller);
+
     const result = await runJennyAgent({
       supabase,
       companyId: company.id,
@@ -85,6 +88,7 @@ export async function POST(request) {
       history,
       message: speech,
       channel: 'voice',
+      existingBookings,
     });
 
     const lang = result.language;
@@ -118,6 +122,22 @@ export async function POST(request) {
     const autoBookingOn = !settings || settings.auto_booking !== false;
     if (result.readyToBook && result.booking && autoBookingOn) {
       const b = result.booking;
+      const closing = lang === 'es' ? ' ¡Gracias por llamar!' : ' Thanks for calling!';
+
+      // Reschedule an existing appointment rather than duplicating it.
+      if (result.isReschedule && existingBookings.length) {
+        await rescheduleBooking(supabase, existingBookings[0].id, {
+          date: b.scheduledDate,
+          time: b.scheduledTimeStart,
+          durationMinutes: 60,
+        });
+        return voiceResponse(buildSay(result.reply + closing, lang) + '<Hangup/>');
+      }
+      // Don't double-book a slot they already hold.
+      if (isDuplicate(existingBookings, b.scheduledDate, b.scheduledTimeStart)) {
+        return voiceResponse(buildSay(result.reply + closing, lang) + '<Hangup/>');
+      }
+
       const bookingRes = await createBooking(supabase, {
         companyId: company.id,
         serviceName: b.serviceName,
@@ -159,7 +179,6 @@ export async function POST(request) {
           link: '/dashboard/dispatch',
         });
 
-        const closing = lang === 'es' ? ' ¡Gracias por llamar!' : ' Thanks for calling!';
         return voiceResponse(buildSay(result.reply + closing, lang) + '<Hangup/>');
       }
       console.error('[voice/gather] booking failed:', bookingRes.error);
