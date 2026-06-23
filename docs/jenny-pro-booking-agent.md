@@ -99,6 +99,22 @@ Migration `038_jenny_sms_booking_agent.sql` adds:
 (The `jenny_sms_conversations`, `jenny_sms_messages`, `jenny_voice_calls`, and
 `jenny_pro_settings` tables come from `021_jenny_pro_sms_conversations.sql`.)
 
+## Improving Jenny's replies
+
+Reply quality comes from three levers (all live):
+1. **Model** — the agent runs on the `high` tier (Claude Sonnet) for natural,
+   persuasive replies. See `tier` in `src/lib/jenny-sms-agent.js`.
+2. **Prompt** — `buildSystemPrompt` includes personality + how-to-handle-common-
+   situations guidance.
+3. **Per-business context** — each contractor fills **"Tell Jenny about your
+   business"** (Jenny Pro → Settings; `jenny_pro_settings.business_info`,
+   migration `041`). It's injected into the prompt so Jenny answers pricing,
+   service-area, and availability questions accurately. This is the operator's
+   continuous-improvement loop: refine the text, replies get better immediately.
+
+Note: Jenny does not auto-train from past chats — improvement comes from the
+business-info field and prompt/model, not autonomous learning.
+
 ## Multi-tenant routing (number → company)
 
 Each contractor's Twilio number maps to their company, so Jenny answers as the
