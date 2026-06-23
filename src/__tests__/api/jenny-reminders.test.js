@@ -80,6 +80,20 @@ describe('/api/jenny-pro/reminders', () => {
     expect(mockUpdateCalls.some((u) => u.reminder_sent_at)).toBe(true);
   });
 
+  it('sends only ONE reminder when duplicate jobs exist for the same customer/day', async () => {
+    const dupe = {
+      title: 'Lawn Care', scheduled_date: '2026-07-02', scheduled_time_start: '09:00',
+      company_id: 'c1', customer: { name: 'Maria', phone: '+15551112222', sms_consent: true }, company: { name: 'Green Co' },
+    };
+    mockJobsResults = [[{ ...dupe, id: 'j1' }, { ...dupe, id: 'j2' }], []];
+    const res = await GET(req());
+    const data = await res.json();
+    expect(data.remindersSent).toBe(1);
+    expect(mockSendSMS).toHaveBeenCalledTimes(1);
+    // Both job rows still get marked so neither re-sends on a later run.
+    expect(mockUpdateCalls.filter((u) => u.reminder_sent_at).length).toBe(2);
+  });
+
   it('skips customers without SMS consent', async () => {
     mockJobsResults = [
       [{

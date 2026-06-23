@@ -102,11 +102,23 @@ export async function GET(request) {
     .is('reminder_sent_at', null)
     .limit(500);
 
+  // Dedupe by customer+date so duplicate job records don't trigger multiple
+  // reminders for the same appointment — one reminder per customer per day.
+  const remindedKeys = new Set();
+
   for (const job of upcoming || []) {
     const s = settingsMap.get(job.company_id);
     if (s && s.reminders_enabled === false) continue;
     const cust = job.customer;
     if (!cust?.phone || !cust?.sms_consent) continue;
+
+    const key = `${job.company_id}|${cust.phone.replace(/\D/g, '').slice(-10)}|${job.scheduled_date}`;
+    if (remindedKeys.has(key)) {
+      // Already reminded this customer for this day — mark the dupe as handled
+      // so it isn't picked up on a later run, but don't text again.
+      await supabase.from('jobs').update({ reminder_sent_at: new Date().toISOString() }).eq('id', job.id);
+      continue;
+    }
 
     const r = await sendSMS({
       to: cust.phone,
@@ -119,6 +131,7 @@ export async function GET(request) {
       }),
     });
     if (r.success) {
+      remindedKeys.add(key);
       await supabase.from('jobs').update({ reminder_sent_at: new Date().toISOString() }).eq('id', job.id);
       remindersSent++;
     }
