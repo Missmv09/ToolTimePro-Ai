@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -61,17 +61,18 @@ function JobsContent() {
   const fetchJobs = useCallback(async (compId: string) => {
     const currentFetchId = ++fetchIdRef.current
 
-    // Use server-side API to fetch jobs with assignments (bypasses RLS)
+    // Fetch the FULL job list once and let the UI filter it client-side (see
+    // `filteredJobs` below). Every tab — "All", "Scheduled", "Overdue", … — is
+    // then derived from the same in-memory snapshot, so they can never disagree:
+    // a rescheduled job can't show its new time under "Scheduled" while "All"
+    // still shows the old one. The `_t` cache-buster makes each request a unique
+    // URL, guaranteeing a fresh response even if an edge/CDN layer would
+    // otherwise serve a stale copy of the list endpoint.
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       if (token) {
-        const params = new URLSearchParams()
-        if (filter !== 'all') params.set('filter', filter)
-        if (customerFilter) params.set('customer', customerFilter)
-        const qs = params.toString()
-
-                const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
+        const res = await fetch(`/api/jobs/list?_t=${Date.now()}`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: 'no-store',
         })
@@ -90,8 +91,10 @@ function JobsContent() {
       console.warn('[fetchJobs] API call failed:', err, '- falling back to direct query')
     }
 
-    // Fallback: direct Supabase client query (assignments may not show due to RLS)
-    let query = supabase
+    // Fallback: direct Supabase client query (assignments may not show due to
+    // RLS). Like the API path it fetches every job; filtering happens in
+    // `filteredJobs` so the fallback stays consistent across tabs too.
+    const { data, error } = await supabase
       .from('jobs')
       .select(`
         *,
@@ -102,19 +105,6 @@ function JobsContent() {
       .order('scheduled_date', { ascending: false })
       .limit(5000)
 
-    if (filter === 'overdue') {
-      const today = new Date().toISOString().split('T')[0]
-      query = query.in('status', ['scheduled', 'in_progress']).lt('scheduled_date', today)
-    } else if (filter !== 'all') {
-      query = query.eq('status', filter)
-    }
-
-    if (customerFilter) {
-      query = query.eq('customer_id', customerFilter)
-    }
-
-    const { data, error } = await query
-
     // Only update state if this is still the latest request
     if (currentFetchId !== fetchIdRef.current) return
 
@@ -124,7 +114,27 @@ function JobsContent() {
       setJobs(data || [])
     }
     setLoading(false)
-  }, [filter, customerFilter])
+  }, [])
+
+  // Derive the visible rows from the single fetched snapshot. Doing the status /
+  // customer / overdue filtering here (rather than per-tab on the server) is what
+  // keeps every tab consistent. "Overdue" mirrors the previous server logic:
+  // still-open jobs (scheduled or in progress) whose scheduled date has passed.
+  const filteredJobs = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0]
+    return jobs.filter((job) => {
+      if (customerFilter && job.customer?.id !== customerFilter) return false
+      if (filter === 'overdue') {
+        return (
+          (job.status === 'scheduled' || job.status === 'in_progress') &&
+          !!job.scheduled_date &&
+          job.scheduled_date < today
+        )
+      }
+      if (filter !== 'all') return job.status === filter
+      return true
+    })
+  }, [jobs, filter, customerFilter])
 
   const fetchCustomers = useCallback(async (compId: string) => {
     const { data } = await supabase
@@ -350,7 +360,7 @@ function JobsContent() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {jobs.length === 0 ? (
+            {filteredJobs.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-16 text-center">
                   <span className="text-4xl block mb-4">📋</span>
@@ -367,7 +377,7 @@ function JobsContent() {
                 </td>
               </tr>
             ) : (
-              jobs.map((job) => (
+              filteredJobs.map((job) => (
                 <tr key={job.id} className={`hover:bg-gray-50 ${isJobOverdue(job) ? 'bg-red-50' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -496,6 +506,40 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
   })
   const [services, setServices] = useState<{ id: string; name: string; requires_license: boolean }[]>([])
   const [saving, setSaving] = useState(false)
+
+  // "Cancel & replace": when creating a NEW job for a customer who already has
+  // upcoming appointments, let the user mark which ones this job replaces so
+  // they're cancelled on save (avoids leaving stale duplicates). Editing an
+  // existing job reschedules in place, so this never applies there.
+  const [customerUpcomingJobs, setCustomerUpcomingJobs] = useState<
+    { id: string; title: string | null; scheduled_date: string | null; scheduled_time_start: string | null }[]
+  >([])
+  const [replaceJobIds, setReplaceJobIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (job || !formData.customer_id) {
+      setCustomerUpcomingJobs([])
+      setReplaceJobIds([])
+      return
+    }
+    let cancelled = false
+    const today = new Date().toISOString().split('T')[0]
+    supabase
+      .from('jobs')
+      .select('id, title, scheduled_date, scheduled_time_start')
+      .eq('company_id', companyId)
+      .eq('customer_id', formData.customer_id)
+      .in('status', ['scheduled', 'in_progress'])
+      .gte('scheduled_date', today)
+      .order('scheduled_date')
+      .then(({ data }) => {
+        if (!cancelled) {
+          setCustomerUpcomingJobs(data || [])
+          setReplaceJobIds([])
+        }
+      })
+    return () => { cancelled = true }
+  }, [job, companyId, formData.customer_id])
 
   // Load the company's active services so a job can declare which skill it needs.
   useEffect(() => {
@@ -635,6 +679,7 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
           jobData: jobPayload,
           assignedWorkerId: workerId,
           existingJobId: job?.id || null,
+          cancelJobIds: replaceJobIds,
         }),
       })
 
@@ -718,6 +763,17 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
         }
       }
 
+      // Cancel any appointments this new job replaces (direct fallback path).
+      if (replaceJobIds.length > 0) {
+        const { error: cancelErr } = await supabase
+          .from('jobs')
+          .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+          .in('id', replaceJobIds)
+        if (cancelErr) {
+          console.error('[JobSave] Direct cancel of replaced jobs failed:', cancelErr)
+        }
+      }
+
       setSaving(false)
       onSave()
     } catch (err) {
@@ -758,6 +814,37 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
               ))}
             </select>
           </div>
+
+          {!job && customerUpcomingJobs.length > 0 && (
+            <div className="border border-amber-200 bg-amber-50 rounded-lg p-3">
+              <p className="text-sm font-medium text-amber-800">
+                This customer already has {customerUpcomingJobs.length} upcoming appointment{customerUpcomingJobs.length > 1 ? 's' : ''}.
+              </p>
+              <p className="text-xs text-amber-700 mt-0.5 mb-2">
+                If this job replaces any of them, check it below — it&apos;ll be cancelled when you save.
+              </p>
+              <div className="space-y-1.5">
+                {customerUpcomingJobs.map((cj) => (
+                  <label key={cj.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={replaceJobIds.includes(cj.id)}
+                      onChange={(e) =>
+                        setReplaceJobIds((prev) =>
+                          e.target.checked ? [...prev, cj.id] : prev.filter((id) => id !== cj.id)
+                        )
+                      }
+                    />
+                    <span>
+                      {cj.title || 'Untitled job'} —{' '}
+                      {cj.scheduled_date ? new Date(cj.scheduled_date + 'T00:00:00').toLocaleDateString() : 'Unscheduled'}
+                      {cj.scheduled_time_start ? ` at ${cj.scheduled_time_start}` : ''}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {quotes.length > 0 && (
             <div>
