@@ -507,6 +507,40 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
   const [services, setServices] = useState<{ id: string; name: string; requires_license: boolean }[]>([])
   const [saving, setSaving] = useState(false)
 
+  // "Cancel & replace": when creating a NEW job for a customer who already has
+  // upcoming appointments, let the user mark which ones this job replaces so
+  // they're cancelled on save (avoids leaving stale duplicates). Editing an
+  // existing job reschedules in place, so this never applies there.
+  const [customerUpcomingJobs, setCustomerUpcomingJobs] = useState<
+    { id: string; title: string | null; scheduled_date: string | null; scheduled_time_start: string | null }[]
+  >([])
+  const [replaceJobIds, setReplaceJobIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (job || !formData.customer_id) {
+      setCustomerUpcomingJobs([])
+      setReplaceJobIds([])
+      return
+    }
+    let cancelled = false
+    const today = new Date().toISOString().split('T')[0]
+    supabase
+      .from('jobs')
+      .select('id, title, scheduled_date, scheduled_time_start')
+      .eq('company_id', companyId)
+      .eq('customer_id', formData.customer_id)
+      .in('status', ['scheduled', 'in_progress'])
+      .gte('scheduled_date', today)
+      .order('scheduled_date')
+      .then(({ data }) => {
+        if (!cancelled) {
+          setCustomerUpcomingJobs(data || [])
+          setReplaceJobIds([])
+        }
+      })
+    return () => { cancelled = true }
+  }, [job, companyId, formData.customer_id])
+
   // Load the company's active services so a job can declare which skill it needs.
   useEffect(() => {
     let cancelled = false
@@ -645,6 +679,7 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
           jobData: jobPayload,
           assignedWorkerId: workerId,
           existingJobId: job?.id || null,
+          cancelJobIds: replaceJobIds,
         }),
       })
 
@@ -728,6 +763,17 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
         }
       }
 
+      // Cancel any appointments this new job replaces (direct fallback path).
+      if (replaceJobIds.length > 0) {
+        const { error: cancelErr } = await supabase
+          .from('jobs')
+          .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+          .in('id', replaceJobIds)
+        if (cancelErr) {
+          console.error('[JobSave] Direct cancel of replaced jobs failed:', cancelErr)
+        }
+      }
+
       setSaving(false)
       onSave()
     } catch (err) {
@@ -768,6 +814,37 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
               ))}
             </select>
           </div>
+
+          {!job && customerUpcomingJobs.length > 0 && (
+            <div className="border border-amber-200 bg-amber-50 rounded-lg p-3">
+              <p className="text-sm font-medium text-amber-800">
+                This customer already has {customerUpcomingJobs.length} upcoming appointment{customerUpcomingJobs.length > 1 ? 's' : ''}.
+              </p>
+              <p className="text-xs text-amber-700 mt-0.5 mb-2">
+                If this job replaces any of them, check it below — it&apos;ll be cancelled when you save.
+              </p>
+              <div className="space-y-1.5">
+                {customerUpcomingJobs.map((cj) => (
+                  <label key={cj.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={replaceJobIds.includes(cj.id)}
+                      onChange={(e) =>
+                        setReplaceJobIds((prev) =>
+                          e.target.checked ? [...prev, cj.id] : prev.filter((id) => id !== cj.id)
+                        )
+                      }
+                    />
+                    <span>
+                      {cj.title || 'Untitled job'} —{' '}
+                      {cj.scheduled_date ? new Date(cj.scheduled_date + 'T00:00:00').toLocaleDateString() : 'Unscheduled'}
+                      {cj.scheduled_time_start ? ` at ${cj.scheduled_time_start}` : ''}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {quotes.length > 0 && (
             <div>

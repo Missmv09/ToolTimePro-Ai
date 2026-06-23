@@ -256,7 +256,36 @@ export async function POST(request: NextRequest) {
       log.push('No worker selected - assignments cleared only')
     }
 
-    return NextResponse.json({ success: true, jobId, log })
+    // ---- CANCEL REPLACED APPOINTMENTS ----
+    // When this job replaces existing appointment(s) (a "reschedule" done by
+    // creating a fresh job rather than editing), retire the old ones by setting
+    // their status to 'cancelled' instead of leaving confusing duplicates. We
+    // only ever touch jobs in the caller's own company and never the job we
+    // just saved.
+    let cancelledJobIds: string[] = []
+    const cancelJobIds: string[] = Array.isArray(body.cancelJobIds)
+      ? body.cancelJobIds.filter((id: unknown): id is string => typeof id === 'string' && id !== jobId)
+      : []
+    if (cancelJobIds.length > 0) {
+      const { data: cancelled, error: cancelError } = await adminClient
+        .from('jobs')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .in('id', cancelJobIds)
+        .eq('company_id', callerProfile.company_id)
+        .select('id')
+
+      if (cancelError) {
+        log.push(`Cancel replaced jobs error: ${cancelError.message} (code: ${cancelError.code})`)
+        return NextResponse.json(
+          { error: 'Job saved but failed to cancel the replaced appointment(s)', details: cancelError.message, jobId, log },
+          { status: 500 }
+        )
+      }
+      cancelledJobIds = (cancelled || []).map((j) => j.id)
+      log.push(`Cancelled ${cancelledJobIds.length} replaced appointment(s)`)
+    }
+
+    return NextResponse.json({ success: true, jobId, cancelledJobIds, log })
   } catch (err) {
     log.push(`Exception: ${err instanceof Error ? err.message : String(err)}`)
     return NextResponse.json(
