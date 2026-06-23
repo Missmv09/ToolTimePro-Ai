@@ -3,6 +3,14 @@ import { t } from '@/lib/jenny-language';
 
 export const dynamic = 'force-dynamic';
 
+// Health check — confirms the endpoint is live for a browser/validator. Twilio POSTs here.
+export async function GET() {
+  return new Response('Jenny voice webhook is live. Twilio sends inbound calls here via POST.', {
+    status: 200,
+    headers: { 'Content-Type': 'text/plain' },
+  });
+}
+
 /**
  * Primary inbound-call webhook for Jenny Pro voice.
  *

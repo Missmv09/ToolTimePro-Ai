@@ -7,6 +7,15 @@ import { resolveCompanyByNumber } from '@/lib/jenny-company';
 
 export const dynamic = 'force-dynamic';
 
+// Health check — lets a browser or a webhook validator confirm the endpoint is
+// live (returns 200) without triggering the booking flow. Twilio always POSTs.
+export async function GET() {
+  return new Response('Jenny SMS webhook is live. Twilio sends inbound messages here via POST.', {
+    status: 200,
+    headers: { 'Content-Type': 'text/plain' },
+  });
+}
+
 let supabaseInstance = null;
 
 function getSupabase() {
