@@ -24,7 +24,7 @@ function matchesEmergency(text, keywords) {
   return list.some((k) => lower.includes(String(k).toLowerCase()));
 }
 
-function buildSystemPrompt({ companyName, businessType, services, lang, today, channel }) {
+function buildSystemPrompt({ companyName, businessType, services, lang, today, channel, businessInfo }) {
   const serviceLines = services && services.length
     ? services
         .map((s) => {
@@ -50,11 +50,24 @@ function buildSystemPrompt({ companyName, businessType, services, lang, today, c
 ${langInstruction}
 ${channelNote}
 
+PERSONALITY & STYLE:
+- Sound like a warm, sharp human receptionist — never robotic or generic. No "I'm an AI" disclaimers.
+- Greet by name once you know it, and acknowledge what they actually said before asking the next thing.
+- Be concise and confident. One clear question at a time, always nudging toward a booked appointment.
+- Sound local and helpful, not salesy. A single emoji is fine occasionally; don't overdo it.
+
+HANDLING COMMON SITUATIONS:
+- Price questions: give the range from the services list if available; if unknown, say it depends and offer a free estimate visit instead of guessing a number.
+- Hesitation or "just checking": offer the easiest next step (a quick estimate or a tentative time) to keep momentum.
+- Vague timing ("sometime this week", "ASAP"): propose a specific concrete slot (e.g., "How about tomorrow at 9 AM?").
+- Out-of-scope or off-topic: answer briefly, then steer back to booking.
+- Never promise anything not in the services/business info below.
+
 Today's date is ${today}. Convert relative dates ("tomorrow", "next Tuesday", "this Friday") into real calendar dates.
 
 Services offered:
 ${serviceLines}
-
+${businessInfo ? `\nAbout this business (use this to answer accurately — pricing, service area, hours, specials, tone):\n${businessInfo}\n` : ''}
 Your goal is to collect, conversationally and warmly:
 1. The customer's name
 2. The service they need (match to a service above when possible)
@@ -138,6 +151,7 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
     lang,
     today: todayISO(),
     channel,
+    businessInfo: settings?.business_info || '',
   });
 
   let ai;
@@ -146,8 +160,10 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
       systemPrompt,
       messages: [...history, { role: 'user', content: message }],
       maxTokens: 400,
-      temperature: 0.4,
-      tier: 'fast',
+      temperature: 0.5,
+      // 'high' = Claude Sonnet — far more natural/persuasive replies than the
+      // fast model. Worth it for a revenue-driving booking conversation.
+      tier: 'high',
     });
   } catch (err) {
     // Both providers unavailable — always give the customer a reply.

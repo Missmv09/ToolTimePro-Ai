@@ -45,6 +45,7 @@ interface JennyProSettings {
   language: 'en' | 'es' | 'both';
   operator_language: 'en' | 'es';
   auto_booking: boolean;
+  business_info: string;
 }
 
 const DEFAULT_SETTINGS: JennyProSettings = {
@@ -55,6 +56,7 @@ const DEFAULT_SETTINGS: JennyProSettings = {
   language: 'both',
   operator_language: 'en',
   auto_booking: true,
+  business_info: '',
 };
 
 export default function JennyProPage() {
@@ -141,6 +143,7 @@ function JennyProDashboard() {
           language: (data.language as JennyProSettings['language']) || 'both',
           operator_language: (data.operator_language as JennyProSettings['operator_language']) || 'en',
           auto_booking: data.auto_booking !== false,
+          business_info: data.business_info || '',
         });
       }
     } catch {
@@ -165,6 +168,7 @@ function JennyProDashboard() {
           language: settings.language,
           operator_language: settings.operator_language,
           auto_booking: settings.auto_booking,
+          business_info: settings.business_info,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'company_id' }
@@ -527,6 +531,21 @@ function JennyProDashboard() {
             </div>
 
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tell Jenny about your business</label>
+                <textarea
+                  className="w-full border rounded-lg p-3 text-sm"
+                  rows={5}
+                  value={settings.business_info}
+                  onChange={(e) => setSettings((s) => ({ ...s, business_info: e.target.value }))}
+                  placeholder={'The more you tell Jenny, the better her replies. For example:\n• Services & typical pricing (e.g. lawn mowing $65–85, cleanups $120+)\n• Service area / cities you cover\n• Hours, and how fast you can usually come out\n• Specials, what makes you different, the tone you want\n• Anything customers always ask'}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This is how you make Jenny smarter. She uses it to answer pricing, availability, and
+                  service questions accurately — update it anytime and her replies improve instantly.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Hours Greeting</label>
                 <textarea
