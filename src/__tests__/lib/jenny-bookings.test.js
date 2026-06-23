@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-const { getUpcomingBookings, isDuplicate, rescheduleBooking } = require('@/lib/jenny-bookings');
+const { getUpcomingBookings, isDuplicate, rescheduleBooking, cancelBooking } = require('@/lib/jenny-bookings');
 
 describe('jenny-bookings', () => {
   describe('isDuplicate', () => {
@@ -65,6 +65,16 @@ describe('jenny-bookings', () => {
       expect(update).toHaveBeenCalledWith(
         expect.objectContaining({ scheduled_date: '2026-07-03', scheduled_time_start: '10:00', scheduled_time_end: '11:00' })
       );
+    });
+  });
+
+  describe('cancelBooking', () => {
+    it('sets the job status to cancelled', async () => {
+      const update = jest.fn(() => ({ eq: jest.fn(() => Promise.resolve({ error: null })) }));
+      const supabase = { from: jest.fn(() => ({ update })) };
+      const res = await cancelBooking(supabase, 'j1');
+      expect(res.ok).toBe(true);
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'cancelled' }));
     });
   });
 });

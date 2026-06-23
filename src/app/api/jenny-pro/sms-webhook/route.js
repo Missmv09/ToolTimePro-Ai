@@ -4,7 +4,7 @@ import { createBooking } from '@/lib/booking-core';
 import { classifyKeyword, detectLanguage, resolveReplyLanguage, t } from '@/lib/jenny-language';
 import { notifyOperatorInApp, notifyOperatorSMS } from '@/lib/jenny-notify';
 import { resolveCompanyByNumber } from '@/lib/jenny-company';
-import { getUpcomingBookings, isDuplicate, rescheduleBooking } from '@/lib/jenny-bookings';
+import { getUpcomingBookings, isDuplicate, rescheduleBooking, cancelBooking } from '@/lib/jenny-bookings';
 
 export const dynamic = 'force-dynamic';
 
@@ -261,6 +261,37 @@ export async function POST(request) {
           link: '/dashboard/jenny-pro',
         }),
       ]);
+      return twiml(result.reply);
+    }
+
+    // ── Cancellation — cancel the existing appointment ─────────────────────
+    if (result.isCancellation && existingBookings.length) {
+      const target = existingBookings[0];
+      await cancelBooking(supabase, target.id);
+      if (conversationId) {
+        await supabase
+          .from('jenny_sms_conversations')
+          .update({ status: 'resolved', last_intent: 'cancellation' })
+          .eq('id', conversationId);
+      }
+      const opLang = settings?.operator_language || 'en';
+      await Promise.all([
+        notifyOperatorSMS(
+          settings?.escalation_phone,
+          `❌ Jenny cancelled an appointment for ${knownCustomer?.name || from} (${target.title || 'job'} ${target.scheduled_date}).`
+        ),
+        notifyOperatorInApp(supabase, {
+          companyId,
+          type: 'new_lead',
+          title: opLang === 'es' ? 'Cita cancelada' : 'Appointment cancelled',
+          message:
+            opLang === 'es'
+              ? `Jenny canceló la cita de ${knownCustomer?.name || from} (${target.scheduled_date}).`
+              : `Jenny cancelled ${knownCustomer?.name || from}'s appointment (${target.scheduled_date}).`,
+          link: '/dashboard/dispatch',
+        }),
+      ]);
+      await logOutbound(result.reply);
       return twiml(result.reply);
     }
 

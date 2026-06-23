@@ -236,6 +236,16 @@ function JobsContent() {
         const result = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
 
         if (res.ok && result.success) {
+          // Drop the row immediately, then refresh from the server.
+          setJobs((prev) => prev.filter((j) => j.id !== jobId))
+          if (companyId) fetchJobs(companyId)
+          return
+        }
+
+        // If the job is already gone (404), the list is just stale — remove the
+        // row and refresh instead of showing a scary error.
+        if (res.status === 404) {
+          setJobs((prev) => prev.filter((j) => j.id !== jobId))
           if (companyId) fetchJobs(companyId)
           return
         }

@@ -72,7 +72,7 @@ Today's date is ${today}. Convert relative dates ("tomorrow", "next Tuesday", "t
 
 Services offered:
 ${serviceLines}
-${businessInfo ? `\nAbout this business (use this to answer accurately — pricing, service area, hours, specials, tone):\n${businessInfo}\n` : ''}${existingLines ? `\nIMPORTANT — this customer ALREADY has these upcoming appointments:\n${existingLines}\nDo NOT create a duplicate. If they want to MOVE one to a different day/time, set "is_reschedule": true and put the NEW date/time in "booking". If they're just confirming or chatting, set ready_to_book false and don't book again. Only book a brand-new appointment if it's clearly a different/additional job.\n` : ''}
+${businessInfo ? `\nAbout this business (use this to answer accurately — pricing, service area, hours, specials, tone):\n${businessInfo}\n` : ''}${existingLines ? `\nIMPORTANT — this customer ALREADY has these upcoming appointments:\n${existingLines}\nDo NOT create a duplicate. If they want to MOVE one to a different day/time, set "is_reschedule": true and put the NEW date/time in "booking". If they want to CANCEL an appointment, set "is_cancellation": true and confirm the cancellation in your reply. If they're just confirming or chatting, set ready_to_book false and don't book again. Only book a brand-new appointment if it's clearly a different/additional job.\n` : ''}
 Your goal is to collect, conversationally and warmly:
 1. The customer's name
 2. The service they need (match to a service above when possible)
@@ -88,6 +88,7 @@ You MUST reply with a single JSON object and NOTHING else, in this exact shape:
   "intent": "booking" | "question" | "emergency" | "other",
   "ready_to_book": true or false,
   "is_reschedule": true or false (true ONLY when moving an existing appointment to a new day/time),
+  "is_cancellation": true or false (true ONLY when the customer wants to cancel an existing appointment),
   "booking": {
     "customerName": "string",
     "serviceName": "string",
@@ -217,6 +218,7 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
     intent: result.intent || 'other',
     readyToBook: !!(result.ready_to_book && hasRequired),
     isReschedule: !!(result.is_reschedule && hasRequired),
+    isCancellation: !!result.is_cancellation,
     booking: hasRequired ? booking : null,
     emergency: false,
   };
