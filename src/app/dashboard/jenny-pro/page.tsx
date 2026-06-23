@@ -46,6 +46,8 @@ interface JennyProSettings {
   operator_language: 'en' | 'es';
   auto_booking: boolean;
   business_info: string;
+  reminders_enabled: boolean;
+  review_followup_enabled: boolean;
 }
 
 const DEFAULT_SETTINGS: JennyProSettings = {
@@ -57,6 +59,8 @@ const DEFAULT_SETTINGS: JennyProSettings = {
   operator_language: 'en',
   auto_booking: true,
   business_info: '',
+  reminders_enabled: true,
+  review_followup_enabled: true,
 };
 
 export default function JennyProPage() {
@@ -144,6 +148,8 @@ function JennyProDashboard() {
           operator_language: (data.operator_language as JennyProSettings['operator_language']) || 'en',
           auto_booking: data.auto_booking !== false,
           business_info: data.business_info || '',
+          reminders_enabled: data.reminders_enabled !== false,
+          review_followup_enabled: data.review_followup_enabled !== false,
         });
       }
     } catch {
@@ -169,6 +175,8 @@ function JennyProDashboard() {
           operator_language: settings.operator_language,
           auto_booking: settings.auto_booking,
           business_info: settings.business_info,
+          reminders_enabled: settings.reminders_enabled,
+          review_followup_enabled: settings.review_followup_enabled,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'company_id' }
@@ -527,6 +535,47 @@ function JennyProDashboard() {
                     settings.auto_booking ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
+              </button>
+            </div>
+
+            {/* Appointment reminders toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-lg border mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Appointment reminders</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Text customers a reminder the day before their appointment. (SMS-consented customers only.)
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, reminders_enabled: !s.reminders_enabled }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.reminders_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.reminders_enabled}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.reminders_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Post-job thank-you + review toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-lg border mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Thank-you &amp; review request</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  After a job is marked completed, text the customer a thank-you and your review link.
+                  Add your links under <span className="font-medium">Reviews</span>.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, review_followup_enabled: !s.review_followup_enabled }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.review_followup_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.review_followup_enabled}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.review_followup_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
 

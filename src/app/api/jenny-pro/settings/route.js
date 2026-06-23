@@ -69,6 +69,8 @@ export async function POST(request) {
     operator_language,
     auto_booking,
     business_info,
+    reminders_enabled,
+    review_followup_enabled,
   } = body;
 
   const { data, error } = await supabase
@@ -84,6 +86,8 @@ export async function POST(request) {
         operator_language,
         auto_booking,
         business_info,
+        reminders_enabled,
+        review_followup_enabled,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'company_id' }

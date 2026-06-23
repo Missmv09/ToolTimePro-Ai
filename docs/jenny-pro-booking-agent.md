@@ -99,6 +99,20 @@ Migration `038_jenny_sms_booking_agent.sql` adds:
 (The `jenny_sms_conversations`, `jenny_sms_messages`, `jenny_voice_calls`, and
 `jenny_pro_settings` tables come from `021_jenny_pro_sms_conversations.sql`.)
 
+## Reminders & post-job follow-ups
+
+An hourly cron (`netlify/functions/appointment-reminders-cron` →
+`GET /api/jenny-pro/reminders`, secured by `CRON_SECRET`) sends:
+- **Appointment reminders** — the day before a scheduled job.
+- **Post-job thank-you + review request** — 1–36h after a job is marked
+  `completed`, using the company's Google/Yelp review link and logging to
+  `review_requests`.
+
+Sent **once per job** (`jobs.reminder_sent_at` / `followup_sent_at`, migration
+`042`), only to **SMS-consented** customers, and each is gated by a per-company
+toggle (`jenny_pro_settings.reminders_enabled` / `review_followup_enabled`,
+editable in Jenny Pro → Settings). Add review links under the Reviews section.
+
 ## Improving Jenny's replies
 
 Reply quality comes from three levers (all live):
