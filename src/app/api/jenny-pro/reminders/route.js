@@ -132,13 +132,19 @@ export async function GET(request) {
     });
     if (r.success) {
       remindedKeys.add(key);
-      await supabase.from('jobs').update({ reminder_sent_at: new Date().toISOString() }).eq('id', job.id);
+      const { error: markErr } = await supabase
+        .from('jobs')
+        .update({ reminder_sent_at: new Date().toISOString() })
+        .eq('id', job.id);
+      if (markErr) console.error('[reminders] failed to mark reminder_sent_at:', markErr.message);
       remindersSent++;
     }
   }
 
-  // ── 2. Post-job follow-up + review (completed 1h–36h ago) ────────────────
-  const windowStart = new Date(Date.now() - 36 * 3600 * 1000).toISOString();
+  // ── 2. Post-job follow-up + review (completed ~1h–27h ago) ───────────────
+  // Window is sized to the daily cron so each completed job is caught once; the
+  // followup_sent_at flag is the backstop against any double-send.
+  const windowStart = new Date(Date.now() - 27 * 3600 * 1000).toISOString();
   const windowEnd = new Date(Date.now() - 1 * 3600 * 1000).toISOString();
 
   const { data: done } = await supabase
