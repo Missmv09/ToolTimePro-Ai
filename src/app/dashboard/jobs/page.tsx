@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -61,17 +61,18 @@ function JobsContent() {
   const fetchJobs = useCallback(async (compId: string) => {
     const currentFetchId = ++fetchIdRef.current
 
-    // Use server-side API to fetch jobs with assignments (bypasses RLS)
+    // Fetch the FULL job list once and let the UI filter it client-side (see
+    // `filteredJobs` below). Every tab — "All", "Scheduled", "Overdue", … — is
+    // then derived from the same in-memory snapshot, so they can never disagree:
+    // a rescheduled job can't show its new time under "Scheduled" while "All"
+    // still shows the old one. The `_t` cache-buster makes each request a unique
+    // URL, guaranteeing a fresh response even if an edge/CDN layer would
+    // otherwise serve a stale copy of the list endpoint.
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       if (token) {
-        const params = new URLSearchParams()
-        if (filter !== 'all') params.set('filter', filter)
-        if (customerFilter) params.set('customer', customerFilter)
-        const qs = params.toString()
-
-                const res = await fetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {
+        const res = await fetch(`/api/jobs/list?_t=${Date.now()}`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: 'no-store',
         })
@@ -90,8 +91,10 @@ function JobsContent() {
       console.warn('[fetchJobs] API call failed:', err, '- falling back to direct query')
     }
 
-    // Fallback: direct Supabase client query (assignments may not show due to RLS)
-    let query = supabase
+    // Fallback: direct Supabase client query (assignments may not show due to
+    // RLS). Like the API path it fetches every job; filtering happens in
+    // `filteredJobs` so the fallback stays consistent across tabs too.
+    const { data, error } = await supabase
       .from('jobs')
       .select(`
         *,
@@ -102,19 +105,6 @@ function JobsContent() {
       .order('scheduled_date', { ascending: false })
       .limit(5000)
 
-    if (filter === 'overdue') {
-      const today = new Date().toISOString().split('T')[0]
-      query = query.in('status', ['scheduled', 'in_progress']).lt('scheduled_date', today)
-    } else if (filter !== 'all') {
-      query = query.eq('status', filter)
-    }
-
-    if (customerFilter) {
-      query = query.eq('customer_id', customerFilter)
-    }
-
-    const { data, error } = await query
-
     // Only update state if this is still the latest request
     if (currentFetchId !== fetchIdRef.current) return
 
@@ -124,7 +114,27 @@ function JobsContent() {
       setJobs(data || [])
     }
     setLoading(false)
-  }, [filter, customerFilter])
+  }, [])
+
+  // Derive the visible rows from the single fetched snapshot. Doing the status /
+  // customer / overdue filtering here (rather than per-tab on the server) is what
+  // keeps every tab consistent. "Overdue" mirrors the previous server logic:
+  // still-open jobs (scheduled or in progress) whose scheduled date has passed.
+  const filteredJobs = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0]
+    return jobs.filter((job) => {
+      if (customerFilter && job.customer?.id !== customerFilter) return false
+      if (filter === 'overdue') {
+        return (
+          (job.status === 'scheduled' || job.status === 'in_progress') &&
+          !!job.scheduled_date &&
+          job.scheduled_date < today
+        )
+      }
+      if (filter !== 'all') return job.status === filter
+      return true
+    })
+  }, [jobs, filter, customerFilter])
 
   const fetchCustomers = useCallback(async (compId: string) => {
     const { data } = await supabase
@@ -340,7 +350,7 @@ function JobsContent() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {jobs.length === 0 ? (
+            {filteredJobs.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-16 text-center">
                   <span className="text-4xl block mb-4">📋</span>
@@ -357,7 +367,7 @@ function JobsContent() {
                 </td>
               </tr>
             ) : (
-              jobs.map((job) => (
+              filteredJobs.map((job) => (
                 <tr key={job.id} className={`hover:bg-gray-50 ${isJobOverdue(job) ? 'bg-red-50' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
