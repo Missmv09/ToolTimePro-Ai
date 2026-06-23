@@ -66,6 +66,26 @@ export async function GET(request) {
     // columns may not exist yet — default everything enabled
   }
 
+  // Per-company review links — set by the contractor under Jenny Actions
+  // (review_request config). Falls back to the companies.* columns below.
+  const reviewLinkMap = new Map();
+  try {
+    const { data: configs } = await supabase
+      .from('jenny_action_configs')
+      .select('company_id, config')
+      .eq('action_type', 'review_request');
+    (configs || []).forEach((c) => {
+      if (c.config) {
+        reviewLinkMap.set(c.company_id, {
+          google: c.config.google_review_link || '',
+          yelp: c.config.yelp_review_link || '',
+        });
+      }
+    });
+  } catch {
+    // table may not exist yet
+  }
+
   let remindersSent = 0;
   let followupsSent = 0;
 
@@ -123,7 +143,12 @@ export async function GET(request) {
     const cust = job.customer;
     if (!cust?.phone || !cust?.sms_consent) continue;
 
-    const reviewLink = job.company?.google_review_link || job.company?.yelp_review_link || '';
+    const links = reviewLinkMap.get(job.company_id) || {};
+    const googleLink = links.google || job.company?.google_review_link || '';
+    const yelpLink = links.yelp || job.company?.yelp_review_link || '';
+    const reviewLink = googleLink || yelpLink || '';
+    const reviewPlatform = googleLink ? 'google' : (yelpLink ? 'yelp' : 'none');
+
     const r = await sendSMS({
       to: cust.phone,
       body: SMS_TEMPLATES.jobComplete({
@@ -142,7 +167,7 @@ export async function GET(request) {
           customer_name: cust.name,
           customer_phone: cust.phone,
           review_link: reviewLink || null,
-          review_platform: job.company?.google_review_link ? 'google' : (job.company?.yelp_review_link ? 'yelp' : 'none'),
+          review_platform: reviewPlatform,
           status: 'sent',
           channel: 'sms',
           sent_at: new Date().toISOString(),

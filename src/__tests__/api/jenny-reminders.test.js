@@ -3,6 +3,7 @@
  */
 
 let mockJobsResults = [[], []];
+let mockActionConfigs = [];
 let mockJobsIdx = 0;
 const mockUpdateCalls = [];
 const mockReviewInserts = [];
@@ -21,6 +22,9 @@ jest.mock('@supabase/supabase-js', () => ({
     from(table) {
       if (table === 'jenny_pro_settings') {
         return { select: () => Promise.resolve({ data: [] }) };
+      }
+      if (table === 'jenny_action_configs') {
+        return { select: () => ({ eq: () => Promise.resolve({ data: mockActionConfigs }) }) };
       }
       if (table === 'jobs') {
         const obj = {};
@@ -55,6 +59,7 @@ describe('/api/jenny-pro/reminders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockJobsResults = [[], []];
+    mockActionConfigs = [];
     mockJobsIdx = 0;
     mockUpdateCalls.length = 0;
     mockReviewInserts.length = 0;
@@ -105,6 +110,25 @@ describe('/api/jenny-pro/reminders', () => {
     expect(mockUpdateCalls.some((u) => u.followup_sent_at)).toBe(true);
     expect(mockReviewInserts.length).toBe(1);
     expect(mockReviewInserts[0].review_platform).toBe('google');
+  });
+
+  it('uses the contractor\'s review link from the Jenny Actions config', async () => {
+    mockActionConfigs = [{ company_id: 'c1', config: { google_review_link: 'https://g.page/contractor' } }];
+    mockJobsResults = [
+      [],
+      [{
+        id: 'j2', title: 'Lawn Care', company_id: 'c1', customer_id: 'cu1', updated_at: new Date().toISOString(),
+        customer: { name: 'Maria', phone: '+15551112222', sms_consent: true },
+        company: { name: 'Green Co' }, // no companies.* link — must come from config
+      }],
+    ];
+    const res = await GET(req());
+    const data = await res.json();
+    expect(data.followupsSent).toBe(1);
+    expect(mockSendSMS).toHaveBeenCalledWith(
+      expect.objectContaining({ body: expect.stringContaining('https://g.page/contractor') })
+    );
+    expect(mockReviewInserts[0].review_link).toBe('https://g.page/contractor');
   });
 
   it('rejects unauthorized calls when CRON_SECRET is set', async () => {
