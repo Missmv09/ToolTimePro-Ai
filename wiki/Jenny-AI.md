@@ -88,7 +88,7 @@ Configure Jenny Pro's behavior:
 - Greeting scripts for phone and SMS
 - Booking preferences
 
-> **Included with Elite:** Jenny Pro comes standard with Elite plans at no additional cost.
+> **Add-on:** Jenny Pro is available as an add-on for $49/month on any plan.
 
 ---
 

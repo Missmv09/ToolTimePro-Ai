@@ -28,7 +28,7 @@ const PRODUCTS = [
   {
     id: 'elite',
     name: 'ToolTime Pro — Elite',
-    description: 'Unlimited workers. Everything in Pro + Jenny Pro, Dispatch, Route Optimization, Customer Portal Pro, QuickBooks included.',
+    description: 'Unlimited workers. Everything in Pro + Dispatch, Route Optimization, Customer Portal Pro, QuickBooks included.',
     prices: [
       { key: 'monthly', amount: 12900, interval: 'month' },
       { key: 'annual', amount: 129000, interval: 'year' },
@@ -68,7 +68,7 @@ const PRODUCTS = [
   {
     id: 'jenny_pro',
     name: 'Jenny Pro — AI Phone Receptionist',
-    description: 'AI phone answering 24/7 with bilingual voice. SMS messaging, direct booking, emergency escalation. Included with Elite.',
+    description: 'AI phone answering 24/7 with bilingual voice. SMS messaging, direct booking, emergency escalation. Add-on for any plan.',
     prices: [
       { key: 'monthly', amount: 4900, interval: 'month' },
       { key: 'annual', amount: 49000, interval: 'year' },

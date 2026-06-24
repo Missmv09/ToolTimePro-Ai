@@ -60,7 +60,7 @@ Jenny AI is your AI-powered back-office assistant. Every plan includes access to
 | Tier | Price | Capabilities |
 |------|-------|-------------|
 | **Jenny Lite** | $19/mo ($190/yr) | 24/7 website chatbot. Lead capture, FAQ answering, appointment booking. Bilingual English/Spanish. Included free with all plans. |
-| **Jenny Pro** | $49/mo ($490/yr) | AI phone answering 24/7 with bilingual voice. SMS messaging, direct booking, emergency escalation. Included with Elite. |
+| **Jenny Pro** | $49/mo ($490/yr) | AI phone answering 24/7 with bilingual voice. SMS messaging, direct booking, emergency escalation. Available as an add-on for any plan. |
 | **Jenny Exec Admin** | $79/mo ($790/yr) | Compliance advisor, HR law monitoring, workforce analytics, proactive business insights. |
 
 ---
