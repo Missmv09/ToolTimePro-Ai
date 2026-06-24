@@ -28,7 +28,7 @@ const PRODUCTS = [
   {
     id: 'elite',
     name: 'ToolTime Pro — Elite',
-    description: 'Unlimited workers. Everything in Pro + Dispatch, Route Optimization, Customer Portal Pro, QuickBooks included.',
+    description: 'Unlimited workers. Everything in Pro + Dispatch, Route Optimization, Customer Portal Pro included.',
     prices: [
       { key: 'monthly', amount: 12900, interval: 'month' },
       { key: 'annual', amount: 129000, interval: 'year' },

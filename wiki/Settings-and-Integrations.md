@@ -44,7 +44,7 @@ Sync your financial data between ToolTime Pro and QuickBooks:
 - **Monitoring:** View last sync time and sync status
 - **Disconnect:** Click **Disconnect QuickBooks** if you need to unlink
 
-> **Pricing:** QuickBooks Sync is included with Elite plans, or available as an add-on for $12/mo.
+> **Pricing:** QuickBooks Sync is available as an add-on for $12/mo on any plan.
 
 #### Google Calendar
 
