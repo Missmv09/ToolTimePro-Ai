@@ -1,7 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { geocodeJobAddress } from '@/lib/geocoding'
 
 export const dynamic = 'force-dynamic'
+
+interface JobAddressFields {
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  zip?: string | null
+  lat?: number | null
+  lng?: number | null
+}
+
+/**
+ * Geocode a job's address on save and persist the coordinates, so the Route
+ * Optimizer never has to geocode it live again. Returns the coordinate fields
+ * to merge into the row, or null to leave coordinates untouched.
+ *
+ * Skips geocoding (and preserves any existing/manual pin) when the address is
+ * unchanged and coordinates already exist.
+ */
+async function resolveJobCoordinates(jobData: JobAddressFields, existing: JobAddressFields | null) {
+  const hasAddress = (jobData.address || '').trim().length > 0
+  if (!hasAddress) return null
+
+  // Coordinates supplied by the client (address autocomplete) are authoritative
+  // and precise — store them directly without geocoding.
+  if (jobData.lat != null && jobData.lng != null) {
+    return {
+      lat: jobData.lat,
+      lng: jobData.lng,
+      geo_precision: 'exact',
+      geocoded_at: new Date().toISOString(),
+    }
+  }
+
+  if (existing) {
+    const addrUnchanged =
+      (existing.address || '') === (jobData.address || '') &&
+      (existing.city || '') === (jobData.city || '') &&
+      (existing.state || '') === (jobData.state || '') &&
+      (existing.zip || '') === (jobData.zip || '')
+    const hasCoords = existing.lat != null && existing.lng != null
+    // Address unchanged and we already have a pin (possibly hand-corrected) — keep it.
+    if (addrUnchanged && hasCoords) return null
+  }
+
+  const geo = await geocodeJobAddress({
+    address: jobData.address,
+    city: jobData.city,
+    state: jobData.state,
+    zip: jobData.zip,
+  })
+  if (!geo) return null
+
+  return {
+    lat: geo.coords.lat,
+    lng: geo.coords.lng,
+    geo_precision: geo.approximate ? 'approximate' : 'exact',
+    geocoded_at: new Date().toISOString(),
+  }
+}
 
 export async function POST(request: NextRequest) {
   const log: string[] = []
@@ -69,7 +129,7 @@ export async function POST(request: NextRequest) {
       // Verify job exists and belongs to company
       const { data: existingJob, error: fetchJobErr } = await adminClient
         .from('jobs')
-        .select('id, company_id')
+        .select('id, company_id, address, city, state, zip, lat, lng')
         .eq('id', existingJobId)
         .single()
 
@@ -82,11 +142,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Job belongs to another company', log }, { status: 403 })
       }
 
+      // Re-geocode only if the address changed or no pin exists yet.
+      const coords = await resolveJobCoordinates(jobData, existingJob)
+      if (coords) log.push(`Geocoded (${coords.geo_precision})`)
+
       // Don't overwrite company_id, created_at, or id
       const { company_id: _c, id: _id, created_at: _ca, ...updateFields } = jobData
       const { error: updateError } = await adminClient
         .from('jobs')
-        .update({ ...updateFields, updated_at: new Date().toISOString() })
+        .update({ ...updateFields, ...(coords || {}), updated_at: new Date().toISOString() })
         .eq('id', existingJobId)
 
       if (updateError) {
@@ -95,10 +159,12 @@ export async function POST(request: NextRequest) {
       }
       log.push(`Job updated: ${existingJobId}`)
     } else {
-      // INSERT new job
+      // INSERT new job — geocode the address up front so coordinates persist.
+      const coords = await resolveJobCoordinates(jobData, null)
+      if (coords) log.push(`Geocoded (${coords.geo_precision})`)
       const { data: newJob, error: insertError } = await adminClient
         .from('jobs')
-        .insert(jobData)
+        .insert({ ...jobData, ...(coords || {}) })
         .select('id')
         .single()
 
@@ -190,7 +256,36 @@ export async function POST(request: NextRequest) {
       log.push('No worker selected - assignments cleared only')
     }
 
-    return NextResponse.json({ success: true, jobId, log })
+    // ---- CANCEL REPLACED APPOINTMENTS ----
+    // When this job replaces existing appointment(s) (a "reschedule" done by
+    // creating a fresh job rather than editing), retire the old ones by setting
+    // their status to 'cancelled' instead of leaving confusing duplicates. We
+    // only ever touch jobs in the caller's own company and never the job we
+    // just saved.
+    let cancelledJobIds: string[] = []
+    const cancelJobIds: string[] = Array.isArray(body.cancelJobIds)
+      ? body.cancelJobIds.filter((id: unknown): id is string => typeof id === 'string' && id !== jobId)
+      : []
+    if (cancelJobIds.length > 0) {
+      const { data: cancelled, error: cancelError } = await adminClient
+        .from('jobs')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .in('id', cancelJobIds)
+        .eq('company_id', callerProfile.company_id)
+        .select('id')
+
+      if (cancelError) {
+        log.push(`Cancel replaced jobs error: ${cancelError.message} (code: ${cancelError.code})`)
+        return NextResponse.json(
+          { error: 'Job saved but failed to cancel the replaced appointment(s)', details: cancelError.message, jobId, log },
+          { status: 500 }
+        )
+      }
+      cancelledJobIds = (cancelled || []).map((j) => j.id)
+      log.push(`Cancelled ${cancelledJobIds.length} replaced appointment(s)`)
+    }
+
+    return NextResponse.json({ success: true, jobId, cancelledJobIds, log })
   } catch (err) {
     log.push(`Exception: ${err instanceof Error ? err.message : String(err)}`)
     return NextResponse.json(

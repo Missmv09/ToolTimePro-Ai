@@ -77,3 +77,10 @@
 # Calendar so the sync is automatic without clicking "Sync Now".
 [functions."calendar-sync-cron"]
   schedule = "*/30 * * * *"
+
+# Appointment Reminders + Post-Job Follow-ups — runs once daily (16:00 UTC)
+# Texts customers a reminder the day before a job, and a thank-you + review
+# request after a job is completed. Runs once a day so a customer gets at most
+# one reminder (the day before), even independent of the per-job "sent" flag.
+[functions."appointment-reminders-cron"]
+  schedule = "0 16 * * *"

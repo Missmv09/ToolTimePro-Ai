@@ -38,27 +38,18 @@ jobs:
         with:
           node-version: '20'
 
-      # Step 1: Regenerate wiki pages from source code
+      # Step 1: Regenerate wiki pages from source code.
+      # Output is published to the GitHub Wiki tab below; we intentionally do
+      # NOT commit it back to main. main is protected by a ruleset (changes
+      # must go through a PR), so a bot push would be rejected. The in-repo
+      # wiki/ files are kept current by devs via normal PRs, and the
+      # wiki-staleness check nags on PRs when source drifts from wiki/.
       - name: Generate wiki content from source code
         run: node scripts/generate-wiki.js
 
-      # Step 2: Check if wiki content actually changed
-      - name: Check for wiki changes
-        id: wiki-changes
-        run: |
-          git diff --quiet wiki/ && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
-
-      # Step 3: Commit updated wiki pages back to the repo
-      - name: Commit wiki updates
-        if: steps.wiki-changes.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add wiki/
-          git commit -m "docs: auto-update wiki from source code changes"
-          git push
-
-      # Step 4: Sync wiki/ directory to GitHub Wiki tab
+      # Step 2: Sync the freshly generated wiki/ directory to the GitHub Wiki
+      # tab. The wiki is a separate git repo, so the main branch ruleset does
+      # not apply here.
       # Requires: wiki must be initialized (create one page via GitHub UI first)
       # Uses GH_PAT secret if available for wiki push access; falls back to GITHUB_TOKEN
       - name: Sync to GitHub Wiki
@@ -66,4 +57,3 @@ jobs:
         with:
           path: wiki/
           token: ${{ secrets.GH_PAT || github.token }}
-        continue-on-error: true

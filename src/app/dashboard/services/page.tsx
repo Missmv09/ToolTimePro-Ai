@@ -12,6 +12,7 @@ interface Service {
   default_price: number | null
   duration_minutes: number
   is_active: boolean
+  requires_license: boolean
   created_at: string
 }
 
@@ -27,6 +28,7 @@ export default function ServicesPage() {
     price: '',
     duration_minutes: 60,
     is_active: true,
+    requires_license: false,
   })
 
   const router = useRouter()
@@ -76,6 +78,7 @@ export default function ServicesPage() {
         price: service.default_price?.toString() || '',
         duration_minutes: service.duration_minutes || 60,
         is_active: service.is_active,
+        requires_license: service.requires_license ?? false,
       })
     } else {
       setEditingService(null)
@@ -85,6 +88,7 @@ export default function ServicesPage() {
         price: '',
         duration_minutes: 60,
         is_active: true,
+        requires_license: false,
       })
     }
     setShowModal(true)
@@ -107,6 +111,7 @@ export default function ServicesPage() {
       default_price: formData.price ? parseFloat(formData.price) : null,
       duration_minutes: formData.duration_minutes,
       is_active: formData.is_active,
+      requires_license: formData.requires_license,
     }
 
     if (editingService) {
@@ -252,6 +257,11 @@ export default function ServicesPage() {
                       <p className={`font-medium ${service.is_active ? 'text-gray-900' : 'text-gray-400'}`}>
                         {service.name}
                       </p>
+                      {service.requires_license && (
+                        <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                          🪪 License required
+                        </span>
+                      )}
                       {service.description && (
                         <p className="text-sm text-gray-500 truncate max-w-xs">
                           {service.description}
@@ -410,6 +420,24 @@ export default function ServicesPage() {
                   />
                   <span className="text-sm text-gray-700">
                     Active (show on booking page)
+                  </span>
+                </label>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.requires_license}
+                    onChange={(e) => setFormData({ ...formData, requires_license: e.target.checked })}
+                    className="w-4 h-4 mt-0.5 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    <span className="font-medium">Requires a license / certification</span>
+                    <span className="block text-xs text-gray-500 mt-0.5">
+                      Only workers with a valid, non-expired certification for this service
+                      can be assigned these jobs by the Route Optimizer.
+                    </span>
                   </span>
                 </label>
               </div>

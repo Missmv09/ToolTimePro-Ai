@@ -76,6 +76,7 @@ export default function Home() {
     { title: t('features_11_title'), description: t('features_11_desc') },
     { title: t('features_12_title'), description: t('features_12_desc') },
     { title: t('features_13_title'), description: t('features_13_desc') },
+    { title: t('features_14_title'), description: t('features_14_desc'), badge: '🚐 ' + t('features_14_badge'), highlight: true },
   ], [t]);
 
   const demoCards = useMemo(() => demoCardConfig.map((cfg, i) => ({
@@ -90,6 +91,7 @@ export default function Home() {
     const featureCounts = [9, 8, 10];
     return pricingConfig.map((cfg, i) => ({
       ...cfg,
+      id: planKeys[i],
       name: t(`pricingPlan_${planKeys[i]}_name`),
       description: t(`pricingPlan_${planKeys[i]}_desc`),
       workers: cfg.workersNum,
@@ -730,7 +732,7 @@ export default function Home() {
                 </div>
 
                 <Link
-                  href={`/auth/signup?plan=${plan.name.toLowerCase()}&billing=${billingPeriod}`}
+                  href={`/auth/signup?plan=${plan.id}&billing=${billingPeriod}`}
                   className={`block w-full py-4 rounded-xl font-bold text-center transition-all no-underline ${
                     plan.popular
                       ? 'bg-[#f5a623] text-[#1a1a2e] hover:bg-[#e6991a] shadow-[0_4px_16px_rgba(245,166,35,0.35)]'
@@ -739,8 +741,20 @@ export default function Home() {
                 >
                   {t('startFreeTrial')}
                 </Link>
-                <p className="text-center text-[0.8125rem] text-[#8e8e9f] mt-3">
+                <p className="text-center text-[0.8125rem] text-[#8e8e9f] mt-2 mb-3">
                   {t('trialNote')}
+                </p>
+                {/* Buy now path — straight to Stripe Checkout, no trial. Homepage
+                    visitors are always logged-out (logged-in users get redirected
+                    away), so the webhook auto-provisions the account after payment. */}
+                <a
+                  href={`/api/checkout?tier=${plan.id}&billing=${billingPeriod}&skipTrial=true`}
+                  className="block w-full py-3 rounded-xl font-semibold text-center transition-all no-underline border-2 border-[#1a1a2e] text-[#1a1a2e] hover:bg-[#1a1a2e] hover:text-white"
+                >
+                  {t('subscribeNow')}
+                </a>
+                <p className="text-center text-[0.8125rem] text-[#8e8e9f] mt-2">
+                  {t('subscribeNote')}
                 </p>
               </div>
             ))}

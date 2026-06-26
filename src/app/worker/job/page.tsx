@@ -101,6 +101,8 @@ function JobDetailContent() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [onMyWaySent, setOnMyWaySent] = useState(false);
+  const [sendingOnMyWay, setSendingOnMyWay] = useState(false);
 
   // Helper to get customer data from potentially array result
   const getCustomer = (customer: Job['customer']): Customer | null => {
@@ -186,6 +188,44 @@ function JobDetailContent() {
     return () => clearInterval(interval);
   }, [activeTimeEntry]);
 
+  // While the job is en route / in progress, post the tech's GPS every 30s so
+  // the customer's tracking page shows a live "on the way" pin. This starts as
+  // soon as the tech taps "On my way" (which sets status to in_progress),
+  // before they clock in on-site.
+  useEffect(() => {
+    if (!jobId || job?.status !== 'in_progress') return
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return
+
+    let cancelled = false
+    const postLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          if (cancelled) return
+          try {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.access_token) return
+            await fetch('/api/track/location', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+              body: JSON.stringify({ jobId, lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            })
+          } catch {
+            // Non-fatal — tracking is best-effort.
+          }
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+      )
+    }
+
+    postLocation()
+    const interval = setInterval(postLocation, 30000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [jobId, job?.status]);
+
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -244,11 +284,77 @@ function JobDetailContent() {
         console.error('Failed to update job status:', statusError.message);
       }
 
+      // Text the customer an "on the way" tracking link (best effort) — unless
+      // the tech already sent it via the "On my way" button before arriving.
+      if (!onMyWaySent) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            fetch('/api/track/send', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ jobId }),
+            }).catch(() => {});
+          }
+        } catch {
+          // Non-fatal — clock-in already succeeded.
+        }
+      }
+
     } catch (err) {
       console.error('Error clocking in:', err);
       alert('Failed to clock in. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Tech taps this when leaving for the job (before arriving on-site). It marks
+  // the job en route — which turns on the customer's live tracking page — and
+  // texts them the tracking link. Clock-in later won't re-send the text.
+  const handleOnMyWay = async () => {
+    if (!jobId) return;
+
+    setSendingOnMyWay(true);
+    try {
+      // Mark the job in_progress so the customer's tracking page goes live and
+      // the GPS effect starts posting the tech's location.
+      const { error: statusError } = await supabase
+        .from('jobs')
+        .update({ status: 'in_progress' })
+        .eq('id', jobId);
+      if (statusError) {
+        console.error('Failed to update job status:', statusError.message);
+      } else {
+        setJob((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
+      }
+
+      // Text the customer the live tracking link.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        const res = await fetch('/api/track/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ jobId }),
+        });
+        if (res.ok) {
+          setOnMyWaySent(true);
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(data.error || 'Could not text the customer. Please try again.');
+        }
+      }
+    } catch (err) {
+      console.error('Error sending on-my-way text:', err);
+      alert('Could not text the customer. Please try again.');
+    } finally {
+      setSendingOnMyWay(false);
     }
   };
 
@@ -425,22 +531,47 @@ function JobDetailContent() {
       </div>
 
       {/* Clock In/Out Button */}
-      <div className="p-4 -mt-4">
+      <div className="p-4 -mt-4 space-y-3">
         {!isClockedIn ? (
-          <button
-            onClick={handleClockIn}
-            disabled={isSubmitting}
-            className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <>
-                <Play size={24} />
-                {t('clockIn')}
-              </>
+          <>
+            {/* On my way — notify the customer and start live tracking before arriving */}
+            <button
+              onClick={handleOnMyWay}
+              disabled={sendingOnMyWay || isSubmitting || !customer?.phone}
+              className={`w-full py-3 font-semibold rounded-xl flex items-center justify-center gap-2 shadow transition-colors disabled:opacity-50 ${
+                onMyWaySent
+                  ? 'bg-blue-50 text-blue-700 border border-blue-300'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {sendingOnMyWay ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Navigation size={20} />
+                  {onMyWaySent ? t('onMyWaySent') : t('onMyWay')}
+                </>
+              )}
+            </button>
+            {!customer?.phone && (
+              <p className="text-xs text-center text-gray-400">{t('onMyWayNoPhone')}</p>
             )}
-          </button>
+
+            <button
+              onClick={handleClockIn}
+              disabled={isSubmitting}
+              className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <>
+                  <Play size={24} />
+                  {t('clockIn')}
+                </>
+              )}
+            </button>
+          </>
         ) : (
           <button
             onClick={handleClockOut}

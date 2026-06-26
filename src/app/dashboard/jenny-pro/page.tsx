@@ -27,6 +27,7 @@ interface SMSConversation {
   status: 'active' | 'resolved' | 'needs_response';
   message_count: number;
   lead_id: string | null;
+  booking_id?: string | null;
 }
 
 interface JennyProStats {
@@ -35,6 +36,32 @@ interface JennyProStats {
   bookingsMade: number;
   avgResponseTime: string;
 }
+
+interface JennyProSettings {
+  business_hours_greeting: string;
+  after_hours_greeting: string;
+  emergency_keywords: string;
+  escalation_phone: string;
+  language: 'en' | 'es' | 'both';
+  operator_language: 'en' | 'es';
+  auto_booking: boolean;
+  business_info: string;
+  reminders_enabled: boolean;
+  review_followup_enabled: boolean;
+}
+
+const DEFAULT_SETTINGS: JennyProSettings = {
+  business_hours_greeting: '',
+  after_hours_greeting: '',
+  emergency_keywords: 'emergency, urgent, burst, leak, flood, fire, broken',
+  escalation_phone: '',
+  language: 'both',
+  operator_language: 'en',
+  auto_booking: true,
+  business_info: '',
+  reminders_enabled: true,
+  review_followup_enabled: true,
+};
 
 export default function JennyProPage() {
   const { company, dbUser } = useAuth();
@@ -58,6 +85,22 @@ function JennyProDashboard() {
     bookingsMade: 0,
     avgResponseTime: '--',
   });
+  const [settings, setSettings] = useState<JennyProSettings>(DEFAULT_SETTINGS);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [jennyNumber, setJennyNumber] = useState('');
+  const [savingNumber, setSavingNumber] = useState(false);
+  const [numberSaved, setNumberSaved] = useState(false);
+  const [numberError, setNumberError] = useState('');
+  const [areaCode, setAreaCode] = useState('');
+  const [provisioning, setProvisioning] = useState(false);
+  const [portRequest, setPortRequest] = useState<{ phone_number: string; status: string } | null>(null);
+  const [portForm, setPortForm] = useState({
+    phoneNumber: '', repName: '', repEmail: '', currentCarrier: '', accountNumber: '',
+  });
+  const [portingSubmitting, setPortingSubmitting] = useState(false);
+  const [portError, setPortError] = useState('');
+  const [showPorting, setShowPorting] = useState(false);
 
   const fetchConversations = useCallback(async () => {
     if (!dbUser?.company_id) return;
@@ -75,7 +118,7 @@ function JennyProDashboard() {
         setStats({
           totalConversations: data.length,
           leadsCapture: data.filter((c: SMSConversation) => c.lead_id).length,
-          bookingsMade: 0,
+          bookingsMade: data.filter((c: { booking_id?: string | null }) => c.booking_id).length,
           avgResponseTime: data.length > 0 ? '< 30s' : '--',
         });
       }
@@ -85,9 +128,191 @@ function JennyProDashboard() {
     setLoading(false);
   }, [dbUser?.company_id]);
 
+  const fetchSettings = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    try {
+      const { data } = await supabase
+        .from('jenny_pro_settings')
+        .select('*')
+        .eq('company_id', dbUser.company_id)
+        .maybeSingle();
+      if (data) {
+        setSettings({
+          business_hours_greeting: data.business_hours_greeting || '',
+          after_hours_greeting: data.after_hours_greeting || '',
+          emergency_keywords: Array.isArray(data.emergency_keywords)
+            ? data.emergency_keywords.join(', ')
+            : (data.emergency_keywords || DEFAULT_SETTINGS.emergency_keywords),
+          escalation_phone: data.escalation_phone || '',
+          language: (data.language as JennyProSettings['language']) || 'both',
+          operator_language: (data.operator_language as JennyProSettings['operator_language']) || 'en',
+          auto_booking: data.auto_booking !== false,
+          business_info: data.business_info || '',
+          reminders_enabled: data.reminders_enabled !== false,
+          review_followup_enabled: data.review_followup_enabled !== false,
+        });
+      }
+    } catch {
+      // Settings table/columns may not exist yet — keep defaults
+    }
+  }, [dbUser?.company_id]);
+
+  const saveSettings = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    setSavingSettings(true);
+    try {
+      await supabase.from('jenny_pro_settings').upsert(
+        {
+          company_id: dbUser.company_id,
+          business_hours_greeting: settings.business_hours_greeting,
+          after_hours_greeting: settings.after_hours_greeting,
+          emergency_keywords: settings.emergency_keywords
+            .split(',')
+            .map((k) => k.trim())
+            .filter(Boolean),
+          escalation_phone: settings.escalation_phone,
+          language: settings.language,
+          operator_language: settings.operator_language,
+          auto_booking: settings.auto_booking,
+          business_info: settings.business_info,
+          reminders_enabled: settings.reminders_enabled,
+          review_followup_enabled: settings.review_followup_enabled,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'company_id' }
+      );
+      setSavedAt(Date.now());
+    } catch {
+      // ignore — best effort
+    }
+    setSavingSettings(false);
+  }, [dbUser?.company_id, settings]);
+
+  const fetchNumber = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    try {
+      const { data } = await supabase
+        .from('company_phone_numbers')
+        .select('phone_number')
+        .eq('company_id', dbUser.company_id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      if (data?.phone_number) setJennyNumber(data.phone_number);
+    } catch {
+      // table may not exist yet — leave blank
+    }
+  }, [dbUser?.company_id]);
+
+  const saveNumber = useCallback(async () => {
+    if (!dbUser?.company_id || !jennyNumber.trim()) return;
+    setSavingNumber(true);
+    setNumberError('');
+    setNumberSaved(false);
+    // Normalize to E.164 (US default).
+    const digits = jennyNumber.replace(/\D/g, '');
+    const e164 = jennyNumber.trim().startsWith('+')
+      ? `+${digits}`
+      : digits.length === 10
+      ? `+1${digits}`
+      : `+${digits}`;
+    const { error } = await supabase.from('company_phone_numbers').upsert(
+      {
+        company_id: dbUser.company_id,
+        phone_number: e164,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'phone_number' }
+    );
+    if (error) {
+      setNumberError('Could not save — that number may already be assigned to another company.');
+    } else {
+      setJennyNumber(e164);
+      setNumberSaved(true);
+    }
+    setSavingNumber(false);
+  }, [dbUser?.company_id, jennyNumber]);
+
+  const provisionNumber = useCallback(async () => {
+    setProvisioning(true);
+    setNumberError('');
+    setNumberSaved(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/jenny-pro/provision-number', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _authToken: session?.access_token, areaCode }),
+      });
+      const data = await res.json();
+      if (res.ok && data.phoneNumber) {
+        setJennyNumber(data.phoneNumber);
+        setNumberSaved(true);
+      } else {
+        setNumberError(data.error || 'Could not get a number. Please try again.');
+      }
+    } catch {
+      setNumberError('Could not get a number. Please try again.');
+    }
+    setProvisioning(false);
+  }, [areaCode]);
+
+  const fetchPortRequest = useCallback(async () => {
+    if (!dbUser?.company_id) return;
+    try {
+      const { data } = await supabase
+        .from('number_port_requests')
+        .select('phone_number, status')
+        .eq('company_id', dbUser.company_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setPortRequest(data);
+    } catch {
+      // table may not exist yet
+    }
+  }, [dbUser?.company_id]);
+
+  const startPort = useCallback(async () => {
+    if (!portForm.phoneNumber.trim() || !portForm.repEmail.trim()) {
+      setPortError('Your number and an authorized representative email are required.');
+      return;
+    }
+    setPortingSubmitting(true);
+    setPortError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/jenny-pro/port-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _authToken: session?.access_token,
+          phoneNumber: portForm.phoneNumber,
+          authorizedRepName: portForm.repName,
+          authorizedRepEmail: portForm.repEmail,
+          currentCarrier: portForm.currentCarrier,
+          accountNumber: portForm.accountNumber,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.portRequest) {
+        setPortRequest({ phone_number: data.portRequest.phone_number, status: data.portRequest.status });
+      } else {
+        setPortError(data.error || 'Could not start the port. Please try again.');
+      }
+    } catch {
+      setPortError('Could not start the port. Please try again.');
+    }
+    setPortingSubmitting(false);
+  }, [portForm]);
+
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+    fetchSettings();
+    fetchNumber();
+    fetchPortRequest();
+  }, [fetchConversations, fetchSettings, fetchNumber, fetchPortRequest]);
 
   const isBetaTester = company?.is_beta_tester;
 
@@ -288,15 +513,96 @@ function JennyProDashboard() {
           <div className="bg-white rounded-xl border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Jenny Pro Settings</h3>
 
-            {/* Business Hours */}
+            {/* Auto-booking toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-blue-50 rounded-lg border border-blue-100 mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Auto-book appointments</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  When Jenny has the name, service, date and time, she books the job automatically
+                  and notifies you. Turn off to review every request before it&apos;s confirmed.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, auto_booking: !s.auto_booking }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.auto_booking ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.auto_booking}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    settings.auto_booking ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Appointment reminders toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-lg border mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Appointment reminders</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Text customers a reminder the day before their appointment. (SMS-consented customers only.)
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, reminders_enabled: !s.reminders_enabled }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.reminders_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.reminders_enabled}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.reminders_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Post-job thank-you + review toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-lg border mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Thank-you &amp; review request</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  After a job is marked completed, text the customer a thank-you and your review link.
+                  Add your links under <span className="font-medium">Reviews</span>.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, review_followup_enabled: !s.review_followup_enabled }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.review_followup_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.review_followup_enabled}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.review_followup_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tell Jenny about your business</label>
+                <textarea
+                  className="w-full border rounded-lg p-3 text-sm"
+                  rows={5}
+                  value={settings.business_info}
+                  onChange={(e) => setSettings((s) => ({ ...s, business_info: e.target.value }))}
+                  placeholder={'The more you tell Jenny, the better her replies. For example:\n• Services & typical pricing (e.g. lawn mowing $65–85, cleanups $120+)\n• Service area / cities you cover\n• Hours, and how fast you can usually come out\n• Specials, what makes you different, the tone you want\n• Anything customers always ask'}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This is how you make Jenny smarter. She uses it to answer pricing, availability, and
+                  service questions accurately — update it anytime and her replies improve instantly.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Hours Greeting</label>
                 <textarea
                   className="w-full border rounded-lg p-3 text-sm"
                   rows={2}
-                  defaultValue={`Thank you for calling ${company?.name || 'our office'}! I'm Jenny, your AI assistant. How can I help you today?`}
-                  placeholder="Greeting for business hours calls..."
+                  value={settings.business_hours_greeting}
+                  onChange={(e) => setSettings((s) => ({ ...s, business_hours_greeting: e.target.value }))}
+                  placeholder={`Thank you for calling ${company?.name || 'our office'}! I'm Jenny, your AI assistant. How can I help you today?`}
                 />
               </div>
 
@@ -305,8 +611,9 @@ function JennyProDashboard() {
                 <textarea
                   className="w-full border rounded-lg p-3 text-sm"
                   rows={2}
-                  defaultValue={`Thank you for calling ${company?.name || 'our office'}. Our office is currently closed, but I can help with emergencies and take messages.`}
-                  placeholder="Greeting for after-hours calls..."
+                  value={settings.after_hours_greeting}
+                  onChange={(e) => setSettings((s) => ({ ...s, after_hours_greeting: e.target.value }))}
+                  placeholder={`Thank you for calling ${company?.name || 'our office'}. Our office is currently closed, but I can help with emergencies and take messages.`}
                 />
               </div>
 
@@ -315,11 +622,13 @@ function JennyProDashboard() {
                 <input
                   type="text"
                   className="w-full border rounded-lg p-3 text-sm"
-                  defaultValue="emergency, urgent, burst, leak, flood, fire, broken"
+                  value={settings.emergency_keywords}
+                  onChange={(e) => setSettings((s) => ({ ...s, emergency_keywords: e.target.value }))}
                   placeholder="Keywords that trigger emergency handling..."
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  When a caller mentions these words, Jenny escalates to your on-call number immediately.
+                  When a customer uses these words (in English or Spanish), Jenny skips booking and
+                  escalates to your on-call number immediately.
                 </p>
               </div>
 
@@ -328,29 +637,244 @@ function JennyProDashboard() {
                 <input
                   type="tel"
                   className="w-full border rounded-lg p-3 text-sm"
-                  defaultValue={company?.phone || ''}
-                  placeholder="Phone number for emergency escalation..."
+                  value={settings.escalation_phone}
+                  onChange={(e) => setSettings((s) => ({ ...s, escalation_phone: e.target.value }))}
+                  placeholder="Phone number for missed-call ring + emergency escalation..."
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Jenny rings this number first on inbound calls. If you don&apos;t pick up, she texts the
+                  caller to keep the lead alive.
+                </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-                <select className="w-full border rounded-lg p-3 text-sm">
-                  <option value="en">English</option>
-                  <option value="es">Spanish</option>
-                  <option value="both">Bilingual (English + Spanish)</option>
-                </select>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Customer Language</label>
+                  <select
+                    className="w-full border rounded-lg p-3 text-sm"
+                    value={settings.language}
+                    onChange={(e) =>
+                      setSettings((s) => ({ ...s, language: e.target.value as JennyProSettings['language'] }))
+                    }
+                  >
+                    <option value="both">Bilingual — auto-detect EN/ES (recommended)</option>
+                    <option value="es">Spanish only</option>
+                    <option value="en">English only</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    How Jenny talks to your customers. Bilingual mirrors whichever language they text or speak.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Notification Language</label>
+                  <select
+                    className="w-full border rounded-lg p-3 text-sm"
+                    value={settings.operator_language}
+                    onChange={(e) =>
+                      setSettings((s) => ({
+                        ...s,
+                        operator_language: e.target.value as JennyProSettings['operator_language'],
+                      }))
+                    }
+                  >
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    The language for your booking and missed-call alerts.
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="mt-6 flex items-center gap-3">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                Save Settings
+              <button
+                onClick={saveSettings}
+                disabled={savingSettings}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+              >
+                {savingSettings ? 'Saving…' : 'Save Settings'}
               </button>
-              <p className="text-xs text-gray-500">
-                Voice settings will apply once Twilio campaign is approved.
-              </p>
+              {savedAt && !savingSettings && (
+                <p className="text-xs text-green-600">Saved ✓</p>
+              )}
             </div>
+          </div>
+
+          {/* Jenny Phone Number — multi-tenant routing */}
+          <div className="bg-white rounded-xl border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Your Jenny Phone Number</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              The dedicated business number Jenny answers on. Texts and calls to it are routed to
+              <span className="font-medium"> your</span> company, so Jenny replies as your business,
+              with your services, and books into your calendar.
+            </p>
+
+            {jennyNumber ? (
+              <div className="flex items-center justify-between gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Active number</p>
+                  <p className="text-lg font-semibold text-gray-900">{jennyNumber}</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                  Connected
+                </span>
+              </div>
+            ) : (
+              <>
+                {/* Auto-provision (recommended) */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    className="w-full sm:w-40 border rounded-lg p-3 text-sm"
+                    value={areaCode}
+                    onChange={(e) => setAreaCode(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                    placeholder="Area code (optional)"
+                  />
+                  <button
+                    onClick={provisionNumber}
+                    disabled={provisioning}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    {provisioning ? 'Getting your number…' : 'Get my Jenny number'}
+                  </button>
+                  <span className="inline-flex items-center px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                    Recommended · ready in seconds
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  We&apos;ll set you up with a dedicated number and wire it automatically — no Twilio setup needed. Live in seconds.
+                </p>
+
+                {/* Manual fallback — register an existing number */}
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-xs text-gray-500 mb-2">Already have a number? Connect it instead:</p>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                    <input
+                      type="tel"
+                      className="flex-1 border rounded-lg p-3 text-sm"
+                      value={jennyNumber}
+                      onChange={(e) => setJennyNumber(e.target.value)}
+                      placeholder="+1 765 789 5752"
+                    />
+                    <button
+                      onClick={saveNumber}
+                      disabled={savingNumber || !jennyNumber.trim()}
+                      className="px-4 py-2 bg-white border text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-60"
+                    >
+                      {savingNumber ? 'Saving…' : 'Connect Number'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {numberSaved && !numberError && (
+              <p className="text-xs text-green-600 mt-3">Saved ✓ — Jenny is now routed to your company.</p>
+            )}
+            {numberError && <p className="text-xs text-red-600 mt-3">{numberError}</p>}
+          </div>
+
+          {/* Port an existing number (advanced — most contractors use a new number) */}
+          <div className="bg-white rounded-xl border p-6">
+            <button
+              type="button"
+              onClick={() => setShowPorting((v) => !v)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Keep your existing number instead</h3>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Advanced — port a number your customers already know. Takes 1–4 weeks.
+                </p>
+              </div>
+              <span className="text-gray-400 text-sm ml-4">{showPorting || portRequest ? '▲' : '▼'}</span>
+            </button>
+
+            {(showPorting || portRequest) && (
+            <div className="mt-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Port your existing business number to Jenny and she&apos;ll answer texts and calls on
+              <span className="font-medium"> that</span> number. Porting is a carrier process that
+              usually takes 1–4 weeks — you&apos;ll get an email to sign the authorization, and we&apos;ll
+              connect it automatically when it&apos;s done.
+            </p>
+
+            {portRequest ? (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Porting</p>
+                    <p className="text-lg font-semibold text-gray-900">{portRequest.phone_number}</p>
+                  </div>
+                  <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium capitalize">
+                    {portRequest.status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                {portRequest.status !== 'completed' && (
+                  <p className="text-xs text-gray-500 mt-3">
+                    Check your email for the authorization to sign. We&apos;ll connect the number to
+                    Jenny automatically once the carrier completes the transfer.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input
+                    type="tel"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.phoneNumber}
+                    onChange={(e) => setPortForm((f) => ({ ...f, phoneNumber: e.target.value }))}
+                    placeholder="Your current number *"
+                  />
+                  <input
+                    type="text"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.currentCarrier}
+                    onChange={(e) => setPortForm((f) => ({ ...f, currentCarrier: e.target.value }))}
+                    placeholder="Current carrier (e.g. Verizon)"
+                  />
+                  <input
+                    type="text"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.repName}
+                    onChange={(e) => setPortForm((f) => ({ ...f, repName: e.target.value }))}
+                    placeholder="Authorized name on the account"
+                  />
+                  <input
+                    type="email"
+                    className="border rounded-lg p-3 text-sm"
+                    value={portForm.repEmail}
+                    onChange={(e) => setPortForm((f) => ({ ...f, repEmail: e.target.value }))}
+                    placeholder="Email to sign authorization *"
+                  />
+                  <input
+                    type="text"
+                    className="border rounded-lg p-3 text-sm sm:col-span-2"
+                    value={portForm.accountNumber}
+                    onChange={(e) => setPortForm((f) => ({ ...f, accountNumber: e.target.value }))}
+                    placeholder="Account number with current carrier"
+                  />
+                </div>
+                <button
+                  onClick={startPort}
+                  disabled={portingSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {portingSubmitting ? 'Starting…' : 'Start porting my number'}
+                </button>
+                {portError && <p className="text-xs text-red-600">{portError}</p>}
+                <p className="text-xs text-gray-500">
+                  Have a recent bill from your current carrier handy — it&apos;s needed to verify ownership.
+                </p>
+              </div>
+            )}
+            </div>
+            )}
           </div>
 
           {/* Twilio Status */}
