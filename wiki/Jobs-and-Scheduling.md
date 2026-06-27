@@ -81,10 +81,12 @@ The Schedule page gives you a calendar view of all your jobs across your team.
 
 Each job card shows:
 - Job title and customer name
-- Scheduled time window
+- Scheduled time window (shown in 12-hour format, e.g. 2:00 PM)
 - Assigned worker
 - Job location
 - Status indicator (color-coded)
+
+> **Note:** Appointment times display in friendly 12-hour AM/PM format across the Jobs, Schedule, and Booking views.
 
 ### Stats at a Glance
 
