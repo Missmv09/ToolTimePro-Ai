@@ -90,9 +90,7 @@ Keep your books in sync with two-way QuickBooks Online integration:
 4. Authorize the connection
 
 ### Pricing
-- **Elite plan:** QuickBooks Sync included
-- **Pro plan:** Available as add-on ($12/mo or $120/yr)
-- **Starter plan:** Available as add-on ($12/mo or $120/yr)
+- Available as an add-on on any plan ($12/mo or $120/yr)
 
 ---
 

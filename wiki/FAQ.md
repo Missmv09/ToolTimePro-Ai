@@ -103,7 +103,7 @@ Customers visit your booking page, browse your active services, pick a time slot
 Yes. Connect your Stripe account in Settings → Payments. Customers pay directly from the invoice link you send them.
 
 ### Does ToolTime Pro sync with QuickBooks?
-Yes. Two-way sync with QuickBooks Online for invoices, payments, and customers. Included with Elite, or add-on for $12/month on other plans. See [Invoicing & Payments](Invoicing-and-Payments).
+Yes. Two-way sync with QuickBooks Online for invoices, payments, and customers. Available as an add-on for $12/month on any plan. See [Invoicing & Payments](Invoicing-and-Payments).
 
 ### What is the Material Estimator?
 The Smart Material Estimator covers 21 trades. Describe a job, and get exact material lists with Good/Better/Best pricing and contractor markup. Available for painting, plumbing, electrical, roofing, fencing, concrete, and more.
