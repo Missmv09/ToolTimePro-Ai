@@ -2,7 +2,7 @@
 -- Replaces freeform payment_instructions with structured data
 
 CREATE TABLE IF NOT EXISTS company_payment_methods (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
     method VARCHAR(50) NOT NULL,  -- zelle, venmo, cashapp, paypal, square, stripe, check, cash, other
     handle VARCHAR(255),          -- email, phone, @handle, URL, or payable-to name
