@@ -26,6 +26,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_company_payment_methods_unique
 ALTER TABLE company_payment_methods ENABLE ROW LEVEL SECURITY;
 
 -- Users can view payment methods for their own company
+DROP POLICY IF EXISTS "Users can view own company payment methods" ON company_payment_methods;
 CREATE POLICY "Users can view own company payment methods"
     ON company_payment_methods FOR SELECT
     USING (
@@ -35,6 +36,7 @@ CREATE POLICY "Users can view own company payment methods"
     );
 
 -- Owners and admins can manage payment methods
+DROP POLICY IF EXISTS "Owners and admins can insert payment methods" ON company_payment_methods;
 CREATE POLICY "Owners and admins can insert payment methods"
     ON company_payment_methods FOR INSERT
     WITH CHECK (
@@ -44,6 +46,7 @@ CREATE POLICY "Owners and admins can insert payment methods"
         )
     );
 
+DROP POLICY IF EXISTS "Owners and admins can update payment methods" ON company_payment_methods;
 CREATE POLICY "Owners and admins can update payment methods"
     ON company_payment_methods FOR UPDATE
     USING (
@@ -53,6 +56,7 @@ CREATE POLICY "Owners and admins can update payment methods"
         )
     );
 
+DROP POLICY IF EXISTS "Owners and admins can delete payment methods" ON company_payment_methods;
 CREATE POLICY "Owners and admins can delete payment methods"
     ON company_payment_methods FOR DELETE
     USING (
@@ -63,6 +67,7 @@ CREATE POLICY "Owners and admins can delete payment methods"
     );
 
 -- Public read access for invoice/quote display (customers viewing invoices don't have auth)
+DROP POLICY IF EXISTS "Public can view active payment methods" ON company_payment_methods;
 CREATE POLICY "Public can view active payment methods"
     ON company_payment_methods FOR SELECT
     USING (is_active = true);
