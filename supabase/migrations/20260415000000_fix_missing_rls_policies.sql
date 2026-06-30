@@ -22,6 +22,7 @@
 -- ============================================
 ALTER TABLE recurring_jobs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Recurring jobs belong to company" ON recurring_jobs;
 CREATE POLICY "Recurring jobs belong to company"
     ON recurring_jobs FOR ALL
     USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()))
@@ -32,18 +33,22 @@ CREATE POLICY "Recurring jobs belong to company"
 -- ============================================
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users see own notifications" ON notifications;
 CREATE POLICY "Users see own notifications"
     ON notifications FOR SELECT
     USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "System inserts notifications for company users" ON notifications;
 CREATE POLICY "System inserts notifications for company users"
     ON notifications FOR INSERT
     WITH CHECK (company_id = (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users update own notifications" ON notifications;
 CREATE POLICY "Users update own notifications"
     ON notifications FOR UPDATE
     USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users delete own notifications" ON notifications;
 CREATE POLICY "Users delete own notifications"
     ON notifications FOR DELETE
     USING (user_id = auth.uid());
@@ -53,6 +58,7 @@ CREATE POLICY "Users delete own notifications"
 -- ============================================
 ALTER TABLE google_calendar_connections ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users manage own calendar connection" ON google_calendar_connections;
 CREATE POLICY "Users manage own calendar connection"
     ON google_calendar_connections FOR ALL
     USING (user_id = auth.uid())
@@ -63,6 +69,7 @@ CREATE POLICY "Users manage own calendar connection"
 -- ============================================
 ALTER TABLE payment_plans ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Payment plans belong to company" ON payment_plans;
 CREATE POLICY "Payment plans belong to company"
     ON payment_plans FOR ALL
     USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()))
@@ -73,6 +80,7 @@ CREATE POLICY "Payment plans belong to company"
 -- ============================================
 ALTER TABLE payment_plan_installments ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Installments belong to company payment plans" ON payment_plan_installments;
 CREATE POLICY "Installments belong to company payment plans"
     ON payment_plan_installments FOR ALL
     USING (
@@ -93,6 +101,7 @@ CREATE POLICY "Installments belong to company payment plans"
 -- ============================================
 ALTER TABLE webhooks ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Webhooks belong to company" ON webhooks;
 CREATE POLICY "Webhooks belong to company"
     ON webhooks FOR ALL
     USING (company_id = (SELECT company_id FROM users WHERE id = auth.uid()))
@@ -103,6 +112,7 @@ CREATE POLICY "Webhooks belong to company"
 -- ============================================
 ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Webhook logs belong to company webhooks" ON webhook_logs;
 CREATE POLICY "Webhook logs belong to company webhooks"
     ON webhook_logs FOR ALL
     USING (
@@ -126,10 +136,12 @@ CREATE POLICY "Webhook logs belong to company webhooks"
 --    Add a read policy so authenticated users can see their own company,
 --    and an update policy for owners/admins.
 -- ============================================
+DROP POLICY IF EXISTS "Users can view their own company" ON companies;
 CREATE POLICY "Users can view their own company"
     ON companies FOR SELECT
     USING (id IN (SELECT company_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Owners and admins can update their company" ON companies;
 CREATE POLICY "Owners and admins can update their company"
     ON companies FOR UPDATE
     USING (

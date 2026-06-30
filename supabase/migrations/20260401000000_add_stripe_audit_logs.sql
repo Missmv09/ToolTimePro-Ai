@@ -1,6 +1,6 @@
 -- Stripe audit logs — tracks all admin price/product management actions
 CREATE TABLE IF NOT EXISTS stripe_audit_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     admin_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
     admin_email VARCHAR(255) NOT NULL,
     action VARCHAR(100) NOT NULL,       -- create_product, update_product, create_price, update_price
