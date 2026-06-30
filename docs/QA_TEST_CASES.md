@@ -24,6 +24,30 @@ Copy the tables into a spreadsheet if you prefer to track there.
 
 ---
 
+## Industry coverage — do NOT run everything per industry
+
+The **core flows are industry-agnostic** — auth, customers, jobs, scheduling,
+quotes, invoices, payments, worker app, and customer portal behave the same for
+landscaping, plumbing, HVAC, etc. Run the **full suite once** on a single primary
+industry (use **landscaping** — it matches the seed data).
+
+Only these features change by industry/trade. Do a **focused second pass** on just
+these across **2–3 representative trades** (e.g. landscaping, plumbing, HVAC):
+
+| Feature | What changes by industry | Cases to repeat |
+|---------|--------------------------|-----------------|
+| Onboarding / signup | Industry picker, defaults | TC-AUTH-01 |
+| Material Estimator | Trade-specific materials, tiers, pricing | TC-QUOTE-07 |
+| Smart Quote | Industry-aware suggestions | TC-QUOTE-06 |
+| Website Builder | Industry templates, copy | TC-ADDON-01 |
+| Jenny AI | Industry-aware answers | TC-JENNY-01/02 |
+| Compliance / Shield | State + trade rules | TC-ADDON-02 |
+
+That's ~6 cases × 3 trades ≈ 18 extra runs, instead of 70 × N. If a specific trade
+is your launch focus, prioritize that one for the focused pass.
+
+---
+
 ## A. Authentication & Access  (TC-AUTH)
 
 | ID | Priority | Scenario | Steps | Expected result |

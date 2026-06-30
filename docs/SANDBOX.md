@@ -86,7 +86,9 @@ Copy the resulting `NEXT_PUBLIC_STRIPE_PRICES` JSON into the sandbox-scoped env 
 ### 6. Point a Stripe webhook at the sandbox URL
 
 Stripe dashboard → Developers → Webhooks (test mode) → add endpoint:
-`https://sandbox--<site-name>.netlify.app/api/stripe/webhook`
+`https://sandbox--<site-name>.netlify.app/api/webhook/stripe`
+
+(The Stripe Connect webhook, if used, is `/api/webhook/stripe-connect`.)
 
 Copy the signing secret into `STRIPE_WEBHOOK_SECRET` (sandbox scope).
 
