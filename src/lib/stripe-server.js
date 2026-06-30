@@ -31,7 +31,15 @@ export function getStripeForSession(sessionId) {
   }
 
   const expectedPrefix = isTest ? 'sk_test_' : 'sk_live_';
-  const candidates = isTest ? [testKey, liveKey] : [liveKey, testKey];
+  // Always prefer STRIPE_SECRET_KEY. Checkout sessions are *created* with
+  // STRIPE_SECRET_KEY (see api/checkout/route.js), so retrieving with the same
+  // key guarantees we look in the Stripe account that actually owns the
+  // session. Only fall back to STRIPE_SECRET_KEY_TEST when STRIPE_SECRET_KEY is
+  // the wrong mode for this session (e.g. a live deployment reading back a test
+  // session). Preferring the test key first — as this did previously — caused a
+  // "No such checkout.session" 500 whenever STRIPE_SECRET_KEY_TEST pointed at a
+  // different Stripe account than STRIPE_SECRET_KEY (sandbox checkout bug).
+  const candidates = [liveKey, testKey];
   const matched = candidates.find(
     (k) => typeof k === 'string' && k.startsWith(expectedPrefix)
   );
