@@ -24,19 +24,33 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.get('body').should('be.visible');
   });
 
-  it('TC-CUST-01: creates a customer and sees it in the list', () => {
-    const name = `QA Test Customer ${Date.now()}`;
+  it('TC-CUST-01: creates a uniquely-namespaced customer, sees it, then deletes it (self-cleanup)', () => {
+    // Unique per run so parallel/repeat CI runs never collide, and any rare
+    // leftover is trivially findable/purgeable by the "e2e-" prefix.
+    const uid = `e2e-${Date.now()}-${Cypress._.random(1e9)}`;
+    const name = `E2E Test ${uid}`;
+    const email = `${uid}@example.com`;
+
     cy.visit('/dashboard/customers');
     // Open the add-customer modal (button reads "Add Customer" / "Add Your First Customer").
     cy.contains('button', /add (your first )?customer/i, { timeout: 20000 }).first().click();
     cy.contains(/Add New Customer/i, { timeout: 10000 }).should('be.visible');
-    // Fill the minimum: a name and a phone (the app says name + phone is enough).
     cy.get('.fixed, [role="dialog"], form').last().within(() => {
       cy.get('input[type="text"]').first().clear().type(name);
+      cy.get('input[type="email"]').first().clear().type(email);
       cy.get('input[type="tel"]').first().clear().type('5551234567');
       cy.contains('button', /save|add|create/i).click();
     });
     cy.contains(name, { timeout: 20000 }).should('exist');
+
+    // Self-cleanup: the app deletes via a row "Delete" button guarded by
+    // window.confirm. Isolate the row via search, accept the confirm, delete,
+    // and assert it's gone — so the test leaves no data behind.
+    cy.on('window:confirm', () => true);
+    cy.get('input[placeholder*="Search customers"]', { timeout: 10000 }).clear().type(name);
+    cy.contains(name).should('be.visible');
+    cy.contains('button', /^\s*delete\s*$/i).click();
+    cy.contains(name).should('not.exist');
   });
 
   it('TC-JOB-01: opens the jobs page', () => {
