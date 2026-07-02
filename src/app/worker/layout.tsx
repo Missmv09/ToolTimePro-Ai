@@ -33,7 +33,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
       const { data: { user: authUser } } = await supabase.auth.getUser()
 
       if (!authUser) {
-        if (pathname !== '/worker/login') {
+        if (pathname !== '/worker/login' && pathname !== '/worker/login/') {
           router.push('/worker/login')
         }
         setLoading(false)
@@ -75,7 +75,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
 
   const { showWarning, secondsRemaining, resetTimeout } = useSessionTimeout({
     onTimeout: handleSignOut,
-    enabled: !!user && pathname !== '/worker/login',
+    enabled: !!user && pathname !== '/worker/login' && pathname !== '/worker/login/',
   })
 
   // Helper to get company name (handles both object and array from Supabase)
@@ -85,8 +85,10 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
     return company.name || 'ToolTime Pro'
   }
 
-  // Don't show layout on login page
-  if (pathname === '/worker/login') {
+  // Don't show layout on login page. next.config has trailingSlash:true, so the
+  // path arrives as '/worker/login/' — match both, otherwise this falls through
+  // to the auth gate below and renders null (a blank page) on the login route.
+  if (pathname === '/worker/login' || pathname === '/worker/login/') {
     return <>{children}</>
   }
 
