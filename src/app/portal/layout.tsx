@@ -33,7 +33,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
     const token = urlToken || storedToken;
 
     if (!token) {
-      if (pathname !== '/portal/login') {
+      if (pathname !== '/portal/login' && pathname !== '/portal/login/') {
         router.push('/portal/login');
       }
       setLoading(false);
@@ -63,7 +63,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         localStorage.removeItem('portal_token');
-        if (pathname !== '/portal/login') {
+        if (pathname !== '/portal/login' && pathname !== '/portal/login/') {
           router.push('/portal/login');
         }
         setLoading(false);
@@ -90,7 +90,9 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
     router.push('/portal/login');
   };
 
-  if (pathname === '/portal/login') {
+  // next.config has trailingSlash:true, so the path arrives as '/portal/login/'.
+  // Match both, else this falls through and renders null (a blank page) on login.
+  if (pathname === '/portal/login' || pathname === '/portal/login/') {
     return <>{children}</>;
   }
 
