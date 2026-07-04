@@ -142,42 +142,6 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabaseAdmin();
   if (!supabase) return NextResponse.json({ error: 'Server config error' }, { status: 500 });
 
-  // TEMP DEBUG (remove after) — reveals why portal token validation fails on sandbox
-  if (request.nextUrl.searchParams.get('debug') === 'ttp1') {
-    const raw = request.headers.get('x-portal-token') || request.nextUrl.searchParams.get('token') || '';
-    let hashed: string | null = null;
-    let hashErr: string | null = null;
-    try { hashed = raw ? await hashToken(raw) : null; } catch (e) { hashErr = String(e); }
-    const { data, error } = await supabase
-      .from('customer_sessions')
-      .select('id, is_active, expires_at, email')
-      .eq('token', hashed);
-    // Decode the role claim from the key's JWT payload (role/ref are NOT secret)
-    let keyRole: string | null = null;
-    let keyRef: string | null = null;
-    try {
-      const parts = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').split('.');
-      if (parts.length === 3) {
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
-        keyRole = payload.role || null;
-        keyRef = payload.ref || null;
-      }
-    } catch (e) { keyRole = 'decode-error'; }
-    return NextResponse.json({
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || null,
-      keyRole,
-      keyRef,
-      serviceKeyPresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      serviceKeyLen: (process.env.SUPABASE_SERVICE_ROLE_KEY || '').length,
-      rawTokenLen: raw.length,
-      hashedToken: hashed,
-      hashErr,
-      rowsWithThisHash: Array.isArray(data) ? data.length : null,
-      rows: data,
-      queryError: error?.message || null,
-    });
-  }
-
   const rawToken = request.headers.get('x-portal-token') || request.nextUrl.searchParams.get('token');
   if (!rawToken || rawToken.length < 20) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
