@@ -142,38 +142,6 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabaseAdmin();
   if (!supabase) return NextResponse.json({ error: 'Server config error' }, { status: 500 });
 
-  // TEMP DEBUG (remove after) — reveals exact Resend deliverability error on sandbox
-  if (request.nextUrl.searchParams.get('debug') === 'email2') {
-    const to = request.nextUrl.searchParams.get('to') || '';
-    const fromEmail = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@tooltimepro.com>';
-    const out: any = {
-      resendKeyPresent: !!process.env.RESEND_API_KEY,
-      resendKeyPrefix: (process.env.RESEND_API_KEY || '').slice(0, 4),
-      fromEmail,
-      emailFromEnvSet: !!process.env.EMAIL_FROM,
-      siteUrl: process.env.NEXT_PUBLIC_SITE_URL || null,
-      appUrl: process.env.NEXT_PUBLIC_APP_URL || null,
-      to,
-    };
-    try {
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      const { data, error } = await resend.emails.send({
-        from: fromEmail,
-        to,
-        subject: 'ToolTime Pro sandbox email test',
-        html: '<p>Sandbox deliverability test — if you got this, sending works.</p>',
-      });
-      out.sendData = data;
-      out.sendError = error
-        ? { name: (error as any).name, message: error.message, statusCode: (error as any).statusCode }
-        : null;
-    } catch (e: any) {
-      out.exception = String(e?.message || e);
-    }
-    return NextResponse.json(out);
-  }
-
   const rawToken = request.headers.get('x-portal-token') || request.nextUrl.searchParams.get('token');
   if (!rawToken || rawToken.length < 20) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
@@ -594,8 +562,13 @@ export async function POST(request: NextRequest) {
       expires_at: expiresAt.toISOString(),
     });
 
-    // Build portal URL with RAW token (only the customer receives this)
-    const portalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com'}/portal?token=${rawToken}`;
+    // Build portal URL with RAW token (only the customer receives this).
+    // Use APP_URL first: it's the per-deploy canonical URL (sandbox on the
+    // sandbox branch, prod on prod), so the magic link always lands on the
+    // same environment whose DB holds this session token. SITE_URL points at
+    // the marketing/prod host and would send sandbox links to production.
+    const portalBase = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com';
+    const portalUrl = `${portalBase}/portal?token=${rawToken}`;
 
     // Get company name for email
     const { data: company } = await supabase
