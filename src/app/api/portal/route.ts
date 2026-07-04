@@ -142,6 +142,29 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabaseAdmin();
   if (!supabase) return NextResponse.json({ error: 'Server config error' }, { status: 500 });
 
+  // TEMP DEBUG (remove after) — reveals why portal token validation fails on sandbox
+  if (request.nextUrl.searchParams.get('debug') === 'ttp1') {
+    const raw = request.headers.get('x-portal-token') || request.nextUrl.searchParams.get('token') || '';
+    let hashed: string | null = null;
+    let hashErr: string | null = null;
+    try { hashed = raw ? await hashToken(raw) : null; } catch (e) { hashErr = String(e); }
+    const { data, error } = await supabase
+      .from('customer_sessions')
+      .select('id, is_active, expires_at, email')
+      .eq('token', hashed);
+    return NextResponse.json({
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || null,
+      serviceKeyPresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceKeyLen: (process.env.SUPABASE_SERVICE_ROLE_KEY || '').length,
+      rawTokenLen: raw.length,
+      hashedToken: hashed,
+      hashErr,
+      rowsWithThisHash: Array.isArray(data) ? data.length : null,
+      rows: data,
+      queryError: error?.message || null,
+    });
+  }
+
   const rawToken = request.headers.get('x-portal-token') || request.nextUrl.searchParams.get('token');
   if (!rawToken || rawToken.length < 20) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
