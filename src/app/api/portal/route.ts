@@ -152,8 +152,21 @@ export async function GET(request: NextRequest) {
       .from('customer_sessions')
       .select('id, is_active, expires_at, email')
       .eq('token', hashed);
+    // Decode the role claim from the key's JWT payload (role/ref are NOT secret)
+    let keyRole: string | null = null;
+    let keyRef: string | null = null;
+    try {
+      const parts = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+        keyRole = payload.role || null;
+        keyRef = payload.ref || null;
+      }
+    } catch (e) { keyRole = 'decode-error'; }
     return NextResponse.json({
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || null,
+      keyRole,
+      keyRef,
       serviceKeyPresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       serviceKeyLen: (process.env.SUPABASE_SERVICE_ROLE_KEY || '').length,
       rawTokenLen: raw.length,
