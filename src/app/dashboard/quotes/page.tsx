@@ -390,6 +390,28 @@ function QuotesContent() {
   const convertToInvoice = async (quote: Quote) => {
     if (!companyId) return
 
+    // Guard against duplicate conversion — a quote should map to a single
+    // invoice. Without this, clicking "Invoice" again creates a second invoice
+    // from the same quote.
+    const { data: existingInvoices, error: existingError } = await supabase
+      .from('invoices')
+      .select('id, invoice_number')
+      .eq('quote_id', quote.id)
+      .order('created_at', { ascending: true })
+      .limit(1)
+
+    if (existingError) {
+      console.error('Error checking for existing invoice:', existingError)
+      alert('Could not verify whether this quote was already invoiced. Please try again.')
+      return
+    }
+
+    const existingInvoice = existingInvoices?.[0]
+    if (existingInvoice) {
+      alert(`This quote has already been converted to invoice ${existingInvoice.invoice_number || existingInvoice.id.slice(0, 8)}. Open the Invoices page to view or send it.`)
+      return
+    }
+
     // Create invoice from quote
     const { data: invoice, error } = await supabase
       .from('invoices')
@@ -1253,6 +1275,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     quote?.deposit_percentage ? String(quote.deposit_percentage) : quote?.deposit_amount ? String(quote.deposit_amount) : ''
   )
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const sendAfterSaveRef = useRef(false)
   const [loadingItems, setLoadingItems] = useState(false)
 
@@ -1316,8 +1339,26 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
 
   const { subtotal, tax_amount, total } = calculateTotals()
 
+  // Map low-level/server errors to a safe, actionable message. Never surface
+  // raw database internals (e.g. "permission denied for table quotes") to the
+  // user — those are for the logs, not the UI (Bug #23).
+  const friendlySaveError = (raw?: string): string => {
+    const msg = (raw || '').toLowerCase()
+    if (msg.includes('permission denied') || msg.includes('row-level security') || msg.includes('rls')) {
+      return "We couldn't save this quote due to a permissions issue on the server. Your work is still here — please try again, and contact support if it keeps happening."
+    }
+    if (msg.includes('session') || msg.includes('jwt') || msg.includes('token') || msg.includes('unauthorized')) {
+      return 'Your session has expired. Please refresh the page and log in again.'
+    }
+    if (msg.includes('network') || msg.includes('fetch')) {
+      return 'Network error while saving the quote. Check your connection and try again.'
+    }
+    return "We couldn't save this quote. Your work is still here — please try again, and contact support if it keeps happening."
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSaveError(null)
 
     // Validation
     const errors: string[] = []
@@ -1336,7 +1377,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     }
 
     if (errors.length > 0) {
-      alert(errors.join('\n'))
+      setSaveError(errors.join(' '))
       sendAfterSaveRef.current = false
       return
     }
@@ -1346,7 +1387,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     // Refresh session to ensure auth token is still valid
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
     if (sessionError || !sessionData.session) {
-      alert('Your session has expired. Please refresh the page and log in again.')
+      setSaveError('Your session has expired. Please refresh the page and log in again.')
       setSaving(false)
       return
     }
@@ -1394,7 +1435,8 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
           .single()
 
         if (custError) {
-          alert('Failed to create customer: ' + custError.message)
+          console.error('Error creating customer for quote:', custError)
+          setSaveError(friendlySaveError(custError.message))
           setSaving(false)
           return
         }
@@ -1444,7 +1486,8 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       // Update existing quote
       const { error: updateError } = await supabase.from('quotes').update(quoteData).eq('id', quote.id)
       if (updateError) {
-        alert('Failed to update quote: ' + updateError.message)
+        console.error('Error updating quote:', updateError)
+        setSaveError(friendlySaveError(updateError.message))
         setSaving(false)
         return
       }
@@ -1517,13 +1560,15 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       const result = await res.json()
 
       if (!res.ok) {
-        alert('Failed to create quote: ' + (result.error || 'Unknown error'))
+        console.error('Error creating quote:', result.error)
+        setSaveError(friendlySaveError(result.error))
         setSaving(false)
         return
       }
 
       if (result.itemsError) {
-        alert('Quote created but items failed to save: ' + result.itemsError)
+        console.error('Quote created but items failed to save:', result.itemsError)
+        setSaveError('The quote was created, but its line items could not be saved. Please open the quote and re-add the items.')
       }
 
       setSaving(false)
@@ -1559,7 +1604,8 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       const result = await res.json()
 
       if (!res.ok) {
-        alert('Quote updated but items failed to save: ' + (result.error || 'Unknown error'))
+        console.error('Quote updated but items failed to save:', result.error)
+        setSaveError('The quote was saved, but its line items could not be updated. Please try again.')
       }
     }
 
@@ -1577,6 +1623,15 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">{quote ? 'Edit Quote' : 'Create New Quote'}</h2>
+
+        {saveError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+          >
+            {saveError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

@@ -228,22 +228,6 @@ function InvoicesContent() {
     }
 
     try {
-      // Update invoice status to sent
-      const { error: updateError } = await supabase
-        .from('invoices')
-        .update({
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', invoice.id)
-
-      if (updateError) {
-        console.error('Error updating invoice status:', updateError)
-        alert(`Failed to update invoice status: ${updateError.message}`)
-        return
-      }
-
       const invoiceLink = `${window.location.origin}/invoice/${invoice.id}`
       const invoiceNumber = invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`
       let emailSent = false
@@ -308,10 +292,30 @@ function InvoicesContent() {
       }
 
       const methods = [emailSent && 'email', smsSent && 'SMS'].filter(Boolean).join(' and ')
-      if (methods) {
-        alert(`Invoice ${invoiceNumber} sent successfully via ${methods} to ${invoice.customer?.name}.`)
+
+      if (emailSent || smsSent) {
+        // Only mark the invoice as sent once delivery through a channel has
+        // actually succeeded — otherwise the status would misrepresent reality
+        // (Bug #26/#38: invoice shown as "sent" even though delivery failed).
+        const { error: updateError } = await supabase
+          .from('invoices')
+          .update({
+            status: 'sent',
+            sent_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', invoice.id)
+
+        if (updateError) {
+          console.error('Error updating invoice status:', updateError)
+          alert(`Invoice ${invoiceNumber} was delivered via ${methods}, but its status could not be updated. Please refresh and verify.`)
+        } else {
+          alert(`Invoice ${invoiceNumber} sent successfully via ${methods} to ${invoice.customer?.name}.`)
+        }
       } else {
-        alert(`Invoice ${invoiceNumber} marked as sent, but delivery notifications could not be sent. The customer can still view it at their invoice link.`)
+        // No channel succeeded — leave the status unchanged rather than
+        // falsely marking it "sent", and tell the owner delivery failed.
+        alert(`Invoice ${invoiceNumber} could not be delivered — no email or SMS notification went out, so it was NOT marked as sent. Check the customer's contact info and try again.`)
       }
 
       if (companyId) fetchInvoices(companyId)
