@@ -390,6 +390,28 @@ function QuotesContent() {
   const convertToInvoice = async (quote: Quote) => {
     if (!companyId) return
 
+    // Guard against duplicate conversion — a quote should map to a single
+    // invoice. Without this, clicking "Invoice" again creates a second invoice
+    // from the same quote.
+    const { data: existingInvoices, error: existingError } = await supabase
+      .from('invoices')
+      .select('id, invoice_number')
+      .eq('quote_id', quote.id)
+      .order('created_at', { ascending: true })
+      .limit(1)
+
+    if (existingError) {
+      console.error('Error checking for existing invoice:', existingError)
+      alert('Could not verify whether this quote was already invoiced. Please try again.')
+      return
+    }
+
+    const existingInvoice = existingInvoices?.[0]
+    if (existingInvoice) {
+      alert(`This quote has already been converted to invoice ${existingInvoice.invoice_number || existingInvoice.id.slice(0, 8)}. Open the Invoices page to view or send it.`)
+      return
+    }
+
     // Create invoice from quote
     const { data: invoice, error } = await supabase
       .from('invoices')
