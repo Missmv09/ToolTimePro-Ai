@@ -55,7 +55,11 @@
       "californiaBreakRules": "California Break Rules",
       "mealBreakRule": "30-min meal break before 5th hour",
       "restBreakRule": "10-min rest break per 4 hours worked",
-      "secondMealRule": "Second meal break if working 10+ hours"
+      "secondMealRule": "Second meal break if working 10+ hours",
+      "jobForShift": "Job for this shift",
+      "generalShift": "General shift (no job)",
+      "workingOn": "Working on",
+      "noCustomer": "No customer"
     },
     "time": {
       "weekOf": "Week of",
