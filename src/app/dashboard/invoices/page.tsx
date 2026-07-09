@@ -232,6 +232,8 @@ function InvoicesContent() {
       const invoiceNumber = invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`
       let emailSent = false
       let smsSent = false
+      let emailError: string | null = null
+      let smsError: string | null = null
 
       // Get auth token for API call
       const { data: sessionData } = await supabase.auth.getSession()
@@ -261,9 +263,16 @@ function InvoicesContent() {
               companyName: company?.name,
             }),
           })
-          if (res.ok) emailSent = true
-        } catch {
-          console.log('Email send failed, continuing...')
+          if (res.ok) {
+            emailSent = true
+          } else {
+            const d = await res.json().catch(() => ({}))
+            emailError = d.error || `HTTP ${res.status}`
+            console.error('Invoice email failed:', emailError)
+          }
+        } catch (e) {
+          emailError = e instanceof Error ? e.message : 'network error'
+          console.error('Invoice email failed:', emailError)
         }
       }
 
@@ -285,13 +294,26 @@ function InvoicesContent() {
               customerId: invoice.customer?.id,
             }),
           })
-          if (res.ok) smsSent = true
-        } catch {
-          console.log('SMS send failed, continuing...')
+          if (res.ok) {
+            smsSent = true
+          } else {
+            const d = await res.json().catch(() => ({}))
+            smsError = d.error || `HTTP ${res.status}`
+            console.error('Invoice SMS failed:', smsError)
+          }
+        } catch (e) {
+          smsError = e instanceof Error ? e.message : 'network error'
+          console.error('Invoice SMS failed:', smsError)
         }
       }
 
       const methods = [emailSent && 'email', smsSent && 'SMS'].filter(Boolean).join(' and ')
+
+      // Collect channels that were attempted but failed, with their reason, so
+      // the owner is never left thinking a silent failure was a success.
+      const failures: string[] = []
+      if (email && !emailSent) failures.push(`email${emailError ? ` (${emailError})` : ''}`)
+      if (phone && invoice.customer?.sms_consent && !smsSent) failures.push(`SMS${smsError ? ` (${smsError})` : ''}`)
 
       if (emailSent || smsSent) {
         // Only mark the invoice as sent once delivery through a channel has
@@ -309,13 +331,18 @@ function InvoicesContent() {
         if (updateError) {
           console.error('Error updating invoice status:', updateError)
           alert(`Invoice ${invoiceNumber} was delivered via ${methods}, but its status could not be updated. Please refresh and verify.`)
+        } else if (failures.length > 0) {
+          // Partial delivery — report both what worked and what didn't, so a
+          // silently-failed channel (e.g. email) is never mistaken for success.
+          alert(`Invoice ${invoiceNumber} was sent via ${methods} to ${invoice.customer?.name}, but delivery FAILED for: ${failures.join(', ')}. Please verify the customer's contact details or try again.`)
         } else {
           alert(`Invoice ${invoiceNumber} sent successfully via ${methods} to ${invoice.customer?.name}.`)
         }
       } else {
         // No channel succeeded — leave the status unchanged rather than
         // falsely marking it "sent", and tell the owner delivery failed.
-        alert(`Invoice ${invoiceNumber} could not be delivered — no email or SMS notification went out, so it was NOT marked as sent. Check the customer's contact info and try again.`)
+        const detail = failures.length > 0 ? ` Reason: ${failures.join(', ')}.` : ''
+        alert(`Invoice ${invoiceNumber} could not be delivered — no email or SMS notification went out, so it was NOT marked as sent.${detail} Check the customer's contact info and try again.`)
       }
 
       if (companyId) fetchInvoices(companyId)
