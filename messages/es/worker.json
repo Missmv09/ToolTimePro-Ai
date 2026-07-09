@@ -55,7 +55,11 @@
       "californiaBreakRules": "Reglas de descanso de California",
       "mealBreakRule": "30 min para comer antes de la 5ta hora",
       "restBreakRule": "10 min de descanso por cada 4 horas trabajadas",
-      "secondMealRule": "Segundo descanso para comer si trabajas 10+ horas"
+      "secondMealRule": "Segundo descanso para comer si trabajas 10+ horas",
+      "jobForShift": "Trabajo para este turno",
+      "generalShift": "Turno general (sin trabajo)",
+      "workingOn": "Trabajando en",
+      "noCustomer": "Sin cliente"
     },
     "time": {
       "weekOf": "Semana del",

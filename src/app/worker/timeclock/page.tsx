@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 
 interface TimeEntry {
   id: string
+  job_id: string | null
   clock_in: string
   clock_out: string | null
   clock_in_location: { lat: number; lng: number } | null
@@ -20,6 +21,14 @@ interface ActiveBreak {
   break_type: 'meal' | 'rest'
 }
 
+interface WorkerJob {
+  id: string
+  title: string | null
+  status: string
+  scheduled_time_start: string | null
+  customer: { name: string | null } | { name: string | null }[] | null
+}
+
 export default function TimeclockPage() {
   const t = useTranslations('worker.timeclock')
   const [userId, setUserId] = useState<string | null>(null)
@@ -31,6 +40,8 @@ export default function TimeclockPage() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [jobs, setJobs] = useState<WorkerJob[]>([])
+  const [selectedJobId, setSelectedJobId] = useState<string>('')
 
   // Update clock every second
   useEffect(() => {
@@ -71,10 +82,44 @@ export default function TimeclockPage() {
       if (userData) {
         setCompanyId(userData.company_id)
         fetchCurrentEntry(user.id)
+        fetchTodaysJobs(user.id, userData.company_id)
       }
     }
     init()
   }, [])
+
+  // Today's jobs assigned to this worker, so clocked time attaches to a real
+  // job + customer instead of being orphaned ("Unknown Customer" / "No job").
+  const fetchTodaysJobs = async (uId: string, compId: string) => {
+    try {
+      const { data: assignments } = await supabase
+        .from('job_assignments')
+        .select('job_id')
+        .eq('user_id', uId)
+
+      const jobIds = (assignments || []).map((a) => a.job_id).filter(Boolean)
+      if (jobIds.length === 0) return
+
+      const today = new Date().toISOString().split('T')[0]
+      const { data: jobsData } = await supabase
+        .from('jobs')
+        .select('id, title, status, scheduled_time_start, scheduled_date, customer:customers(name)')
+        .in('id', jobIds)
+        .eq('company_id', compId)
+        .in('status', ['scheduled', 'in_progress'])
+
+      const todays = ((jobsData as unknown as (WorkerJob & { scheduled_date: string | null })[]) || [])
+        .filter((j) => j.scheduled_date === today)
+      setJobs(todays)
+
+      // Pre-select the most relevant job: one already in progress, else the
+      // first of today's. The worker can still change or clear it.
+      const preferred = todays.find((j) => j.status === 'in_progress') || todays[0]
+      if (preferred) setSelectedJobId(preferred.id)
+    } catch (err) {
+      console.error('Error loading today\'s jobs for timeclock:', err)
+    }
+  }
 
   const fetchCurrentEntry = async (uId: string) => {
     try {
@@ -130,6 +175,7 @@ export default function TimeclockPage() {
       .insert({
         user_id: userId,
         company_id: companyId,
+        job_id: selectedJobId || null,
         clock_in: new Date().toISOString(),
         clock_in_location: location,
       })
@@ -250,6 +296,15 @@ export default function TimeclockPage() {
   const isClockedIn = !!currentEntry
   const isOnBreak = !!activeBreak
 
+  const jobLabel = (j: WorkerJob) => {
+    const c = j.customer
+    const name = Array.isArray(c) ? c[0]?.name : c?.name
+    const cust = name || t('noCustomer')
+    const title = j.title ? ` — ${j.title}` : ''
+    return `${cust}${title}`
+  }
+  const currentJob = currentEntry?.job_id ? jobs.find((j) => j.id === currentEntry.job_id) : null
+
   return (
     <div className="max-w-md mx-auto">
       {/* Current Time Display */}
@@ -276,6 +331,11 @@ export default function TimeclockPage() {
 
           {isClockedIn && (
             <>
+              {currentJob && (
+                <p className="text-sm font-medium text-gray-700">
+                  {t('workingOn')}: {jobLabel(currentJob)}
+                </p>
+              )}
               <p className="text-sm text-gray-600">
                 {t('since')} {new Date(currentEntry.clock_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </p>
@@ -292,6 +352,26 @@ export default function TimeclockPage() {
           )}
         </div>
       </div>
+
+      {/* Job selector — attach the shift to a job so hours aren't orphaned */}
+      {!isClockedIn && jobs.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+          <label htmlFor="timeclock-job" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('jobForShift')}
+          </label>
+          <select
+            id="timeclock-job"
+            value={selectedJobId}
+            onChange={(e) => setSelectedJobId(e.target.value)}
+            className="w-full px-3 py-3 border rounded-xl text-base focus:ring-2 focus:ring-green-500"
+          >
+            <option value="">{t('generalShift')}</option>
+            {jobs.map((j) => (
+              <option key={j.id} value={j.id}>{jobLabel(j)}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Main Action Button */}
       {!isClockedIn ? (
