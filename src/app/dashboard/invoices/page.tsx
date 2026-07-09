@@ -45,7 +45,7 @@ interface Invoice {
   created_at: string
   po_number?: string | null
   payment_terms?: PaymentTerms | null
-  items?: { id: string; description: string; quantity: number; unit_price: number; total: number }[]
+  items?: { id: string; description: string; quantity: number; unit_price: number; total_price: number }[]
 }
 
 export default function InvoicesPage() {
