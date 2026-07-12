@@ -786,7 +786,128 @@ export default function JobDetailPage() {
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     }>
-      <JobDetailContent />
+      <JobPageRouter />
     </Suspense>
+  );
+}
+
+// The "Jobs" tab links here without an id. With an id we show the job detail;
+// without one, show the worker's list of assigned jobs (previously this fell
+// through to the detail view's "Job not found" empty state — Bug #67).
+function JobPageRouter() {
+  const searchParams = useSearchParams();
+  const jobId = searchParams.get('id');
+  return jobId ? <JobDetailContent /> : <JobsListContent />;
+}
+
+interface AssignedJob {
+  id: string;
+  title: string | null;
+  status: string;
+  scheduled_date: string | null;
+  scheduled_time_start: string | null;
+  customer: { name: string | null } | { name: string | null }[] | null;
+}
+
+function JobsListContent() {
+  const { worker, isLoading: authLoading, isAuthenticated } = useWorkerAuth();
+  const router = useRouter();
+  const t = useTranslations('worker.job');
+  const tHome = useTranslations('worker.home');
+  const [jobs, setJobs] = useState<AssignedJob[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) router.push('/worker/login');
+  }, [authLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!worker?.id || !worker?.company_id) {
+        if (!authLoading) setIsLoading(false);
+        return;
+      }
+      try {
+        const { data: assignments } = await supabase
+          .from('job_assignments')
+          .select('job_id')
+          .eq('user_id', worker.id);
+        const jobIds = (assignments || []).map((a) => a.job_id).filter(Boolean);
+        if (jobIds.length === 0) {
+          setJobs([]);
+          setIsLoading(false);
+          return;
+        }
+        const { data } = await supabase
+          .from('jobs')
+          .select('id, title, status, scheduled_date, scheduled_time_start, customer:customers(name)')
+          .in('id', jobIds)
+          .eq('company_id', worker.company_id)
+          .in('status', ['scheduled', 'in_progress'])
+          .order('scheduled_date', { ascending: true });
+        setJobs((data as unknown as AssignedJob[]) || []);
+      } catch (err) {
+        console.error('Error loading assigned jobs:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, [worker?.id, worker?.company_id, authLoading]);
+
+  const customerName = (c: AssignedJob['customer']) => {
+    const name = Array.isArray(c) ? c[0]?.name : c?.name;
+    return name || tHome('unknownCustomer');
+  };
+  const fmtTime = (t0: string | null) => {
+    if (!t0) return '';
+    const [h, m] = t0.split(':');
+    const hr = parseInt(h, 10);
+    const ampm = hr >= 12 ? 'PM' : 'AM';
+    return `${hr % 12 || 12}:${m} ${ampm}`;
+  };
+
+  if (isLoading || authLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto p-4">
+      <h1 className="text-xl font-bold text-gray-900 mb-4">{t('myJobs')}</h1>
+      {jobs.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+          <div className="text-4xl mb-3">📋</div>
+          <p className="font-semibold text-gray-800">{t('noJobsAssigned')}</p>
+          <p className="text-sm text-gray-500 mt-1">{t('noJobsAssignedHint')}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {jobs.map((job) => (
+            <Link
+              key={job.id}
+              href={`/worker/job?id=${job.id}`}
+              className="block bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-gray-900">{customerName(job.customer)}</p>
+                {job.status === 'in_progress' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    {tHome('statusInProgress')}
+                  </span>
+                )}
+              </div>
+              {job.title && <p className="text-sm text-gray-600 mt-0.5">{job.title}</p>}
+              <p className="text-sm text-gray-500 mt-1">
+                {job.scheduled_date || ''}{job.scheduled_time_start ? ` · ${fmtTime(job.scheduled_time_start)}` : ''}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

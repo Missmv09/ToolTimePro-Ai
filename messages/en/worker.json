@@ -115,7 +115,10 @@
       "checklistQuality": "Quality check",
       "checklistCleanup": "Clean up work area",
       "checklistPhotos": "Take completion photos",
-      "checklistSignoff": "Get customer sign-off (if applicable)"
+      "checklistSignoff": "Get customer sign-off (if applicable)",
+      "myJobs": "My Jobs",
+      "noJobsAssigned": "No jobs assigned yet",
+      "noJobsAssignedHint": "Jobs your manager assigns to you will show up here."
     },
     "profile": {
       "activeEmployee": "Active Employee",
