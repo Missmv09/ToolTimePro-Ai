@@ -115,7 +115,10 @@
       "checklistQuality": "Revisión de calidad",
       "checklistCleanup": "Limpiar el área de trabajo",
       "checklistPhotos": "Tomar fotos de finalización",
-      "checklistSignoff": "Obtener aprobación del cliente (si aplica)"
+      "checklistSignoff": "Obtener aprobación del cliente (si aplica)",
+      "myJobs": "Mis trabajos",
+      "noJobsAssigned": "Aún no hay trabajos asignados",
+      "noJobsAssignedHint": "Los trabajos que tu supervisor te asigne aparecerán aquí."
     },
     "profile": {
       "activeEmployee": "Empleado activo",
