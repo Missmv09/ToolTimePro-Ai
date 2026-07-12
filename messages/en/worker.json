@@ -155,7 +155,8 @@
       "passwordPlaceholder": "At least 8 characters",
       "confirmPasswordPlaceholder": "Confirm your password",
       "updatePassword": "Update Password",
-      "updating": "Updating..."
+      "updating": "Updating...",
+      "switchToDashboard": "Switch to Dashboard"
     },
     "safety": {
       "emergency": "Emergency?",
