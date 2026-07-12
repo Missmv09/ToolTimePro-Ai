@@ -56,6 +56,10 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT true,
     avatar_url TEXT,
     pin VARCHAR(10), -- Worker PIN for mobile app authentication
+    notes TEXT, -- Free-text general notes about a team member (set on create/edit)
+    admin_permissions JSONB, -- Granular admin capability grants (owner-managed)
+    home_address TEXT, -- Worker start location for route optimization
+    home_city TEXT,
     last_login_at TIMESTAMP WITH TIME ZONE, -- NULL means never logged in (pending activation)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
