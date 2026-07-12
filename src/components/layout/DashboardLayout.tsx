@@ -145,6 +145,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [isLoading, company, router]);
 
+  // Field workers belong in the worker app, not the owner/admin dashboard.
+  // Only pure `worker` accounts are redirected — `worker_admin` (Team Member +
+  // Admin), `admin`, and `owner` keep dashboard access.
+  useEffect(() => {
+    if (!isLoading && dbUser && dbUser.role === 'worker') {
+      router.push('/worker');
+    }
+  }, [isLoading, dbUser, router]);
+
   const handleSignOut = async () => {
     await signOut();
     router.push('/auth/login');
@@ -189,6 +198,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (role === 'worker_admin') return 'Team Member + Admin';
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
+
+  // Don't flash owner/admin UI to a worker while the redirect above runs.
+  if (!isLoading && dbUser?.role === 'worker') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <ProtectedRoute>
