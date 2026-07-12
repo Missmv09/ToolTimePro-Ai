@@ -541,12 +541,6 @@ export async function POST(request: NextRequest) {
 
     const customer = customers[0];
 
-    // Deactivate any existing active sessions for this customer (single session)
-    await (supabase as any).from('customer_sessions')
-      .update({ is_active: false })
-      .eq('customer_id', customer.id)
-      .eq('is_active', true);
-
     // Generate crypto-secure token
     const rawToken = generateSecureToken();
     const hashedToken = await hashToken(rawToken);
@@ -554,13 +548,33 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    await (supabase as any).from('customer_sessions').insert({
+    // Create the new session FIRST and verify it persisted. This insert used
+    // to be fire-and-forget: if it failed, the endpoint still returned success
+    // and emailed a token whose session never existed, so every magic link
+    // bounced to login. Insert-then-deactivate also avoids leaving the customer
+    // with zero active sessions if the insert fails.
+    const { error: sessionError } = await (supabase as any).from('customer_sessions').insert({
       customer_id: customer.id,
       company_id: customer.company_id,
       token: hashedToken, // Store HASHED token, not raw
       email: customer.email,
       expires_at: expiresAt.toISOString(),
     });
+
+    if (sessionError) {
+      console.error('[Portal] Failed to create customer session:', sessionError);
+      return NextResponse.json(
+        { error: 'Could not start a login session. Please try again, or contact support if it continues.' },
+        { status: 500 }
+      );
+    }
+
+    // Single active session: retire the customer's OTHER active sessions.
+    await (supabase as any).from('customer_sessions')
+      .update({ is_active: false })
+      .eq('customer_id', customer.id)
+      .eq('is_active', true)
+      .neq('token', hashedToken);
 
     // Build portal URL with RAW token (only the customer receives this).
     // Use APP_URL first: it's the per-deploy canonical URL (sandbox on the
