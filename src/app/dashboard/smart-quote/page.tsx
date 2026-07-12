@@ -273,10 +273,20 @@ export default function SmartQuotingPage() {
       setIsRecording(false);
     };
 
-    recognition.start();
-
-    // Store recognition instance for stopping
-    (window as any).currentRecognition = recognition;
+    // Stop any lingering recognition from a previous attempt, then start.
+    // recognition.start() throws if one is already running, which would leave
+    // the UI stuck on "Recording…".
+    try {
+      if ((window as any).currentRecognition) {
+        try { (window as any).currentRecognition.stop(); } catch { /* ignore */ }
+      }
+      recognition.start();
+      (window as any).currentRecognition = recognition;
+    } catch (err) {
+      console.error('Could not start voice recognition:', err);
+      setIsRecording(false);
+      alert('Could not start the microphone. Please try again, or use manual entry.');
+    }
   };
 
   const stopVoiceRecording = () => {
@@ -294,6 +304,11 @@ export default function SmartQuotingPage() {
   const processVoiceToLineItems = async (transcript: string) => {
     setIsProcessingVoice(true);
 
+    // Guard against a hung AI request: abort after 30s so the "AI is parsing…"
+    // spinner can never get stuck forever (it falls back to a manual item).
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
       const response = await fetch('/api/ai-quote', {
         method: 'POST',
@@ -305,6 +320,7 @@ export default function SmartQuotingPage() {
           customerAddress: newCustomer.address || '',
           generateTiers: false,
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -351,6 +367,7 @@ export default function SmartQuotingPage() {
         total: 0,
       }]);
     } finally {
+      clearTimeout(timeoutId);
       setIsProcessingVoice(false);
       setQuoteMode('manual');
     }
