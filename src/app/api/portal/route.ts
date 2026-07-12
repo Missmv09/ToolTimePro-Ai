@@ -645,6 +645,35 @@ export async function POST(request: NextRequest) {
 
     await logPortalAccess(supabase, session.company_id, session.customer_id, 'reschedule_requested', clientIp, `Reschedule requested for job ${jobId}`);
 
+    // Notify the company's owner/admins so the request is actually visible on
+    // the business side (Bug #52/#65: the request was saved but nobody saw it).
+    // Best-effort — a notification failure must not fail the reschedule itself.
+    try {
+      const [{ data: managers }, { data: cust }, { data: jobRow }] = await Promise.all([
+        supabase.from('users').select('id').eq('company_id', session.company_id)
+          .in('role', ['owner', 'admin', 'worker_admin']).eq('is_active', true),
+        supabase.from('customers').select('name').eq('id', session.customer_id).single(),
+        supabase.from('jobs').select('title').eq('id', jobId).single(),
+      ]);
+
+      if (managers && managers.length > 0) {
+        const custName = (cust as { name?: string } | null)?.name || 'A customer';
+        const jobTitle = (jobRow as { title?: string } | null)?.title || 'a job';
+        const when = `${requestedDate}${requestedTimeStart ? ` at ${requestedTimeStart}` : ''}`;
+        const rows = (managers as { id: string }[]).map((m) => ({
+          company_id: session.company_id,
+          user_id: m.id,
+          type: 'reschedule_requested',
+          title: 'Reschedule requested',
+          message: `${custName} requested to reschedule "${jobTitle}" to ${when}.`,
+          link: '/dashboard/schedule',
+        }));
+        await (supabase as any).from('notifications').insert(rows);
+      }
+    } catch (notifyErr) {
+      console.error('Failed to create reschedule notification:', notifyErr);
+    }
+
     return NextResponse.json({ success: true });
   }
 

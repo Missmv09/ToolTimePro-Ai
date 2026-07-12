@@ -155,7 +155,8 @@
       "passwordPlaceholder": "Mínimo 8 caracteres",
       "confirmPasswordPlaceholder": "Confirma tu contraseña",
       "updatePassword": "Actualizar contraseña",
-      "updating": "Actualizando..."
+      "updating": "Actualizando...",
+      "switchToDashboard": "Ir al panel de administración"
     },
     "safety": {
       "emergency": "¿Emergencia?",
