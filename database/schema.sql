@@ -224,6 +224,7 @@ CREATE TABLE time_entries (
     clock_in_location JSONB, -- {lat, lng, address}
     clock_out_location JSONB,
     break_minutes INTEGER DEFAULT 0,
+    total_hours DECIMAL(10,2), -- Computed shift length in hours, set on clock-out
     notes TEXT,
     status VARCHAR(50) DEFAULT 'active', -- active, completed, edited
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
