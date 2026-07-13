@@ -529,6 +529,7 @@ export interface Database {
           discount_amount: number
           total: number
           status: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired'
+          frequency: string | null
           valid_until: string | null
           sent_at: string | null
           viewed_at: string | null
@@ -561,6 +562,7 @@ export interface Database {
           discount_amount?: number
           total?: number
           status?: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired'
+          frequency?: string | null
           valid_until?: string | null
           sent_at?: string | null
           viewed_at?: string | null
@@ -593,6 +595,7 @@ export interface Database {
           discount_amount?: number
           total?: number
           status?: 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired'
+          frequency?: string | null
           valid_until?: string | null
           sent_at?: string | null
           viewed_at?: string | null

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency';
 
 // Types
 interface LineItem {
@@ -197,6 +198,7 @@ export default function SmartQuotingPage() {
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState('');
   const [validDays, setValidDays] = useState(30);
+  const [frequency, setFrequency] = useState<string>(DEFAULT_QUOTE_FREQUENCY);
 
   // Calculate totals
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
@@ -900,6 +902,7 @@ export default function SmartQuotingPage() {
         total: Number(grandTotal) || 0,
         notes: notes,
         status: asDraft ? 'draft' : 'sent',
+        frequency: frequency,
         valid_until: validUntil.toISOString().split('T')[0],
         sent_at: asDraft ? null : new Date().toISOString(),
         created_by: createdById,
@@ -2027,7 +2030,7 @@ export default function SmartQuotingPage() {
                 placeholder="Add any notes, terms, or special instructions..."
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 min-h-[100px]"
               />
-              <div className="mt-4 flex items-center gap-4">
+              <div className="mt-4 flex flex-wrap items-center gap-4">
                 <label className="text-sm text-gray-600">Quote valid for:</label>
                 <select
                   value={validDays}
@@ -2038,6 +2041,16 @@ export default function SmartQuotingPage() {
                   <option value={14}>14 days</option>
                   <option value={30}>30 days</option>
                   <option value={60}>60 days</option>
+                </select>
+                <label className="text-sm text-gray-600">Service frequency:</label>
+                <select
+                  value={frequency}
+                  onChange={(e) => setFrequency(e.target.value)}
+                  className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                >
+                  {QUOTE_FREQUENCIES.map((f) => (
+                    <option key={f.value} value={f.value}>{f.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -2112,7 +2125,12 @@ export default function SmartQuotingPage() {
 
                 <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2 mt-2">
                   <span className="text-navy-500">Total</span>
-                  <span className="text-gold-600">${grandTotal.toFixed(2)}</span>
+                  <span className="text-gold-600">
+                    ${grandTotal.toFixed(2)}
+                    {frequencySuffix(frequency) && (
+                      <span className="text-sm font-normal text-gray-500 ml-1">{frequencySuffix(frequency)}</span>
+                    )}
+                  </span>
                 </div>
               </div>
 
