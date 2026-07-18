@@ -19,7 +19,7 @@ Build a professional website for your business and publish SEO-optimized blog po
 
 ### Website Features
 
-Your ToolTime Pro website includes:
+Your Task Iguana website includes:
 - **Professional design** — Mobile-responsive templates built for field service businesses
 - **Online booking integration** — Customers can book appointments directly from your site
 - **Jenny AI chatbot** — Lead capture widget built right in
@@ -86,7 +86,7 @@ Publish blog posts to attract more customers through search engines and establis
 
 ### AI-Powered Blog Writing
 
-ToolTime Pro can **generate blog posts for you** using AI:
+Task Iguana can **generate blog posts for you** using AI:
 
 1. Browse **topic suggestions** tailored to your trade:
    - Landscaper? Topics like "5 Spring Lawn Care Tips" or "How to Choose the Right Mulch"
@@ -107,7 +107,7 @@ ToolTime Pro can **generate blog posts for you** using AI:
 
 ### Blog + Website
 
-Published blog posts appear on your ToolTime Pro website automatically, giving you fresh content that helps with search engine rankings.
+Published blog posts appear on your Task Iguana website automatically, giving you fresh content that helps with search engine rankings.
 
 ---
 
@@ -124,6 +124,6 @@ Published blog posts appear on your ToolTime Pro website automatically, giving y
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard

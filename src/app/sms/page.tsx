@@ -29,13 +29,13 @@ export default function SmsPage() {
 
           <section>
             <h2 className="text-xl font-bold mb-3">{t('programName')}</h2>
-            <p>ToolTime Pro Service Notifications</p>
+            <p>Task Iguana Service Notifications</p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold mb-3">{t('howYouOptIn')}</h2>
             <p className="mb-4">
-              When booking a service appointment through ToolTime Pro, customers are presented with an
+              When booking a service appointment through Task Iguana, customers are presented with an
               explicit opt-in checkbox to consent to receiving SMS/text message notifications. The
               checkbox is <strong>unchecked by default</strong> &mdash; you must actively check it to opt in.
               No SMS messages are sent without your explicit consent.
@@ -54,7 +54,7 @@ export default function SmsPage() {
                   />
                   <span className="text-sm text-[#1a1a2e]">
                     I agree to receive SMS/text message notifications about my appointment
-                    (confirmations, reminders, and updates) from [Business Name] via ToolTime Pro.
+                    (confirmations, reminders, and updates) from [Business Name] via Task Iguana.
                     Message and data rates may apply. Message frequency varies. Reply <strong>STOP</strong> to
                     opt out or <strong>HELP</strong> for help at any time.
                   </span>
@@ -92,7 +92,7 @@ export default function SmsPage() {
           <section id="two-factor-authentication">
             <h2 className="text-xl font-bold mb-3">Two-Factor Authentication (2FA) SMS &mdash; Public Opt-In Walk-Through</h2>
             <p className="mb-2">
-              If you enable two-factor authentication (2FA) in your ToolTime Pro account settings,
+              If you enable two-factor authentication (2FA) in your Task Iguana account settings,
               you will receive SMS messages containing one-time verification codes when logging in
               from unrecognized devices. By affirmatively checking the unchecked SMS consent checkbox
               shown in Step 4 below, you explicitly consent to receive these security-related text messages.
@@ -106,16 +106,16 @@ export default function SmsPage() {
               </p>
             </div>
 
-            <h3 className="font-bold mt-6 mb-3 text-lg">Step 1 &mdash; Sign in to ToolTime Pro and open the Dashboard</h3>
+            <h3 className="font-bold mt-6 mb-3 text-lg">Step 1 &mdash; Sign in to Task Iguana and open the Dashboard</h3>
             <figure className="border border-gray-200 rounded-xl p-4 bg-white">
               <img
                 src="/2fa-step-1.png"
-                alt="Screenshot of the ToolTime Pro Dashboard after sign-in, showing the left navigation sidebar with the Settings menu item."
+                alt="Screenshot of the Task Iguana Dashboard after sign-in, showing the left navigation sidebar with the Settings menu item."
                 className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
                 loading="lazy"
               />
               <figcaption className="text-xs text-[#5c5c70] mt-3 text-center">
-                Account holders sign in at <strong>tooltimepro.com</strong> and are taken to the Dashboard.
+                Account holders sign in at <strong>taskiguana.com</strong> and are taken to the Dashboard.
                 The <em>Settings</em> link is in the left navigation sidebar.
               </figcaption>
             </figure>
@@ -124,7 +124,7 @@ export default function SmsPage() {
             <figure className="border border-gray-200 rounded-xl p-4 bg-white">
               <img
                 src="/2fa-step-2.png"
-                alt="Screenshot of the ToolTime Pro Settings page with the Two-Factor Authentication card visible."
+                alt="Screenshot of the Task Iguana Settings page with the Two-Factor Authentication card visible."
                 className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
                 loading="lazy"
               />
@@ -138,7 +138,7 @@ export default function SmsPage() {
             <figure className="border border-gray-200 rounded-xl p-4 bg-white">
               <img
                 src="/2fa.png"
-                alt="Screenshot of the ToolTime Pro Two-Factor Authentication form showing the phone number entry field and the unchecked SMS consent checkbox with the full opt-in disclosure label."
+                alt="Screenshot of the Task Iguana Two-Factor Authentication form showing the phone number entry field and the unchecked SMS consent checkbox with the full opt-in disclosure label."
                 className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
                 loading="lazy"
               />
@@ -156,7 +156,7 @@ export default function SmsPage() {
             <figure className="border-2 border-[#f5a623] rounded-xl p-4 bg-[#fef3d6]/30">
               <img
                 src="/2fa-step-4.png"
-                alt="Screenshot of the ToolTime Pro Two-Factor Authentication form with the SMS consent checkbox now affirmatively checked by the user, indicating express written consent to receive 2FA SMS."
+                alt="Screenshot of the Task Iguana Two-Factor Authentication form with the SMS consent checkbox now affirmatively checked by the user, indicating express written consent to receive 2FA SMS."
                 className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
                 loading="lazy"
               />
@@ -190,8 +190,8 @@ export default function SmsPage() {
 
             <h3 className="font-bold mt-6 mb-2">Sample 2FA messages</h3>
             <ul className="list-disc pl-6 space-y-1 mb-4 text-sm">
-              <li><code className="bg-gray-100 px-1 rounded">Your ToolTime Pro verification code is: 123456. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
-              <li><code className="bg-gray-100 px-1 rounded">Your ToolTime Pro verification code is: 789012. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
+              <li><code className="bg-gray-100 px-1 rounded">Your Task Iguana verification code is: 123456. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
+              <li><code className="bg-gray-100 px-1 rounded">Your Task Iguana verification code is: 789012. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.</code></li>
             </ul>
 
             <p className="mt-2">
@@ -229,7 +229,7 @@ export default function SmsPage() {
             <h2 className="text-xl font-bold mb-3">{t('howToOptOut')}</h2>
             <p>
               You can opt out of SMS notifications at any time by replying <strong>STOP</strong> to
-              any message you receive from ToolTime Pro. You will receive a confirmation message and
+              any message you receive from Task Iguana. You will receive a confirmation message and
               no further texts will be sent.
             </p>
           </section>
@@ -238,7 +238,7 @@ export default function SmsPage() {
             <h2 className="text-xl font-bold mb-3">{t('howToGetHelp')}</h2>
             <p>
               Reply <strong>HELP</strong> to any message for assistance, or contact us at{' '}
-              <strong>support@tooltimepro.com</strong>.
+              <strong>support@taskiguana.com</strong>.
             </p>
           </section>
 
@@ -267,10 +267,10 @@ export default function SmsPage() {
               {t('contactQuestion')}
             </p>
             <p className="mt-2">
-              <strong>Email:</strong> support@tooltimepro.com<br />
+              <strong>Email:</strong> support@taskiguana.com<br />
               <strong>Website:</strong>{' '}
-              <a href="https://tooltimepro.com" className="text-[#f5a623] hover:underline">
-                tooltimepro.com
+              <a href="https://taskiguana.com" className="text-[#f5a623] hover:underline">
+                taskiguana.com
               </a>
             </p>
           </section>

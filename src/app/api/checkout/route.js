@@ -159,7 +159,7 @@ export async function GET(request) {
     const requestOrigin = (() => {
       try { return new URL(request.url).origin; } catch { return null; }
     })();
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || requestOrigin || 'https://tooltimepro.com';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || requestOrigin || 'https://taskiguana.com';
 
     const baseMetadata = {
       plan: tier || standalone || '',

@@ -425,7 +425,7 @@ export default function PublicSiteRenderer({ site, template, isBetaTester = fals
           &copy; {new Date().getFullYear()} {businessName}. All rights reserved.
         </p>
         <p style={{ marginTop: '8px', fontSize: '11px', opacity: 0.4, color: '#fff' }}>
-          Powered by <a href="https://tooltimepro.com" style={{ color: accentColor, textDecoration: 'none' }}>ToolTime Pro</a>
+          Powered by <a href="https://taskiguana.com" style={{ color: accentColor, textDecoration: 'none' }}>Task Iguana</a>
         </p>
       </footer>
 

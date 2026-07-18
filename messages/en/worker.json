@@ -25,7 +25,7 @@
       "statusCancelled": "Cancelled"
     },
     "login": {
-      "title": "ToolTime Pro",
+      "title": "Task Iguana",
       "subtitle": "Worker Portal",
       "signIn": "Sign In",
       "signingIn": "Signing in...",
@@ -127,7 +127,7 @@
       "changePin": "Change PIN",
       "changePassword": "Change Password",
       "signOut": "Sign Out",
-      "appVersion": "ToolTime Pro Worker App v1.0.0",
+      "appVersion": "Task Iguana Worker App v1.0.0",
       "notAuthenticated": "Not Authenticated",
       "pleaseLogIn": "Please log in to view your profile",
       "goToLogin": "Go to Login",
@@ -138,7 +138,7 @@
       "saving": "Saving...",
       "newPin": "New 4-Digit PIN",
       "confirmPin": "Confirm PIN",
-      "pinHelp": "This PIN is used to sign in to the ToolTime Worker App.",
+      "pinHelp": "This PIN is used to sign in to the Task Iguana Worker App.",
       "updatePin": "Update PIN",
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",

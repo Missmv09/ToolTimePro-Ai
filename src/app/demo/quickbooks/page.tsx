@@ -301,12 +301,12 @@ export default function QuickBooksDemoPage() {
           {/* Workflow Diagram */}
           <div className="bg-white rounded-2xl p-8 shadow-lg">
             <div className="grid md:grid-cols-5 gap-4 items-center">
-              {/* ToolTime Pro */}
+              {/* Task Iguana */}
               <div className="text-center p-4">
                 <div className="w-16 h-16 bg-[#1a1a2e] rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3">
                   🔧
                 </div>
-                <h4 className="font-bold text-[#1a1a2e]">ToolTime Pro</h4>
+                <h4 className="font-bold text-[#1a1a2e]">Task Iguana</h4>
                 <p className="text-xs text-gray-500 mt-1">{t('createInvoicesRecord')}</p>
               </div>
 

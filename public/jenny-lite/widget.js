@@ -1,5 +1,5 @@
 /**
- * Jenny Lite Chat Widget — ToolTime Pro
+ * Jenny Lite Chat Widget — Task Iguana
  *
  * Standalone, zero-dependency embeddable chat widget.
  * Reads configuration from window.JennyLiteConfig:
@@ -9,7 +9,7 @@
  *   <script>
  *     window.JennyLiteConfig = { businessName: "Acme Services", phone: "555-1234" };
  *   </script>
- *   <script src="https://cdn.tooltimepro.com/jenny-lite/widget.js" async></script>
+ *   <script src="https://cdn.taskiguana.com/jenny-lite/widget.js" async></script>
  */
 (function () {
   'use strict';
@@ -27,7 +27,7 @@
   var faqs = Array.isArray(cfg.faqs) ? cfg.faqs.filter(function (f) { return f.question && f.answer; }) : [];
   var siteId = cfg.siteId || null;
   var companyId = cfg.companyId || null;
-  var apiBase = cfg.apiBase || 'https://tooltimepro.com';
+  var apiBase = cfg.apiBase || 'https://taskiguana.com';
 
   var isOpen = false;
   var messages = [];
@@ -412,11 +412,11 @@
       chatWindow.appendChild(
         el('div', { style: { textAlign: 'center', padding: '6px 0', background: '#fff', borderTop: '1px solid #f3f4f6' } }, [
           el('a', {
-            href: 'https://tooltimepro.com',
+            href: 'https://taskiguana.com',
             target: '_blank',
             rel: 'noopener noreferrer',
             style: { fontSize: '10px', color: '#9ca3af', textDecoration: 'none' },
-          }, ['Powered by ToolTime Pro']),
+          }, ['Powered by Task Iguana']),
         ])
       );
 

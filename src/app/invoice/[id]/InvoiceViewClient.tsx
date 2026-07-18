@@ -495,7 +495,7 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-400">
-          <p>{t('poweredBy')} <span className="font-semibold">ToolTime Pro</span></p>
+          <p>{t('poweredBy')} <span className="font-semibold">Task Iguana</span></p>
         </div>
       </div>
     </div>

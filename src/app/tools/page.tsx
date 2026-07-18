@@ -69,7 +69,7 @@ export default function FreeToolsPage() {
           <Link href="/">
             <Image
               src="/logo-01262026.png"
-              alt="ToolTime Pro"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"
@@ -335,14 +335,14 @@ export default function FreeToolsPage() {
           <div className="flex justify-center mb-4">
             <Image
               src="/logo-horizontal-white-01262026.png"
-              alt="ToolTime Pro"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"
             />
           </div>
           <p className="text-gray-400 text-sm">
-            © 2026 ToolTime Pro. All rights reserved.
+            © 2026 Task Iguana. All rights reserved.
           </p>
         </div>
       </footer>

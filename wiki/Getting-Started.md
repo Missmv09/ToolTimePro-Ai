@@ -1,12 +1,12 @@
-# Getting Started with ToolTime Pro
+# Getting Started with Task Iguana
 
-Welcome to ToolTime Pro! This guide walks you through setting up your account, completing onboarding, and dispatching your first job.
+Welcome to Task Iguana! This guide walks you through setting up your account, completing onboarding, and dispatching your first job.
 
 ---
 
 ## 1. Create Your Account
 
-1. Go to [tooltimepro.com](https://www.tooltimepro.com) and click **Get Started Free**
+1. Go to [taskiguana.com](https://www.taskiguana.com) and click **Get Started Free**
 2. Enter your company name, your name, email, and password
 3. Select your industry (60+ supported — landscaping, plumbing, HVAC, electrical, roofing, cleaning, and more)
 4. Choose your plan: **Starter** ($49/mo), **Pro** ($79/mo), or **Elite** ($129/mo)
@@ -86,7 +86,7 @@ Not sure where to start? We offer two onboarding packages:
 | **Assisted Onboarding** | $199 (one-time) | Guided setup call, service catalog configuration, team invites, booking page setup |
 | **White-Glove Setup** | $499 (one-time) | Full account configuration, data migration, custom website build, training session |
 
-Contact support@tooltimepro.com or call 1-888-980-8665 to book.
+Contact support@taskiguana.com or call 1-888-980-8665 to book.
 
 ---
 

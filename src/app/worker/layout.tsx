@@ -80,9 +80,9 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
 
   // Helper to get company name (handles both object and array from Supabase)
   const getCompanyName = (company: WorkerUser['company']): string => {
-    if (!company) return 'ToolTime Pro'
-    if (Array.isArray(company)) return company[0]?.name || 'ToolTime Pro'
-    return company.name || 'ToolTime Pro'
+    if (!company) return 'Task Iguana'
+    if (Array.isArray(company)) return company[0]?.name || 'Task Iguana'
+    return company.name || 'Task Iguana'
   }
 
   // Don't show layout on login page

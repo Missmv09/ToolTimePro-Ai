@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-xl font-bold mb-3">1. Introduction</h2>
             <p>
-              ToolTime Pro (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the tooltimepro.com website and the ToolTime Pro
+              Task Iguana (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the taskiguana.com website and the Task Iguana
               platform. This Privacy Policy explains how we collect, use, disclose, and safeguard your information
               when you use our services.
             </p>
@@ -65,7 +65,7 @@ export default function PrivacyPolicyPage() {
             <p className="mb-2">
               We use SMS messaging to send service-related notifications to customers on behalf of businesses
               using our platform, and to send security-related messages (such as two-factor authentication
-              verification codes) to ToolTime Pro account holders. These messages may include:
+              verification codes) to Task Iguana account holders. These messages may include:
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Two-factor authentication (2FA) one-time verification codes sent to account holders when logging in from an unrecognized device.</li>
@@ -103,12 +103,12 @@ export default function PrivacyPolicyPage() {
           <section id="2fa-sms">
             <h2 className="text-xl font-bold mb-3">4a. Two-Factor Authentication (2FA) SMS Program</h2>
             <p className="mb-2">
-              ToolTime Pro offers an optional two-factor authentication (2FA) feature that sends one-time
+              Task Iguana offers an optional two-factor authentication (2FA) feature that sends one-time
               verification codes via SMS to confirm your identity when logging in from an unrecognized device.
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>Program name:</strong> ToolTime Pro Two-Factor Authentication.</li>
-              <li><strong>Who receives messages:</strong> Only ToolTime Pro account holders who have actively enabled 2FA in their account settings and provided a phone number.</li>
+              <li><strong>Program name:</strong> Task Iguana Two-Factor Authentication.</li>
+              <li><strong>Who receives messages:</strong> Only Task Iguana account holders who have actively enabled 2FA in their account settings and provided a phone number.</li>
               <li><strong>How users opt in:</strong> Account holders go to <em>Dashboard &rarr; Settings &rarr; Two-Factor Authentication</em>, enter their phone number, check the SMS consent box (&ldquo;I agree to receive SMS text messages containing verification codes for two-factor authentication...&rdquo;), and click <em>Enable 2FA</em>.</li>
               <li><strong>Message content:</strong> A 6-digit verification code that expires in 10 minutes, plus standard compliance language (&ldquo;Reply STOP to opt out, HELP for help. Msg&amp;Data rates may apply.&rdquo;).</li>
               <li><strong>Message frequency:</strong> Only sent on login attempts from unrecognized devices (typically 0&ndash;3 per month per user).</li>
@@ -124,7 +124,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-xl font-bold mb-3">5. Google Calendar Integration</h2>
             <p className="mb-2">
-              ToolTime Pro offers an optional integration with Google Calendar. When you choose to connect
+              Task Iguana offers an optional integration with Google Calendar. When you choose to connect
               your Google Calendar, the following applies:
             </p>
 
@@ -132,7 +132,7 @@ export default function PrivacyPolicyPage() {
             <p className="mb-2">
               We request access to the <code className="bg-gray-100 px-1 rounded text-sm">calendar.events</code> scope,
               which allows us to create, read, update, and delete events on your Google Calendar. We use this access
-              solely to sync your ToolTime Pro jobs and appointments to your Google Calendar.
+              solely to sync your Task Iguana jobs and appointments to your Google Calendar.
             </p>
 
             <h3 className="font-bold mt-4 mb-2">How We Use Google Calendar Data</h3>
@@ -143,7 +143,7 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p className="mt-2">
               We <strong>do not</strong> read, store, or process any pre-existing events on your Google Calendar.
-              We only interact with events that ToolTime Pro has created.
+              We only interact with events that Task Iguana has created.
             </p>
 
             <h3 className="font-bold mt-4 mb-2">Data Storage &amp; Security</h3>
@@ -157,12 +157,12 @@ export default function PrivacyPolicyPage() {
             <p>
               We <strong>do not sell, lease, or share</strong> your Google Calendar data or Google user data
               with any third party for advertising, analytics, or any other purpose. Google Calendar data is
-              used exclusively to provide the calendar sync feature within ToolTime Pro.
+              used exclusively to provide the calendar sync feature within Task Iguana.
             </p>
 
             <h3 className="font-bold mt-4 mb-2">Limited Use Disclosure</h3>
             <p>
-              ToolTime Pro&apos;s use and transfer of information received from Google APIs adheres to the{' '}
+              Task Iguana&apos;s use and transfer of information received from Google APIs adheres to the{' '}
               <a href="https://developers.google.com/terms/api-services-user-data-policy" className="text-[#f5a623] hover:underline" target="_blank" rel="noopener noreferrer">
                 Google API Services User Data Policy
               </a>, including the Limited Use requirements. We do not use Google user data for serving
@@ -175,7 +175,7 @@ export default function PrivacyPolicyPage() {
 
             <h3 className="font-bold mt-4 mb-2">Revoking Access</h3>
             <p>
-              You can disconnect Google Calendar at any time from your ToolTime Pro Settings page. When you
+              You can disconnect Google Calendar at any time from your Task Iguana Settings page. When you
               disconnect, we revoke your OAuth tokens with Google and delete all stored tokens from our database.
               You can also revoke access directly from your{' '}
               <a href="https://myaccount.google.com/permissions" className="text-[#f5a623] hover:underline" target="_blank" rel="noopener noreferrer">
@@ -310,7 +310,7 @@ export default function PrivacyPolicyPage() {
 
             <h3 className="font-bold mt-4 mb-2">How to Exercise Your Rights</h3>
             <p>
-              To submit a request, email us at <strong>support@tooltimepro.com</strong> with the subject line
+              To submit a request, email us at <strong>support@taskiguana.com</strong> with the subject line
               &quot;California Privacy Request.&quot; We will verify your identity before processing your request
               and respond within 45 days as required by law. You may also designate an authorized agent to
               make a request on your behalf.
@@ -355,8 +355,8 @@ export default function PrivacyPolicyPage() {
               please contact us at:
             </p>
             <p className="mt-2">
-              <strong>Email:</strong> support@tooltimepro.com<br />
-              <strong>Website:</strong> <a href="https://tooltimepro.com" className="text-[#f5a623] hover:underline">tooltimepro.com</a>
+              <strong>Email:</strong> support@taskiguana.com<br />
+              <strong>Website:</strong> <a href="https://taskiguana.com" className="text-[#f5a623] hover:underline">taskiguana.com</a>
             </p>
           </section>
 

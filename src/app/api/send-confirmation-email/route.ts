@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         type: 'magiclink',
         email,
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://tooltimepro.com'}/auth/callback`,
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://taskiguana.com'}/auth/callback`,
         },
       });
 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     // which returns a PKCE `code` the browser can't exchange (no
     // code_verifier stored).  With token_hash the callback page calls
     // verifyOtp() directly, which doesn't need PKCE.
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://tooltimepro.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://taskiguana.com';
     const confirmationUrl = `${baseUrl}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=magiclink`;
 
     // Send the branded confirmation email via Resend

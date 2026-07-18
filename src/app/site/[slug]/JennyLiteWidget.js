@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 
 /*
- * Jenny Chat Widget — Renders on public ToolTime Pro sites.
+ * Jenny Chat Widget — Renders on public Task Iguana sites.
  *
  * Tier behaviour on the customer-facing widget:
  *   Jenny Lite  (free)    – Chat, FAQ answering, basic lead capture.
@@ -26,7 +26,7 @@ const i18n = {
     online: 'Online',
     typePlaceholder: 'Type a message...',
     bookingPlaceholder: 'Type your answer...',
-    poweredBy: 'Powered by ToolTime Pro',
+    poweredBy: 'Powered by Task Iguana',
     // Quick replies
     qrServices: 'What services do you offer?',
     qrQuote: 'How do I get a quote?',
@@ -98,7 +98,7 @@ const i18n = {
     online: 'En línea',
     typePlaceholder: 'Escribe un mensaje...',
     bookingPlaceholder: 'Escribe tu respuesta...',
-    poweredBy: 'Powered by ToolTime Pro',
+    poweredBy: 'Powered by Task Iguana',
     qrServices: '¿Qué servicios ofrecen?',
     qrQuote: '¿Cómo obtengo un presupuesto?',
     qrArea: '¿Qué áreas cubren?',
@@ -782,7 +782,7 @@ export default function JennyLiteWidget({
             }}
           >
             <a
-              href="https://tooltimepro.com"
+              href="https://taskiguana.com"
               target="_blank"
               rel="noopener noreferrer"
               style={{ fontSize: 10, color: '#9ca3af', textDecoration: 'none' }}

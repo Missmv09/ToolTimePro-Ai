@@ -106,7 +106,7 @@ export async function POST(request) {
       }
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://tooltimepro.com'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://taskiguana.com'
 
     // Create onboarding link
     try {

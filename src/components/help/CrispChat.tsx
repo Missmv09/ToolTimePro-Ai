@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Crisp Live Chat Integration for ToolTime Pro Dashboard
+ * Crisp Live Chat Integration for Task Iguana Dashboard
  *
  * Setup instructions:
  * 1. Create a Crisp account at https://crisp.chat
@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
  * This component:
  * - Loads the Crisp chat widget on mount
  * - Identifies the logged-in user (email, name, company)
- * - Configures the widget colors to match ToolTime Pro branding
+ * - Configures the widget colors to match Task Iguana branding
  * - Hides on unauthenticated pages (only renders inside dashboard)
  */
 
@@ -45,7 +45,7 @@ export default function CrispChat() {
     script.async = true;
     document.head.appendChild(script);
 
-    // Brand colors: ToolTime Pro gold
+    // Brand colors: Task Iguana gold
     window.$crisp.push(['config', 'color:theme', ['#f5a623']]);
 
     // Hide the floating bubble — Ask Jenny is the visible help launcher.

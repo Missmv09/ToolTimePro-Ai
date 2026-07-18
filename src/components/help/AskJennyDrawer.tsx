@@ -12,7 +12,7 @@ const WIKI_BASE = 'https://github.com/Missmv09/ToolTimePro-Ai/wiki';
 const GREETING: ChatMessage = {
   role: 'assistant',
   content:
-    "Hi! I'm Jenny. Ask me how to do anything in ToolTime Pro — like \"how do I set up online booking?\" or \"how does Jenny Lite capture leads?\".",
+    "Hi! I'm Jenny. Ask me how to do anything in Task Iguana — like \"how do I set up online booking?\" or \"how does Jenny Lite capture leads?\".",
 };
 
 // $crisp is declared globally by CrispChat.tsx — don't redeclare here.
@@ -120,7 +120,7 @@ export default function AskJennyDrawer() {
               <Sparkles className="h-5 w-5" />
               <div>
                 <div className="text-sm font-semibold">Ask Jenny</div>
-                <div className="text-xs text-navy-100">Self-help for ToolTime Pro</div>
+                <div className="text-xs text-navy-100">Self-help for Task Iguana</div>
               </div>
             </div>
             <button

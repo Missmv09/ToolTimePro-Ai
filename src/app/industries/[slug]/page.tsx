@@ -28,10 +28,10 @@ const industries: Record<string, {
   'landscaping': {
     name: 'Landscaping',
     icon: '🌳',
-    description: 'Manage your landscaping business with ease. From design consultations to installation and maintenance, ToolTime Pro handles scheduling, quoting, and crew management.',
+    description: 'Manage your landscaping business with ease. From design consultations to installation and maintenance, Task Iguana handles scheduling, quoting, and crew management.',
     painPoints: ['Juggling multiple job sites and crews', 'Creating professional quotes quickly', 'Managing seasonal fluctuations', 'Keeping clients updated on project progress'],
     testimonial: {
-      quote: "We went from sticky notes and spreadsheets to running 3 crews across 40+ weekly accounts. ToolTime Pro literally doubled our capacity.",
+      quote: "We went from sticky notes and spreadsheets to running 3 crews across 40+ weekly accounts. Task Iguana literally doubled our capacity.",
       author: "Marcus Chen",
       company: "GreenScape Designs",
       location: "San Diego, CA"
@@ -185,7 +185,7 @@ const industries: Record<string, {
     description: 'Manage recurring cleaning schedules and handle one-time deep cleans with ease. Your clients get reminders, you get paid on time.',
     painPoints: ['Managing recurring vs one-time bookings', 'Handling last-minute cancellations', 'Chasing customers for payment', 'Coordinating multiple cleaners'],
     testimonial: {
-      quote: "We scaled from 20 to 80 recurring clients without hiring office staff. ToolTime Pro handles scheduling and reminders automatically.",
+      quote: "We scaled from 20 to 80 recurring clients without hiring office staff. Task Iguana handles scheduling and reminders automatically.",
       author: "Maria Santos",
       company: "Spotless Home Cleaning",
       location: "Irvine, CA"
@@ -263,7 +263,7 @@ const industries: Record<string, {
     ],
     faqs: [
       { question: 'Can I offer different service packages?', answer: 'Yes! Create quotes with different service tiers. Customers can choose and approve online.' },
-      { question: 'Do I get a booking website?', answer: 'Yes! ToolTime Pro includes a professional website with online booking - no extra cost.' },
+      { question: 'Do I get a booking website?', answer: 'Yes! Task Iguana includes a professional website with online booking - no extra cost.' },
       { question: 'Can I send appointment reminders?', answer: 'Absolutely. Customers get automatic reminders before their appointment.' }
     ]
   },
@@ -449,7 +449,7 @@ const industries: Record<string, {
     description: 'Run your sheet metal fabrication and installation business with ease. Manage custom jobs, schedule crews, send professional quotes, and get paid faster.',
     painPoints: ['Creating accurate fabrication estimates', 'Tracking custom job specs and measurements', 'Coordinating shop and field crews', 'Chasing payments on large projects'],
     testimonial: {
-      quote: "ToolTime Pro helped us go from handwritten quotes to professional estimates in minutes. We\'re closing bigger contracts and getting paid twice as fast.",
+      quote: "Task Iguana helped us go from handwritten quotes to professional estimates in minutes. We\'re closing bigger contracts and getting paid twice as fast.",
       author: "Ray Gutierrez",
       company: "Precision Sheet Metal Works",
       location: "Los Angeles, CA"
@@ -516,8 +516,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const name = industry?.name || slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
   return {
-    title: `${name} Software | ToolTime Pro - Scheduling, Quoting & Invoicing`,
-    description: `ToolTime Pro helps ${name} businesses manage scheduling, send professional quotes, track crews, and get paid faster. Start your free trial today.`,
+    title: `${name} Software | Task Iguana - Scheduling, Quoting & Invoicing`,
+    description: `Task Iguana helps ${name} businesses manage scheduling, send professional quotes, track crews, and get paid faster. Start your free trial today.`,
   };
 }
 
@@ -530,10 +530,10 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
   const displayIndustry = industry || {
     name: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
     icon: '🛠️',
-    description: `ToolTime Pro works perfectly for ${slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} businesses. Schedule jobs, send professional quotes, manage your crew, and get paid faster.`,
+    description: `Task Iguana works perfectly for ${slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} businesses. Schedule jobs, send professional quotes, manage your crew, and get paid faster.`,
     painPoints: ['Managing your schedule efficiently', 'Creating professional quotes', 'Coordinating your team', 'Getting paid on time'],
     testimonial: {
-      quote: "ToolTime Pro transformed how we run our business. Everything is organized and our customers love the professional experience.",
+      quote: "Task Iguana transformed how we run our business. Everything is organized and our customers love the professional experience.",
       author: "Happy Customer",
       company: "Local Service Business",
       location: "California"
@@ -544,7 +544,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       { value: '4.9', label: 'Star rating' }
     ],
     faqs: [
-      { question: 'Will ToolTime Pro work for my business?', answer: 'Yes! ToolTime Pro is designed to adapt to any service business. Schedule jobs, send quotes, manage your team, and invoice customers - all in one place.' },
+      { question: 'Will Task Iguana work for my business?', answer: 'Yes! Task Iguana is designed to adapt to any service business. Schedule jobs, send quotes, manage your team, and invoice customers - all in one place.' },
       { question: 'How long does setup take?', answer: 'Most businesses are up and running in under an hour. Import your customers and start scheduling right away.' },
       { question: 'Is there a contract?', answer: 'No contracts. Month-to-month billing with a 14-day free trial to make sure it\'s right for you.' }
     ]
@@ -567,7 +567,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <Link href="/">
             <Image
               src="/logo-01262026.png"
-              alt="ToolTime Pro"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"
@@ -775,13 +775,13 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
               href="/compare/jobber"
               className="px-6 py-3 bg-gray-100 text-[#1a1a2e] rounded-lg font-medium no-underline hover:bg-gray-200 transition-all"
             >
-              ToolTime Pro vs Jobber →
+              Task Iguana vs Jobber →
             </Link>
             <Link
               href="/compare/housecall-pro"
               className="px-6 py-3 bg-gray-100 text-[#1a1a2e] rounded-lg font-medium no-underline hover:bg-gray-200 transition-all"
             >
-              ToolTime Pro vs Housecall Pro →
+              Task Iguana vs Housecall Pro →
             </Link>
           </div>
         </div>
@@ -819,7 +819,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <Link href="/" className="inline-block mb-4">
             <Image
               src="/logo-horizontal-white-01262026.png"
-              alt="ToolTime Pro"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"

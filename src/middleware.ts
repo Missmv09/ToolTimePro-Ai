@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const MAIN_DOMAIN = 'tooltimepro.com'
+const MAIN_DOMAIN = 'taskiguana.com'
 const SUPPORTED_LOCALES = ['en', 'es']
 const DEFAULT_LOCALE = 'en'
 

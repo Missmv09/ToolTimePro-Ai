@@ -3,7 +3,7 @@
 <!-- AUTO-GENERATED from netlify.toml and netlify/functions/ — do not edit manually -->
 <!-- To update: modify cron schedules or functions, then run: node scripts/generate-wiki.js -->
 
-ToolTime Pro runs automated background tasks via Netlify Scheduled Functions and serverless endpoints.
+Task Iguana runs automated background tasks via Netlify Scheduled Functions and serverless endpoints.
 
 ---
 

@@ -26,7 +26,7 @@ export default function FinalWagePage() {
               <Link href="/">
                 <Image
                   src="/logo-01262026.png"
-                  alt="ToolTime Pro"
+                  alt="Task Iguana"
                   width={140}
                   height={32}
                   className="h-8 w-auto"

@@ -2,9 +2,9 @@
 
 > **Audience:** internal — the operator/developer setting up the integration.
 > This is a one-time configuration runbook, not customer-facing documentation.
-> Production domain is **`www.tooltimepro.com`** (`NEXT_PUBLIC_APP_URL`).
+> Production domain is **`www.taskiguana.com`** (`NEXT_PUBLIC_APP_URL`).
 
-This is the click-by-click guide for getting ToolTime Pro's Google Calendar
+This is the click-by-click guide for getting Task Iguana's Google Calendar
 integration approved and live. The **application code is already complete**
 (connect → callback → sync, with token refresh). Everything below is the
 **Google Cloud Console + Netlify** configuration that the code depends on.
@@ -22,7 +22,7 @@ this guide is what turns the feature on.
 | Google API to enable | **Google Calendar API** |
 | OAuth client type | **Web application** |
 | Scope requested | `https://www.googleapis.com/auth/calendar.events` (sensitive, **not** restricted) |
-| Authorized redirect URI | `https://www.tooltimepro.com/api/google-calendar/callback` |
+| Authorized redirect URI | `https://www.taskiguana.com/api/google-calendar/callback` |
 | Netlify env vars | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | Verification needed? | **Yes** for production (the scope is sensitive) |
 | Security audit (CASA) needed? | **No** — `calendar.events` is sensitive but not restricted |
@@ -41,7 +41,7 @@ this guide is what turns the feature on.
 ### 1. Create / select a project
 1. Go to <https://console.cloud.google.com/>.
 2. Top bar → project dropdown → **New Project**.
-3. Name it `ToolTime Pro` → **Create** → make sure it's selected.
+3. Name it `Task Iguana` → **Create** → make sure it's selected.
 
 ### 2. Enable the Google Calendar API
 1. Left menu → **APIs & Services → Library**.
@@ -51,21 +51,21 @@ this guide is what turns the feature on.
 1. **APIs & Services → OAuth consent screen**.
 2. User type: **External** → **Create**.
 3. Fill in **App information**:
-   - App name: `ToolTime Pro`
-   - User support email: `support@tooltimepro.com`
-   - App logo: upload the ToolTime Pro logo (required for verification).
+   - App name: `Task Iguana`
+   - User support email: `support@taskiguana.com`
+   - App logo: upload the Task Iguana logo (required for verification).
 4. **App domain**:
-   - Application home page: `https://www.tooltimepro.com`
-   - Privacy policy: `https://www.tooltimepro.com/privacy`
-   - Terms of service: `https://www.tooltimepro.com/terms` (if available)
-5. **Authorized domains**: add `tooltimepro.com`.
-   *(This single domain covers `tooltimepro.com`, `www.tooltimepro.com`, and `app.tooltimepro.com`.)*
-6. Developer contact email: `support@tooltimepro.com`.
+   - Application home page: `https://www.taskiguana.com`
+   - Privacy policy: `https://www.taskiguana.com/privacy`
+   - Terms of service: `https://www.taskiguana.com/terms` (if available)
+5. **Authorized domains**: add `taskiguana.com`.
+   *(This single domain covers `taskiguana.com`, `www.taskiguana.com`, and `app.taskiguana.com`.)*
+6. Developer contact email: `support@taskiguana.com`.
 7. **Save and Continue**.
 
 > ⚠️ The homepage, privacy policy, and redirect URI must all live under an
 > authorized domain you own and have verified in Google Search Console.
-> Verify `tooltimepro.com` in Search Console before submitting if you haven't.
+> Verify `taskiguana.com` in Search Console before submitting if you haven't.
 
 ### 4. Add the scope
 1. On the **Scopes** step → **Add or Remove Scopes**.
@@ -81,10 +81,10 @@ this guide is what turns the feature on.
 ### 6. Create the OAuth client credentials
 1. **APIs & Services → Credentials → Create Credentials → OAuth client ID**.
 2. Application type: **Web application**.
-3. Name: `ToolTime Pro Web`.
+3. Name: `Task Iguana Web`.
 4. **Authorized redirect URIs → Add URI** — paste **exactly**:
    ```
-   https://www.tooltimepro.com/api/google-calendar/callback
+   https://www.taskiguana.com/api/google-calendar/callback
    ```
    *(The code builds this from `NEXT_PUBLIC_APP_URL` + `/api/google-calendar/callback`.
    If you ever change `NEXT_PUBLIC_APP_URL`, update this URI to match.)*
@@ -96,16 +96,16 @@ this guide is what turns the feature on.
 ---
 
 ## Part 2 — Wire it into Netlify
-1. Netlify → ToolTime Pro site → **Site configuration → Environment variables**.
+1. Netlify → Task Iguana site → **Site configuration → Environment variables**.
 2. Add:
    - `GOOGLE_CLIENT_ID` = *(the Client ID from step 6)*
    - `GOOGLE_CLIENT_SECRET` = *(the Client secret from step 6)*
-3. Confirm `NEXT_PUBLIC_APP_URL` = `https://www.tooltimepro.com` (the redirect
+3. Confirm `NEXT_PUBLIC_APP_URL` = `https://www.taskiguana.com` (the redirect
    URI is derived from it).
 4. **Redeploy** the site so the new env vars take effect.
 5. Smoke test: log in → Settings → **Connect Google Calendar**. You should get
    the Google consent screen (with an "unverified app" warning that's expected
-   pre-verification — click *Advanced → Go to ToolTime Pro* to proceed as a
+   pre-verification — click *Advanced → Go to Task Iguana* to proceed as a
    test user). Approve, then run a sync and confirm a job appears on the calendar.
 
 ---
@@ -121,7 +121,7 @@ this guide is what turns the feature on.
    - Confirmation your privacy policy discloses Google data use + Limited Use.
 3. Use the ready-made answers in
    [`google-calendar-verification-answers.md`](./google-calendar-verification-answers.md).
-4. Submit and watch `support@tooltimepro.com` for follow-ups from the Trust &
+4. Submit and watch `support@taskiguana.com` for follow-ups from the Trust &
    Safety team — replying promptly is the biggest factor in turnaround time.
 
 ---

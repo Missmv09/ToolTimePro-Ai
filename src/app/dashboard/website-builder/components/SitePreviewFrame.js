@@ -174,7 +174,7 @@ export default function SitePreviewFrame({ wizardData }) {
       ${email ? `<a href="mailto:${email}" style="color:${accentColor};text-decoration:none;">${email}</a>` : ''}
     </div>
     <p style="margin-top:16px;font-size:12px;opacity:0.6;">&copy; ${new Date().getFullYear()} ${businessName}. All rights reserved.</p>
-    <p style="margin-top:8px;font-size:11px;opacity:0.4;">Powered by <a href="https://tooltimepro.com" style="color:${accentColor};text-decoration:none;">ToolTime Pro</a></p>
+    <p style="margin-top:8px;font-size:11px;opacity:0.4;">Powered by <a href="https://taskiguana.com" style="color:${accentColor};text-decoration:none;">Task Iguana</a></p>
   </footer>
 </body>
 </html>`;

@@ -33,7 +33,7 @@ export default function SiteNotFound() {
           fontSize: '15px',
         }}
       >
-        Go to ToolTime Pro
+        Go to Task Iguana
       </Link>
     </div>
   );

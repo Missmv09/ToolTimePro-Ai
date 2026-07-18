@@ -486,7 +486,7 @@ export default function ShieldDemoPage() {
           <p className="text-sm text-[#5c5c70]">
             {t('poweredBy')}{' '}
             <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
-              ToolTime Pro
+              Task Iguana
             </Link>
           </p>
         </div>

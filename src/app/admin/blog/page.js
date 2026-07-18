@@ -26,7 +26,7 @@ const PLATFORM_TOPICS = [
   'How to Get More Google Reviews for Your Home Service Business',
   'The Complete Guide to Hiring Your First Employee as a Contractor',
   // SEO comparison content
-  'Jobber vs ToolTime Pro: Which Is Better for Small Contractors?',
+  'Jobber vs Task Iguana: Which Is Better for Small Contractors?',
   'Why Contractors Are Switching from Pen and Paper to Software',
   'How CRM Software Helps Plumbers Win More Jobs',
   // Tips for growth
@@ -194,7 +194,7 @@ export default function AdminBlogPage() {
               <ArrowLeft size={14} /> Back to Dashboard
             </Link>
             <h1 className="text-3xl font-bold text-[#1a1a2e]">Platform Blog Admin</h1>
-            <p className="text-gray-500 mt-1">Manage blog posts on tooltimepro.com/blog</p>
+            <p className="text-gray-500 mt-1">Manage blog posts on taskiguana.com/blog</p>
           </div>
           <div className="flex gap-3">
             <Link href="/blog" target="_blank" className="btn-ghost flex items-center gap-2 px-4 py-2 border rounded-lg text-sm no-underline text-gray-600 hover:bg-gray-100">
@@ -299,7 +299,7 @@ export default function AdminBlogPage() {
           <div className="bg-white rounded-xl border border-gray-200 text-center py-16">
             <FileText size={48} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-[#1a1a2e] mb-2">No platform blog posts yet</h3>
-            <p className="text-gray-500 mb-6">Generate your first post to start attracting contractors to ToolTime Pro.</p>
+            <p className="text-gray-500 mb-6">Generate your first post to start attracting contractors to Task Iguana.</p>
             <button
               onClick={() => setShowGenerator(true)}
               className="inline-flex items-center gap-2 px-6 py-2 bg-[#f97316] text-white rounded-lg font-semibold hover:bg-[#ea580c]"

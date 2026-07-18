@@ -1,6 +1,6 @@
 {
-  "name": "ToolTime Pro Worker",
-  "short_name": "ToolTime",
+  "name": "Task Iguana Worker",
+  "short_name": "Task Iguana",
   "description": "Clock in, track jobs, and manage your work day — even offline",
   "start_url": "/worker/",
   "display": "standalone",

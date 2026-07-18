@@ -20,7 +20,7 @@ export default function ComparisonPage({ data }: Props) {
       {/* Nav */}
       <nav className="bg-[#1a1a2e] text-white px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-bold text-xl no-underline text-white">ToolTime Pro</Link>
+          <Link href="/" className="font-bold text-xl no-underline text-white">Task Iguana</Link>
           <div className="hidden md:flex items-center gap-6">
             <Link href="/compare" className="text-gray-300 hover:text-white text-sm no-underline">{t('allComparisons')}</Link>
             <Link href="/pricing" className="text-gray-300 hover:text-white text-sm no-underline">{t('seePricing')}</Link>
@@ -83,7 +83,7 @@ export default function ComparisonPage({ data }: Props) {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-4 px-5 text-sm font-medium text-gray-500">{t('planTier')}</th>
-                  <th className="text-left py-4 px-5 text-sm font-medium text-[#f5a623]">ToolTime Pro</th>
+                  <th className="text-left py-4 px-5 text-sm font-medium text-[#f5a623]">Task Iguana</th>
                   <th className="text-left py-4 px-5 text-sm font-medium text-gray-500">{data.name}</th>
                 </tr>
               </thead>
@@ -111,7 +111,7 @@ export default function ComparisonPage({ data }: Props) {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-5 text-sm font-medium text-gray-500">{t('feature')}</th>
-                  <th className="text-center py-3 px-5 text-sm font-medium text-[#f5a623] w-40">ToolTime Pro</th>
+                  <th className="text-center py-3 px-5 text-sm font-medium text-[#f5a623] w-40">Task Iguana</th>
                   <th className="text-center py-3 px-5 text-sm font-medium text-gray-500 w-40">{data.name}</th>
                 </tr>
               </thead>
@@ -168,7 +168,7 @@ export default function ComparisonPage({ data }: Props) {
                   <p className="text-sm font-medium text-gray-500 mb-4">{example.scenario}</p>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#f5a623] font-medium">ToolTime Pro</span>
+                      <span className="text-sm text-[#f5a623] font-medium">Task Iguana</span>
                       <span className="font-bold text-green-700">${example.tooltime.toLocaleString()}/yr</span>
                     </div>
                     <div className="flex items-center justify-between">

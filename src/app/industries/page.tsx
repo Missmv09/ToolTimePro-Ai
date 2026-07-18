@@ -116,7 +116,7 @@ export default function IndustriesPage() {
           <Link href="/">
             <Image
               src="/logo-01262026.png"
-              alt="ToolTime Pro"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"
@@ -294,7 +294,7 @@ export default function IndustriesPage() {
         </div>
       </section>
 
-      {/* Why ToolTime Pro */}
+      {/* Why Task Iguana */}
       <section className="py-16 bg-white">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-12">
@@ -344,7 +344,7 @@ export default function IndustriesPage() {
               <Link href="/" className="inline-block mb-4">
                 <Image
                   src="/logo-horizontal-white-01262026.png"
-                  alt="ToolTime Pro"
+                  alt="Task Iguana"
                   width={180}
                   height={40}
                   className="h-10 w-auto"
@@ -368,7 +368,7 @@ export default function IndustriesPage() {
               <div className="flex flex-col gap-3">
                 <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('login')}</Link>
                 <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('signUp')}</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('contact')}</a>
+                <a href="mailto:support@taskiguana.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('contact')}</a>
               </div>
             </div>
           </div>

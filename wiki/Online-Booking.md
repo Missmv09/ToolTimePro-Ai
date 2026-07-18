@@ -1,6 +1,6 @@
 # Online Booking
 
-Let customers book appointments directly from your website — 24/7, no phone calls needed. Online booking is included in every ToolTime Pro plan.
+Let customers book appointments directly from your website — 24/7, no phone calls needed. Online booking is included in every Task Iguana plan.
 
 ---
 
@@ -24,7 +24,7 @@ Before customers can book, you need a service catalog:
 
 ### Step 2: Build Your Website (Recommended)
 
-Your booking page works best when connected to your ToolTime Pro website:
+Your booking page works best when connected to your Task Iguana website:
 
 1. Go to **Website Builder** in the sidebar
 2. Follow the wizard to create your site
@@ -127,6 +127,6 @@ See [Jenny AI](Jenny-AI) for more on AI-powered booking.
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard

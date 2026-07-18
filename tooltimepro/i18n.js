@@ -1,5 +1,5 @@
 /**
- * Lightweight i18n for ToolTime Pro static marketing pages.
+ * Lightweight i18n for Task Iguana static marketing pages.
  * Reads NEXT_LOCALE cookie (set by the Next.js app) to pick language.
  * Elements with data-i18n="key" get their textContent replaced.
  * Elements with data-i18n-placeholder="key" get their placeholder replaced.

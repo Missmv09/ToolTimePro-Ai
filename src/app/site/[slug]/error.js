@@ -63,7 +63,7 @@ export default function SiteError({ error, reset }) {
             textDecoration: 'none',
           }}
         >
-          Go to ToolTime Pro
+          Go to Task Iguana
         </a>
       </div>
     </div>

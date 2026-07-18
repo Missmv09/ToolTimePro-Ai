@@ -123,7 +123,7 @@ export default function OnboardingStatusPage() {
           <Settings className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <h3 className="text-lg font-medium text-gray-900 mb-1">No setup services purchased</h3>
           <p className="text-gray-500 mb-4">
-            Get help setting up your ToolTime Pro account with our expert team.
+            Get help setting up your Task Iguana account with our expert team.
           </p>
           <div className="flex justify-center gap-4">
             <a href="/pricing" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">

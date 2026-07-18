@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const customer = Array.isArray(quote.customer) ? quote.customer[0] : quote.customer
     const customerName = (customer as { name: string } | null)?.name || 'Customer'
     const quoteNumber = quote.quote_number || `Q-${quote.id.slice(0, 8)}`
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://taskiguana.com'
     const dashboardLink = `${appUrl}/dashboard/quotes`
 
     // Fetch owner/admin users for this company

@@ -16,7 +16,7 @@ export default function ComparePage() {
       {/* Nav */}
       <nav className="bg-[#1a1a2e] text-white px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-bold text-xl no-underline text-white">ToolTime Pro</Link>
+          <Link href="/" className="font-bold text-xl no-underline text-white">Task Iguana</Link>
           <div className="hidden md:flex items-center gap-6">
             <Link href="/#features" className="text-gray-300 hover:text-white text-sm no-underline">{t('features')}</Link>
             <Link href="/pricing" className="text-gray-300 hover:text-white text-sm no-underline">{t('seePricing')}</Link>

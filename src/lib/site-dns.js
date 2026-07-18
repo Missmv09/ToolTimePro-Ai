@@ -1,5 +1,5 @@
 // DNS records a customer must add at their registrar (GoDaddy, Namecheap,
-// Google Domains, etc.) to point a BYO domain at the ToolTime Pro site
+// Google Domains, etc.) to point a BYO domain at the Task Iguana site
 // hosted on Netlify.
 
 export const NETLIFY_LOAD_BALANCER_IP = '75.2.60.5';
@@ -16,7 +16,7 @@ export function dnsRecordsFor(domain) {
       host: '@',
       value: NETLIFY_LOAD_BALANCER_IP,
       ttl: 300,
-      purpose: 'Points your root domain to ToolTime Pro',
+      purpose: 'Points your root domain to Task Iguana',
     },
     {
       type: 'CNAME',

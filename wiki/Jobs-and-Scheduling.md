@@ -6,7 +6,7 @@ Manage your entire workflow — from creating individual jobs to scheduling recu
 
 ## Jobs
 
-Jobs are the core of ToolTime Pro. Every appointment, service call, or project is tracked as a job.
+Jobs are the core of Task Iguana. Every appointment, service call, or project is tracked as a job.
 
 ### Creating a Job
 
@@ -182,6 +182,6 @@ Online Booking → Jobs → Schedule → Dispatch → Route Optimizer
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard

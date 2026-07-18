@@ -90,7 +90,7 @@ export default function JennyLitePage() {
     setSettings({ ...settings, faqs: settings.faqs.filter((_, i) => i !== index) });
   };
 
-  const embedCode = `<!-- Jenny Lite Chat Widget — ToolTime Pro -->
+  const embedCode = `<!-- Jenny Lite Chat Widget — Task Iguana -->
 <script>
   window.JennyLiteConfig = {
     businessName: ${JSON.stringify(settings.businessName)},
@@ -104,7 +104,7 @@ export default function JennyLitePage() {
     faqs: ${JSON.stringify(settings.faqs.filter(f => f.question && f.answer), null, 2)}
   };
 </script>
-<script src="https://cdn.tooltimepro.com/jenny-lite/widget.js" async></script>`;
+<script src="https://cdn.taskiguana.com/jenny-lite/widget.js" async></script>`;
 
   const copyEmbed = () => {
     navigator.clipboard.writeText(embedCode).then(() => {
@@ -575,7 +575,7 @@ export default function JennyLitePage() {
             <div className="flex items-start gap-3">
               <span className="text-xl">🌐</span>
               <div>
-                <div className="font-semibold text-gray-900 text-sm">Using a ToolTime Pro website?</div>
+                <div className="font-semibold text-gray-900 text-sm">Using a Task Iguana website?</div>
                 <p className="text-sm text-gray-600 mt-1">
                   If we built your website, you don&apos;t need the embed code. Just save your settings above
                   and Jenny Lite will automatically appear on your site within a few minutes.

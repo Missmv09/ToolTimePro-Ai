@@ -45,7 +45,7 @@ export default function TrialExpiredGate({ children }: { children: ReactNode }) 
           Your free trial has ended
         </h2>
         <p className="text-gray-600 mb-6">
-          Add a payment method to keep using ToolTime Pro. Your data is safe —
+          Add a payment method to keep using Task Iguana. Your data is safe —
           everything will be right where you left it once you subscribe.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

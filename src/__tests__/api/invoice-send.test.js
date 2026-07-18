@@ -61,7 +61,7 @@ const fullInvoicePayload = {
   total: 189.44,
   dueDate: '2026-04-30',
   notes: 'Payment due within 30 days',
-  invoiceLink: 'https://tooltimepro.com/invoice/inv-abc-123',
+  invoiceLink: 'https://taskiguana.com/invoice/inv-abc-123',
   companyName: 'Green Valley Landscaping',
 };
 
@@ -90,7 +90,7 @@ describe('/api/invoice/send', () => {
     expect(emailArgs.customerName).toBe('Jane Doe');
     expect(emailArgs.invoiceNumber).toBe('INV-2026-042');
     expect(emailArgs.total).toBe(189.44);
-    expect(emailArgs.invoiceLink).toBe('https://tooltimepro.com/invoice/inv-abc-123');
+    expect(emailArgs.invoiceLink).toBe('https://taskiguana.com/invoice/inv-abc-123');
     expect(emailArgs.companyName).toBe('Green Valley Landscaping');
     expect(emailArgs.dueDate).toBe('2026-04-30');
   });
@@ -149,7 +149,7 @@ describe('/api/invoice/send', () => {
   it('defaults customerName to "Customer" when not provided', async () => {
     const request = makeRequest({
       to: 'customer@example.com',
-      invoiceLink: 'https://tooltimepro.com/invoice/abc',
+      invoiceLink: 'https://taskiguana.com/invoice/abc',
       total: 100,
     });
 
@@ -167,7 +167,7 @@ describe('/api/invoice/send', () => {
 
     const request = makeRequest({
       to: 'customer@example.com',
-      invoiceLink: 'https://tooltimepro.com/invoice/abc',
+      invoiceLink: 'https://taskiguana.com/invoice/abc',
     });
 
     const response = await POST(request);
@@ -182,7 +182,7 @@ describe('/api/invoice/send', () => {
 
     const request = makeRequest({
       to: 'customer@example.com',
-      invoiceLink: 'https://tooltimepro.com/invoice/abc',
+      invoiceLink: 'https://taskiguana.com/invoice/abc',
     });
 
     const response = await POST(request);
@@ -199,7 +199,7 @@ describe('/api/invoice/send', () => {
       to: 'customer@example.com',
       invoiceNumber: 'INV-001',
       total: 50,
-      invoiceLink: 'https://tooltimepro.com/invoice/abc',
+      invoiceLink: 'https://taskiguana.com/invoice/abc',
     };
 
     const request = makeRequest(minimalPayload);

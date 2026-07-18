@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe()
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://taskiguana.com'
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

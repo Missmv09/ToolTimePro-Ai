@@ -563,7 +563,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Build portal URL with RAW token (only the customer receives this)
-    const portalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com'}/portal?token=${rawToken}`;
+    const portalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.taskiguana.com'}/portal?token=${rawToken}`;
 
     // Get company name for email
     const { data: company } = await supabase

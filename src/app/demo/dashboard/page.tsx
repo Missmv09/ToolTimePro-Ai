@@ -148,7 +148,7 @@ export default function DashboardDemoPage() {
             <div className="w-8 h-8 bg-[#f5a623] rounded-lg flex items-center justify-center">
               <span className="text-lg">🛠</span>
             </div>
-            <span className="font-bold text-xl text-[#1a1a2e]">ToolTime Pro</span>
+            <span className="font-bold text-xl text-[#1a1a2e]">Task Iguana</span>
           </div>
 
           {/* Company */}
@@ -202,7 +202,7 @@ export default function DashboardDemoPage() {
               <div className="w-7 h-7 bg-[#f5a623] rounded-lg flex items-center justify-center">
                 <span className="text-sm">🛠</span>
               </div>
-              <span className="font-bold text-lg text-[#1a1a2e]">ToolTime Pro</span>
+              <span className="font-bold text-lg text-[#1a1a2e]">Task Iguana</span>
             </div>
             <Link href="/" className="text-sm text-blue-600 font-medium no-underline">{t('exit')}</Link>
           </div>
@@ -448,7 +448,7 @@ export default function DashboardDemoPage() {
               </div>
             </div>
 
-            {/* ToolTime Shield — Compliance */}
+            {/* Task Iguana Shield — Compliance */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50">
                 <div className="flex items-center gap-2">
@@ -569,7 +569,7 @@ export default function DashboardDemoPage() {
             </div>
           </div>
 
-          <DemoLeadCapture featureName="ToolTime Pro Dashboard" source="dashboard_demo" />
+          <DemoLeadCapture featureName="Task Iguana Dashboard" source="dashboard_demo" />
 
           {/* CTA */}
           <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-6 text-white">

@@ -6,7 +6,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
 export const metadata: Metadata = {
-  title: 'ToolTime Pro | AI-Powered Field Service Management',
+  title: 'Task Iguana | AI-Powered Field Service Management',
   description: 'AI-powered FSM for HVAC, plumbing, electrical, landscaping, and roofing contractors. Jenny AI dispatch, Spanish language support, mobile app — starting at $49/month.',
 };
 

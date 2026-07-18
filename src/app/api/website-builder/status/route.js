@@ -88,11 +88,11 @@ export async function GET(request) {
       hasWebsite: true,
       site: {
         ...siteData,
-        siteUrl: site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com')
+        siteUrl: site.custom_domain && !site.custom_domain.endsWith('.taskiguana.com')
           ? `https://${site.custom_domain}`
           : `/site/${site.slug}/`,
         isPublished: site.status === 'live',
-        hasDomain: site.domain_status === 'active' && !!site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com'),
+        hasDomain: site.domain_status === 'active' && !!site.custom_domain && !site.custom_domain.endsWith('.taskiguana.com'),
       },
       template,
       stats: { leadCount: leadCount || 0 },

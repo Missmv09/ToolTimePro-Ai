@@ -446,7 +446,7 @@ export default function OnboardPage() {
                 </label>
               </div>
               <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-700">
-                <p className="font-medium text-blue-800 mb-1">What ToolTime will track for this employee:</p>
+                <p className="font-medium text-blue-800 mb-1">What Task Iguana will track for this employee:</p>
                 <ul className="space-y-1">
                   <li>- Clock in/out with GPS location</li>
                   <li>- Meal breaks (required after 5 hrs) and rest breaks (every 4 hrs)</li>
@@ -585,7 +585,7 @@ export default function OnboardPage() {
               </div>
 
               <div className="bg-orange-50 rounded-lg p-4 text-sm text-orange-700">
-                <p className="font-medium text-orange-800 mb-1">What ToolTime will do for this contractor:</p>
+                <p className="font-medium text-orange-800 mb-1">What Task Iguana will do for this contractor:</p>
                 <ul className="space-y-1">
                   <li>- Simple time logging (no overtime or break rules)</li>
                   <li>- Invoice-based payment tracking</li>

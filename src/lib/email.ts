@@ -12,10 +12,10 @@ function getResend() {
   return resend;
 }
 
-// Default to the verified root domain. Once send.tooltimepro.com is added
-// and verified in Resend, set EMAIL_FROM=ToolTime Pro <no-reply@send.tooltimepro.com>
-const FROM_EMAIL = process.env.EMAIL_FROM || 'ToolTime Pro <no-reply@tooltimepro.com>';
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com';
+// Default to the verified root domain. Once send.taskiguana.com is added
+// and verified in Resend, set EMAIL_FROM=Task Iguana <no-reply@send.taskiguana.com>
+const FROM_EMAIL = process.env.EMAIL_FROM || 'Task Iguana <no-reply@taskiguana.com>';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://taskiguana.com';
 
 function formatPlanName(plan: string): string {
   return plan
@@ -31,7 +31,7 @@ function emailLayout(content: string): string {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 32px 40px; text-align: center;">
           <table cellpadding="0" cellspacing="0" border="0" align="center"><tr>
-            <td style="vertical-align: middle;"><img src="${BASE_URL}/logo-horizontal-white-01262026.png" alt="ToolTime Pro" width="200" style="display: block; height: auto;" /></td>
+            <td style="vertical-align: middle;"><img src="${BASE_URL}/logo-horizontal-white-01262026.png" alt="Task Iguana" width="200" style="display: block; height: auto;" /></td>
           </tr></table>
         </div>
         <!-- Body -->
@@ -42,10 +42,10 @@ function emailLayout(content: string): string {
         <div style="background: #f9fafb; padding: 24px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
           <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 13px;">
             Questions? Email us at
-            <a href="mailto:support@tooltimepro.com" style="color: #f97316; text-decoration: none;">support@tooltimepro.com</a>
+            <a href="mailto:support@taskiguana.com" style="color: #f97316; text-decoration: none;">support@taskiguana.com</a>
           </p>
           <p style="margin: 0; color: #d1d5db; font-size: 12px;">
-            ToolTime Pro &middot; Job management for field service teams
+            Task Iguana &middot; Job management for field service teams
           </p>
         </div>
       </div>
@@ -84,9 +84,9 @@ export async function sendSignupConfirmationEmail({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `${firstName}, confirm your email to start your free ToolTime Pro trial`,
+    subject: `${firstName}, confirm your email to start your free Task Iguana trial`,
     html: emailLayout(`
-      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Welcome to ToolTime Pro, ${firstName}!</h2>
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Welcome to Task Iguana, ${firstName}!</h2>
       <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
         Your account for <strong>${companyName}</strong> has been created. You're one click away from simplifying how you run your business.
       </p>
@@ -151,7 +151,7 @@ export async function sendSignupConfirmationEmail({
 
       <div style="background: #fefce8; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #eab308;">
         <p style="margin: 0; color: #854d0e; font-size: 14px;">
-          <strong>Questions?</strong> Reply to this email or reach us at <a href="mailto:support@tooltimepro.com" style="color: #854d0e;">support@tooltimepro.com</a> &mdash; we're here to help you get set up.
+          <strong>Questions?</strong> Reply to this email or reach us at <a href="mailto:support@taskiguana.com" style="color: #854d0e;">support@taskiguana.com</a> &mdash; we're here to help you get set up.
         </p>
       </div>
 
@@ -184,7 +184,7 @@ export async function sendPasswordResetEmail({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Reset your ToolTime Pro password',
+    subject: 'Reset your Task Iguana password',
     html: emailLayout(`
       <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Hi ${firstName},</h2>
       <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
@@ -228,7 +228,7 @@ export async function sendImmediateWelcomeEmail({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `You're in! Here's how to set up ${companyName} on ToolTime Pro`,
+    subject: `You're in! Here's how to set up ${companyName} on Task Iguana`,
     html: emailLayout(`
       <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">You're all set, ${firstName}!</h2>
       <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0;">
@@ -278,7 +278,7 @@ export async function sendImmediateWelcomeEmail({
 
       <div style="background: #fefce8; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #eab308;">
         <p style="margin: 0; color: #854d0e; font-size: 14px;">
-          <strong>Pro tip:</strong> Create a quote for a recent customer &mdash; most owners say it's the feature that sold them on ToolTime Pro.
+          <strong>Pro tip:</strong> Create a quote for a recent customer &mdash; most owners say it's the feature that sold them on Task Iguana.
         </p>
       </div>
     `),
@@ -313,7 +313,7 @@ export async function sendCheckoutWelcomeWithLoginLink({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Your ToolTime Pro account is ready — log in',
+    subject: 'Your Task Iguana account is ready — log in',
     html: emailLayout(`
       <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Welcome, ${firstName}!</h2>
 
@@ -322,7 +322,7 @@ export async function sendCheckoutWelcomeWithLoginLink({
         click the button below to log in. No password needed for this first login.
       </p>
 
-      ${ctaButton('Log in to ToolTime Pro', loginUrl)}
+      ${ctaButton('Log in to Task Iguana', loginUrl)}
 
       <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-top: 24px;">
         Once you're in, you'll set up your password, finish your company profile, and
@@ -358,7 +358,7 @@ export async function sendWelcomeEmail({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Welcome to ToolTime Pro! Your subscription is active',
+    subject: 'Welcome to Task Iguana! Your subscription is active',
     html: emailLayout(`
       <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Welcome aboard!</h2>
 
@@ -398,7 +398,7 @@ export async function sendTrialWelcomeEmail({ to, name }: { to: string; name: st
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Welcome to ToolTime Pro - Your 14-day Pro trial has started!',
+    subject: 'Welcome to Task Iguana - Your 14-day Pro trial has started!',
     html: emailLayout(`
       <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Welcome, ${name}!</h2>
 
@@ -444,8 +444,8 @@ export async function sendTrialReminderEmail({
 }) {
   const isUrgent = daysLeft <= 3;
   const subject = isUrgent
-    ? `Your ToolTime Pro trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}!`
-    : `${daysLeft} days left in your ToolTime Pro trial`;
+    ? `Your Task Iguana trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}!`
+    : `${daysLeft} days left in your Task Iguana trial`;
 
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
@@ -456,7 +456,7 @@ export async function sendTrialReminderEmail({
 
       <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
         You have <strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong> left in your free Pro trial.
-        ${isUrgent ? 'Subscribe now to keep all your data and avoid any interruption.' : 'Make sure you\'re getting the most out of ToolTime Pro!'}
+        ${isUrgent ? 'Subscribe now to keep all your data and avoid any interruption.' : 'Make sure you\'re getting the most out of Task Iguana!'}
       </p>
 
       ${isUrgent ? `
@@ -499,12 +499,12 @@ export async function sendTeamMemberWelcomeEmail({
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `${companyName || 'Your team'} - ToolTime Pro Worker App Access`,
+    subject: `${companyName || 'Your team'} - Task Iguana Worker App Access`,
     html: emailLayout(`
       <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Welcome to ${companyName ? `the ${companyName} team` : 'the team'}, ${name}!</h2>
 
       <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
-        ${companyName ? `<strong>${companyName}</strong> uses` : 'Your company uses'} <strong>ToolTime Pro</strong> to manage jobs, scheduling, and time tracking.
+        ${companyName ? `<strong>${companyName}</strong> uses` : 'Your company uses'} <strong>Task Iguana</strong> to manage jobs, scheduling, and time tracking.
         You've been set up with access to the <strong>Worker App</strong> so you can view your assigned jobs, clock in/out, and stay connected with your team.
       </p>
 
@@ -638,7 +638,7 @@ export async function sendInvoiceEmail({
     `;
   }
 
-  const senderLabel = companyName || 'ToolTime Pro';
+  const senderLabel = companyName || 'Task Iguana';
 
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
@@ -796,7 +796,7 @@ export async function sendQuoteEmail({
     `;
   }
 
-  const senderLabel = companyName || 'ToolTime Pro';
+  const senderLabel = companyName || 'Task Iguana';
 
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
@@ -861,7 +861,7 @@ export async function sendTrialExpiredEmail({ to, name }: { to: string; name: st
   const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Your ToolTime Pro trial has ended',
+    subject: 'Your Task Iguana trial has ended',
     html: emailLayout(`
       <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">Hi ${name},</h2>
 

@@ -25,7 +25,7 @@ const TIERS = [
       'Smart quoting & invoicing',
       'GPS clock-in',
       'AI-powered quotes & reviews',
-      'Federal compliance (ToolTime Shield)',
+      'Federal compliance (Task Iguana Shield)',
       '1-page website',
       'Spanish language support',
       'Jenny Lite — AI Chat & Lead Capture',
@@ -357,7 +357,7 @@ export default function PricingPage() {
     <div className="pricing-page">
       {/* Navigation */}
       <nav className="nav">
-        <Link href="/"><Image src="/logo-horizontal-white-01262026.png" alt="ToolTime Pro" width={180} height={40} className="logo-img" /></Link>
+        <Link href="/"><Image src="/logo-horizontal-white-01262026.png" alt="Task Iguana" width={180} height={40} className="logo-img" /></Link>
         <div className="nav-links">
           <Link href="/#features">{t('features')}</Link>
           <Link href="/pricing" className="active">{t('pricingNav')}</Link>
@@ -809,7 +809,7 @@ export default function PricingPage() {
       {/* Footer */}
       <footer className="footer">
         <div className="footer-top">
-          <p>© 2026 ToolTime Pro. All rights reserved.</p>
+          <p>© 2026 Task Iguana. All rights reserved.</p>
         </div>
         <div className="footer-links">
           <Link href="/terms">{t('terms')}</Link>

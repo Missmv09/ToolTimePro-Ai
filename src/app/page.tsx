@@ -163,7 +163,7 @@ export default function Home() {
           <Link href="/">
             <Image
               src="/logo-01262026.png"
-              alt="ToolTime Pro"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"
@@ -549,7 +549,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Choose ToolTime Pro Section */}
+      {/* Why Choose Task Iguana Section */}
       <section className="py-[100px] bg-[#1a1a2e] text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.08)_0%,transparent_50%)]" />
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
@@ -967,7 +967,7 @@ export default function Home() {
               <Link href="/" className="inline-block mb-4">
                 <Image
                   src="/logo-horizontal-white-01262026.png"
-                  alt="ToolTime Pro"
+                  alt="Task Iguana"
                   width={180}
                   height={40}
                   className="h-10 w-auto"
@@ -992,7 +992,7 @@ export default function Home() {
               <div className="flex flex-col gap-3">
                 <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Login</Link>
                 <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
+                <a href="mailto:support@taskiguana.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
                 <Link href="/privacy" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Privacy Policy</Link>
                 <Link href="/terms" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Terms & Conditions</Link>
                 <Link href="/sms" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">SMS Terms</Link>
@@ -1000,7 +1000,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-base">
-            <div>© 2026 ToolTime Pro. All rights reserved.</div>
+            <div>© 2026 Task Iguana. All rights reserved.</div>
           </div>
         </div>
       </footer>

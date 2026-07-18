@@ -26,7 +26,7 @@ export default function TrialBanner() {
         <div className="flex items-center gap-3">
           <Clock size={18} className="text-red-500" />
           <p className="text-sm text-red-700">
-            Your free trial has ended. Subscribe to a plan to keep using ToolTime Pro.
+            Your free trial has ended. Subscribe to a plan to keep using Task Iguana.
           </p>
         </div>
         <Link

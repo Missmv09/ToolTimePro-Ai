@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and solutions for ToolTime Pro. If your problem isn't listed here, contact support@tooltimepro.com or call 1-888-980-8665.
+Common issues and solutions for Task Iguana. If your problem isn't listed here, contact support@taskiguana.com or call 1-888-980-8665.
 
 ---
 
@@ -112,7 +112,7 @@ Common issues and solutions for ToolTime Pro. If your problem isn't listed here,
 ### Booking page not showing services
 - Ensure services are marked as **Active** in Settings → Services
 - Check that **Online Booking** is enabled in your settings
-- Verify your booking page URL: `tooltimepro.com/book/[your-company-id]`
+- Verify your booking page URL: `taskiguana.com/book/[your-company-id]`
 - Try accessing in an incognito window
 
 ### Customers not receiving confirmations
@@ -150,7 +150,7 @@ Common issues and solutions for ToolTime Pro. If your problem isn't listed here,
 - Check **Settings** → **Billing** for your subscription details
 - Review any **add-ons** you may have activated
 - Annual plans charge once per year — check the billing date
-- Contact support@tooltimepro.com with the charge details
+- Contact support@taskiguana.com with the charge details
 
 ---
 
@@ -173,7 +173,7 @@ Common issues and solutions for ToolTime Pro. If your problem isn't listed here,
 
 ## Still Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard
 - **Response time:** We typically respond within 2 hours during business hours
