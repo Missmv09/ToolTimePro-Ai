@@ -10,10 +10,10 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
-      <div className="bg-[#1a1a2e] text-white py-8">
+      <div className="bg-[#0A0C11] text-white py-8">
         <div className="max-w-[900px] mx-auto px-6">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
+            <Link href="/" className="text-[#1FE3C4] font-bold text-lg hover:underline">
               &larr; {t('backLink')}
             </Link>
             <LanguageSwitcher />
@@ -25,7 +25,7 @@ export default function PrivacyPolicyPage() {
 
       {/* Content */}
       <div className="max-w-[900px] mx-auto px-6 py-12">
-        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#1a1a2e] leading-relaxed">
+        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#0A0C11] leading-relaxed">
 
           <section>
             <h2 className="text-xl font-bold mb-3">1. Introduction</h2>
@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <p className="mt-2">
               For complete details about our SMS program, supported carriers, and the opt-in CTA, see our{' '}
-              <Link href="/sms" className="text-[#f5a623] hover:underline">SMS Terms &amp; Conditions</Link>.
+              <Link href="/sms" className="text-[#1FE3C4] hover:underline">SMS Terms &amp; Conditions</Link>.
             </p>
           </section>
 
@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage() {
             <h3 className="font-bold mt-4 mb-2">Limited Use Disclosure</h3>
             <p>
               Task Iguana&apos;s use and transfer of information received from Google APIs adheres to the{' '}
-              <a href="https://developers.google.com/terms/api-services-user-data-policy" className="text-[#f5a623] hover:underline" target="_blank" rel="noopener noreferrer">
+              <a href="https://developers.google.com/terms/api-services-user-data-policy" className="text-[#1FE3C4] hover:underline" target="_blank" rel="noopener noreferrer">
                 Google API Services User Data Policy
               </a>, including the Limited Use requirements. We do not use Google user data for serving
               advertisements, do not transfer it to others except as necessary to provide or improve the
@@ -178,7 +178,7 @@ export default function PrivacyPolicyPage() {
               You can disconnect Google Calendar at any time from your Task Iguana Settings page. When you
               disconnect, we revoke your OAuth tokens with Google and delete all stored tokens from our database.
               You can also revoke access directly from your{' '}
-              <a href="https://myaccount.google.com/permissions" className="text-[#f5a623] hover:underline" target="_blank" rel="noopener noreferrer">
+              <a href="https://myaccount.google.com/permissions" className="text-[#1FE3C4] hover:underline" target="_blank" rel="noopener noreferrer">
                 Google Account permissions page
               </a>.
             </p>
@@ -356,7 +356,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <p className="mt-2">
               <strong>Email:</strong> support@taskiguana.com<br />
-              <strong>Website:</strong> <a href="https://taskiguana.com" className="text-[#f5a623] hover:underline">taskiguana.com</a>
+              <strong>Website:</strong> <a href="https://taskiguana.com" className="text-[#1FE3C4] hover:underline">taskiguana.com</a>
             </p>
           </section>
 

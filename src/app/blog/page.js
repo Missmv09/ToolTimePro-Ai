@@ -48,12 +48,12 @@ export default function BlogListingPage() {
             />
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/jenny" className="text-[#f5a623] font-semibold hover:text-[#e6991a] no-underline">{t('navJennyAi')}</Link>
+            <Link href="/jenny" className="text-[#1FE3C4] font-semibold hover:text-[#e6991a] no-underline">{t('navJennyAi')}</Link>
             <Link href="/#features" className="text-gray-600 hover:text-gray-900 no-underline">{t('navFeatures')}</Link>
             <Link href="/pricing" className="text-gray-600 hover:text-gray-900 no-underline">{t('navPricing')}</Link>
-            <Link href="/blog" className="text-[#1a1a2e] font-semibold no-underline">{t('navBlog')}</Link>
+            <Link href="/blog" className="text-[#0A0C11] font-semibold no-underline">{t('navBlog')}</Link>
             <LanguageSwitcher />
-            <Link href="/auth/signup" className="bg-[#f97316] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#ea580c] no-underline">
+            <Link href="/auth/signup" className="bg-[#2E9BFF] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#1E7FE0] no-underline">
               {t('navStartTrial')}
             </Link>
           </div>
@@ -61,7 +61,7 @@ export default function BlogListingPage() {
       </nav>
 
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[#1a1a2e] via-[#2d2d4e] to-[#1a1a2e] text-white py-20">
+      <div className="bg-gradient-to-br from-[#0A0C11] via-[#2d2d4e] to-[#0A0C11] text-white py-20">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">{t('title')}</h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
@@ -85,7 +85,7 @@ export default function BlogListingPage() {
               onClick={() => setCategory(cat.id)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 category === cat.id
-                  ? 'bg-[#1a1a2e] text-white'
+                  ? 'bg-[#0A0C11] text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -121,23 +121,23 @@ export default function BlogListingPage() {
             {featuredPost && posts.length > 1 && (
               <Link href={`/blog/${featuredPost.slug}`} className="block mb-12 no-underline group">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="h-64 lg:h-auto bg-gradient-to-br from-[#1a1a2e] to-[#f97316] flex items-center justify-center">
+                  <div className="h-64 lg:h-auto bg-gradient-to-br from-[#0A0C11] to-[#2E9BFF] flex items-center justify-center">
                     <span className="text-6xl">📝</span>
                   </div>
                   <div className="p-8 flex flex-col justify-center">
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="px-3 py-1 bg-[#f97316]/10 text-[#f97316] rounded-full text-xs font-semibold uppercase">
+                      <span className="px-3 py-1 bg-[#2E9BFF]/10 text-[#2E9BFF] rounded-full text-xs font-semibold uppercase">
                         {t('featured')}
                       </span>
                       <span className="text-sm text-gray-400 flex items-center gap-1">
                         <Clock size={14} /> {featuredPost.read_time_minutes} {t('minRead')}
                       </span>
                     </div>
-                    <h2 className="text-2xl font-bold text-[#1a1a2e] mb-3 group-hover:text-[#f97316] transition-colors">
+                    <h2 className="text-2xl font-bold text-[#0A0C11] mb-3 group-hover:text-[#2E9BFF] transition-colors">
                       {featuredPost.title}
                     </h2>
                     <p className="text-gray-600 mb-4 line-clamp-3">{featuredPost.excerpt}</p>
-                    <span className="text-[#f97316] font-semibold flex items-center gap-1">
+                    <span className="text-[#2E9BFF] font-semibold flex items-center gap-1">
                       {t('readMore')} <ArrowRight size={16} />
                     </span>
                   </div>
@@ -153,7 +153,7 @@ export default function BlogListingPage() {
                   href={`/blog/${post.slug}`}
                   className="group rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all no-underline"
                 >
-                  <div className="h-48 bg-gradient-to-br from-[#1a1a2e] to-[#333357] flex items-center justify-center">
+                  <div className="h-48 bg-gradient-to-br from-[#0A0C11] to-[#333357] flex items-center justify-center">
                     <span className="text-4xl opacity-50">
                       {post.category === 'tips' ? '💡' : post.category === 'guides' ? '📖' : post.category === 'product-updates' ? '🚀' : '📰'}
                     </span>
@@ -169,7 +169,7 @@ export default function BlogListingPage() {
                         <Clock size={12} /> {post.read_time_minutes} {t('min')}
                       </span>
                     </div>
-                    <h3 className="font-bold text-[#1a1a2e] text-lg mb-2 group-hover:text-[#f97316] transition-colors line-clamp-2">
+                    <h3 className="font-bold text-[#0A0C11] text-lg mb-2 group-hover:text-[#2E9BFF] transition-colors line-clamp-2">
                       {post.title}
                     </h3>
                     <p className="text-sm text-gray-500 line-clamp-3 mb-4">{post.excerpt}</p>
@@ -177,7 +177,7 @@ export default function BlogListingPage() {
                       <span className="text-xs text-gray-400">
                         {post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                       </span>
-                      <span className="text-[#f97316] text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                      <span className="text-[#2E9BFF] text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                         {t('read')} <ArrowRight size={14} />
                       </span>
                     </div>
@@ -190,7 +190,7 @@ export default function BlogListingPage() {
       </div>
 
       {/* CTA */}
-      <div className="bg-[#1a1a2e] py-16">
+      <div className="bg-[#0A0C11] py-16">
         <div className="max-w-[800px] mx-auto px-6 text-center">
           <h2 className="text-3xl font-extrabold text-white mb-4 drop-shadow-lg">{t('ctaTitle')}</h2>
           <p className="text-white/90 mb-8">
@@ -198,7 +198,7 @@ export default function BlogListingPage() {
           </p>
           <Link
             href="/auth/signup"
-            className="inline-block bg-[#f97316] text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-[#ea580c] transition-colors no-underline"
+            className="inline-block bg-[#2E9BFF] text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-[#1E7FE0] transition-colors no-underline"
           >
             {t('ctaButton')}
           </Link>

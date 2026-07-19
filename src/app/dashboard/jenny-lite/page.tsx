@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: ChatbotSettings = {
     { question: 'What areas do you serve?', answer: '' },
     { question: 'How do I get a quote?', answer: '' },
   ],
-  accentColor: '#f5a623',
+  accentColor: '#1FE3C4',
   position: 'right',
   smsConsentText: 'By providing your phone number, you agree to receive SMS updates about your inquiry. Message & data rates may apply. Reply STOP to opt out.',
 };
@@ -299,7 +299,7 @@ export default function JennyLitePage() {
                 <div className="text-xs text-gray-400">Used for chat bubble and header</div>
               </div>
               <div className="flex gap-2 ml-4">
-                {['#f5a623', '#2563eb', '#059669', '#dc2626', '#7c3aed', '#1a1a2e'].map(color => (
+                {['#1FE3C4', '#2563eb', '#17B39B', '#dc2626', '#7c3aed', '#0A0C11'].map(color => (
                   <button
                     key={color}
                     onClick={() => setSettings({ ...settings, accentColor: color })}
@@ -588,7 +588,7 @@ export default function JennyLitePage() {
 
       {/* Upgrade CTA — hidden for beta testers who already have full access */}
       {!isBetaTester && (
-        <div className="mt-10 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-8 text-white">
+        <div className="mt-10 bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-xl p-8 text-white">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h3 className="text-lg font-bold mb-1">Want Jenny to answer your phone calls too?</h3>

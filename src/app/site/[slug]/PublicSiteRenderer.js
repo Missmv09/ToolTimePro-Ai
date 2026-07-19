@@ -25,9 +25,9 @@ export default function PublicSiteRenderer({ site, template, isBetaTester = fals
   const licenseNumber = content.licenseNumber || '';
   const yearsInBusiness = content.yearsInBusiness || '';
 
-  const primaryColor = content.colors?.primary || template.primary_color || '#1a1a2e';
+  const primaryColor = content.colors?.primary || template.primary_color || '#0A0C11';
   const secondaryColor = content.colors?.secondary || template.secondary_color || '#16213e';
-  const accentColor = content.colors?.accent || template.accent_color || '#f5a623';
+  const accentColor = content.colors?.accent || template.accent_color || '#1FE3C4';
   const bgColor = content.colors?.background || '#ffffff';
   const rawHeadingColor = content.colors?.headingColor || primaryColor;
   const rawBodyColor = content.colors?.bodyColor || '#333333';

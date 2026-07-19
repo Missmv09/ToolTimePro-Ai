@@ -86,7 +86,7 @@ export default function QuickBooksDemoPage() {
       </div>
 
       {/* Header */}
-      <header className="bg-[#1a1a2e] text-white py-8 px-4">
+      <header className="bg-[#0A0C11] text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <Link href="/" className="text-white/70 hover:text-white text-sm inline-flex items-center gap-1">
@@ -126,7 +126,7 @@ export default function QuickBooksDemoPage() {
                 )}
               </div>
               <div>
-                <h3 className="font-bold text-[#1a1a2e] text-lg">
+                <h3 className="font-bold text-[#0A0C11] text-lg">
                   {connected ? t('connectedToQB') : t('notConnected')}
                 </h3>
                 <p className="text-gray-500 text-sm">
@@ -173,21 +173,21 @@ export default function QuickBooksDemoPage() {
           {connected && (
             <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100">
               <div className="text-center p-4 bg-gray-50 rounded-xl">
-                <div className="text-3xl font-bold text-[#1a1a2e]">{syncStats.invoices.synced}</div>
+                <div className="text-3xl font-bold text-[#0A0C11]">{syncStats.invoices.synced}</div>
                 <div className="text-sm text-gray-500 mt-1">{t('invoicesSynced')}</div>
                 {syncStats.invoices.pending > 0 && (
                   <div className="text-xs text-yellow-600 mt-1">{syncStats.invoices.pending} {t('pending').toLowerCase()}</div>
                 )}
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
-                <div className="text-3xl font-bold text-[#1a1a2e]">{syncStats.payments.synced}</div>
+                <div className="text-3xl font-bold text-[#0A0C11]">{syncStats.payments.synced}</div>
                 <div className="text-sm text-gray-500 mt-1">{t('paymentsSynced')}</div>
                 {syncStats.payments.pending > 0 && (
                   <div className="text-xs text-yellow-600 mt-1">{syncStats.payments.pending} {t('pending').toLowerCase()}</div>
                 )}
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
-                <div className="text-3xl font-bold text-[#1a1a2e]">{syncStats.customers.synced}</div>
+                <div className="text-3xl font-bold text-[#0A0C11]">{syncStats.customers.synced}</div>
                 <div className="text-sm text-gray-500 mt-1">{t('customersSynced')}</div>
                 <div className="text-xs text-green-600 mt-1">{t('allSynced')}</div>
               </div>
@@ -242,12 +242,12 @@ export default function QuickBooksDemoPage() {
                     {invoices.map((invoice) => (
                       <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
-                          <span className="font-mono font-semibold text-[#1a1a2e]">{invoice.id}</span>
+                          <span className="font-mono font-semibold text-[#0A0C11]">{invoice.id}</span>
                         </td>
                         <td className="px-6 py-4 text-gray-700">{invoice.customer}</td>
                         <td className="px-6 py-4 text-gray-500">{invoice.service}</td>
                         <td className="px-6 py-4 text-gray-500">{invoice.date}</td>
-                        <td className="px-6 py-4 text-right font-semibold text-[#1a1a2e]">${invoice.amount}</td>
+                        <td className="px-6 py-4 text-right font-semibold text-[#0A0C11]">${invoice.amount}</td>
                         <td className="px-6 py-4 text-center">{getStatusBadge(invoice.status)}</td>
                       </tr>
                     ))}
@@ -269,7 +269,7 @@ export default function QuickBooksDemoPage() {
                     {demoPayments.map((payment) => (
                       <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
-                          <span className="font-mono font-semibold text-[#1a1a2e]">{payment.id}</span>
+                          <span className="font-mono font-semibold text-[#0A0C11]">{payment.id}</span>
                         </td>
                         <td className="px-6 py-4 font-mono text-gray-600">{payment.invoice}</td>
                         <td className="px-6 py-4 text-gray-700">{payment.customer}</td>
@@ -295,7 +295,7 @@ export default function QuickBooksDemoPage() {
             <span className="inline-block bg-[#e6f7e6] px-4 py-2 rounded-full text-sm font-bold text-[#2ca01c] mb-4">
               {t('howItWorks')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('seamlessTwoWaySync')}</h2>
+            <h2 className="text-3xl font-bold text-[#0A0C11]">{t('seamlessTwoWaySync')}</h2>
           </div>
 
           {/* Workflow Diagram */}
@@ -303,10 +303,10 @@ export default function QuickBooksDemoPage() {
             <div className="grid md:grid-cols-5 gap-4 items-center">
               {/* Task Iguana */}
               <div className="text-center p-4">
-                <div className="w-16 h-16 bg-[#1a1a2e] rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3">
+                <div className="w-16 h-16 bg-[#0A0C11] rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3">
                   🔧
                 </div>
-                <h4 className="font-bold text-[#1a1a2e]">Task Iguana</h4>
+                <h4 className="font-bold text-[#0A0C11]">Task Iguana</h4>
                 <p className="text-xs text-gray-500 mt-1">{t('createInvoicesRecord')}</p>
               </div>
 
@@ -334,7 +334,7 @@ export default function QuickBooksDemoPage() {
                 <div className="w-16 h-16 bg-[#2ca01c] rounded-2xl mx-auto flex items-center justify-center mb-3">
                   <span className="text-white text-2xl font-bold">QB</span>
                 </div>
-                <h4 className="font-bold text-[#1a1a2e]">QuickBooks</h4>
+                <h4 className="font-bold text-[#0A0C11]">QuickBooks</h4>
                 <p className="text-xs text-gray-500 mt-1">{t('reportsTaxesAccounting')}</p>
               </div>
             </div>
@@ -355,10 +355,10 @@ export default function QuickBooksDemoPage() {
         {/* Features Grid */}
         <div className="mb-16">
           <div className="text-center mb-10">
-            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
+            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#0A0C11] mb-4">
               {t('keyBenefits')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('whyConnectQB')}</h2>
+            <h2 className="text-3xl font-bold text-[#0A0C11]">{t('whyConnectQB')}</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -367,7 +367,7 @@ export default function QuickBooksDemoPage() {
                 <div className="w-12 h-12 bg-[#e6f7e6] rounded-xl flex items-center justify-center text-2xl mb-4">
                   {icon}
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{t(`features.${index}.title`)}</h3>
+                <h3 className="text-lg font-bold text-[#0A0C11] mb-2">{t(`features.${index}.title`)}</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">{t(`features.${index}.description`)}</p>
               </div>
             ))}
@@ -376,11 +376,11 @@ export default function QuickBooksDemoPage() {
 
         {/* FAQ */}
         <div className="bg-white rounded-2xl p-8 shadow-lg mb-16">
-          <h3 className="text-2xl font-bold text-[#1a1a2e] mb-6 text-center">{t('faqTitle')}</h3>
+          <h3 className="text-2xl font-bold text-[#0A0C11] mb-6 text-center">{t('faqTitle')}</h3>
           <div className="space-y-4 max-w-3xl mx-auto">
             {[0, 1, 2, 3].map((index) => (
               <div key={index} className="border border-gray-100 rounded-xl p-4">
-                <h4 className="font-semibold text-[#1a1a2e] mb-2">{t(`faq.${index}.q`)}</h4>
+                <h4 className="font-semibold text-[#0A0C11] mb-2">{t(`faq.${index}.q`)}</h4>
                 <p className="text-gray-600 text-sm">{t(`faq.${index}.a`)}</p>
               </div>
             ))}

@@ -10,10 +10,10 @@ export default function SmsPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
-      <div className="bg-[#1a1a2e] text-white py-8">
+      <div className="bg-[#0A0C11] text-white py-8">
         <div className="max-w-[900px] mx-auto px-6">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
+            <Link href="/" className="text-[#1FE3C4] font-bold text-lg hover:underline">
               &larr; {t('backLink')}
             </Link>
             <LanguageSwitcher />
@@ -25,7 +25,7 @@ export default function SmsPage() {
 
       {/* Content */}
       <div className="max-w-[900px] mx-auto px-6 py-12">
-        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#1a1a2e] leading-relaxed">
+        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#0A0C11] leading-relaxed">
 
           <section>
             <h2 className="text-xl font-bold mb-3">{t('programName')}</h2>
@@ -42,7 +42,7 @@ export default function SmsPage() {
             </p>
 
             {/* Visual representation of the opt-in CTA */}
-            <div className="border-2 border-dashed border-[#f5a623] rounded-xl p-6 bg-[#fef3d6]/50">
+            <div className="border-2 border-dashed border-[#1FE3C4] rounded-xl p-6 bg-[#fef3d6]/50">
               <p className="text-sm font-bold text-[#5c5c70] mb-3 uppercase tracking-wide">{t('optInLabel')}</p>
               <div className="bg-[#fef3d6] rounded-xl p-4">
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -50,9 +50,9 @@ export default function SmsPage() {
                     type="checkbox"
                     checked
                     readOnly
-                    className="mt-1 w-5 h-5 rounded border-gray-300 text-[#f5a623] focus:ring-[#f5a623] cursor-pointer"
+                    className="mt-1 w-5 h-5 rounded border-gray-300 text-[#1FE3C4] focus:ring-[#1FE3C4] cursor-pointer"
                   />
-                  <span className="text-sm text-[#1a1a2e]">
+                  <span className="text-sm text-[#0A0C11]">
                     I agree to receive SMS/text message notifications about my appointment
                     (confirmations, reminders, and updates) from [Business Name] via Task Iguana.
                     Message and data rates may apply. Message frequency varies. Reply <strong>STOP</strong> to
@@ -62,11 +62,11 @@ export default function SmsPage() {
                 <p className="text-xs text-[#5c5c70] mt-2 ml-8">
                   By checking this box, you consent to receive service-related text messages.
                   View our{' '}
-                  <Link href="/privacy" className="text-[#f5a623] underline">
+                  <Link href="/privacy" className="text-[#1FE3C4] underline">
                     Privacy Policy
                   </Link>{' '}
                   and{' '}
-                  <Link href="/terms" className="text-[#f5a623] underline">
+                  <Link href="/terms" className="text-[#1FE3C4] underline">
                     Terms &amp; Conditions
                   </Link>.
                 </p>
@@ -97,8 +97,8 @@ export default function SmsPage() {
               from unrecognized devices. By affirmatively checking the unchecked SMS consent checkbox
               shown in Step 4 below, you explicitly consent to receive these security-related text messages.
             </p>
-            <div className="border-l-4 border-[#f5a623] bg-[#fef3d6]/50 rounded-r-lg p-4 my-4">
-              <p className="text-sm text-[#1a1a2e]">
+            <div className="border-l-4 border-[#1FE3C4] bg-[#fef3d6]/50 rounded-r-lg p-4 my-4">
+              <p className="text-sm text-[#0A0C11]">
                 <strong>Public CTA evidence for A2P 10DLC reviewers:</strong> The screenshots below
                 document the complete opt-in journey end-users follow to provide express written
                 consent to receive 2FA SMS. No account or login is required to view this evidence.
@@ -150,22 +150,22 @@ export default function SmsPage() {
             </figure>
 
             <h3 className="font-bold mt-6 mb-3 text-lg">
-              <span className="inline-block bg-[#f5a623] text-white px-2 py-0.5 rounded mr-2 text-sm">CTA</span>
+              <span className="inline-block bg-[#1FE3C4] text-white px-2 py-0.5 rounded mr-2 text-sm">CTA</span>
               Step 4 &mdash; Affirmatively check the SMS consent box (the opt-in action)
             </h3>
-            <figure className="border-2 border-[#f5a623] rounded-xl p-4 bg-[#fef3d6]/30">
+            <figure className="border-2 border-[#1FE3C4] rounded-xl p-4 bg-[#fef3d6]/30">
               <img
                 src="/2fa-step-4.png"
                 alt="Screenshot of the Task Iguana Two-Factor Authentication form with the SMS consent checkbox now affirmatively checked by the user, indicating express written consent to receive 2FA SMS."
                 className="w-full max-w-[820px] mx-auto rounded-lg border border-gray-200 shadow-sm"
                 loading="lazy"
               />
-              <figcaption className="text-xs text-[#1a1a2e] mt-3 text-center">
+              <figcaption className="text-xs text-[#0A0C11] mt-3 text-center">
                 <strong>This is the explicit opt-in CTA.</strong> The user has now checked the SMS
                 consent box, providing express written consent. The exact disclosure text presented
                 to the user reads:
               </figcaption>
-              <blockquote className="text-xs italic text-[#1a1a2e] mt-2 mx-auto max-w-[700px] border-l-2 border-[#f5a623] pl-3">
+              <blockquote className="text-xs italic text-[#0A0C11] mt-2 mx-auto max-w-[700px] border-l-2 border-[#1FE3C4] pl-3">
                 &ldquo;I agree to receive SMS text messages containing verification codes for
                 two-factor authentication at the phone number provided above. Msg &amp; data rates
                 may apply. Frequency varies based on login activity. Reply <strong>STOP</strong> to opt out
@@ -205,7 +205,7 @@ export default function SmsPage() {
             <p className="mt-2">
               <strong>Privacy:</strong> Phone numbers and 2FA verification data are never sold, shared, or
               disclosed to third parties or affiliates for marketing or promotional purposes. See our{' '}
-              <Link href="/privacy#2fa-sms" className="text-[#f5a623] hover:underline">Privacy Policy &mdash; 2FA SMS section</Link>{' '}
+              <Link href="/privacy#2fa-sms" className="text-[#1FE3C4] hover:underline">Privacy Policy &mdash; 2FA SMS section</Link>{' '}
               for full details.
             </p>
           </section>
@@ -255,9 +255,9 @@ export default function SmsPage() {
               We do not sell, share, or use phone numbers or SMS data for marketing or advertising
               purposes. Phone numbers are only used to deliver service-related notifications on behalf
               of the business you booked with. For full details, see our{' '}
-              <Link href="/privacy" className="text-[#f5a623] hover:underline">Privacy Policy</Link>{' '}
+              <Link href="/privacy" className="text-[#1FE3C4] hover:underline">Privacy Policy</Link>{' '}
               and{' '}
-              <Link href="/terms" className="text-[#f5a623] hover:underline">Terms &amp; Conditions</Link>.
+              <Link href="/terms" className="text-[#1FE3C4] hover:underline">Terms &amp; Conditions</Link>.
             </p>
           </section>
 
@@ -269,7 +269,7 @@ export default function SmsPage() {
             <p className="mt-2">
               <strong>Email:</strong> support@taskiguana.com<br />
               <strong>Website:</strong>{' '}
-              <a href="https://taskiguana.com" className="text-[#f5a623] hover:underline">
+              <a href="https://taskiguana.com" className="text-[#1FE3C4] hover:underline">
                 taskiguana.com
               </a>
             </p>

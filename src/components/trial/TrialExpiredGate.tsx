@@ -51,7 +51,7 @@ export default function TrialExpiredGate({ children }: { children: ReactNode }) 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/pricing"
-            className="px-5 py-2.5 bg-[#f5a623] hover:bg-[#e6991a] text-[#1a1a2e] font-semibold rounded-lg"
+            className="px-5 py-2.5 bg-[#1FE3C4] hover:bg-[#e6991a] text-[#0A0C11] font-semibold rounded-lg"
           >
             Choose a plan
           </Link>

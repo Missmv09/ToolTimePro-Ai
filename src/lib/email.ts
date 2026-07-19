@@ -42,7 +42,7 @@ function emailLayout(content: string): string {
         <div style="background: #f9fafb; padding: 24px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
           <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 13px;">
             Questions? Email us at
-            <a href="mailto:support@taskiguana.com" style="color: #f97316; text-decoration: none;">support@taskiguana.com</a>
+            <a href="mailto:support@taskiguana.com" style="color: #2E9BFF; text-decoration: none;">support@taskiguana.com</a>
           </p>
           <p style="margin: 0; color: #d1d5db; font-size: 12px;">
             Task Iguana &middot; Job management for field service teams
@@ -53,7 +53,7 @@ function emailLayout(content: string): string {
   `;
 }
 
-function ctaButton(text: string, href: string, color: string = '#f97316'): string {
+function ctaButton(text: string, href: string, color: string = '#2E9BFF'): string {
   return `
     <div style="text-align: center; margin: 32px 0;">
       <a href="${href}"
@@ -1016,7 +1016,7 @@ export async function sendQuoteApprovalEmail({
         Hi ${ownerName}, a quote is waiting for your review and approval before it gets sent to the customer.
       </p>
 
-      <div style="background: #fff7ed; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #f97316;">
+      <div style="background: #fff7ed; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #2E9BFF;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           <tr>
             <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Quote #</td>
@@ -1031,8 +1031,8 @@ export async function sendQuoteApprovalEmail({
             <td style="padding: 4px 0; color: #111827; font-size: 14px; text-align: right;">${itemCount} line item${itemCount !== 1 ? 's' : ''}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0 4px 0; color: #6b7280; font-size: 14px; border-top: 1px solid #fed7aa;">Total</td>
-            <td style="padding: 8px 0 4px 0; color: #111827; font-size: 20px; font-weight: 700; text-align: right; border-top: 1px solid #fed7aa;">${formattedTotal}</td>
+            <td style="padding: 8px 0 4px 0; color: #6b7280; font-size: 14px; border-top: 1px solid #C6E2FF;">Total</td>
+            <td style="padding: 8px 0 4px 0; color: #111827; font-size: 20px; font-weight: 700; text-align: right; border-top: 1px solid #C6E2FF;">${formattedTotal}</td>
           </tr>
           ${submittedBy ? `
           <tr>

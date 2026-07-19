@@ -16,7 +16,7 @@ export default function LanguageSwitcher() {
       <button
         onClick={() => switchLocale('en')}
         className={`min-w-[40px] px-3 py-2 text-sm font-medium transition-colors rounded-l-lg ${
-          locale === 'en' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+          locale === 'en' ? 'bg-[#0A0C11] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
         }`}
       >
         US
@@ -24,7 +24,7 @@ export default function LanguageSwitcher() {
       <button
         onClick={() => switchLocale('es')}
         className={`min-w-[40px] px-3 py-2 text-sm font-medium transition-colors rounded-r-lg border-l border-gray-200 ${
-          locale === 'es' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+          locale === 'es' ? 'bg-[#0A0C11] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
         }`}
       >
         ES

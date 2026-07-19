@@ -18,26 +18,26 @@ export default function ComparisonPage({ data }: Props) {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="bg-[#1a1a2e] text-white px-6 py-4">
+      <nav className="bg-[#0A0C11] text-white px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="font-bold text-xl no-underline text-white">Task Iguana</Link>
           <div className="hidden md:flex items-center gap-6">
             <Link href="/compare" className="text-gray-300 hover:text-white text-sm no-underline">{t('allComparisons')}</Link>
             <Link href="/pricing" className="text-gray-300 hover:text-white text-sm no-underline">{t('seePricing')}</Link>
             <LanguageSwitcher />
-            <Link href="/auth/signup" className="bg-[#f5a623] hover:bg-[#e6991a] text-[#1a1a2e] px-5 py-2 rounded-lg text-sm font-medium no-underline">{t('startFreeTrial')}</Link>
+            <Link href="/auth/signup" className="bg-[#1FE3C4] hover:bg-[#e6991a] text-[#0A0C11] px-5 py-2 rounded-lg text-sm font-medium no-underline">{t('startFreeTrial')}</Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="bg-[#1a1a2e] text-white py-16 px-4">
+      <section className="bg-[#0A0C11] text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-[#f5a623] font-medium mb-4 tracking-wide uppercase text-sm">{t('comparisonGuide')}</p>
+          <p className="text-[#1FE3C4] font-medium mb-4 tracking-wide uppercase text-sm">{t('comparisonGuide')}</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">{data.tagline}</h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">{data.heroSubtitle}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/signup" className="bg-[#f5a623] hover:bg-[#e6991a] text-[#1a1a2e] font-semibold py-3 px-8 rounded-lg no-underline">
+            <Link href="/auth/signup" className="bg-[#1FE3C4] hover:bg-[#e6991a] text-[#0A0C11] font-semibold py-3 px-8 rounded-lg no-underline">
               {t('startFreeTrial')}
             </Link>
             <a href="#comparison" className="border border-white/30 hover:bg-white/10 text-white font-semibold py-3 px-8 rounded-lg no-underline">
@@ -61,7 +61,7 @@ export default function ComparisonPage({ data }: Props) {
       {/* Pain Points */}
       <section className="py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#1a1a2e] mb-6">{t('whyLeaving', { name: data.name })}</h2>
+          <h2 className="text-2xl font-bold text-[#0A0C11] mb-6">{t('whyLeaving', { name: data.name })}</h2>
           <div className="space-y-3">
             {data.painPoints.map((point, i) => (
               <div key={i} className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border border-red-100">
@@ -76,14 +76,14 @@ export default function ComparisonPage({ data }: Props) {
       {/* Pricing Comparison */}
       <section className="py-12 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('pricingComparison')}</h2>
+          <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('pricingComparison')}</h2>
           <p className="text-gray-500 mb-6">{t('pricingComparisonDesc')}</p>
           <div className="overflow-x-auto">
             <table className="w-full bg-white rounded-xl shadow-sm">
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-4 px-5 text-sm font-medium text-gray-500">{t('planTier')}</th>
-                  <th className="text-left py-4 px-5 text-sm font-medium text-[#f5a623]">Task Iguana</th>
+                  <th className="text-left py-4 px-5 text-sm font-medium text-[#1FE3C4]">Task Iguana</th>
                   <th className="text-left py-4 px-5 text-sm font-medium text-gray-500">{data.name}</th>
                 </tr>
               </thead>
@@ -104,14 +104,14 @@ export default function ComparisonPage({ data }: Props) {
       {/* Feature Comparison */}
       <section id="comparison" className="py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('featureComparison')}</h2>
+          <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('featureComparison')}</h2>
           <p className="text-gray-500 mb-6">{t('featureComparisonDesc')}</p>
           <div className="overflow-x-auto">
             <table className="w-full bg-white rounded-xl shadow-sm">
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-5 text-sm font-medium text-gray-500">{t('feature')}</th>
-                  <th className="text-center py-3 px-5 text-sm font-medium text-[#f5a623] w-40">Task Iguana</th>
+                  <th className="text-center py-3 px-5 text-sm font-medium text-[#1FE3C4] w-40">Task Iguana</th>
                   <th className="text-center py-3 px-5 text-sm font-medium text-gray-500 w-40">{data.name}</th>
                 </tr>
               </thead>
@@ -158,7 +158,7 @@ export default function ComparisonPage({ data }: Props) {
       {/* Cost Examples */}
       <section className="py-12 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('realWorldCost')}</h2>
+          <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('realWorldCost')}</h2>
           <p className="text-gray-500 mb-6">{t('realWorldCostDesc')}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.costExamples.map((example, i) => {
@@ -168,7 +168,7 @@ export default function ComparisonPage({ data }: Props) {
                   <p className="text-sm font-medium text-gray-500 mb-4">{example.scenario}</p>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#f5a623] font-medium">Task Iguana</span>
+                      <span className="text-sm text-[#1FE3C4] font-medium">Task Iguana</span>
                       <span className="font-bold text-green-700">${example.tooltime.toLocaleString()}/yr</span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -189,11 +189,11 @@ export default function ComparisonPage({ data }: Props) {
       {/* Why Switch */}
       <section className="py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#1a1a2e] mb-6">{t('whySwitchTitle')}</h2>
+          <h2 className="text-2xl font-bold text-[#0A0C11] mb-6">{t('whySwitchTitle')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {data.switchReasons.map((reason, i) => (
               <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-bold text-[#1a1a2e] mb-2">{reason.title}</h3>
+                <h3 className="font-bold text-[#0A0C11] mb-2">{reason.title}</h3>
                 <p className="text-sm text-gray-600">{reason.description}</p>
               </div>
             ))}
@@ -204,7 +204,7 @@ export default function ComparisonPage({ data }: Props) {
       {/* FAQ */}
       <section className="py-12 px-4 bg-gray-50">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#1a1a2e] mb-6 text-center">{t('faqTitle')}</h2>
+          <h2 className="text-2xl font-bold text-[#0A0C11] mb-6 text-center">{t('faqTitle')}</h2>
           <div className="space-y-3">
             {data.faqs.map((faq, i) => (
               <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -212,7 +212,7 @@ export default function ComparisonPage({ data }: Props) {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full text-left px-6 py-4 flex items-center justify-between"
                 >
-                  <span className="font-medium text-[#1a1a2e]">{faq.question}</span>
+                  <span className="font-medium text-[#0A0C11]">{faq.question}</span>
                   {openFaq === i ? (
                     <ChevronUp className="w-5 h-5 text-gray-400" />
                   ) : (
@@ -231,14 +231,14 @@ export default function ComparisonPage({ data }: Props) {
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-4 bg-[#1a1a2e] text-white text-center">
+      <section className="py-16 px-4 bg-[#0A0C11] text-white text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">{t('readyToSwitchFrom', { name: data.name })}</h2>
           <p className="text-gray-300 text-lg mb-8">
             {t('readyToSwitchFromDesc', { name: data.name })}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/signup" className="bg-[#f5a623] hover:bg-[#e6991a] text-[#1a1a2e] font-semibold py-3 px-8 rounded-lg text-lg no-underline">
+            <Link href="/auth/signup" className="bg-[#1FE3C4] hover:bg-[#e6991a] text-[#0A0C11] font-semibold py-3 px-8 rounded-lg text-lg no-underline">
               {t('startFreeTrial')}
             </Link>
             <Link href="/pricing" className="border border-white/30 hover:bg-white/10 text-white font-semibold py-3 px-8 rounded-lg text-lg no-underline">

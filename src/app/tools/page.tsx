@@ -55,10 +55,10 @@ export default function FreeToolsPage() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Promo Banner */}
-      <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
+      <div className="bg-[#0A0C11] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
         {t('promoBanner')}
-        <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
+        <Link href="/auth/signup" className="text-[#1FE3C4] font-semibold ml-2 hover:underline">
           {t('startTrial')}
         </Link>
       </div>
@@ -78,13 +78,13 @@ export default function FreeToolsPage() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="/#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">
+            <Link href="/#features" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#0A0C11] transition-colors no-underline">
               {t('features')}
             </Link>
             <div className="relative">
               <button
                 onClick={() => setIndustriesOpen(!industriesOpen)}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#0A0C11] transition-colors flex items-center gap-1"
               >
                 {t('industries')} <span className="text-xs">▼</span>
               </button>
@@ -151,20 +151,20 @@ export default function FreeToolsPage() {
                     🪟 Window Cleaning
                   </Link>
                   <div className="border-t border-gray-100 mt-2 pt-2">
-                    <Link href="/industries" className="block px-4 py-2 text-sm text-[#f5a623] font-semibold hover:bg-gray-50 no-underline">
+                    <Link href="/industries" className="block px-4 py-2 text-sm text-[#1FE3C4] font-semibold hover:bg-gray-50 no-underline">
                       View All Industries →
                     </Link>
                   </div>
                 </div>
               )}
             </div>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors no-underline">
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#0A0C11] transition-colors no-underline">
               {t('pricing')}
             </Link>
             <div className="relative">
               <button
                 onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-[#5c5c70] font-medium text-[0.9375rem] hover:text-[#0A0C11] transition-colors flex items-center gap-1"
               >
                 {t('resources')} <span className="text-xs">▼</span>
               </button>
@@ -191,14 +191,14 @@ export default function FreeToolsPage() {
             </span>
             <Link
               href="/auth/signup"
-              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-sm shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] transition-all no-underline"
+              className="bg-[#1FE3C4] text-[#0A0C11] px-5 py-2.5 rounded-lg font-semibold text-sm shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] transition-all no-underline"
             >
               {t('startTrial')}
             </Link>
           </div>
 
           <button
-            className="md:hidden text-[#1a1a2e] text-2xl bg-transparent border-none cursor-pointer"
+            className="md:hidden text-[#0A0C11] text-2xl bg-transparent border-none cursor-pointer"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             ☰
@@ -208,18 +208,18 @@ export default function FreeToolsPage() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4 z-50">
-            <Link href="/#features" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{t('features')}</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline">{t('pricing')}</Link>
+            <Link href="/#features" className="text-[#5c5c70] font-medium hover:text-[#0A0C11] no-underline">{t('features')}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium hover:text-[#0A0C11] no-underline">{t('pricing')}</Link>
             <div className="border-t border-gray-100 pt-2">
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">{t('resources')}</p>
-              <Link href="/tools" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Free Tools</Link>
-              <Link href="/#demos" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Demos</Link>
-              <Link href="/compare" className="block text-[#5c5c70] font-medium hover:text-[#1a1a2e] no-underline py-1">Compare Plans</Link>
+              <Link href="/tools" className="block text-[#5c5c70] font-medium hover:text-[#0A0C11] no-underline py-1">Free Tools</Link>
+              <Link href="/#demos" className="block text-[#5c5c70] font-medium hover:text-[#0A0C11] no-underline py-1">Demos</Link>
+              <Link href="/compare" className="block text-[#5c5c70] font-medium hover:text-[#0A0C11] no-underline py-1">Compare Plans</Link>
             </div>
             <div className="pt-2 border-t border-gray-100">
               <LanguageSwitcher />
             </div>
-            <Link href="/auth/signup" className="bg-[#f5a623] text-[#1a1a2e] px-6 py-3 rounded-xl font-medium text-center no-underline">
+            <Link href="/auth/signup" className="bg-[#1FE3C4] text-[#0A0C11] px-6 py-3 rounded-xl font-medium text-center no-underline">
               {t('startTrial')}
             </Link>
           </div>
@@ -227,16 +227,16 @@ export default function FreeToolsPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-16 pb-12 bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] text-white relative overflow-hidden">
+      <section className="pt-16 pb-12 bg-gradient-to-br from-[#0A0C11] to-[#2d2d44] text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-[#f5a623] rounded-full blur-3xl" />
+          <div className="absolute top-20 left-20 w-64 h-64 bg-[#1FE3C4] rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Shield className="w-4 h-4 text-[#f5a623]" />
+              <Shield className="w-4 h-4 text-[#1FE3C4]" />
               {t('caCompliance')}
             </div>
 
@@ -249,7 +249,7 @@ export default function FreeToolsPage() {
 
             <div className="flex flex-wrap justify-center gap-4">
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm">
-                <Sparkles className="w-4 h-4 text-[#f5a623]" />
+                <Sparkles className="w-4 h-4 text-[#1FE3C4]" />
                 {t('toolsCount')}
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm">
@@ -284,9 +284,9 @@ export default function FreeToolsPage() {
                           {t('free')}
                         </span>
                       </div>
-                      <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{t(`${tool.key}.title`)}</h3>
+                      <h3 className="text-lg font-bold text-[#0A0C11] mb-2">{t(`${tool.key}.title`)}</h3>
                       <p className="text-gray-600 text-sm mb-4">{t(`${tool.key}.description`)}</p>
-                      <div className="flex items-center gap-2 text-[#f5a623] font-semibold text-sm group-hover:gap-3 transition-all">
+                      <div className="flex items-center gap-2 text-[#1FE3C4] font-semibold text-sm group-hover:gap-3 transition-all">
                         {t(`${tool.key}.cta`)}
                         <ArrowRight className="w-4 h-4" />
                       </div>
@@ -302,26 +302,26 @@ export default function FreeToolsPage() {
       {/* Why Free Section */}
       <section className="py-16 bg-white">
         <div className="max-w-[800px] mx-auto px-6 text-center">
-          <h2 className="text-2xl font-bold text-[#1a1a2e] mb-4">{t('whyTitle')}</h2>
+          <h2 className="text-2xl font-bold text-[#0A0C11] mb-4">{t('whyTitle')}</h2>
           <p className="text-gray-600 text-lg">{t('whyText')}</p>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-[#f5a623] to-[#e6991a]">
+      <section className="py-16 bg-gradient-to-r from-[#1FE3C4] to-[#e6991a]">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">{t('ctaTitle')}</h2>
-          <p className="text-[#1a1a2e]/80 text-lg mb-8 max-w-2xl mx-auto">{t('ctaText')}</p>
+          <h2 className="text-3xl font-bold text-[#0A0C11] mb-4">{t('ctaTitle')}</h2>
+          <p className="text-[#0A0C11]/80 text-lg mb-8 max-w-2xl mx-auto">{t('ctaText')}</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/pricing"
-              className="px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold shadow-lg hover:bg-[#2d2d44] transition-all no-underline"
+              className="px-8 py-4 bg-[#0A0C11] text-white rounded-xl font-bold shadow-lg hover:bg-[#2d2d44] transition-all no-underline"
             >
               {t('seePricing')}
             </Link>
             <Link
               href="/demo/booking"
-              className="px-8 py-4 bg-white text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
+              className="px-8 py-4 bg-white text-[#0A0C11] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
             >
               {t('tryDemo')}
             </Link>
@@ -330,7 +330,7 @@ export default function FreeToolsPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#1a1a2e] text-white py-8">
+      <footer className="bg-[#0A0C11] text-white py-8">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <div className="flex justify-center mb-4">
             <Image

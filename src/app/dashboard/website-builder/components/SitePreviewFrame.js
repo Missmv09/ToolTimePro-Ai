@@ -29,9 +29,9 @@ export default function SitePreviewFrame({ wizardData }) {
     stormText = '',
   } = wizardData;
 
-  const primaryColor = colors.primary || '#1a1a2e';
+  const primaryColor = colors.primary || '#0A0C11';
   const secondaryColor = colors.secondary || '#16213e';
-  const accentColor = colors.accent || '#f5a623';
+  const accentColor = colors.accent || '#1FE3C4';
   const bgColor = colors.background || '#ffffff';
   // Ensure heading/body colors are readable on light section backgrounds
   const headingColor = ensureReadableColor(colors.headingColor || primaryColor, '#ffffff', primaryColor);

@@ -820,9 +820,9 @@ export default function PricingPage() {
 
       <style jsx>{`
         .pricing-page {
-          --navy: #1a1a2e;
+          --navy: #0A0C11;
           --navy-light: #2d2d44;
-          --gold: #f5a623;
+          --gold: #1FE3C4;
           --gold-light: #ffd380;
           --success: #00c853;
           --gray-100: #f5f5f5;
@@ -1518,7 +1518,7 @@ export default function PricingPage() {
           white-space: nowrap;
         }
         .jenny-section {
-          background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+          background: linear-gradient(135deg, #0A0C11 0%, #2d2d44 100%);
           margin: 2rem -1rem;
           padding: 2rem;
           border-radius: 16px;

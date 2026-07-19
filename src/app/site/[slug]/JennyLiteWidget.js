@@ -166,7 +166,7 @@ const i18n = {
 export default function JennyLiteWidget({
   businessName = 'Our Business',
   phone = '',
-  accentColor = '#f5a623',
+  accentColor = '#1FE3C4',
   position = 'right',
   isBetaTester = false,
   companyId = null,

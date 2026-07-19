@@ -99,7 +99,7 @@ export default function ChecklistPage() {
           <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-300 ${
-                progressPercent === 100 ? 'bg-green-500' : 'bg-[#f5a623]'
+                progressPercent === 100 ? 'bg-green-500' : 'bg-[#1FE3C4]'
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -124,7 +124,7 @@ export default function ChecklistPage() {
         {checklistCategories.map((category, categoryIndex) => (
           <div key={category.key} className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 bg-[#1a1a2e] text-white rounded-full flex items-center justify-center text-sm">
+              <span className="w-6 h-6 bg-[#0A0C11] text-white rounded-full flex items-center justify-center text-sm">
                 {categoryIndex + 1}
               </span>
               {t(category.key)}
@@ -163,12 +163,12 @@ export default function ChecklistPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-8 text-center text-white print:hidden">
+        <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-xl p-8 text-center text-white print:hidden">
           <h3 className="text-xl font-bold mb-2">{t('getProtection')}</h3>
           <p className="text-gray-300 mb-6">{t('ctaText')}</p>
           <Link
             href="/auth/signup"
-            className="inline-block bg-[#f5a623] text-[#1a1a2e] px-8 py-3 rounded-lg font-bold hover:bg-[#e6991a] transition-colors"
+            className="inline-block bg-[#1FE3C4] text-[#0A0C11] px-8 py-3 rounded-lg font-bold hover:bg-[#e6991a] transition-colors"
           >
             {t('startTrial')}
           </Link>

@@ -46,7 +46,7 @@ export default function CrispChat() {
     document.head.appendChild(script);
 
     // Brand colors: Task Iguana gold
-    window.$crisp.push(['config', 'color:theme', ['#f5a623']]);
+    window.$crisp.push(['config', 'color:theme', ['#1FE3C4']]);
 
     // Hide the floating bubble — Ask Jenny is the visible help launcher.
     // Crisp is summoned on demand via the drawer's "Talk to a human" button,

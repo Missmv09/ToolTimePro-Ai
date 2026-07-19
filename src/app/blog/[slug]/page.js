@@ -37,8 +37,8 @@ export default function BlogPostPage() {
       .split('\n')
       .map((line, i) => {
         // Headings
-        if (line.startsWith('### ')) return `<h3 class="text-xl font-bold text-[#1a1a2e] mt-8 mb-3">${line.slice(4)}</h3>`;
-        if (line.startsWith('## ')) return `<h2 class="text-2xl font-bold text-[#1a1a2e] mt-10 mb-4">${line.slice(3)}</h2>`;
+        if (line.startsWith('### ')) return `<h3 class="text-xl font-bold text-[#0A0C11] mt-8 mb-3">${line.slice(4)}</h3>`;
+        if (line.startsWith('## ')) return `<h2 class="text-2xl font-bold text-[#0A0C11] mt-10 mb-4">${line.slice(3)}</h2>`;
         // Bold
         line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         // Italic
@@ -71,12 +71,12 @@ export default function BlogPostPage() {
             />
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/jenny" className="text-[#f5a623] font-semibold hover:text-[#e6991a] no-underline">{t('navJennyAi')}</Link>
+            <Link href="/jenny" className="text-[#1FE3C4] font-semibold hover:text-[#e6991a] no-underline">{t('navJennyAi')}</Link>
             <Link href="/#features" className="text-gray-600 hover:text-gray-900 no-underline">{t('navFeatures')}</Link>
             <Link href="/pricing" className="text-gray-600 hover:text-gray-900 no-underline">{t('navPricing')}</Link>
-            <Link href="/blog" className="text-[#1a1a2e] font-semibold no-underline">{t('navBlog')}</Link>
+            <Link href="/blog" className="text-[#0A0C11] font-semibold no-underline">{t('navBlog')}</Link>
             <LanguageSwitcher />
-            <Link href="/auth/signup" className="bg-[#f97316] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#ea580c] no-underline">
+            <Link href="/auth/signup" className="bg-[#2E9BFF] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#1E7FE0] no-underline">
               {t('navStartTrial')}
             </Link>
           </div>
@@ -97,14 +97,14 @@ export default function BlogPostPage() {
         <div className="max-w-[800px] mx-auto px-6 py-16 text-center">
           <h1 className="text-3xl font-bold text-gray-300 mb-4">{t('postNotFound')}</h1>
           <p className="text-gray-500 mb-8">{error}</p>
-          <Link href="/blog" className="text-[#f97316] font-semibold no-underline flex items-center gap-2 justify-center">
+          <Link href="/blog" className="text-[#2E9BFF] font-semibold no-underline flex items-center gap-2 justify-center">
             <ArrowLeft size={18} /> {t('backToBlog')}
           </Link>
         </div>
       ) : post ? (
         <>
           {/* Post header */}
-          <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4e] text-white py-16">
+          <div className="bg-gradient-to-b from-[#0A0C11] to-[#2d2d4e] text-white py-16">
             <div className="max-w-[800px] mx-auto px-6">
               <Link href="/blog" className="text-white/50 hover:text-white no-underline flex items-center gap-2 mb-6 text-sm">
                 <ArrowLeft size={16} /> {t('backToBlog')}
@@ -157,7 +157,7 @@ export default function BlogPostPage() {
           </article>
 
           {/* CTA */}
-          <div className="bg-gradient-to-r from-[#f97316] to-[#ea580c] py-12">
+          <div className="bg-gradient-to-r from-[#2E9BFF] to-[#1E7FE0] py-12">
             <div className="max-w-[800px] mx-auto px-6 text-center">
               <h2 className="text-2xl font-bold text-white mb-3">{t('ctaTitle')}</h2>
               <p className="text-white/80 mb-6">
@@ -165,7 +165,7 @@ export default function BlogPostPage() {
               </p>
               <Link
                 href="/auth/signup"
-                className="inline-block bg-white text-[#f97316] px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors no-underline"
+                className="inline-block bg-white text-[#2E9BFF] px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors no-underline"
               >
                 {t('ctaButton')}
               </Link>

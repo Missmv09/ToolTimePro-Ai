@@ -104,7 +104,7 @@ export default function CalculatorPage() {
           {/* Calculator */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Calculator className="w-6 h-6 text-[#f5a623]" />
+              <Calculator className="w-6 h-6 text-[#1FE3C4]" />
               <h2 className="text-lg font-semibold text-gray-900">{t('calculateTitle')}</h2>
             </div>
 
@@ -117,7 +117,7 @@ export default function CalculatorPage() {
                   onClick={() => setRateType('hourly')}
                   className={`p-3 rounded-lg font-medium text-sm transition-all ${
                     rateType === 'hourly'
-                      ? 'bg-[#1a1a2e] text-white'
+                      ? 'bg-[#0A0C11] text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -128,7 +128,7 @@ export default function CalculatorPage() {
                   onClick={() => setRateType('salary')}
                   className={`p-3 rounded-lg font-medium text-sm transition-all ${
                     rateType === 'salary'
-                      ? 'bg-[#1a1a2e] text-white'
+                      ? 'bg-[#0A0C11] text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -150,7 +150,7 @@ export default function CalculatorPage() {
                     placeholder="25.00"
                     step="0.01"
                     min="0"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-transparent"
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">{t('dailyWageCalc')}</p>
@@ -167,7 +167,7 @@ export default function CalculatorPage() {
                     placeholder="52000"
                     step="1"
                     min="0"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-transparent"
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">{t('dailyWageCalcSalary')}</p>
@@ -186,7 +186,7 @@ export default function CalculatorPage() {
                   placeholder="10"
                   min="0"
                   max="999"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-transparent"
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">{t('maxPenalty')}</p>
@@ -196,7 +196,7 @@ export default function CalculatorPage() {
             <div className="flex gap-3">
               <button
                 onClick={calculatePenalty}
-                className="flex-1 bg-[#f5a623] text-[#1a1a2e] py-3 rounded-lg font-semibold hover:bg-[#e6991a] transition-colors"
+                className="flex-1 bg-[#1FE3C4] text-[#0A0C11] py-3 rounded-lg font-semibold hover:bg-[#e6991a] transition-colors"
               >
                 {t('calculate')}
               </button>
@@ -283,12 +283,12 @@ export default function CalculatorPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-8 text-center text-white">
+        <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-xl p-8 text-center text-white">
           <h3 className="text-xl font-bold mb-2">{t('getFullProtection')}</h3>
           <p className="text-gray-300 mb-6">{t('ctaText')}</p>
           <Link
             href="/auth/signup"
-            className="inline-block bg-[#f5a623] text-[#1a1a2e] px-8 py-3 rounded-lg font-bold hover:bg-[#e6991a] transition-colors"
+            className="inline-block bg-[#1FE3C4] text-[#0A0C11] px-8 py-3 rounded-lg font-bold hover:bg-[#e6991a] transition-colors"
           >
             {t('startTrial')}
           </Link>

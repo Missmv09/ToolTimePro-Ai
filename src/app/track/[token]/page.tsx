@@ -65,7 +65,7 @@ function TrackMap({
         })
 
       if (destination) {
-        L.marker([destination.lat, destination.lng], { icon: pin('🏠', '#1a1a2e') })
+        L.marker([destination.lat, destination.lng], { icon: pin('🏠', '#0A0C11') })
           .bindPopup('Service location')
           .addTo(layer)
         bounds.push([destination.lat, destination.lng])
@@ -150,12 +150,12 @@ export default function TrackingPage({ params }: { params: { token: string } }) 
   }, [load])
 
   const phaseColor =
-    info?.phase === 'enroute' ? '#22c55e' : info?.phase === 'done' ? '#6b7280' : '#f5a623'
+    info?.phase === 'enroute' ? '#22c55e' : info?.phase === 'done' ? '#6b7280' : '#1FE3C4'
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="p-6 text-white" style={{ background: '#1a1a2e' }}>
+        <div className="p-6 text-white" style={{ background: '#0A0C11' }}>
           <p className="text-sm opacity-80">{info?.companyName || 'Service Tracking'}</p>
           <h1 className="text-xl font-bold mt-1">Track your appointment</h1>
         </div>

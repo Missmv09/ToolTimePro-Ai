@@ -125,9 +125,9 @@ export default function DashboardDemoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Demo Banner */}
-      <div className="bg-[#f5a623] text-[#1a1a2e] py-2 px-4 text-center relative z-50">
+      <div className="bg-[#1FE3C4] text-[#0A0C11] py-2 px-4 text-center relative z-50">
         <p className="text-sm font-medium">
-          <span className="bg-[#1a1a2e] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
+          <span className="bg-[#0A0C11] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
           {t('bannerText')}{' '}
           <Link href="/auth/signup" className="underline font-bold">
             {t('startFreeTrial')}
@@ -145,16 +145,16 @@ export default function DashboardDemoPage() {
         <aside className={`w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-40px)] fixed lg:sticky top-[40px] z-40 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
           {/* Logo */}
           <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-200">
-            <div className="w-8 h-8 bg-[#f5a623] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#1FE3C4] rounded-lg flex items-center justify-center">
               <span className="text-lg">🛠</span>
             </div>
-            <span className="font-bold text-xl text-[#1a1a2e]">Task Iguana</span>
+            <span className="font-bold text-xl text-[#0A0C11]">Task Iguana</span>
           </div>
 
           {/* Company */}
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
             <p className="text-xs text-gray-500">{t('company')}</p>
-            <p className="text-sm font-medium text-[#1a1a2e]">Green Scene Landscaping</p>
+            <p className="text-sm font-medium text-[#0A0C11]">Green Scene Landscaping</p>
             <p className="text-xs text-gray-400">{t('elitePlan')}</p>
           </div>
 
@@ -167,7 +167,7 @@ export default function DashboardDemoPage() {
                 onClick={() => { setActiveNav(item.key); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors no-underline text-sm ${
                   activeNav === item.key
-                    ? 'bg-[#fef3d6] text-[#1a1a2e] font-medium'
+                    ? 'bg-[#fef3d6] text-[#0A0C11] font-medium'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
@@ -181,10 +181,10 @@ export default function DashboardDemoPage() {
           <div className="absolute bottom-0 left-0 w-64 p-4 border-t border-gray-200 bg-white">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-[#1a1a2e]">JD</span>
+                <span className="text-sm font-medium text-[#0A0C11]">JD</span>
               </div>
               <div>
-                <p className="text-sm font-medium text-[#1a1a2e]">John Davis</p>
+                <p className="text-sm font-medium text-[#0A0C11]">John Davis</p>
                 <p className="text-xs text-gray-500">{t('owner')}</p>
               </div>
             </div>
@@ -199,10 +199,10 @@ export default function DashboardDemoPage() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-[#f5a623] rounded-lg flex items-center justify-center">
+              <div className="w-7 h-7 bg-[#1FE3C4] rounded-lg flex items-center justify-center">
                 <span className="text-sm">🛠</span>
               </div>
-              <span className="font-bold text-lg text-[#1a1a2e]">Task Iguana</span>
+              <span className="font-bold text-lg text-[#0A0C11]">Task Iguana</span>
             </div>
             <Link href="/" className="text-sm text-blue-600 font-medium no-underline">{t('exit')}</Link>
           </div>
@@ -210,18 +210,18 @@ export default function DashboardDemoPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-[#1a1a2e]">{t('goodMorning')}</h1>
+              <h1 className="text-2xl font-bold text-[#0A0C11]">{t('goodMorning')}</h1>
               <p className="text-gray-500">{t('dateSubtitle')}</p>
             </div>
             <div className="flex gap-3 items-center">
               <LanguageSwitcher />
-              <Link href="/demo/scheduling" className="px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-[#1a1a2e] hover:bg-gray-50 no-underline text-sm">
+              <Link href="/demo/scheduling" className="px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-[#0A0C11] hover:bg-gray-50 no-underline text-sm">
                 📅 {t('calendar')}
               </Link>
-              <Link href="/demo/dispatch" className="px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-[#1a1a2e] hover:bg-gray-50 no-underline text-sm">
+              <Link href="/demo/dispatch" className="px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-[#0A0C11] hover:bg-gray-50 no-underline text-sm">
                 🗺️ {t('dispatch')}
               </Link>
-              <button className="px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-bold hover:bg-[#e6991a] text-sm">
+              <button className="px-4 py-2 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-bold hover:bg-[#e6991a] text-sm">
                 {t('newJob')}
               </button>
             </div>
@@ -234,7 +234,7 @@ export default function DashboardDemoPage() {
                 <span className="text-sm text-gray-500">{t('jobsToday')}</span>
                 <span className="text-lg">📋</span>
               </div>
-              <div className="text-3xl font-bold text-[#1a1a2e]">{demoStats.jobsToday}</div>
+              <div className="text-3xl font-bold text-[#0A0C11]">{demoStats.jobsToday}</div>
               <p className="text-xs text-green-600 mt-1">{t('jobsTodayDetail')}</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-gray-200">
@@ -250,7 +250,7 @@ export default function DashboardDemoPage() {
                 <span className="text-sm text-gray-500">{t('pendingQuotes')}</span>
                 <span className="text-lg">📝</span>
               </div>
-              <div className="text-3xl font-bold text-[#f5a623]">{demoStats.pendingQuotes}</div>
+              <div className="text-3xl font-bold text-[#1FE3C4]">{demoStats.pendingQuotes}</div>
               <p className="text-xs text-blue-600 mt-1">{t('pipelineValue')}</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-gray-200">
@@ -265,7 +265,7 @@ export default function DashboardDemoPage() {
 
           {/* Stats Row 2 — AI & Reviews & Crew */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-5 text-white">
+            <div className="bg-gradient-to-br from-[#0A0C11] to-[#2d2d4a] rounded-xl p-5 text-white">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-white/70">{t('jennyAiToday')}</span>
                 <span className="text-lg">🤖</span>
@@ -278,7 +278,7 @@ export default function DashboardDemoPage() {
                 <span className="text-sm text-gray-500">{t('reviews')}</span>
                 <span className="text-lg">⭐</span>
               </div>
-              <div className="text-3xl font-bold text-[#1a1a2e]">{demoStats.avgRating}</div>
+              <div className="text-3xl font-bold text-[#0A0C11]">{demoStats.avgRating}</div>
               <p className="text-xs text-green-600 mt-1">{demoStats.reviewsThisMonth} {t('newThisMonth')}</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-gray-200">
@@ -286,7 +286,7 @@ export default function DashboardDemoPage() {
                 <span className="text-sm text-gray-500">{t('activeCrew')}</span>
                 <span className="text-lg">👷</span>
               </div>
-              <div className="text-3xl font-bold text-[#1a1a2e]">{demoStats.activeCrew}</div>
+              <div className="text-3xl font-bold text-[#0A0C11]">{demoStats.activeCrew}</div>
               <p className="text-xs text-gray-400 mt-1">{t('allCompliant')}</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-gray-200">
@@ -294,7 +294,7 @@ export default function DashboardDemoPage() {
                 <span className="text-sm text-gray-500">{t('newLeads')}</span>
                 <span className="text-lg">👥</span>
               </div>
-              <div className="text-3xl font-bold text-[#f5a623]">{demoStats.newLeads}</div>
+              <div className="text-3xl font-bold text-[#1FE3C4]">{demoStats.newLeads}</div>
               <p className="text-xs text-gray-400 mt-1">{t('newLeadsDetail')}</p>
             </div>
           </div>
@@ -303,12 +303,12 @@ export default function DashboardDemoPage() {
           <div className="grid lg:grid-cols-2 gap-6 mb-6">
             {/* Jenny AI Activity */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a]">
+              <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a]">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🤖</span>
                   <h2 className="font-bold text-white">{t('jennyLiveActivity')}</h2>
                 </div>
-                <Link href="/demo/phone-receptionist" className="text-xs text-[#f5a623] font-medium no-underline hover:underline">
+                <Link href="/demo/phone-receptionist" className="text-xs text-[#1FE3C4] font-medium no-underline hover:underline">
                   {t('configure')} →
                 </Link>
               </div>
@@ -319,7 +319,7 @@ export default function DashboardDemoPage() {
                       <span className="text-xl mt-0.5">{item.icon}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-semibold text-sm text-[#1a1a2e]">{item.action}</span>
+                          <span className="font-semibold text-sm text-[#0A0C11]">{item.action}</span>
                           <span className="text-xs text-gray-400 flex-shrink-0 ml-2">{item.time}</span>
                         </div>
                         <p className="text-sm text-gray-600">{item.detail}</p>
@@ -336,7 +336,7 @@ export default function DashboardDemoPage() {
             {/* Weekly Revenue Chart */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">{t('weeklyRevenue')}</h2>
+                <h2 className="font-bold text-[#0A0C11]">{t('weeklyRevenue')}</h2>
                 <span className="text-sm text-gray-400">{t('thisWeek')}</span>
               </div>
               <div className="p-6">
@@ -345,7 +345,7 @@ export default function DashboardDemoPage() {
                     <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
                       <span className="text-xs text-gray-500 font-medium">${(day.amount / 1000).toFixed(1)}k</span>
                       <div
-                        className="w-full rounded-t-lg transition-all bg-gradient-to-t from-[#f5a623] to-[#fcd582]"
+                        className="w-full rounded-t-lg transition-all bg-gradient-to-t from-[#1FE3C4] to-[#fcd582]"
                         style={{ height: `${maxRevenue > 0 ? (day.amount / maxRevenue) * 100 : 0}%`, minHeight: day.amount > 0 ? '8px' : '2px' }}
                       />
                       <span className="text-xs text-gray-500">{day.day}</span>
@@ -355,7 +355,7 @@ export default function DashboardDemoPage() {
                 <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">{t('weekTotal')}</p>
-                    <p className="text-2xl font-bold text-[#1a1a2e]">$15,000</p>
+                    <p className="text-2xl font-bold text-[#0A0C11]">$15,000</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-500">{t('vsLastWeek')}</p>
@@ -371,14 +371,14 @@ export default function DashboardDemoPage() {
             {/* Today's Jobs */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">{t('todaysJobs')}</h2>
+                <h2 className="font-bold text-[#0A0C11]">{t('todaysJobs')}</h2>
                 <Link href="/demo/scheduling" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('viewSchedule')} →</Link>
               </div>
               <div className="divide-y divide-gray-100">
                 {demoJobs.map((job) => (
                   <div key={job.id} className="p-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between mb-1.5">
-                      <h3 className="font-semibold text-[#1a1a2e] text-sm">{job.customer}</h3>
+                      <h3 className="font-semibold text-[#0A0C11] text-sm">{job.customer}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${getStatusColor(job.status)}`}>
                         {job.status === 'en_route' ? 'en route' : job.status}
                       </span>
@@ -386,7 +386,7 @@ export default function DashboardDemoPage() {
                     <p className="text-sm text-gray-600 mb-1.5">{job.service}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>⏰ {job.time} &middot; 👷 {job.tech}</span>
-                      <span className="font-semibold text-[#1a1a2e]">${job.amount}</span>
+                      <span className="font-semibold text-[#0A0C11]">${job.amount}</span>
                     </div>
                   </div>
                 ))}
@@ -396,21 +396,21 @@ export default function DashboardDemoPage() {
             {/* Quotes Pipeline */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">{t('quotesPipeline')}</h2>
+                <h2 className="font-bold text-[#0A0C11]">{t('quotesPipeline')}</h2>
                 <Link href="/demo/invoicing" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('viewAll')} →</Link>
               </div>
               <div className="divide-y divide-gray-100">
                 {recentQuotes.map((quote) => (
                   <div key={quote.id} className="p-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between mb-1.5">
-                      <h3 className="font-semibold text-[#1a1a2e] text-sm">{quote.customer}</h3>
+                      <h3 className="font-semibold text-[#0A0C11] text-sm">{quote.customer}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${getQuoteStatusColor(quote.status)}`}>
                         {quote.status}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">{quote.service}</span>
-                      <span className="font-bold text-[#1a1a2e]">${quote.amount.toLocaleString()}</span>
+                      <span className="font-bold text-[#0A0C11]">${quote.amount.toLocaleString()}</span>
                     </div>
                     <p className="text-xs text-gray-400 mt-1">{quote.date}</p>
                   </div>
@@ -427,14 +427,14 @@ export default function DashboardDemoPage() {
             {/* New Leads */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">{t('newLeadsTitle')}</h2>
+                <h2 className="font-bold text-[#0A0C11]">{t('newLeadsTitle')}</h2>
                 <span className="text-sm text-blue-600 font-medium cursor-pointer">{t('viewCRM')} →</span>
               </div>
               <div className="divide-y divide-gray-100">
                 {demoLeads.map((lead) => (
                   <div key={lead.id} className="p-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between mb-1.5">
-                      <h3 className="font-semibold text-[#1a1a2e] text-sm">{lead.name}</h3>
+                      <h3 className="font-semibold text-[#0A0C11] text-sm">{lead.name}</h3>
                       <span className="text-xs text-gray-400">{lead.time}</span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -453,7 +453,7 @@ export default function DashboardDemoPage() {
               <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🛡️</span>
-                  <h2 className="font-bold text-[#1a1a2e]">{t('toolTimeShield')}</h2>
+                  <h2 className="font-bold text-[#0A0C11]">{t('toolTimeShield')}</h2>
                 </div>
                 <Link href="/demo/shield" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('viewAll')} →</Link>
               </div>
@@ -484,7 +484,7 @@ export default function DashboardDemoPage() {
           {/* Crew Status Table */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="font-bold text-[#1a1a2e]">{t('crewStatus')}</h2>
+              <h2 className="font-bold text-[#0A0C11]">{t('crewStatus')}</h2>
               <div className="flex gap-3">
                 <Link href="/demo/dispatch" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('dispatchBoard')} →</Link>
                 <Link href="/demo/route-optimization" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('routes')} →</Link>
@@ -510,7 +510,7 @@ export default function DashboardDemoPage() {
                           <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm">
                             👷
                           </div>
-                          <span className="font-medium text-[#1a1a2e] text-sm">{worker.name}</span>
+                          <span className="font-medium text-[#0A0C11] text-sm">{worker.name}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
@@ -540,7 +540,7 @@ export default function DashboardDemoPage() {
 
           {/* Feature Quick Links Grid */}
           <div className="mb-6">
-            <h2 className="font-bold text-[#1a1a2e] mb-4">{t('exploreAllFeatures')}</h2>
+            <h2 className="font-bold text-[#0A0C11] mb-4">{t('exploreAllFeatures')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {[
                 { icon: '🤖', label: t('featureAIPhone'), desc: t('featureAIPhoneDesc'), href: '/demo/phone-receptionist' },
@@ -559,10 +559,10 @@ export default function DashboardDemoPage() {
                 <Link
                   key={feature.label}
                   href={feature.href}
-                  className="bg-white rounded-xl p-4 border border-gray-200 hover:border-[#f5a623] hover:shadow-md transition-all group no-underline"
+                  className="bg-white rounded-xl p-4 border border-gray-200 hover:border-[#1FE3C4] hover:shadow-md transition-all group no-underline"
                 >
                   <span className="text-2xl block mb-2">{feature.icon}</span>
-                  <h3 className="font-semibold text-sm text-[#1a1a2e] group-hover:text-[#f5a623] transition-colors">{feature.label}</h3>
+                  <h3 className="font-semibold text-sm text-[#0A0C11] group-hover:text-[#1FE3C4] transition-colors">{feature.label}</h3>
                   <p className="text-xs text-gray-500 mt-0.5">{feature.desc}</p>
                 </Link>
               ))}
@@ -572,7 +572,7 @@ export default function DashboardDemoPage() {
           <DemoLeadCapture featureName="Task Iguana Dashboard" source="dashboard_demo" />
 
           {/* CTA */}
-          <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-6 text-white">
+          <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-xl p-6 text-white">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold mb-1">{t('readySmarter')}</h3>
@@ -582,7 +582,7 @@ export default function DashboardDemoPage() {
               </div>
               <Link
                 href="/auth/signup"
-                className="px-6 py-3 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline text-center whitespace-nowrap"
+                className="px-6 py-3 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline text-center whitespace-nowrap"
               >
                 {t('startFreeTrialCTA')} →
               </Link>

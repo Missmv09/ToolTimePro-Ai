@@ -32,7 +32,7 @@ export default function ChatbotDemoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] text-white">
+      <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-4">
             <Link href="/" className="text-white/70 hover:text-white text-sm">
@@ -54,7 +54,7 @@ export default function ChatbotDemoPage() {
           {/* LEFT SIDE - Feature List */}
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('neverMiss')}</h2>
+              <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('neverMiss')}</h2>
               <p className="text-gray-600">{t('neverMissDesc')}</p>
             </div>
 
@@ -74,15 +74,15 @@ export default function ChatbotDemoPage() {
             {/* Stats Section */}
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-200">
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#f5a623]">24/7</div>
+                <div className="text-3xl font-bold text-[#1FE3C4]">24/7</div>
                 <div className="text-sm text-gray-500">{t('alwaysOnline')}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#f5a623]">3sec</div>
+                <div className="text-3xl font-bold text-[#1FE3C4]">3sec</div>
                 <div className="text-sm text-gray-500">{t('responseTime')}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#f5a623]">40%</div>
+                <div className="text-3xl font-bold text-[#1FE3C4]">40%</div>
                 <div className="text-sm text-gray-500">{t('moreLeads')}</div>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default function ChatbotDemoPage() {
             <div className="pt-4">
               <Link
                 href="/pricing"
-                className="inline-block px-8 py-4 bg-[#f5a623] hover:bg-[#e09000] text-[#1a1a2e] font-bold rounded-lg transition-colors text-lg"
+                className="inline-block px-8 py-4 bg-[#1FE3C4] hover:bg-[#e09000] text-[#0A0C11] font-bold rounded-lg transition-colors text-lg"
               >
                 {t('getCTA')} →
               </Link>
@@ -102,16 +102,16 @@ export default function ChatbotDemoPage() {
           {/* RIGHT SIDE - Phone Mockup */}
           <div className="flex flex-col items-center">
             {/* Phone Frame */}
-            <div className="relative w-[320px] bg-[#1a1a2e] rounded-[3rem] p-3 shadow-2xl">
+            <div className="relative w-[320px] bg-[#0A0C11] rounded-[3rem] p-3 shadow-2xl">
               {/* Phone Notch */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-[#1a1a2e] rounded-b-2xl z-10"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-[#0A0C11] rounded-b-2xl z-10"></div>
 
               {/* Phone Screen */}
               <div className="bg-gray-100 rounded-[2.25rem] overflow-hidden">
                 {/* Chat Header */}
-                <div className="bg-[#1a1a2e] text-white px-4 py-4 pt-8">
+                <div className="bg-[#0A0C11] text-white px-4 py-4 pt-8">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#f5a623] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-[#1FE3C4] flex items-center justify-center">
                       <span className="text-lg">🤖</span>
                     </div>
                     <div>
@@ -134,7 +134,7 @@ export default function ChatbotDemoPage() {
                       <div
                         className={`max-w-[80%] px-4 py-2 rounded-2xl ${
                           message.sender === 'customer'
-                            ? 'bg-[#1a1a2e] text-white rounded-br-md'
+                            ? 'bg-[#0A0C11] text-white rounded-br-md'
                             : 'bg-gray-200 text-gray-800 rounded-bl-md'
                         }`}
                       >
@@ -153,8 +153,8 @@ export default function ChatbotDemoPage() {
                       className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none"
                       disabled
                     />
-                    <button className="w-10 h-10 bg-[#f5a623] rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#1a1a2e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button className="w-10 h-10 bg-[#1FE3C4] rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#0A0C11]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                       </svg>
                     </button>
@@ -167,25 +167,25 @@ export default function ChatbotDemoPage() {
             <div className="mt-8 w-full max-w-[380px]">
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Alert Header */}
-                <div className="bg-gradient-to-r from-[#f5a623] to-[#ffc107] px-4 py-2 flex items-center gap-2">
+                <div className="bg-gradient-to-r from-[#1FE3C4] to-[#ffc107] px-4 py-2 flex items-center gap-2">
                   <span className="text-xl">🔔</span>
-                  <span className="font-bold text-[#1a1a2e]">{t('newLeadCaptured')}</span>
+                  <span className="font-bold text-[#0A0C11]">{t('newLeadCaptured')}</span>
                 </div>
 
                 {/* Alert Content */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-[#1a1a2e] flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-[#0A0C11] flex items-center justify-center">
                         <span className="text-white font-bold text-lg">M</span>
                       </div>
                       <div>
-                        <div className="font-semibold text-[#1a1a2e]">{locale === 'es' ? 'Miguel' : 'Mike'}</div>
+                        <div className="font-semibold text-[#0A0C11]">{locale === 'es' ? 'Miguel' : 'Mike'}</div>
                         <div className="text-sm text-gray-500">555-123-4567</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium text-[#1a1a2e]">{t('poolCleaning')}</div>
+                      <div className="text-sm font-medium text-[#0A0C11]">{t('poolCleaning')}</div>
                       <div className="text-xs text-gray-400">{t('minAgo')}</div>
                     </div>
                   </div>
@@ -198,7 +198,7 @@ export default function ChatbotDemoPage() {
                       </svg>
                       {t('callNow')}
                     </button>
-                    <button className="flex-1 py-2 bg-[#1a1a2e] hover:bg-[#2d2d4a] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <button className="flex-1 py-2 bg-[#0A0C11] hover:bg-[#2d2d4a] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
@@ -214,13 +214,13 @@ export default function ChatbotDemoPage() {
         <DemoLeadCapture featureName="Jenny AI Chatbot" source="chatbot_demo" />
 
         {/* Bottom CTA Section */}
-        <div className="mt-16 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 md:p-12 text-center text-white">
+        <div className="mt-16 bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-2xl p-8 md:p-12 text-center text-white">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('readyCapture')}</h2>
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">{t('readyCaptureDesc')}</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/pricing"
-              className="px-8 py-4 bg-[#f5a623] hover:bg-[#e09000] text-[#1a1a2e] font-bold rounded-lg transition-colors"
+              className="px-8 py-4 bg-[#1FE3C4] hover:bg-[#e09000] text-[#0A0C11] font-bold rounded-lg transition-colors"
             >
               {t('startFreeTrial')}
             </Link>

@@ -131,7 +131,7 @@ export default function JennyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#1a1a2e] via-[#2d2d44] to-[#1a1a2e] text-white relative overflow-hidden">
+      <section className="bg-gradient-to-br from-[#0A0C11] via-[#2d2d44] to-[#0A0C11] text-white relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 text-[200px] font-bold text-white/5">867</div>
@@ -148,13 +148,13 @@ export default function JennyPage() {
 
           <div className="grid lg:grid-cols-2 gap-12 items-center mt-8">
             <div>
-              <div className="inline-flex items-center gap-2 bg-[#f5a623]/20 px-4 py-2 rounded-full text-[#f5a623] font-semibold text-sm mb-6">
-                <span className="w-2 h-2 bg-[#f5a623] rounded-full animate-pulse"></span>
+              <div className="inline-flex items-center gap-2 bg-[#1FE3C4]/20 px-4 py-2 rounded-full text-[#1FE3C4] font-semibold text-sm mb-6">
+                <span className="w-2 h-2 bg-[#1FE3C4] rounded-full animate-pulse"></span>
                 {t('badge')}
               </div>
 
               <h1 className="text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
-                {t('heroTitle')} <span className="text-[#f5a623]">Jenny</span>
+                {t('heroTitle')} <span className="text-[#1FE3C4]">Jenny</span>
               </h1>
 
               <p className="text-xl text-white/90 mb-4 leading-relaxed">
@@ -168,7 +168,7 @@ export default function JennyPage() {
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="/pricing"
-                  className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#f5a623]/25 no-underline"
+                  className="bg-[#1FE3C4] text-[#0A0C11] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#1FE3C4]/25 no-underline"
                 >
                   {t('ctaFree')} &rarr;
                 </Link>
@@ -188,26 +188,26 @@ export default function JennyPage() {
             {/* Jenny Avatar/Visual */}
             <div className="hidden lg:flex justify-center">
               <div className="relative">
-                <div className="w-80 h-80 bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-full flex items-center justify-center shadow-2xl shadow-[#f5a623]/20">
+                <div className="w-80 h-80 bg-gradient-to-br from-[#1FE3C4] to-[#e6991a] rounded-full flex items-center justify-center shadow-2xl shadow-[#1FE3C4]/20">
                   <div className="text-center">
                     <div className="text-8xl mb-4">🎧</div>
-                    <div className="text-3xl font-bold text-[#1a1a2e]">Jenny</div>
-                    <div className="text-[#1a1a2e]/70 font-medium">{t('alwaysOnDuty')}</div>
+                    <div className="text-3xl font-bold text-[#0A0C11]">Jenny</div>
+                    <div className="text-[#0A0C11]/70 font-medium">{t('alwaysOnDuty')}</div>
                   </div>
                 </div>
 
                 {/* Floating capability badges */}
                 <div className="absolute -top-4 -left-4 bg-white rounded-xl px-4 py-2 shadow-lg animate-bounce">
                   <span className="text-2xl">📞</span>
-                  <span className="ml-2 font-semibold text-[#1a1a2e]">{t('answeringCalls')}</span>
+                  <span className="ml-2 font-semibold text-[#0A0C11]">{t('answeringCalls')}</span>
                 </div>
                 <div className="absolute top-1/4 -right-8 bg-white rounded-xl px-4 py-2 shadow-lg animate-bounce" style={{ animationDelay: '0.5s' }}>
                   <span className="text-2xl">📝</span>
-                  <span className="ml-2 font-semibold text-[#1a1a2e]">{t('writingQuote')}</span>
+                  <span className="ml-2 font-semibold text-[#0A0C11]">{t('writingQuote')}</span>
                 </div>
                 <div className="absolute -bottom-4 left-1/4 bg-white rounded-xl px-4 py-2 shadow-lg animate-bounce" style={{ animationDelay: '1s' }}>
                   <span className="text-2xl">⭐</span>
-                  <span className="ml-2 font-semibold text-[#1a1a2e]">{t('newReviews')}</span>
+                  <span className="ml-2 font-semibold text-[#0A0C11]">{t('newReviews')}</span>
                 </div>
               </div>
             </div>
@@ -220,11 +220,11 @@ export default function JennyPage() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-[#1a1a2e]">3</div>
+              <div className="text-4xl font-bold text-[#0A0C11]">3</div>
               <div className="text-gray-500 mt-1">{t('flexibleTiers')}</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#1a1a2e]">24/7</div>
+              <div className="text-4xl font-bold text-[#0A0C11]">24/7</div>
               <div className="text-gray-500 mt-1">{t('alwaysAvailable')}</div>
             </div>
             <div>
@@ -232,7 +232,7 @@ export default function JennyPage() {
               <div className="text-gray-500 mt-1">{t('jennyLiteIncluded')}</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#1a1a2e]">18x</div>
+              <div className="text-4xl font-bold text-[#0A0C11]">18x</div>
               <div className="text-gray-500 mt-1">{t('cheaperThanJobber')}</div>
             </div>
           </div>
@@ -243,10 +243,10 @@ export default function JennyPage() {
       <section id="features" className="py-20">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
-            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
+            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#0A0C11] mb-4">
               {t('featuresTagline')}
             </span>
-            <h2 className="text-4xl font-extrabold text-[#1a1a2e] mb-4">
+            <h2 className="text-4xl font-extrabold text-[#0A0C11] mb-4">
               {t('featuresTitle')}
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -262,8 +262,8 @@ export default function JennyPage() {
                 onClick={() => setActiveFeature(feature)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all ${
                   activeFeature.id === feature.id
-                    ? 'bg-[#1a1a2e] text-white shadow-lg'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-[#f5a623]'
+                    ? 'bg-[#0A0C11] text-white shadow-lg'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1FE3C4]'
                 }`}
               >
                 <span className="text-xl">{feature.icon}</span>
@@ -293,7 +293,7 @@ export default function JennyPage() {
 
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h4 className="font-bold text-[#1a1a2e] mb-4 flex items-center gap-2">
+                  <h4 className="font-bold text-[#0A0C11] mb-4 flex items-center gap-2">
                     <span className="w-8 h-8 bg-[#00c853] text-white rounded-lg flex items-center justify-center text-sm">✓</span>
                     {t('whatJennyDoes')}
                   </h4>
@@ -311,7 +311,7 @@ export default function JennyPage() {
                   <p className="text-gray-500 mb-4">{t('seeInAction', { name: activeFeature.name })}</p>
                   <Link
                     href={activeFeature.demoLink}
-                    className="bg-[#1a1a2e] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline inline-flex items-center gap-2"
+                    className="bg-[#0A0C11] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline inline-flex items-center gap-2"
                   >
                     {t('tryDemo')} &rarr;
                   </Link>
@@ -323,7 +323,7 @@ export default function JennyPage() {
       </section>
 
       {/* All Features Grid */}
-      <section className="py-20 bg-[#1a1a2e]">
+      <section className="py-20 bg-[#0A0C11]">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">{t('tryEachFeature')}</h2>
@@ -335,7 +335,7 @@ export default function JennyPage() {
               <Link
                 key={feature.id}
                 href={feature.demoLink}
-                className="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#f5a623] rounded-2xl p-6 transition-all hover:-translate-y-1 no-underline"
+                className="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#1FE3C4] rounded-2xl p-6 transition-all hover:-translate-y-1 no-underline"
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center text-2xl`}>
@@ -347,7 +347,7 @@ export default function JennyPage() {
                   </div>
                 </div>
                 <p className="text-white/90 text-sm mb-4 line-clamp-2">{feature.description}</p>
-                <span className="text-[#f5a623] font-semibold text-sm group-hover:underline">
+                <span className="text-[#1FE3C4] font-semibold text-sm group-hover:underline">
                   {t('tryDemo')} &rarr;
                 </span>
               </Link>
@@ -360,10 +360,10 @@ export default function JennyPage() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
-            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
+            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#0A0C11] mb-4">
               {t('comparisonTagline')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">
+            <h2 className="text-3xl font-bold text-[#0A0C11] mb-4">
               {t('comparisonTitle')}
             </h2>
             <p className="text-gray-600">
@@ -374,11 +374,11 @@ export default function JennyPage() {
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#1a1a2e] text-white">
+                <tr className="bg-[#0A0C11] text-white">
                   <th className="text-left p-4 font-semibold">{t('feature')}</th>
                   <th className="text-center p-4 font-semibold">
                     <div className="flex items-center justify-center gap-2">
-                      <span className="text-[#f5a623]">Jenny</span>
+                      <span className="text-[#1FE3C4]">Jenny</span>
                       <span className="text-xs bg-[#00c853] text-white px-2 py-0.5 rounded-full">{t('liteIncludedFree')}</span>
                     </div>
                   </th>
@@ -428,23 +428,23 @@ export default function JennyPage() {
       </section>
 
       {/* 867-5309 Section */}
-      <section className="py-20 bg-[#f5a623]">
+      <section className="py-20 bg-[#1FE3C4]">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="text-6xl mb-6">🎵</div>
-          <h2 className="text-4xl font-extrabold text-[#1a1a2e] mb-4">
+          <h2 className="text-4xl font-extrabold text-[#0A0C11] mb-4">
             {t('songTitle')}
           </h2>
-          <p className="text-xl text-[#1a1a2e]/80 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-[#0A0C11]/80 mb-8 max-w-2xl mx-auto">
             {t('songDescription')}
           </p>
-          <p className="text-lg text-[#1a1a2e]/60 font-medium">
+          <p className="text-lg text-[#0A0C11]/60 font-medium">
             {t('songQuote')}
           </p>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-[#1a1a2e]">
+      <section className="py-20 bg-[#0A0C11]">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-extrabold text-white mb-6">
             {t('readyToMeet')}
@@ -462,12 +462,12 @@ export default function JennyPage() {
                 <div className="text-white/40 text-xs">{t('includedInAllPlans')}</div>
               </div>
               <div>
-                <div className="text-[#f5a623] text-2xl font-bold">$49</div>
+                <div className="text-[#1FE3C4] text-2xl font-bold">$49</div>
                 <div className="text-white/60 text-sm">{t('jennyPro')}</div>
                 <div className="text-white/40 text-xs">{t('phoneSms')}</div>
               </div>
               <div>
-                <div className="text-[#f5a623] text-2xl font-bold">$79</div>
+                <div className="text-[#1FE3C4] text-2xl font-bold">$79</div>
                 <div className="text-white/60 text-sm">{t('execAdmin')}</div>
                 <div className="text-white/40 text-xs">{t('hrCompliance')}</div>
               </div>
@@ -478,7 +478,7 @@ export default function JennyPage() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Link
               href="/pricing"
-              className="bg-[#f5a623] text-[#1a1a2e] px-10 py-5 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#f5a623]/25 no-underline"
+              className="bg-[#1FE3C4] text-[#0A0C11] px-10 py-5 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-all hover:-translate-y-1 shadow-lg shadow-[#1FE3C4]/25 no-underline"
             >
               {t('addJenny')} &rarr;
             </Link>
@@ -505,12 +505,12 @@ export default function JennyPage() {
             &copy; {t('copyright')}
           </p>
           <div className="flex justify-center gap-6 mt-4">
-            <Link href="/" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('home')}</Link>
-            <Link href="/pricing" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('pricing')}</Link>
-            <Link href="/compare" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('comparePlans')}</Link>
-            <Link href="/auth/signup" className="text-white/60 hover:text-[#f5a623] text-sm no-underline">{t('signUp')}</Link>
+            <Link href="/" className="text-white/60 hover:text-[#1FE3C4] text-sm no-underline">{t('home')}</Link>
+            <Link href="/pricing" className="text-white/60 hover:text-[#1FE3C4] text-sm no-underline">{t('pricing')}</Link>
+            <Link href="/compare" className="text-white/60 hover:text-[#1FE3C4] text-sm no-underline">{t('comparePlans')}</Link>
+            <Link href="/auth/signup" className="text-white/60 hover:text-[#1FE3C4] text-sm no-underline">{t('signUp')}</Link>
           </div>
-          <div className="mt-6 text-[#f5a623] text-sm">
+          <div className="mt-6 text-[#1FE3C4] text-sm">
             ★ {t('womenOwned')}
           </div>
         </div>

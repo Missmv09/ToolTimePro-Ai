@@ -113,13 +113,13 @@ export default function DemoReviewsPage() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Demo Banner */}
-      <div className="bg-[#1a1a2e] text-white py-3 px-4 text-center">
+      <div className="bg-[#0A0C11] text-white py-3 px-4 text-center">
         <p className="text-sm">
-          <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
+          <span className="bg-[#1FE3C4] text-[#0A0C11] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
           {t('bannerText')}{' '}
-          <Link href="/auth/signup" className="text-[#f5a623] underline">
+          <Link href="/auth/signup" className="text-[#1FE3C4] underline">
             {t('bannerSignUp')}
           </Link>{' '}
           {t('bannerSuffix')}
@@ -129,20 +129,20 @@ export default function DemoReviewsPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-4">
-          <Link href="/" className="text-[#5c5c70] hover:text-[#1a1a2e] text-sm inline-flex items-center gap-1">
+          <Link href="/" className="text-[#5c5c70] hover:text-[#0A0C11] text-sm inline-flex items-center gap-1">
             ← {t('backToHome')}
           </Link>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#1a1a2e]">{t('title')}</h1>
+            <h1 className="text-2xl font-bold text-[#0A0C11]">{t('title')}</h1>
             <p className="text-[#5c5c70]">{t('subtitle')}</p>
           </div>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-[#1a1a2e] hover:bg-gray-50"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-[#0A0C11] hover:bg-gray-50"
             >
               <Settings size={18} />
               {t('settings')}
@@ -152,8 +152,8 @@ export default function DemoReviewsPage() {
 
         {/* Settings Panel */}
         {showSettings && (
-          <div className="bg-white rounded-xl border-2 border-[#f5a623] p-6 mb-8">
-            <h3 className="font-semibold text-[#1a1a2e] mb-4">{t('reviewSettings')}</h3>
+          <div className="bg-white rounded-xl border-2 border-[#1FE3C4] p-6 mb-8">
+            <h3 className="font-semibold text-[#0A0C11] mb-4">{t('reviewSettings')}</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -162,7 +162,7 @@ export default function DemoReviewsPage() {
                 <input
                   type="url"
                   placeholder="https://g.page/r/your-business/review"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {t('googleLinkHint')}
@@ -173,7 +173,7 @@ export default function DemoReviewsPage() {
                   type="checkbox"
                   id="autoSend"
                   defaultChecked
-                  className="w-4 h-4 rounded border-gray-300 text-[#f5a623]"
+                  className="w-4 h-4 rounded border-gray-300 text-[#1FE3C4]"
                 />
                 <label htmlFor="autoSend" className="text-sm text-gray-700">
                   {t('autoSendLabel')}
@@ -187,7 +187,7 @@ export default function DemoReviewsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl p-6 text-center border border-gray-200">
             <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-[#1a1a2e]">{demoStats.total}</p>
+            <p className="text-3xl font-bold text-[#0A0C11]">{demoStats.total}</p>
             <p className="text-sm text-gray-500">{t('totalRequests')}</p>
           </div>
           <div className="bg-white rounded-xl p-6 text-center border border-gray-200">
@@ -208,7 +208,7 @@ export default function DemoReviewsPage() {
         </div>
 
         {/* Conversion Rate */}
-        <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 mb-8 text-white">
+        <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-xl p-6 mb-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className="text-lg font-bold mb-1">{t('conversionRate')}</h3>
@@ -217,17 +217,17 @@ export default function DemoReviewsPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="text-4xl font-bold text-[#f5a623]">
+              <div className="text-4xl font-bold text-[#1FE3C4]">
                 {Math.round((demoStats.reviewed / demoStats.sent) * 100)}%
               </div>
-              <Star className="w-8 h-8 text-[#f5a623]" />
+              <Star className="w-8 h-8 text-[#1FE3C4]" />
             </div>
           </div>
         </div>
 
         {/* Jobs Ready for Review Request */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-[#1a1a2e] mb-4">
+          <h2 className="text-lg font-semibold text-[#0A0C11] mb-4">
             {t('readyForReview')} ({jobsToShow.length})
           </h2>
 
@@ -253,7 +253,7 @@ export default function DemoReviewsPage() {
                   {jobsToShow.map((job) => (
                     <tr key={job.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4">
-                        <p className="font-medium text-[#1a1a2e]">{job.customer.name}</p>
+                        <p className="font-medium text-[#0A0C11]">{job.customer.name}</p>
                       </td>
                       <td className="py-3 px-4 text-gray-600">{job.title}</td>
                       <td className="py-3 px-4 text-gray-600">{formatDate(job.scheduled_date)}</td>
@@ -275,7 +275,7 @@ export default function DemoReviewsPage() {
                         <button
                           onClick={() => handleSendRequest(job.id)}
                           disabled={isSending === job.id}
-                          className="inline-flex items-center gap-1 px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-medium text-sm hover:bg-[#e6991a] disabled:opacity-50"
+                          className="inline-flex items-center gap-1 px-4 py-2 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-medium text-sm hover:bg-[#e6991a] disabled:opacity-50"
                         >
                           {isSending === job.id ? (
                             t('sending')
@@ -297,7 +297,7 @@ export default function DemoReviewsPage() {
 
         {/* Sent Review Requests */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-[#1a1a2e] mb-4">
+          <h2 className="text-lg font-semibold text-[#0A0C11] mb-4">
             {t('recentRequests')}
           </h2>
           <div className="overflow-x-auto">
@@ -318,7 +318,7 @@ export default function DemoReviewsPage() {
                   return (
                     <tr key={request.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4">
-                        <p className="font-medium text-[#1a1a2e]">{request.customer_name}</p>
+                        <p className="font-medium text-[#0A0C11]">{request.customer_name}</p>
                       </td>
                       <td className="py-3 px-4 text-gray-600">{request.job_title}</td>
                       <td className="py-3 px-4">
@@ -346,8 +346,8 @@ export default function DemoReviewsPage() {
 
         {/* CTA */}
         <div className="bg-[#fef3d6] rounded-xl p-8 text-center">
-          <Star className="w-12 h-12 text-[#f5a623] mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">
+          <Star className="w-12 h-12 text-[#1FE3C4] mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-[#0A0C11] mb-2">
             {t('automateReviews')}
           </h3>
           <p className="text-[#5c5c70] mb-6 max-w-lg mx-auto">
@@ -355,7 +355,7 @@ export default function DemoReviewsPage() {
           </p>
           <Link
             href="/auth/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A0C11] text-white rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline"
           >
             {t('getStartedFree')}
             <ArrowRight size={18} />
@@ -368,7 +368,7 @@ export default function DemoReviewsPage() {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
             {t('poweredBy')}{' '}
-            <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
+            <Link href="/" className="text-[#1FE3C4] font-medium no-underline hover:underline">
               Task Iguana
             </Link>
           </p>

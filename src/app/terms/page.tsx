@@ -10,10 +10,10 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
-      <div className="bg-[#1a1a2e] text-white py-8">
+      <div className="bg-[#0A0C11] text-white py-8">
         <div className="max-w-[900px] mx-auto px-6">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
+            <Link href="/" className="text-[#1FE3C4] font-bold text-lg hover:underline">
               &larr; {t('backLink')}
             </Link>
             <LanguageSwitcher />
@@ -25,7 +25,7 @@ export default function TermsPage() {
 
       {/* Content */}
       <div className="max-w-[900px] mx-auto px-6 py-12">
-        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#1a1a2e] leading-relaxed">
+        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#0A0C11] leading-relaxed">
 
           <section>
             <h2 className="text-xl font-bold mb-3">1. Acceptance of Terms</h2>
@@ -86,7 +86,7 @@ export default function TermsPage() {
               or <strong>HELP</strong> for help. Standard message and data rates may apply. Phone numbers
               used for 2FA are never sold, shared with third parties or affiliates, or used for marketing.
               Full program details are available at{' '}
-              <Link href="/sms#two-factor-authentication" className="text-[#f5a623] hover:underline">
+              <Link href="/sms#two-factor-authentication" className="text-[#1FE3C4] hover:underline">
                 /sms#two-factor-authentication
               </Link>.
             </p>
@@ -111,7 +111,7 @@ export default function TermsPage() {
               You retain ownership of all business data, customer information, and content you create or upload
               to the platform. We do not claim ownership of your data. We use your data only to provide and
               improve the Service as described in our{' '}
-              <Link href="/privacy" className="text-[#f5a623] hover:underline">Privacy Policy</Link>.
+              <Link href="/privacy" className="text-[#1FE3C4] hover:underline">Privacy Policy</Link>.
             </p>
           </section>
 
@@ -176,7 +176,7 @@ export default function TermsPage() {
             </p>
             <p className="mt-2">
               <strong>Email:</strong> support@taskiguana.com<br />
-              <strong>Website:</strong> <a href="https://taskiguana.com" className="text-[#f5a623] hover:underline">taskiguana.com</a>
+              <strong>Website:</strong> <a href="https://taskiguana.com" className="text-[#1FE3C4] hover:underline">taskiguana.com</a>
             </p>
           </section>
 

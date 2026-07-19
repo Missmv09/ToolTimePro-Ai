@@ -102,10 +102,10 @@ export default function IndustriesPage() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Promo Banner */}
-      <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
+      <div className="bg-[#0A0C11] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
         {t('promo')}
-        <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
+        <Link href="/auth/signup" className="text-[#1FE3C4] font-semibold ml-2 hover:underline">
           {t('startFreeTrial')}
         </Link>
       </div>
@@ -125,30 +125,30 @@ export default function IndustriesPage() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('features')}</Link>
-            <Link href="/industries" className="text-[#f5a623] font-medium text-base transition-colors no-underline">{t('industriesNav')}</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('pricing')}</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('freeTools')}</Link>
+            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#0A0C11] transition-colors no-underline">{t('features')}</Link>
+            <Link href="/industries" className="text-[#1FE3C4] font-medium text-base transition-colors no-underline">{t('industriesNav')}</Link>
+            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#0A0C11] transition-colors no-underline">{t('pricing')}</Link>
+            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#0A0C11] transition-colors no-underline">{t('freeTools')}</Link>
             <span className="text-[#5c5c70] text-base flex items-center gap-1">
               📞 (888) 980-TOOL
             </span>
             <Link
               href="/auth/login"
-              className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline"
+              className="text-[#5c5c70] font-medium text-base hover:text-[#0A0C11] transition-colors no-underline"
             >
               {t('login')}
             </Link>
             <LanguageSwitcher />
             <Link
               href="/auth/signup"
-              className="bg-[#f5a623] text-[#1a1a2e] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
+              className="bg-[#1FE3C4] text-[#0A0C11] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] hover:-translate-y-0.5 transition-all no-underline"
             >
               {t('startFreeTrial')}
             </Link>
           </div>
 
           <button
-            className="md:hidden text-[#1a1a2e] text-2xl bg-transparent border-none cursor-pointer"
+            className="md:hidden text-[#0A0C11] text-2xl bg-transparent border-none cursor-pointer"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             ☰
@@ -157,20 +157,20 @@ export default function IndustriesPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-16 pb-12 bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] text-white relative overflow-hidden">
+      <section className="pt-16 pb-12 bg-gradient-to-br from-[#0A0C11] to-[#2d2d44] text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-[#f5a623] rounded-full blur-3xl" />
+          <div className="absolute top-20 left-20 w-64 h-64 bg-[#1FE3C4] rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-[1200px] mx-auto px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <span className="text-[#f5a623]">✓</span>
+            <span className="text-[#1FE3C4]">✓</span>
             {t('worksForAny')}
           </div>
 
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
-            {t.rich('heroTitle', { highlight: (chunks) => <span className="text-[#f5a623]">{chunks}</span> })}
+            {t.rich('heroTitle', { highlight: (chunks) => <span className="text-[#1FE3C4]">{chunks}</span> })}
           </h1>
           <p className="text-xl text-white/90 mb-6 max-w-2xl mx-auto">
             {t('heroSubtitle')}
@@ -178,14 +178,14 @@ export default function IndustriesPage() {
 
           {/* Competitive callout */}
           <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-xl mb-8">
-            <span className="text-2xl font-bold text-[#f5a623]">{t('industriesCount')}</span>
+            <span className="text-2xl font-bold text-[#1FE3C4]">{t('industriesCount')}</span>
             <span className="text-white/90">{t('industriesCountLabel')}</span>
           </div>
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup"
-              className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-[#e6991a] transition-all no-underline"
+              className="px-8 py-4 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold shadow-lg hover:bg-[#e6991a] transition-all no-underline"
             >
               {t('startFreeTrial')}
             </Link>
@@ -210,7 +210,7 @@ export default function IndustriesPage() {
                 placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-transparent"
+                className="w-full px-4 py-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-transparent"
               />
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
             </div>
@@ -223,7 +223,7 @@ export default function IndustriesPage() {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     selectedCategory === category
-                      ? 'bg-[#1a1a2e] text-white'
+                      ? 'bg-[#0A0C11] text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -243,10 +243,10 @@ export default function IndustriesPage() {
               <Link
                 key={industry.slug}
                 href={`/industries/${industry.slug}`}
-                className="bg-white rounded-xl p-4 text-center border-2 border-gray-100 hover:border-[#f5a623] hover:shadow-lg hover:-translate-y-1 transition-all no-underline group"
+                className="bg-white rounded-xl p-4 text-center border-2 border-gray-100 hover:border-[#1FE3C4] hover:shadow-lg hover:-translate-y-1 transition-all no-underline group"
               >
                 <div className="text-3xl mb-2">{industry.icon}</div>
-                <h3 className="text-sm font-semibold text-[#1a1a2e] group-hover:text-[#f5a623] transition-colors">
+                <h3 className="text-sm font-semibold text-[#0A0C11] group-hover:text-[#1FE3C4] transition-colors">
                   {industry.name}
                 </h3>
               </Link>
@@ -259,7 +259,7 @@ export default function IndustriesPage() {
               <p className="text-gray-400">{t('noResultsSub')}</p>
               <Link
                 href="/auth/signup"
-                className="inline-block mt-4 px-6 py-3 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold no-underline"
+                className="inline-block mt-4 px-6 py-3 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold no-underline"
               >
                 {t('startTrialAnyway')}
               </Link>
@@ -269,24 +269,24 @@ export default function IndustriesPage() {
       </section>
 
       {/* "Don't see yours?" CTA */}
-      <section className="py-16 bg-gradient-to-r from-[#f5a623] to-[#e6991a]">
+      <section className="py-16 bg-gradient-to-r from-[#1FE3C4] to-[#e6991a]">
         <div className="max-w-[800px] mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">
+          <h2 className="text-3xl font-bold text-[#0A0C11] mb-4">
             {t('dontSeeYours')}
           </h2>
-          <p className="text-[#1a1a2e]/80 text-lg mb-8">
+          <p className="text-[#0A0C11]/80 text-lg mb-8">
             {t.rich('dontSeeYoursDesc', { strong: (chunks) => <strong>{chunks}</strong> })}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/auth/signup"
-              className="px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold shadow-lg hover:bg-[#2d2d44] transition-all no-underline"
+              className="px-8 py-4 bg-[#0A0C11] text-white rounded-xl font-bold shadow-lg hover:bg-[#2d2d44] transition-all no-underline"
             >
               {t('tryItFree')}
             </Link>
             <Link
               href="/dashboard/smart-quote"
-              className="px-8 py-4 bg-white text-[#1a1a2e] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
+              className="px-8 py-4 bg-white text-[#0A0C11] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
             >
               {t('seeHowQuoting')}
             </Link>
@@ -298,7 +298,7 @@ export default function IndustriesPage() {
       <section className="py-16 bg-white">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#1a1a2e] mb-4">{t('whyTitle')}</h2>
+            <h2 className="text-3xl font-bold text-[#0A0C11] mb-4">{t('whyTitle')}</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               {t('whySubtitle')}
             </p>
@@ -309,7 +309,7 @@ export default function IndustriesPage() {
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🎯
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('industryAgnostic')}</h3>
+              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('industryAgnostic')}</h3>
               <p className="text-gray-600">
                 {t('industryAgnosticDesc')}
               </p>
@@ -318,7 +318,7 @@ export default function IndustriesPage() {
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 💰
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('halfThePrice')}</h3>
+              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('halfThePrice')}</h3>
               <p className="text-gray-600">
                 {t('halfThePriceDesc')}
               </p>
@@ -327,7 +327,7 @@ export default function IndustriesPage() {
               <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🛡️
               </div>
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('complianceBuiltIn')}</h3>
+              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('complianceBuiltIn')}</h3>
               <p className="text-gray-600">
                 {t('complianceBuiltInDesc')}
               </p>
@@ -357,18 +357,18 @@ export default function IndustriesPage() {
             <div>
               <h4 className="font-bold text-white text-lg mb-5">{t('product')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('features')}</Link>
-                <Link href="/pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('pricing')}</Link>
-                <Link href="/#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('demos')}</Link>
-                <Link href="/compare" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('comparePlans')}</Link>
+                <Link href="/#features" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">{t('features')}</Link>
+                <Link href="/pricing" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">{t('pricing')}</Link>
+                <Link href="/#demos" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">{t('demos')}</Link>
+                <Link href="/compare" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">{t('comparePlans')}</Link>
               </div>
             </div>
             <div>
               <h4 className="font-bold text-white text-lg mb-5">{t('company')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('login')}</Link>
-                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('signUp')}</Link>
-                <a href="mailto:support@taskiguana.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">{t('contact')}</a>
+                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">{t('login')}</Link>
+                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">{t('signUp')}</Link>
+                <a href="mailto:support@taskiguana.com" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">{t('contact')}</a>
               </div>
             </div>
           </div>
