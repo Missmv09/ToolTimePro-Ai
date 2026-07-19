@@ -142,6 +142,26 @@ Review quarterly. A genuine 1-year lead shows up as:
 
 ---
 
+## 9. The 1–2 Year AI Cost-Curve Strategy (competing as AI grows *and* gets cheaper)
+
+**The load-bearing fact:** the cost of any given AI capability is collapsing — GPT-4-class inference fell ~95% in two years and ~1,000x in three, and is projected to keep falling 3–5x per year through 2027. Jenny's voice and autonomous work that is expensive to run today will cost a fraction of that within ~18 months on their own.
+
+**The strategic consequence:** cost is *not* the real threat — **commoditization is.** When the same near-free frontier models are available to ServiceTitan, Jobber, Housecall Pro, and ToolTime alike, "having AI" stops being a moat for anyone. The winning question for the next two years is not *"how do we afford AI?"* but *"what do we own that still matters when AI itself is nearly free?"* Five moves answer that:
+
+1. **Data moat > model moat (invest here above all else).** A cheap model + proprietary data beats a frontier model + no data. ToolTime already holds three assets rivals can't rent: compliance rules (Shield), local supplier/material pricing + real close-rates by zip, and contractors' historical outcomes. Piped into Jenny, a budget-tier model performs like a frontier one *for this specific job*. Competitors can rent the model; they cannot rent the data. This is the only advantage that survives commoditization.
+
+2. **Right-size the intelligence (biggest near-term margin lever).** Run the ~80% of routine Jenny tasks (status, FAQ, scheduling, confirmations) on a cheap flash/mini model; escalate to a top-tier model only for hard reasoning. 5–10x COGS reduction with no quality loss on the easy majority. Extend the existing Anthropic-primary / OpenAI-fallback setup into **route-by-difficulty and route-by-price**, staying multi-vendor so ToolTime always runs on whoever is cheapest/best that quarter. Never hardwire one model vendor.
+
+3. **Outcome-based pricing so the AI funds itself.** A flat $49/mo invites a power user whose AI COGS exceeds their subscription. Keep the low headline price to win the door, but charge heavy autonomous work (collections, booking, dispatch) on outcomes — a cut of invoices Jenny collects, a fee per job booked. AI cost then only lands when it just made the contractor money. Self-funding, uncaps upside, and front-runs the industry shift off per-seat pricing.
+
+4. **Let low-COGS moats fund high-COGS features.** Compliance and profit intelligence barely burn tokens — they're rules, monitoring, and math on owned data, and they're the most defensible features. Use their high margin to fund the expensive early window of voice + autonomous agents, until the cost curve makes those cheap too.
+
+5. **Own the operating system, not the AI feature.** What gets disrupted is anything that *was* "an AI feature." What wins is the **system of record** — customers, jobs, invoices, compliance, payroll — with the model as a swappable engine underneath. Push toward payroll (via Shield) and deeper records so ToolTime is where the contractor runs the whole day and can drop in whatever model is cheapest each year.
+
+**One-line strategy:** don't compete on *how much* AI you have — compete on **AI value per dollar.** ToolTime can't out-spend ServiceTitan or Jobber on AI, but it can out-efficiency them (routing), out-data them (compliance + local pricing + outcomes they won't build), and out-align them (outcome pricing + low-COGS moats). When AI is free for everyone, the winner is whoever has the best proprietary data under the cheapest right-sized model, priced so the AI pays for itself — a position the enterprise players are too up-market, and the generic SMB players too broad, to copy.
+
+---
+
 ## Sources
 - [Jobber AI features (Voice, Receptionist, Campaign Generator, auto-quotes)](https://www.prnewswire.com/news-releases/industry-leader-jobber-unveils-exciting-new-ai-offerings-for-home-service-businesses-302567290.html) · [Jobber Receptionist launch](https://www.prnewswire.com/news-releases/jobber-launches-ai-powered-receptionist-to-answer-calls-and-texts-for-busy-home-service-businesses-302531125.html) · [Jobber product updates](https://www.getjobber.com/academy/product-updates/)
 - [Housecall Pro Fall 2025 AI updates](https://www.prnewswire.com/news-releases/housecall-pro-unveils-major-ai-powered-updates-for-fall-2025-302594189.html) · [Housecall Pro CSR AI](https://www.housecallpro.com/features/ai-team/csr-ai/)
@@ -149,3 +169,4 @@ Review quarterly. A genuine 1-year lead shows up as:
 - [Workiz Genius Answering launch](https://www.prnewswire.com/news-releases/workiz-launches-innovative-genius-answering-to-help-transform-field-service-management-302319751.html) · [Workiz Genius](https://www.workiz.com/features/workiz-genius/)
 - [AI in FSM 2026 — autonomous operations](https://fieldcamp.medium.com/ai-in-field-service-management-why-2026-is-the-year-operations-go-autonomous-9be02602926c) · [Salesforce Agentforce Field Service](https://www.salesforce.com/service/field-service-management/)
 - [Deloitte: SaaS meets AI agents — pricing model shift](https://www.deloitte.com/us/en/insights/industry/technology/technology-media-and-telecom-predictions/2026/saas-ai-agents.html)
+- [Epoch AI: LLM inference prices have fallen rapidly](https://epoch.ai/data-insights/llm-inference-price-trends) · [a16z: LLMflation — inference cost going down fast](https://a16z.com/llmflation-llm-inference-cost/) · [AI inference cost down ~95% in two years](https://valueaddvc.com/blog/how-ai-inference-costs-have-dropped-95-in-two-years-and-what-happens-next)
