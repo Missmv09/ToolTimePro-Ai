@@ -1,12 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#2F7A55"/>
-  <g transform="translate(96,90) scale(2.6)">
-    <path fill="#F1ECDF" stroke="#F1ECDF" stroke-width="2" stroke-linejoin="round" d="M14 60 L44 40 L50 33 L55 41 L62 33 L67 41 L74 33 L79 41 L88 34 L95 43 L109 56 L100 70 L84 73 L60 71 L30 65 Z"/>
-    <path fill="#F1ECDF" stroke="#F1ECDF" stroke-width="2" stroke-linejoin="round" d="M80 70 L70 95 L58 70 Z"/>
-    <circle cx="74" cy="59" r="8" fill="#D8A23E"/>
-    <circle cx="74" cy="59" r="8" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.4"/>
-    <circle cx="42" cy="50" r="4.4" fill="#181C19"/>
-    <circle cx="43.4" cy="48.6" r="1.4" fill="#2F7A55"/>
-    <circle cx="22" cy="56" r="1.7" fill="#181C19"/>
+  <defs>
+    <linearGradient id="ti" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1FE3C4"/>
+      <stop offset="1" stop-color="#2E9BFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#0A0C11"/>
+  <g transform="translate(3.8,24.6) scale(2.6)">
+    <path d="M56,116 L71,116 L76,90 Z" fill="url(#ti)"/>
+    <path d="M75,116 L90,116 L97,78 Z" fill="url(#ti)"/>
+    <path d="M94,116 L109,116 L118,66 Z" fill="url(#ti)"/>
+    <path d="M113,116 L128,116 L139,54 Z" fill="url(#ti)"/>
+    <path d="M48,124 Q92,138 146,104" fill="none" stroke="url(#ti)" stroke-width="6" stroke-linecap="round"/>
   </g>
 </svg>

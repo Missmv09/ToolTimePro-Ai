@@ -551,7 +551,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
   };
 
   return (
-    <main className="min-h-screen bg-[#fafafa]">
+    <main className="min-h-screen bg-[#0A0C11]">
       {/* Promo Banner */}
       <div className="bg-[#0A0C11] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
@@ -562,11 +562,11 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="sticky top-0 left-0 right-0 bg-[#0A0C11]/90 backdrop-blur-md z-50 border-b border-white/10">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo-01262026.png"
+              src="/logo-horizontal-white-01262026.png"
               alt="Task Iguana"
               width={180}
               height={40}
@@ -576,14 +576,14 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/#features" className="text-[#5c5c70] font-medium text-base hover:text-[#0A0C11] transition-colors no-underline">{t('features')}</Link>
+            <Link href="/#features" className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline">{t('features')}</Link>
             <Link href="/industries" className="text-[#1FE3C4] font-medium text-base transition-colors no-underline">{t('industriesNav')}</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#0A0C11] transition-colors no-underline">{t('pricing')}</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium text-base hover:text-[#0A0C11] transition-colors no-underline">{t('freeTools')}</Link>
+            <Link href="/pricing" className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline">{t('pricing')}</Link>
+            <Link href="/tools" className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline">{t('freeTools')}</Link>
             <LanguageSwitcher />
             <Link
               href="/auth/signup"
-              className="bg-[#1FE3C4] text-[#0A0C11] px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(245,166,35,0.3)] hover:bg-[#e6991a] transition-all no-underline"
+              className="bg-[#2E9BFF] text-white px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(46,155,255,0.3)] hover:bg-[#1E7FE0] transition-all no-underline"
             >
               {t('startFreeTrial')}
             </Link>
@@ -595,7 +595,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       <section className="pt-16 pb-12 bg-gradient-to-br from-[#0A0C11] to-[#2d2d44] text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-64 h-64 bg-[#1FE3C4] rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/100 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
@@ -620,7 +620,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <div className="flex flex-wrap gap-4">
             <Link
               href="/auth/signup"
-              className="px-8 py-4 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold shadow-lg hover:bg-[#e6991a] transition-all no-underline"
+              className="px-8 py-4 bg-[#2E9BFF] text-white rounded-xl font-bold shadow-lg hover:bg-[#1E7FE0] transition-all no-underline"
             >
               {t('startFreeTrial')}
             </Link>
@@ -635,13 +635,13 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       </section>
 
       {/* Stats Section */}
-      <section className="py-8 bg-white border-b">
+      <section className="py-8 bg-[#12151C] border-b">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="grid grid-cols-3 gap-8">
             {displayIndustry.stats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-3xl md:text-4xl font-extrabold text-[#1FE3C4]">{stat.value}</div>
-                <div className="text-sm text-gray-600 mt-1">{stat.label}</div>
+                <div className="text-sm text-white/60 mt-1">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -649,31 +649,31 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       </section>
 
       {/* Pain Points Section */}
-      <section className="py-16 bg-[#fef3d6]/30">
+      <section className="py-16 bg-[#0e1524]/30">
         <div className="max-w-[1200px] mx-auto px-6">
-          <h2 className="text-3xl font-bold text-[#0A0C11] mb-4 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4 text-center">
             {t('soundFamiliar')}
           </h2>
-          <p className="text-gray-600 text-center mb-10 max-w-2xl mx-auto">
+          <p className="text-white/60 text-center mb-10 max-w-2xl mx-auto">
             {t('soundFamiliarDesc', { name: displayIndustry.name })}
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {displayIndustry.painPoints.map((pain, index) => (
-              <div key={index} className="flex items-start gap-3 bg-white rounded-xl p-5 border border-gray-100">
+              <div key={index} className="flex items-start gap-3 bg-[#12151C] rounded-xl p-5 border border-white/10">
                 <span className="text-red-500 text-xl">😫</span>
                 <div>
-                  <p className="text-gray-700">{pain}</p>
+                  <p className="text-white/80">{pain}</p>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="text-center mt-10">
-            <p className="text-lg text-[#0A0C11] font-semibold mb-4">{t('toolTimeHelps')}</p>
+            <p className="text-lg text-white font-semibold mb-4">{t('toolTimeHelps')}</p>
             <Link
               href="/auth/signup"
-              className="inline-block px-6 py-3 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold no-underline hover:bg-[#e6991a] transition-all"
+              className="inline-block px-6 py-3 bg-[#2E9BFF] text-white rounded-xl font-bold no-underline hover:bg-[#1E7FE0] transition-all"
             >
               {t('startFreeTrial')} →
             </Link>
@@ -682,55 +682,55 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       </section>
 
       {/* Core Features - ACTUAL FEATURES ONLY */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-[#12151C]">
         <div className="max-w-[1200px] mx-auto px-6">
-          <h2 className="text-3xl font-bold text-[#0A0C11] mb-4 text-center">{t('everythingYouNeed', { name: displayIndustry.name })}</h2>
-          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-white mb-4 text-center">{t('everythingYouNeed', { name: displayIndustry.name })}</h2>
+          <p className="text-white/60 text-center mb-12 max-w-2xl mx-auto">
             {t('everythingYouNeedDesc')}
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#0e1524] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 📅
               </div>
-              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('smartScheduling')}</h3>
-              <p className="text-gray-600">{t('smartSchedulingDesc')}</p>
+              <h3 className="text-xl font-bold text-white mb-2">{t('smartScheduling')}</h3>
+              <p className="text-white/60">{t('smartSchedulingDesc')}</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#0e1524] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 📱
               </div>
-              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('crewMobileApp')}</h3>
-              <p className="text-gray-600">{t('crewMobileAppDesc')}</p>
+              <h3 className="text-xl font-bold text-white mb-2">{t('crewMobileApp')}</h3>
+              <p className="text-white/60">{t('crewMobileAppDesc')}</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#0e1524] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 💰
               </div>
-              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('quotingInvoicing')}</h3>
-              <p className="text-gray-600">{t('quotingInvoicingDesc')}</p>
+              <h3 className="text-xl font-bold text-white mb-2">{t('quotingInvoicing')}</h3>
+              <p className="text-white/60">{t('quotingInvoicingDesc')}</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#0e1524] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🛡️
               </div>
-              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('toolTimeShield')}</h3>
-              <p className="text-gray-600">{t('toolTimeShieldDesc')}</p>
+              <h3 className="text-xl font-bold text-white mb-2">{t('toolTimeShield')}</h3>
+              <p className="text-white/60">{t('toolTimeShieldDesc')}</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#0e1524] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🌐
               </div>
-              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('bookingWebsite')}</h3>
-              <p className="text-gray-600">{t('bookingWebsiteDesc')}</p>
+              <h3 className="text-xl font-bold text-white mb-2">{t('bookingWebsite')}</h3>
+              <p className="text-white/60">{t('bookingWebsiteDesc')}</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#fef3d6] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#0e1524] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 📊
               </div>
-              <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('businessReports')}</h3>
-              <p className="text-gray-600">{t('businessReportsDesc')}</p>
+              <h3 className="text-xl font-bold text-white mb-2">{t('businessReports')}</h3>
+              <p className="text-white/60">{t('businessReportsDesc')}</p>
             </div>
           </div>
         </div>
@@ -749,17 +749,17 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-[#0A0C11]">
         <div className="max-w-[800px] mx-auto px-6">
-          <h2 className="text-3xl font-bold text-[#0A0C11] mb-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">
             {t('faqTitle')}
           </h2>
 
           <div className="space-y-4">
             {displayIndustry.faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100">
-                <h3 className="font-semibold text-[#0A0C11] mb-2">{faq.question}</h3>
-                <p className="text-gray-600">{faq.answer}</p>
+              <div key={index} className="bg-[#12151C] rounded-xl p-6 border border-white/10">
+                <h3 className="font-semibold text-white mb-2">{faq.question}</h3>
+                <p className="text-white/60">{faq.answer}</p>
               </div>
             ))}
           </div>
@@ -767,19 +767,19 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       </section>
 
       {/* Competitor Comparison Hint */}
-      <section className="py-12 bg-white border-t border-b">
+      <section className="py-12 bg-[#12151C] border-t border-b">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <p className="text-gray-600 mb-4">{t('comparingSoftware', { name: displayIndustry.name })}</p>
+          <p className="text-white/60 mb-4">{t('comparingSoftware', { name: displayIndustry.name })}</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/compare/jobber"
-              className="px-6 py-3 bg-gray-100 text-[#0A0C11] rounded-lg font-medium no-underline hover:bg-gray-200 transition-all"
+              className="px-6 py-3 bg-white/10 text-white rounded-lg font-medium no-underline hover:bg-gray-200 transition-all"
             >
               Task Iguana vs Jobber →
             </Link>
             <Link
               href="/compare/housecall-pro"
-              className="px-6 py-3 bg-gray-100 text-[#0A0C11] rounded-lg font-medium no-underline hover:bg-gray-200 transition-all"
+              className="px-6 py-3 bg-white/10 text-white rounded-lg font-medium no-underline hover:bg-gray-200 transition-all"
             >
               Task Iguana vs Housecall Pro →
             </Link>
@@ -788,12 +788,12 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-gradient-to-r from-[#1FE3C4] to-[#e6991a]">
+      <section className="py-16 bg-gradient-to-r from-[#1FE3C4] to-[#1E7FE0]">
         <div className="max-w-[800px] mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-[#0A0C11] mb-4">
+          <h2 className="text-3xl font-bold text-white mb-4">
             {t('readyToGrow', { name: displayIndustry.name })}
           </h2>
-          <p className="text-[#0A0C11]/80 text-lg mb-8">
+          <p className="text-white/80 text-lg mb-8">
             {t('readyToGrowDesc')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -805,7 +805,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
             </Link>
             <Link
               href="/pricing"
-              className="px-8 py-4 bg-white text-[#0A0C11] rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all no-underline"
+              className="px-8 py-4 bg-[#12151C] text-white rounded-xl font-bold shadow-lg hover:bg-[#0A0C11] transition-all no-underline"
             >
               {t('seePricing')}
             </Link>

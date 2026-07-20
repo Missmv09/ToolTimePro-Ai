@@ -33,13 +33,13 @@ export default function BlogListingPage() {
   const regularPosts = posts.filter((p) => !p.featured || posts.length <= 1);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#12151C]">
       {/* Nav */}
-      <nav className="sticky top-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="sticky top-0 bg-[#0A0C11]/90 backdrop-blur-md z-50 border-b border-white/10">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo-01262026.png"
+              src="/logo-horizontal-white-01262026.png"
               alt="Task Iguana"
               width={180}
               height={40}
@@ -48,10 +48,10 @@ export default function BlogListingPage() {
             />
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/jenny" className="text-[#1FE3C4] font-semibold hover:text-[#e6991a] no-underline">{t('navJennyAi')}</Link>
-            <Link href="/#features" className="text-gray-600 hover:text-gray-900 no-underline">{t('navFeatures')}</Link>
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 no-underline">{t('navPricing')}</Link>
-            <Link href="/blog" className="text-[#0A0C11] font-semibold no-underline">{t('navBlog')}</Link>
+            <Link href="/jenny" className="text-[#1FE3C4] font-semibold hover:text-[#1E7FE0] no-underline">{t('navJennyAi')}</Link>
+            <Link href="/#features" className="text-white/60 hover:text-white no-underline">{t('navFeatures')}</Link>
+            <Link href="/pricing" className="text-white/60 hover:text-white no-underline">{t('navPricing')}</Link>
+            <Link href="/blog" className="text-white font-semibold no-underline">{t('navBlog')}</Link>
             <LanguageSwitcher />
             <Link href="/auth/signup" className="bg-[#2E9BFF] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#1E7FE0] no-underline">
               {t('navStartTrial')}
@@ -86,7 +86,7 @@ export default function BlogListingPage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 category === cat.id
                   ? 'bg-[#0A0C11] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-white/10 text-white/60 hover:bg-gray-200'
               }`}
             >
               {cat.label}
@@ -100,12 +100,12 @@ export default function BlogListingPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="rounded-xl border border-gray-200 overflow-hidden">
+              <div key={i} className="rounded-xl border border-white/10 overflow-hidden">
                 <div className="h-48 bg-gray-200 animate-pulse" />
                 <div className="p-6 space-y-3">
                   <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
                   <div className="h-6 w-full bg-gray-200 animate-pulse rounded" />
-                  <div className="h-4 w-3/4 bg-gray-100 animate-pulse rounded" />
+                  <div className="h-4 w-3/4 bg-white/10 animate-pulse rounded" />
                 </div>
               </div>
             ))}
@@ -113,14 +113,14 @@ export default function BlogListingPage() {
         ) : posts.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-2xl font-bold text-gray-300 mb-2">{t('comingSoon')}</p>
-            <p className="text-gray-500">{t('comingSoonMessage')}</p>
+            <p className="text-white/50">{t('comingSoonMessage')}</p>
           </div>
         ) : (
           <>
             {/* Featured post */}
             {featuredPost && posts.length > 1 && (
               <Link href={`/blog/${featuredPost.slug}`} className="block mb-12 no-underline group">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 rounded-2xl border border-white/10 overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="h-64 lg:h-auto bg-gradient-to-br from-[#0A0C11] to-[#2E9BFF] flex items-center justify-center">
                     <span className="text-6xl">📝</span>
                   </div>
@@ -129,14 +129,14 @@ export default function BlogListingPage() {
                       <span className="px-3 py-1 bg-[#2E9BFF]/10 text-[#2E9BFF] rounded-full text-xs font-semibold uppercase">
                         {t('featured')}
                       </span>
-                      <span className="text-sm text-gray-400 flex items-center gap-1">
+                      <span className="text-sm text-white/40 flex items-center gap-1">
                         <Clock size={14} /> {featuredPost.read_time_minutes} {t('minRead')}
                       </span>
                     </div>
-                    <h2 className="text-2xl font-bold text-[#0A0C11] mb-3 group-hover:text-[#2E9BFF] transition-colors">
+                    <h2 className="text-2xl font-bold text-white mb-3 group-hover:text-[#2E9BFF] transition-colors">
                       {featuredPost.title}
                     </h2>
-                    <p className="text-gray-600 mb-4 line-clamp-3">{featuredPost.excerpt}</p>
+                    <p className="text-white/60 mb-4 line-clamp-3">{featuredPost.excerpt}</p>
                     <span className="text-[#2E9BFF] font-semibold flex items-center gap-1">
                       {t('readMore')} <ArrowRight size={16} />
                     </span>
@@ -151,7 +151,7 @@ export default function BlogListingPage() {
                 <Link
                   key={post.id}
                   href={`/blog/${post.slug}`}
-                  className="group rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all no-underline"
+                  className="group rounded-xl border border-white/10 overflow-hidden hover:shadow-lg transition-all no-underline"
                 >
                   <div className="h-48 bg-gradient-to-br from-[#0A0C11] to-[#333357] flex items-center justify-center">
                     <span className="text-4xl opacity-50">
@@ -161,20 +161,20 @@ export default function BlogListingPage() {
                   <div className="p-6">
                     <div className="flex items-center gap-3 mb-3">
                       {post.category && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium capitalize">
+                        <span className="px-2 py-0.5 bg-white/10 text-white/60 rounded text-xs font-medium capitalize">
                           {post.category.replace('-', ' ')}
                         </span>
                       )}
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="text-xs text-white/40 flex items-center gap-1">
                         <Clock size={12} /> {post.read_time_minutes} {t('min')}
                       </span>
                     </div>
-                    <h3 className="font-bold text-[#0A0C11] text-lg mb-2 group-hover:text-[#2E9BFF] transition-colors line-clamp-2">
+                    <h3 className="font-bold text-white text-lg mb-2 group-hover:text-[#2E9BFF] transition-colors line-clamp-2">
                       {post.title}
                     </h3>
-                    <p className="text-sm text-gray-500 line-clamp-3 mb-4">{post.excerpt}</p>
+                    <p className="text-sm text-white/50 line-clamp-3 mb-4">{post.excerpt}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-white/40">
                         {post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                       </span>
                       <span className="text-[#2E9BFF] text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">

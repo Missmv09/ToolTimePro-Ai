@@ -827,11 +827,14 @@ export default function PricingPage() {
           --success: #00c853;
           --gray-100: #f5f5f5;
           --gray-200: #e5e5e5;
-          --gray-600: #757575;
+          --gray-600: #9aa4b2;
+          --text-muted: #9aa4b2;
           font-family: 'DM Sans', -apple-system, sans-serif;
-          background: var(--gray-100);
+          background: #0A0C11;
+          color: #e6eaee;
           min-height: 100vh;
         }
+        .pricing-page h1, .pricing-page h2, .pricing-page h3, .pricing-page h4 { color: #ffffff; }
         .nav {
           display: flex;
           justify-content: space-between;
@@ -912,7 +915,7 @@ export default function PricingPage() {
           left: 3px;
           width: 20px;
           height: 20px;
-          background: white;
+          background: #12151C;
           border-radius: 50%;
           transition: transform 0.2s;
         }
@@ -937,7 +940,7 @@ export default function PricingPage() {
         }
         .section h2 {
           text-align: center;
-          color: var(--navy);
+          color: #ffffff;
           margin: 0 0 0.5rem;
           font-size: 1.75rem;
         }
@@ -952,7 +955,7 @@ export default function PricingPage() {
           gap: 1.5rem;
         }
         .tier-card {
-          background: white;
+          background: #12151C;
           border-radius: 16px;
           padding: 2rem;
           border: 3px solid transparent;
@@ -977,7 +980,7 @@ export default function PricingPage() {
           left: 50%;
           transform: translateX(-50%);
           background: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
           padding: 0.25rem 1rem;
           border-radius: 20px;
           font-size: 0.75rem;
@@ -1014,7 +1017,7 @@ export default function PricingPage() {
           margin: 0 0 1rem;
         }
         .workers-info {
-          background: rgba(245,166,35,0.15);
+          background: rgba(46,155,255,0.15);
           padding: 0.5rem 1rem;
           border-radius: 8px;
           font-weight: 600;
@@ -1103,9 +1106,9 @@ export default function PricingPage() {
         .select-btn {
           width: 100%;
           padding: 0.75rem;
-          border: 2px solid var(--navy);
-          background: white;
-          color: var(--navy);
+          border: 2px solid rgba(255,255,255,0.16);
+          background: #12151C;
+          color: #ffffff;
           border-radius: 8px;
           font-weight: 600;
           cursor: pointer;
@@ -1119,10 +1122,10 @@ export default function PricingPage() {
         .select-btn.selected, .select-btn:hover {
           background: var(--gold);
           border-color: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
         }
         .standalone-section {
-          background: white;
+          background: #12151C;
           margin: 2rem -1rem;
           padding: 2rem;
           border-radius: 16px;
@@ -1148,7 +1151,7 @@ export default function PricingPage() {
         }
         .standalone-card.selected {
           border-color: var(--gold);
-          background: rgba(245,166,35,0.05);
+          background: rgba(46,155,255,0.05);
         }
         .standalone-icon {
           font-size: 2rem;
@@ -1157,7 +1160,7 @@ export default function PricingPage() {
         }
         .standalone-card h4 {
           margin: 0 0 0.25rem;
-          color: var(--navy);
+          color: #ffffff;
         }
         .standalone-price {
           font-size: 1.25rem;
@@ -1189,7 +1192,7 @@ export default function PricingPage() {
           gap: 1rem;
         }
         .addon-card {
-          background: white;
+          background: #12151C;
           border: 2px solid var(--gray-200);
           border-radius: 12px;
           padding: 1.25rem;
@@ -1201,7 +1204,7 @@ export default function PricingPage() {
         }
         .addon-card.selected {
           border-color: var(--gold);
-          background: rgba(245,166,35,0.05);
+          background: rgba(46,155,255,0.05);
         }
         .addon-card.highlight {
           border-color: var(--gold);
@@ -1220,7 +1223,7 @@ export default function PricingPage() {
         }
         .addon-card h4 {
           margin: 0 0 0.25rem;
-          color: var(--navy);
+          color: #ffffff;
           font-size: 1rem;
         }
         .addon-price {
@@ -1245,7 +1248,7 @@ export default function PricingPage() {
           text-decoration: underline;
         }
         .extra-workers {
-          background: white;
+          background: #12151C;
           border-radius: 12px;
           padding: 1.5rem;
           text-align: center;
@@ -1254,7 +1257,7 @@ export default function PricingPage() {
         }
         .extra-workers h4 {
           margin: 0 0 0.25rem;
-          color: var(--navy);
+          color: #ffffff;
         }
         .extra-workers > p {
           font-size: 0.85rem;
@@ -1270,8 +1273,8 @@ export default function PricingPage() {
         .workers-control button {
           width: 40px;
           height: 40px;
-          border: 2px solid var(--navy);
-          background: white;
+          border: 2px solid rgba(255,255,255,0.16);
+          background: #12151C;
           border-radius: 50%;
           font-size: 1.25rem;
           cursor: pointer;
@@ -1282,7 +1285,7 @@ export default function PricingPage() {
         .workers-count {
           font-size: 2rem;
           font-weight: 700;
-          color: var(--navy);
+          color: #ffffff;
           min-width: 50px;
         }
         .workers-cost {
@@ -1298,7 +1301,7 @@ export default function PricingPage() {
           margin: 0 auto;
         }
         .onboarding-card {
-          background: white;
+          background: #12151C;
           border: 2px solid var(--gray-200);
           border-radius: 12px;
           padding: 1.5rem;
@@ -1311,7 +1314,7 @@ export default function PricingPage() {
         }
         .onboarding-card.selected {
           border-color: var(--gold);
-          background: rgba(245,166,35,0.05);
+          background: rgba(46,155,255,0.05);
         }
         .onboarding-card.recommended {
           border-color: var(--gold);
@@ -1321,7 +1324,7 @@ export default function PricingPage() {
           top: -10px;
           left: 1rem;
           background: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
           font-size: 0.7rem;
           font-weight: 700;
           padding: 0.2rem 0.5rem;
@@ -1329,12 +1332,12 @@ export default function PricingPage() {
         }
         .onboarding-card h4 {
           margin: 0 0 0.25rem;
-          color: var(--navy);
+          color: #ffffff;
         }
         .onboarding-price {
           font-size: 1.5rem;
           font-weight: 700;
-          color: var(--navy);
+          color: #ffffff;
           margin: 0 0 0.5rem;
         }
         .onboarding-price span {
@@ -1432,7 +1435,7 @@ export default function PricingPage() {
         .cta-btn {
           width: 100%;
           background: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
           border: none;
           padding: 1rem;
           border-radius: 10px;
@@ -1452,7 +1455,7 @@ export default function PricingPage() {
         }
         .cta-btn-secondary:hover {
           background: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
         }
         .cta-note {
           text-align: center;
@@ -1509,7 +1512,7 @@ export default function PricingPage() {
         }
         .dispatch-btn {
           background: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
           border: none;
           padding: 0.75rem 1.5rem;
           border-radius: 8px;
@@ -1588,7 +1591,7 @@ export default function PricingPage() {
         }
         .jenny-learn-more:hover {
           background: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
         }
         .jenny-tiers {
           display: grid;
@@ -1598,7 +1601,7 @@ export default function PricingPage() {
           margin: 0 auto;
         }
         .jenny-tier {
-          background: white;
+          background: #12151C;
           border-radius: 12px;
           padding: 1.5rem;
           cursor: pointer;
@@ -1621,7 +1624,7 @@ export default function PricingPage() {
           left: 50%;
           transform: translateX(-50%);
           background: var(--gold);
-          color: var(--navy);
+          color: #ffffff;
           padding: 0.25rem 1rem;
           border-radius: 20px;
           font-size: 0.75rem;
@@ -1635,7 +1638,7 @@ export default function PricingPage() {
         }
         .jenny-tier-header h4 {
           margin: 0;
-          color: var(--navy);
+          color: #ffffff;
           font-size: 1.25rem;
         }
         .jenny-tier-price {
@@ -1714,13 +1717,13 @@ export default function PricingPage() {
           gap: 1rem;
         }
         .faq-item {
-          background: white;
+          background: #12151C;
           padding: 1.25rem;
           border-radius: 12px;
         }
         .faq-item h4 {
           margin: 0 0 0.5rem;
-          color: var(--navy);
+          color: #ffffff;
           font-size: 1rem;
         }
         .faq-item p {
