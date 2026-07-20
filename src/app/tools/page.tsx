@@ -240,7 +240,7 @@ export default function FreeToolsPage() {
               {t('caCompliance')}
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg text-white">
               {t('heroTitle')}
             </h1>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">

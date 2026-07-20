@@ -63,7 +63,7 @@ export default function BlogListingPage() {
       {/* Hero */}
       <div className="bg-gradient-to-br from-[#0A0C11] via-[#2d2d4e] to-[#0A0C11] text-white py-20">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">{t('title')}</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg text-white">{t('title')}</h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
             {t('subtitle')}
           </p>
