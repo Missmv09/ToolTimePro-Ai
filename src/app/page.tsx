@@ -436,6 +436,60 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Built for your trade */}
+      <section className="py-20 bg-[#0A0C11] border-t border-white/5">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-10">
+            <span className="inline-block bg-[#0e1524] text-[#1FE3C4] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
+              Built for your trade
+            </span>
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
+              One platform. Every trade.
+            </h2>
+            <p className="text-[1.0625rem] text-white/70">
+              From the first quote to the final invoice — Task Iguana runs the way your trade actually works.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { name: 'Landscaping', emoji: '🌳', slug: 'landscaping' },
+              { name: 'Plumbing', emoji: '🔧', slug: 'plumbing' },
+              { name: 'Electrical', emoji: '⚡', slug: 'electrical' },
+              { name: 'HVAC', emoji: '❄️', slug: 'hvac' },
+              { name: 'Cleaning', emoji: '🧹', slug: 'cleaning' },
+              { name: 'Handyman', emoji: '🛠️', slug: 'handyman' },
+              { name: 'Pool Service', emoji: '🏊', slug: 'pool-service' },
+              { name: 'Roofing', emoji: '🏠', slug: 'roofing' },
+            ].map((trade) => (
+              <Link
+                key={trade.slug}
+                href={`/industries/${trade.slug}`}
+                className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-cover bg-center no-underline transition-all hover:-translate-y-1"
+                style={{
+                  backgroundColor: '#12151C',
+                  backgroundImage: `linear-gradient(180deg, rgba(10,12,17,0.10) 0%, rgba(10,12,17,0.88) 100%), url(/trades/${trade.slug}.jpg)`,
+                }}
+              >
+                {/* Emoji shows through as a subtle watermark until a real /trades/<slug>.jpg photo is dropped in */}
+                <div className="absolute inset-0 flex items-center justify-center text-[3.5rem] opacity-20">
+                  {trade.emoji}
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                  <span className="text-white font-bold text-[1.05rem] [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]">{trade.name}</span>
+                  <span className="text-[#1FE3C4] group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+                <div className="absolute inset-0 rounded-2xl ring-0 group-hover:ring-2 ring-[#1FE3C4]/50 transition-all pointer-events-none" />
+              </Link>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/industries" className="inline-flex items-center gap-2 text-white/70 font-semibold hover:text-[#1FE3C4] transition-colors no-underline">
+              See all 20+ trades →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="py-[100px] bg-[#0A0C11] text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(46,155,255,0.1)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(46,155,255,0.08)_0%,transparent_50%)]" />
