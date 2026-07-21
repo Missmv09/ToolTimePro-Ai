@@ -1,0 +1,66 @@
+name: E2E (Cypress)
+
+on:
+  push:
+    branches: [main, sandbox]
+  pull_request:
+    branches: [main, sandbox]
+  workflow_dispatch:
+
+jobs:
+  # Public / unauthenticated E2E — builds and serves the app locally, no secrets
+  # needed. This is the always-on regression gate.
+  e2e-public:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Cypress run (public specs against a local build)
+        uses: cypress-io/github-action@v6
+        with:
+          build: npm run build
+          start: npm start
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 120
+          spec: cypress/e2e/public-pages.cy.js,cypress/e2e/public-extended.cy.js,cypress/e2e/booking-demo.cy.js
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+
+  # Authenticated E2E — runs against the deployed sandbox with a real login.
+  # Skips automatically until the E2E_* secrets are configured, so it never
+  # breaks CI before you wire them up.
+  e2e-authenticated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check for E2E credentials
+        id: guard
+        env:
+          E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+        run: |
+          if [ -z "$E2E_EMAIL" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::E2E_EMAIL secret not set — skipping authenticated E2E. Add E2E_EMAIL, E2E_PASSWORD, and E2E_BASE_URL repo secrets to enable."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Cypress run (authenticated, against the sandbox)
+        if: steps.guard.outputs.run == 'true'
+        uses: cypress-io/github-action@v6
+        with:
+          install: true
+          spec: cypress/e2e/authenticated-flows.cy.js,cypress/e2e/customer-portal.cy.js
+          config: baseUrl=${{ secrets.E2E_BASE_URL }}
+        env:
+          CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}

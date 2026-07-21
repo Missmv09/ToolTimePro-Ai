@@ -24,6 +24,13 @@ The Task Iguana Worker App gives your field crews everything they need on the jo
 - Mark jobs as started, in progress, or completed
 - View job history
 
+### "On My Way" + Live Tracking
+- Tap **"Text customer: On my way"** on the job screen when you leave for the job — *before* you arrive
+- The customer gets a text with a live tracking link (like a pizza tracker) and can watch the technician's location on a map as they drive
+- This marks the job **in progress**, so the office dashboard shows it as active while the tech is en route
+- If you skip this button and just clock in on-site, the customer still automatically gets the "on the way" text — and clocking in won't send a duplicate
+- The button is disabled if the customer has no phone number on file
+
 ### GPS Clock-In / Clock-Out
 - Tap **Clock In** when arriving at a job site
 - Location is recorded automatically as proof of presence
@@ -60,6 +67,7 @@ The worker app is designed to be simple and fast:
 | Section | Description |
 |---------|-------------|
 | **My Jobs** | Today's assigned jobs with times and addresses |
+| **On My Way** | One tap texts the customer a live tracking link before you arrive |
 | **Clock In/Out** | One-tap time tracking with GPS |
 | **Job Details** | Customer info, service notes, directions |
 | **Photos** | Upload before/after images |
@@ -103,6 +111,8 @@ Owners and admins access the full dashboard from their phone via the same mobile
 | Issue | Solution |
 |-------|----------|
 | Can't clock in | Check GPS/location permissions in phone settings |
+| "On my way" button greyed out | The customer has no phone number on file — add one on the customer record |
+| Customer didn't get the tracking text | Confirm the customer's mobile number is correct and that location/SMS is enabled |
 | Photos won't upload | Check internet connection; photos queue for later |
 | Not seeing new jobs | Pull to refresh or check internet connection |
 | App loads slowly | Clear browser cache; ensure strong signal |

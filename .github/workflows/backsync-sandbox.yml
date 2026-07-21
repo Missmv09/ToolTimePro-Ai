@@ -1,0 +1,68 @@
+name: Back-sync main → sandbox
+
+# Keeps the long-lived `sandbox` branch current with `main` automatically, so
+# the QA sandbox never silently falls behind production after a hotfix or a
+# merged promotion. This is the DOWN half of the promote loop:
+#   sandbox -> main   ... promotion (see promote-sandbox.yml)
+#   main -> sandbox   ... this workflow (back-sync)
+#
+# It preserves any unpromoted work sitting on `sandbox`: it MERGES main into
+# sandbox rather than overwriting it. If the merge conflicts, the job fails
+# loudly so a human resolves it instead of anything being forced.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Prevent overlapping runs from racing on the sandbox branch.
+concurrency:
+  group: backsync-sandbox
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  backsync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Back-sync main into sandbox
+        run: |
+          set -euo pipefail
+
+          # If the sandbox branch doesn't exist (e.g. it was deleted after a
+          # promotion merged), recreate it from main and stop.
+          if ! git ls-remote --exit-code --heads origin sandbox >/dev/null 2>&1; then
+            echo "sandbox branch missing — creating it from main."
+            git push origin origin/main:refs/heads/sandbox
+            exit 0
+          fi
+
+          git checkout -B sandbox origin/sandbox
+
+          # If sandbox already contains every commit on main, there is nothing
+          # to do (covers the common 'sandbox == main' and 'sandbox ahead' cases).
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "sandbox already up to date with main — nothing to do."
+            exit 0
+          fi
+
+          # Merge main into sandbox, preserving any unpromoted sandbox work.
+          if git merge --no-edit -m "chore: back-sync main into sandbox" origin/main; then
+            git push origin sandbox
+            echo "sandbox synced with main."
+          else
+            echo "::error::Merge conflict back-syncing main into sandbox. Resolve manually (git merge origin/main on the sandbox branch)."
+            exit 1
+          fi

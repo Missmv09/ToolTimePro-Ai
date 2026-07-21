@@ -56,6 +56,10 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT true,
     avatar_url TEXT,
     pin VARCHAR(10), -- Worker PIN for mobile app authentication
+    notes TEXT, -- Free-text general notes about a team member (set on create/edit)
+    admin_permissions JSONB, -- Granular admin capability grants (owner-managed)
+    home_address TEXT, -- Worker start location for route optimization
+    home_city TEXT,
     last_login_at TIMESTAMP WITH TIME ZONE, -- NULL means never logged in (pending activation)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -220,6 +224,7 @@ CREATE TABLE time_entries (
     clock_in_location JSONB, -- {lat, lng, address}
     clock_out_location JSONB,
     break_minutes INTEGER DEFAULT 0,
+    total_hours DECIMAL(10,2), -- Computed shift length in hours, set on clock-out
     notes TEXT,
     status VARCHAR(50) DEFAULT 'active', -- active, completed, edited
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -852,6 +857,31 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER set_invoice_number BEFORE INSERT ON invoices
     FOR EACH ROW EXECUTE FUNCTION generate_invoice_number();
+
+-- ============================================
+-- ROLE GRANTS (table-level privileges)
+-- ============================================
+-- WHY: RLS controls WHICH ROWS a role can see, but a role must also hold the
+-- base table-level privilege (SELECT/INSERT/UPDATE/DELETE) to touch a table at
+-- all. On a normal Supabase project these are auto-granted, but tables created
+-- by a raw schema/migration can end up WITHOUT them — so even the service_role
+-- key (which bypasses RLS) fails with "permission denied for table <name>".
+-- That is exactly what broke server-side quote/invoice creation. Granting the
+-- standard Supabase role set here — and via ALTER DEFAULT PRIVILEGES for any
+-- future objects — guarantees a fresh environment provisions correctly.
+-- Idempotent and safe to re-run. RLS stays enabled, so anon/authenticated are
+-- still row-filtered by their policies; these grants only restore the base
+-- access layer Supabase normally provisions automatically.
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+
+GRANT ALL ON ALL TABLES    IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES    TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
 
 -- ============================================
 -- SAMPLE DATA (for testing)

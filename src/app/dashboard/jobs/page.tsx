@@ -35,6 +35,17 @@ interface Quote {
   customer: { id: string; name: string; address: string; city: string; state: string; zip: string }[] | null
 }
 
+// Format a 24-hour "HH:MM" time string as a friendly 12-hour time (e.g. "2:00 PM").
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return ''
+  const [hours, minutes] = timeStr.split(':')
+  const hour = parseInt(hours, 10)
+  if (isNaN(hour)) return timeStr
+  const ampm = hour >= 12 ? 'PM' : 'AM'
+  const displayHour = hour % 12 || 12
+  return `${displayHour}:${minutes || '00'} ${ampm}`
+}
+
 function JobsContent() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([])
@@ -403,7 +414,7 @@ function JobsContent() {
                       {job.scheduled_date ? new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString() : 'Unscheduled'}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {job.scheduled_time_start || ''} {job.scheduled_time_end ? `- ${job.scheduled_time_end}` : ''}
+                      {formatTime(job.scheduled_time_start)} {job.scheduled_time_end ? `- ${formatTime(job.scheduled_time_end)}` : ''}
                     </p>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">
@@ -838,7 +849,7 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
                     <span>
                       {cj.title || 'Untitled job'} —{' '}
                       {cj.scheduled_date ? new Date(cj.scheduled_date + 'T00:00:00').toLocaleDateString() : 'Unscheduled'}
-                      {cj.scheduled_time_start ? ` at ${cj.scheduled_time_start}` : ''}
+                      {cj.scheduled_time_start ? ` at ${formatTime(cj.scheduled_time_start)}` : ''}
                     </span>
                   </label>
                 ))}

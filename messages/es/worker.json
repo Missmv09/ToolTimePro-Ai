@@ -55,7 +55,11 @@
       "californiaBreakRules": "Reglas de descanso de California",
       "mealBreakRule": "30 min para comer antes de la 5ta hora",
       "restBreakRule": "10 min de descanso por cada 4 horas trabajadas",
-      "secondMealRule": "Segundo descanso para comer si trabajas 10+ horas"
+      "secondMealRule": "Segundo descanso para comer si trabajas 10+ horas",
+      "jobForShift": "Trabajo para este turno",
+      "generalShift": "Turno general (sin trabajo)",
+      "workingOn": "Trabajando en",
+      "noCustomer": "Sin cliente"
     },
     "time": {
       "weekOf": "Semana del",
@@ -81,6 +85,9 @@
       "readyToStart": "¿Listo para empezar?",
       "tapToClockIn": "Toca abajo para registrar entrada",
       "clockIn": "REGISTRAR ENTRADA",
+      "onMyWay": "Avisar al cliente: Voy en camino",
+      "onMyWaySent": "✓ Cliente notificado — toca para reenviar",
+      "onMyWayNoPhone": "Agrega un teléfono para avisar al cliente",
       "clockOutComplete": "REGISTRAR SALIDA Y COMPLETAR",
       "address": "Dirección",
       "noAddress": "Sin dirección proporcionada",
@@ -108,7 +115,10 @@
       "checklistQuality": "Revisión de calidad",
       "checklistCleanup": "Limpiar el área de trabajo",
       "checklistPhotos": "Tomar fotos de finalización",
-      "checklistSignoff": "Obtener aprobación del cliente (si aplica)"
+      "checklistSignoff": "Obtener aprobación del cliente (si aplica)",
+      "myJobs": "Mis trabajos",
+      "noJobsAssigned": "Aún no hay trabajos asignados",
+      "noJobsAssignedHint": "Los trabajos que tu supervisor te asigne aparecerán aquí."
     },
     "profile": {
       "activeEmployee": "Empleado activo",
@@ -145,7 +155,8 @@
       "passwordPlaceholder": "Mínimo 8 caracteres",
       "confirmPasswordPlaceholder": "Confirma tu contraseña",
       "updatePassword": "Actualizar contraseña",
-      "updating": "Actualizando..."
+      "updating": "Actualizando...",
+      "switchToDashboard": "Ir al panel de administración"
     },
     "safety": {
       "emergency": "¿Emergencia?",

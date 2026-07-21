@@ -55,7 +55,11 @@
       "californiaBreakRules": "California Break Rules",
       "mealBreakRule": "30-min meal break before 5th hour",
       "restBreakRule": "10-min rest break per 4 hours worked",
-      "secondMealRule": "Second meal break if working 10+ hours"
+      "secondMealRule": "Second meal break if working 10+ hours",
+      "jobForShift": "Job for this shift",
+      "generalShift": "General shift (no job)",
+      "workingOn": "Working on",
+      "noCustomer": "No customer"
     },
     "time": {
       "weekOf": "Week of",
@@ -81,6 +85,9 @@
       "readyToStart": "Ready to Start?",
       "tapToClockIn": "Tap below to clock in",
       "clockIn": "CLOCK IN",
+      "onMyWay": "Text customer: On my way",
+      "onMyWaySent": "✓ Customer notified — tap to resend",
+      "onMyWayNoPhone": "Add a phone number to text the customer",
       "clockOutComplete": "CLOCK OUT & COMPLETE",
       "address": "Address",
       "noAddress": "No address provided",
@@ -108,7 +115,10 @@
       "checklistQuality": "Quality check",
       "checklistCleanup": "Clean up work area",
       "checklistPhotos": "Take completion photos",
-      "checklistSignoff": "Get customer sign-off (if applicable)"
+      "checklistSignoff": "Get customer sign-off (if applicable)",
+      "myJobs": "My Jobs",
+      "noJobsAssigned": "No jobs assigned yet",
+      "noJobsAssignedHint": "Jobs your manager assigns to you will show up here."
     },
     "profile": {
       "activeEmployee": "Active Employee",
@@ -145,7 +155,8 @@
       "passwordPlaceholder": "At least 8 characters",
       "confirmPasswordPlaceholder": "Confirm your password",
       "updatePassword": "Update Password",
-      "updating": "Updating..."
+      "updating": "Updating...",
+      "switchToDashboard": "Switch to Dashboard"
     },
     "safety": {
       "emergency": "Emergency?",

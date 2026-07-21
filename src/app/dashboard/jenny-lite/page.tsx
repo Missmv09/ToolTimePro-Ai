@@ -570,7 +570,7 @@ export default function JennyLitePage() {
             </p>
           </div>
 
-          {/* ToolTime-built site note */}
+          {/* Task Iguana-built site note */}
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-5">
             <div className="flex items-start gap-3">
               <span className="text-xl">🌐</span>

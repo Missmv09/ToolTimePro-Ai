@@ -38,6 +38,7 @@ const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string }> = {
   compliance_alert: { icon: Shield, color: 'text-amber-500' },
   review_received: { icon: Star, color: 'text-yellow-500' },
   booking_received: { icon: CalendarCheck, color: 'text-blue-500' },
+  reschedule_requested: { icon: CalendarCheck, color: 'text-amber-500' },
   worker_clock_in: { icon: Clock, color: 'text-gray-500' },
   quote_accepted: { icon: CheckCircle, color: 'text-green-500' },
   quote_expired: { icon: XCircle, color: 'text-red-500' },

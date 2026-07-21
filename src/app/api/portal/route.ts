@@ -541,12 +541,6 @@ export async function POST(request: NextRequest) {
 
     const customer = customers[0];
 
-    // Deactivate any existing active sessions for this customer (single session)
-    await (supabase as any).from('customer_sessions')
-      .update({ is_active: false })
-      .eq('customer_id', customer.id)
-      .eq('is_active', true);
-
     // Generate crypto-secure token
     const rawToken = generateSecureToken();
     const hashedToken = await hashToken(rawToken);
@@ -554,7 +548,12 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    await (supabase as any).from('customer_sessions').insert({
+    // Create the new session FIRST and verify it persisted. This insert used
+    // to be fire-and-forget: if it failed, the endpoint still returned success
+    // and emailed a token whose session never existed, so every magic link
+    // bounced to login. Insert-then-deactivate also avoids leaving the customer
+    // with zero active sessions if the insert fails.
+    const { error: sessionError } = await (supabase as any).from('customer_sessions').insert({
       customer_id: customer.id,
       company_id: customer.company_id,
       token: hashedToken, // Store HASHED token, not raw
@@ -562,8 +561,28 @@ export async function POST(request: NextRequest) {
       expires_at: expiresAt.toISOString(),
     });
 
-    // Build portal URL with RAW token (only the customer receives this)
-    const portalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.taskiguana.com'}/portal?token=${rawToken}`;
+    if (sessionError) {
+      console.error('[Portal] Failed to create customer session:', sessionError);
+      return NextResponse.json(
+        { error: 'Could not start a login session. Please try again, or contact support if it continues.' },
+        { status: 500 }
+      );
+    }
+
+    // Single active session: retire the customer's OTHER active sessions.
+    await (supabase as any).from('customer_sessions')
+      .update({ is_active: false })
+      .eq('customer_id', customer.id)
+      .eq('is_active', true)
+      .neq('token', hashedToken);
+
+    // Build portal URL with RAW token (only the customer receives this).
+    // Use APP_URL first: it's the per-deploy canonical URL (sandbox on the
+    // sandbox branch, prod on prod), so the magic link always lands on the
+    // same environment whose DB holds this session token. SITE_URL points at
+    // the marketing/prod host and would send sandbox links to production.
+    const portalBase = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.taskiguana.com';
+    const portalUrl = `${portalBase}/portal?token=${rawToken}`;
 
     // Get company name for email
     const { data: company } = await supabase
@@ -639,6 +658,35 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     await logPortalAccess(supabase, session.company_id, session.customer_id, 'reschedule_requested', clientIp, `Reschedule requested for job ${jobId}`);
+
+    // Notify the company's owner/admins so the request is actually visible on
+    // the business side (Bug #52/#65: the request was saved but nobody saw it).
+    // Best-effort — a notification failure must not fail the reschedule itself.
+    try {
+      const [{ data: managers }, { data: cust }, { data: jobRow }] = await Promise.all([
+        supabase.from('users').select('id').eq('company_id', session.company_id)
+          .in('role', ['owner', 'admin', 'worker_admin']).eq('is_active', true),
+        supabase.from('customers').select('name').eq('id', session.customer_id).single(),
+        supabase.from('jobs').select('title').eq('id', jobId).single(),
+      ]);
+
+      if (managers && managers.length > 0) {
+        const custName = (cust as { name?: string } | null)?.name || 'A customer';
+        const jobTitle = (jobRow as { title?: string } | null)?.title || 'a job';
+        const when = `${requestedDate}${requestedTimeStart ? ` at ${requestedTimeStart}` : ''}`;
+        const rows = (managers as { id: string }[]).map((m) => ({
+          company_id: session.company_id,
+          user_id: m.id,
+          type: 'reschedule_requested',
+          title: 'Reschedule requested',
+          message: `${custName} requested to reschedule "${jobTitle}" to ${when}.`,
+          link: '/dashboard/schedule',
+        }));
+        await (supabase as any).from('notifications').insert(rows);
+      }
+    } catch (notifyErr) {
+      console.error('Failed to create reschedule notification:', notifyErr);
+    }
 
     return NextResponse.json({ success: true });
   }

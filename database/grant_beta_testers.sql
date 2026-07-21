@@ -14,7 +14,9 @@
 -- each email to its company via the users table (and also match the company's
 -- own email column, in case the owner email lives there).
 --
--- Idempotent: safe to re-run. Run in the Supabase SQL Editor (Prod project).
+-- Idempotent: safe to re-run. Run in the Supabase SQL Editor of the project
+-- you are granting access on — the SANDBOX project for QA testers, the Prod
+-- project for real beta testers. The account must have signed up first.
 
 UPDATE companies c
 SET
@@ -27,7 +29,8 @@ WHERE
   lower(c.email) IN (
     'missmv@gmail.com',
     'justinkirksey@hotmail.com',
-    'sandbox-test@tooltimepro.com'
+    'sandbox-test@tooltimepro.com',
+    'qat56217@gmail.com'
   )
   OR c.id IN (
     SELECT u.company_id
@@ -35,7 +38,8 @@ WHERE
     WHERE lower(u.email) IN (
       'missmv@gmail.com',
       'justinkirksey@hotmail.com',
-      'sandbox-test@tooltimepro.com'
+      'sandbox-test@tooltimepro.com',
+      'qat56217@gmail.com'
     )
   );
 

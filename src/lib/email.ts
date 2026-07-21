@@ -563,7 +563,9 @@ export async function sendInvoiceEmail({
   to: string;
   customerName: string;
   invoiceNumber: string;
-  items?: { description: string; quantity: number; unit_price: number; total: number }[];
+  // Line items come straight from invoice_items, which stores the row amount
+  // as `total_price` (not `total`). Accept both, and never assume presence.
+  items?: { description: string; quantity: number; unit_price: number; total?: number; total_price?: number }[];
   subtotal?: number;
   taxRate?: number;
   taxAmount?: number;
@@ -574,25 +576,30 @@ export async function sendInvoiceEmail({
   invoiceLink: string;
   companyName?: string;
 }) {
-  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // Defensive: coerce to a number so a missing/undefined amount formats as
+  // $0.00 instead of throwing (a formatting glitch must never abort the send).
+  const formatCurrency = (amount?: number | null) =>
+    `$${(Number(amount) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const formattedTotal = formatCurrency(total);
   const formattedDueDate = dueDate
     ? new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : null;
 
-  const formatCurrency = (amount: number) =>
-    `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
   // Build line items table if items are available
   let lineItemsHtml = '';
   if (items && items.length > 0) {
-    const rows = items.map(item => `
+    const rows = items.map(item => {
+      const lineTotal = item.total ?? item.total_price ?? (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
+      return `
       <tr>
         <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px;">${item.description}</td>
         <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: center;">${item.quantity}</td>
         <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(item.unit_price)}</td>
-        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(item.total)}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(lineTotal)}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
 
     lineItemsHtml = `
       <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">

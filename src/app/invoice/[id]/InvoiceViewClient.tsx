@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import type { Company, Customer } from '@/types/database';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -84,57 +83,21 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
         return;
       }
 
-      const { data, error: fetchError } = await supabase
-        .from('invoices')
-        .select(`
-          *,
-          company:companies(*),
-          customer:customers(*)
-        `)
-        .eq('id', params.id)
-        .single();
+      // Fetch via the service-role public route. The invoices table is behind
+      // company-scoped RLS, so a logged-out customer cannot read it with the
+      // anon client — this endpoint reads server-side and marks it viewed.
+      const res = await fetch(`/api/invoice/public?id=${encodeURIComponent(params.id)}`);
+      const data = await res.json();
 
-      if (fetchError || !data) {
+      if (!res.ok || !data?.invoice) {
         setError('Invoice not found');
         setIsLoading(false);
         return;
       }
 
-      setInvoice(data as unknown as InvoiceWithDetails);
-
-      const { data: lineItems } = await supabase
-        .from('invoice_items')
-        .select('*')
-        .eq('invoice_id', data.id)
-        .order('sort_order', { ascending: true });
-
-      setItems((lineItems as InvoiceItem[]) || []);
-
-      // Fetch structured payment methods for this company
-      if (data.company_id) {
-        const { data: pmData, error: pmError } = await supabase
-          .from('company_payment_methods')
-          .select('method, handle, is_preferred, sort_order')
-          .eq('company_id', data.company_id)
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true });
-        if (pmError) {
-          console.warn('Could not load payment methods:', pmError.message);
-        } else if (pmData) {
-          setCompanyPaymentMethods(pmData as PaymentMethod[]);
-        }
-      }
-
-      // Mark as viewed if sent
-      if (data.status === 'sent') {
-        await supabase
-          .from('invoices')
-          .update({
-            status: 'viewed',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', data.id);
-      }
+      setInvoice(data.invoice as InvoiceWithDetails);
+      setItems((data.items as InvoiceItem[]) || []);
+      setCompanyPaymentMethods((data.paymentMethods as PaymentMethod[]) || []);
     } catch (err) {
       console.error('Error fetching invoice:', err);
       setError('Invoice not found');

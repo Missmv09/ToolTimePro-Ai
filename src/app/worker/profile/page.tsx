@@ -18,8 +18,10 @@ import {
   Lock,
   Eye,
   EyeOff,
+  LayoutDashboard,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { hasAdminAccess } from '@/lib/permissions';
 import { useTranslations } from 'next-intl';
 
 interface WorkerData {
@@ -333,6 +335,21 @@ export default function WorkerProfilePage() {
       <div className="bg-white rounded-xl shadow-sm p-4">
         <h2 className="font-semibold text-gray-900 mb-4">{t('settings')}</h2>
         <div className="space-y-2">
+          {/* Admin-capable users (worker_admin / admin / owner) can jump to the
+              owner dashboard without logging out and back in via the main app. */}
+          {hasAdminAccess(worker.role) && (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+            >
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-800">{t('switchToDashboard')}</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-blue-400" />
+            </button>
+          )}
+
           <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-gray-600" />

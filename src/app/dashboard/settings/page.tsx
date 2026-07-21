@@ -58,6 +58,8 @@ function SettingsContent() {
   const tabParam = searchParams.get('tab')
   const initialTab = (tabParam === 'integrations' || tabParam === 'subscription') ? tabParam : 'account'
   const [activeTab, setActiveTab] = useState<'account' | 'integrations' | 'subscription'>(initialTab)
+  // Billing/subscription is owner-only (admins keep everything else).
+  const isOwner = dbUser?.role === 'owner'
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [qboConnected, setQboConnected] = useState(false)
@@ -82,6 +84,14 @@ function SettingsContent() {
   const [savingPaymentMethods, setSavingPaymentMethods] = useState(false)
 
   // Load payment methods
+  // Non-owners must not view billing — if one lands on ?tab=subscription
+  // (e.g. via a bookmarked URL), bounce them to the Account tab.
+  useEffect(() => {
+    if (dbUser && !isOwner && activeTab === 'subscription') {
+      setActiveTab('account')
+    }
+  }, [dbUser, isOwner, activeTab])
+
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       if (!company?.id) return
@@ -454,16 +464,18 @@ function SettingsContent() {
         >
           Integrations
         </button>
-        <button
-          onClick={() => setActiveTab('subscription')}
-          className={`px-4 py-2 font-medium border-b-2 -mb-px transition-colors ${
-            activeTab === 'subscription'
-              ? 'text-blue-600 border-blue-600'
-              : 'text-gray-500 border-transparent hover:text-gray-700'
-          }`}
-        >
-          Subscription
-        </button>
+        {isOwner && (
+          <button
+            onClick={() => setActiveTab('subscription')}
+            className={`px-4 py-2 font-medium border-b-2 -mb-px transition-colors ${
+              activeTab === 'subscription'
+                ? 'text-blue-600 border-blue-600'
+                : 'text-gray-500 border-transparent hover:text-gray-700'
+            }`}
+          >
+            Subscription
+          </button>
+        )}
       </div>
 
       {/* Account Tab */}
@@ -1026,8 +1038,8 @@ function SettingsContent() {
         </div>
       )}
 
-      {/* Subscription Tab */}
-      {activeTab === 'subscription' && (() => {
+      {/* Subscription Tab — owner-only */}
+      {activeTab === 'subscription' && isOwner && (() => {
         const isBetaTester = company?.is_beta_tester
         const planKey = company?.plan || 'free_trial'
         const planInfo = PLAN_CONFIG[planKey] || { name: planKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), price: '--', period: '' }
