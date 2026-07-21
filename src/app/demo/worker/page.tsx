@@ -62,9 +62,9 @@ export default function WorkerDemoPage() {
   return (
     <main className="min-h-screen bg-[#fafafa] pb-20">
       {/* Demo Banner */}
-      <div className="bg-[#f5a623] text-[#1a1a2e] py-2 px-4 text-center">
+      <div className="bg-[#1FE3C4] text-[#0A0C11] py-2 px-4 text-center">
         <p className="text-sm font-medium">
-          <span className="bg-[#1a1a2e] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
+          <span className="bg-[#0A0C11] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
           {t('demoBanner')}{' '}
           <Link href="/auth/signup" className="underline font-bold">
             {t('signUp')}
@@ -95,7 +95,7 @@ export default function WorkerDemoPage() {
         {activeTab === 'jobs' && (
           <div>
             {/* Today&apos;s Overview */}
-            <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 mb-4 text-white">
+            <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-xl p-4 mb-4 text-white">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-bold text-lg text-white">{t('todaysJobs')}</h2>
                 <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
@@ -109,7 +109,7 @@ export default function WorkerDemoPage() {
                 </div>
                 <div>
                   <div className="text-white/70">{t('revenue')}</div>
-                  <div className="font-bold text-lg text-[#f5a623]">$355</div>
+                  <div className="font-bold text-lg text-[#1FE3C4]">$355</div>
                 </div>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function WorkerDemoPage() {
                   className={`bg-white rounded-xl p-4 border-2 cursor-pointer transition-all ${
                     job.status === 'current'
                       ? 'border-green-500 shadow-lg'
-                      : 'border-gray-200 hover:border-[#f5a623]'
+                      : 'border-gray-200 hover:border-[#1FE3C4]'
                   }`}
                 >
                   {job.status === 'current' && (
@@ -133,13 +133,13 @@ export default function WorkerDemoPage() {
                     </div>
                   )}
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-[#1a1a2e]">{job.customer}</h3>
-                    <span className="text-[#f5a623] font-bold">{job.price}</span>
+                    <h3 className="font-bold text-[#0A0C11]">{job.customer}</h3>
+                    <span className="text-[#1FE3C4] font-bold">{job.price}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-1">{job.service}</p>
                   <p className="text-sm text-gray-500 mb-2">📍 {job.address}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#1a1a2e]">⏰ {job.time}</span>
+                    <span className="text-sm font-medium text-[#0A0C11]">⏰ {job.time}</span>
                     <button className="text-sm text-blue-600 font-medium">{t('viewDetails')}</button>
                   </div>
                 </div>
@@ -183,13 +183,13 @@ export default function WorkerDemoPage() {
 
             {/* Break Buttons */}
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <button className="bg-white rounded-xl p-4 text-center border-2 border-gray-200 hover:border-[#f5a623]">
+              <button className="bg-white rounded-xl p-4 text-center border-2 border-gray-200 hover:border-[#1FE3C4]">
                 <span className="text-2xl block mb-1">☕</span>
-                <span className="font-medium text-[#1a1a2e]">{t('startBreak')}</span>
+                <span className="font-medium text-[#0A0C11]">{t('startBreak')}</span>
               </button>
-              <button className="bg-white rounded-xl p-4 text-center border-2 border-gray-200 hover:border-[#f5a623]">
+              <button className="bg-white rounded-xl p-4 text-center border-2 border-gray-200 hover:border-[#1FE3C4]">
                 <span className="text-2xl block mb-1">🍽️</span>
-                <span className="font-medium text-[#1a1a2e]">{t('lunchBreak')}</span>
+                <span className="font-medium text-[#0A0C11]">{t('lunchBreak')}</span>
               </button>
             </div>
 
@@ -198,7 +198,7 @@ export default function WorkerDemoPage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📍</span>
                 <div>
-                  <div className="font-semibold text-[#1a1a2e]">{t('gpsTrackingActive')}</div>
+                  <div className="font-semibold text-[#0A0C11]">{t('gpsTrackingActive')}</div>
                   <div className="text-sm text-gray-600">
                     {t('locationVerifiedForClock')}
                   </div>
@@ -212,10 +212,10 @@ export default function WorkerDemoPage() {
         {activeTab === 'hours' && (
           <div>
             <div className="bg-white rounded-xl p-6 mb-4">
-              <h3 className="font-bold text-[#1a1a2e] mb-4">{t('thisWeek')}</h3>
+              <h3 className="font-bold text-[#0A0C11] mb-4">{t('thisWeek')}</h3>
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
-                  <div className="text-3xl font-bold text-[#1a1a2e]">32.5</div>
+                  <div className="text-3xl font-bold text-[#0A0C11]">32.5</div>
                   <div className="text-sm text-gray-500">{t('hoursWorked')}</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -232,10 +232,10 @@ export default function WorkerDemoPage() {
                     key={day}
                     className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
                   >
-                    <span className="font-medium text-[#1a1a2e]">{day}</span>
+                    <span className="font-medium text-[#0A0C11]">{day}</span>
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-gray-500">8:00 AM - 4:30 PM</span>
-                      <span className="font-bold text-[#1a1a2e] w-12 text-right">
+                      <span className="font-bold text-[#0A0C11] w-12 text-right">
                         {[8.5, 7.5, 8, 5, 3.5][i]}h
                       </span>
                     </div>
@@ -250,12 +250,12 @@ export default function WorkerDemoPage() {
         {activeTab === 'profile' && (
           <div>
             <div className="bg-white rounded-xl p-6 text-center mb-4">
-              <div className="w-20 h-20 bg-[#1a1a2e] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-20 h-20 bg-[#0A0C11] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">👷</span>
               </div>
-              <h2 className="text-xl font-bold text-[#1a1a2e]">{demoUser.name}</h2>
+              <h2 className="text-xl font-bold text-[#0A0C11]">{demoUser.name}</h2>
               <p className="text-gray-500">{demoUser.role}</p>
-              <p className="text-sm text-[#f5a623] font-medium">{demoUser.company}</p>
+              <p className="text-sm text-[#1FE3C4] font-medium">{demoUser.company}</p>
             </div>
 
             <div className="bg-white rounded-xl overflow-hidden">
@@ -273,7 +273,7 @@ export default function WorkerDemoPage() {
                 >
                   <span className="text-2xl">{item.icon}</span>
                   <div>
-                    <div className="font-medium text-[#1a1a2e]">{item.label}</div>
+                    <div className="font-medium text-[#0A0C11]">{item.label}</div>
                     <div className="text-sm text-gray-500">{item.desc}</div>
                   </div>
                 </button>
@@ -310,12 +310,12 @@ export default function WorkerDemoPage() {
       {showClockInModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-xl font-bold text-[#1a1a2e] mb-4 text-center">
+            <h3 className="text-xl font-bold text-[#0A0C11] mb-4 text-center">
               {demoTimeLog.clockedIn ? t('clockOut') : t('clockIn')}
             </h3>
             <div className="bg-gray-50 rounded-xl p-4 mb-4 text-center">
               <div className="text-3xl mb-2">📍</div>
-              <div className="font-medium text-[#1a1a2e]">{t('locationVerified')}</div>
+              <div className="font-medium text-[#0A0C11]">{t('locationVerified')}</div>
               <div className="text-sm text-gray-500">1234 Oak Street, Los Angeles</div>
             </div>
             <div className="flex gap-3">
@@ -343,15 +343,15 @@ export default function WorkerDemoPage() {
         <div className="fixed inset-0 bg-black/50 flex items-end z-50">
           <div className="bg-white rounded-t-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[#1a1a2e]">{t('jobDetails')}</h3>
+              <h3 className="text-lg font-bold text-[#0A0C11]">{t('jobDetails')}</h3>
               <button onClick={() => setSelectedJob(null)} className="p-2">
                 ✕
               </button>
             </div>
             <div className="p-4">
               <div className="mb-4">
-                <h4 className="text-xl font-bold text-[#1a1a2e]">{selectedJob.customer}</h4>
-                <p className="text-[#f5a623] font-bold">{selectedJob.price}</p>
+                <h4 className="text-xl font-bold text-[#0A0C11]">{selectedJob.customer}</h4>
+                <p className="text-[#1FE3C4] font-bold">{selectedJob.price}</p>
               </div>
 
               <div className="space-y-4 mb-6">
@@ -359,28 +359,28 @@ export default function WorkerDemoPage() {
                   <span className="text-xl">📍</span>
                   <div>
                     <div className="text-sm text-gray-500">{t('address')}</div>
-                    <div className="font-medium text-[#1a1a2e]">{selectedJob.address}</div>
+                    <div className="font-medium text-[#0A0C11]">{selectedJob.address}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl">🔧</span>
                   <div>
                     <div className="text-sm text-gray-500">{t('service')}</div>
-                    <div className="font-medium text-[#1a1a2e]">{selectedJob.service}</div>
+                    <div className="font-medium text-[#0A0C11]">{selectedJob.service}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl">⏰</span>
                   <div>
                     <div className="text-sm text-gray-500">{t('time')}</div>
-                    <div className="font-medium text-[#1a1a2e]">{selectedJob.time}</div>
+                    <div className="font-medium text-[#0A0C11]">{selectedJob.time}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl">📝</span>
                   <div>
                     <div className="text-sm text-gray-500">{t('notes')}</div>
-                    <div className="font-medium text-[#1a1a2e]">{selectedJob.notes}</div>
+                    <div className="font-medium text-[#0A0C11]">{selectedJob.notes}</div>
                   </div>
                 </div>
               </div>
@@ -389,7 +389,7 @@ export default function WorkerDemoPage() {
                 <button className="py-3 bg-blue-500 text-white rounded-xl font-semibold">
                   📞 {t('callCustomer')}
                 </button>
-                <button className="py-3 bg-gray-100 text-[#1a1a2e] rounded-xl font-semibold">
+                <button className="py-3 bg-gray-100 text-[#0A0C11] rounded-xl font-semibold">
                   🗺️ {t('navigate')}
                 </button>
               </div>
@@ -409,7 +409,7 @@ export default function WorkerDemoPage() {
       </div>
 
       {/* CTA Overlay */}
-      <div className="fixed bottom-20 left-4 right-4 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 text-white shadow-lg">
+      <div className="fixed bottom-20 left-4 right-4 bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-xl p-4 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div>
             <div className="font-bold">{t('getThisForTeam')}</div>
@@ -417,7 +417,7 @@ export default function WorkerDemoPage() {
           </div>
           <Link
             href="/auth/signup"
-            className="px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-bold text-sm no-underline"
+            className="px-4 py-2 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-bold text-sm no-underline"
           >
             {t('signUp')}
           </Link>

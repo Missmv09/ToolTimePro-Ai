@@ -29,9 +29,9 @@ export default function SitePreviewFrame({ wizardData }) {
     stormText = '',
   } = wizardData;
 
-  const primaryColor = colors.primary || '#1a1a2e';
+  const primaryColor = colors.primary || '#0A0C11';
   const secondaryColor = colors.secondary || '#16213e';
-  const accentColor = colors.accent || '#f5a623';
+  const accentColor = colors.accent || '#1FE3C4';
   const bgColor = colors.background || '#ffffff';
   // Ensure heading/body colors are readable on light section backgrounds
   const headingColor = ensureReadableColor(colors.headingColor || primaryColor, '#ffffff', primaryColor);
@@ -174,7 +174,7 @@ export default function SitePreviewFrame({ wizardData }) {
       ${email ? `<a href="mailto:${email}" style="color:${accentColor};text-decoration:none;">${email}</a>` : ''}
     </div>
     <p style="margin-top:16px;font-size:12px;opacity:0.6;">&copy; ${new Date().getFullYear()} ${businessName}. All rights reserved.</p>
-    <p style="margin-top:8px;font-size:11px;opacity:0.4;">Powered by <a href="https://tooltimepro.com" style="color:${accentColor};text-decoration:none;">ToolTime Pro</a></p>
+    <p style="margin-top:8px;font-size:11px;opacity:0.4;">Powered by <a href="https://taskiguana.com" style="color:${accentColor};text-decoration:none;">Task Iguana</a></p>
   </footer>
 </body>
 </html>`;

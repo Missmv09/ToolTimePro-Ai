@@ -26,7 +26,7 @@ const PLATFORM_TOPICS = [
   'How to Get More Google Reviews for Your Home Service Business',
   'The Complete Guide to Hiring Your First Employee as a Contractor',
   // SEO comparison content
-  'Jobber vs ToolTime Pro: Which Is Better for Small Contractors?',
+  'Jobber vs Task Iguana: Which Is Better for Small Contractors?',
   'Why Contractors Are Switching from Pen and Paper to Software',
   'How CRM Software Helps Plumbers Win More Jobs',
   // Tips for growth
@@ -193,8 +193,8 @@ export default function AdminBlogPage() {
             <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 no-underline flex items-center gap-1 mb-2">
               <ArrowLeft size={14} /> Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-[#1a1a2e]">Platform Blog Admin</h1>
-            <p className="text-gray-500 mt-1">Manage blog posts on tooltimepro.com/blog</p>
+            <h1 className="text-3xl font-bold text-[#0A0C11]">Platform Blog Admin</h1>
+            <p className="text-gray-500 mt-1">Manage blog posts on taskiguana.com/blog</p>
           </div>
           <div className="flex gap-3">
             <Link href="/blog" target="_blank" className="btn-ghost flex items-center gap-2 px-4 py-2 border rounded-lg text-sm no-underline text-gray-600 hover:bg-gray-100">
@@ -202,7 +202,7 @@ export default function AdminBlogPage() {
             </Link>
             <button
               onClick={() => setShowGenerator(!showGenerator)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#f97316] text-white rounded-lg font-semibold hover:bg-[#ea580c] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[#2E9BFF] text-white rounded-lg font-semibold hover:bg-[#1E7FE0] transition-colors"
             >
               <Wand2 size={18} /> Generate Post
             </button>
@@ -225,14 +225,14 @@ export default function AdminBlogPage() {
 
         {/* Generator */}
         {showGenerator && (
-          <div className="bg-white rounded-xl border-2 border-[#f97316]/30 p-6 mb-6">
+          <div className="bg-white rounded-xl border-2 border-[#2E9BFF]/30 p-6 mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles size={20} className="text-[#f97316]" />
-              <h2 className="text-lg font-semibold text-[#1a1a2e]">AI Blog Generator</h2>
+              <Sparkles size={20} className="text-[#2E9BFF]" />
+              <h2 className="text-lg font-semibold text-[#0A0C11]">AI Blog Generator</h2>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-[#1a1a2e] mb-2">Pick a topic or write your own</label>
+              <label className="block text-sm font-medium text-[#0A0C11] mb-2">Pick a topic or write your own</label>
               <div className="flex flex-wrap gap-2 mb-3">
                 {PLATFORM_TOPICS.map((t) => (
                   <button
@@ -240,7 +240,7 @@ export default function AdminBlogPage() {
                     onClick={() => { setTopic(t); setCustomTopic(''); }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       topic === t
-                        ? 'bg-[#f97316] text-white'
+                        ? 'bg-[#2E9BFF] text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
@@ -250,7 +250,7 @@ export default function AdminBlogPage() {
               </div>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f97316]/50 focus:border-[#f97316] outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2E9BFF]/50 focus:border-[#2E9BFF] outline-none"
                 placeholder="Or type a custom topic..."
                 value={customTopic}
                 onChange={(e) => { setCustomTopic(e.target.value); setTopic(''); }}
@@ -258,9 +258,9 @@ export default function AdminBlogPage() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-[#1a1a2e] mb-1">Category</label>
+              <label className="block text-sm font-medium text-[#0A0C11] mb-1">Category</label>
               <select
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f97316]/50 focus:border-[#f97316] outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2E9BFF]/50 focus:border-[#2E9BFF] outline-none"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
@@ -273,7 +273,7 @@ export default function AdminBlogPage() {
             <button
               onClick={handleGenerate}
               disabled={generating || (!topic && !customTopic.trim())}
-              className="w-full px-4 py-3 bg-[#f97316] text-white rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#ea580c] disabled:opacity-50 transition-colors"
+              className="w-full px-4 py-3 bg-[#2E9BFF] text-white rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#1E7FE0] disabled:opacity-50 transition-colors"
             >
               {generating ? (
                 <><RefreshCw size={18} className="animate-spin" /> Generating...</>
@@ -298,11 +298,11 @@ export default function AdminBlogPage() {
         ) : posts.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 text-center py-16">
             <FileText size={48} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-lg font-semibold text-[#1a1a2e] mb-2">No platform blog posts yet</h3>
-            <p className="text-gray-500 mb-6">Generate your first post to start attracting contractors to ToolTime Pro.</p>
+            <h3 className="text-lg font-semibold text-[#0A0C11] mb-2">No platform blog posts yet</h3>
+            <p className="text-gray-500 mb-6">Generate your first post to start attracting contractors to Task Iguana.</p>
             <button
               onClick={() => setShowGenerator(true)}
-              className="inline-flex items-center gap-2 px-6 py-2 bg-[#f97316] text-white rounded-lg font-semibold hover:bg-[#ea580c]"
+              className="inline-flex items-center gap-2 px-6 py-2 bg-[#2E9BFF] text-white rounded-lg font-semibold hover:bg-[#1E7FE0]"
             >
               <Wand2 size={18} /> Generate First Post
             </button>
@@ -321,12 +321,12 @@ export default function AdminBlogPage() {
                         {post.status === 'published' ? 'Published' : 'Draft'}
                       </span>
                       {post.featured && (
-                        <span className="px-2 py-0.5 bg-[#f97316]/10 text-[#f97316] rounded-full text-xs font-medium">Featured</span>
+                        <span className="px-2 py-0.5 bg-[#2E9BFF]/10 text-[#2E9BFF] rounded-full text-xs font-medium">Featured</span>
                       )}
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs capitalize">{post.category?.replace('-', ' ')}</span>
                       <span className="text-xs text-gray-400">{post.word_count} words · {post.read_time_minutes} min</span>
                     </div>
-                    <h3 className="font-semibold text-[#1a1a2e] text-lg">{post.title}</h3>
+                    <h3 className="font-semibold text-[#0A0C11] text-lg">{post.title}</h3>
                     {post.excerpt && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.excerpt}</p>}
                     <p className="text-xs text-gray-400 mt-2">
                       {post.published_at ? `Published ${new Date(post.published_at).toLocaleDateString()}` : `Created ${new Date(post.created_at).toLocaleDateString()}`}
@@ -367,7 +367,7 @@ export default function AdminBlogPage() {
                           <Eye size={14} /> View
                         </Link>
                       )}
-                      <button onClick={() => handleFeature(post)} className={`px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 ${post.featured ? 'bg-[#f97316]/10 text-[#f97316]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                      <button onClick={() => handleFeature(post)} className={`px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 ${post.featured ? 'bg-[#2E9BFF]/10 text-[#2E9BFF]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                         {post.featured ? 'Unfeature' : 'Feature'}
                       </button>
                       <button onClick={() => handleDelete(post)} className="px-4 py-1.5 bg-gray-100 text-red-500 rounded-lg text-sm font-medium hover:bg-red-50 flex items-center gap-1.5">

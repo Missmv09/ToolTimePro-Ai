@@ -67,11 +67,11 @@ export default function ShieldDemoPage() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Demo Banner */}
-      <div className="bg-[#1a1a2e] text-white py-3 px-4 text-center">
+      <div className="bg-[#0A0C11] text-white py-3 px-4 text-center">
         <p className="text-sm">
-          <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
+          <span className="bg-[#1FE3C4] text-[#0A0C11] px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
           {t('bannerText')}{' '}
-          <Link href="/auth/signup" className="text-[#f5a623] underline">
+          <Link href="/auth/signup" className="text-[#1FE3C4] underline">
             {t('bannerSignUp')}
           </Link>{' '}
           {t('bannerSuffix')}
@@ -79,7 +79,7 @@ export default function ShieldDemoPage() {
       </div>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] text-white">
+      <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-block">
             ← {t('backToHome')}
@@ -109,7 +109,7 @@ export default function ShieldDemoPage() {
                 onClick={() => setActiveTab(tab.key as typeof activeTab)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
                   activeTab === tab.key
-                    ? 'bg-[#fef3d6] text-[#1a1a2e]'
+                    ? 'bg-[#fef3d6] text-[#0A0C11]'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
@@ -127,7 +127,7 @@ export default function ShieldDemoPage() {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Compliance Score */}
             <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('complianceScore')}</h2>
+              <h2 className="text-xl font-bold text-[#0A0C11] mb-4">{t('complianceScore')}</h2>
               <div className="flex items-center gap-8">
                 <div className="relative w-40 h-40">
                   <svg className="w-full h-full transform -rotate-90">
@@ -144,14 +144,14 @@ export default function ShieldDemoPage() {
                       cy="80"
                       r="70"
                       fill="none"
-                      stroke={complianceScore >= 80 ? '#22c55e' : complianceScore >= 60 ? '#f5a623' : '#ef4444'}
+                      stroke={complianceScore >= 80 ? '#22c55e' : complianceScore >= 60 ? '#1FE3C4' : '#ef4444'}
                       strokeWidth="12"
                       strokeDasharray={`${(complianceScore / 100) * 440} 440`}
                       strokeLinecap="round"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-[#1a1a2e]">{complianceScore}%</span>
+                    <span className="text-4xl font-bold text-[#0A0C11]">{complianceScore}%</span>
                   </div>
                 </div>
                 <div>
@@ -175,7 +175,7 @@ export default function ShieldDemoPage() {
 
             {/* Quick Actions */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('quickActions')}</h2>
+              <h2 className="text-xl font-bold text-[#0A0C11] mb-4">{t('quickActions')}</h2>
               <div className="space-y-3">
                 <button
                   onClick={() => setActiveTab('quiz')}
@@ -184,7 +184,7 @@ export default function ShieldDemoPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">👷</span>
                     <div>
-                      <div className="font-semibold text-[#1a1a2e]">{t('workerQuiz')}</div>
+                      <div className="font-semibold text-[#0A0C11]">{t('workerQuiz')}</div>
                       <div className="text-sm text-gray-500">{t('workerQuizDesc')}</div>
                     </div>
                   </div>
@@ -196,7 +196,7 @@ export default function ShieldDemoPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🧮</span>
                     <div>
-                      <div className="font-semibold text-[#1a1a2e]">{t('finalPayCalc')}</div>
+                      <div className="font-semibold text-[#0A0C11]">{t('finalPayCalc')}</div>
                       <div className="text-sm text-gray-500">{t('finalPayCalcDesc')}</div>
                     </div>
                   </div>
@@ -208,7 +208,7 @@ export default function ShieldDemoPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">📄</span>
                     <div>
-                      <div className="font-semibold text-[#1a1a2e]">{t('hrDocuments')}</div>
+                      <div className="font-semibold text-[#0A0C11]">{t('hrDocuments')}</div>
                       <div className="text-sm text-gray-500">{t('hrDocumentsDesc')}</div>
                     </div>
                   </div>
@@ -219,7 +219,7 @@ export default function ShieldDemoPage() {
             {/* Recent Checklist Items */}
             <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="font-bold text-[#1a1a2e]">{t('complianceChecklist')}</h2>
+                <h2 className="font-bold text-[#0A0C11]">{t('complianceChecklist')}</h2>
                 <button
                   onClick={() => setActiveTab('checklist')}
                   className="text-sm text-blue-600 font-medium"
@@ -237,7 +237,7 @@ export default function ShieldDemoPage() {
                         {item.status === 'complete' ? '✓' : '!'}
                       </div>
                       <div>
-                        <div className="font-medium text-[#1a1a2e]">{item.title}</div>
+                        <div className="font-medium text-[#0A0C11]">{item.title}</div>
                         <div className="text-sm text-gray-500">{item.description}</div>
                       </div>
                     </div>
@@ -259,7 +259,7 @@ export default function ShieldDemoPage() {
         {activeTab === 'checklist' && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-200">
-              <h2 className="font-bold text-[#1a1a2e]">{t('caComplianceChecklist')}</h2>
+              <h2 className="font-bold text-[#0A0C11]">{t('caComplianceChecklist')}</h2>
               <p className="text-sm text-gray-500">{t('caChecklistDesc')}</p>
             </div>
             <div className="divide-y divide-gray-100">
@@ -274,7 +274,7 @@ export default function ShieldDemoPage() {
                       ✓
                     </button>
                     <div>
-                      <div className="font-medium text-[#1a1a2e]">{item.title}</div>
+                      <div className="font-medium text-[#0A0C11]">{item.title}</div>
                       <div className="text-sm text-gray-500">{item.description}</div>
                     </div>
                   </div>
@@ -298,7 +298,7 @@ export default function ShieldDemoPage() {
         {activeTab === 'quiz' && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2 text-center">{t('quizTitle')}</h2>
+              <h2 className="text-2xl font-bold text-[#0A0C11] mb-2 text-center">{t('quizTitle')}</h2>
               <p className="text-gray-600 text-center mb-8">
                 {t('quizDesc')}
               </p>
@@ -309,7 +309,7 @@ export default function ShieldDemoPage() {
                     {t('questionOf', { current: quizStep + 1, total: quizQuestions.length })}
                   </div>
                   <div className="bg-gray-50 rounded-xl p-6 mb-6">
-                    <p className="text-xl font-medium text-[#1a1a2e] text-center">
+                    <p className="text-xl font-medium text-[#0A0C11] text-center">
                       {quizQuestions[quizStep].question}
                     </p>
                   </div>
@@ -333,7 +333,7 @@ export default function ShieldDemoPage() {
                   <div className="w-20 h-20 bg-[#fef3d6] rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-4xl">⚠️</span>
                   </div>
-                  <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('reviewRecommended')}</h3>
+                  <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('reviewRecommended')}</h3>
                   <p className="text-gray-600 mb-6">
                     {t('reviewRecommendedDesc')}
                   </p>
@@ -344,7 +344,7 @@ export default function ShieldDemoPage() {
                   </div>
                   <button
                     onClick={resetQuiz}
-                    className="px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-semibold hover:bg-[#2d2d4a]"
+                    className="px-6 py-3 bg-[#0A0C11] text-white rounded-xl font-semibold hover:bg-[#2d2d4a]"
                   >
                     {t('takeQuizAgain')}
                   </button>
@@ -358,7 +358,7 @@ export default function ShieldDemoPage() {
         {activeTab === 'calculator' && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2 text-center">{t('calcTitle')}</h2>
+              <h2 className="text-2xl font-bold text-[#0A0C11] mb-2 text-center">{t('calcTitle')}</h2>
               <p className="text-gray-600 text-center mb-8">
                 {t('calcDesc')}
               </p>
@@ -372,7 +372,7 @@ export default function ShieldDemoPage() {
                     type="number"
                     value={calcHours}
                     onChange={(e) => setCalcHours(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none"
                   />
                 </div>
                 <div>
@@ -383,7 +383,7 @@ export default function ShieldDemoPage() {
                     type="number"
                     value={calcRate}
                     onChange={(e) => setCalcRate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none"
                   />
                 </div>
                 <div>
@@ -394,13 +394,13 @@ export default function ShieldDemoPage() {
                     type="number"
                     value={calcPTO}
                     onChange={(e) => setCalcPTO(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none"
                   />
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="font-bold text-[#1a1a2e] mb-4">{t('finalPayBreakdown')}</h3>
+                <h3 className="font-bold text-[#0A0C11] mb-4">{t('finalPayBreakdown')}</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">{t('unpaidWages')}</span>
@@ -411,7 +411,7 @@ export default function ShieldDemoPage() {
                     <span className="font-semibold">${calculateFinalPay().ptoValue.toFixed(2)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-3 flex justify-between">
-                    <span className="font-bold text-[#1a1a2e]">{t('totalDue')}</span>
+                    <span className="font-bold text-[#0A0C11]">{t('totalDue')}</span>
                     <span className="font-bold text-2xl text-green-600">${calculateFinalPay().total.toFixed(2)}</span>
                   </div>
                 </div>
@@ -430,18 +430,18 @@ export default function ShieldDemoPage() {
         {activeTab === 'documents' && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-200">
-              <h2 className="font-bold text-[#1a1a2e]">{t('hrDocLibrary')}</h2>
+              <h2 className="font-bold text-[#0A0C11]">{t('hrDocLibrary')}</h2>
               <p className="text-sm text-gray-500">{t('hrDocLibraryDesc')}</p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
               {demoDocuments.map((doc) => (
-                <div key={doc.id} className="border border-gray-200 rounded-xl p-4 hover:border-[#f5a623] hover:shadow-md transition-all cursor-pointer">
+                <div key={doc.id} className="border border-gray-200 rounded-xl p-4 hover:border-[#1FE3C4] hover:shadow-md transition-all cursor-pointer">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xl">
                       📄
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-[#1a1a2e] mb-1">{doc.name}</h3>
+                      <h3 className="font-semibold text-[#0A0C11] mb-1">{doc.name}</h3>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <span className="bg-gray-100 px-2 py-0.5 rounded">{doc.type}</span>
                         <span>•</span>
@@ -458,7 +458,7 @@ export default function ShieldDemoPage() {
         <DemoLeadCapture featureName="Compliance Shield" source="shield_demo" />
 
         {/* Bottom CTA */}
-        <div className="mt-8 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
+        <div className="mt-8 bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
           <h2 className="text-2xl font-bold mb-4">{t('protectBusiness')}</h2>
           <p className="text-white/80 mb-6 max-w-2xl mx-auto">
             {t('protectBusinessDesc')}
@@ -466,7 +466,7 @@ export default function ShieldDemoPage() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup"
-              className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline"
+              className="px-8 py-4 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline"
             >
               {t('startFreeTrial')}
             </Link>
@@ -485,8 +485,8 @@ export default function ShieldDemoPage() {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
             {t('poweredBy')}{' '}
-            <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
-              ToolTime Pro
+            <Link href="/" className="text-[#1FE3C4] font-medium no-underline hover:underline">
+              Task Iguana
             </Link>
           </p>
         </div>

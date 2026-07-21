@@ -1,12 +1,12 @@
 # Calendly Integration — Onboarding Booking Setup
 
-This guide explains how to set up Calendly for ToolTime Pro's paid onboarding services so customers can self-schedule their setup sessions.
+This guide explains how to set up Calendly for Task Iguana's paid onboarding services so customers can self-schedule their setup sessions.
 
 ---
 
 ## Overview
 
-ToolTime Pro offers two onboarding packages that customers can book via Calendly:
+Task Iguana offers two onboarding packages that customers can book via Calendly:
 
 | Package | Price | Duration | Description |
 |---------|-------|----------|-------------|
@@ -19,15 +19,15 @@ ToolTime Pro offers two onboarding packages that customers can book via Calendly
 
 ### Assisted Onboarding ($199)
 
-1. Log in to [Calendly](https://calendly.com) with your ToolTime Pro team account
+1. Log in to [Calendly](https://calendly.com) with your Task Iguana team account
 2. Click **+ New Event Type** → **One-on-One**
 3. Configure:
-   - **Event name:** `Assisted Onboarding — ToolTime Pro`
+   - **Event name:** `Assisted Onboarding — Task Iguana`
    - **Duration:** 60 minutes
    - **Location:** Zoom (or Google Meet)
    - **Description:**
      ```
-     Your Assisted Onboarding session with a ToolTime Pro setup specialist.
+     Your Assisted Onboarding session with a Task Iguana setup specialist.
 
      In this 60-minute call, we'll help you:
      • Configure your service catalog and pricing
@@ -52,12 +52,12 @@ ToolTime Pro offers two onboarding packages that customers can book via Calendly
 
 1. Click **+ New Event Type** → **One-on-One**
 2. Configure:
-   - **Event name:** `White-Glove Setup — ToolTime Pro`
+   - **Event name:** `White-Glove Setup — Task Iguana`
    - **Duration:** 90 minutes
    - **Location:** Zoom (or Google Meet)
    - **Description:**
      ```
-     Your White-Glove Setup session with a ToolTime Pro senior specialist.
+     Your White-Glove Setup session with a Task Iguana senior specialist.
 
      This premium onboarding includes:
      • Everything in Assisted Onboarding, plus:
@@ -94,7 +94,7 @@ Calendly supports collecting payment at booking time via Stripe:
      - White-Glove Setup: **$499.00**
    - Payment is collected at booking time (no refund headaches for no-shows)
 
-> **Note:** If you prefer to handle payment separately through ToolTime Pro's Stripe checkout, skip this step and use the "free booking" approach. Direct customers to the pricing page to purchase the onboarding package, then share the Calendly link in the confirmation email.
+> **Note:** If you prefer to handle payment separately through Task Iguana's Stripe checkout, skip this step and use the "free booking" approach. Direct customers to the pricing page to purchase the onboarding package, then share the Calendly link in the confirmation email.
 
 ---
 
@@ -104,7 +104,7 @@ Calendly supports collecting payment at booking time via Stripe:
 
 Customize the confirmation email for each event type:
 
-**Subject:** `Your ToolTime Pro [Assisted Onboarding / White-Glove Setup] Is Booked!`
+**Subject:** `Your Task Iguana [Assisted Onboarding / White-Glove Setup] Is Booked!`
 
 **Body:**
 ```
@@ -117,21 +117,21 @@ Your {event_name} session is confirmed!
 📍 Location: {location}
 
 Before your session, please:
-1. Log in to your ToolTime Pro account at https://www.tooltimepro.com/auth/login
+1. Log in to your Task Iguana account at https://www.taskiguana.com/auth/login
 2. Complete the Getting Started checklist on your dashboard
 3. Prepare the items listed in the event description
 
 If you need to reschedule, use the link in this email.
 
-Questions? Email support@tooltimepro.com or call 1-888-980-8665.
+Questions? Email support@taskiguana.com or call 1-888-980-8665.
 
 See you soon!
-— The ToolTime Pro Team
+— The Task Iguana Team
 ```
 
 ---
 
-## Step 4: Embed Calendly Links in ToolTime Pro
+## Step 4: Embed Calendly Links in Task Iguana
 
 ### Option A: Link from Pricing Page and Dashboard
 
@@ -167,7 +167,7 @@ Add an optional step linking to onboarding booking for users who want guided set
 
 ### Option B: Embed Calendly Inline Widget
 
-For a more integrated experience, embed Calendly directly in a ToolTime Pro page:
+For a more integrated experience, embed Calendly directly in a Task Iguana page:
 
 ```tsx
 // src/app/dashboard/onboarding-booking/page.tsx
@@ -250,12 +250,12 @@ export default function OnboardingBookingPage() {
 
 ## Step 5: Post-Booking Automation (Optional)
 
-### Calendly Webhook → ToolTime Pro
+### Calendly Webhook → Task Iguana
 
-Set up a Calendly webhook to notify ToolTime Pro when a session is booked:
+Set up a Calendly webhook to notify Task Iguana when a session is booked:
 
 1. In Calendly, go to **Integrations** → **Webhooks** (requires Calendly Pro plan)
-2. Add a webhook URL: `https://www.tooltimepro.com/api/webhooks/calendly`
+2. Add a webhook URL: `https://www.taskiguana.com/api/webhooks/calendly`
 3. Subscribe to events: `invitee.created`, `invitee.canceled`
 
 ### API Route to Handle Webhook
@@ -276,7 +276,7 @@ export async function POST(request) {
     // Log the booking, send internal notification, update CRM, etc.
     console.log(`Onboarding booked: ${name} (${email}) — ${eventType}`);
 
-    // Optional: Create a notification in ToolTime Pro
+    // Optional: Create a notification in Task Iguana
     // await createNotification({ type: 'onboarding_booked', ... });
   }
 
@@ -319,4 +319,4 @@ CALENDLY_WEBHOOK_SECRET=your_webhook_secret_here
 | 5 | (Optional) Set up webhook for booking notifications |
 | 6 | Replace placeholder URLs with real Calendly links |
 
-Questions? Contact the ToolTime Pro engineering team or email support@tooltimepro.com.
+Questions? Contact the Task Iguana engineering team or email support@taskiguana.com.

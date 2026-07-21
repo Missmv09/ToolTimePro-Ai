@@ -12,7 +12,7 @@
 describe('Public marketing pages', () => {
   it('home page renders and links to pricing', () => {
     cy.visit('/');
-    cy.contains('ToolTime Pro').should('be.visible');
+    cy.contains('Task Iguana').should('be.visible');
     // Every marketing page should offer a path to pricing / signup.
     cy.get('a[href*="pricing"], a[href*="signup"]').should('exist');
   });
@@ -91,7 +91,7 @@ describe('Competitor comparison pages (SEO)', () => {
   ['/compare', '/compare/jobber', '/compare/housecall-pro'].forEach((path) => {
     it(`renders ${path}`, () => {
       cy.visit(path);
-      cy.contains('ToolTime Pro').should('exist');
+      cy.contains('Task Iguana').should('exist');
     });
   });
 });

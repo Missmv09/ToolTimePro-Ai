@@ -91,7 +91,7 @@ export default function ShieldPage() {
             <Shield className="w-8 h-8 text-navy-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">ToolTime Shield</h1>
+            <h1 className="text-2xl font-bold">Task Iguana Shield</h1>
             <p className="text-white/70">Legal Protection Tools</p>
           </div>
         </div>

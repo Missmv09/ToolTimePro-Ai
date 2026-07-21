@@ -76,7 +76,7 @@ describe('/api/quote/send', () => {
       customerName: 'Jane Doe',
       quoteNumber: 'QT-2026-001',
       total: 303.10,
-      quoteLink: 'https://tooltimepro.com/quote/abc-123',
+      quoteLink: 'https://taskiguana.com/quote/abc-123',
       companyName: 'Green Valley Landscaping',
       items: [
         { description: 'Lawn mowing', quantity: 1, unit_price: 45, total: 45 },
@@ -99,14 +99,14 @@ describe('/api/quote/send', () => {
     const emailArgs = mockSendQuoteEmail.mock.calls[0][0];
     expect(emailArgs.to).toBe('customer@example.com');
     expect(emailArgs.quoteNumber).toBe('QT-2026-001');
-    expect(emailArgs.quoteLink).toBe('https://tooltimepro.com/quote/abc-123');
+    expect(emailArgs.quoteLink).toBe('https://taskiguana.com/quote/abc-123');
     expect(emailArgs.companyName).toBe('Green Valley Landscaping');
   });
 
   it('returns 400 when recipient email is missing', async () => {
     const request = makeRequest({
       quoteNumber: 'QT-001',
-      quoteLink: 'https://tooltimepro.com/quote/abc',
+      quoteLink: 'https://taskiguana.com/quote/abc',
     });
 
     const response = await sendQuote(request);
@@ -134,7 +134,7 @@ describe('/api/quote/send', () => {
 
     const request = makeRequest({
       to: 'customer@example.com',
-      quoteLink: 'https://tooltimepro.com/quote/abc',
+      quoteLink: 'https://taskiguana.com/quote/abc',
     });
 
     const response = await sendQuote(request);
@@ -149,7 +149,7 @@ describe('/api/quote/send', () => {
 
     const request = makeRequest({
       to: 'customer@example.com',
-      quoteLink: 'https://tooltimepro.com/quote/abc',
+      quoteLink: 'https://taskiguana.com/quote/abc',
       total: 100,
     });
 
@@ -184,7 +184,7 @@ describe('/api/quote/notify-approval', () => {
       total: 303.10,
       itemCount: 3,
       submittedBy: 'Jane Doe',
-      dashboardLink: 'https://tooltimepro.com/dashboard/quotes',
+      dashboardLink: 'https://taskiguana.com/dashboard/quotes',
     });
 
     const response = await notifyApproval(request);

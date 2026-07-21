@@ -1,4 +1,4 @@
-# ToolTime Pro - Product Roadmap
+# Task Iguana - Product Roadmap
 
 ## Current Features (Shipped)
 
@@ -6,7 +6,7 @@
 - Smart Scheduling (drag-and-drop calendar, route optimization, automated reminders)
 - Crew Mobile App (job details, navigation, time tracking, photo uploads)
 - Quoting & Invoicing (on-site quotes, invoice conversion, payments)
-- ToolTime Shield (CA labor law compliance, worker classification, final pay rules, HR docs)
+- Task Iguana Shield (CA labor law compliance, worker classification, final pay rules, HR docs)
 - Booking Website (professional website with online booking - included free)
 - Business Reports (revenue tracking, job profitability, crew performance dashboards)
 

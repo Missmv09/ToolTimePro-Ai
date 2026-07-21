@@ -25,7 +25,7 @@
       "statusCancelled": "Cancelado"
     },
     "login": {
-      "title": "ToolTime Pro",
+      "title": "Task Iguana",
       "subtitle": "Portal del trabajador",
       "signIn": "Iniciar sesión",
       "signingIn": "Iniciando sesión...",
@@ -137,7 +137,7 @@
       "changePin": "Cambiar PIN",
       "changePassword": "Cambiar contraseña",
       "signOut": "Cerrar sesión",
-      "appVersion": "ToolTime Pro App del Trabajador v1.0.0",
+      "appVersion": "Task Iguana App del Trabajador v1.0.0",
       "notAuthenticated": "No autenticado",
       "pleaseLogIn": "Inicia sesión para ver tu perfil",
       "goToLogin": "Ir a iniciar sesión",

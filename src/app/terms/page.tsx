@@ -10,10 +10,10 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
-      <div className="bg-[#1a1a2e] text-white py-8">
+      <div className="bg-[#0A0C11] text-white py-8">
         <div className="max-w-[900px] mx-auto px-6">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-[#f5a623] font-bold text-lg hover:underline">
+            <Link href="/" className="text-[#1FE3C4] font-bold text-lg hover:underline">
               &larr; {t('backLink')}
             </Link>
             <LanguageSwitcher />
@@ -25,12 +25,12 @@ export default function TermsPage() {
 
       {/* Content */}
       <div className="max-w-[900px] mx-auto px-6 py-12">
-        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#1a1a2e] leading-relaxed">
+        <div className="bg-white rounded-xl p-8 shadow-sm space-y-8 text-[#0A0C11] leading-relaxed">
 
           <section>
             <h2 className="text-xl font-bold mb-3">1. Acceptance of Terms</h2>
             <p>
-              By accessing or using the ToolTime Pro platform (&quot;Service&quot;), you agree to be bound by these
+              By accessing or using the Task Iguana platform (&quot;Service&quot;), you agree to be bound by these
               Terms &amp; Conditions. If you do not agree to these terms, do not use the Service.
             </p>
           </section>
@@ -38,7 +38,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold mb-3">2. Description of Service</h2>
             <p>
-              ToolTime Pro is a business management platform designed for home service professionals. The Service
+              Task Iguana is a business management platform designed for home service professionals. The Service
               includes quoting, invoicing, scheduling, dispatch, customer management, team management, and
               communication tools including SMS and email notifications.
             </p>
@@ -60,12 +60,12 @@ export default function TermsPage() {
               By using our SMS features, you agree to the following:
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>Program Name:</strong> ToolTime Pro Service Notifications</li>
+              <li><strong>Program Name:</strong> Task Iguana Service Notifications</li>
               <li><strong>Message Types:</strong> Quote notifications, invoice notifications, appointment confirmations and reminders, job updates, and review requests.</li>
               <li><strong>Message Frequency:</strong> Varies based on service activity. Typically 1-5 messages per customer interaction.</li>
               <li><strong>Message and Data Rates:</strong> Standard message and data rates may apply depending on your mobile carrier.</li>
               <li><strong>Opt-Out:</strong> Reply STOP to any message to unsubscribe from SMS notifications.</li>
-              <li><strong>Help:</strong> Reply HELP to any message for assistance, or contact support@tooltimepro.com.</li>
+              <li><strong>Help:</strong> Reply HELP to any message for assistance, or contact support@taskiguana.com.</li>
               <li><strong>Supported Carriers:</strong> AT&amp;T, T-Mobile, Verizon, Sprint, and most major US carriers.</li>
             </ul>
             <p className="mt-3">
@@ -86,7 +86,7 @@ export default function TermsPage() {
               or <strong>HELP</strong> for help. Standard message and data rates may apply. Phone numbers
               used for 2FA are never sold, shared with third parties or affiliates, or used for marketing.
               Full program details are available at{' '}
-              <Link href="/sms#two-factor-authentication" className="text-[#f5a623] hover:underline">
+              <Link href="/sms#two-factor-authentication" className="text-[#1FE3C4] hover:underline">
                 /sms#two-factor-authentication
               </Link>.
             </p>
@@ -111,7 +111,7 @@ export default function TermsPage() {
               You retain ownership of all business data, customer information, and content you create or upload
               to the platform. We do not claim ownership of your data. We use your data only to provide and
               improve the Service as described in our{' '}
-              <Link href="/privacy" className="text-[#f5a623] hover:underline">Privacy Policy</Link>.
+              <Link href="/privacy" className="text-[#1FE3C4] hover:underline">Privacy Policy</Link>.
             </p>
           </section>
 
@@ -137,7 +137,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold mb-3">9. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, ToolTime Pro shall not be liable for any indirect,
+              To the maximum extent permitted by law, Task Iguana shall not be liable for any indirect,
               incidental, special, consequential, or punitive damages, including loss of profits, data, or
               business opportunities, arising from your use of the Service.
             </p>
@@ -175,8 +175,8 @@ export default function TermsPage() {
               If you have questions about these Terms, please contact us at:
             </p>
             <p className="mt-2">
-              <strong>Email:</strong> support@tooltimepro.com<br />
-              <strong>Website:</strong> <a href="https://tooltimepro.com" className="text-[#f5a623] hover:underline">tooltimepro.com</a>
+              <strong>Email:</strong> support@taskiguana.com<br />
+              <strong>Website:</strong> <a href="https://taskiguana.com" className="text-[#1FE3C4] hover:underline">taskiguana.com</a>
             </p>
           </section>
 

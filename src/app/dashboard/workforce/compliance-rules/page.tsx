@@ -77,7 +77,7 @@ export default function ComplianceRulesPage() {
             <p className="text-blue-700 text-sm mt-1">
               Each state&apos;s rules include a <strong>last verified date</strong> and a link to the official
               state labor department. Rules are flagged for review every 6 months. When laws change
-              (minimum wage increases, new classification tests, updated penalties), ToolTime pushes
+              (minimum wage increases, new classification tests, updated penalties), Task Iguana pushes
               updates through the platform. You&apos;ll see a notification when rules for your state are updated.
             </p>
             <p className="text-blue-600 text-xs mt-2">

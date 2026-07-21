@@ -1207,10 +1207,10 @@ function SettingsContent() {
               Contact our support team for billing questions or to cancel your subscription.
             </p>
             <a
-              href="mailto:support@tooltimepro.com"
+              href="mailto:support@taskiguana.com"
               className="text-blue-600 hover:text-blue-700 text-sm font-medium"
             >
-              support@tooltimepro.com
+              support@taskiguana.com
             </a>
           </div>
         </div>

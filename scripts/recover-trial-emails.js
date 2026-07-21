@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ToolTime Pro — Trial Email Recovery (one-off)
+ * Task Iguana — Trial Email Recovery (one-off)
  *
  * Why this exists:
  *   The trial-reminders cron used to fire each email on an EXACT day match
@@ -26,7 +26,7 @@
  *   NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL)  — the PROD project URL
  *   SUPABASE_SERVICE_ROLE_KEY                   — PROD service role key
  * For --trigger also:
- *   SITE_URL     — deployed site base URL (e.g. https://tooltimepro.com)
+ *   SITE_URL     — deployed site base URL (e.g. https://taskiguana.com)
  *   CRON_SECRET  — same value configured in Netlify
  *
  * Usage:

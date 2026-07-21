@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
             </p>
             <Link
               href="/auth/login"
-              className="mt-6 inline-block text-[#f5a623] hover:text-[#e6991a]"
+              className="mt-6 inline-block text-[#1FE3C4] hover:text-[#e6991a]"
             >
               {t('backToLogin')}
             </Link>
@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4]"
               placeholder="you@example.com"
             />
           </div>
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#0A0C11] font-bold bg-[#1FE3C4] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1FE3C4] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? t('sending') : t('sendButton')}
           </button>
@@ -117,7 +117,7 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-4 text-center text-sm text-gray-600">
           {t('rememberPassword')}{' '}
-          <Link href="/auth/login" className="text-[#f5a623] hover:text-[#e6991a] font-medium">
+          <Link href="/auth/login" className="text-[#1FE3C4] hover:text-[#e6991a] font-medium">
             {t('signInLink')}
           </Link>
         </p>

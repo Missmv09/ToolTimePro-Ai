@@ -1,6 +1,6 @@
 # Invoicing & Payments
 
-ToolTime Pro lets you create professional invoices, accept credit card payments, send automatic reminders, and sync everything with QuickBooks.
+Task Iguana lets you create professional invoices, accept credit card payments, send automatic reminders, and sync everything with QuickBooks.
 
 ---
 
@@ -23,7 +23,7 @@ If you converted an approved quote to a job, you can generate an invoice directl
 
 ## Payment Methods
 
-ToolTime Pro supports:
+Task Iguana supports:
 
 | Method | Details |
 |--------|---------|
@@ -50,7 +50,7 @@ Stripe handles all card processing securely. You'll need to connect your Stripe 
 
 ## Automatic Payment Reminders
 
-ToolTime Pro sends reminders so you don't have to chase payments:
+Task Iguana sends reminders so you don't have to chase payments:
 
 - **Before due date** — Gentle reminder 3 days before
 - **On due date** — Payment due today notification

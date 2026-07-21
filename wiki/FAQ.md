@@ -4,13 +4,13 @@
 
 ## General
 
-### What is ToolTime Pro?
-ToolTime Pro is an AI-powered field service management platform for contractors. It handles dispatch, scheduling, quoting, invoicing, team management, compliance, and customer communication — with Jenny AI running your back office. Built for 60+ industries including HVAC, plumbing, electrical, landscaping, roofing, cleaning, pest control, and more.
+### What is Task Iguana?
+Task Iguana is an AI-powered field service management platform for contractors. It handles dispatch, scheduling, quoting, invoicing, team management, compliance, and customer communication — with Jenny AI running your back office. Built for 60+ industries including HVAC, plumbing, electrical, landscaping, roofing, cleaning, pest control, and more.
 
-### How is ToolTime Pro different from Jobber, ServiceTitan, or Housecall Pro?
+### How is Task Iguana different from Jobber, ServiceTitan, or Housecall Pro?
 - **AI-native from day one** — Jenny AI is included in every plan, not a premium add-on
 - **No per-user pricing traps** — Competitors charge $20/vehicle or $250+/technician. We don't.
-- **Built-in compliance** — ToolTime Shield handles worker classification, wage laws, and HR docs
+- **Built-in compliance** — Task Iguana Shield handles worker classification, wage laws, and HR docs
 - **Bilingual** — Native English and Spanish support in every tier (40%+ of field crews are Spanish-speaking)
 - **Fast setup** — Running in 1–2 weeks, not 6–12 months
 - **Affordable** — Starting at $49/month vs $200+/month for comparable platforms
@@ -19,16 +19,16 @@ ToolTime Pro is an AI-powered field service management platform for contractors.
 60+ service industries including: Landscaping, Lawn Care, Pool Service, Plumbing, Electrical, HVAC, Painting, Cleaning, Roofing, Pest Control, Auto Detailing, Pressure Washing, Flooring, Handyman, Tree Service, Moving, Junk Removal, Appliance Repair, Garage Door, Window Cleaning, and more. The platform is industry-agnostic — it works for any field service business.
 
 ### Is there a free trial?
-Yes. You can start a free trial to explore the platform before committing to a paid plan. Visit [tooltimepro.com](https://www.tooltimepro.com) and click **Get Started Free**.
+Yes. You can start a free trial to explore the platform before committing to a paid plan. Visit [taskiguana.com](https://www.taskiguana.com) and click **Get Started Free**.
 
 ### Do you support Spanish?
-Yes! ToolTime Pro has native bilingual support (English and Spanish) built into every tier. Workers, customers, and admins can all use the platform in their preferred language. Jenny AI also handles conversations in both languages.
+Yes! Task Iguana has native bilingual support (English and Spanish) built into every tier. Workers, customers, and admins can all use the platform in their preferred language. Jenny AI also handles conversations in both languages.
 
 ---
 
 ## Pricing
 
-### How much does ToolTime Pro cost?
+### How much does Task Iguana cost?
 - **Starter:** $49/month (Owner + 2 workers)
 - **Pro:** $79/month (Up to 15 workers)
 - **Elite:** $129/month (Unlimited workers)
@@ -78,7 +78,7 @@ Go to **Team** → **+ Add Team Member**. Enter their details, set their role, a
 - **W-2 Employees** get full employment protections (break tracking, overtime, wage laws)
 - **1099 Contractors** have separate payment flows and classification guardrails
 
-ToolTime Pro manages both side by side. Use the **Worker Classification Quiz** in ToolTime Shield to determine the correct classification.
+Task Iguana manages both side by side. Use the **Worker Classification Quiz** in Task Iguana Shield to determine the correct classification.
 
 ### Do workers need to download an app?
 No app store download needed. The Worker App is a mobile-optimized web app that works in any phone browser. Workers can add it to their home screen for an app-like experience.
@@ -93,8 +93,8 @@ Yes. Workers can switch to Spanish from their profile settings.
 ### How does GPS clock-in work?
 Workers tap **Clock In** on their phone when arriving at a job. Their GPS location is automatically recorded. Same for clock-out. Owners see all time entries with locations in the dashboard.
 
-### What is ToolTime Shield?
-ToolTime Shield is the built-in compliance suite. It includes worker classification quizzes, final wage calculators, AB5 checklists, HR document templates, and multi-state compliance tracking. See [ToolTime Shield](ToolTime-Shield) for details.
+### What is Task Iguana Shield?
+Task Iguana Shield is the built-in compliance suite. It includes worker classification quizzes, final wage calculators, AB5 checklists, HR document templates, and multi-state compliance tracking. See [Task Iguana Shield](ToolTime-Shield) for details.
 
 ### How does online booking work?
 Customers visit your booking page, browse your active services, pick a time slot, and book. The booking creates a lead/job in your dashboard. Smart calendar prevents double-bookings, and automatic reminders reduce no-shows.
@@ -102,7 +102,7 @@ Customers visit your booking page, browse your active services, pick a time slot
 ### Can I accept credit card payments?
 Yes. Connect your Stripe account in Settings → Payments. Customers pay directly from the invoice link you send them.
 
-### Does ToolTime Pro sync with QuickBooks?
+### Does Task Iguana sync with QuickBooks?
 Yes. Two-way sync with QuickBooks Online for invoices, payments, and customers. Available as an add-on for $12/month on any plan. See [Invoicing & Payments](Invoicing-and-Payments).
 
 ### What is the Material Estimator?
@@ -123,10 +123,10 @@ Yes:
 - **Assisted Onboarding** ($199) — Guided setup call, service catalog configuration, team invites, booking page
 - **White-Glove Setup** ($499) — Full configuration, data migration, website build, and training
 
-Contact support@tooltimepro.com or call 1-888-980-8665 to book.
+Contact support@taskiguana.com or call 1-888-980-8665 to book.
 
 ### Can I migrate data from another platform?
-Yes! ToolTime Pro has a **self-service import wizard** built right into your dashboard. Go to **Customers → Import Customers**, select your old CRM (Housecall Pro, Jobber, ServiceTitan, FieldPulse, GorillaDesk, Workiz, or any CSV), upload your export file, and the importer auto-maps your columns. See the full guide: [Customers & Leads → Importing Customers](Customers-and-Leads#importing-customers-crm-migration).
+Yes! Task Iguana has a **self-service import wizard** built right into your dashboard. Go to **Customers → Import Customers**, select your old CRM (Housecall Pro, Jobber, ServiceTitan, FieldPulse, GorillaDesk, Workiz, or any CSV), upload your export file, and the importer auto-maps your columns. See the full guide: [Customers & Leads → Importing Customers](Customers-and-Leads#importing-customers-crm-migration).
 
 If you'd prefer hands-off migration, our **White-Glove Setup** ($499) includes full data migration, website build, and training.
 
@@ -135,20 +135,20 @@ If you'd prefer hands-off migration, our **White-Glove Setup** ($499) includes f
 ## Security & Privacy
 
 ### Is my data secure?
-Yes. ToolTime Pro uses Supabase with PostgreSQL and Row-Level Security (RLS). All data is isolated per company with multi-tenant security. Payments are processed through Stripe (PCI-compliant).
+Yes. Task Iguana uses Supabase with PostgreSQL and Row-Level Security (RLS). All data is isolated per company with multi-tenant security. Payments are processed through Stripe (PCI-compliant).
 
 ### Who can see my data?
 Only authenticated users within your company can access your data, based on their role and permissions. Workers only see their assigned jobs. Admins see broader company data. Owners have full access.
 
 ### Do you sell customer data?
-No. Your data is yours. We do not sell, share, or monetize your business or customer data. See our [Privacy Policy](https://www.tooltimepro.com/privacy) for details.
+No. Your data is yours. We do not sell, share, or monetize your business or customer data. See our [Privacy Policy](https://www.taskiguana.com/privacy) for details.
 
 ---
 
 ## Support
 
 ### How do I contact support?
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the help icon in your dashboard
 
@@ -162,4 +162,4 @@ You're looking at it! Browse the [Help Center](Home) for guides on every feature
 
 ## Still Have Questions?
 
-Contact us at support@tooltimepro.com or call 1-888-980-8665. We're here to help.
+Contact us at support@taskiguana.com or call 1-888-980-8665. We're here to help.

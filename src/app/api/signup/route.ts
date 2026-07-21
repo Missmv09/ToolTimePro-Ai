@@ -119,7 +119,7 @@ export async function POST(request: Request) {
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       request.headers.get('origin') ||
-      'https://tooltimepro.com';
+      'https://taskiguana.com';
 
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({

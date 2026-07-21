@@ -5,7 +5,7 @@ import { Globe, Link2, Check, Sparkles } from 'lucide-react';
 
 export default function Step4DomainSearch({ wizardData, setWizardData }) {
   // Two modes only — Jobber/Housecall Pro style.
-  // 'subdomain': free *.tooltimepro.com address (default and recommended)
+  // 'subdomain': free *.taskiguana.com address (default and recommended)
   // 'existing':  customer registers a domain elsewhere (GoDaddy, Namecheap,
   //              etc.) and points DNS at us. We never register domains
   //              in-app — too much support burden, no margin, ownership
@@ -58,7 +58,7 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
       ...prev,
       domainMode: 'subdomain',
       selectedDomain: {
-        domainName: `${slug}.tooltimepro.com`,
+        domainName: `${slug}.taskiguana.com`,
         price: '0',
         renewalPrice: '0',
         type: 'subdomain',
@@ -117,7 +117,7 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
               Free subdomain
               <span className="ml-2 text-xs font-medium text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">Recommended</span>
             </p>
-            <p className="text-xs text-gray-500">yourname.tooltimepro.com — launch in seconds</p>
+            <p className="text-xs text-gray-500">yourname.taskiguana.com — launch in seconds</p>
           </div>
         </button>
 
@@ -197,7 +197,7 @@ export default function Step4DomainSearch({ wizardData, setWizardData }) {
                 Your free address: <span className="font-bold">{wizardData.selectedDomain.domainName}</span>
               </p>
               <p className="text-xs text-green-600 mt-1">
-                Free forever — included with your ToolTime Pro plan. You can connect a custom domain anytime later.
+                Free forever — included with your Task Iguana plan. You can connect a custom domain anytime later.
               </p>
             </div>
           )}

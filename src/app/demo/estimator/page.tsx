@@ -71,7 +71,7 @@ const demoEstimate = {
 
 const tierMultipliers = [
   { name: 'Economy', label: 'Good', multiplier: 0.8, color: '#5c5c70' },
-  { name: 'Standard', label: 'Better', multiplier: 1.0, color: '#f5a623' },
+  { name: 'Standard', label: 'Better', multiplier: 1.0, color: '#1FE3C4' },
   { name: 'Premium', label: 'Best', multiplier: 1.25, color: '#00c853' },
 ];
 
@@ -101,13 +101,13 @@ export default function EstimatorDemo() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Demo Banner */}
-      <div className="bg-[#1a1a2e] text-white py-3 px-4 text-center">
+      <div className="bg-[#0A0C11] text-white py-3 px-4 text-center">
         <p className="text-sm">
-          <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
+          <span className="bg-[#1FE3C4] text-[#0A0C11] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
           {t('bannerText')}{' '}
-          <Link href="/auth/signup" className="text-[#f5a623] underline">
+          <Link href="/auth/signup" className="text-[#1FE3C4] underline">
             {t('bannerSignUp')}
           </Link>{' '}
           {t('bannerSuffix')}
@@ -117,13 +117,13 @@ export default function EstimatorDemo() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <Link href="/" className="text-[#5c5c70] hover:text-[#1a1a2e] text-sm inline-flex items-center gap-1">
+          <Link href="/" className="text-[#5c5c70] hover:text-[#0A0C11] text-sm inline-flex items-center gap-1">
             ← {t('backToHome')}
           </Link>
           <LanguageSwitcher />
         </div>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1a1a2e]">{t('title')}</h1>
+          <h1 className="text-2xl font-bold text-[#0A0C11]">{t('title')}</h1>
           <p className="text-[#5c5c70]">{t('subtitle')}</p>
         </div>
 
@@ -136,10 +136,10 @@ export default function EstimatorDemo() {
                 <button
                   key={trade.id}
                   onClick={() => setSelectedTrade(trade.id)}
-                  className="p-5 bg-white rounded-xl border-2 border-gray-200 hover:border-[#f5a623] hover:shadow-md transition-all text-left"
+                  className="p-5 bg-white rounded-xl border-2 border-gray-200 hover:border-[#1FE3C4] hover:shadow-md transition-all text-left"
                 >
                   <span className="text-3xl mb-3 block">{trade.icon}</span>
-                  <p className="font-bold text-[#1a1a2e]">{trade.name}</p>
+                  <p className="font-bold text-[#0A0C11]">{trade.name}</p>
                   <p className="text-sm text-[#5c5c70]">{trade.desc}</p>
                 </button>
               ))}
@@ -150,7 +150,7 @@ export default function EstimatorDemo() {
           <div>
             <button
               onClick={() => setSelectedTrade(null)}
-              className="flex items-center gap-2 text-[#f5a623] font-semibold mb-6 hover:underline"
+              className="flex items-center gap-2 text-[#1FE3C4] font-semibold mb-6 hover:underline"
             >
               <ArrowLeft size={18} />
               {t('backToTrades')}
@@ -160,23 +160,23 @@ export default function EstimatorDemo() {
             <div className="grid md:grid-cols-3 gap-4 mb-8">
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <p className="text-sm text-[#5c5c70] mb-1">{t('materials')}</p>
-                <p className="text-2xl font-bold text-[#1a1a2e]">${demoEstimate.materialTotal.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-[#0A0C11]">${demoEstimate.materialTotal.toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <p className="text-sm text-[#5c5c70] mb-1">{t('labor')} ({demoEstimate.laborHours} hrs)</p>
-                <p className="text-2xl font-bold text-[#1a1a2e]">${demoEstimate.laborEstimate.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-[#0A0C11]">${demoEstimate.laborEstimate.toFixed(2)}</p>
               </div>
-              <div className="bg-[#1a1a2e] rounded-xl p-5">
+              <div className="bg-[#0A0C11] rounded-xl p-5">
                 <p className="text-sm text-white/70 mb-1">{t('yourCost')}</p>
-                <p className="text-2xl font-bold text-[#f5a623]">${grandTotal.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-[#1FE3C4]">${grandTotal.toFixed(2)}</p>
               </div>
             </div>
 
             {/* Markup Calculator */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <Percent size={18} className="text-[#f5a623]" />
-                <h3 className="font-bold text-[#1a1a2e]">{t('markupCalc')}</h3>
+                <Percent size={18} className="text-[#1FE3C4]" />
+                <h3 className="font-bold text-[#0A0C11]">{t('markupCalc')}</h3>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
@@ -186,7 +186,7 @@ export default function EstimatorDemo() {
                     onClick={() => setMarkup(pct)}
                     className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                       markup === pct
-                        ? 'bg-[#f5a623] text-[#1a1a2e]'
+                        ? 'bg-[#1FE3C4] text-[#0A0C11]'
                         : 'bg-gray-100 text-[#5c5c70] hover:bg-gray-200'
                     }`}
                   >
@@ -201,7 +201,7 @@ export default function EstimatorDemo() {
                 max={100}
                 value={markup}
                 onChange={(e) => setMarkup(Number(e.target.value))}
-                className="w-full mb-6 accent-[#f5a623]"
+                className="w-full mb-6 accent-[#1FE3C4]"
               />
 
               {/* Customer Quote Summary */}
@@ -210,15 +210,15 @@ export default function EstimatorDemo() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-[#5c5c70]">{t('materialsMarkup')}</span>
-                    <span className="text-[#1a1a2e] font-medium">${materialWithMarkup.toFixed(2)}</span>
+                    <span className="text-[#0A0C11] font-medium">${materialWithMarkup.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#5c5c70]">{t('labor')}</span>
-                    <span className="text-[#1a1a2e] font-medium">${demoEstimate.laborEstimate.toFixed(2)}</span>
+                    <span className="text-[#0A0C11] font-medium">${demoEstimate.laborEstimate.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-base font-bold border-t border-gray-200 pt-2">
-                    <span className="text-[#1a1a2e]">{t('quoteTotal')}</span>
-                    <span className="text-[#1a1a2e]">${customerTotal.toFixed(2)}</span>
+                    <span className="text-[#0A0C11]">{t('quoteTotal')}</span>
+                    <span className="text-[#0A0C11]">${customerTotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-green-600 font-semibold">{t('profit')}</span>
@@ -230,7 +230,7 @@ export default function EstimatorDemo() {
 
             {/* Tier Comparison */}
             <div className="mb-8">
-              <h3 className="font-bold text-[#1a1a2e] mb-4">{t('tierComparison')}</h3>
+              <h3 className="font-bold text-[#0A0C11] mb-4">{t('tierComparison')}</h3>
               <div className="grid md:grid-cols-3 gap-4">
                 {tierMultipliers.map((tier) => {
                   const tierMaterial = demoEstimate.materialTotal * tier.multiplier;
@@ -239,19 +239,19 @@ export default function EstimatorDemo() {
                     <div
                       key={tier.name}
                       className={`p-5 rounded-xl border-2 ${
-                        tier.name === 'Standard' ? 'border-[#f5a623] shadow-md' : 'border-gray-200'
+                        tier.name === 'Standard' ? 'border-[#1FE3C4] shadow-md' : 'border-gray-200'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-[#1a1a2e]">{tier.label}</span>
+                        <span className="font-bold text-[#0A0C11]">{tier.label}</span>
                         {tier.name === 'Standard' && (
-                          <span className="bg-[#f5a623] text-[#1a1a2e] text-xs font-bold px-2 py-0.5 rounded-full">
+                          <span className="bg-[#1FE3C4] text-[#0A0C11] text-xs font-bold px-2 py-0.5 rounded-full">
                             {t('mostPopular')}
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-[#5c5c70] mb-1">{tier.name}</p>
-                      <p className="text-2xl font-bold text-[#1a1a2e]">${tierCustomer.toFixed(2)}</p>
+                      <p className="text-2xl font-bold text-[#0A0C11]">${tierCustomer.toFixed(2)}</p>
                       <p className="text-xs text-[#5c5c70] mt-1">{t('materialCost')}: ${tierMaterial.toFixed(2)}</p>
                     </div>
                   );
@@ -261,14 +261,14 @@ export default function EstimatorDemo() {
 
             {/* Material Breakdown */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-              <h3 className="font-bold text-[#1a1a2e] mb-4">{t('materialBreakdown')}</h3>
+              <h3 className="font-bold text-[#0A0C11] mb-4">{t('materialBreakdown')}</h3>
               {demoEstimate.categories.map((cat) => (
                 <div key={cat.name} className="mb-4 last:mb-0">
                   <button
                     onClick={() => toggleCategory(cat.name)}
                     className="flex items-center justify-between w-full py-3 border-b border-gray-200 text-left"
                   >
-                    <span className="font-semibold text-[#1a1a2e]">{cat.name}</span>
+                    <span className="font-semibold text-[#0A0C11]">{cat.name}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-[#5c5c70]">
                         ${cat.items.reduce((s, i) => s + i.total, 0).toFixed(2)}
@@ -294,11 +294,11 @@ export default function EstimatorDemo() {
                       <tbody>
                         {cat.items.map((item) => (
                           <tr key={item.name} className="border-t border-gray-100">
-                            <td className="py-2 text-[#1a1a2e]">{item.name}</td>
+                            <td className="py-2 text-[#0A0C11]">{item.name}</td>
                             <td className="py-2 text-[#5c5c70]">{item.brand}</td>
                             <td className="py-2 text-center text-[#5c5c70]">{item.qty}</td>
-                            <td className="py-2 text-right text-[#1a1a2e]">${item.unitPrice.toFixed(2)}</td>
-                            <td className="py-2 text-right font-semibold text-[#1a1a2e]">${item.total.toFixed(2)}</td>
+                            <td className="py-2 text-right text-[#0A0C11]">${item.unitPrice.toFixed(2)}</td>
+                            <td className="py-2 text-right font-semibold text-[#0A0C11]">${item.total.toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -327,12 +327,12 @@ export default function EstimatorDemo() {
 
         {/* CTA */}
         <div className="bg-[#fef3d6] rounded-xl p-8 text-center">
-          <Calculator className="w-12 h-12 text-[#f5a623] mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">{t('ctaTitle')}</h3>
+          <Calculator className="w-12 h-12 text-[#1FE3C4] mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-[#0A0C11] mb-2">{t('ctaTitle')}</h3>
           <p className="text-[#5c5c70] mb-6 max-w-lg mx-auto">{t('ctaDesc')}</p>
           <Link
             href="/auth/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#1a1a2e] text-white rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A0C11] text-white rounded-xl font-bold hover:bg-[#2d2d44] transition-colors no-underline"
           >
             {t('getStartedFree')}
             <ArrowRight size={18} />
@@ -345,8 +345,8 @@ export default function EstimatorDemo() {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
             {t('poweredBy')}{' '}
-            <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
-              ToolTime Pro
+            <Link href="/" className="text-[#1FE3C4] font-medium no-underline hover:underline">
+              Task Iguana
             </Link>
           </p>
         </div>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ToolTime Pro — Wiki Content Generator
+ * Task Iguana — Wiki Content Generator
  *
  * Auto-generates wiki pages from source code so documentation stays in sync.
  * Run manually or via GitHub Actions on push to main.
@@ -108,7 +108,7 @@ function generatePricingPage(products) {
 <!-- AUTO-GENERATED from scripts/setup-stripe-products.js — do not edit manually -->
 <!-- To update: change PRODUCTS in setup-stripe-products.js, then run: node scripts/generate-wiki.js -->
 
-ToolTime Pro offers three core plans, standalone options, and powerful add-ons. No surprise per-user fees — competitors charge $20/vehicle or $250+/technician. We don't.
+Task Iguana offers three core plans, standalone options, and powerful add-ons. No surprise per-user fees — competitors charge $20/vehicle or $250+/technician. We don't.
 
 ---
 
@@ -123,7 +123,7 @@ ToolTime Pro offers three core plans, standalone options, and powerful add-ons. 
 | Smart quoting + e-signatures | Yes | Yes | Yes |
 | Invoicing + card payments | Yes | Yes | Yes |
 | GPS clock-in (worker app) | Yes | Yes | Yes |
-| ToolTime Shield (compliance) | Yes | Yes | Yes |
+| Task Iguana Shield (compliance) | Yes | Yes | Yes |
 | HR document library (10+ templates) | Yes | Yes | Yes |
 | Spanish language support | Yes | Yes | Yes |
 | Chat & email support | Yes | Yes | Yes |
@@ -158,7 +158,7 @@ For businesses that only need one feature:
   for (const p of standalone) {
     const monthly = p.prices.find((pr) => pr.interval === 'month');
     const annual = p.prices.find((pr) => pr.interval === 'year');
-    const label = p.name.replace('ToolTime Pro — ', '');
+    const label = p.name.replace('Task Iguana — ', '');
     md += `| **${label}** | ${formatDollars(monthly?.amount)}/mo (${formatDollars(annual?.amount)}/yr) | ${p.description} |\n`;
   }
 
@@ -237,7 +237,7 @@ Extend your plan with powerful add-ons:
 ## Need Help Choosing?
 
 Contact us:
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Available in your dashboard
 `;
@@ -291,9 +291,9 @@ function generateApiReference() {
 <!-- AUTO-GENERATED from src/app/api/ directory scan — do not edit manually -->
 <!-- To update: add/modify API routes, then run: node scripts/generate-wiki.js -->
 
-Complete list of ToolTime Pro API endpoints, auto-generated from source code.
+Complete list of Task Iguana API endpoints, auto-generated from source code.
 
-**Base URL:** \`https://app.tooltimepro.com\` (production) or \`http://localhost:3000\` (local dev)
+**Base URL:** \`https://app.taskiguana.com\` (production) or \`http://localhost:3000\` (local dev)
 
 ---
 
@@ -399,7 +399,7 @@ function generateSystemAutomation() {
 <!-- AUTO-GENERATED from netlify.toml and netlify/functions/ — do not edit manually -->
 <!-- To update: modify cron schedules or functions, then run: node scripts/generate-wiki.js -->
 
-ToolTime Pro runs automated background tasks via Netlify Scheduled Functions and serverless endpoints.
+Task Iguana runs automated background tasks via Netlify Scheduled Functions and serverless endpoints.
 
 ---
 
@@ -523,7 +523,7 @@ function generateCrmImportSection(data) {
 
 <!-- AUTO-INJECTED by generate-wiki.js from src/lib/crm-field-mappings.ts — do not edit this section manually -->
 
-Already have customers in another system? ToolTime Pro includes a self-service import wizard that migrates your customer data in minutes — no White-Glove setup required.
+Already have customers in another system? Task Iguana includes a self-service import wizard that migrates your customer data in minutes — no White-Glove setup required.
 
 ### How to Import
 
@@ -532,7 +532,7 @@ Already have customers in another system? ToolTime Pro includes a self-service i
 3. **Select your source CRM** — choose from the supported platforms below, or pick "Generic CSV" for any spreadsheet
 4. **Export your data** — follow the on-screen instructions to export a CSV from your old system
 5. **Upload your CSV** — drag and drop or click to upload (max 10 MB)
-6. **Map fields** — ToolTime Pro auto-detects column mappings; adjust any that need correction
+6. **Map fields** — Task Iguana auto-detects column mappings; adjust any that need correction
 7. **Preview** — review the first 10 rows, see valid vs. error counts
 8. **Import** — click "Import" to bring in all valid rows
 
@@ -552,7 +552,7 @@ Already have customers in another system? ToolTime Pro includes a self-service i
   md += `
 ### Imported Fields
 
-| ToolTime Pro Field | Required? | Notes |
+| Task Iguana Field | Required? | Notes |
 |--------------------|:---------:|-------|
 `;
 
@@ -638,7 +638,7 @@ function injectCrmImportSection(sectionMd) {
 // ============================================================
 
 function main() {
-  console.log('ToolTime Pro — Wiki Content Generator\n');
+  console.log('Task Iguana — Wiki Content Generator\n');
 
   // Ensure wiki directory exists
   if (!fs.existsSync(WIKI_DIR)) {

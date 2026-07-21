@@ -1,4 +1,4 @@
-// Netlify Function for ToolTime Assistant conversations
+// Netlify Function for Task Iguana Assistant conversations
 // Uses Claude (primary) / OpenAI (fallback) for real conversations for service businesses
 // Includes in-chat booking flow for seamless appointment scheduling
 const { aiComplete } = require('../../src/lib/ai-client');

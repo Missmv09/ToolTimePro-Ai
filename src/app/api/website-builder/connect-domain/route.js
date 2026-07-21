@@ -78,7 +78,7 @@ export async function POST(request) {
       .maybeSingle();
     if (claimed) {
       return NextResponse.json({
-        error: 'That domain is already connected to another ToolTime Pro site. If this is your domain, contact support.',
+        error: 'That domain is already connected to another Task Iguana site. If this is your domain, contact support.',
       }, { status: 409 });
     }
 

@@ -1,6 +1,6 @@
-# ToolTime Pro - Real Product Setup Guide
+# Task Iguana - Real Product Setup Guide
 
-This guide helps you set up the full ToolTime Pro product (the Next.js app with Supabase backend).
+This guide helps you set up the full Task Iguana product (the Next.js app with Supabase backend).
 
 ## Architecture Overview
 

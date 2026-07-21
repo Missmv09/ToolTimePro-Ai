@@ -71,7 +71,7 @@ const helpSections: HelpSection[] = [
       { label: 'Adding Services', href: `${WIKI_BASE}/Adding-Services`, icon: Wrench },
       { label: 'Team Management', href: `${WIKI_BASE}/Team-Management`, icon: Users },
       { label: 'Mobile & Worker App', href: `${WIKI_BASE}/Mobile-and-Worker-App`, icon: Smartphone },
-      { label: 'ToolTime Shield', href: `${WIKI_BASE}/ToolTime-Shield`, icon: Shield },
+      { label: 'Task Iguana Shield', href: `${WIKI_BASE}/ToolTime-Shield`, icon: Shield },
       { label: 'Reports & Analytics', href: `${WIKI_BASE}/Reports-and-Analytics`, icon: BarChart3 },
     ],
   },
@@ -138,7 +138,7 @@ export default function HelpButton() {
                 <span className="text-xs font-medium text-gray-700">Live Chat</span>
               </button>
               <a
-                href="mailto:support@tooltimepro.com"
+                href="mailto:support@taskiguana.com"
                 className="flex flex-col items-center gap-1.5 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
               >
                 <Mail size={20} className="text-gold-500 group-hover:text-gold-600" />

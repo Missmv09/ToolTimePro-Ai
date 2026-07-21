@@ -147,23 +147,23 @@ export default function Home() {
   // Translations are now provided by next-intl via useTranslations('home')
 
   return (
-    <main className="min-h-screen bg-[#fafafa]">
+    <main className="min-h-screen bg-[#0A0C11]">
       {/* Promo Banner */}
-      <div className="bg-[#1a1a2e] text-white text-center py-2.5 px-4 text-sm">
+      <div className="bg-[#0A0C11] text-white text-center py-2.5 px-4 text-sm">
         <span className="mr-2">🚀</span>
         {t('promo')}
-        <Link href="/auth/signup" className="text-[#f5a623] font-semibold ml-2 hover:underline">
+        <Link href="/auth/signup" className="text-[#1FE3C4] font-semibold ml-2 hover:underline">
           {t('startTrial')}
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="sticky top-0 left-0 right-0 bg-[#0A0C11]/90 backdrop-blur-md z-50 border-b border-white/10">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo-01262026.png"
-              alt="ToolTime Pro"
+              src="/logo-horizontal-white-01262026.png"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"
@@ -172,107 +172,107 @@ export default function Home() {
           </Link>
 
           <div className={`hidden md:flex items-center gap-6 ${mobileMenuOpen ? 'flex' : ''}`}>
-            <Link href="/jenny" className="ml-6 text-[#f5a623] font-semibold text-base hover:text-[#e6991a] transition-colors no-underline flex items-center gap-1">
+            <Link href="/jenny" className="ml-6 text-[#1FE3C4] font-semibold text-base hover:text-[#1E7FE0] transition-colors no-underline flex items-center gap-1">
               🎧 Jenny AI
             </Link>
-            <Link href="#features" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('features')}</Link>
+            <Link href="#features" className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline">{t('features')}</Link>
             <div className="relative">
               <button
                 onClick={() => setIndustriesOpen(!industriesOpen)}
-                className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-white/70 font-medium text-base hover:text-white transition-colors flex items-center gap-1"
               >
                 {t('industries')} <span className="text-xs">▼</span>
               </button>
               {industriesOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50 max-h-[70vh] overflow-y-auto">
-                  <Link href="/industries/landscaping" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-[#12151C] rounded-lg shadow-xl border border-white/10 py-2 z-50 max-h-[70vh] overflow-y-auto">
+                  <Link href="/industries/landscaping" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🌳 Landscaping
                   </Link>
-                  <Link href="/industries/lawn-care" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/lawn-care" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🌱 Lawn Care
                   </Link>
-                  <Link href="/industries/pool-service" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/pool-service" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🏊 Pool Service
                   </Link>
-                  <Link href="/industries/plumbing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/plumbing" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🔧 Plumbing
                   </Link>
-                  <Link href="/industries/electrical" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/electrical" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     ⚡ Electrical
                   </Link>
-                  <Link href="/industries/hvac" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/hvac" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     ❄️ HVAC
                   </Link>
-                  <Link href="/industries/painting" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/painting" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🎨 Painting
                   </Link>
-                  <Link href="/industries/cleaning" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/cleaning" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🧹 Cleaning
                   </Link>
-                  <Link href="/industries/roofing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/roofing" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🏠 Roofing
                   </Link>
-                  <Link href="/industries/pest-control" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/pest-control" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🐜 Pest Control
                   </Link>
-                  <Link href="/industries/auto-detailing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/auto-detailing" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🚗 Auto Detailing
                   </Link>
-                  <Link href="/industries/pressure-washing" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/pressure-washing" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     💦 Pressure Washing
                   </Link>
-                  <Link href="/industries/flooring" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/flooring" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🪵 Flooring
                   </Link>
-                  <Link href="/industries/handyman" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/handyman" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🛠️ Handyman
                   </Link>
-                  <Link href="/industries/tree-service" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/tree-service" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🌲 Tree Service
                   </Link>
-                  <Link href="/industries/moving" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/moving" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     📦 Moving
                   </Link>
-                  <Link href="/industries/junk-removal" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/junk-removal" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🗑️ Junk Removal
                   </Link>
-                  <Link href="/industries/appliance-repair" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/appliance-repair" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🔌 Appliance Repair
                   </Link>
-                  <Link href="/industries/garage-door" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/garage-door" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🚪 Garage Door
                   </Link>
-                  <Link href="/industries/window-cleaning" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/industries/window-cleaning" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🪟 Window Cleaning
                   </Link>
-                  <div className="border-t border-gray-100 mt-2 pt-2">
-                    <Link href="/industries" className="block px-4 py-2 text-base text-[#f5a623] font-semibold hover:bg-gray-50 no-underline">
+                  <div className="border-t border-white/10 mt-2 pt-2">
+                    <Link href="/industries" className="block px-4 py-2 text-base text-[#1FE3C4] font-semibold hover:bg-white/5 no-underline">
                       View All Industries →
                     </Link>
                   </div>
                 </div>
               )}
             </div>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline">{t('pricing')}</Link>
+            <Link href="/pricing" className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline">{t('pricing')}</Link>
             <div className="relative">
               <button
                 onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="text-[#5c5c70] font-medium text-base hover:text-[#1a1a2e] transition-colors flex items-center gap-1"
+                className="text-white/70 font-medium text-base hover:text-white transition-colors flex items-center gap-1"
               >
                 {t('resources')} <span className="text-xs">▼</span>
               </button>
               {resourcesOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
-                  <Link href="/tools" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                <div className="absolute top-full left-0 mt-2 w-48 bg-[#12151C] rounded-lg shadow-xl border border-white/10 py-2 z-50">
+                  <Link href="/tools" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🧰 {t('freeTools')}
                   </Link>
-                  <Link href="/blog" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/blog" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     📝 Blog
                   </Link>
-                  <Link href="#demos" className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="#demos" className="block px-4 py-2 text-base text-white/80 hover:bg-white/5 no-underline">
                     🎮 Demos
                   </Link>
-                  <Link href="/compare" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 no-underline">
+                  <Link href="/compare" className="block px-4 py-2 text-sm text-white/80 hover:bg-white/5 no-underline">
                     ⚖️ Compare Plans
                   </Link>
                 </div>
@@ -282,25 +282,25 @@ export default function Home() {
             {/* Language Switcher */}
             <LanguageSwitcher />
 
-            <a href="tel:1-888-980-8665" className="text-[#5c5c70] text-base flex items-center gap-2 whitespace-nowrap hover:text-[#1a1a2e] transition-colors no-underline">
+            <a href="tel:1-888-980-8665" className="text-white/70 text-base flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors no-underline">
               📞 <span>(888) 980-TOOL</span>
             </a>
             <Link
               href="/auth/signup"
-              className="bg-[#f97316] text-white px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(249,115,22,0.3)] hover:bg-[#ea580c] hover:-translate-y-0.5 transition-all no-underline"
+              className="bg-[#2E9BFF] text-white px-5 py-2.5 rounded-lg font-semibold text-base shadow-[0_4px_12px_rgba(249,115,22,0.3)] hover:bg-[#1E7FE0] hover:-translate-y-0.5 transition-all no-underline"
             >
               {t('startTrial')}
             </Link>
             <Link
               href="/auth/login"
-              className="text-[#374151] font-medium text-base hover:text-[#1a1a2e] transition-colors no-underline ml-1"
+              className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline ml-1"
             >
               Login
             </Link>
           </div>
 
           <button
-            className="md:hidden text-[#1a1a2e] text-2xl bg-transparent border-none cursor-pointer"
+            className="md:hidden text-white text-2xl bg-transparent border-none cursor-pointer"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             ☰
@@ -309,45 +309,45 @@ export default function Home() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg p-6 flex flex-col gap-4">
-            <Link href="/jenny" className="text-[#f5a623] font-semibold text-lg hover:text-[#e6991a] no-underline flex items-center gap-2">🎧 Jenny AI</Link>
-            <Link href="#features" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{t('features')}</Link>
-            <Link href="/tools" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">🧰 {t('freeTools')}</Link>
-            <Link href="#demos" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">Demos</Link>
-            <Link href="/pricing" className="text-[#5c5c70] font-medium text-lg hover:text-[#1a1a2e] no-underline">{t('pricing')}</Link>
-            <div className="flex gap-2 pt-2 border-t border-gray-100">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-[#12151C] shadow-lg p-6 flex flex-col gap-4">
+            <Link href="/jenny" className="text-[#1FE3C4] font-semibold text-lg hover:text-[#1E7FE0] no-underline flex items-center gap-2">🎧 Jenny AI</Link>
+            <Link href="#features" className="text-white/70 font-medium text-lg hover:text-white no-underline">{t('features')}</Link>
+            <Link href="/tools" className="text-white/70 font-medium text-lg hover:text-white no-underline">🧰 {t('freeTools')}</Link>
+            <Link href="#demos" className="text-white/70 font-medium text-lg hover:text-white no-underline">Demos</Link>
+            <Link href="/pricing" className="text-white/70 font-medium text-lg hover:text-white no-underline">{t('pricing')}</Link>
+            <div className="flex gap-2 pt-2 border-t border-white/10">
               <LanguageSwitcher />
             </div>
-            <Link href="/auth/signup" className="bg-[#f97316] text-white px-6 py-3 rounded-xl font-semibold text-lg text-center no-underline">{t('startTrial')}</Link>
-            <Link href="/auth/login" className="text-[#374151] font-medium text-lg text-center py-3 hover:text-[#1a1a2e] no-underline">Login</Link>
+            <Link href="/auth/signup" className="bg-[#2E9BFF] text-white px-6 py-3 rounded-xl font-semibold text-lg text-center no-underline">{t('startTrial')}</Link>
+            <Link href="/auth/login" className="text-white/70 font-medium text-lg text-center py-3 hover:text-white no-underline">Login</Link>
           </div>
         )}
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-[100px] pb-[100px] bg-white relative overflow-hidden">
+      <section className="pt-[100px] pb-[100px] bg-[#0A0C11] relative overflow-hidden">
         {/* Background diagonal */}
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] hidden lg:block" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)' }} />
-        <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(245,166,35,0.12)_0%,transparent_70%)]" />
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-br from-[#0A0C11] to-[#2d2d44] hidden lg:block" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)' }} />
+        <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(46,155,255,0.12)_0%,transparent_70%)]" />
 
         <div className="max-w-[1200px] mx-auto px-6 grid lg:grid-cols-2 gap-[60px] items-center relative z-10">
           <div>
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-[#fef3d6] px-[18px] py-2.5 rounded-full text-sm font-bold text-[#1a1a2e] mb-6 border border-[rgba(245,166,35,0.3)]">
+            <div className="inline-flex items-center gap-2 bg-[#0e1524] px-[18px] py-2.5 rounded-full text-sm font-bold text-[#1FE3C4] mb-6 border border-[rgba(46,155,255,0.3)]">
               <span className="w-2 h-2 bg-[#00c853] rounded-full animate-pulse" />
               {t('badge')}
             </div>
 
             {/* Headline */}
-            <h1 className="text-[clamp(2.5rem,5.5vw,4rem)] font-extrabold text-[#1a1a2e] leading-[1.15] tracking-tight mb-6">
+            <h1 className="text-[clamp(2.5rem,5.5vw,4rem)] font-extrabold text-white leading-[1.15] tracking-tight mb-6">
               {t('heroTitle1')}<br />
-              <span className="text-[#f5a623] relative">
+              <span className="text-[#1FE3C4] relative">
                 {t('heroTitle2')}
-                <span className="absolute bottom-1 left-0 right-0 h-2 bg-[#f5a623] opacity-30 -z-10 rounded" />
+                <span className="absolute bottom-1 left-0 right-0 h-2 bg-[#1FE3C4] opacity-30 -z-10 rounded" />
               </span>
             </h1>
 
-            <p className="text-[1.1875rem] text-[#5c5c70] mb-9 max-w-[480px] leading-relaxed">
+            <p className="text-[1.1875rem] text-white/70 mb-9 max-w-[480px] leading-relaxed">
               {t('heroSubtitle')}
             </p>
 
@@ -355,30 +355,30 @@ export default function Home() {
             <div className="flex flex-wrap gap-4 mb-14">
               <Link
                 href="/auth/signup"
-                className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(245,166,35,0.4)] transition-all no-underline"
+                className="inline-flex items-center gap-2 px-10 py-5 bg-[#2E9BFF] text-white rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(46,155,255,0.35)] hover:bg-[#1E7FE0] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(46,155,255,0.4)] transition-all no-underline"
               >
                 {t('cta1')} →
               </Link>
               <Link
                 href="#demos"
-                className="inline-flex items-center gap-2 px-10 py-5 bg-white text-[#1a1a2e] border-2 border-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] hover:bg-[#1a1a2e] hover:text-white transition-all no-underline"
+                className="inline-flex items-center gap-2 px-10 py-5 bg-transparent text-white border-2 border-white/25 rounded-xl font-bold text-[1.0625rem] hover:bg-white hover:text-[#0A0C11] transition-all no-underline"
               >
                 {t('cta2')}
               </Link>
             </div>
 
             {/* Stats */}
-            <div className="flex gap-12 pt-8 border-t border-gray-200">
+            <div className="flex gap-12 pt-8 border-t border-white/10">
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">$49</div>
+                <div className="text-[2.25rem] font-extrabold text-white font-mono">$49</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">{t('stat1')}</div>
               </div>
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">AI</div>
+                <div className="text-[2.25rem] font-extrabold text-white font-mono">AI</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">Powered dispatch</div>
               </div>
               <div>
-                <div className="text-[2.25rem] font-extrabold text-[#1a1a2e] font-mono">ES/EN</div>
+                <div className="text-[2.25rem] font-extrabold text-white font-mono">ES/EN</div>
                 <div className="text-sm text-[#8e8e9f] mt-1.5">Bilingual built-in</div>
               </div>
             </div>
@@ -386,8 +386,8 @@ export default function Home() {
 
           {/* Dashboard Preview */}
           <div className="hidden lg:flex justify-center">
-            <div className="bg-white rounded-[20px] p-5 shadow-[0_24px_60px_rgba(26,26,46,0.16)] transform perspective-[1000px] hover:rotate-y-[-2deg] transition-transform duration-500 max-w-[420px]">
-              <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-6 text-white min-h-[380px]">
+            <div className="bg-[#12151C] rounded-[20px] p-5 shadow-[0_24px_60px_rgba(26,26,46,0.16)] transform perspective-[1000px] hover:rotate-y-[-2deg] transition-transform duration-500 max-w-[420px]">
+              <div className="bg-gradient-to-br from-[#0A0C11] to-[#2d2d44] rounded-xl p-6 text-white min-h-[380px]">
                 <div className="flex justify-between items-center mb-6 gap-4">
                   <div className="text-[1.125rem] font-bold whitespace-nowrap">📊 {t('todaysOverview')}</div>
                   <div className="text-[0.75rem] opacity-70 font-mono whitespace-nowrap">{t('date')}</div>
@@ -416,15 +416,15 @@ export default function Home() {
                   <div className="text-[0.75rem] opacity-60 uppercase tracking-wide mb-3">{t('upcomingJobs')}</div>
                   {[
                     { name: '🏠 Martinez Residence', type: t('lawnCare'), time: '9:00 AM', status: t('active'), statusColor: 'bg-[#00c853]' },
-                    { name: '🏢 Oak Valley HOA', type: t('landscaping'), time: '11:30 AM', status: t('next'), statusColor: 'bg-[#f5a623]' },
-                    { name: '🏊 Thompson Pool', type: t('poolService'), time: '2:00 PM', status: t('later'), statusColor: 'bg-[#f5a623]' },
+                    { name: '🏢 Oak Valley HOA', type: t('landscaping'), time: '11:30 AM', status: t('next'), statusColor: 'bg-[#1FE3C4]' },
+                    { name: '🏊 Thompson Pool', type: t('poolService'), time: '2:00 PM', status: t('later'), statusColor: 'bg-[#1FE3C4]' },
                   ].map((job, i) => (
                     <div key={i} className={`flex justify-between items-center py-2.5 ${i < 2 ? 'border-b border-white/10' : ''}`}>
                       <div>
                         <div className="text-[0.8125rem] font-semibold">{job.name}</div>
                         <div className="text-[0.6875rem] opacity-60">{job.type} • {job.time}</div>
                       </div>
-                      <span className={`${job.statusColor} text-[#1a1a2e] px-2.5 py-1 rounded-full text-[0.625rem] font-bold uppercase`}>
+                      <span className={`${job.statusColor} text-[#0A0C11] px-2.5 py-1 rounded-full text-[0.625rem] font-bold uppercase`}>
                         {job.status}
                       </span>
                     </div>
@@ -436,13 +436,67 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Built for your trade */}
+      <section className="py-20 bg-[#0A0C11] border-t border-white/5">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-10">
+            <span className="inline-block bg-[#0e1524] text-[#1FE3C4] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
+              Built for your trade
+            </span>
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
+              One platform. Every trade.
+            </h2>
+            <p className="text-[1.0625rem] text-white/70">
+              From the first quote to the final invoice — Task Iguana runs the way your trade actually works.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { name: 'Landscaping', emoji: '🌳', slug: 'landscaping' },
+              { name: 'Plumbing', emoji: '🔧', slug: 'plumbing' },
+              { name: 'Electrical', emoji: '⚡', slug: 'electrical' },
+              { name: 'HVAC', emoji: '❄️', slug: 'hvac' },
+              { name: 'Cleaning', emoji: '🧹', slug: 'cleaning' },
+              { name: 'Handyman', emoji: '🛠️', slug: 'handyman' },
+              { name: 'Pool Service', emoji: '🏊', slug: 'pool-service' },
+              { name: 'Roofing', emoji: '🏠', slug: 'roofing' },
+            ].map((trade) => (
+              <Link
+                key={trade.slug}
+                href={`/industries/${trade.slug}`}
+                className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-cover bg-center no-underline transition-all hover:-translate-y-1"
+                style={{
+                  backgroundColor: '#12151C',
+                  backgroundImage: `linear-gradient(180deg, rgba(10,12,17,0.10) 0%, rgba(10,12,17,0.88) 100%), url(/trades/${trade.slug}.jpg)`,
+                }}
+              >
+                {/* Emoji shows through as a subtle watermark until a real /trades/<slug>.jpg photo is dropped in */}
+                <div className="absolute inset-0 flex items-center justify-center text-[3.5rem] opacity-20">
+                  {trade.emoji}
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                  <span className="text-white font-bold text-[1.05rem] [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]">{trade.name}</span>
+                  <span className="text-[#1FE3C4] group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+                <div className="absolute inset-0 rounded-2xl ring-0 group-hover:ring-2 ring-[#1FE3C4]/50 transition-all pointer-events-none" />
+              </Link>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/industries" className="inline-flex items-center gap-2 text-white/70 font-semibold hover:text-[#1FE3C4] transition-colors no-underline">
+              See all 20+ trades →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section id="features" className="py-[100px] bg-[#1a1a2e] text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(245,166,35,0.1)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.08)_0%,transparent_50%)]" />
+      <section id="features" className="py-[100px] bg-[#0A0C11] text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(46,155,255,0.1)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(46,155,255,0.08)_0%,transparent_50%)]" />
 
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-[640px] mx-auto mb-16">
-            <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
+            <span className="inline-block bg-[rgba(46,155,255,0.2)] text-[#1FE3C4] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
               {t('poweredByJenny')}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
@@ -457,27 +511,27 @@ export default function Home() {
           <div className="flex justify-center mb-16">
             <div className="relative max-w-[300px] w-full">
               {/* Glow effect behind phone */}
-              <div className="absolute -inset-6 bg-gradient-to-b from-[#f5a623]/30 to-[#00c853]/25 rounded-[52px] blur-2xl opacity-80" />
-              <div className="relative bg-gradient-to-b from-[#3a3a55] to-[#1a1a2e] rounded-[44px] p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.45),0_0_0_2px_rgba(255,255,255,0.15)]">
+              <div className="absolute -inset-6 bg-gradient-to-b from-[#1FE3C4]/30 to-[#00c853]/25 rounded-[52px] blur-2xl opacity-80" />
+              <div className="relative bg-gradient-to-b from-[#3a3a55] to-[#0A0C11] rounded-[44px] p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.45),0_0_0_2px_rgba(255,255,255,0.15)]">
                 {/* Notch */}
                 <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-[#3a3a55] rounded-b-[16px] z-10" />
                 <div className="bg-white rounded-[38px] overflow-hidden">
                   {/* Header */}
-                  <div className="bg-gradient-to-br from-[#1a1a2e] via-[#252542] to-[#2d2d44] text-white px-5 pt-16 pb-5">
-                    <h4 className="font-extrabold text-[1.25rem] tracking-wide text-[#f5a623]">👷 {t('workerApp')}</h4>
+                  <div className="bg-gradient-to-br from-[#0A0C11] via-[#252542] to-[#2d2d44] text-white px-5 pt-16 pb-5">
+                    <h4 className="font-extrabold text-[1.25rem] tracking-wide text-[#1FE3C4]">👷 {t('workerApp')}</h4>
                     <p className="text-[rgba(255,255,255,0.85)] text-[0.875rem] mt-1">{t('todaysSchedule')}</p>
                   </div>
                   {/* Body */}
                   <div className="p-4 space-y-3">
-                    <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
-                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏠 Martinez Residence</h5>
+                    <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-white/10">
+                      <h5 className="text-white font-bold text-[0.9375rem] mb-1">🏠 Martinez Residence</h5>
                       <p className="text-[0.8125rem] text-[#8e8e9f]">123 Oak Street</p>
-                      <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">9:00 AM - 11:00 AM</p>
+                      <p className="text-[#1FE3C4] font-semibold text-[0.8125rem] mt-1.5">9:00 AM - 11:00 AM</p>
                     </div>
-                    <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-gray-100">
-                      <h5 className="text-[#1a1a2e] font-bold text-[0.9375rem] mb-1">🏢 Oak Valley HOA</h5>
+                    <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,26,46,0.08)] border border-white/10">
+                      <h5 className="text-white font-bold text-[0.9375rem] mb-1">🏢 Oak Valley HOA</h5>
                       <p className="text-[0.8125rem] text-[#8e8e9f]">456 Pine Avenue</p>
-                      <p className="text-[#f5a623] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
+                      <p className="text-[#1FE3C4] font-semibold text-[0.8125rem] mt-1.5">11:30 AM - 2:00 PM</p>
                     </div>
                     <button className="w-full py-4 bg-gradient-to-r from-[#00c853] to-[#00e676] text-white font-bold rounded-2xl shadow-[0_4px_20px_rgba(0,200,83,0.35)] hover:shadow-[0_6px_28px_rgba(0,200,83,0.45)] transition-shadow">
                       ⏰ {t('clockInNow')}
@@ -492,7 +546,7 @@ export default function Home() {
           <ul className="grid md:grid-cols-2 gap-x-12 gap-y-7">
             {features.map((feature, index) => (
               <li key={index} className="flex gap-5">
-                <div className="w-9 h-9 min-w-[36px] bg-[#f5a623] rounded-[10px] flex items-center justify-center text-[#1a1a2e] font-bold">
+                <div className="w-9 h-9 min-w-[36px] bg-[#1FE3C4] rounded-[10px] flex items-center justify-center text-[#0A0C11] font-bold">
                   ✓
                 </div>
                 <div>
@@ -513,16 +567,16 @@ export default function Home() {
       </section>
 
       {/* Demos Section */}
-      <section id="demos" className="py-20 bg-[#fafafa]">
+      <section id="demos" className="py-20 bg-[#0A0C11]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-16">
-            <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
+            <span className="inline-block bg-[#0e1524] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1FE3C4] mb-5">
               {t('seeItInAction')}
             </span>
-            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
               {t('demosTitle')}
             </h2>
-            <p className="text-[1.0625rem] text-[#5c5c70]">
+            <p className="text-[1.0625rem] text-white/70">
               {t('demosSubtitle')}
             </p>
           </div>
@@ -532,29 +586,29 @@ export default function Home() {
               <Link
                 key={index}
                 href={card.href}
-                className="bg-white rounded-[20px] p-6 text-center border-2 border-gray-200 hover:border-[#f5a623] hover:-translate-y-1 hover:shadow-lg transition-all no-underline group relative"
+                className="bg-[#12151C] rounded-[20px] p-6 text-center border-2 border-white/10 hover:border-[#1FE3C4] hover:-translate-y-1 hover:shadow-lg transition-all no-underline group relative"
               >
                 {card.badge && (
-                  <span className="absolute top-3 right-3 bg-[#1a1a2e] text-white text-[0.625rem] font-bold px-2 py-1 rounded-full">
+                  <span className="absolute top-3 right-3 bg-[#2E9BFF] text-white text-[0.625rem] font-bold px-2 py-1 rounded-full">
                     {card.badge}
                   </span>
                 )}
                 <div className="text-[2.5rem] mb-3">{card.icon}</div>
-                <h3 className="text-[1.125rem] font-extrabold text-[#1a1a2e] mb-2">{card.name}</h3>
+                <h3 className="text-[1.125rem] font-extrabold text-white mb-2">{card.name}</h3>
                 <p className="text-[0.875rem] text-[#8e8e9f] leading-relaxed mb-3">{card.description}</p>
-                <span className="text-[#f5a623] font-semibold text-[0.875rem] group-hover:underline">{t('tryDemo')} →</span>
+                <span className="text-[#1FE3C4] font-semibold text-[0.875rem] group-hover:underline">{t('tryDemo')} →</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Why Choose ToolTime Pro Section */}
-      <section className="py-[100px] bg-[#1a1a2e] text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.08)_0%,transparent_50%)]" />
+      {/* Why Choose Task Iguana Section */}
+      <section className="py-[100px] bg-[#0A0C11] text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(46,155,255,0.08)_0%,transparent_50%)]" />
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-[640px] mx-auto mb-16">
-            <span className="inline-block bg-[rgba(245,166,35,0.2)] text-[#f5a623] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
+            <span className="inline-block bg-[rgba(46,155,255,0.2)] text-[#1FE3C4] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold mb-5">
               {t('whyToolTime')}
             </span>
             <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
@@ -600,7 +654,7 @@ export default function Home() {
             ].map((card, index) => (
               <div
                 key={index}
-                className={`bg-white/10 backdrop-blur-sm rounded-[20px] p-8 border border-white/10 hover:border-[#f5a623]/40 transition-all ${index === 4 ? 'sm:col-span-2 lg:col-span-1' : ''}`}
+                className={`bg-white/10 backdrop-blur-sm rounded-[20px] p-8 border border-white/10 hover:border-[#1FE3C4]/40 transition-all ${index === 4 ? 'sm:col-span-2 lg:col-span-1' : ''}`}
               >
                 <div className="text-[2.5rem] mb-4">{card.icon}</div>
                 <h3 className="text-[1.25rem] font-extrabold text-white mb-3">{card.title}</h3>
@@ -612,29 +666,29 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-[100px] bg-[#fafafa]">
+      <section id="pricing" className="py-[100px] bg-[#0A0C11]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-12">
-            <span className="inline-block bg-[#fef3d6] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1a1a2e] mb-5">
+            <span className="inline-block bg-[#0e1524] px-[18px] py-2 rounded-full text-[0.8125rem] font-bold text-[#1FE3C4] mb-5">
               {t('transparentPricing')}
             </span>
-            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-[#1a1a2e] leading-tight tracking-tight mb-4">
+            <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
               {t('plansTitle')}
             </h2>
-            <p className="text-[1.0625rem] text-[#5c5c70]">
+            <p className="text-[1.0625rem] text-white/70">
               {t('plansSubtitle')}
             </p>
           </div>
 
           {/* Billing Toggle */}
           <div className="flex justify-center mb-12">
-            <div className="bg-gray-100 rounded-full p-1.5 flex">
+            <div className="bg-white/10 rounded-full p-1.5 flex">
               <button
                 onClick={() => setBillingPeriod('monthly')}
                 className={`px-7 py-3.5 rounded-full font-semibold text-[0.9375rem] transition-all ${
                   billingPeriod === 'monthly'
-                    ? 'bg-white text-[#1a1a2e] shadow-md'
-                    : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
+                    ? 'bg-[#2E9BFF] text-white shadow-md'
+                    : 'text-[#8e8e9f] hover:text-white'
                 }`}
               >
                 {t('monthly')}
@@ -643,8 +697,8 @@ export default function Home() {
                 onClick={() => setBillingPeriod('annual')}
                 className={`px-7 py-3.5 rounded-full font-semibold text-[0.9375rem] flex items-center gap-2 transition-all ${
                   billingPeriod === 'annual'
-                    ? 'bg-white text-[#1a1a2e] shadow-md'
-                    : 'text-[#8e8e9f] hover:text-[#1a1a2e]'
+                    ? 'bg-[#2E9BFF] text-white shadow-md'
+                    : 'text-[#8e8e9f] hover:text-white'
                 }`}
               >
                 {t('annual')}
@@ -660,24 +714,24 @@ export default function Home() {
             {pricingPlans.map((plan, index) => (
               <div
                 key={index}
-                className={`bg-white rounded-[20px] p-10 border-2 relative transition-all hover:-translate-y-2 hover:shadow-lg ${
+                className={`bg-[#12151C] rounded-[20px] p-10 border-2 relative transition-all hover:-translate-y-2 hover:shadow-lg ${
                   plan.popular
-                    ? 'border-[#f5a623] shadow-[0_0_0_4px_rgba(245,166,35,0.15),0_12px_40px_rgba(26,26,46,0.12)] scale-[1.03]'
-                    : 'border-gray-200'
+                    ? 'border-[#1FE3C4] shadow-[0_0_0_4px_rgba(46,155,255,0.15),0_12px_40px_rgba(26,26,46,0.12)] scale-[1.03]'
+                    : 'border-white/10'
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#f5a623] text-[#1a1a2e] px-5 py-2 rounded-full text-[0.75rem] font-extrabold whitespace-nowrap">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#2E9BFF] text-white px-5 py-2 rounded-full text-[0.75rem] font-extrabold whitespace-nowrap">
                     {t('mostPopular')}
                   </div>
                 )}
 
-                <div className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{plan.name}</div>
+                <div className="text-[1.5rem] font-extrabold text-white mb-2">{plan.name}</div>
                 <p className="text-[0.9375rem] text-[#8e8e9f] mb-2">{plan.description}</p>
-                <p className="text-[0.8125rem] text-[#5c5c70] mb-5">{plan.workersLabel}</p>
+                <p className="text-[0.8125rem] text-white/70 mb-5">{plan.workersLabel}</p>
 
                 <div className="mb-7">
-                  <span className="text-[3.25rem] font-extrabold text-[#1a1a2e] leading-none">
+                  <span className="text-[3.25rem] font-extrabold text-white leading-none">
                     ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}
                   </span>
                   <span className="text-[#8e8e9f]">{billingPeriod === 'monthly' ? t('perMonth') : t('perYear')}</span>
@@ -685,19 +739,19 @@ export default function Home() {
 
                 <ul className="space-y-0 mb-6">
                   {plan.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#1a1a2e] border-b border-gray-100 last:border-0">
+                    <li key={fIndex} className="flex items-start gap-3 py-3 text-[0.9375rem] text-white border-b border-white/10 last:border-0">
                       <span className="text-[#00c853] font-bold min-w-[20px]">✓</span>
                       {feature}
                     </li>
                   ))}
                   {plan.hrFeature && (
-                    <li className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#1a1a2e] bg-[#fef3d6] -mx-10 px-10 rounded-none">
+                    <li className="flex items-start gap-3 py-3 text-[0.9375rem] text-white bg-[#0e1c33] -mx-10 px-10 rounded-none">
                       <span className="min-w-[20px]">🛡️</span>
                       {plan.hrFeature}
                     </li>
                   )}
                   {plan.payrollFeature && (
-                    <li className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#8e8e9f] italic bg-gradient-to-r from-[rgba(245,166,35,0.1)] to-[rgba(245,166,35,0.05)] -mx-10 px-10">
+                    <li className="flex items-start gap-3 py-3 text-[0.9375rem] text-[#8e8e9f] italic bg-gradient-to-r from-[rgba(46,155,255,0.1)] to-[rgba(46,155,255,0.05)] -mx-10 px-10">
                       <span className="min-w-[20px]">💰</span>
                       {plan.payrollFeature}
                     </li>
@@ -705,27 +759,27 @@ export default function Home() {
                 </ul>
 
                 {/* Included AI + Optional Add-ons */}
-                <div className="border-t border-gray-200 pt-4 mb-6">
-                  <div className="flex items-center gap-2 text-[0.875rem] mb-3 bg-[#f0fdf9] -mx-10 px-10 py-2.5 rounded-none">
+                <div className="border-t border-white/10 pt-4 mb-6">
+                  <div className="flex items-center gap-2 text-[0.875rem] mb-3 bg-[#0c1f1c] -mx-10 px-10 py-2.5 rounded-none">
                     <span className="text-[#00c853] font-bold">✓</span>
-                    <span className="text-[#1a1a2e] font-medium">{t('jennyLiteIncluded')}</span>
+                    <span className="text-white font-medium">{t('jennyLiteIncluded')}</span>
                     <span className="text-[#00c853] font-semibold ml-auto text-[0.8125rem]">{t('included')}</span>
                   </div>
-                  <p className="text-[0.8125rem] font-semibold text-[#1a1a2e] mb-3">{t('optionalAddons')}</p>
+                  <p className="text-[0.8125rem] font-semibold text-white mb-3">{t('optionalAddons')}</p>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
-                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">{t('complianceAutopilot')}</span>
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1FE3C4]" />
+                      <span className="text-white/70">{t('complianceAutopilot')}</span>
                       <span className="text-[#8e8e9f] ml-auto">$29{t('perMonth')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
-                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">{t('websiteBuilder')}</span>
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1FE3C4]" />
+                      <span className="text-white/70">{t('websiteBuilder')}</span>
                       <span className="text-[#8e8e9f] ml-auto">$25{t('perMonth')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[0.875rem]">
-                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#f5a623]" />
-                      <span className="text-[#5c5c70]">{t('extraPage')}</span>
+                      <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1FE3C4]" />
+                      <span className="text-white/70">{t('extraPage')}</span>
                       <span className="text-[#8e8e9f] ml-auto">$10{t('perMonth')}</span>
                     </label>
                   </div>
@@ -735,8 +789,8 @@ export default function Home() {
                   href={`/auth/signup?plan=${plan.id}&billing=${billingPeriod}`}
                   className={`block w-full py-4 rounded-xl font-bold text-center transition-all no-underline ${
                     plan.popular
-                      ? 'bg-[#f5a623] text-[#1a1a2e] hover:bg-[#e6991a] shadow-[0_4px_16px_rgba(245,166,35,0.35)]'
-                      : 'bg-[#1a1a2e] text-white hover:bg-[#2d2d44]'
+                      ? 'bg-[#2E9BFF] text-white hover:bg-[#1E7FE0] shadow-[0_4px_16px_rgba(46,155,255,0.35)]'
+                      : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
                   {t('startFreeTrial')}
@@ -749,7 +803,7 @@ export default function Home() {
                     away), so the webhook auto-provisions the account after payment. */}
                 <a
                   href={`/api/checkout?tier=${plan.id}&billing=${billingPeriod}&skipTrial=true`}
-                  className="block w-full py-3 rounded-xl font-semibold text-center transition-all no-underline border-2 border-[#1a1a2e] text-[#1a1a2e] hover:bg-[#1a1a2e] hover:text-white"
+                  className="block w-full py-3 rounded-xl font-semibold text-center transition-all no-underline border-2 border-white/25 text-white hover:bg-white hover:text-[#0A0C11]"
                 >
                   {t('subscribeNow')}
                 </a>
@@ -761,9 +815,9 @@ export default function Home() {
           </div>
 
           {/* Just Need One Thing - Standalone Options */}
-          <div className="mt-16 bg-white rounded-[20px] p-10 border-2 border-gray-200">
+          <div className="mt-16 bg-[#12151C] rounded-[20px] p-10 border-2 border-white/10">
             <div className="text-center mb-8">
-              <h3 className="text-[1.5rem] font-extrabold text-[#1a1a2e] mb-2">{t('justNeedOne')}</h3>
+              <h3 className="text-[1.5rem] font-extrabold text-white mb-2">{t('justNeedOne')}</h3>
               <p className="text-[#8e8e9f]">{t('justNeedOneDesc')}</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-6 max-w-[500px] mx-auto">
@@ -771,11 +825,11 @@ export default function Home() {
                 <Link
                   key={index}
                   href={`/auth/signup?plan=${plan.id}&billing=${billingPeriod}`}
-                  className="border-2 border-gray-200 rounded-xl p-6 text-center hover:border-[#f5a623] transition-all no-underline group"
+                  className="border-2 border-white/10 rounded-xl p-6 text-center hover:border-[#1FE3C4] transition-all no-underline group"
                 >
                   <span className="text-[2.5rem] block mb-2">{plan.icon}</span>
-                  <h4 className="text-[1.125rem] font-bold text-[#1a1a2e] mb-1">{plan.name}</h4>
-                  <p className="text-[1.25rem] font-bold text-[#f5a623] mb-2">
+                  <h4 className="text-[1.125rem] font-bold text-white mb-1">{plan.name}</h4>
+                  <p className="text-[1.25rem] font-bold text-[#1FE3C4] mb-2">
                     ${billingPeriod === 'monthly' ? plan.price : plan.annualPrice}{billingPeriod === 'monthly' ? t('perMonth') : t('perYear')}
                   </p>
                   <p className="text-[0.875rem] text-[#8e8e9f]">{plan.description}</p>
@@ -791,13 +845,13 @@ export default function Home() {
           <div className="mt-16 max-w-[1080px] mx-auto">
             <div className="bg-[#1a2038] rounded-[20px] p-12 relative overflow-hidden">
               {/* Background accents */}
-              <div className="absolute -top-20 -right-16 w-[280px] h-[280px] bg-[radial-gradient(circle,rgba(245,166,35,0.12)_0%,transparent_70%)] rounded-full pointer-events-none" />
+              <div className="absolute -top-20 -right-16 w-[280px] h-[280px] bg-[radial-gradient(circle,rgba(46,155,255,0.12)_0%,transparent_70%)] rounded-full pointer-events-none" />
               <div className="absolute -bottom-16 -left-10 w-[200px] h-[200px] bg-[radial-gradient(circle,rgba(42,176,158,0.1)_0%,transparent_70%)] rounded-full pointer-events-none" />
 
               {/* Header */}
               <div className="flex items-center justify-between gap-4 mb-2 relative flex-wrap">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-[#f5a623] rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 bg-[#1FE3C4] rounded-full flex items-center justify-center flex-shrink-0">
                     <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white">
                       <path d="M12 1a3 3 0 00-3 3v1H8a7 7 0 00-7 7v1a2 2 0 002 2h1v2a5 5 0 005 5h6a5 5 0 005-5v-2h1a2 2 0 002-2v-1a7 7 0 00-7-7h-1V4a3 3 0 00-3-3zm-1 4V4a1 1 0 112 0v1h-2zM9 15a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm6 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
                     </svg>
@@ -807,7 +861,7 @@ export default function Home() {
                     <p className="text-sm text-white/60 mt-1">{t('addJennyDesc')}</p>
                   </div>
                 </div>
-                <Link href="/jenny" className="text-[#f5a623] text-sm font-semibold no-underline whitespace-nowrap hover:opacity-80 transition-opacity">
+                <Link href="/jenny" className="text-[#1FE3C4] text-sm font-semibold no-underline whitespace-nowrap hover:opacity-80 transition-opacity">
                   {t('jennyLearnMore')}
                 </Link>
               </div>
@@ -846,13 +900,13 @@ export default function Home() {
                 </div>
 
                 {/* Jenny Pro */}
-                <div className="flex-1 bg-[#232b47] border-[1.5px] border-[#f5a623] rounded-[14px] p-7 transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
-                  <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 bg-[#f5a623] text-white text-[10.5px] font-bold px-3.5 py-1 rounded-xl tracking-wider uppercase whitespace-nowrap">
+                <div className="flex-1 bg-[#232b47] border-[1.5px] border-[#1FE3C4] rounded-[14px] p-7 transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
+                  <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 bg-[#2E9BFF] text-white text-[10.5px] font-bold px-3.5 py-1 rounded-xl tracking-wider uppercase whitespace-nowrap">
                     {t('mostPopular')}
                   </div>
                   <div className="flex items-baseline justify-between mb-4">
                     <span className="font-bold text-lg text-white">{t('jennyPro')}</span>
-                    <span className="font-extrabold text-base text-[#f5a623]">+$49<span className="text-xs font-medium text-white/40">/mo</span></span>
+                    <span className="font-extrabold text-base text-[#1FE3C4]">+$49<span className="text-xs font-medium text-white/40">/mo</span></span>
                   </div>
                   <ul className="list-none m-0 p-0">
                     {[
@@ -864,7 +918,7 @@ export default function Home() {
                       { text: t('jennyProFeature5'), bold: false },
                     ].map((item, i) => (
                       <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
-                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#1FE3C4" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         {item.bold ? <strong className="text-white">{item.text}</strong> : item.text}
                       </li>
                     ))}
@@ -874,7 +928,7 @@ export default function Home() {
 
               {/* Owner-Facing Label */}
               <div className="text-center mb-3 mt-10 pt-5 border-t border-white/10">
-                <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-[rgba(245,166,35,0.18)] text-[#f5a623] px-3.5 py-1.5 rounded-full">
+                <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-[rgba(46,155,255,0.18)] text-[#1FE3C4] px-3.5 py-1.5 rounded-full">
                   {t('ownerFacing')}
                 </span>
               </div>
@@ -884,12 +938,12 @@ export default function Home() {
                 <div className="flex-1 max-w-[480px] bg-[#232b47] border-[1.5px] border-white/10 rounded-[14px] p-7 transition-all hover:border-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative">
                   <div className="flex items-baseline justify-between mb-4">
                     <span className="font-bold text-lg text-white">{t('jennyExec')}</span>
-                    <span className="font-extrabold text-base text-[#f5a623]">+$79<span className="text-xs font-medium text-white/40">/mo</span></span>
+                    <span className="font-extrabold text-base text-[#1FE3C4]">+$79<span className="text-xs font-medium text-white/40">/mo</span></span>
                   </div>
                   <ul className="list-none m-0 p-0">
                     {[t('jennyExecFeature0'), t('jennyExecFeature1'), t('jennyExecFeature2'), t('jennyExecFeature3'), t('jennyExecFeature4')].map((item, i) => (
                       <li key={i} className="flex items-start gap-2 py-1.5 text-[13.5px] text-white/65 leading-snug">
-                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 18 18" className="flex-shrink-0 mt-0.5"><path d="M3.5 9.5l3.5 3.5 7.5-7.5" stroke="#1FE3C4" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         {item}
                       </li>
                     ))}
@@ -901,7 +955,7 @@ export default function Home() {
               <div className="mt-8 text-center relative">
                 <Link
                   href="/pricing"
-                  className="inline-block px-9 py-3.5 bg-[#f5a623] text-white text-[15px] font-bold rounded-[10px] no-underline hover:bg-[#e6991a] active:scale-[0.98] transition-all"
+                  className="inline-block px-9 py-3.5 bg-[#2E9BFF] text-white text-[15px] font-bold rounded-[10px] no-underline hover:bg-[#1E7FE0] active:scale-[0.98] transition-all"
                 >
                   {t('startTrialCta')}
                 </Link>
@@ -911,19 +965,19 @@ export default function Home() {
           </div>
 
           {/* Setup Services */}
-          <div className="mt-16 bg-gradient-to-r from-[#f9fafb] to-[#f3f4f6] rounded-[20px] p-10 border border-gray-200 max-w-[700px] mx-auto text-center">
-            <h3 className="text-[1.25rem] font-extrabold text-[#1a1a2e] mb-2">{t('setupServicesTitle')}</h3>
+          <div className="mt-16 bg-[#12151C] rounded-[20px] p-10 border border-white/10 max-w-[700px] mx-auto text-center">
+            <h3 className="text-[1.25rem] font-extrabold text-white mb-2">{t('setupServicesTitle')}</h3>
             <p className="text-[#8e8e9f] mb-6">{t('setupServicesDesc')}</p>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-white rounded-xl p-5 border border-gray-200">
-                <p className="font-bold text-[#1a1a2e] mb-1">{t('assistedOnboarding')}</p>
+              <div className="bg-[#0e1421] rounded-xl p-5 border border-white/10">
+                <p className="font-bold text-white mb-1">{t('assistedOnboarding')}</p>
                 <p className="text-sm text-[#8e8e9f] mb-2">{t('assistedOnboardingDesc')}</p>
-                <p className="text-lg font-extrabold text-[#1a1a2e]">{t('assistedOnboardingPrice')} <span className="text-sm font-normal text-[#8e8e9f]">{t('oneTime')}</span></p>
+                <p className="text-lg font-extrabold text-white">{t('assistedOnboardingPrice')} <span className="text-sm font-normal text-[#8e8e9f]">{t('oneTime')}</span></p>
               </div>
-              <div className="bg-white rounded-xl p-5 border border-gray-200">
-                <p className="font-bold text-[#1a1a2e] mb-1">{t('whiteGloveSetup')}</p>
+              <div className="bg-[#0e1421] rounded-xl p-5 border border-white/10">
+                <p className="font-bold text-white mb-1">{t('whiteGloveSetup')}</p>
                 <p className="text-sm text-[#8e8e9f] mb-2">{t('whiteGloveSetupDesc')}</p>
-                <p className="text-lg font-extrabold text-[#1a1a2e]">{t('whiteGloveSetupPrice')} <span className="text-sm font-normal text-[#8e8e9f]">{t('oneTime')}</span></p>
+                <p className="text-lg font-extrabold text-white">{t('whiteGloveSetupPrice')} <span className="text-sm font-normal text-[#8e8e9f]">{t('oneTime')}</span></p>
               </div>
             </div>
           </div>
@@ -932,7 +986,7 @@ export default function Home() {
           <div className="text-center mt-10">
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-2 text-[#1a1a2e] font-semibold hover:text-[#f5a623] transition-colors no-underline"
+              className="inline-flex items-center gap-2 text-white font-semibold hover:text-[#1FE3C4] transition-colors no-underline"
             >
               {t('fullPricingLink')} →
             </Link>
@@ -941,8 +995,8 @@ export default function Home() {
       </section>
 
       {/* Footer CTA */}
-      <section className="bg-[#1a1a2e] text-center py-[100px] px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,166,35,0.1)_0%,transparent_60%)]" />
+      <section className="bg-[#0A0C11] text-center py-[100px] px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(46,155,255,0.1)_0%,transparent_60%)]" />
         <div className="max-w-[640px] mx-auto relative z-10">
           <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold text-white leading-tight tracking-tight mb-4">
             {t('footerCtaTitle')}
@@ -952,7 +1006,7 @@ export default function Home() {
           </p>
           <Link
             href="/auth/signup"
-            className="inline-flex items-center gap-2 px-10 py-5 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(245,166,35,0.35)] hover:bg-[#e6991a] hover:-translate-y-[3px] transition-all no-underline"
+            className="inline-flex items-center gap-2 px-10 py-5 bg-[#2E9BFF] text-white rounded-xl font-bold text-[1.0625rem] shadow-[0_4px_16px_rgba(46,155,255,0.35)] hover:bg-[#1E7FE0] hover:-translate-y-[3px] transition-all no-underline"
           >
             {t('getStartedFree')} →
           </Link>
@@ -967,7 +1021,7 @@ export default function Home() {
               <Link href="/" className="inline-block mb-4">
                 <Image
                   src="/logo-horizontal-white-01262026.png"
-                  alt="ToolTime Pro"
+                  alt="Task Iguana"
                   width={180}
                   height={40}
                   className="h-10 w-auto"
@@ -980,27 +1034,27 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-white text-lg mb-5">Product</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/jenny" className="text-[#f5a623] text-base hover:text-[#e6991a] transition-colors no-underline font-semibold">🎧 Jenny AI</Link>
-                <Link href="#features" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Features</Link>
-                <Link href="#pricing" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Pricing</Link>
-                <Link href="#demos" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Demos</Link>
-                <Link href="/compare" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Compare Plans</Link>
+                <Link href="/jenny" className="text-[#1FE3C4] text-base hover:text-[#1E7FE0] transition-colors no-underline font-semibold">🎧 Jenny AI</Link>
+                <Link href="#features" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Features</Link>
+                <Link href="#pricing" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Pricing</Link>
+                <Link href="#demos" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Demos</Link>
+                <Link href="/compare" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Compare Plans</Link>
               </div>
             </div>
             <div>
               <h4 className="font-bold text-white text-lg mb-5">Company</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Login</Link>
-                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Sign Up</Link>
-                <a href="mailto:support@tooltimepro.com" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Contact</a>
-                <Link href="/privacy" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Privacy Policy</Link>
-                <Link href="/terms" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">Terms & Conditions</Link>
-                <Link href="/sms" className="text-white/50 text-base hover:text-[#f5a623] transition-colors no-underline">SMS Terms</Link>
+                <Link href="/auth/login" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Login</Link>
+                <Link href="/auth/signup" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Sign Up</Link>
+                <a href="mailto:support@taskiguana.com" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Contact</a>
+                <Link href="/privacy" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Privacy Policy</Link>
+                <Link href="/terms" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">Terms & Conditions</Link>
+                <Link href="/sms" className="text-white/50 text-base hover:text-[#1FE3C4] transition-colors no-underline">SMS Terms</Link>
               </div>
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-base">
-            <div>© 2026 ToolTime Pro. All rights reserved.</div>
+            <div>© 2026 Task Iguana. All rights reserved.</div>
           </div>
         </div>
       </footer>

@@ -47,13 +47,13 @@ export default function SchedulingDemoPage() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Demo Banner */}
-      <div className="bg-[#1a1a2e] text-white py-3 px-4 text-center">
+      <div className="bg-[#0A0C11] text-white py-3 px-4 text-center">
         <p className="text-sm">
-          <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
+          <span className="bg-[#1FE3C4] text-[#0A0C11] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
           {t('bannerText')}{' '}
-          <Link href="/auth/signup" className="text-[#f5a623] underline">
+          <Link href="/auth/signup" className="text-[#1FE3C4] underline">
             {t('bannerSignUp')}
           </Link>{' '}
           {t('bannerSuffix')}
@@ -61,7 +61,7 @@ export default function SchedulingDemoPage() {
       </div>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] text-white">
+      <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Link href="/" className="text-white/70 hover:text-white text-sm mb-4 inline-block">
             ← {t('backToHome')}
@@ -83,7 +83,7 @@ export default function SchedulingDemoPage() {
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-xl">←</span>
               </button>
-              <h2 className="text-xl font-bold text-[#1a1a2e]">{formatDate(selectedDate)}</h2>
+              <h2 className="text-xl font-bold text-[#0A0C11]">{formatDate(selectedDate)}</h2>
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-xl">→</span>
               </button>
@@ -94,7 +94,7 @@ export default function SchedulingDemoPage() {
                 <button
                   onClick={() => setViewMode('day')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'day' ? 'bg-white shadow-sm text-[#1a1a2e]' : 'text-gray-600'
+                    viewMode === 'day' ? 'bg-white shadow-sm text-[#0A0C11]' : 'text-gray-600'
                   }`}
                 >
                   {t('day')}
@@ -102,13 +102,13 @@ export default function SchedulingDemoPage() {
                 <button
                   onClick={() => setViewMode('week')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'week' ? 'bg-white shadow-sm text-[#1a1a2e]' : 'text-gray-600'
+                    viewMode === 'week' ? 'bg-white shadow-sm text-[#0A0C11]' : 'text-gray-600'
                   }`}
                 >
                   {t('week')}
                 </button>
               </div>
-              <button className="px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-semibold hover:bg-[#e6991a] transition-colors">
+              <button className="px-4 py-2 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-semibold hover:bg-[#e6991a] transition-colors">
                 {t('newJob')}
               </button>
             </div>
@@ -121,7 +121,7 @@ export default function SchedulingDemoPage() {
             {viewMode === 'day' ? (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
-                  <h3 className="font-semibold text-[#1a1a2e]">{t('todaysJobs')} ({demoJobs.length})</h3>
+                  <h3 className="font-semibold text-[#0A0C11]">{t('todaysJobs')} ({demoJobs.length})</h3>
                 </div>
                 <div className="divide-y divide-gray-100">
                   {demoJobs.map((job) => (
@@ -132,11 +132,11 @@ export default function SchedulingDemoPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4">
                           <div className="text-center min-w-[60px]">
-                            <div className="text-lg font-bold text-[#1a1a2e]">{job.time}</div>
+                            <div className="text-lg font-bold text-[#0A0C11]">{job.time}</div>
                             <div className="text-xs text-gray-500">{job.duration}</div>
                           </div>
                           <div>
-                            <h4 className="font-semibold text-[#1a1a2e]">{job.title}</h4>
+                            <h4 className="font-semibold text-[#0A0C11]">{job.title}</h4>
                             <p className="text-sm text-gray-600">{job.customer}</p>
                             <div className="flex items-center gap-2 mt-2">
                               <span className="text-sm">👷</span>
@@ -161,7 +161,7 @@ export default function SchedulingDemoPage() {
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
-                  <h3 className="font-semibold text-[#1a1a2e]">{t('weekOverview')}</h3>
+                  <h3 className="font-semibold text-[#0A0C11]">{t('weekOverview')}</h3>
                 </div>
                 <div className="p-4">
                   <div className="grid grid-cols-7 gap-2">
@@ -169,11 +169,11 @@ export default function SchedulingDemoPage() {
                       <div
                         key={day.day}
                         className={`p-4 rounded-xl text-center transition-colors cursor-pointer ${
-                          index === 0 ? 'bg-[#fef3d6] border-2 border-[#f5a623]' : 'bg-gray-50 hover:bg-gray-100'
+                          index === 0 ? 'bg-[#fef3d6] border-2 border-[#1FE3C4]' : 'bg-gray-50 hover:bg-gray-100'
                         }`}
                       >
                         <div className="text-sm font-medium text-gray-500 mb-1">{day.day}</div>
-                        <div className="text-2xl font-bold text-[#1a1a2e]">{day.count}</div>
+                        <div className="text-2xl font-bold text-[#0A0C11]">{day.count}</div>
                         <div className="text-xs text-gray-500">{t('jobs')}</div>
                         {day.revenue > 0 && (
                           <div className="text-sm font-semibold text-green-600 mt-2">${day.revenue}</div>
@@ -195,10 +195,10 @@ export default function SchedulingDemoPage() {
               ].map((action) => (
                 <button
                   key={action.label}
-                  className="bg-white rounded-xl border border-gray-200 p-4 text-center hover:border-[#f5a623] hover:shadow-md transition-all"
+                  className="bg-white rounded-xl border border-gray-200 p-4 text-center hover:border-[#1FE3C4] hover:shadow-md transition-all"
                 >
                   <span className="text-2xl mb-2 block">{action.icon}</span>
-                  <div className="font-semibold text-[#1a1a2e] text-sm">{action.label}</div>
+                  <div className="font-semibold text-[#0A0C11] text-sm">{action.label}</div>
                   <div className="text-xs text-gray-500">{action.desc}</div>
                 </button>
               ))}
@@ -209,7 +209,7 @@ export default function SchedulingDemoPage() {
           <div className="space-y-6">
             {/* Team Availability */}
             <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="font-semibold text-[#1a1a2e] mb-4">{t('teamAvailability')}</h3>
+              <h3 className="font-semibold text-[#0A0C11] mb-4">{t('teamAvailability')}</h3>
               <div className="space-y-3">
                 {demoTechs.map((tech) => (
                   <div key={tech.id} className="flex items-center justify-between">
@@ -220,7 +220,7 @@ export default function SchedulingDemoPage() {
                       >
                         {tech.avatar}
                       </div>
-                      <span className="font-medium text-[#1a1a2e]">{tech.name}</span>
+                      <span className="font-medium text-[#0A0C11]">{tech.name}</span>
                     </div>
                     <span className="text-sm text-green-600 font-medium">{t('available')}</span>
                   </div>
@@ -229,23 +229,23 @@ export default function SchedulingDemoPage() {
             </div>
 
             {/* Today&apos;s Stats */}
-            <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-6 text-white">
+            <div className="bg-gradient-to-br from-[#0A0C11] to-[#2d2d4a] rounded-xl p-6 text-white">
               <h3 className="font-semibold mb-4">{t('todaysStats')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-3xl font-bold text-[#f5a623]">4</div>
+                  <div className="text-3xl font-bold text-[#1FE3C4]">4</div>
                   <div className="text-sm text-white/70">{t('jobsScheduled')}</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#f5a623]">$520</div>
+                  <div className="text-3xl font-bold text-[#1FE3C4]">$520</div>
                   <div className="text-sm text-white/70">{t('estRevenue')}</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#f5a623]">3</div>
+                  <div className="text-3xl font-bold text-[#1FE3C4]">3</div>
                   <div className="text-sm text-white/70">{t('techsWorking')}</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#f5a623]">6.5</div>
+                  <div className="text-3xl font-bold text-[#1FE3C4]">6.5</div>
                   <div className="text-sm text-white/70">{t('hoursBooked')}</div>
                 </div>
               </div>
@@ -253,13 +253,13 @@ export default function SchedulingDemoPage() {
 
             {/* CTA */}
             <div className="bg-[#fef3d6] rounded-xl p-6 text-center">
-              <h3 className="font-bold text-[#1a1a2e] mb-2">{t('syncCalendar')}</h3>
+              <h3 className="font-bold text-[#0A0C11] mb-2">{t('syncCalendar')}</h3>
               <p className="text-sm text-[#5c5c70] mb-4">
                 {t('syncCalendarDesc')}
               </p>
               <Link
                 href="/auth/signup"
-                className="inline-block px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-semibold hover:bg-[#2d2d4a] transition-colors no-underline"
+                className="inline-block px-6 py-3 bg-[#0A0C11] text-white rounded-xl font-semibold hover:bg-[#2d2d4a] transition-colors no-underline"
               >
                 {t('startFreeTrial')} →
               </Link>
@@ -270,7 +270,7 @@ export default function SchedulingDemoPage() {
         <DemoLeadCapture featureName="Job Scheduling" source="scheduling_demo" />
 
         {/* Bottom CTA */}
-        <div className="mt-12 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
+        <div className="mt-12 bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">
           <h2 className="text-2xl font-bold mb-4">{t('takeControl')}</h2>
           <p className="text-white/80 mb-6 max-w-2xl mx-auto">
             {t('takeControlDesc')}
@@ -278,7 +278,7 @@ export default function SchedulingDemoPage() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup"
-              className="px-8 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline"
+              className="px-8 py-4 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold hover:bg-[#e6991a] transition-colors no-underline"
             >
               {t('getStartedFree')}
             </Link>
@@ -297,8 +297,8 @@ export default function SchedulingDemoPage() {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
             {t('poweredBy')}{' '}
-            <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
-              ToolTime Pro
+            <Link href="/" className="text-[#1FE3C4] font-medium no-underline hover:underline">
+              Task Iguana
             </Link>
           </p>
         </div>

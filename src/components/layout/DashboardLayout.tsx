@@ -232,7 +232,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Link href="/dashboard">
               <Image
                 src="/logo-01262026.png"
-                alt="ToolTime Pro"
+                alt="Task Iguana"
                 width={160}
                 height={36}
                 className="h-9 w-auto"

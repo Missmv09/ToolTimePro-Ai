@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.tooltimepro.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.taskiguana.com'
 
 export async function GET(request) {
   try {

@@ -233,7 +233,7 @@ export default function SetPasswordPage() {
           <div className="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center">
             <HardHat className="w-7 h-7 text-navy-500" />
           </div>
-          <span className="text-2xl font-bold text-white">ToolTime Pro</span>
+          <span className="text-2xl font-bold text-white">Task Iguana</span>
         </Link>
         <LanguageSwitcher />
       </div>

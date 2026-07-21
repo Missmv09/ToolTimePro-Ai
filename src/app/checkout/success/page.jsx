@@ -150,8 +150,8 @@ function CheckoutSuccessContent() {
 
         <p className="mt-6 text-sm text-gray-500">
           {t('questions')}{' '}
-          <a href="mailto:support@tooltimepro.com" className="text-orange-500 hover:underline">
-            support@tooltimepro.com
+          <a href="mailto:support@taskiguana.com" className="text-orange-500 hover:underline">
+            support@taskiguana.com
           </a>
         </p>
 

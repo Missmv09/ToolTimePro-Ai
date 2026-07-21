@@ -85,6 +85,6 @@ Quote → Invoice → Payment Plan
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard

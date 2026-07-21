@@ -171,13 +171,13 @@ export default function DemoBookingPage() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       {/* Demo Banner */}
-      <div className="bg-[#1a1a2e] text-white py-3 px-4 text-center">
+      <div className="bg-[#0A0C11] text-white py-3 px-4 text-center">
         <p className="text-sm">
-          <span className="bg-[#f5a623] text-[#1a1a2e] px-2 py-0.5 rounded font-bold mr-2">
+          <span className="bg-[#1FE3C4] text-[#0A0C11] px-2 py-0.5 rounded font-bold mr-2">
             DEMO
           </span>
           {t('bannerText')}{' '}
-          <Link href="/auth/signup" className="text-[#f5a623] underline">
+          <Link href="/auth/signup" className="text-[#1FE3C4] underline">
             {t('bannerSignUp')}
           </Link>{' '}
           {t('bannerSuffix')}
@@ -188,7 +188,7 @@ export default function DemoBookingPage() {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-3">
-            <Link href="/" className="text-[#5c5c70] hover:text-[#1a1a2e] text-sm inline-flex items-center gap-1">
+            <Link href="/" className="text-[#5c5c70] hover:text-[#0A0C11] text-sm inline-flex items-center gap-1">
               ← {t('backToHome')}
             </Link>
             <LanguageSwitcher />
@@ -198,7 +198,7 @@ export default function DemoBookingPage() {
               GS
             </div>
             <div>
-              <h1 className="font-bold text-[#1a1a2e]">Green Scene Landscaping</h1>
+              <h1 className="font-bold text-[#0A0C11]">Green Scene Landscaping</h1>
               <p className="text-sm text-[#5c5c70]">{t('onlineBooking')}</p>
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function DemoBookingPage() {
                         isCompleted
                           ? 'bg-[#00c853] text-white'
                           : isActive
-                            ? 'bg-[#f5a623] text-[#1a1a2e]'
+                            ? 'bg-[#1FE3C4] text-[#0A0C11]'
                             : 'bg-gray-200 text-gray-500'
                       }`}
                     >
@@ -237,7 +237,7 @@ export default function DemoBookingPage() {
                     </div>
                     <span
                       className={`ml-2 text-sm font-medium hidden sm:inline ${
-                        isActive ? 'text-[#1a1a2e]' : 'text-gray-500'
+                        isActive ? 'text-[#0A0C11]' : 'text-gray-500'
                       }`}
                     >
                       {s.label}
@@ -262,7 +262,7 @@ export default function DemoBookingPage() {
         {/* Step 1: Select Service */}
         {step === 'service' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('selectService')}</h2>
+            <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('selectService')}</h2>
             <p className="text-[#5c5c70] mb-6">{t('selectServiceDesc')}</p>
 
             <div className="grid gap-4">
@@ -270,11 +270,11 @@ export default function DemoBookingPage() {
                 <button
                   key={service.id}
                   onClick={() => selectService(service)}
-                  className="w-full text-left bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-[#f5a623] hover:shadow-md transition-all group"
+                  className="w-full text-left bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-[#1FE3C4] hover:shadow-md transition-all group"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-bold text-[#1a1a2e] text-lg mb-1 group-hover:text-[#f5a623]">
+                      <h3 className="font-bold text-[#0A0C11] text-lg mb-1 group-hover:text-[#1FE3C4]">
                         {service.name}
                       </h3>
                       <p className="text-[#5c5c70] text-sm mb-2">{service.description}</p>
@@ -283,13 +283,13 @@ export default function DemoBookingPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-[#1a1a2e]">
+                      <div className="text-xl font-bold text-[#0A0C11]">
                         ${service.default_price}
                         {service.price_type === 'hourly' && (
                           <span className="text-sm font-normal text-[#5c5c70]">{t('perHour')}</span>
                         )}
                       </div>
-                      <span className="text-[#f5a623] font-medium text-sm">{t('select')} →</span>
+                      <span className="text-[#1FE3C4] font-medium text-sm">{t('select')} →</span>
                     </div>
                   </div>
                 </button>
@@ -303,19 +303,19 @@ export default function DemoBookingPage() {
           <div>
             <button
               onClick={() => setStep('service')}
-              className="flex items-center gap-1 text-[#5c5c70] hover:text-[#1a1a2e] mb-4 text-sm"
+              className="flex items-center gap-1 text-[#5c5c70] hover:text-[#0A0C11] mb-4 text-sm"
             >
               ← {t('backToServices')}
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('selectDateTime')}</h2>
+            <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('selectDateTime')}</h2>
             <p className="text-[#5c5c70] mb-6">
               {t('scheduleYour')} {booking.service?.name}.
             </p>
 
             {/* Date Selection */}
             <div className="mb-8">
-              <h3 className="font-bold text-[#1a1a2e] mb-3">{t('availableDates')}</h3>
+              <h3 className="font-bold text-[#0A0C11] mb-3">{t('availableDates')}</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {availableDates.map((date) => {
                   const d = new Date(date + 'T00:00:00');
@@ -330,12 +330,12 @@ export default function DemoBookingPage() {
                       onClick={() => selectDate(date)}
                       className={`p-4 rounded-xl border-2 text-center transition-all ${
                         isSelected
-                          ? 'border-[#f5a623] bg-[#fef3d6]'
-                          : 'border-gray-200 bg-white hover:border-[#f5a623]'
+                          ? 'border-[#1FE3C4] bg-[#fef3d6]'
+                          : 'border-gray-200 bg-white hover:border-[#1FE3C4]'
                       }`}
                     >
                       <div className="text-sm text-[#5c5c70]">{dayName}</div>
-                      <div className="text-2xl font-bold text-[#1a1a2e]">{dayNum}</div>
+                      <div className="text-2xl font-bold text-[#0A0C11]">{dayNum}</div>
                       <div className="text-sm text-[#5c5c70]">{month}</div>
                     </button>
                   );
@@ -346,7 +346,7 @@ export default function DemoBookingPage() {
             {/* Time Selection */}
             {booking.date && (
               <div>
-                <h3 className="font-bold text-[#1a1a2e] mb-3">{t('availableTimes')}</h3>
+                <h3 className="font-bold text-[#0A0C11] mb-3">{t('availableTimes')}</h3>
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                   {timeSlots.map((time) => {
                     const isBooked = demoBookedSlots.has(time);
@@ -361,8 +361,8 @@ export default function DemoBookingPage() {
                           isBooked
                             ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
                             : isSelected
-                              ? 'border-[#f5a623] bg-[#fef3d6] text-[#1a1a2e]'
-                              : 'border-gray-200 bg-white hover:border-[#f5a623] text-[#1a1a2e]'
+                              ? 'border-[#1FE3C4] bg-[#fef3d6] text-[#0A0C11]'
+                              : 'border-gray-200 bg-white hover:border-[#1FE3C4] text-[#0A0C11]'
                         }`}
                       >
                         {formatTime(time)}
@@ -381,18 +381,18 @@ export default function DemoBookingPage() {
           <div>
             <button
               onClick={() => setStep('datetime')}
-              className="flex items-center gap-1 text-[#5c5c70] hover:text-[#1a1a2e] mb-4 text-sm"
+              className="flex items-center gap-1 text-[#5c5c70] hover:text-[#0A0C11] mb-4 text-sm"
             >
               ← {t('backToDateTime')}
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('yourInformation')}</h2>
+            <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('yourInformation')}</h2>
             <p className="text-[#5c5c70] mb-6">{t('tellUsReach')}</p>
 
             <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="grid gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
+                  <label className="block text-sm font-medium text-[#0A0C11] mb-1">
                     {t('fullName')} *
                   </label>
                   <input
@@ -402,14 +402,14 @@ export default function DemoBookingPage() {
                     onChange={(e) =>
                       setBooking((prev) => ({ ...prev, customerName: e.target.value }))
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all"
                     placeholder="John Smith"
                   />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
+                    <label className="block text-sm font-medium text-[#0A0C11] mb-1">
                       {t('emailAddress')} *
                     </label>
                     <input
@@ -419,12 +419,12 @@ export default function DemoBookingPage() {
                       onChange={(e) =>
                         setBooking((prev) => ({ ...prev, customerEmail: e.target.value }))
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all"
                       placeholder="john@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
+                    <label className="block text-sm font-medium text-[#0A0C11] mb-1">
                       {t('phoneNumber')} *
                     </label>
                     <input
@@ -434,14 +434,14 @@ export default function DemoBookingPage() {
                       onChange={(e) =>
                         setBooking((prev) => ({ ...prev, customerPhone: e.target.value }))
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all"
                       placeholder="(555) 123-4567"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
+                  <label className="block text-sm font-medium text-[#0A0C11] mb-1">
                     {t('serviceAddress')} *
                   </label>
                   <input
@@ -451,14 +451,14 @@ export default function DemoBookingPage() {
                     onChange={(e) =>
                       setBooking((prev) => ({ ...prev, customerAddress: e.target.value }))
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all"
                     placeholder="123 Main Street"
                   />
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">{t('city')} *</label>
+                    <label className="block text-sm font-medium text-[#0A0C11] mb-1">{t('city')} *</label>
                     <input
                       type="text"
                       required
@@ -466,12 +466,12 @@ export default function DemoBookingPage() {
                       onChange={(e) =>
                         setBooking((prev) => ({ ...prev, customerCity: e.target.value }))
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all"
                       placeholder="Los Angeles"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">{t('state')} *</label>
+                    <label className="block text-sm font-medium text-[#0A0C11] mb-1">{t('state')} *</label>
                     <input
                       type="text"
                       required
@@ -479,12 +479,12 @@ export default function DemoBookingPage() {
                       onChange={(e) =>
                         setBooking((prev) => ({ ...prev, customerState: e.target.value }))
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all"
                       placeholder="CA"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
+                    <label className="block text-sm font-medium text-[#0A0C11] mb-1">
                       {t('zipCode')} *
                     </label>
                     <input
@@ -494,21 +494,21 @@ export default function DemoBookingPage() {
                       onChange={(e) =>
                         setBooking((prev) => ({ ...prev, customerZip: e.target.value }))
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all"
                       placeholder="90001"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#1a1a2e] mb-1">
+                  <label className="block text-sm font-medium text-[#0A0C11] mb-1">
                     {t('additionalNotes')}
                   </label>
                   <textarea
                     value={booking.notes}
                     onChange={(e) => setBooking((prev) => ({ ...prev, notes: e.target.value }))}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623] outline-none transition-all resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4] outline-none transition-all resize-none"
                     placeholder={t('notesPlaceholder')}
                   />
                 </div>
@@ -516,7 +516,7 @@ export default function DemoBookingPage() {
 
               <button
                 type="submit"
-                className="w-full mt-6 py-4 bg-[#f5a623] text-[#1a1a2e] rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors"
+                className="w-full mt-6 py-4 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors"
               >
                 {t('reviewBooking')}
               </button>
@@ -529,12 +529,12 @@ export default function DemoBookingPage() {
           <div>
             <button
               onClick={() => setStep('info')}
-              className="flex items-center gap-1 text-[#5c5c70] hover:text-[#1a1a2e] mb-4 text-sm"
+              className="flex items-center gap-1 text-[#5c5c70] hover:text-[#0A0C11] mb-4 text-sm"
             >
               ← {t('backToYourInfo')}
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('confirmYourBooking')}</h2>
+            <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('confirmYourBooking')}</h2>
             <p className="text-[#5c5c70] mb-6">{t('reviewDetails')}</p>
 
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -543,13 +543,13 @@ export default function DemoBookingPage() {
                 <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('serviceLabel')}</h3>
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-bold text-[#1a1a2e] text-lg">{booking.service?.name}</p>
+                    <p className="font-bold text-[#0A0C11] text-lg">{booking.service?.name}</p>
                     <p className="text-sm text-[#5c5c70]">
                       {booking.service?.duration_minutes} {t('minutes')}
                     </p>
                   </div>
                   {booking.service?.default_price && (
-                    <p className="text-xl font-bold text-[#1a1a2e]">
+                    <p className="text-xl font-bold text-[#0A0C11]">
                       ${booking.service.default_price}
                     </p>
                   )}
@@ -559,14 +559,14 @@ export default function DemoBookingPage() {
               {/* Date & Time */}
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('dateTimeLabel')}</h3>
-                <p className="font-bold text-[#1a1a2e]">{formatDate(booking.date)}</p>
+                <p className="font-bold text-[#0A0C11]">{formatDate(booking.date)}</p>
                 <p className="text-[#5c5c70]">{formatTime(booking.time)}</p>
               </div>
 
               {/* Customer Info */}
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('contactInfo')}</h3>
-                <p className="font-bold text-[#1a1a2e]">{booking.customerName}</p>
+                <p className="font-bold text-[#0A0C11]">{booking.customerName}</p>
                 <p className="text-[#5c5c70]">{booking.customerEmail}</p>
                 <p className="text-[#5c5c70]">{booking.customerPhone}</p>
               </div>
@@ -574,7 +574,7 @@ export default function DemoBookingPage() {
               {/* Address */}
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('serviceAddressLabel')}</h3>
-                <p className="text-[#1a1a2e]">{booking.customerAddress}</p>
+                <p className="text-[#0A0C11]">{booking.customerAddress}</p>
                 <p className="text-[#5c5c70]">
                   {booking.customerCity}, {booking.customerState} {booking.customerZip}
                 </p>
@@ -584,7 +584,7 @@ export default function DemoBookingPage() {
               {booking.notes && (
                 <div className="p-6 border-b border-gray-200">
                   <h3 className="text-sm font-medium text-[#5c5c70] mb-2">{t('notesLabel')}</h3>
-                  <p className="text-[#1a1a2e]">{booking.notes}</p>
+                  <p className="text-[#0A0C11]">{booking.notes}</p>
                 </div>
               )}
 
@@ -618,7 +618,7 @@ export default function DemoBookingPage() {
             <div className="w-20 h-20 bg-[#e8f5e9] rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">✓</span>
             </div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">{t('bookingConfirmed')}</h2>
+            <h2 className="text-2xl font-bold text-[#0A0C11] mb-2">{t('bookingConfirmed')}</h2>
             <p className="text-[#5c5c70] mb-8 max-w-md mx-auto">
               {t('appointmentScheduled')}{' '}
               <strong>{booking.customerEmail}</strong>.
@@ -628,17 +628,17 @@ export default function DemoBookingPage() {
               <div className="text-left">
                 <div className="mb-4">
                   <p className="text-sm text-[#5c5c70]">{t('serviceSuccess')}</p>
-                  <p className="font-bold text-[#1a1a2e]">{booking.service?.name}</p>
+                  <p className="font-bold text-[#0A0C11]">{booking.service?.name}</p>
                 </div>
                 <div className="mb-4">
                   <p className="text-sm text-[#5c5c70]">{t('dateTimeSuccess')}</p>
-                  <p className="font-bold text-[#1a1a2e]">
+                  <p className="font-bold text-[#0A0C11]">
                     {formatDate(booking.date)} at {formatTime(booking.time)}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-[#5c5c70]">{t('locationSuccess')}</p>
-                  <p className="font-bold text-[#1a1a2e]">{booking.customerAddress}</p>
+                  <p className="font-bold text-[#0A0C11]">{booking.customerAddress}</p>
                   <p className="text-[#5c5c70]">
                     {booking.customerCity}, {booking.customerState} {booking.customerZip}
                   </p>
@@ -650,13 +650,13 @@ export default function DemoBookingPage() {
 
             {/* Demo CTA */}
             <div className="bg-[#fef3d6] rounded-xl p-6 max-w-md mx-auto">
-              <h3 className="font-bold text-[#1a1a2e] mb-2">{t('wantThisForBusiness')}</h3>
+              <h3 className="font-bold text-[#0A0C11] mb-2">{t('wantThisForBusiness')}</h3>
               <p className="text-sm text-[#5c5c70] mb-4">
                 {t('wantThisDesc')}
               </p>
               <Link
                 href="/auth/signup"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1a1a2e] text-white rounded-xl font-medium hover:bg-[#2d2d44] transition-colors no-underline"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0A0C11] text-white rounded-xl font-medium hover:bg-[#2d2d44] transition-colors no-underline"
               >
                 {t('getStartedFree')} →
               </Link>
@@ -670,8 +670,8 @@ export default function DemoBookingPage() {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <p className="text-sm text-[#5c5c70]">
             {t('poweredBy')}{' '}
-            <Link href="/" className="text-[#f5a623] font-medium no-underline hover:underline">
-              ToolTime Pro
+            <Link href="/" className="text-[#1FE3C4] font-medium no-underline hover:underline">
+              Task Iguana
             </Link>
           </p>
         </div>

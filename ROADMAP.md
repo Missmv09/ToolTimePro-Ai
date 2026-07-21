@@ -1,4 +1,4 @@
-# ToolTime Pro — Future Roadmap
+# Task Iguana — Future Roadmap
 
 ## Review & Reputation (Add-on Revenue Opportunities)
 - [ ] **Review Monitoring Dashboard** — Track Google rating over time, review volume trends, competitor comparison
@@ -28,7 +28,7 @@
 ## Multi-State Compliance Expansion
 - [ ] **More States** — Add MA, NJ, WA, OR, CO, AZ, GA, NC, VA, OH
 - [ ] **Auto-Update Detection** — Jenny monitors state labor department websites for law changes
-- [ ] **Compliance Certification** — Contractors earn "ToolTime Certified Compliant" badge for their website
+- [ ] **Compliance Certification** — Contractors earn "Task Iguana Certified Compliant" badge for their website
 
 ## Customer Portal Expansion
 - [ ] **Job Photos in Portal** — Before/after photos visible to customers
@@ -39,7 +39,7 @@
 ## Platform Growth
 - [ ] **Spanish-First Full UI** — Complete platform translation (not just AI responses)
 - [ ] **Franchise/Multi-Location Support** — One owner, multiple service areas with separate crews
-- [ ] **Subcontractor Marketplace** — Find and hire subs directly through ToolTime
+- [ ] **Subcontractor Marketplace** — Find and hire subs directly through Task Iguana
 - [ ] **Equipment Tracking** — Track company tools/equipment assigned to workers
 - [ ] **Vehicle/Fleet Management** — Mileage, maintenance schedules, fuel tracking
 
@@ -47,4 +47,4 @@
 - [ ] **More Competitor Pages** — GorillaDesk, Kickserv, mHelpDesk, Workiz, Zuper
 - [ ] **Industry-Specific Landing Pages** — SEO pages for each of the 60+ supported industries
 - [ ] **Case Studies / Testimonials** — Real contractor success stories
-- [ ] **ROI Calculator** — "How much will you save switching to ToolTime Pro?" interactive tool
+- [ ] **ROI Calculator** — "How much will you save switching to Task Iguana?" interactive tool

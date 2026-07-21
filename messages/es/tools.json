@@ -35,9 +35,9 @@
       },
       "free": "GRATIS",
       "whyTitle": "¿Por qué ofrecemos esto gratis?",
-      "whyText": "Construimos ToolTime Pro para ayudar a negocios de servicios a tener éxito. Estas herramientas gratuitas son nuestra forma de retribuir - ayudándote a evitar errores costosos aunque nunca te conviertas en cliente.",
+      "whyText": "Construimos Task Iguana para ayudar a negocios de servicios a tener éxito. Estas herramientas gratuitas son nuestra forma de retribuir - ayudándote a evitar errores costosos aunque nunca te conviertas en cliente.",
       "ctaTitle": "¿Listo para poner tu negocio en piloto automático?",
-      "ctaText": "Estas herramientas gratuitas son solo el comienzo. ToolTime Pro maneja programación, facturación, seguimiento de trabajadores y cumplimiento completo - todo en un solo lugar.",
+      "ctaText": "Estas herramientas gratuitas son solo el comienzo. Task Iguana maneja programación, facturación, seguimiento de trabajadores y cumplimiento completo - todo en un solo lugar.",
       "seePricing": "Ver Precios",
       "tryDemo": "Ver Demo"
     },
@@ -76,7 +76,7 @@
       "disclaimer": "Aviso Legal",
       "disclaimerText": "Esta calculadora proporciona estimaciones solo con fines informativos. Las penalidades reales pueden variar según circunstancias específicas, disputas de buena fe y otros factores. El requisito de \"voluntariedad\" significa que las penalidades pueden no aplicar si el retraso fue debido a una disputa genuina sobre los salarios adeudados. Siempre consulta con un abogado laboral para situaciones específicas.",
       "getFullProtection": "Obtén Protección de Cumplimiento Completa",
-      "ctaText": "ToolTime Pro incluye seguimiento automatizado de pago final, alertas de cumplimiento y la suite completa de ToolTime Shield.",
+      "ctaText": "Task Iguana incluye seguimiento automatizado de pago final, alertas de cumplimiento y la suite completa de Task Iguana Shield.",
       "startTrial": "Prueba Gratis"
     },
     "classification": {
@@ -115,7 +115,7 @@
       "progress": "Progreso",
       "disclaimer": "Esta herramienta proporciona información general solamente y no constituye asesoría legal. La clasificación de trabajadores es compleja y específica a cada caso. Siempre consulta con un abogado laboral para tu situación específica.",
       "getProtection": "Obtén Protección de Cumplimiento Completa",
-      "ctaText": "ToolTime Pro incluye seguimiento de clasificación de trabajadores, alertas de cumplimiento AB5 y la suite completa de ToolTime Shield.",
+      "ctaText": "Task Iguana incluye seguimiento de clasificación de trabajadores, alertas de cumplimiento AB5 y la suite completa de Task Iguana Shield.",
       "startTrial": "Prueba Gratis"
     },
     "checklist": {
@@ -152,7 +152,7 @@
       "warningText": "Si respondes \"No\" a cualquier condición de la Prueba ABC para un trabajador, ese trabajador probablemente debe ser clasificado como empleado, no como contratista independiente.",
       "disclaimer": "Esta lista es solo para fines informativos y no constituye asesoría legal. Consulta con un abogado laboral para orientación específica.",
       "getProtection": "Obtén Protección de Cumplimiento Completa",
-      "ctaText": "ToolTime Pro incluye seguimiento automatizado de cumplimiento, recordatorios de fechas límite y la suite completa de ToolTime Shield.",
+      "ctaText": "Task Iguana incluye seguimiento automatizado de cumplimiento, recordatorios de fechas límite y la suite completa de Task Iguana Shield.",
       "startTrial": "Prueba Gratis"
     },
     "finalWage": {
@@ -205,7 +205,7 @@
       "tipItem5": "Incluir un talón de pago detallado con el pago final",
       "disclaimer": "Esta guía proporciona información general sobre la ley de California y no constituye asesoría legal. Consulta con un abogado laboral para situaciones específicas.",
       "getProtection": "Automatiza el Cumplimiento de Pago Final",
-      "ctaText": "ToolTime Pro calcula automáticamente los montos de pago final y te recuerda las fechas límite según el tipo de terminación.",
+      "ctaText": "Task Iguana calcula automáticamente los montos de pago final y te recuerda las fechas límite según el tipo de terminación.",
       "startTrial": "Prueba Gratis"
     },
     "routeOptimizer": {

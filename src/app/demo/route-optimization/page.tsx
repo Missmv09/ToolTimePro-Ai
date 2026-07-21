@@ -69,7 +69,7 @@ export default function RouteOptimizationDemo() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Demo Banner */}
-      <div className="bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] py-3 px-4 text-center font-semibold">
+      <div className="bg-gradient-to-r from-[#1FE3C4] to-[#e6991a] text-[#0A0C11] py-3 px-4 text-center font-semibold">
         <span className="mr-2">🗺️</span>
         {t('demoBanner')} —
         <Link href="/auth/signup?plan=elite" className="underline ml-1 font-bold">
@@ -79,7 +79,7 @@ export default function RouteOptimizationDemo() {
       </div>
 
       {/* Header */}
-      <header className="bg-[#1a1a2e] text-white py-8 px-4">
+      <header className="bg-[#0A0C11] text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <Link href="/" className="text-white/70 hover:text-white text-sm inline-flex items-center gap-1">
@@ -88,14 +88,14 @@ export default function RouteOptimizationDemo() {
             <LanguageSwitcher />
           </div>
           <div className="flex items-center gap-4 mt-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-2xl flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#1FE3C4] to-[#e6991a] rounded-2xl flex items-center justify-center text-3xl">
               🗺️
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
               <p className="text-white/70 mt-1">{t('subtitle')}</p>
             </div>
-            <span className="ml-auto bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] px-4 py-1.5 rounded-full text-sm font-bold">
+            <span className="ml-auto bg-gradient-to-r from-[#1FE3C4] to-[#e6991a] text-[#0A0C11] px-4 py-1.5 rounded-full text-sm font-bold">
               {t('eliteFeature')}
             </span>
           </div>
@@ -176,7 +176,7 @@ export default function RouteOptimizationDemo() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Map Visualization */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="bg-[#1a1a2e] text-white p-4 flex justify-between items-center">
+            <div className="bg-[#0A0C11] text-white p-4 flex justify-between items-center">
               <h3 className="font-bold">{t('routeMap')}</h3>
               <span className="text-sm text-white/60">Los Angeles Area</span>
             </div>
@@ -191,7 +191,7 @@ export default function RouteOptimizationDemo() {
 
               {/* Start Point (Office) */}
               <div className="absolute top-[50%] left-[15%] transform -translate-x-1/2 -translate-y-1/2">
-                <div className="w-10 h-10 bg-[#1a1a2e] rounded-full flex items-center justify-center text-white text-lg shadow-lg border-2 border-white">
+                <div className="w-10 h-10 bg-[#0A0C11] rounded-full flex items-center justify-center text-white text-lg shadow-lg border-2 border-white">
                   🏢
                 </div>
                 <div className="bg-white px-2 py-1 rounded text-xs font-semibold mt-1 shadow">{t('office')}</div>
@@ -219,7 +219,7 @@ export default function RouteOptimizationDemo() {
                     onClick={() => setSelectedJob(job)}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg border-2 border-white transition-all ${
-                      isOptimized ? 'bg-[#00c853]' : 'bg-[#f5a623]'
+                      isOptimized ? 'bg-[#00c853]' : 'bg-[#1FE3C4]'
                     } ${isAnimating ? 'ring-4 ring-blue-400 ring-opacity-50' : ''}`}>
                       {index + 1}
                     </div>
@@ -277,7 +277,7 @@ export default function RouteOptimizationDemo() {
                   className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
                     isOptimizing
                       ? 'bg-blue-500 text-white'
-                      : 'bg-[#f5a623] text-[#1a1a2e] hover:bg-[#e6991a]'
+                      : 'bg-[#1FE3C4] text-[#0A0C11] hover:bg-[#e6991a]'
                   }`}
                 >
                   {isOptimizing ? (
@@ -308,7 +308,7 @@ export default function RouteOptimizationDemo() {
           {/* Job List */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-[#1a1a2e]">{t('todaysJobs')} (5)</h3>
+              <h3 className="text-xl font-bold text-[#0A0C11]">{t('todaysJobs')} (5)</h3>
               {isOptimized && (
                 <span className="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">
                   {t('optimizedOrder')}
@@ -322,23 +322,23 @@ export default function RouteOptimizationDemo() {
                   key={job.id}
                   className={`bg-white rounded-xl p-4 border-2 transition-all cursor-pointer ${
                     selectedJob?.id === job.id
-                      ? 'border-[#f5a623] shadow-lg'
+                      ? 'border-[#1FE3C4] shadow-lg'
                       : 'border-gray-100 hover:border-gray-300'
                   }`}
                   onClick={() => setSelectedJob(job)}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                      isOptimized ? 'bg-[#00c853]' : 'bg-[#f5a623]'
+                      isOptimized ? 'bg-[#00c853]' : 'bg-[#1FE3C4]'
                     }`}>
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-[#1a1a2e]">{job.customer}</h4>
+                      <h4 className="font-semibold text-[#0A0C11]">{job.customer}</h4>
                       <p className="text-sm text-gray-500">{job.address}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-[#1a1a2e]">{job.time}</p>
+                      <p className="font-semibold text-[#0A0C11]">{job.time}</p>
                       <p className="text-sm text-gray-500">{job.duration}</p>
                     </div>
                   </div>
@@ -371,7 +371,7 @@ export default function RouteOptimizationDemo() {
             </div>
 
             {/* Daily Summary */}
-            <div className="mt-6 bg-[#1a1a2e] rounded-xl p-4 text-white">
+            <div className="mt-6 bg-[#0A0C11] rounded-xl p-4 text-white">
               <h4 className="font-semibold mb-3">{t('dailySummary')}</h4>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
@@ -396,19 +396,19 @@ export default function RouteOptimizationDemo() {
         {/* Features Section */}
         <div className="mt-16">
           <div className="text-center mb-10">
-            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
+            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#0A0C11] mb-4">
               {t('smartRoutingBenefits')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('fitMoreJobs')}</h2>
+            <h2 className="text-3xl font-bold text-[#0A0C11]">{t('fitMoreJobs')}</h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {['⛽', '⏱️', '🌍', '😊', '📱', '🔄'].map((icon, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#f5a623] hover:shadow-lg transition-all">
+              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#1FE3C4] hover:shadow-lg transition-all">
                 <div className="w-12 h-12 bg-[#fef3d6] rounded-xl flex items-center justify-center text-2xl mb-4">
                   {icon}
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{t(`features.${index}.title`)}</h3>
+                <h3 className="text-lg font-bold text-[#0A0C11] mb-2">{t(`features.${index}.title`)}</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">{t(`features.${index}.description`)}</p>
               </div>
             ))}
@@ -418,21 +418,21 @@ export default function RouteOptimizationDemo() {
         {/* Differentiators — what makes ours smarter */}
         <div className="mt-16">
           <div className="text-center mb-10">
-            <span className="inline-block bg-[#1a1a2e] px-4 py-2 rounded-full text-sm font-bold text-white mb-4">
+            <span className="inline-block bg-[#0A0C11] px-4 py-2 rounded-full text-sm font-bold text-white mb-4">
               ⚡ {t('smarterSubtitle')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('smarterTitle')}</h2>
+            <h2 className="text-3xl font-bold text-[#0A0C11]">{t('smarterTitle')}</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             {[0, 1, 2, 3].map((index) => (
-              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#f5a623] hover:shadow-lg transition-all">
+              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#1FE3C4] hover:shadow-lg transition-all">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 min-w-12 bg-[#fef3d6] rounded-xl flex items-center justify-center text-2xl">
                     {t(`smarter.${index}.icon`)}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-[#1a1a2e] mb-1">{t(`smarter.${index}.title`)}</h3>
+                    <h3 className="text-lg font-bold text-[#0A0C11] mb-1">{t(`smarter.${index}.title`)}</h3>
                     <p className="text-gray-600 text-sm leading-relaxed">{t(`smarter.${index}.description`)}</p>
                   </div>
                 </div>
@@ -444,7 +444,7 @@ export default function RouteOptimizationDemo() {
         <DemoLeadCapture featureName="Route Optimization" source="route_optimization_demo" />
 
         {/* CTA Section */}
-        <div className="mt-16 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-2xl p-10 text-center text-white">
+        <div className="mt-16 bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-2xl p-10 text-center text-white">
           <h2 className="text-3xl font-bold mb-4">{t('ctaTitle')}</h2>
           <p className="text-white/70 mb-8 max-w-xl mx-auto">
             {t('ctaDescription')}
@@ -452,7 +452,7 @@ export default function RouteOptimizationDemo() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup?plan=elite"
-              className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors no-underline"
+              className="bg-[#1FE3C4] text-[#0A0C11] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors no-underline"
             >
               {t('getRouteOptimization')}
             </Link>

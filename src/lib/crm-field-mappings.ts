@@ -1,8 +1,8 @@
 // CRM Field Mapping Templates
-// Maps exported CSV column headers from popular CRMs to ToolTime Pro customer fields
+// Maps exported CSV column headers from popular CRMs to Task Iguana customer fields
 
 export interface FieldMapping {
-  /** ToolTime Pro customer field name */
+  /** Task Iguana customer field name */
   target: string;
   /** Human-readable label */
   label: string;
@@ -14,13 +14,13 @@ export interface CrmTemplate {
   id: string;
   name: string;
   description: string;
-  /** Map of source CSV header (lowercase) -> ToolTime Pro field */
+  /** Map of source CSV header (lowercase) -> Task Iguana field */
   columnMap: Record<string, string>;
   /** Tips for exporting from this CRM */
   exportInstructions: string[];
 }
 
-// All importable fields on the ToolTime Pro customers table
+// All importable fields on the Task Iguana customers table
 export const TOOLTIME_CUSTOMER_FIELDS: FieldMapping[] = [
   { target: 'name', label: 'Full Name', required: true },
   { target: 'email', label: 'Email', required: false },
@@ -295,7 +295,7 @@ export function detectCrmTemplate(headers: string[]): string {
 }
 
 /**
- * Apply a CRM template's column map to auto-map CSV headers to ToolTime fields.
+ * Apply a CRM template's column map to auto-map CSV headers to Task Iguana fields.
  * Returns a mapping of csvHeader -> tooltimeField (or 'skip').
  */
 export function autoMapHeaders(

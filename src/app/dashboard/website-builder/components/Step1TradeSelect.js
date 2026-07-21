@@ -139,7 +139,7 @@ export default function Step1TradeSelect({ wizardData, setWizardData }) {
               {isSelected && (
                 <div className="absolute top-3 right-3 w-6 h-6 bg-gold-500 rounded-full flex items-center justify-center">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6L5 9L10 3" stroke="#1a1a2e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 6L5 9L10 3" stroke="#0A0C11" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
               )}

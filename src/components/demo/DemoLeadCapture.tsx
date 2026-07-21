@@ -65,7 +65,7 @@ export default function DemoLeadCapture({ featureName, source }: DemoLeadCapture
             setStatus('idle');
             setOpen(true);
           }}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-bold hover:bg-[#e09913] transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-bold hover:bg-[#e09913] transition-colors"
         >
           <Mail size={16} />
           {t('button')}
@@ -83,19 +83,19 @@ export default function DemoLeadCapture({ featureName, source }: DemoLeadCapture
           <div className="bg-white rounded-xl max-w-md w-full p-6 relative">
             <button
               onClick={() => setOpen(false)}
-              className="absolute top-4 right-4 text-[#5c5c70] hover:text-[#1a1a2e]"
+              className="absolute top-4 right-4 text-[#5c5c70] hover:text-[#0A0C11]"
               aria-label="Close"
             >
               <X size={20} />
             </button>
-            <h3 className="text-lg font-bold text-[#1a1a2e] mb-1">
+            <h3 className="text-lg font-bold text-[#0A0C11] mb-1">
               {t('modalTitle', { feature: featureName })}
             </h3>
             <p className="text-sm text-[#5c5c70] mb-4">{t('modalDesc')}</p>
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="block text-sm font-semibold text-[#1a1a2e] mb-1.5">
+                <label className="block text-sm font-semibold text-[#0A0C11] mb-1.5">
                   {t('name')}
                 </label>
                 <input
@@ -103,11 +103,11 @@ export default function DemoLeadCapture({ featureName, source }: DemoLeadCapture
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#1a1a2e] focus:border-[#f5a623] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#0A0C11] focus:border-[#1FE3C4] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#1a1a2e] mb-1.5">
+                <label className="block text-sm font-semibold text-[#0A0C11] mb-1.5">
                   {t('email')}
                 </label>
                 <input
@@ -115,29 +115,29 @@ export default function DemoLeadCapture({ featureName, source }: DemoLeadCapture
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#1a1a2e] focus:border-[#f5a623] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#0A0C11] focus:border-[#1FE3C4] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#1a1a2e] mb-1.5">
+                <label className="block text-sm font-semibold text-[#0A0C11] mb-1.5">
                   {t('phone')}
                 </label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#1a1a2e] focus:border-[#f5a623] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#0A0C11] focus:border-[#1FE3C4] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#1a1a2e] mb-1.5">
+                <label className="block text-sm font-semibold text-[#0A0C11] mb-1.5">
                   {t('business')}
                 </label>
                 <input
                   type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#1a1a2e] focus:border-[#f5a623] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-[#0A0C11] focus:border-[#1FE3C4] focus:outline-none focus:ring-2 focus:ring-[#fef3d6]"
                 />
               </div>
 
@@ -149,14 +149,14 @@ export default function DemoLeadCapture({ featureName, source }: DemoLeadCapture
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="flex-1 px-4 py-2.5 bg-white text-[#1a1a2e] border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-white text-[#0A0C11] border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
                 >
                   {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={sending}
-                  className="flex-1 px-4 py-2.5 bg-[#1a1a2e] text-white rounded-lg font-bold hover:bg-[#2d2d44] transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 bg-[#0A0C11] text-white rounded-lg font-bold hover:bg-[#2d2d44] transition-colors disabled:opacity-50"
                 >
                   {sending ? t('sending') : t('submit')}
                 </button>

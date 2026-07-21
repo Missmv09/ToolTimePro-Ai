@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Platform Admin Dashboard</h1>
-        <p className="text-gray-400 mt-1">Overview of all ToolTime Pro customers and platform health</p>
+        <p className="text-gray-400 mt-1">Overview of all Task Iguana customers and platform health</p>
       </div>
 
       {/* Key Metrics */}

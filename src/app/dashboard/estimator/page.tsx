@@ -725,7 +725,7 @@ export default function EstimatorPage() {
             <p className="text-sm text-blue-700">
               Material prices are based on 2026 retail pricing from Home Depot, Lowe&apos;s, and specialty suppliers.
               Your markup is applied on top to calculate the customer quote price. Log what you actually paid to
-              help ToolTime keep prices accurate for all contractors.
+              help Task Iguana keep prices accurate for all contractors.
             </p>
           </div>
 
