@@ -123,7 +123,7 @@ Yes:
 - **Assisted Onboarding** ($199) — Guided setup call, service catalog configuration, team invites, booking page
 - **White-Glove Setup** ($499) — Full configuration, data migration, website build, and training
 
-Contact support@taskiguana.com or call 1-888-980-8665 to book.
+Contact support@taskiguana.com or call 1-844-744-8262 to book.
 
 ### Can I migrate data from another platform?
 Yes! Task Iguana has a **self-service import wizard** built right into your dashboard. Go to **Customers → Import Customers**, select your old CRM (Housecall Pro, Jobber, ServiceTitan, FieldPulse, GorillaDesk, Workiz, or any CSV), upload your export file, and the importer auto-maps your columns. See the full guide: [Customers & Leads → Importing Customers](Customers-and-Leads#importing-customers-crm-migration).
@@ -149,7 +149,7 @@ No. Your data is yours. We do not sell, share, or monetize your business or cust
 
 ### How do I contact support?
 - **Email:** support@taskiguana.com
-- **Phone:** 1-888-980-8665
+- **Phone:** 1-844-744-8262
 - **Live Chat:** Click the help icon in your dashboard
 
 ### What are support hours?
@@ -162,4 +162,4 @@ You're looking at it! Browse the [Help Center](Home) for guides on every feature
 
 ## Still Have Questions?
 
-Contact us at support@taskiguana.com or call 1-888-980-8665. We're here to help.
+Contact us at support@taskiguana.com or call 1-844-744-8262. We're here to help.

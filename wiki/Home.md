@@ -77,6 +77,6 @@ _These pages are auto-generated from source code and stay up to date automatical
 ## Need Help?
 
 - **Email:** support@taskiguana.com
-- **Phone:** 1-888-980-8665
+- **Phone:** 1-844-744-8262
 - **Live Chat:** Click the chat icon in your dashboard
 - **Onboarding:** [Book Assisted Onboarding ($199)](https://www.taskiguana.com/pricing) or [White-Glove Setup ($499)](https://www.taskiguana.com/pricing)

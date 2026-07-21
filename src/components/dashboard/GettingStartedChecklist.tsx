@@ -463,7 +463,7 @@ export default function GettingStartedChecklist() {
           Need help setting up?{' '}
           <a href="mailto:support@taskiguana.com" className="text-blue-600 hover:underline">Email us</a>
           {' '}or{' '}
-          <a href="tel:1-888-980-8665" className="text-blue-600 hover:underline">call 1-888-980-8665</a>
+          <a href="tel:1-844-744-8262" className="text-blue-600 hover:underline">call 1-844-744-8262</a>
           {' '}&mdash; we&apos;re happy to walk you through it.
         </p>
       </div>
