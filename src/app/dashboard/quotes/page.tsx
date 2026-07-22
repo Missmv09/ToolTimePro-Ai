@@ -1487,8 +1487,31 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
         deposit_percentage: quote.deposit_percentage,
       }
 
-      // Update existing quote
-      const { error: updateError } = await supabase.from('quotes').update(quoteData).eq('id', quote.id)
+      // Update existing quote. Some deployments are missing newer optional
+      // columns (terms, frequency, deposit_*) that exist in the app but haven't
+      // been migrated into every database yet. If the update fails because a
+      // column isn't in the schema, drop that column and retry rather than
+      // failing the whole save. This mirrors the resilience already built into
+      // the create path (/api/quote/save) — without it, an edit that includes
+      // `terms` (auto-populated from the company default) fails every time.
+      const OPTIONAL_QUOTE_COLUMNS = ['terms', 'frequency', 'deposit_required', 'deposit_amount', 'deposit_percentage']
+      const updatePayload: Record<string, unknown> = { ...quoteData }
+      let updateError = (await supabase.from('quotes').update(updatePayload).eq('id', quote.id)).error
+
+      let dropAttempts = 0
+      while (updateError && dropAttempts < OPTIONAL_QUOTE_COLUMNS.length) {
+        // 42703 = undefined_column (Postgres); PGRST204 = column missing from
+        // PostgREST schema cache. Both name the offending column in the message.
+        const isMissingColumn = updateError.code === '42703' || updateError.code === 'PGRST204'
+        const missing = OPTIONAL_QUOTE_COLUMNS.find(
+          (col) => col in updatePayload && (updateError!.message || '').includes(col)
+        )
+        if (!isMissingColumn || !missing) break
+        delete updatePayload[missing]
+        updateError = (await supabase.from('quotes').update(updatePayload).eq('id', quote.id)).error
+        dropAttempts++
+      }
+
       if (updateError) {
         console.error('Error updating quote:', updateError)
         setSaveError(friendlySaveError(updateError.message))

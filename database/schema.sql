@@ -264,6 +264,13 @@ CREATE TABLE quotes (
     total DECIMAL(10,2) DEFAULT 0,
     status VARCHAR(50) DEFAULT 'draft', -- draft, sent, viewed, approved, rejected, expired
     frequency VARCHAR(20) DEFAULT 'one_time', -- one_time, weekly, biweekly, monthly (label-only)
+    terms TEXT, -- Per-quote terms & conditions (auto-populated from companies.default_quote_terms)
+    deposit_required BOOLEAN DEFAULT FALSE,
+    deposit_amount DECIMAL(10,2), -- Fixed deposit amount (mutually exclusive with deposit_percentage)
+    deposit_percentage DECIMAL(5,2), -- Deposit as % of total (mutually exclusive with deposit_amount)
+    deposit_paid BOOLEAN DEFAULT FALSE,
+    deposit_paid_at TIMESTAMP WITH TIME ZONE,
+    deposit_stripe_payment_id VARCHAR(255),
     valid_until DATE,
     sent_at TIMESTAMP WITH TIME ZONE,
     viewed_at TIMESTAMP WITH TIME ZONE,
