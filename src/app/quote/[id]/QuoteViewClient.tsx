@@ -6,6 +6,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import type { Quote, Company, Customer } from '@/types/database';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { frequencyLabel, frequencySuffix, isRecurringFrequency } from '@/lib/quote-frequency';
 
 interface QuoteLineItem {
   id: string;
@@ -611,8 +612,19 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
                   )}
                   <div className="flex justify-between text-xl font-bold pt-2 border-t border-gray-200">
                     <span className="text-navy-500">{t('total')}</span>
-                    <span className="text-gold-600">${(quote.total || 0).toFixed(2)}</span>
+                    <span className="text-gold-600">
+                      ${(quote.total || 0).toFixed(2)}
+                      {isRecurringFrequency(quote.frequency) && (
+                        <span className="text-sm font-normal text-gray-500 ml-1">{frequencySuffix(quote.frequency)}</span>
+                      )}
+                    </span>
                   </div>
+                  {isRecurringFrequency(quote.frequency) && (
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Service frequency</span>
+                      <span className="font-medium text-navy-500">{frequencyLabel(quote.frequency)}</span>
+                    </div>
+                  )}
                   {quote.deposit_required && (
                     <div className="flex justify-between text-sm pt-2 mt-2 border-t border-dashed border-gray-200">
                       <span className="text-gray-600 font-medium">Deposit Required</span>

@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
 
     // If no AI keys at all, return smart defaults
     if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
-      return NextResponse.json(getFallbackAnalysis());
+      return NextResponse.json(
+        getFallbackAnalysis('No AI key found in this environment. Set ANTHROPIC_API_KEY (preferred) or OPENAI_API_KEY, and confirm it is enabled for this deploy context.'),
+      );
     }
 
     // Remove data URL prefix if present
@@ -99,7 +101,11 @@ Return ONLY the JSON, no other text.`;
       result = parseAIJson(aiResult.content);
     } catch (aiError) {
       console.error('AI vision error:', aiError);
-      return NextResponse.json(getFallbackAnalysis());
+      const detail = aiError instanceof Error ? aiError.message : String(aiError);
+      const provider = process.env.ANTHROPIC_API_KEY ? 'Claude' : 'OpenAI';
+      return NextResponse.json(
+        getFallbackAnalysis(`AI photo analysis failed (${provider}): ${detail}. A key IS present, so this is an API/auth/network error, not a missing key. Showing default recommendations.`),
+      );
     }
 
     // Validate and sanitize services
@@ -138,7 +144,7 @@ Return ONLY the JSON, no other text.`;
   }
 }
 
-function getFallbackAnalysis() {
+function getFallbackAnalysis(note?: string) {
   return {
     analysis: {
       propertySize: 'Medium residential lot (est. 1/4 - 1/2 acre)',
@@ -187,6 +193,6 @@ function getFallbackAnalysis() {
         price: 60,
       },
     ],
-    notes: 'Set OPENAI_API_KEY in your environment to enable real AI-powered photo analysis. These are default recommendations.',
+    notes: note || 'Set ANTHROPIC_API_KEY (preferred) or OPENAI_API_KEY in your environment to enable real AI-powered photo analysis. These are default recommendations.',
   };
 }

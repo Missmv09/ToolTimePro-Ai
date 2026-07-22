@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
+import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency'
 
 interface QuoteItem {
   id: string
@@ -1257,6 +1258,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     notes: quote?.notes || '',
     terms: (quote as unknown as Record<string, unknown>)?.terms as string || defaultQuoteTerms || '',
     valid_until: quote?.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    frequency: (quote as unknown as Record<string, unknown>)?.frequency as string || DEFAULT_QUOTE_FREQUENCY,
   })
   const [isNewCustomer, setIsNewCustomer] = useState(false)
   const [newCustomerInfo, setNewCustomerInfo] = useState({
@@ -1450,6 +1452,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       notes: formData.notes,
       terms: formData.terms,
       valid_until: formData.valid_until,
+      frequency: formData.frequency,
       subtotal: Number(subtotal) || 0,
       tax_rate: 8.75,
       tax_amount: Number(tax_amount) || 0,
@@ -1477,6 +1480,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
         total: quote.total,
         notes: quote.notes,
         valid_until: quote.valid_until,
+        frequency: (quote as unknown as Record<string, unknown>).frequency,
         customer_id: quote.customer_id,
         deposit_required: quote.deposit_required,
         deposit_amount: quote.deposit_amount,
@@ -1524,6 +1528,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
                 total: Number(total) || 0,
                 notes: formData.notes,
                 valid_until: formData.valid_until,
+                frequency: formData.frequency,
                 customer_id: customerId,
                 deposit_required: depositRequired,
                 deposit_amount: depositType === 'fixed' ? Number(depositValue) || null : null,
@@ -1666,6 +1671,23 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+
+          {/* Service frequency */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Service Frequency</label>
+            <select
+              value={formData.frequency}
+              onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              {QUOTE_FREQUENCIES.map((f) => (
+                <option key={f.value} value={f.value}>{f.label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              How often this service repeats. Shown on the quote — one-time is a single job.
+            </p>
           </div>
 
           {/* Deposit */}
@@ -1821,7 +1843,12 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
             </div>
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span>
+                ${total.toFixed(2)}
+                {frequencySuffix(formData.frequency) && (
+                  <span className="text-sm font-normal text-gray-500 ml-1">{frequencySuffix(formData.frequency)}</span>
+                )}
+              </span>
             </div>
           </div>
 
