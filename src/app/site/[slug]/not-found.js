@@ -15,7 +15,7 @@ export default function SiteNotFound() {
         background: '#f9fafb',
       }}
     >
-      <h1 style={{ fontSize: '48px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px' }}>
+      <h1 style={{ fontSize: '48px', fontWeight: 800, color: '#0A0C11', marginBottom: '12px' }}>
         404
       </h1>
       <p style={{ fontSize: '18px', color: '#6b7280', marginBottom: '32px' }}>
@@ -25,15 +25,15 @@ export default function SiteNotFound() {
         href="/"
         style={{
           padding: '12px 28px',
-          background: '#f5a623',
-          color: '#1a1a2e',
+          background: '#1FE3C4',
+          color: '#0A0C11',
           borderRadius: '8px',
           fontWeight: 700,
           textDecoration: 'none',
           fontSize: '15px',
         }}
       >
-        Go to ToolTime Pro
+        Go to Task Iguana
       </Link>
     </div>
   );

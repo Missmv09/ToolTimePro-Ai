@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: ChatbotSettings = {
     { question: 'What areas do you serve?', answer: '' },
     { question: 'How do I get a quote?', answer: '' },
   ],
-  accentColor: '#f5a623',
+  accentColor: '#1FE3C4',
   position: 'right',
   smsConsentText: 'By providing your phone number, you agree to receive SMS updates about your inquiry. Message & data rates may apply. Reply STOP to opt out.',
 };
@@ -90,7 +90,7 @@ export default function JennyLitePage() {
     setSettings({ ...settings, faqs: settings.faqs.filter((_, i) => i !== index) });
   };
 
-  const embedCode = `<!-- Jenny Lite Chat Widget — ToolTime Pro -->
+  const embedCode = `<!-- Jenny Lite Chat Widget — Task Iguana -->
 <script>
   window.JennyLiteConfig = {
     businessName: ${JSON.stringify(settings.businessName)},
@@ -104,7 +104,7 @@ export default function JennyLitePage() {
     faqs: ${JSON.stringify(settings.faqs.filter(f => f.question && f.answer), null, 2)}
   };
 </script>
-<script src="https://cdn.tooltimepro.com/jenny-lite/widget.js" async></script>`;
+<script src="https://cdn.taskiguana.com/jenny-lite/widget.js" async></script>`;
 
   const copyEmbed = () => {
     navigator.clipboard.writeText(embedCode).then(() => {
@@ -299,7 +299,7 @@ export default function JennyLitePage() {
                 <div className="text-xs text-gray-400">Used for chat bubble and header</div>
               </div>
               <div className="flex gap-2 ml-4">
-                {['#f5a623', '#2563eb', '#059669', '#dc2626', '#7c3aed', '#1a1a2e'].map(color => (
+                {['#1FE3C4', '#2563eb', '#17B39B', '#dc2626', '#7c3aed', '#0A0C11'].map(color => (
                   <button
                     key={color}
                     onClick={() => setSettings({ ...settings, accentColor: color })}
@@ -570,12 +570,12 @@ export default function JennyLitePage() {
             </p>
           </div>
 
-          {/* ToolTime-built site note */}
+          {/* Task Iguana-built site note */}
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-5">
             <div className="flex items-start gap-3">
               <span className="text-xl">🌐</span>
               <div>
-                <div className="font-semibold text-gray-900 text-sm">Using a ToolTime Pro website?</div>
+                <div className="font-semibold text-gray-900 text-sm">Using a Task Iguana website?</div>
                 <p className="text-sm text-gray-600 mt-1">
                   If we built your website, you don&apos;t need the embed code. Just save your settings above
                   and Jenny Lite will automatically appear on your site within a few minutes.
@@ -588,7 +588,7 @@ export default function JennyLitePage() {
 
       {/* Upgrade CTA — hidden for beta testers who already have full access */}
       {!isBetaTester && (
-        <div className="mt-10 bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-8 text-white">
+        <div className="mt-10 bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-xl p-8 text-white">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h3 className="text-lg font-bold mb-1">Want Jenny to answer your phone calls too?</h3>

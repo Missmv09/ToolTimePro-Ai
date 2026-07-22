@@ -56,7 +56,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
         setSession({
           token,
           customerName: profileData.customer?.name || 'Customer',
-          companyName: profileData.company?.name || 'ToolTime Pro',
+          companyName: profileData.company?.name || 'Task Iguana',
           hasPortalPro: proData.hasPortalPro || false,
         });
         setLoading(false);

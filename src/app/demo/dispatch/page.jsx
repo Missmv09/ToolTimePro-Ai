@@ -369,8 +369,8 @@ export default function DispatchBoardPage() {
   return (
     <div className="dispatch-page">
       {/* Demo Banner */}
-      <div style={{ background: 'linear-gradient(90deg, #f5a623, #e6991a)', padding: '12px 20px', textAlign: 'center', color: '#1a1a2e', fontWeight: 600, fontSize: '0.9375rem' }}>
-        🎯 {t('demoBanner')} — <Link href="/auth/signup?plan=elite" style={{ textDecoration: 'underline', color: '#1a1a2e' }}>{t('getElitePlan')}</Link> {t('forFullAccess')}
+      <div style={{ background: 'linear-gradient(90deg, #1FE3C4, #e6991a)', padding: '12px 20px', textAlign: 'center', color: '#0A0C11', fontWeight: 600, fontSize: '0.9375rem' }}>
+        🎯 {t('demoBanner')} — <Link href="/auth/signup?plan=elite" style={{ textDecoration: 'underline', color: '#0A0C11' }}>{t('getElitePlan')}</Link> {t('forFullAccess')}
       </div>
       {/* Header */}
       <header className="header">
@@ -816,9 +816,9 @@ export default function DispatchBoardPage() {
            ============================================ */
 
         .dispatch-page {
-          --navy: #1a1a2e;
+          --navy: #0A0C11;
           --navy-light: #2d2d44;
-          --gold: #f5a623;
+          --gold: #1FE3C4;
           --gold-light: #ffd380;
           --success: #4CAF50;
           --warning: #FF9800;

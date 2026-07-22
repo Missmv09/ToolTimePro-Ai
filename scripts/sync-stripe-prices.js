@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ToolTime Pro — Stripe price sync.
+ * Task Iguana — Stripe price sync.
  *
  * Compares the price IDs in src/lib/stripe-prices.{live,test}.json against
  * the canonical catalog in scripts/stripe-products.js and reports drift.
@@ -124,7 +124,7 @@ async function main() {
   const stored = loadJson(jsonFile);
   const stripe = new Stripe(key);
 
-  console.log(`\nToolTime Pro — Stripe price sync (${mode}, ${writeMode ? 'WRITE' : 'AUDIT'})`);
+  console.log(`\nTask Iguana — Stripe price sync (${mode}, ${writeMode ? 'WRITE' : 'AUDIT'})`);
   console.log(`Reading: ${path.relative(process.cwd(), jsonFile)}\n`);
 
   const existingProducts = await fetchExistingProducts(stripe);

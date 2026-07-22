@@ -54,7 +54,7 @@ export default function DomainUpgradeCard({ site, onUpgraded }) {
   };
 
   // If the customer already has a custom (non-subdomain) domain, show the DNS records.
-  const existing = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com')
+  const existing = site.custom_domain && !site.custom_domain.endsWith('.taskiguana.com')
     ? { domain: site.custom_domain, dnsRecords: dnsRecordsFor(site.custom_domain), status: site.domain_status }
     : null;
 

@@ -20,7 +20,7 @@ The **Time Logs** page (sidebar) gives managers a complete view of worker hours 
 
 ## How Workers Clock In
 
-Workers use the **ToolTime Pro Worker App** on their phone:
+Workers use the **Task Iguana Worker App** on their phone:
 
 1. Open the Worker App
 2. Tap **Clock In**
@@ -44,7 +44,7 @@ Workers use the **ToolTime Pro Worker App** on their phone:
 
 ## Break Tracking
 
-ToolTime Pro tracks meal and rest breaks for labor law compliance — especially important in California and other strict states.
+Task Iguana tracks meal and rest breaks for labor law compliance — especially important in California and other strict states.
 
 ### How It Works
 
@@ -54,12 +54,12 @@ ToolTime Pro tracks meal and rest breaks for labor law compliance — especially
 
 ### California Compliance
 
-For California-based businesses, ToolTime Pro monitors:
+For California-based businesses, Task Iguana monitors:
 - **Meal Breaks** — 30-minute unpaid meal break before the 5th hour
 - **Rest Breaks** — 10-minute paid rest break per 4 hours worked
 - **Overtime** — Time-and-a-half after 8 hours/day or 40 hours/week
 
-> **See Also:** [ToolTime Shield](ToolTime-Shield) for full compliance monitoring.
+> **See Also:** [Task Iguana Shield](ToolTime-Shield) for full compliance monitoring.
 
 ---
 
@@ -112,7 +112,7 @@ Export time data for payroll processing:
 
 - **Jobs** — Time entries are linked to specific jobs for accurate job costing
 - **Reports** — Worker hours feed into the Reports dashboard
-- **Compliance** — Break data feeds into ToolTime Shield compliance monitoring
+- **Compliance** — Break data feeds into Task Iguana Shield compliance monitoring
 - **Invoicing** — Track labor hours for accurate customer billing
 
 ---
@@ -132,6 +132,6 @@ Export time data for payroll processing:
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard

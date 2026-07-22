@@ -175,7 +175,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen bg-navy-gradient flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
-          <div className="w-12 h-12 border-4 border-[#f5a623]/30 border-t-[#f5a623] rounded-full animate-spin mx-auto mb-6" />
+          <div className="w-12 h-12 border-4 border-[#1FE3C4]/30 border-t-[#1FE3C4] rounded-full animate-spin mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-navy-500 mb-2">{t('verifyingTitle')}</h1>
           <p className="text-gray-600">{t('verifyingMessage')}</p>
         </div>
@@ -210,7 +210,7 @@ export default function ResetPasswordPage() {
           <div className="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center">
             <HardHat className="w-7 h-7 text-navy-500" />
           </div>
-          <span className="text-2xl font-bold text-white">ToolTime Pro</span>
+          <span className="text-2xl font-bold text-white">Task Iguana</span>
         </Link>
         <LanguageSwitcher />
       </div>

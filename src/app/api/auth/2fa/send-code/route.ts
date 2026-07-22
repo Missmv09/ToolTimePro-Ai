@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       digits.length === 11 && digits.startsWith('1') ? `+${digits}` :
       userData.two_fa_phone.startsWith('+') ? userData.two_fa_phone : `+${digits}`
 
-    const smsBody = `Your ToolTime Pro verification code is: ${code}. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&Data rates may apply.`
+    const smsBody = `Your Task Iguana verification code is: ${code}. It expires in 10 minutes. Reply STOP to opt out, HELP for help. Msg&Data rates may apply.`
 
     // Prefer messaging service SID (linked to 2FA A2P campaign) over raw phone number
     if (messagingServiceSid) {

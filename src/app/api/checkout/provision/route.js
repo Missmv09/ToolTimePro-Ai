@@ -106,7 +106,7 @@ export async function POST(request) {
           return null;
         }
       })() ||
-      'https://tooltimepro.com';
+      'https://taskiguana.com';
 
     const result = await autoCreateCompanyForCheckout({
       email,

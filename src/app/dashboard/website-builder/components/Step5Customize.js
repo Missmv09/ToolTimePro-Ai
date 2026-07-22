@@ -9,7 +9,7 @@ import PhotoSelector from './PhotoSelector';
 import SitePreviewFrame from './SitePreviewFrame';
 
 const colorPresets = [
-  { name: 'Classic', primary: '#1a1a2e', secondary: '#16213e', accent: '#f5a623', background: '#ffffff' },
+  { name: 'Classic', primary: '#0A0C11', secondary: '#16213e', accent: '#1FE3C4', background: '#ffffff' },
   { name: 'Modern', primary: '#374151', secondary: '#4b5563', accent: '#14b8a6', background: '#ffffff' },
   { name: 'Clean', primary: '#1e40af', secondary: '#1e3a8a', accent: '#3b82f6', background: '#ffffff' },
   { name: 'Bold', primary: '#18181b', secondary: '#27272a', accent: '#ef4444', background: '#ffffff' },
@@ -149,7 +149,7 @@ export default function Step5Customize({ wizardData, setWizardData, pageLimit })
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={wizardData.colors.headingColor || wizardData.colors.primary || '#1a1a2e'}
+                    value={wizardData.colors.headingColor || wizardData.colors.primary || '#0A0C11'}
                     onChange={(e) => updateColors({ headingColor: e.target.value })}
                     className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
                   />
@@ -200,7 +200,7 @@ export default function Step5Customize({ wizardData, setWizardData, pageLimit })
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </select>
-                <p className="mt-2 text-lg font-bold" style={{ fontFamily: `'${wizardData.fontHeading || 'Inter'}', sans-serif`, color: wizardData.colors.headingColor || wizardData.colors.primary || '#1a1a2e' }}>
+                <p className="mt-2 text-lg font-bold" style={{ fontFamily: `'${wizardData.fontHeading || 'Inter'}', sans-serif`, color: wizardData.colors.headingColor || wizardData.colors.primary || '#0A0C11' }}>
                   The quick brown fox jumps over the lazy dog
                 </p>
               </div>
@@ -233,7 +233,7 @@ export default function Step5Customize({ wizardData, setWizardData, pageLimit })
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={wizardData.colors.headingColor || wizardData.colors.primary || '#1a1a2e'}
+                    value={wizardData.colors.headingColor || wizardData.colors.primary || '#0A0C11'}
                     onChange={(e) => updateColors({ headingColor: e.target.value })}
                     className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
                   />

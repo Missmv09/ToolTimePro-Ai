@@ -1,17 +1,17 @@
-# ToolTime Shield — Compliance & Legal Protection
+# Task Iguana Shield — Compliance & Legal Protection
 
-ToolTime Shield is ToolTime Pro's built-in compliance suite that protects your business from costly labor law violations, worker misclassification lawsuits, and HR compliance gaps. Included in every plan.
+Task Iguana Shield is Task Iguana's built-in compliance suite that protects your business from costly labor law violations, worker misclassification lawsuits, and HR compliance gaps. Included in every plan.
 
 ---
 
-## What Is ToolTime Shield?
+## What Is Task Iguana Shield?
 
 Service contractors face serious legal risks:
 - **Worker misclassification** fines can reach $25,000+ per worker
 - **Wage and hour violations** lead to back-pay, penalties, and lawsuits
 - **Missing HR documentation** creates liability exposure
 
-ToolTime Shield gives you the tools to stay compliant without hiring an attorney or HR consultant.
+Task Iguana Shield gives you the tools to stay compliant without hiring an attorney or HR consultant.
 
 ---
 
@@ -117,7 +117,7 @@ Elite plan includes access to HR resources:
 
 ## Why This Matters
 
-| Risk | Potential Cost | ToolTime Shield Protection |
+| Risk | Potential Cost | Task Iguana Shield Protection |
 |------|---------------|---------------------------|
 | Worker misclassification | $25,000+ per worker in fines | Classification quiz + guardrails |
 | Missed meal/rest breaks (CA) | $100+ per violation per day | Break tracking + alerts |

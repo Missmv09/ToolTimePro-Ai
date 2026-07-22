@@ -581,7 +581,7 @@ export async function POST(request: NextRequest) {
     // sandbox branch, prod on prod), so the magic link always lands on the
     // same environment whose DB holds this session token. SITE_URL points at
     // the marketing/prod host and would send sandbox links to production.
-    const portalBase = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com';
+    const portalBase = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.taskiguana.com';
     const portalUrl = `${portalBase}/portal?token=${rawToken}`;
 
     // Get company name for email

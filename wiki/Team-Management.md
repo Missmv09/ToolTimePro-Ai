@@ -1,6 +1,6 @@
 # Team Management
 
-ToolTime Pro supports managing W-2 employees and 1099 contractors side by side with role-based permissions, GPS tracking, and compliance guardrails.
+Task Iguana supports managing W-2 employees and 1099 contractors side by side with role-based permissions, GPS tracking, and compliance guardrails.
 
 ---
 
@@ -48,7 +48,7 @@ Owners can customize what each role can access:
 
 ## Blended Workforce Management
 
-ToolTime Pro is built for businesses that use both employees and contractors:
+Task Iguana is built for businesses that use both employees and contractors:
 
 ### W-2 Employees
 - Break tracking (meal and rest periods)
@@ -64,14 +64,14 @@ ToolTime Pro is built for businesses that use both employees and contractors:
 - Independent schedule management
 
 ### Multi-State Compliance
-ToolTime Pro tracks labor laws across:
+Task Iguana tracks labor laws across:
 - **California** — AB5, meal/rest break rules, final wage requirements
 - **Texas** — At-will employment, overtime rules
 - **Florida** — Worker classification, wage laws
 - **New York** — Freelance protection act, wage theft laws
 - **Illinois** — Day labor rules, overtime regulations
 
-See [ToolTime Shield](ToolTime-Shield) for full compliance features.
+See [Task Iguana Shield](ToolTime-Shield) for full compliance features.
 
 ---
 
@@ -110,7 +110,7 @@ Workers clock in and out via the mobile app:
 ## Best Practices
 
 1. **Set roles carefully** — Give workers minimum necessary access
-2. **Classify correctly** — Use ToolTime Shield's classification quiz if unsure about W-2 vs 1099
+2. **Classify correctly** — Use Task Iguana Shield's classification quiz if unsure about W-2 vs 1099
 3. **Enable GPS clock-in** — Creates accountability and proof of work
 4. **Review time logs weekly** — Catch overtime issues before they become costly
 5. **Keep certifications current** — Track expiration dates for licenses and insurance

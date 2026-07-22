@@ -35,9 +35,9 @@
       },
       "free": "FREE",
       "whyTitle": "Why We Offer These Free",
-      "whyText": "We built ToolTime Pro to help service businesses succeed. These free tools are our way of giving back - helping you avoid costly mistakes even if you never become a customer.",
+      "whyText": "We built Task Iguana to help service businesses succeed. These free tools are our way of giving back - helping you avoid costly mistakes even if you never become a customer.",
       "ctaTitle": "Ready to put your business on autopilot?",
-      "ctaText": "These free tools are just the beginning. ToolTime Pro handles scheduling, invoicing, worker tracking, and full compliance - all in one place.",
+      "ctaText": "These free tools are just the beginning. Task Iguana handles scheduling, invoicing, worker tracking, and full compliance - all in one place.",
       "seePricing": "See Pricing",
       "tryDemo": "Try Demo"
     },
@@ -76,7 +76,7 @@
       "disclaimer": "Disclaimer",
       "disclaimerText": "This calculator provides estimates for informational purposes only. Actual penalties may vary based on specific circumstances, good faith disputes, and other factors. The \"willfulness\" requirement means penalties may not apply if the delay was due to a genuine dispute over wages owed. Always consult with an employment attorney for specific situations.",
       "getFullProtection": "Get Full Compliance Protection",
-      "ctaText": "ToolTime Pro includes automated final pay tracking, compliance alerts, and the full ToolTime Shield suite.",
+      "ctaText": "Task Iguana includes automated final pay tracking, compliance alerts, and the full Task Iguana Shield suite.",
       "startTrial": "Start Free Trial"
     },
     "classification": {
@@ -115,7 +115,7 @@
       "progress": "Progress",
       "disclaimer": "This tool provides general information only and does not constitute legal advice. Worker classification is complex and fact-specific. Always consult with an employment attorney for your specific situation.",
       "getProtection": "Get Full Compliance Protection",
-      "ctaText": "ToolTime Pro includes worker classification tracking, AB5 compliance alerts, and the full ToolTime Shield suite.",
+      "ctaText": "Task Iguana includes worker classification tracking, AB5 compliance alerts, and the full Task Iguana Shield suite.",
       "startTrial": "Start Free Trial"
     },
     "checklist": {
@@ -152,7 +152,7 @@
       "warningText": "If you answer \"No\" to any ABC Test condition for a worker, that worker should likely be classified as an employee, not an independent contractor.",
       "disclaimer": "This checklist is for informational purposes only and does not constitute legal advice. Consult with an employment attorney for specific guidance.",
       "getProtection": "Get Full Compliance Protection",
-      "ctaText": "ToolTime Pro includes automated compliance tracking, deadline reminders, and the full ToolTime Shield suite.",
+      "ctaText": "Task Iguana includes automated compliance tracking, deadline reminders, and the full Task Iguana Shield suite.",
       "startTrial": "Start Free Trial"
     },
     "finalWage": {
@@ -205,7 +205,7 @@
       "tipItem5": "Include a detailed pay stub with the final payment",
       "disclaimer": "This guide provides general information about California law and does not constitute legal advice. Consult with an employment attorney for specific situations.",
       "getProtection": "Automate Final Pay Compliance",
-      "ctaText": "ToolTime Pro automatically calculates final pay amounts and reminds you of deadlines based on termination type.",
+      "ctaText": "Task Iguana automatically calculates final pay amounts and reminds you of deadlines based on termination type.",
       "startTrial": "Start Free Trial"
     },
     "routeOptimizer": {

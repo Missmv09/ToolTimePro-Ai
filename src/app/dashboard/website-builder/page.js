@@ -102,7 +102,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh, pageLimit }) {
   const [editing, setEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const hasCustomDomain = site.custom_domain && !site.custom_domain.endsWith('.tooltimepro.com');
+  const hasCustomDomain = site.custom_domain && !site.custom_domain.endsWith('.taskiguana.com');
   // Only link to the custom domain once DNS is active — otherwise the browser
   // shows "site can't be reached" while propagation/registration is pending.
   const customDomainReady = hasCustomDomain && site.domain_status === 'active';
@@ -139,12 +139,12 @@ function WebsiteDashboard({ site, leadCount, onRefresh, pageLimit }) {
             <Globe size={24} className="text-gold-500" />
             <div>
               <p className="font-semibold text-navy-500">
-                {hasCustomDomain ? site.custom_domain : (site.slug ? `tooltimepro.com/site/${site.slug}` : 'No domain yet')}
+                {hasCustomDomain ? site.custom_domain : (site.slug ? `taskiguana.com/site/${site.slug}` : 'No domain yet')}
               </p>
               {hasCustomDomain && !customDomainReady && fallbackUrl && (
                 <p className="text-xs text-gray-500 mt-1">
                   Domain setup in progress — preview at{' '}
-                  <span className="text-navy-500">tooltimepro.com{fallbackUrl}</span>
+                  <span className="text-navy-500">taskiguana.com{fallbackUrl}</span>
                 </p>
               )}
               <span className={`badge mt-1 ${statusColors[site.status] || statusColors.draft}`}>
@@ -186,7 +186,7 @@ function WebsiteDashboard({ site, leadCount, onRefresh, pageLimit }) {
       </div>
 
       {/* Domain upgrade prompt for subdomain users */}
-      {site.custom_domain?.endsWith('.tooltimepro.com') && (
+      {site.custom_domain?.endsWith('.taskiguana.com') && (
         <div className="mb-6">
           <DomainUpgradeCard site={site} onUpgraded={onRefresh} />
         </div>

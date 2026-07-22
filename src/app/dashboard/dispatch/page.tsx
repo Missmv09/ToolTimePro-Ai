@@ -232,31 +232,31 @@ export default function DispatchBoardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-[#1a1a2e] text-white px-4 py-3">
+      <header className="bg-[#0A0C11] text-white px-4 py-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="text-gray-400 hover:text-[#f5a623] text-sm">
+            <Link href="/dashboard" className="text-gray-400 hover:text-[#1FE3C4] text-sm">
               ← Dashboard
             </Link>
             <h1 className="text-xl font-bold">Dispatch Board</h1>
-            <span className="bg-gradient-to-r from-[#f5a623] to-[#ffd380] text-[#1a1a2e] px-2 py-0.5 rounded-full text-xs font-bold">
+            <span className="bg-gradient-to-r from-[#1FE3C4] to-[#ffd380] text-[#0A0C11] px-2 py-0.5 rounded-full text-xs font-bold">
               LIVE
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[#f5a623] font-semibold">
+            <span className="text-[#1FE3C4] font-semibold">
               {currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
             </span>
             <div className="flex bg-white/10 rounded-lg overflow-hidden">
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 text-sm ${viewMode === 'list' ? 'bg-[#f5a623] text-[#1a1a2e]' : 'text-white'}`}
+                className={`px-3 py-1.5 text-sm ${viewMode === 'list' ? 'bg-[#1FE3C4] text-[#0A0C11]' : 'text-white'}`}
               >
                 List
               </button>
               <button
                 onClick={() => setViewMode('map')}
-                className={`px-3 py-1.5 text-sm ${viewMode === 'map' ? 'bg-[#f5a623] text-[#1a1a2e]' : 'text-white'}`}
+                className={`px-3 py-1.5 text-sm ${viewMode === 'map' ? 'bg-[#1FE3C4] text-[#0A0C11]' : 'text-white'}`}
               >
                 Map
               </button>
@@ -279,7 +279,7 @@ export default function DispatchBoardPage() {
         {/* Crew Panel */}
         <aside className="lg:col-span-3 bg-white border-r border-gray-200 overflow-auto">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="font-bold text-[#1a1a2e]">Crew ({workers.length})</h2>
+            <h2 className="font-bold text-[#0A0C11]">Crew ({workers.length})</h2>
             <div className="flex gap-3 mt-2 text-xs text-gray-500">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
@@ -301,7 +301,7 @@ export default function DispatchBoardPage() {
               <span className="text-3xl block mb-3">👷</span>
               <p className="text-sm font-medium text-gray-700 mb-1">No workers yet</p>
               <p className="text-xs text-gray-500 mb-3">Add your crew so you can see them here and assign jobs.</p>
-              <Link href="/dashboard/team" className="inline-flex items-center gap-1 text-sm text-[#f5a623] hover:underline font-medium">
+              <Link href="/dashboard/team" className="inline-flex items-center gap-1 text-sm text-[#1FE3C4] hover:underline font-medium">
                 + Add Team Members
               </Link>
             </div>
@@ -311,14 +311,14 @@ export default function DispatchBoardPage() {
                 <div
                   key={worker.id}
                   onClick={() => setSelectedWorker(selectedWorker?.id === worker.id ? null : worker)}
-                  className={`p-3 cursor-pointer hover:bg-gray-50 ${selectedWorker?.id === worker.id ? 'bg-[#fef3d6] border-l-4 border-[#f5a623]' : ''}`}
+                  className={`p-3 cursor-pointer hover:bg-gray-50 ${selectedWorker?.id === worker.id ? 'bg-[#fef3d6] border-l-4 border-[#1FE3C4]' : ''}`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg border-2" style={{ borderColor: WORKER_STATUS_CONFIG[worker.status]?.color }}>
                       <User className="w-5 h-5 text-gray-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-[#1a1a2e] truncate">{worker.full_name}</h4>
+                      <h4 className="font-medium text-[#0A0C11] truncate">{worker.full_name}</h4>
                       <p className="text-xs text-gray-500">{worker.jobsToday} jobs today</p>
                     </div>
                     <span
@@ -336,10 +336,10 @@ export default function DispatchBoardPage() {
                         </a>
                       )}
                       <div className="flex gap-2">
-                        <button className="flex-1 py-1.5 bg-[#1a1a2e] text-white rounded text-sm font-medium">
+                        <button className="flex-1 py-1.5 bg-[#0A0C11] text-white rounded text-sm font-medium">
                           <Phone className="w-3 h-3 inline mr-1" /> Call
                         </button>
-                        <button className="flex-1 py-1.5 bg-gray-100 text-[#1a1a2e] rounded text-sm font-medium">
+                        <button className="flex-1 py-1.5 bg-gray-100 text-[#0A0C11] rounded text-sm font-medium">
                           <MessageSquare className="w-3 h-3 inline mr-1" /> Message
                         </button>
                       </div>
@@ -377,7 +377,7 @@ export default function DispatchBoardPage() {
               <p className="text-sm text-gray-400 mb-4">Create jobs to start dispatching your crew.</p>
               <Link
                 href="/dashboard/jobs"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-medium text-sm hover:bg-[#e6951a] transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-medium text-sm hover:bg-[#e6951a] transition-colors"
               >
                 Go to Jobs <ChevronRight className="w-4 h-4" />
               </Link>
@@ -387,7 +387,7 @@ export default function DispatchBoardPage() {
               {/* In Progress */}
               {jobs.filter((j) => j.status === 'in_progress').length > 0 && (
                 <div>
-                  <h3 className="font-bold text-[#1a1a2e] mb-2 flex items-center gap-2">
+                  <h3 className="font-bold text-[#0A0C11] mb-2 flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
                     In Progress ({jobs.filter((j) => j.status === 'in_progress').length})
                   </h3>
@@ -402,7 +402,7 @@ export default function DispatchBoardPage() {
               {/* Scheduled */}
               {jobs.filter((j) => j.status === 'scheduled').length > 0 && (
                 <div>
-                  <h3 className="font-bold text-[#1a1a2e] mb-2">
+                  <h3 className="font-bold text-[#0A0C11] mb-2">
                     Scheduled ({jobs.filter((j) => j.status === 'scheduled').length})
                   </h3>
                   <div className="grid gap-3">
@@ -433,7 +433,7 @@ export default function DispatchBoardPage() {
         {/* Jobs Panel */}
         <aside className="lg:col-span-3 bg-white border-l border-gray-200 overflow-auto">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="font-bold text-[#1a1a2e]">Today&apos;s Jobs ({jobs.length})</h2>
+            <h2 className="font-bold text-[#0A0C11]">Today&apos;s Jobs ({jobs.length})</h2>
           </div>
 
           {jobs.length === 0 ? (
@@ -441,7 +441,7 @@ export default function DispatchBoardPage() {
               <span className="text-3xl block mb-3">📅</span>
               <p className="text-sm font-medium text-gray-700 mb-1">No jobs today</p>
               <p className="text-xs text-gray-500 mb-3">Schedule a job and it&apos;ll show up here for dispatch.</p>
-              <Link href="/dashboard/jobs" className="inline-flex items-center gap-1 text-sm text-[#f5a623] hover:underline font-medium">
+              <Link href="/dashboard/jobs" className="inline-flex items-center gap-1 text-sm text-[#1FE3C4] hover:underline font-medium">
                 + Schedule a Job
               </Link>
             </div>
@@ -465,11 +465,11 @@ export default function DispatchBoardPage() {
                       >
                         <div className="flex justify-between items-start mb-1">
                           <span className="text-xs font-bold text-gray-500">{job.id}</span>
-                          <span className="text-xs font-medium text-[#1a1a2e]">{formatTime(job.scheduled_time_start)}</span>
+                          <span className="text-xs font-medium text-[#0A0C11]">{formatTime(job.scheduled_time_start)}</span>
                         </div>
-                        <h4 className="font-medium text-[#1a1a2e] text-sm">{job.customer?.name}</h4>
+                        <h4 className="font-medium text-[#0A0C11] text-sm">{job.customer?.name}</h4>
                         <p className="text-xs text-gray-500">{job.title}</p>
-                        <button className="mt-2 w-full py-1 bg-[#f5a623] text-[#1a1a2e] rounded text-xs font-bold">
+                        <button className="mt-2 w-full py-1 bg-[#1FE3C4] text-[#0A0C11] rounded text-xs font-bold">
                           + Assign
                         </button>
                       </div>
@@ -489,7 +489,7 @@ export default function DispatchBoardPage() {
                       key={job.id}
                       onClick={() => setSelectedJob(job)}
                       className={`rounded-lg p-3 border cursor-pointer hover:shadow-md transition-shadow ${
-                        selectedJob?.id === job.id ? 'border-[#f5a623] bg-[#fef3d6]' : 'border-gray-200 bg-white'
+                        selectedJob?.id === job.id ? 'border-[#1FE3C4] bg-[#fef3d6]' : 'border-gray-200 bg-white'
                       }`}
                     >
                       <div className="flex justify-between items-start mb-1">
@@ -501,14 +501,14 @@ export default function DispatchBoardPage() {
                           {STATUS_CONFIG[job.status]?.label}
                         </span>
                       </div>
-                      <h4 className="font-medium text-[#1a1a2e] text-sm">{job.customer?.name}</h4>
+                      <h4 className="font-medium text-[#0A0C11] text-sm">{job.customer?.name}</h4>
                       <p className="text-xs text-gray-500 mb-1">{job.title}</p>
                       <div className="flex justify-between text-xs">
                         <span className="text-gray-500">
                           <Clock className="w-3 h-3 inline mr-1" />
                           {formatTime(job.scheduled_time_start)}
                         </span>
-                        <span className="text-[#f5a623] font-medium">
+                        <span className="text-[#1FE3C4] font-medium">
                           {job.assignedWorkers.map((w) => w.full_name.split(' ')[0]).join(', ')}
                         </span>
                       </div>
@@ -529,7 +529,7 @@ export default function DispatchBoardPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <span className="text-sm font-bold text-gray-500">{selectedJob.id}</span>
-                  <h3 className="text-lg font-bold text-[#1a1a2e]">{selectedJob.title}</h3>
+                  <h3 className="text-lg font-bold text-[#0A0C11]">{selectedJob.title}</h3>
                   <p className="text-gray-600">{selectedJob.customer?.name}</p>
                 </div>
                 <button onClick={() => setSelectedJob(null)} className="text-gray-400 hover:text-gray-600 text-xl">
@@ -592,12 +592,12 @@ export default function DispatchBoardPage() {
                   </>
                 )}
                 {selectedJob.assignedWorkers.length === 0 && (
-                  <button onClick={() => setShowAssignModal(true)} className="flex-1 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-bold">
+                  <button onClick={() => setShowAssignModal(true)} className="flex-1 py-2 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-bold">
                     Assign Worker
                   </button>
                 )}
                 {selectedJob.customer?.phone && (
-                  <a href={`tel:${selectedJob.customer.phone}`} className="py-2 px-4 bg-gray-100 text-[#1a1a2e] rounded-lg font-medium">
+                  <a href={`tel:${selectedJob.customer.phone}`} className="py-2 px-4 bg-gray-100 text-[#0A0C11] rounded-lg font-medium">
                     <Phone className="w-4 h-4 inline mr-1" /> Call Customer
                   </a>
                 )}
@@ -612,7 +612,7 @@ export default function DispatchBoardPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowAssignModal(false)}>
           <div className="bg-white rounded-xl w-full max-w-sm max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-b border-gray-200">
-              <h3 className="font-bold text-[#1a1a2e]">Assign Job {selectedJob.id}</h3>
+              <h3 className="font-bold text-[#0A0C11]">Assign Job {selectedJob.id}</h3>
               <p className="text-sm text-gray-500">{selectedJob.title} • {selectedJob.customer?.name}</p>
             </div>
             <div className="p-4 space-y-2">
@@ -621,7 +621,7 @@ export default function DispatchBoardPage() {
                   key={worker.id}
                   onClick={() => handleAssignJob(selectedJob.id, worker.id)}
                   disabled={isAssigning}
-                  className="w-full flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg hover:border-[#f5a623] transition-colors disabled:opacity-50"
+                  className="w-full flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg hover:border-[#1FE3C4] transition-colors disabled:opacity-50"
                 >
                   <div
                     className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border-2"
@@ -630,7 +630,7 @@ export default function DispatchBoardPage() {
                     <User className="w-5 h-5 text-gray-500" />
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="font-medium text-[#1a1a2e]">{worker.full_name}</p>
+                    <p className="font-medium text-[#0A0C11]">{worker.full_name}</p>
                     <p className="text-xs text-gray-500">
                       {WORKER_STATUS_CONFIG[worker.status]?.label} • {worker.jobsToday} jobs today
                     </p>
@@ -640,7 +640,7 @@ export default function DispatchBoardPage() {
               ))}
             </div>
             <div className="p-4 border-t border-gray-200">
-              <button onClick={() => setShowAssignModal(false)} className="w-full py-2 bg-gray-100 text-[#1a1a2e] rounded-lg font-medium">
+              <button onClick={() => setShowAssignModal(false)} className="w-full py-2 bg-gray-100 text-[#0A0C11] rounded-lg font-medium">
                 Cancel
               </button>
             </div>
@@ -650,7 +650,7 @@ export default function DispatchBoardPage() {
 
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#1a1a2e] text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#0A0C11] text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in">
           {notification}
         </div>
       )}
@@ -679,7 +679,7 @@ function JobCard({
     >
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h4 className="font-bold text-[#1a1a2e]">{job.customer?.name}</h4>
+          <h4 className="font-bold text-[#0A0C11]">{job.customer?.name}</h4>
           <p className="text-sm text-gray-500">{job.title}</p>
         </div>
         <span
@@ -702,7 +702,7 @@ function JobCard({
       <div className="flex justify-between items-center">
         <div className="flex -space-x-2">
           {job.assignedWorkers.slice(0, 3).map((w) => (
-            <div key={w.id} className="w-7 h-7 rounded-full bg-[#f5a623] flex items-center justify-center text-xs font-bold text-[#1a1a2e] border-2 border-white">
+            <div key={w.id} className="w-7 h-7 rounded-full bg-[#1FE3C4] flex items-center justify-center text-xs font-bold text-[#0A0C11] border-2 border-white">
               {w.full_name.charAt(0)}
             </div>
           ))}

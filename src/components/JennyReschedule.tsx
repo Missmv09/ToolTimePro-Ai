@@ -119,7 +119,7 @@ export default function JennyReschedule({ onApplied }: { onApplied?: () => void 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="w-5 h-5 text-[#f5a623]" />
+        <Sparkles className="w-5 h-5 text-[#1FE3C4]" />
         <h3 className="font-semibold text-gray-900">Reschedule with Jenny</h3>
       </div>
       <form onSubmit={preview} className="flex gap-2">
@@ -127,12 +127,12 @@ export default function JennyReschedule({ onApplied }: { onApplied?: () => void 
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           placeholder='e.g. "Move Maria Powell to tomorrow afternoon"'
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1a1a2e]"
+          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0A0C11]"
         />
         <button
           type="submit"
           disabled={loading || !instruction.trim()}
-          className="px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-50"
+          className="px-4 py-2 bg-[#0A0C11] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-50"
         >
           {loading ? 'Reading…' : 'Preview'}
         </button>
@@ -188,7 +188,7 @@ export default function JennyReschedule({ onApplied }: { onApplied?: () => void 
             <button
               onClick={confirm}
               disabled={applying}
-              className="flex-1 px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-[#0A0C11] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44] disabled:opacity-50"
             >
               {applying ? 'Applying…' : 'Confirm reschedule'}
             </button>

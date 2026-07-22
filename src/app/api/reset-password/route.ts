@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       request.headers.get('origin') ||
-      'https://tooltimepro.com';
+      'https://taskiguana.com';
 
     // Generate a recovery link via admin API — works regardless of
     // email_confirmed_at status.  This also validates that the email

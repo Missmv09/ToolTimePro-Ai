@@ -1,4 +1,4 @@
-// ToolTime Pro Service Worker
+// Task Iguana Service Worker
 // Provides offline-first experience for the Worker App
 
 const CACHE_NAME = 'tooltime-worker-v1';

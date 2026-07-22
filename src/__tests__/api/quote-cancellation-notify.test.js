@@ -130,7 +130,7 @@ describe('/api/quote/notify-cancellation', () => {
       ...originalEnv,
       NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
       SUPABASE_SERVICE_ROLE_KEY: 'test-key',
-      NEXT_PUBLIC_APP_URL: 'https://tooltimepro.com',
+      NEXT_PUBLIC_APP_URL: 'https://taskiguana.com',
     };
     setupMocks();
   });
@@ -203,7 +203,7 @@ describe('/api/quote/notify-cancellation', () => {
     expect(emailCall1.customerName).toBe('Alice Johnson');
     expect(emailCall1.total).toBe(550);
     expect(emailCall1.reason).toBe('Price too high');
-    expect(emailCall1.dashboardLink).toBe('https://tooltimepro.com/dashboard/quotes');
+    expect(emailCall1.dashboardLink).toBe('https://taskiguana.com/dashboard/quotes');
 
     const emailCall2 = mockSendQuoteCancellationEmail.mock.calls[1][0];
     expect(emailCall2.to).toBe('sarah@acme.com');

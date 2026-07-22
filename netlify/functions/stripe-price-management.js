@@ -11,7 +11,7 @@ const headers = {
  * Stripe Price Management — Admin-only Netlify Function
  *
  * Actions:
- *   list_products   — List all ToolTime products and prices from Stripe
+ *   list_products   — List all Task Iguana products and prices from Stripe
  *   create_product  — Create a new Stripe product with prices
  *   update_product  — Update product name/description/active status
  *   create_price    — Create a new price for an existing product

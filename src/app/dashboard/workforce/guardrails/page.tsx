@@ -128,7 +128,7 @@ export default function GuardrailsPage() {
           <div>
             <h3 className="font-semibold text-lg">How Guardrails Work</h3>
             <p className="text-white/80 text-sm mt-1">
-              ToolTime Shield continuously monitors how you interact with 1099 contractors. If any behavior
+              Task Iguana Shield continuously monitors how you interact with 1099 contractors. If any behavior
               pattern suggests the worker is being treated like an employee (fixed schedules, overtime tracking,
               40+ weekly hours), it flags a guardrail alert. Resolving these proactively protects you from
               misclassification claims.

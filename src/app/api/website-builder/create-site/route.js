@@ -166,8 +166,8 @@ export async function POST(request) {
 
       // For subdomains, use the slug directly as the subdomain (clean name)
       let domainToStore = selectedDomain.domainName;
-      if (selectedDomain.type === 'subdomain' && domainToStore.endsWith('.tooltimepro.com')) {
-        domainToStore = `${slug}.tooltimepro.com`;
+      if (selectedDomain.type === 'subdomain' && domainToStore.endsWith('.taskiguana.com')) {
+        domainToStore = `${slug}.taskiguana.com`;
       }
 
       const { data: newSite, error: insertError } = await supabase
@@ -237,7 +237,7 @@ export async function POST(request) {
       .eq('id', site.id);
 
     // Build the public-facing URL for the site
-    const isSubdomain = (selectedDomain.type || 'new') === 'subdomain' || cleanDomain.endsWith('.tooltimepro.com');
+    const isSubdomain = (selectedDomain.type || 'new') === 'subdomain' || cleanDomain.endsWith('.taskiguana.com');
     const siteUrl = isSubdomain
       ? `/site/${site.slug}/`
       : `https://${cleanDomain}`;

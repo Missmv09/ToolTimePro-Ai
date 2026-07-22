@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     // Generate a password reset link so the team member can set their own
     // password directly from the welcome email (instead of relying solely
     // on the temporary password).
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tooltimepro.com'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://taskiguana.com'
     let resetUrl: string | undefined
     try {
       const { data: linkData } = await adminClient.auth.admin.generateLink({

@@ -1,4 +1,4 @@
-# ToolTime Pro — QA Test Cases
+# Task Iguana — QA Test Cases
 
 Executable test cases for the pre-Beta QA pass. Work through them in priority
 order, record **Pass / Fail / Blocked** for each, and file a bug (template at the

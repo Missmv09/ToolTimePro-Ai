@@ -47,7 +47,7 @@ jobs:
 
           ## Before merging
 
-          - [ ] Smoke-test the changes on https://sandbox.tooltimepro.com
+          - [ ] Smoke-test the changes on https://sandbox.taskiguana.com
           - [ ] Confirm CI is green
           - [ ] Verify no sandbox-only debug code is being promoted (search the diff for "Temp:" or "sandbox-only:")
 

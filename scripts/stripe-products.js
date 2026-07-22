@@ -1,5 +1,5 @@
 /**
- * ToolTime Pro — canonical Stripe product & price catalog.
+ * Task Iguana — canonical Stripe product & price catalog.
  *
  * Single source of truth for setup, audit, and sync scripts.
  * When pricing changes, edit this file and re-run sync-stripe-prices.js.
@@ -9,8 +9,8 @@ const PRODUCTS = [
   // === Core Plans ===
   {
     id: 'starter',
-    name: 'ToolTime Pro — Starter',
-    description: 'Owner + 2 workers. Website, booking, quoting, invoicing, GPS clock-in, ToolTime Shield, Jenny Lite included.',
+    name: 'Task Iguana — Starter',
+    description: 'Owner + 2 workers. Website, booking, quoting, invoicing, GPS clock-in, Task Iguana Shield, Jenny Lite included.',
     prices: [
       { key: 'monthly', amount: 4900, interval: 'month' },
       { key: 'annual', amount: 49000, interval: 'year' },
@@ -18,7 +18,7 @@ const PRODUCTS = [
   },
   {
     id: 'pro',
-    name: 'ToolTime Pro — Pro',
+    name: 'Task Iguana — Pro',
     description: 'Up to 15 workers. Everything in Starter + Review Machine, Jenny Lite, dispatch, QuickBooks sync, break tracking.',
     prices: [
       { key: 'monthly', amount: 7900, interval: 'month' },
@@ -27,7 +27,7 @@ const PRODUCTS = [
   },
   {
     id: 'elite',
-    name: 'ToolTime Pro — Elite',
+    name: 'Task Iguana — Elite',
     description: 'Unlimited workers. Everything in Pro + Dispatch, Route Optimization, Customer Portal Pro included.',
     prices: [
       { key: 'monthly', amount: 12900, interval: 'month' },
@@ -38,7 +38,7 @@ const PRODUCTS = [
   // === Standalone Plans ===
   {
     id: 'booking_only',
-    name: 'ToolTime Pro — Booking Only',
+    name: 'Task Iguana — Booking Only',
     description: 'Online booking page only. For businesses that just need scheduling.',
     prices: [
       { key: 'monthly', amount: 1500, interval: 'month' },
@@ -47,7 +47,7 @@ const PRODUCTS = [
   },
   {
     id: 'invoicing_only',
-    name: 'ToolTime Pro — Invoicing Only',
+    name: 'Task Iguana — Invoicing Only',
     description: 'Invoicing and card payments only. For businesses that just need to get paid.',
     prices: [
       { key: 'monthly', amount: 1500, interval: 'month' },
@@ -58,7 +58,7 @@ const PRODUCTS = [
   // === Jenny AI Tiers ===
   {
     id: 'jenny_lite',
-    name: 'Jenny Lite — ToolTime Assistant',
+    name: 'Jenny Lite — Task Iguana Assistant',
     description: '24/7 website chatbot. Lead capture, FAQ answering, appointment booking. Bilingual English/Spanish. Included free with all plans.',
     prices: [
       { key: 'monthly', amount: 1900, interval: 'month' },
@@ -106,7 +106,7 @@ const PRODUCTS = [
   {
     id: 'extra_page',
     name: 'Extra Website Page Add-on',
-    description: 'Add additional pages to your ToolTime Pro website.',
+    description: 'Add additional pages to your Task Iguana website.',
     prices: [
       { key: 'monthly', amount: 1000, interval: 'month' },
       { key: 'annual', amount: 10000, interval: 'year' },

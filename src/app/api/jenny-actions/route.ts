@@ -702,7 +702,7 @@ async function runReviewRequests(
 
   const alreadyRequested = new Set((existingRequests || []).map((r: any) => r.job_id));
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://app.tooltimepro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://app.taskiguana.com';
   const platformLabel = reviewPlatform === 'google' ? 'Google' : 'Yelp';
 
   for (const job of completedJobs) {

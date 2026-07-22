@@ -1,11 +1,11 @@
 {
-  "name": "ToolTime Pro Worker",
-  "short_name": "ToolTime",
+  "name": "Task Iguana Worker",
+  "short_name": "Task Iguana",
   "description": "Clock in, track jobs, and manage your work day — even offline",
   "start_url": "/worker/",
   "display": "standalone",
-  "background_color": "#1a2332",
-  "theme_color": "#d4a843",
+  "background_color": "#2F7A55",
+  "theme_color": "#2F7A55",
   "orientation": "portrait",
   "scope": "/worker/",
   "icons": [

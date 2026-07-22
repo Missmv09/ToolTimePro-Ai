@@ -142,7 +142,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="h-16 flex items-center px-6 border-b border-gray-700">
           <Shield size={24} className="text-orange-500 mr-3" />
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight">ToolTime Pro</h1>
+            <h1 className="text-white font-bold text-lg leading-tight">Task Iguana</h1>
             <p className="text-orange-400 text-xs font-medium">Platform Admin</p>
           </div>
         </div>

@@ -359,7 +359,7 @@ function LoginContent() {
                 required
                 value={twoFaCode}
                 onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
+                className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4]"
                 placeholder="000000"
                 autoFocus
               />
@@ -371,7 +371,7 @@ function LoginContent() {
                 type="checkbox"
                 checked={trustDevice}
                 onChange={(e) => setTrustDevice(e.target.checked)}
-                className="h-4 w-4 text-[#f5a623] border-gray-300 rounded focus:ring-[#f5a623]"
+                className="h-4 w-4 text-[#1FE3C4] border-gray-300 rounded focus:ring-[#1FE3C4]"
               />
               <label htmlFor="trust-device" className="ml-2 block text-sm text-gray-700">
                 {t('twoFa.trustDevice')}
@@ -381,7 +381,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={verifying2FA || twoFaCode.length !== 6}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#0A0C11] font-bold bg-[#1FE3C4] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1FE3C4] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {verifying2FA ? t('twoFa.verifying') : t('twoFa.verifyButton')}
             </button>
@@ -390,7 +390,7 @@ function LoginContent() {
               <button
                 type="button"
                 onClick={handleResend2FA}
-                className="text-[#f5a623] hover:text-[#e6991a]"
+                className="text-[#1FE3C4] hover:text-[#e6991a]"
               >
                 {t('twoFa.resendCode')}
               </button>
@@ -453,7 +453,7 @@ function LoginContent() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4]"
                 placeholder="you@example.com"
               />
             </div>
@@ -471,7 +471,7 @@ function LoginContent() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f5a623] focus:border-[#f5a623]"
+                  className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1FE3C4] focus:border-[#1FE3C4]"
                   placeholder="••••••••"
                 />
                 <button
@@ -499,7 +499,7 @@ function LoginContent() {
 
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <Link href="/auth/forgot-password" className="text-[#f5a623] hover:text-[#e6991a]">
+              <Link href="/auth/forgot-password" className="text-[#1FE3C4] hover:text-[#e6991a]">
                 {t('forgotPassword')}
               </Link>
             </div>
@@ -508,7 +508,7 @@ function LoginContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#1a1a2e] font-bold bg-[#f5a623] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-[#0A0C11] font-bold bg-[#1FE3C4] hover:bg-[#e6991a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1FE3C4] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? t('signingIn') : t('signInButton')}
           </button>
@@ -535,7 +535,7 @@ function LoginContent() {
               setGoogleLoading(false)
             }
           }}
-          className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f5a623] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1FE3C4] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -548,7 +548,7 @@ function LoginContent() {
 
         <p className="mt-4 text-center text-sm text-gray-600">
           {t('noAccount')}{' '}
-          <Link href="/auth/signup" className="text-[#f5a623] hover:text-[#e6991a] font-medium">
+          <Link href="/auth/signup" className="text-[#1FE3C4] hover:text-[#e6991a] font-medium">
             {t('signUpLink')}
           </Link>
         </p>
@@ -563,7 +563,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#f5a623] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[#1FE3C4] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>

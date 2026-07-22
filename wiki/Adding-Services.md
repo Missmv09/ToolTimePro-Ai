@@ -1,6 +1,6 @@
 # Adding Services
 
-Your service catalog is the foundation of quoting, invoicing, and online booking in ToolTime Pro. This guide covers how to set up and manage your services.
+Your service catalog is the foundation of quoting, invoicing, and online booking in Task Iguana. This guide covers how to set up and manage your services.
 
 ---
 
@@ -36,7 +36,7 @@ Categories appear in your online booking page and help customers find the right 
 
 ## Pricing Models
 
-ToolTime Pro supports flexible pricing:
+Task Iguana supports flexible pricing:
 
 | Model | Best For | Example |
 |-------|----------|---------|
@@ -50,7 +50,7 @@ When creating quotes, you can override the default price for any service on a pe
 
 ## Smart Material Estimator
 
-ToolTime Pro includes a **Smart Material Estimator** covering 21 trades:
+Task Iguana includes a **Smart Material Estimator** covering 21 trades:
 
 - Painting, Plumbing, Electrical, Roofing, Fencing, Concrete, HVAC, Flooring, Drywall, Landscaping, and 11 more
 
@@ -68,7 +68,7 @@ This helps you price jobs accurately and present professional options to custome
 
 Services marked as **Active** automatically appear on your public booking page:
 
-- Customers visit `tooltimepro.com/book/[your-company-id]`
+- Customers visit `taskiguana.com/book/[your-company-id]`
 - They browse services by category, pick a time slot, and book
 - The booking creates a lead and/or job in your dashboard
 - Jenny AI can also book services via chat on your website

@@ -93,7 +93,7 @@ export async function POST(request) {
         meta_description: metaDescription || '',
         meta_keywords: metaKeywords || '',
         status: status || 'draft',
-        author_name: authorName || 'ToolTime Pro Team',
+        author_name: authorName || 'Task Iguana Team',
         cover_image: coverImage || null,
         word_count: wordCount,
         read_time_minutes: readTime,

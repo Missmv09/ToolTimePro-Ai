@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// Domain registration through ToolTime Pro was removed. We now follow the
-// Jobber / Housecall Pro model: customers either use a free *.tooltimepro.com
+// Domain registration through Task Iguana was removed. We now follow the
+// Jobber / Housecall Pro model: customers either use a free *.taskiguana.com
 // subdomain or bring their own domain (BYO) and point DNS at us.
 //
 // This endpoint is kept so any stale client that still POSTs here gets a clear

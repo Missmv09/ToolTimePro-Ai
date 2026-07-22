@@ -313,7 +313,7 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <Link href="/dashboard/dispatch">
-          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-xl p-3 sm:p-5 text-white hover:shadow-lg transition-shadow">
+          <div className="bg-gradient-to-br from-[#0A0C11] to-[#2d2d44] rounded-xl p-3 sm:p-5 text-white hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
               <span className="text-xl sm:text-2xl">📡</span>
               <h3 className="font-bold text-sm sm:text-base">Dispatch Board</h3>
@@ -331,12 +331,12 @@ export default function DashboardPage() {
           </div>
         </Link>
         <Link href="/dashboard/route-optimizer">
-          <div className="bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-xl p-3 sm:p-5 text-[#1a1a2e] hover:shadow-lg transition-shadow">
+          <div className="bg-gradient-to-br from-[#1FE3C4] to-[#e6991a] rounded-xl p-3 sm:p-5 text-[#0A0C11] hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
               <span className="text-xl sm:text-2xl">🗺️</span>
               <h3 className="font-bold text-sm sm:text-base">Route Optimizer</h3>
             </div>
-            <p className="text-[#1a1a2e]/60 text-xs sm:text-sm hidden sm:block">Optimize routes, save gas and drive time</p>
+            <p className="text-[#0A0C11]/60 text-xs sm:text-sm hidden sm:block">Optimize routes, save gas and drive time</p>
           </div>
         </Link>
         <Link href="/dashboard/booking">

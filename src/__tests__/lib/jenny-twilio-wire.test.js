@@ -22,15 +22,15 @@ describe('wireNumberToCompany', () => {
       companyId: 'c1',
       phoneNumberSid: 'PN1',
       phoneNumber: '+17657895752',
-      baseUrl: 'https://www.tooltimepro.com',
+      baseUrl: 'https://www.taskiguana.com',
       messagingServiceSid: 'MG1',
     });
 
     expect(incomingPhoneNumbers).toHaveBeenCalledWith('PN1');
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
-        voiceUrl: 'https://www.tooltimepro.com/api/jenny-pro/voice',
-        smsUrl: 'https://www.tooltimepro.com/api/jenny-pro/sms-webhook',
+        voiceUrl: 'https://www.taskiguana.com/api/jenny-pro/voice',
+        smsUrl: 'https://www.taskiguana.com/api/jenny-pro/sms-webhook',
       })
     );
     expect(msCreate).toHaveBeenCalledWith({ phoneNumberSid: 'PN1' });

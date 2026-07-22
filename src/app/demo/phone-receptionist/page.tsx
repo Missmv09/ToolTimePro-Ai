@@ -186,7 +186,7 @@ export default function PhoneReceptionistDemo() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Demo Banner */}
-      <div className="bg-gradient-to-r from-[#f5a623] to-[#e6991a] text-[#1a1a2e] py-3 px-4 text-center font-semibold">
+      <div className="bg-gradient-to-r from-[#1FE3C4] to-[#e6991a] text-[#0A0C11] py-3 px-4 text-center font-semibold">
         <span className="mr-2">📞</span>
         {t('demoBanner')} —
         <Link href="/auth/signup?plan=pro" className="underline ml-1 font-bold">
@@ -196,7 +196,7 @@ export default function PhoneReceptionistDemo() {
       </div>
 
       {/* Header */}
-      <header className="bg-[#1a1a2e] text-white py-8 px-4">
+      <header className="bg-[#0A0C11] text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <Link href="/" className="text-white/90 hover:text-white text-sm inline-flex items-center gap-1">
@@ -205,14 +205,14 @@ export default function PhoneReceptionistDemo() {
             <LanguageSwitcher />
           </div>
           <div className="flex items-center gap-4 mt-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#f5a623] to-[#e6991a] rounded-2xl flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#1FE3C4] to-[#e6991a] rounded-2xl flex items-center justify-center text-3xl">
               📞
             </div>
             <div>
               <h1 className="text-3xl font-extrabold drop-shadow-lg text-white">{t('title')}</h1>
               <p className="text-white/90 mt-1">{t('subtitle')}</p>
             </div>
-            <span className="ml-auto bg-[#f5a623] text-[#1a1a2e] px-4 py-1.5 rounded-full text-sm font-bold">
+            <span className="ml-auto bg-[#1FE3C4] text-[#0A0C11] px-4 py-1.5 rounded-full text-sm font-bold">
               {t('proFeature')}
             </span>
           </div>
@@ -225,7 +225,7 @@ export default function PhoneReceptionistDemo() {
           {statValues.map((value, index) => (
             <div key={index} className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
               <div className="text-2xl mb-2">{statIcons[index]}</div>
-              <div className="text-3xl font-bold text-[#1a1a2e]">{value}</div>
+              <div className="text-3xl font-bold text-[#0A0C11]">{value}</div>
               <div className="text-sm text-gray-500 mt-1">{t(`stats.${index}`)}</div>
             </div>
           ))}
@@ -235,7 +235,7 @@ export default function PhoneReceptionistDemo() {
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
           {/* Phone Simulator */}
           <div>
-            <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('tryDemoCall')}</h2>
+            <h2 className="text-xl font-bold text-[#0A0C11] mb-4">{t('tryDemoCall')}</h2>
 
             {/* Scenario Selector */}
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -245,8 +245,8 @@ export default function PhoneReceptionistDemo() {
                   onClick={() => handleScenarioChange(scenario)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${
                     selectedScenario.id === scenario.id
-                      ? 'bg-[#1a1a2e] text-white'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-[#f5a623]'
+                      ? 'bg-[#0A0C11] text-white'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1FE3C4]'
                   }`}
                 >
                   <span>{scenario.icon}</span>
@@ -256,7 +256,7 @@ export default function PhoneReceptionistDemo() {
             </div>
 
             {/* Phone Mockup */}
-            <div className="bg-[#1a1a2e] rounded-[40px] p-4 max-w-[360px] mx-auto shadow-2xl">
+            <div className="bg-[#0A0C11] rounded-[40px] p-4 max-w-[360px] mx-auto shadow-2xl">
               <div className="bg-white rounded-[28px] overflow-hidden">
                 {/* Phone Status Bar */}
                 <div className="bg-gray-900 text-white px-6 py-2 flex justify-between items-center text-xs">
@@ -268,7 +268,7 @@ export default function PhoneReceptionistDemo() {
                 </div>
 
                 {/* Call Screen */}
-                <div className="bg-gradient-to-b from-[#2d2d44] to-[#1a1a2e] text-white p-6 text-center">
+                <div className="bg-gradient-to-b from-[#2d2d44] to-[#0A0C11] text-white p-6 text-center">
                   <div className="w-20 h-20 bg-white/10 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
                     {selectedScenario.icon}
                   </div>
@@ -306,8 +306,8 @@ export default function PhoneReceptionistDemo() {
                         >
                           <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
                             message.speaker === 'ai'
-                              ? 'bg-[#1a1a2e] text-white rounded-bl-none'
-                              : 'bg-[#f5a623] text-[#1a1a2e] rounded-br-none'
+                              ? 'bg-[#0A0C11] text-white rounded-bl-none'
+                              : 'bg-[#1FE3C4] text-[#0A0C11] rounded-br-none'
                           }`}>
                             <div className="text-[10px] font-semibold mb-1 opacity-70">
                               {message.speaker === 'ai' ? '🤖 Jenny Pro' : '👤 Customer'}
@@ -350,7 +350,7 @@ export default function PhoneReceptionistDemo() {
 
           {/* Lead Card Preview */}
           <div>
-            <h2 className="text-xl font-bold text-[#1a1a2e] mb-4">{t('leadCapturedInstantly')}</h2>
+            <h2 className="text-xl font-bold text-[#0A0C11] mb-4">{t('leadCapturedInstantly')}</h2>
             <p className="text-gray-600 mb-6">
               {t('leadCapturedDesc')}
             </p>
@@ -359,7 +359,7 @@ export default function PhoneReceptionistDemo() {
               showLeadCard ? 'border-[#00c853] scale-100 opacity-100' : 'border-gray-200 scale-95 opacity-50'
             }`}>
               {/* Card Header */}
-              <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] text-white p-4 rounded-t-2xl flex items-center justify-between">
+              <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] text-white p-4 rounded-t-2xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{selectedScenario.icon}</span>
                   <div>
@@ -386,7 +386,7 @@ export default function PhoneReceptionistDemo() {
                     <span className="text-xl">👤</span>
                     <div>
                       <p className="text-xs text-gray-500 uppercase tracking-wide">{t('name')}</p>
-                      <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.name}</p>
+                      <p className="font-semibold text-[#0A0C11]">{selectedScenario.leadCaptured.name}</p>
                     </div>
                   </div>
 
@@ -394,7 +394,7 @@ export default function PhoneReceptionistDemo() {
                     <span className="text-xl">📞</span>
                     <div>
                       <p className="text-xs text-gray-500 uppercase tracking-wide">{t('phone')}</p>
-                      <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.phone}</p>
+                      <p className="font-semibold text-[#0A0C11]">{selectedScenario.leadCaptured.phone}</p>
                     </div>
                   </div>
 
@@ -402,7 +402,7 @@ export default function PhoneReceptionistDemo() {
                     <span className="text-xl">📍</span>
                     <div>
                       <p className="text-xs text-gray-500 uppercase tracking-wide">{t('address')}</p>
-                      <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.address}</p>
+                      <p className="font-semibold text-[#0A0C11]">{selectedScenario.leadCaptured.address}</p>
                     </div>
                   </div>
 
@@ -410,7 +410,7 @@ export default function PhoneReceptionistDemo() {
                     <span className="text-xl">🔧</span>
                     <div>
                       <p className="text-xs text-gray-500 uppercase tracking-wide">{t('serviceRequested')}</p>
-                      <p className="font-semibold text-[#1a1a2e]">{selectedScenario.leadCaptured.service}</p>
+                      <p className="font-semibold text-[#0A0C11]">{selectedScenario.leadCaptured.service}</p>
                     </div>
                   </div>
 
@@ -430,10 +430,10 @@ export default function PhoneReceptionistDemo() {
 
                 {/* Actions */}
                 <div className="flex gap-3 mt-6">
-                  <button className="flex-1 bg-[#1a1a2e] text-white py-3 rounded-lg font-semibold hover:bg-[#2d2d44] transition-colors">
+                  <button className="flex-1 bg-[#0A0C11] text-white py-3 rounded-lg font-semibold hover:bg-[#2d2d44] transition-colors">
                     📞 {t('callBack')}
                   </button>
-                  <button className="flex-1 bg-[#f5a623] text-[#1a1a2e] py-3 rounded-lg font-semibold hover:bg-[#e6991a] transition-colors">
+                  <button className="flex-1 bg-[#1FE3C4] text-[#0A0C11] py-3 rounded-lg font-semibold hover:bg-[#e6991a] transition-colors">
                     📝 {t('createQuote')}
                   </button>
                 </div>
@@ -451,19 +451,19 @@ export default function PhoneReceptionistDemo() {
         {/* Features Grid */}
         <div className="mb-16">
           <div className="text-center mb-10">
-            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#1a1a2e] mb-4">
+            <span className="inline-block bg-[#fef3d6] px-4 py-2 rounded-full text-sm font-bold text-[#0A0C11] mb-4">
               {t('whyChooseJenny')}
             </span>
-            <h2 className="text-3xl font-bold text-[#1a1a2e]">{t('everyCallHandled')}</h2>
+            <h2 className="text-3xl font-bold text-[#0A0C11]">{t('everyCallHandled')}</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featureIcons.map((icon, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#f5a623] hover:shadow-lg transition-all">
+              <div key={index} className="bg-white rounded-xl p-6 border border-gray-100 hover:border-[#1FE3C4] hover:shadow-lg transition-all">
                 <div className="w-12 h-12 bg-[#fef3d6] rounded-xl flex items-center justify-center text-2xl mb-4">
                   {icon}
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">{t(`features.${index}.title`)}</h3>
+                <h3 className="text-lg font-bold text-[#0A0C11] mb-2">{t(`features.${index}.title`)}</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">{t(`features.${index}.description`)}</p>
               </div>
             ))}
@@ -473,7 +473,7 @@ export default function PhoneReceptionistDemo() {
         <DemoLeadCapture featureName="Jenny AI Phone Receptionist" source="phone_receptionist_demo" />
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-2xl p-10 text-center text-white">
+        <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-2xl p-10 text-center text-white">
           <h2 className="text-3xl font-bold mb-4">{t('ctaTitle')}</h2>
           <p className="text-white/70 mb-8 max-w-xl mx-auto">
             {t('ctaDescription')}
@@ -481,7 +481,7 @@ export default function PhoneReceptionistDemo() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/auth/signup?plan=pro"
-              className="bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors no-underline"
+              className="bg-[#1FE3C4] text-[#0A0C11] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors no-underline"
             >
               {t('getJennyPro')}
             </Link>

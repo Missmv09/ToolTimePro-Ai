@@ -100,7 +100,7 @@ async function handleCheckoutComplete(session) {
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     (session.success_url ? new URL(session.success_url).origin : null) ||
-    'https://tooltimepro.com';
+    'https://taskiguana.com';
 
   // Provisions (or heals) an account from the checkout email via the shared
   // helper: creates/reuses the auth user, ensures the company + users link,

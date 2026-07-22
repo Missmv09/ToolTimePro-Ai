@@ -416,7 +416,7 @@ export default function WorkforcePage() {
             <p className="text-yellow-700 text-sm mt-1">
               In California, misclassifying even one worker as a 1099 contractor when they should be W-2
               can result in penalties of <strong>$5,000-$25,000 per violation</strong>, plus back taxes,
-              overtime, benefits, and potential PAGA lawsuits. ToolTime Shield monitors your workforce
+              overtime, benefits, and potential PAGA lawsuits. Task Iguana Shield monitors your workforce
               automatically and alerts you before a mistake becomes a lawsuit.
             </p>
           </div>

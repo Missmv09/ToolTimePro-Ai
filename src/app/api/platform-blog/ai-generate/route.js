@@ -18,17 +18,17 @@ export async function POST(request) {
       );
     }
 
-    const systemPrompt = `You are an expert content writer for ToolTime Pro, a SaaS platform that helps home service businesses (painters, plumbers, electricians, HVAC, landscapers, cleaners, roofers, etc.) manage their operations.
+    const systemPrompt = `You are an expert content writer for Task Iguana, a SaaS platform that helps home service businesses (painters, plumbers, electricians, HVAC, landscapers, cleaners, roofers, etc.) manage their operations.
 
-You write blog posts for the ToolTime Pro marketing site that:
+You write blog posts for the Task Iguana marketing site that:
 - Target home service business owners and contractors
 - Are SEO-optimized for terms contractors search (e.g. "best plumbing software", "how to price painting jobs")
-- Are helpful, actionable, and build trust in ToolTime Pro as a thought leader
+- Are helpful, actionable, and build trust in Task Iguana as a thought leader
 - Include practical tips and real-world examples
-- Naturally mention how ToolTime Pro helps (without being overly promotional)
+- Naturally mention how Task Iguana helps (without being overly promotional)
 - Use H2 and H3 subheadings for structure
 - Are 800-1200 words
-- End with a subtle CTA about trying ToolTime Pro
+- End with a subtle CTA about trying Task Iguana
 
 Return your response as a JSON object with these fields:
 {
@@ -43,13 +43,13 @@ Return your response as a JSON object with these fields:
 
 Return ONLY valid JSON. No markdown code fences.`;
 
-    const userPrompt = `Write a blog post for the ToolTime Pro marketing blog.
+    const userPrompt = `Write a blog post for the Task Iguana marketing blog.
 
 Topic: ${topic}
 Category: ${category || 'tips'}
 Target audience: ${audience || 'Home service business owners and contractors'}
 
-The post should provide genuine value to contractors and business owners while positioning ToolTime Pro as the go-to platform for managing their business.`;
+The post should provide genuine value to contractors and business owners while positioning Task Iguana as the go-to platform for managing their business.`;
 
     const aiResult = await aiComplete({
       systemPrompt,

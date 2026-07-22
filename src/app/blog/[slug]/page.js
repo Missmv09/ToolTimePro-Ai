@@ -37,33 +37,33 @@ export default function BlogPostPage() {
       .split('\n')
       .map((line, i) => {
         // Headings
-        if (line.startsWith('### ')) return `<h3 class="text-xl font-bold text-[#1a1a2e] mt-8 mb-3">${line.slice(4)}</h3>`;
-        if (line.startsWith('## ')) return `<h2 class="text-2xl font-bold text-[#1a1a2e] mt-10 mb-4">${line.slice(3)}</h2>`;
+        if (line.startsWith('### ')) return `<h3 class="text-xl font-bold text-white mt-8 mb-3">${line.slice(4)}</h3>`;
+        if (line.startsWith('## ')) return `<h2 class="text-2xl font-bold text-white mt-10 mb-4">${line.slice(3)}</h2>`;
         // Bold
         line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         // Italic
         line = line.replace(/\*(.+?)\*/g, '<em>$1</em>');
         // Bullet lists
-        if (line.startsWith('- ')) return `<li class="ml-6 mb-1 list-disc text-gray-700">${line.slice(2)}</li>`;
+        if (line.startsWith('- ')) return `<li class="ml-6 mb-1 list-disc text-white/80">${line.slice(2)}</li>`;
         // Numbered lists
-        if (/^\d+\.\s/.test(line)) return `<li class="ml-6 mb-1 list-decimal text-gray-700">${line.replace(/^\d+\.\s/, '')}</li>`;
+        if (/^\d+\.\s/.test(line)) return `<li class="ml-6 mb-1 list-decimal text-white/80">${line.replace(/^\d+\.\s/, '')}</li>`;
         // Empty lines
         if (line.trim() === '') return '<div class="h-4"></div>';
         // Regular paragraph
-        return `<p class="text-gray-700 leading-relaxed mb-4">${line}</p>`;
+        return `<p class="text-white/80 leading-relaxed mb-4">${line}</p>`;
       })
       .join('\n');
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#12151C]">
       {/* Nav */}
-      <nav className="sticky top-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="sticky top-0 bg-[#0A0C11]/90 backdrop-blur-md z-50 border-b border-white/10">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo-01262026.png"
-              alt="ToolTime Pro"
+              src="/logo-horizontal-white-01262026.png"
+              alt="Task Iguana"
               width={180}
               height={40}
               className="h-10 w-auto"
@@ -71,12 +71,12 @@ export default function BlogPostPage() {
             />
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/jenny" className="text-[#f5a623] font-semibold hover:text-[#e6991a] no-underline">{t('navJennyAi')}</Link>
-            <Link href="/#features" className="text-gray-600 hover:text-gray-900 no-underline">{t('navFeatures')}</Link>
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 no-underline">{t('navPricing')}</Link>
-            <Link href="/blog" className="text-[#1a1a2e] font-semibold no-underline">{t('navBlog')}</Link>
+            <Link href="/jenny" className="text-[#1FE3C4] font-semibold hover:text-[#1E7FE0] no-underline">{t('navJennyAi')}</Link>
+            <Link href="/#features" className="text-white/60 hover:text-white no-underline">{t('navFeatures')}</Link>
+            <Link href="/pricing" className="text-white/60 hover:text-white no-underline">{t('navPricing')}</Link>
+            <Link href="/blog" className="text-white font-semibold no-underline">{t('navBlog')}</Link>
             <LanguageSwitcher />
-            <Link href="/auth/signup" className="bg-[#f97316] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#ea580c] no-underline">
+            <Link href="/auth/signup" className="bg-[#2E9BFF] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#1E7FE0] no-underline">
               {t('navStartTrial')}
             </Link>
           </div>
@@ -86,25 +86,25 @@ export default function BlogPostPage() {
       {loading ? (
         <div className="max-w-[800px] mx-auto px-6 py-16">
           <div className="h-8 w-64 bg-gray-200 animate-pulse rounded mb-4" />
-          <div className="h-5 w-96 bg-gray-100 animate-pulse rounded mb-8" />
+          <div className="h-5 w-96 bg-white/10 animate-pulse rounded mb-8" />
           <div className="space-y-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-4 bg-gray-100 animate-pulse rounded" style={{ width: `${80 + Math.random() * 20}%` }} />
+              <div key={i} className="h-4 bg-white/10 animate-pulse rounded" style={{ width: `${80 + Math.random() * 20}%` }} />
             ))}
           </div>
         </div>
       ) : error ? (
         <div className="max-w-[800px] mx-auto px-6 py-16 text-center">
           <h1 className="text-3xl font-bold text-gray-300 mb-4">{t('postNotFound')}</h1>
-          <p className="text-gray-500 mb-8">{error}</p>
-          <Link href="/blog" className="text-[#f97316] font-semibold no-underline flex items-center gap-2 justify-center">
+          <p className="text-white/50 mb-8">{error}</p>
+          <Link href="/blog" className="text-[#2E9BFF] font-semibold no-underline flex items-center gap-2 justify-center">
             <ArrowLeft size={18} /> {t('backToBlog')}
           </Link>
         </div>
       ) : post ? (
         <>
           {/* Post header */}
-          <div className="bg-gradient-to-b from-[#1a1a2e] to-[#2d2d4e] text-white py-16">
+          <div className="bg-gradient-to-b from-[#0A0C11] to-[#2d2d4e] text-white py-16">
             <div className="max-w-[800px] mx-auto px-6">
               <Link href="/blog" className="text-white/50 hover:text-white no-underline flex items-center gap-2 mb-6 text-sm">
                 <ArrowLeft size={16} /> {t('backToBlog')}
@@ -144,10 +144,10 @@ export default function BlogPostPage() {
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
-              <div className="mt-12 pt-8 border-t border-gray-200">
+              <div className="mt-12 pt-8 border-t border-white/10">
                 <div className="flex flex-wrap gap-2">
                   {post.tags.map((tag) => (
-                    <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+                    <span key={tag} className="px-3 py-1 bg-white/10 text-white/60 rounded-full text-sm">
                       {tag}
                     </span>
                   ))}
@@ -157,7 +157,7 @@ export default function BlogPostPage() {
           </article>
 
           {/* CTA */}
-          <div className="bg-gradient-to-r from-[#f97316] to-[#ea580c] py-12">
+          <div className="bg-gradient-to-r from-[#2E9BFF] to-[#1E7FE0] py-12">
             <div className="max-w-[800px] mx-auto px-6 text-center">
               <h2 className="text-2xl font-bold text-white mb-3">{t('ctaTitle')}</h2>
               <p className="text-white/80 mb-6">
@@ -165,7 +165,7 @@ export default function BlogPostPage() {
               </p>
               <Link
                 href="/auth/signup"
-                className="inline-block bg-white text-[#f97316] px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors no-underline"
+                className="inline-block bg-[#12151C] text-[#2E9BFF] px-8 py-3 rounded-lg font-bold text-lg hover:bg-white/10 transition-colors no-underline"
               >
                 {t('ctaButton')}
               </Link>

@@ -1,7 +1,7 @@
-# CLAUDE.md — ToolTime Pro Development Guidelines
+# CLAUDE.md — Task Iguana Development Guidelines
 
 ## Project Overview
-ToolTime Pro is a field service management SaaS for contractors (landscaping, plumbing, HVAC, etc.). Built with Next.js 14, TypeScript, React, Supabase, deployed on Netlify.
+Task Iguana is a field service management SaaS for contractors (landscaping, plumbing, HVAC, etc.). Built with Next.js 14, TypeScript, React, Supabase, deployed on Netlify.
 
 ## Quality Gates — MUST FOLLOW
 

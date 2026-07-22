@@ -435,7 +435,7 @@ export default function ImportCustomersPage() {
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
             <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 border-b font-medium text-sm text-gray-700">
               <div>CSV Column</div>
-              <div>ToolTime Pro Field</div>
+              <div>Task Iguana Field</div>
             </div>
             <div className="divide-y">
               {parsedData.headers.map((header) => {
