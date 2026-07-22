@@ -14,7 +14,35 @@ function getResend() {
 
 // Default to the verified root domain. Once send.taskiguana.com is added
 // and verified in Resend, set EMAIL_FROM=Task Iguana <no-reply@send.taskiguana.com>
-const FROM_EMAIL = process.env.EMAIL_FROM || 'Task Iguana <no-reply@taskiguana.com>';
+const DEFAULT_FROM_EMAIL = 'Task Iguana <no-reply@taskiguana.com>';
+
+// Every transactional email (invoices, quotes, password resets, confirmations,
+// team invites) shares this single `from`. A malformed EMAIL_FROM env value —
+// e.g. wrapping quotes pasted into the env var, a smart quote/em-dash, or a
+// bare display name with no address — makes Resend reject EVERY send with
+// "Invalid `from` field". Validate it and fall back to the known-good default
+// so one bad env value can't take down all email.
+function resolveFromEmail(): string {
+  const raw = process.env.EMAIL_FROM?.trim();
+  if (!raw) return DEFAULT_FROM_EMAIL;
+
+  // Strip a single pair of wrapping quotes accidentally included in the value.
+  const value = raw.replace(/^(['"])([\s\S]*)\1$/, '$2').trim();
+
+  // Accept either `email@example.com` or `Display Name <email@example.com>`.
+  const bareEmail = /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/;
+  const namedEmail = /^.+\s+<[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+>$/;
+  if (bareEmail.test(value) || namedEmail.test(value)) return value;
+
+  console.error(
+    `[email] EMAIL_FROM is not a valid address ("${raw}"); ` +
+      `falling back to ${DEFAULT_FROM_EMAIL}. Expected "email@example.com" ` +
+      'or "Name <email@example.com>" with no wrapping quotes.'
+  );
+  return DEFAULT_FROM_EMAIL;
+}
+
+const FROM_EMAIL = resolveFromEmail();
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://taskiguana.com';
 
 function formatPlanName(plan: string): string {
