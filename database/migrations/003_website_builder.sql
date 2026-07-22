@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS website_sites (
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     template_id UUID REFERENCES website_templates(id) ON DELETE SET NULL,
-    slug VARCHAR(100) UNIQUE,               -- tooltimepro.com/site/{slug}
+    slug VARCHAR(100) UNIQUE,               -- taskiguana.com/site/{slug}
     business_name VARCHAR(255),
     business_phone VARCHAR(50),
     business_email VARCHAR(255),
