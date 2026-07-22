@@ -1,4 +1,4 @@
--- ToolTime Pro - Demo/Test Account Seed Data
+-- Task Iguana - Demo/Test Account Seed Data
 -- ============================================
 --
 -- USAGE: Run this in Supabase SQL Editor AFTER:
