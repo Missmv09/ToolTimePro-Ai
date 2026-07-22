@@ -39,7 +39,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
   'housecall-pro': {
     slug: 'housecall-pro',
     name: 'Housecall Pro',
-    tagline: 'ToolTime Pro vs Housecall Pro',
+    tagline: 'Task Iguana vs Housecall Pro',
     heroSubtitle: 'Same powerful scheduling and dispatch — plus AI quoting, compliance tools, and bilingual support. All at a lower price.',
     savingsRange: '$1,200-$4,800/year',
     painPoints: [
@@ -78,13 +78,13 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
     switchReasons: [
       { title: 'AI That Runs Your Back Office', description: 'Jenny auto-dispatches crews, follows up on cold leads, alerts you about overdue invoices, and calculates job profitability — all on autopilot. HCP\'s AI just answers phones.' },
-      { title: 'Compliance Built In', description: 'ToolTime Shield protects you from misclassification lawsuits, tracks break compliance, and covers 5 states. HCP has nothing like this.' },
+      { title: 'Compliance Built In', description: 'Task Iguana Shield protects you from misclassification lawsuits, tracks break compliance, and covers 5 states. HCP has nothing like this.' },
       { title: '75% Less Per User', description: 'Add team members for $7/mo vs $35/mo. A 10-person team saves over $3,000/year on user fees alone.' },
       { title: 'Material Estimator', description: '"Paint a 12x14 room" → instant material list with quantities, brands, and costs across 21 trades. No competitor has this.' },
     ],
     faqs: [
       { question: 'Can I migrate from Housecall Pro?', answer: 'Yes! We offer free data migration assistance. Our team imports your customers, job history, and settings. Most migrations complete in under 48 hours.' },
-      { question: 'Does ToolTime Pro have a mobile app?', answer: 'Yes — our Worker App works on any phone (iOS/Android) and even works offline. Clock in/out, view jobs, take photos, and sync when you\'re back online.' },
+      { question: 'Does Task Iguana have a mobile app?', answer: 'Yes — our Worker App works on any phone (iOS/Android) and even works offline. Clock in/out, view jobs, take photos, and sync when you\'re back online.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees, no hidden charges. We earn your business every month.' },
       { question: 'What about the AI features?', answer: 'Jenny AI is included in every plan — auto-dispatch, lead follow-up, cash flow alerts, and job costing. No add-on fees, no premium tier required.' },
     ],
@@ -93,7 +93,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
   'servicetitan': {
     slug: 'servicetitan',
     name: 'ServiceTitan',
-    tagline: 'ToolTime Pro vs ServiceTitan',
+    tagline: 'Task Iguana vs ServiceTitan',
     heroSubtitle: 'Enterprise-grade features without the enterprise price tag. No contracts, no $15K termination fees, no hidden costs.',
     savingsRange: '$10,000-$30,000+/year',
     painPoints: [
@@ -131,23 +131,23 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '20 Technicians', tooltime: 2160, competitor: 47760 },
     ],
     switchReasons: [
-      { title: 'Save $10,000-$30,000+ Per Year', description: 'ServiceTitan charges $245-$398 per tech per month. ToolTime Pro gives you the same features for a flat $49-$129/mo. Do the math.' },
+      { title: 'Save $10,000-$30,000+ Per Year', description: 'ServiceTitan charges $245-$398 per tech per month. Task Iguana gives you the same features for a flat $49-$129/mo. Do the math.' },
       { title: 'No Contracts. Ever.', description: 'ServiceTitan locks you into 12-month contracts with $15,000+ termination fees. We earn your business every month. Cancel anytime, no questions asked.' },
-      { title: 'Set Up Today, Not in 6 Months', description: 'ServiceTitan requires months of implementation and dedicated admin staff. ToolTime Pro: sign up, import your data, start working. Same day.' },
+      { title: 'Set Up Today, Not in 6 Months', description: 'ServiceTitan requires months of implementation and dedicated admin staff. Task Iguana: sign up, import your data, start working. Same day.' },
       { title: 'Transparent Pricing', description: 'ServiceTitan won\'t show you pricing until you sit through a sales demo. Our pricing is published online. No surprises.' },
     ],
     faqs: [
-      { question: 'Can ServiceTitan really cost $15K+ to leave?', answer: 'Yes. ServiceTitan contracts typically include early termination fees that can exceed $15,000. Many contractors feel trapped. ToolTime Pro has zero contracts and zero termination fees.' },
-      { question: 'Will I lose features switching from ServiceTitan?', answer: 'No. ToolTime Pro covers scheduling, dispatch, invoicing, quoting, payments, CRM, reporting, and more — plus features ServiceTitan doesn\'t have like compliance tools, bilingual AI, and material estimation.' },
+      { question: 'Can ServiceTitan really cost $15K+ to leave?', answer: 'Yes. ServiceTitan contracts typically include early termination fees that can exceed $15,000. Many contractors feel trapped. Task Iguana has zero contracts and zero termination fees.' },
+      { question: 'Will I lose features switching from ServiceTitan?', answer: 'No. Task Iguana covers scheduling, dispatch, invoicing, quoting, payments, CRM, reporting, and more — plus features ServiceTitan doesn\'t have like compliance tools, bilingual AI, and material estimation.' },
       { question: 'Can you migrate my ServiceTitan data?', answer: 'Yes. We offer free migration assistance for ServiceTitan customers. Export your customer list and job history, and our team handles the import.' },
-      { question: 'Is ToolTime Pro powerful enough for a large team?', answer: 'Absolutely. Our Business plan supports 20 users, and you can add more at $7/user. Jenny AI handles dispatch, follow-ups, and cash flow automatically — reducing the admin overhead that ServiceTitan creates.' },
+      { question: 'Is Task Iguana powerful enough for a large team?', answer: 'Absolutely. Our Business plan supports 20 users, and you can add more at $7/user. Jenny AI handles dispatch, follow-ups, and cash flow automatically — reducing the admin overhead that ServiceTitan creates.' },
     ],
   },
 
   'fieldpulse': {
     slug: 'fieldpulse',
     name: 'FieldPulse',
-    tagline: 'ToolTime Pro vs FieldPulse',
+    tagline: 'Task Iguana vs FieldPulse',
     heroSubtitle: 'More AI, more compliance tools, more trades support — at a comparable price with no hidden fees.',
     savingsRange: '$600-$2,400/year',
     painPoints: [
@@ -184,23 +184,23 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '15-Person Team', tooltime: 1440, competitor: 4788 },
     ],
     switchReasons: [
-      { title: 'AI-Native Platform', description: 'FieldPulse has no AI features. ToolTime Pro includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
-      { title: 'Compliance Protection', description: 'FieldPulse has no labor law compliance tools. ToolTime Shield covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
+      { title: 'AI-Native Platform', description: 'FieldPulse has no AI features. Task Iguana includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
+      { title: 'Compliance Protection', description: 'FieldPulse has no labor law compliance tools. Task Iguana Shield covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
       { title: 'Material Estimator', description: '21 trade-specific calculators with real Home Depot/Lowe\'s pricing. "Paint a 12x14 room" → instant material list. FieldPulse has nothing like this.' },
       { title: 'Transparent Pricing', description: 'FieldPulse hides their pricing behind a sales demo. Our pricing is published online — $49/mo starter, $79/mo pro, $129/mo elite. No surprises.' },
     ],
     faqs: [
-      { question: 'Why does FieldPulse hide their pricing?', answer: 'Many FSM platforms hide pricing to qualify leads through sales calls. ToolTime Pro believes in transparency — our pricing is published online with no hidden fees.' },
+      { question: 'Why does FieldPulse hide their pricing?', answer: 'Many FSM platforms hide pricing to qualify leads through sales calls. Task Iguana believes in transparency — our pricing is published online with no hidden fees.' },
       { question: 'Can I migrate from FieldPulse?', answer: 'Yes! Export your customer list as a CSV and our team handles the import. Most migrations complete in under 24 hours.' },
-      { question: 'Does ToolTime Pro have GPS tracking?', answer: 'Yes — our Worker App includes GPS clock-in/out, real-time location tracking, and route optimization. All included in every plan.' },
-      { question: 'What makes ToolTime Pro different from FieldPulse?', answer: 'Three things no competitor has: (1) Jenny AI that autonomously manages your back office, (2) ToolTime Shield compliance tools for labor law, (3) Material Estimator covering 21 trades with real supplier pricing.' },
+      { question: 'Does Task Iguana have GPS tracking?', answer: 'Yes — our Worker App includes GPS clock-in/out, real-time location tracking, and route optimization. All included in every plan.' },
+      { question: 'What makes Task Iguana different from FieldPulse?', answer: 'Three things no competitor has: (1) Jenny AI that autonomously manages your back office, (2) Task Iguana Shield compliance tools for labor law, (3) Material Estimator covering 21 trades with real supplier pricing.' },
     ],
   },
 
   'jobber': {
     slug: 'jobber',
     name: 'Jobber',
-    tagline: 'ToolTime Pro vs Jobber',
+    tagline: 'Task Iguana vs Jobber',
     heroSubtitle: 'Same features contractors love — scheduling, quoting, invoicing — plus AI, compliance tools, and bilingual support at a fraction of the price.',
     savingsRange: '$2,000-$3,000+/year',
     painPoints: [
@@ -239,14 +239,14 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '15-Person Team', tooltime: 1440, competitor: 2988 },
     ],
     switchReasons: [
-      { title: 'AI That Runs Your Back Office', description: 'Jobber has zero AI. ToolTime Pro includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
-      { title: 'Compliance Protection', description: 'Jobber has no labor law tools. ToolTime Shield covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
+      { title: 'AI That Runs Your Back Office', description: 'Jobber has zero AI. Task Iguana includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
+      { title: 'Compliance Protection', description: 'Jobber has no labor law tools. Task Iguana Shield covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
       { title: '75% Less Per User', description: 'Add team members for $7/mo vs $29/mo. A 10-person team saves over $2,600/year on user fees alone.' },
       { title: 'Material Estimator', description: '"Tile a 10x12 bathroom" → instant material list with quantities, brands, and costs across 21 trades. Jobber has nothing like this.' },
     ],
     faqs: [
       { question: 'Can I migrate from Jobber?', answer: 'Yes! We offer free data migration assistance. Our team imports your customers, job history, and settings. Most migrations complete in under 48 hours.' },
-      { question: 'Does ToolTime Pro have a mobile app?', answer: 'Yes — our Worker App works on any phone (iOS/Android) and even works offline. Clock in/out, view jobs, take photos, and sync when you\'re back online.' },
+      { question: 'Does Task Iguana have a mobile app?', answer: 'Yes — our Worker App works on any phone (iOS/Android) and even works offline. Clock in/out, view jobs, take photos, and sync when you\'re back online.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees, no hidden charges. We earn your business every month.' },
       { question: 'What about the AI features?', answer: 'Jenny AI is included in every plan — auto-dispatch, lead follow-up, cash flow alerts, and job costing. No add-on fees, no premium tier required.' },
     ],
@@ -255,7 +255,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
   'kickserv': {
     slug: 'kickserv',
     name: 'Kickserv',
-    tagline: 'ToolTime Pro vs Kickserv',
+    tagline: 'Task Iguana vs Kickserv',
     heroSubtitle: 'Kickserv keeps it simple — but simple means missing AI, compliance tools, and the features growing contractors need.',
     savingsRange: '$500-$1,800/year',
     painPoints: [
@@ -293,13 +293,13 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
     switchReasons: [
       { title: 'AI-Powered Operations', description: 'Kickserv is purely manual. Jenny AI auto-dispatches crews, follows up leads, alerts on overdue invoices, and calculates profitability — zero extra effort.' },
-      { title: 'Compliance Built In', description: 'Kickserv has no labor law tools. ToolTime Shield covers worker classification, break compliance, and state-specific rules across CA, TX, FL, NY, and IL.' },
+      { title: 'Compliance Built In', description: 'Kickserv has no labor law tools. Task Iguana Shield covers worker classification, break compliance, and state-specific rules across CA, TX, FL, NY, and IL.' },
       { title: 'Trade-Specific Tools', description: 'Material estimator covers 21 trades with real supplier pricing. "Install 200 sq ft of hardwood" → instant material list. Kickserv can\'t do this.' },
-      { title: 'Bilingual Support', description: 'Full Spanish language support throughout the platform. Over 30% of the trades workforce is Spanish-speaking — ToolTime Pro is built for them.' },
+      { title: 'Bilingual Support', description: 'Full Spanish language support throughout the platform. Over 30% of the trades workforce is Spanish-speaking — Task Iguana is built for them.' },
     ],
     faqs: [
       { question: 'Can I migrate from Kickserv?', answer: 'Yes! Export your customer data as CSV and our team handles the import. Most migrations complete in under 24 hours.' },
-      { question: 'Is ToolTime Pro harder to use than Kickserv?', answer: 'No — we designed ToolTime Pro to be just as intuitive, with the added benefit of AI handling repetitive tasks automatically. Less clicking, more working.' },
+      { question: 'Is Task Iguana harder to use than Kickserv?', answer: 'No — we designed Task Iguana to be just as intuitive, with the added benefit of AI handling repetitive tasks automatically. Less clicking, more working.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees, no hidden charges.' },
       { question: 'Do I need the AI features?', answer: 'Jenny AI is included in every plan at no extra cost. Start with basic features and let AI gradually take over repetitive tasks as you get comfortable.' },
     ],
@@ -308,8 +308,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
   'gorilladesk': {
     slug: 'gorilladesk',
     name: 'GorillaDesk',
-    tagline: 'ToolTime Pro vs GorillaDesk',
-    heroSubtitle: 'GorillaDesk works for pest control and lawn care — but ToolTime Pro covers all 21 trades with AI, compliance, and bilingual support.',
+    tagline: 'Task Iguana vs GorillaDesk',
+    heroSubtitle: 'GorillaDesk works for pest control and lawn care — but Task Iguana covers all 21 trades with AI, compliance, and bilingual support.',
     savingsRange: '$600-$2,000/year',
     painPoints: [
       'GorillaDesk focuses narrowly on pest control and lawn care',
@@ -345,15 +345,15 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '8-Route Operation', tooltime: 1440, competitor: 3576 },
     ],
     switchReasons: [
-      { title: 'Beyond Pest & Lawn', description: 'GorillaDesk is built for pest control and lawn care. ToolTime Pro supports 21 trades — HVAC, plumbing, electrical, painting, roofing, and more. One platform for any service business.' },
+      { title: 'Beyond Pest & Lawn', description: 'GorillaDesk is built for pest control and lawn care. Task Iguana supports 21 trades — HVAC, plumbing, electrical, painting, roofing, and more. One platform for any service business.' },
       { title: 'AI-Powered Operations', description: 'GorillaDesk is 100% manual. Jenny AI auto-dispatches, follows up on leads, sends payment reminders, and calculates job profitability automatically.' },
-      { title: 'Compliance Protection', description: 'No labor law tools in GorillaDesk. ToolTime Shield handles worker classification, break tracking, and multi-state compliance for CA, TX, FL, NY, and IL.' },
-      { title: 'Better Per-User Economics', description: 'GorillaDesk charges per route ($49+/route). ToolTime Pro charges per user ($7/mo) so you can scale without route-based pricing surprises.' },
+      { title: 'Compliance Protection', description: 'No labor law tools in GorillaDesk. Task Iguana Shield handles worker classification, break tracking, and multi-state compliance for CA, TX, FL, NY, and IL.' },
+      { title: 'Better Per-User Economics', description: 'GorillaDesk charges per route ($49+/route). Task Iguana charges per user ($7/mo) so you can scale without route-based pricing surprises.' },
     ],
     faqs: [
       { question: 'Can I migrate from GorillaDesk?', answer: 'Yes! Export your customer and job data, and our team handles the import. Most migrations complete in under 24 hours with free assistance.' },
-      { question: 'Does ToolTime Pro support recurring services?', answer: 'Absolutely. Set up recurring jobs with custom frequencies, auto-invoicing, and automatic crew assignment via Jenny AI.' },
-      { question: 'I only do pest control — is ToolTime Pro overkill?', answer: 'Not at all. Use only the features you need. But you get AI dispatch, compliance tools, and bilingual support that GorillaDesk doesn\'t offer — at a comparable price.' },
+      { question: 'Does Task Iguana support recurring services?', answer: 'Absolutely. Set up recurring jobs with custom frequencies, auto-invoicing, and automatic crew assignment via Jenny AI.' },
+      { question: 'I only do pest control — is Task Iguana overkill?', answer: 'Not at all. Use only the features you need. But you get AI dispatch, compliance tools, and bilingual support that GorillaDesk doesn\'t offer — at a comparable price.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees.' },
     ],
   },
@@ -361,8 +361,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
   'workiz': {
     slug: 'workiz',
     name: 'Workiz',
-    tagline: 'ToolTime Pro vs Workiz',
-    heroSubtitle: 'Workiz has solid dispatching — but ToolTime Pro adds AI automation, compliance tools, and bilingual support at a better price.',
+    tagline: 'Task Iguana vs Workiz',
+    heroSubtitle: 'Workiz has solid dispatching — but Task Iguana adds AI automation, compliance tools, and bilingual support at a better price.',
     savingsRange: '$800-$3,000/year',
     painPoints: [
       'Workiz Standard starts at $198/mo for up to 5 users',
@@ -398,15 +398,15 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '15-Person Team', tooltime: 1440, competitor: 4776 },
     ],
     switchReasons: [
-      { title: 'AI Included, Not Add-On', description: 'Workiz charges extra for their Genius AI suite. ToolTime Pro includes Jenny AI in every plan — auto-dispatch, lead follow-up, cash flow alerts, and job costing at no additional cost.' },
-      { title: 'Compliance Protection', description: 'Workiz has no labor law tools. ToolTime Shield handles worker classification, break tracking, and multi-state compliance to keep you protected.' },
-      { title: '80% Lower Starting Price', description: 'Workiz Standard starts at $198/mo. ToolTime Pro starts at $49/mo with more features included. That\'s $1,800+/year in savings from day one.' },
+      { title: 'AI Included, Not Add-On', description: 'Workiz charges extra for their Genius AI suite. Task Iguana includes Jenny AI in every plan — auto-dispatch, lead follow-up, cash flow alerts, and job costing at no additional cost.' },
+      { title: 'Compliance Protection', description: 'Workiz has no labor law tools. Task Iguana Shield handles worker classification, break tracking, and multi-state compliance to keep you protected.' },
+      { title: '80% Lower Starting Price', description: 'Workiz Standard starts at $198/mo. Task Iguana starts at $49/mo with more features included. That\'s $1,800+/year in savings from day one.' },
       { title: 'Material Estimator', description: '21 trade-specific calculators with real supplier pricing. Get instant material lists for any job — a feature Workiz simply doesn\'t have.' },
     ],
     faqs: [
       { question: 'Can I migrate from Workiz?', answer: 'Yes! Export your customer and job data from Workiz, and our team handles the import. Most migrations complete in under 48 hours with free assistance.' },
-      { question: 'Does ToolTime Pro have a phone system?', answer: 'We don\'t include a built-in VoIP system like Workiz, but we integrate with popular options. Jenny AI handles call follow-ups, lead nurturing, and appointment reminders automatically.' },
-      { question: 'Is Workiz better for larger teams?', answer: 'ToolTime Pro scales better economically. Extra users cost $7/mo vs Workiz\'s $35/user. A 15-person team saves over $3,000/year with ToolTime Pro.' },
+      { question: 'Does Task Iguana have a phone system?', answer: 'We don\'t include a built-in VoIP system like Workiz, but we integrate with popular options. Jenny AI handles call follow-ups, lead nurturing, and appointment reminders automatically.' },
+      { question: 'Is Workiz better for larger teams?', answer: 'Task Iguana scales better economically. Extra users cost $7/mo vs Workiz\'s $35/user. A 15-person team saves over $3,000/year with Task Iguana.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees, no hidden charges.' },
     ],
   },
@@ -414,8 +414,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
   'service-fusion': {
     slug: 'service-fusion',
     name: 'Service Fusion',
-    tagline: 'ToolTime Pro vs Service Fusion',
-    heroSubtitle: 'Service Fusion offers flat-rate pricing — but ToolTime Pro delivers AI, compliance, and bilingual support that Service Fusion can\'t match.',
+    tagline: 'Task Iguana vs Service Fusion',
+    heroSubtitle: 'Service Fusion offers flat-rate pricing — but Task Iguana delivers AI, compliance, and bilingual support that Service Fusion can\'t match.',
     savingsRange: '$1,000-$3,600/year',
     painPoints: [
       'Service Fusion Starter is $225/mo — no low-cost entry for small teams',
@@ -452,15 +452,15 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '15-Person Team', tooltime: 1440, competitor: 4200 },
     ],
     switchReasons: [
-      { title: 'Right-Sized Pricing', description: 'Service Fusion starts at $225/mo even for a solo contractor. ToolTime Pro starts at $49/mo. Why pay for unlimited users when you only have 3?' },
+      { title: 'Right-Sized Pricing', description: 'Service Fusion starts at $225/mo even for a solo contractor. Task Iguana starts at $49/mo. Why pay for unlimited users when you only have 3?' },
       { title: 'AI-Native Platform', description: 'Service Fusion has no AI features. Jenny AI auto-dispatches crews, follows up leads, manages invoicing alerts, and calculates job profitability automatically.' },
-      { title: 'Compliance Built In', description: 'Service Fusion offers no labor law compliance. ToolTime Shield covers worker classification, break tracking, and state-specific rules across CA, TX, FL, NY, and IL.' },
-      { title: 'No Nickel-and-Diming', description: 'Service Fusion charges extra for GPS ($25/vehicle), inventory, and other features. ToolTime Pro includes GPS tracking, inventory, and offline mode in every plan.' },
+      { title: 'Compliance Built In', description: 'Service Fusion offers no labor law compliance. Task Iguana Shield covers worker classification, break tracking, and state-specific rules across CA, TX, FL, NY, and IL.' },
+      { title: 'No Nickel-and-Diming', description: 'Service Fusion charges extra for GPS ($25/vehicle), inventory, and other features. Task Iguana includes GPS tracking, inventory, and offline mode in every plan.' },
     ],
     faqs: [
-      { question: 'Service Fusion has unlimited users — isn\'t that better?', answer: 'Only if you have a large team. Most contractors have 3-15 workers. At $225/mo minimum, you\'re overpaying if you\'re a small team. ToolTime Pro scales with you — start at $49/mo.' },
+      { question: 'Service Fusion has unlimited users — isn\'t that better?', answer: 'Only if you have a large team. Most contractors have 3-15 workers. At $225/mo minimum, you\'re overpaying if you\'re a small team. Task Iguana scales with you — start at $49/mo.' },
       { question: 'Can I migrate from Service Fusion?', answer: 'Yes! Export your customer and job data, and our team handles the import free of charge. Most migrations complete in under 48 hours.' },
-      { question: 'Does ToolTime Pro have inventory management?', answer: 'Yes — track parts, materials, and stock levels across all plans. Plus our Material Estimator auto-calculates what you need for any job across 21 trades.' },
+      { question: 'Does Task Iguana have inventory management?', answer: 'Yes — track parts, materials, and stock levels across all plans. Plus our Material Estimator auto-calculates what you need for any job across 21 trades.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees, no hidden charges.' },
     ],
   },
@@ -468,8 +468,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
   'fieldedge': {
     slug: 'fieldedge',
     name: 'FieldEdge',
-    tagline: 'ToolTime Pro vs FieldEdge',
-    heroSubtitle: 'FieldEdge is built for HVAC and plumbing — ToolTime Pro covers all trades with AI, compliance, and transparent pricing.',
+    tagline: 'Task Iguana vs FieldEdge',
+    heroSubtitle: 'FieldEdge is built for HVAC and plumbing — Task Iguana covers all trades with AI, compliance, and transparent pricing.',
     savingsRange: '$3,000-$10,000+/year',
     painPoints: [
       'FieldEdge hides pricing — requires a sales demo to get a quote',
@@ -506,15 +506,15 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { scenario: '20-Person Team', tooltime: 2160, competitor: 24000 },
     ],
     switchReasons: [
-      { title: 'Transparent Pricing', description: 'FieldEdge hides pricing behind sales demos. ToolTime Pro publishes pricing online — $49/mo starter, $79/mo pro, $129/mo elite. No surprises, no sales calls.' },
+      { title: 'Transparent Pricing', description: 'FieldEdge hides pricing behind sales demos. Task Iguana publishes pricing online — $49/mo starter, $79/mo pro, $129/mo elite. No surprises, no sales calls.' },
       { title: 'AI-Native Platform', description: 'FieldEdge has no AI features. Jenny AI auto-dispatches, follows up on leads, sends payment reminders, and calculates job profitability — all on autopilot.' },
-      { title: 'All 21 Trades, Not Just HVAC', description: 'FieldEdge is narrowly focused on HVAC and plumbing. ToolTime Pro supports landscaping, electrical, painting, roofing, and 16 more trades with specialized tools.' },
-      { title: 'No Contracts', description: 'FieldEdge often requires long-term contracts. ToolTime Pro is month-to-month. Cancel anytime, no termination fees.' },
+      { title: 'All 21 Trades, Not Just HVAC', description: 'FieldEdge is narrowly focused on HVAC and plumbing. Task Iguana supports landscaping, electrical, painting, roofing, and 16 more trades with specialized tools.' },
+      { title: 'No Contracts', description: 'FieldEdge often requires long-term contracts. Task Iguana is month-to-month. Cancel anytime, no termination fees.' },
     ],
     faqs: [
-      { question: 'Why does FieldEdge hide their pricing?', answer: 'Many enterprise FSM platforms hide pricing to qualify leads through sales. ToolTime Pro believes in transparency — our pricing is published online with no hidden fees or sales calls required.' },
+      { question: 'Why does FieldEdge hide their pricing?', answer: 'Many enterprise FSM platforms hide pricing to qualify leads through sales. Task Iguana believes in transparency — our pricing is published online with no hidden fees or sales calls required.' },
       { question: 'Can I migrate from FieldEdge?', answer: 'Yes! Export your customer list and job history, and our team handles the import free of charge. Most migrations complete in under 48 hours.' },
-      { question: 'I\'m an HVAC contractor — is ToolTime Pro good enough?', answer: 'Absolutely. We support HVAC with specialized material estimators, equipment tracking, and maintenance scheduling. Plus you get AI, compliance, and bilingual support that FieldEdge doesn\'t offer.' },
+      { question: 'I\'m an HVAC contractor — is Task Iguana good enough?', answer: 'Absolutely. We support HVAC with specialized material estimators, equipment tracking, and maintenance scheduling. Plus you get AI, compliance, and bilingual support that FieldEdge doesn\'t offer.' },
       { question: 'Is there a contract?', answer: 'Never. Month-to-month, cancel anytime. No termination fees, no hidden charges.' },
     ],
   },

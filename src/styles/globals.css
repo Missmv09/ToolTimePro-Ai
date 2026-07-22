@@ -5,8 +5,8 @@
 /* Construction Bold Theme - Base styles */
 @layer base {
   :root {
-    --color-navy: #1a1a2e;
-    --color-gold: #f5a623;
+    --color-navy: #0A0C11;
+    --color-gold: #1FE3C4;
   }
 
   html {
@@ -171,12 +171,12 @@
 @layer utilities {
   /* Gold gradient backgrounds */
   .bg-gold-gradient {
-    background: linear-gradient(135deg, #f5a623 0%, #dd951f 100%);
+    background: linear-gradient(135deg, #1FE3C4 0%, #17B39B 100%);
   }
 
   /* Navy gradient backgrounds */
   .bg-navy-gradient {
-    background: linear-gradient(135deg, #1a1a2e 0%, #333357 100%);
+    background: linear-gradient(135deg, #0A0C11 0%, #333357 100%);
   }
 
   /* Text gradient */

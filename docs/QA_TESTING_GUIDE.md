@@ -1,4 +1,4 @@
-# ToolTime Pro — QA Testing Guide
+# Task Iguana — QA Testing Guide
 
 This is the test plan for QA, covering what to exercise before Beta and how to run
 each test layer. For environment and seed-data setup, follow the existing docs first:

@@ -74,7 +74,7 @@ export async function syncJobToCalendar(job, accessToken, calendarId) {
       job.description || '',
       customerAddress ? `Address: ${customerAddress}` : '',
       `Status: ${job.status || 'scheduled'}`,
-      `ToolTime Pro Job #${job.id}`,
+      `Task Iguana Job #${job.id}`,
     ]
       .filter(Boolean)
       .join('\n'),

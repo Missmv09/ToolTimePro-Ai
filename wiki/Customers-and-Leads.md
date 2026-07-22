@@ -42,7 +42,7 @@ From any customer card, you can:
 
 ### SMS Consent Tracking
 
-ToolTime Pro tracks SMS opt-in status with:
+Task Iguana tracks SMS opt-in status with:
 - Consent toggle (yes/no)
 - Consent date timestamp
 - Required for compliance with TCPA regulations
@@ -112,7 +112,7 @@ When a lead is ready to become a customer:
 
 <!-- AUTO-INJECTED by generate-wiki.js from src/lib/crm-field-mappings.ts — do not edit this section manually -->
 
-Already have customers in another system? ToolTime Pro includes a self-service import wizard that migrates your customer data in minutes — no White-Glove setup required.
+Already have customers in another system? Task Iguana includes a self-service import wizard that migrates your customer data in minutes — no White-Glove setup required.
 
 ### How to Import
 
@@ -121,7 +121,7 @@ Already have customers in another system? ToolTime Pro includes a self-service i
 3. **Select your source CRM** — choose from the supported platforms below, or pick "Generic CSV" for any spreadsheet
 4. **Export your data** — follow the on-screen instructions to export a CSV from your old system
 5. **Upload your CSV** — drag and drop or click to upload (max 10 MB)
-6. **Map fields** — ToolTime Pro auto-detects column mappings; adjust any that need correction
+6. **Map fields** — Task Iguana auto-detects column mappings; adjust any that need correction
 7. **Preview** — review the first 10 rows, see valid vs. error counts
 8. **Import** — click "Import" to bring in all valid rows
 
@@ -139,7 +139,7 @@ Already have customers in another system? ToolTime Pro includes a self-service i
 
 ### Imported Fields
 
-| ToolTime Pro Field | Required? | Notes |
+| Task Iguana Field | Required? | Notes |
 |--------------------|:---------:|-------|
 | **Full Name** | Yes | Or separate First + Last Name columns (auto-combined) |
 | **Email** | No | Used for quotes, invoices, and communication |
@@ -196,6 +196,6 @@ Lead → Convert → Customer → Quote → Job → Invoice
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard

@@ -461,7 +461,7 @@ export default function GettingStartedChecklist() {
       <div className="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100">
         <p className="text-xs text-gray-500 text-center">
           Need help setting up?{' '}
-          <a href="mailto:support@tooltimepro.com" className="text-blue-600 hover:underline">Email us</a>
+          <a href="mailto:support@taskiguana.com" className="text-blue-600 hover:underline">Email us</a>
           {' '}or{' '}
           <a href="tel:1-888-980-8665" className="text-blue-600 hover:underline">call 1-888-980-8665</a>
           {' '}&mdash; we&apos;re happy to walk you through it.

@@ -1,4 +1,4 @@
-// ToolTime Pro Database Types
+// Task Iguana Database Types
 // Auto-generated from database schema
 
 export type Json =

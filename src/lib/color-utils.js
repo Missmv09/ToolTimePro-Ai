@@ -50,5 +50,5 @@ export function ensureReadableColor(textHex, bgHex, fallbackHex, minRatio = 3) {
   if (fallbackHex && contrastRatio(fallbackHex, bgHex) >= minRatio) return fallbackHex;
   // Last resort: choose dark or light based on background brightness
   const bgLum = luminance(hexToRgb(bgHex || '#ffffff'));
-  return bgLum > 0.5 ? '#1a1a2e' : '#ffffff';
+  return bgLum > 0.5 ? '#0A0C11' : '#ffffff';
 }

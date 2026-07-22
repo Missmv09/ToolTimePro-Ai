@@ -1,10 +1,10 @@
-# ToolTime Pro — Help Center
+# Task Iguana — Help Center
 
 **Dispatch Smarter. Grow Faster.**
 
-Welcome to the ToolTime Pro Help Center. Jenny AI handles dispatch, scheduling, and customer communication — so you can focus on growing your business.
+Welcome to the Task Iguana Help Center. Jenny AI handles dispatch, scheduling, and customer communication — so you can focus on growing your business.
 
-ToolTime Pro is an AI-powered field service management platform built for contractors across 60+ industries including HVAC, plumbing, electrical, landscaping, roofing, cleaning, pest control, and more. With native bilingual support (English and Spanish), built-in compliance tools, and AI dispatch starting at just $49/month, ToolTime Pro helps your team run smarter from day one.
+Task Iguana is an AI-powered field service management platform built for contractors across 60+ industries including HVAC, plumbing, electrical, landscaping, roofing, cleaning, pest control, and more. With native bilingual support (English and Spanish), built-in compliance tools, and AI dispatch starting at just $49/month, Task Iguana helps your team run smarter from day one.
 
 ---
 
@@ -48,7 +48,7 @@ ToolTime Pro is an AI-powered field service management platform built for contra
 | [Adding Services](Adding-Services) | Service catalog, pricing, categories |
 | [Team Management](Team-Management) | Workers, roles, permissions, blended workforce |
 | [Mobile & Worker App](Mobile-and-Worker-App) | GPS clock-in, job management, photo uploads |
-| [ToolTime Shield](ToolTime-Shield) | Compliance, worker classification, HR toolkit |
+| [Task Iguana Shield](ToolTime-Shield) | Compliance, worker classification, HR toolkit |
 | [Reports & Analytics](Reports-and-Analytics) | Revenue charts, worker hours, lead conversion |
 
 ---
@@ -76,7 +76,7 @@ _These pages are auto-generated from source code and stay up to date automatical
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard
-- **Onboarding:** [Book Assisted Onboarding ($199)](https://www.tooltimepro.com/pricing) or [White-Glove Setup ($499)](https://www.tooltimepro.com/pricing)
+- **Onboarding:** [Book Assisted Onboarding ($199)](https://www.taskiguana.com/pricing) or [White-Glove Setup ($499)](https://www.taskiguana.com/pricing)

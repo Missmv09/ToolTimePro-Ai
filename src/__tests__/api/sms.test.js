@@ -93,7 +93,7 @@ describe('/api/sms', () => {
     it('sends a custom message', async () => {
       const request = makePostRequest({
         to: '5551234567',
-        customMessage: 'Hello from ToolTimePro!',
+        customMessage: 'Hello from Task Iguana!',
       });
 
       const response = await POST(request);
@@ -103,7 +103,7 @@ describe('/api/sms', () => {
       expect(body.success).toBe(true);
       expect(mockMessageCreate).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: 'Hello from ToolTimePro!',
+          body: 'Hello from Task Iguana!',
         })
       );
     });

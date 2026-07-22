@@ -48,7 +48,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
 process.env.TWILIO_ACCOUNT_SID = 'ACtest';
 process.env.TWILIO_AUTH_TOKEN = 'tok';
 process.env.TWILIO_MESSAGING_SERVICE_SID = 'MGtest';
-process.env.URL = 'https://www.tooltimepro.com';
+process.env.URL = 'https://www.taskiguana.com';
 
 const { POST } = require('@/app/api/jenny-pro/provision-number/route');
 const { authenticateRequest } = require('@/lib/server-auth');
@@ -80,8 +80,8 @@ describe('/api/jenny-pro/provision-number', () => {
     // Webhooks point at Jenny's routes.
     expect(mockIncomingCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        voiceUrl: 'https://www.tooltimepro.com/api/jenny-pro/voice',
-        smsUrl: 'https://www.tooltimepro.com/api/jenny-pro/sms-webhook',
+        voiceUrl: 'https://www.taskiguana.com/api/jenny-pro/voice',
+        smsUrl: 'https://www.taskiguana.com/api/jenny-pro/sms-webhook',
       })
     );
     // Attached to the A2P Messaging Service and mapping saved.

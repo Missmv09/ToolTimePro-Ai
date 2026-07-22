@@ -7,16 +7,16 @@
 const stockPhotos = {
   painter: {
     hero: [
-      { id: 'ph-p1', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_16_42%20PM.png', alt: 'Professional painter at work', credit: 'ToolTime Pro' },
-      { id: 'ph-p2', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_17_52%20PM.png', alt: 'Expert painting services', credit: 'ToolTime Pro' },
-      { id: 'ph-p3', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_22_32%20PM.png', alt: 'Quality interior painting', credit: 'ToolTime Pro' },
-      { id: 'ph-p4', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/Professional%20painters%20at%20work%20outdoors.png', alt: 'Professional painters at work outdoors', credit: 'ToolTime Pro' },
+      { id: 'ph-p1', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_16_42%20PM.png', alt: 'Professional painter at work', credit: 'Task Iguana' },
+      { id: 'ph-p2', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_17_52%20PM.png', alt: 'Expert painting services', credit: 'Task Iguana' },
+      { id: 'ph-p3', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_22_32%20PM.png', alt: 'Quality interior painting', credit: 'Task Iguana' },
+      { id: 'ph-p4', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/Professional%20painters%20at%20work%20outdoors.png', alt: 'Professional painters at work outdoors', credit: 'Task Iguana' },
     ],
     gallery: [
-      { id: 'pg-p1', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_16_42%20PM.png', alt: 'Professional painter at work', credit: 'ToolTime Pro' },
-      { id: 'pg-p2', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_17_52%20PM.png', alt: 'Expert painting services', credit: 'ToolTime Pro' },
-      { id: 'pg-p3', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_22_32%20PM.png', alt: 'Quality interior painting', credit: 'ToolTime Pro' },
-      { id: 'pg-p4', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/Professional%20painters%20at%20work%20outdoors.png', alt: 'Professional painters at work outdoors', credit: 'ToolTime Pro' },
+      { id: 'pg-p1', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_16_42%20PM.png', alt: 'Professional painter at work', credit: 'Task Iguana' },
+      { id: 'pg-p2', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_17_52%20PM.png', alt: 'Expert painting services', credit: 'Task Iguana' },
+      { id: 'pg-p3', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/ChatGPT%20Image%20Feb%2013,%202026,%2010_22_32%20PM.png', alt: 'Quality interior painting', credit: 'Task Iguana' },
+      { id: 'pg-p4', url: 'https://bqcymeefaizydfogaxcp.supabase.co/storage/v1/object/public/Stock-Photos/Professional%20painters%20at%20work%20outdoors.png', alt: 'Professional painters at work outdoors', credit: 'Task Iguana' },
     ],
   },
   landscaper: {

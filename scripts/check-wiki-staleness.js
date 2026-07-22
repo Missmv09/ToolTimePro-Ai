@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ToolTime Pro — Wiki Staleness Checker
+ * Task Iguana — Wiki Staleness Checker
  *
  * Compares changed files in a PR against a source→wiki mapping.
  * Outputs a list of wiki pages that may need manual updates.

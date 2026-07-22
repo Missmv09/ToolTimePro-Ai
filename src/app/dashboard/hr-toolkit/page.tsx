@@ -152,7 +152,7 @@ interface OnboardingTask {
 }
 
 const ONBOARDING_TASKS: OnboardingTask[] = [
-  { id: 'account_created', label: 'Account Created', description: 'Team member added to ToolTime Pro with login credentials' },
+  { id: 'account_created', label: 'Account Created', description: 'Team member added to Task Iguana with login credentials' },
   { id: 'classification', label: 'Worker Classified', description: 'Classified as W-2 employee or 1099 contractor' },
   { id: 'forms_collected', label: 'Tax Forms Collected', description: 'W-4 (employee) or W-9 (contractor) on file' },
   { id: 'i9_verified', label: 'I-9 Verified', description: 'Employment eligibility verified within 3 business days of hire' },
@@ -161,7 +161,7 @@ const ONBOARDING_TASKS: OnboardingTask[] = [
   { id: 'safety_training', label: 'Safety Training Completed', description: 'OSHA, heat illness, and job-specific safety training' },
   { id: 'harassment_training', label: 'Harassment Training', description: 'CA SB 1343 compliant harassment prevention training' },
   { id: 'equipment_issued', label: 'Equipment Issued', description: 'Tools, vehicle keys, uniforms, PPE issued and documented' },
-  { id: 'app_setup', label: 'Worker App Setup', description: 'ToolTime worker app installed, clock-in tested' },
+  { id: 'app_setup', label: 'Worker App Setup', description: 'Task Iguana worker app installed, clock-in tested' },
 ];
 
 export default function HRToolkitPage() {
@@ -742,7 +742,7 @@ export default function HRToolkitPage() {
             </p>
             <div className="space-y-2">
               {[
-                { label: 'Deactivate Account', desc: 'Remove access to ToolTime Pro and worker app' },
+                { label: 'Deactivate Account', desc: 'Remove access to Task Iguana and worker app' },
                 { label: 'Final Pay Calculation', desc: 'CA law: same day (fired) or 72 hours (quit). Use Final Pay Calculator template.' },
                 { label: 'Collect Equipment', desc: 'Tools, vehicle keys, uniforms, company phone/tablet, PPE' },
                 { label: 'Update Insurance', desc: 'Remove from workers comp policy, update vehicle insurance' },

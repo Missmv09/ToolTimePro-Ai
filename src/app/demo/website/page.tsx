@@ -361,7 +361,7 @@ export default function WebsiteDemoPage() {
         >
           <p className="font-bold text-white mb-2">{displayName}</p>
           <p>&copy; {new Date().getFullYear()} {displayName}. All rights reserved.</p>
-          <p className="mt-2 text-white/60">Powered by ToolTime Pro</p>
+          <p className="mt-2 text-white/60">Powered by Task Iguana</p>
         </footer>
       </div>
     </div>

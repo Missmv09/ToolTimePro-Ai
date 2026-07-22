@@ -1,6 +1,6 @@
 # Quotes & Estimates
 
-ToolTime Pro's Smart Quoting system helps you create professional estimates, get customer approval with e-signatures, and convert quotes to jobs — all in minutes.
+Task Iguana's Smart Quoting system helps you create professional estimates, get customer approval with e-signatures, and convert quotes to jobs — all in minutes.
 
 ---
 
@@ -83,7 +83,7 @@ This eliminates re-entering information and ensures pricing consistency.
 
 ## Quote Notifications
 
-ToolTime Pro sends automatic notifications for:
+Task Iguana sends automatic notifications for:
 - Quote sent to customer
 - Customer viewed the quote
 - Quote approved (with e-signature)

@@ -125,9 +125,9 @@ const defaultWizardData = {
   domainSearchResults: [],
   // Step 5
   colors: {
-    primary: '#1a1a2e',
+    primary: '#0A0C11',
     secondary: '#16213e',
-    accent: '#f5a623',
+    accent: '#1FE3C4',
     background: '#ffffff',
     headingColor: '',
     bodyColor: '',

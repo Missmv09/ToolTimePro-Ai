@@ -10,7 +10,7 @@ import PhotoSelector from './PhotoSelector';
 import SitePreviewFrame from './SitePreviewFrame';
 
 const colorPresets = [
-  { name: 'Classic', primary: '#1a1a2e', secondary: '#16213e', accent: '#f5a623', background: '#ffffff' },
+  { name: 'Classic', primary: '#0A0C11', secondary: '#16213e', accent: '#1FE3C4', background: '#ffffff' },
   { name: 'Modern', primary: '#374151', secondary: '#4b5563', accent: '#14b8a6', background: '#ffffff' },
   { name: 'Clean', primary: '#1e40af', secondary: '#1e3a8a', accent: '#3b82f6', background: '#ffffff' },
   { name: 'Bold', primary: '#18181b', secondary: '#27272a', accent: '#ef4444', background: '#ffffff' },
@@ -39,9 +39,9 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved, p
     licenseNumber: content.licenseNumber || '',
     yearsInBusiness: content.yearsInBusiness || '',
     colors: {
-      primary: content.colors?.primary || template.primary_color || '#1a1a2e',
+      primary: content.colors?.primary || template.primary_color || '#0A0C11',
       secondary: content.colors?.secondary || template.secondary_color || '#16213e',
-      accent: content.colors?.accent || template.accent_color || '#f5a623',
+      accent: content.colors?.accent || template.accent_color || '#1FE3C4',
       background: content.colors?.background || '#ffffff',
       headingColor: content.colors?.headingColor || '',
       bodyColor: content.colors?.bodyColor || '',
@@ -414,7 +414,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved, p
                     <div className="flex items-center gap-3">
                       <input
                         type="color"
-                        value={form.colors.headingColor || form.colors.primary || '#1a1a2e'}
+                        value={form.colors.headingColor || form.colors.primary || '#0A0C11'}
                         onChange={(e) => updateColors({ headingColor: e.target.value })}
                         className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
                       />
@@ -465,7 +465,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved, p
                         <option key={f} value={f}>{f}</option>
                       ))}
                     </select>
-                    <p className="mt-2 text-lg font-bold" style={{ fontFamily: `'${form.fontHeading || 'Inter'}', sans-serif`, color: form.colors.headingColor || form.colors.primary || '#1a1a2e' }}>
+                    <p className="mt-2 text-lg font-bold" style={{ fontFamily: `'${form.fontHeading || 'Inter'}', sans-serif`, color: form.colors.headingColor || form.colors.primary || '#0A0C11' }}>
                       The quick brown fox jumps over the lazy dog
                     </p>
                   </div>
@@ -498,7 +498,7 @@ export default function WebsiteEditor({ site, template = {}, onClose, onSaved, p
                     <div className="flex items-center gap-3">
                       <input
                         type="color"
-                        value={form.colors.headingColor || form.colors.primary || '#1a1a2e'}
+                        value={form.colors.headingColor || form.colors.primary || '#0A0C11'}
                         onChange={(e) => updateColors({ headingColor: e.target.value })}
                         className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer"
                       />

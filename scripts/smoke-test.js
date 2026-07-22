@@ -11,7 +11,7 @@
  * Usage:
  *   node scripts/smoke-test.js [baseUrl]
  *   SMOKE_BASE_URL=https://sandbox--<site>.netlify.app node scripts/smoke-test.js
- *   HEALTH_CHECK_TOKEN=… node scripts/smoke-test.js https://app.tooltimepro.com
+ *   HEALTH_CHECK_TOKEN=… node scripts/smoke-test.js https://app.taskiguana.com
  *
  * Resolution order for the base URL: CLI arg > SMOKE_BASE_URL env > localhost.
  *

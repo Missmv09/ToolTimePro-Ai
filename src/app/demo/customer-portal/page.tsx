@@ -81,9 +81,9 @@ export default function CustomerPortalDemoPage() {
   return (
     <main className="min-h-screen bg-gray-50 pb-32">
       {/* Demo Banner */}
-      <div className="bg-[#f5a623] text-[#1a1a2e] py-2 px-4 text-center">
+      <div className="bg-[#1FE3C4] text-[#0A0C11] py-2 px-4 text-center">
         <p className="text-sm font-medium">
-          <span className="bg-[#1a1a2e] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
+          <span className="bg-[#0A0C11] text-white px-2 py-0.5 rounded font-bold mr-2">DEMO</span>
           {t('bannerText')}{' '}
           <Link href="/auth/signup" className="underline font-bold">
             {t('signUp')}
@@ -116,7 +116,7 @@ export default function CustomerPortalDemoPage() {
       <div className="max-w-3xl mx-auto p-4">
         {activeTab === 'home' && (
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-2xl p-6 text-white">
               <h1 className="text-xl font-bold">{t('welcome', { name: demoCustomer.firstName })}</h1>
               <p className="text-white/70 text-sm mt-1">
                 {t('accountDescription', { company: demoCompany.name })}
@@ -326,7 +326,7 @@ export default function CustomerPortalDemoPage() {
                     </div>
                   </div>
                   {!isPaid && (
-                    <button className="w-full mt-3 py-2.5 bg-[#1a1a2e] text-white rounded-lg font-semibold text-sm">
+                    <button className="w-full mt-3 py-2.5 bg-[#0A0C11] text-white rounded-lg font-semibold text-sm">
                       {t('payNow')} — ${balance.toFixed(2)}
                     </button>
                   )}
@@ -389,7 +389,7 @@ export default function CustomerPortalDemoPage() {
       </div>
 
       {/* CTA Overlay */}
-      <div className="fixed bottom-20 left-4 right-4 max-w-3xl mx-auto bg-gradient-to-r from-[#1a1a2e] to-[#2d2d4a] rounded-xl p-4 text-white shadow-lg z-40">
+      <div className="fixed bottom-20 left-4 right-4 max-w-3xl mx-auto bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-xl p-4 text-white shadow-lg z-40">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="font-bold truncate">{t('ctaTitle')}</div>
@@ -397,7 +397,7 @@ export default function CustomerPortalDemoPage() {
           </div>
           <Link
             href="/pricing#addons"
-            className="px-4 py-2 bg-[#f5a623] text-[#1a1a2e] rounded-lg font-bold text-sm no-underline whitespace-nowrap"
+            className="px-4 py-2 bg-[#1FE3C4] text-[#0A0C11] rounded-lg font-bold text-sm no-underline whitespace-nowrap"
           >
             {t('ctaButton')}
           </Link>
@@ -420,7 +420,7 @@ export default function CustomerPortalDemoPage() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex flex-col items-center py-3 px-4 ${
-                  isActive ? 'text-[#1a1a2e]' : 'text-gray-400'
+                  isActive ? 'text-[#0A0C11]' : 'text-gray-400'
                 }`}
               >
                 <Icon className="w-5 h-5" />

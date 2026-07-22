@@ -38,7 +38,7 @@ export default function RouteRoiPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a1a2e]" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A0C11]" />
       </div>
     )
   }
@@ -68,7 +68,7 @@ export default function RouteRoiPage() {
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1a1a2e]">Route Savings Report</h1>
+        <h1 className="text-2xl font-bold text-[#0A0C11]">Route Savings Report</h1>
         <p className="text-gray-500 mt-1">
           The cumulative impact of optimizing your routes — based on {summary?.routeCount ?? 0} saved route
           {summary?.routeCount === 1 ? '' : 's'}.
@@ -82,7 +82,7 @@ export default function RouteRoiPage() {
           <p className="text-gray-500 mb-4">
             Optimize a route and click <strong>Save Route</strong> to start tracking your savings here.
           </p>
-          <Link href="/dashboard/route-optimizer" className="inline-block px-5 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44]">
+          <Link href="/dashboard/route-optimizer" className="inline-block px-5 py-2 bg-[#0A0C11] text-white rounded-lg text-sm font-medium hover:bg-[#2d2d44]">
             Go to Route Optimizer
           </Link>
         </div>
@@ -104,15 +104,15 @@ export default function RouteRoiPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <p className="text-sm text-gray-500">Routes optimized</p>
-              <p className="text-2xl font-bold text-[#1a1a2e]">{summary.routeCount}</p>
+              <p className="text-2xl font-bold text-[#0A0C11]">{summary.routeCount}</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <p className="text-sm text-gray-500">Avg. improvement</p>
-              <p className="text-2xl font-bold text-[#1a1a2e]">{summary.avgPercentImprovement}%</p>
+              <p className="text-2xl font-bold text-[#0A0C11]">{summary.avgPercentImprovement}%</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <p className="text-sm text-gray-500">Total miles driven</p>
-              <p className="text-2xl font-bold text-[#1a1a2e]">{summary.totalMilesDriven.toLocaleString()} mi</p>
+              <p className="text-2xl font-bold text-[#0A0C11]">{summary.totalMilesDriven.toLocaleString()} mi</p>
             </div>
           </div>
 

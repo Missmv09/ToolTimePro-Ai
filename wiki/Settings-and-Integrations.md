@@ -25,11 +25,11 @@ Click **Save** to update your changes.
 
 ### Integrations Tab
 
-Connect third-party tools to ToolTime Pro:
+Connect third-party tools to Task Iguana:
 
 #### QuickBooks Online
 
-Sync your financial data between ToolTime Pro and QuickBooks:
+Sync your financial data between Task Iguana and QuickBooks:
 
 - **Two-way sync** — Invoices, payments, and customers sync automatically
 - **Setup:**
@@ -38,7 +38,7 @@ Sync your financial data between ToolTime Pro and QuickBooks:
   3. Sign in to your QuickBooks account
   4. Authorize the connection
 - **What syncs:**
-  - Invoices created in ToolTime Pro appear in QuickBooks
+  - Invoices created in Task Iguana appear in QuickBooks
   - Payments recorded in either system sync across
   - Customer records stay in sync
 - **Monitoring:** View last sync time and sync status
@@ -66,7 +66,7 @@ View and manage your plan:
 
 ## Webhooks
 
-Webhooks let you send real-time notifications to external systems when events happen in ToolTime Pro. Perfect for custom integrations, Zapier connections, or internal tools.
+Webhooks let you send real-time notifications to external systems when events happen in Task Iguana. Perfect for custom integrations, Zapier connections, or internal tools.
 
 ### Setting Up a Webhook
 
@@ -102,9 +102,9 @@ Webhooks let you send real-time notifications to external systems when events ha
 
 ### Webhook Security
 
-Each webhook gets a unique secret key. Use it to verify that incoming requests are genuinely from ToolTime Pro:
+Each webhook gets a unique secret key. Use it to verify that incoming requests are genuinely from Task Iguana:
 
-1. ToolTime Pro signs each webhook payload with your secret
+1. Task Iguana signs each webhook payload with your secret
 2. Your server verifies the signature before processing
 3. Reject any requests with invalid signatures
 
@@ -120,14 +120,14 @@ Each webhook gets a unique secret key. Use it to verify that incoming requests a
 
 ## Stripe Payments
 
-ToolTime Pro uses Stripe for payment processing. Your customers can pay invoices by credit card.
+Task Iguana uses Stripe for payment processing. Your customers can pay invoices by credit card.
 
 ### How It Works
 
 - When you send an invoice, customers receive a payment link
 - They enter their card details on a secure Stripe-hosted page
 - Payment is deposited to your connected Stripe account
-- ToolTime Pro automatically marks the invoice as paid
+- Task Iguana automatically marks the invoice as paid
 
 ### Connecting Stripe
 
@@ -152,6 +152,6 @@ Stripe is set up during your initial account configuration. If you need to recon
 
 ## Need Help?
 
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Click the chat icon in your dashboard

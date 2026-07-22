@@ -90,7 +90,7 @@
       "responseTime": "Response Time",
       "moreLeads": "More Leads",
       "getCTA": "Get Your Jenny Lite",
-      "includedFree": "Included free with all ToolTime Pro plans",
+      "includedFree": "Included free with all Task Iguana plans",
       "onlineNow": "Online now",
       "typeMessage": "Type a message...",
       "newLeadCaptured": "NEW LEAD CAPTURED",
@@ -146,7 +146,7 @@
       "avgTimeToSign": "avg. time to sign:",
       "newLeadsTitle": "New Leads",
       "viewCRM": "View CRM",
-      "toolTimeShield": "ToolTime Shield",
+      "toolTimeShield": "Task Iguana Shield",
       "complianceStatus": "CA labor law compliance: 96% — AB5, final pay, break tracking active",
       "crewStatus": "Crew Status",
       "dispatchBoard": "Dispatch Board",
@@ -175,7 +175,7 @@
       "navRouteOptimizer": "Route Optimizer",
       "navJennyAI": "Jenny AI",
       "navReviews": "Reviews",
-      "navShield": "ToolTime Shield",
+      "navShield": "Task Iguana Shield",
       "navOnlineBooking": "Online Booking",
       "navQuickBooks": "QuickBooks Sync",
       "navMyWebsite": "My Website",
@@ -192,7 +192,7 @@
       "featureRoutesDesc": "Save time on the road",
       "featureReviews": "Review Machine",
       "featureReviewsDesc": "Automate 5-star reviews",
-      "featureShield": "ToolTime Shield",
+      "featureShield": "Task Iguana Shield",
       "featureShieldDesc": "CA compliance built-in",
       "featureBooking": "Online Booking",
       "featureBookingDesc": "Customers book directly",
@@ -254,7 +254,7 @@
       "venmo": "Venmo",
       "paymentDesc": "Customers can pay online with one click. Funds deposit in 1-2 business days.",
       "getPaidFaster": "Get Paid Faster",
-      "getPaidFasterDesc": "Businesses using ToolTime Pro get paid 3x faster with online invoicing.",
+      "getPaidFasterDesc": "Businesses using Task Iguana get paid 3x faster with online invoicing.",
       "startFreeTrial": "Start Free Trial",
       "stopChasing": "Stop Chasing Payments",
       "stopChasingDesc": "Create professional invoices in seconds, accept credit cards and ACH, and let automatic reminders do the follow-up for you. Get paid faster with less effort.",
@@ -309,7 +309,7 @@
       "bannerSuffix": "to manage your own schedule.",
       "backToHome": "Back to Home",
       "title": "Smart Scheduling Demo",
-      "subtitle": "See how ToolTime Pro helps you manage jobs, crews, and customer appointments",
+      "subtitle": "See how Task Iguana helps you manage jobs, crews, and customer appointments",
       "day": "Day",
       "week": "Week",
       "newJob": "+ New Job",
@@ -337,17 +337,17 @@
       "syncCalendarDesc": "Connect Google Calendar, Outlook, or Apple Calendar to avoid double-bookings.",
       "startFreeTrial": "Start Free Trial",
       "takeControl": "Take Control of Your Schedule",
-      "takeControlDesc": "Stop double-booking and missing appointments. ToolTime Pro's smart scheduler syncs with your calendar, sends automatic reminders, and lets customers book online 24/7.",
+      "takeControlDesc": "Stop double-booking and missing appointments. Task Iguana's smart scheduler syncs with your calendar, sends automatic reminders, and lets customers book online 24/7.",
       "getStartedFree": "Get Started Free",
       "seeCustomerBooking": "See Customer Booking",
       "poweredBy": "Powered by"
     },
     "shield": {
-      "bannerText": "Preview of ToolTime Shield — CA Compliance & HR Tools.",
+      "bannerText": "Preview of Task Iguana Shield — CA Compliance & HR Tools.",
       "bannerSignUp": "Sign up",
       "bannerSuffix": "to protect your business.",
       "backToHome": "Back to Home",
-      "title": "ToolTime Shield Demo",
+      "title": "Task Iguana Shield Demo",
       "subtitle": "California compliance tools, worker classification, and HR document library",
       "tabOverview": "Overview",
       "tabChecklist": "Compliance Checklist",
@@ -394,7 +394,7 @@
       "hrDocLibraryDesc": "California-compliant templates and forms",
       "downloads": "downloads",
       "protectBusiness": "Protect Your Business",
-      "protectBusinessDesc": "ToolTime Shield helps you stay compliant with California employment law, avoid costly lawsuits, and manage HR tasks with ease. Included in all ToolTime Pro plans.",
+      "protectBusinessDesc": "Task Iguana Shield helps you stay compliant with California employment law, avoid costly lawsuits, and manage HR tasks with ease. Included in all Task Iguana plans.",
       "startFreeTrial": "Start Free Trial",
       "seeFullDashboard": "See Full Dashboard",
       "poweredBy": "Powered by",
@@ -514,7 +514,7 @@
       "features": {
         "0": {
           "title": "Automatic Two-Way Sync",
-          "description": "Invoices, payments, and customer data sync automatically between ToolTime Pro and QuickBooks in real time."
+          "description": "Invoices, payments, and customer data sync automatically between Task Iguana and QuickBooks in real time."
         },
         "1": {
           "title": "Accurate Reporting",
@@ -522,11 +522,11 @@
         },
         "2": {
           "title": "Payment Reconciliation",
-          "description": "Payments collected through ToolTime Pro are automatically matched to invoices in QuickBooks."
+          "description": "Payments collected through Task Iguana are automatically matched to invoices in QuickBooks."
         },
         "3": {
           "title": "Customer Sync",
-          "description": "New customers created in ToolTime Pro are automatically added to QuickBooks, and vice versa."
+          "description": "New customers created in Task Iguana are automatically added to QuickBooks, and vice versa."
         },
         "4": {
           "title": "Tax-Ready Reports",
@@ -541,7 +541,7 @@
       "faq": {
         "0": {
           "q": "Which version of QuickBooks is supported?",
-          "a": "ToolTime Pro syncs with QuickBooks Online (all plans). QuickBooks Desktop is not currently supported."
+          "a": "Task Iguana syncs with QuickBooks Online (all plans). QuickBooks Desktop is not currently supported."
         },
         "1": {
           "q": "How often does it sync?",
@@ -557,7 +557,7 @@
         }
       },
       "ctaTitle": "Stop Double-Entering Data",
-      "ctaDescription": "Connect QuickBooks in one click and let ToolTime Pro handle the bookkeeping. Your accountant will thank you.",
+      "ctaDescription": "Connect QuickBooks in one click and let Task Iguana handle the bookkeeping. Your accountant will thank you.",
       "goToSettings": "Go to Settings",
       "ctaFootnote": "QuickBooks Sync add-on: $12/mo. Available on all plans."
     },
@@ -630,7 +630,7 @@
       "seeDispatchDemo": "See Dispatch Demo",
       "ctaFootnote": "Included with Elite plan ($129/mo)",
       "smarterTitle": "Not just shorter routes — smarter ones",
-      "smarterSubtitle": "What sets ToolTime Pro apart from basic route planners",
+      "smarterSubtitle": "What sets Task Iguana apart from basic route planners",
       "smarter": {
         "0": {
           "icon": "🎓",

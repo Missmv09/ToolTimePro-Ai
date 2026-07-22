@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ToolTime Pro — Stripe Product & Price Setup Script
+ * Task Iguana — Stripe Product & Price Setup Script
  *
  * Creates all products and prices in your Stripe account, then outputs
  * the NEXT_PUBLIC_STRIPE_PRICES JSON env var ready to paste into Netlify.
@@ -41,7 +41,7 @@ async function main() {
   const stripe = dryRun ? null : new Stripe(key);
   const result = {};
 
-  console.log(`\n🛠  ToolTime Pro — Stripe Setup (${dryRun ? 'DRY RUN' : key.startsWith('sk_live_') ? 'LIVE' : 'TEST'})\n`);
+  console.log(`\n🛠  Task Iguana — Stripe Setup (${dryRun ? 'DRY RUN' : key.startsWith('sk_live_') ? 'LIVE' : 'TEST'})\n`);
   console.log(`Creating ${PRODUCTS.length} products...\n`);
 
   for (const product of PRODUCTS) {

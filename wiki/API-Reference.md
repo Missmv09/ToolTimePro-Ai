@@ -3,9 +3,9 @@
 <!-- AUTO-GENERATED from src/app/api/ directory scan — do not edit manually -->
 <!-- To update: add/modify API routes, then run: node scripts/generate-wiki.js -->
 
-Complete list of ToolTime Pro API endpoints, auto-generated from source code.
+Complete list of Task Iguana API endpoints, auto-generated from source code.
 
-**Base URL:** `https://app.tooltimepro.com` (production) or `http://localhost:3000` (local dev)
+**Base URL:** `https://app.taskiguana.com` (production) or `http://localhost:3000` (local dev)
 
 ---
 

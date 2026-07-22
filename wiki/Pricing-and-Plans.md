@@ -3,7 +3,7 @@
 <!-- AUTO-GENERATED from scripts/setup-stripe-products.js — do not edit manually -->
 <!-- To update: change PRODUCTS in setup-stripe-products.js, then run: node scripts/generate-wiki.js -->
 
-ToolTime Pro offers three core plans, standalone options, and powerful add-ons. No surprise per-user fees — competitors charge $20/vehicle or $250+/technician. We don't.
+Task Iguana offers three core plans, standalone options, and powerful add-ons. No surprise per-user fees — competitors charge $20/vehicle or $250+/technician. We don't.
 
 ---
 
@@ -18,7 +18,7 @@ ToolTime Pro offers three core plans, standalone options, and powerful add-ons. 
 | Smart quoting + e-signatures | Yes | Yes | Yes |
 | Invoicing + card payments | Yes | Yes | Yes |
 | GPS clock-in (worker app) | Yes | Yes | Yes |
-| ToolTime Shield (compliance) | Yes | Yes | Yes |
+| Task Iguana Shield (compliance) | Yes | Yes | Yes |
 | HR document library (10+ templates) | Yes | Yes | Yes |
 | Spanish language support | Yes | Yes | Yes |
 | Chat & email support | Yes | Yes | Yes |
@@ -73,7 +73,7 @@ Extend your plan with powerful add-ons:
 |--------|---------|--------|-------------|
 | **Website Builder** | $25 | $250/yr | Custom landing page built for your business. |
 | **Compliance Autopilot** | $29 | $290/yr | Automated compliance monitoring, law-change alerts, and cert renewal reminders. |
-| **Extra Website Page** | $10 | $100/yr | Add additional pages to your ToolTime Pro website. |
+| **Extra Website Page** | $10 | $100/yr | Add additional pages to your Task Iguana website. |
 | **QuickBooks Sync** | $12 | $120/yr | Two-way sync with QuickBooks Online. Invoices, payments, and customers auto-sync. |
 | **Customer Portal Pro** | $24 | $240/yr | Branded customer portal: job tracker, photo gallery, messaging, document vault, service history. Included with Elite. |
 | **Extra Worker/Technician** | $7 | — | Add additional workers beyond your plan limit. $7/user/month. |
@@ -110,6 +110,6 @@ Extend your plan with powerful add-ons:
 ## Need Help Choosing?
 
 Contact us:
-- **Email:** support@tooltimepro.com
+- **Email:** support@taskiguana.com
 - **Phone:** 1-888-980-8665
 - **Live Chat:** Available in your dashboard

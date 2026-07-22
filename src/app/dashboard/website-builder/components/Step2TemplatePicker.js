@@ -44,9 +44,9 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
       templateId: template.id,
       colors: {
         ...prev.colors,
-        primary: template.primary_color || '#1a1a2e',
+        primary: template.primary_color || '#0A0C11',
         secondary: template.secondary_color || '#16213e',
-        accent: template.accent_color || '#f5a623',
+        accent: template.accent_color || '#1FE3C4',
         background: '#ffffff',
       },
       fontHeading: template.font_heading || 'Inter',
@@ -141,7 +141,7 @@ export default function Step2TemplatePicker({ wizardData, setWizardData }) {
               <div
                 className="h-48 relative"
                 style={{
-                  background: `linear-gradient(135deg, ${template.primary_color || '#1a1a2e'} 0%, ${template.secondary_color || '#333357'} 100%)`,
+                  background: `linear-gradient(135deg, ${template.primary_color || '#0A0C11'} 0%, ${template.secondary_color || '#333357'} 100%)`,
                 }}
               >
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4">

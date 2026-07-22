@@ -50,7 +50,7 @@ export default function ClassificationPage() {
               <Link href="/">
                 <Image
                   src="/logo-01262026.png"
-                  alt="ToolTime Pro"
+                  alt="Task Iguana"
                   width={140}
                   height={32}
                   className="h-8 w-auto"
@@ -98,7 +98,7 @@ export default function ClassificationPage() {
 
               <button
                 onClick={() => setStarted(true)}
-                className="inline-flex items-center gap-2 bg-[#f5a623] text-[#1a1a2e] px-8 py-4 rounded-xl font-bold hover:bg-[#e6991a] transition-colors"
+                className="inline-flex items-center gap-2 bg-[#1FE3C4] text-[#0A0C11] px-8 py-4 rounded-xl font-bold hover:bg-[#e6991a] transition-colors"
               >
                 {t('startTest')}
                 <ArrowRight className="w-5 h-5" />
@@ -207,7 +207,7 @@ export default function ClassificationPage() {
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#f5a623] transition-all duration-300"
+                  className="h-full bg-[#1FE3C4] transition-all duration-300"
                   style={{ width: `${((currentQuestion + 1) / 3) * 100}%` }}
                 />
               </div>
@@ -272,12 +272,12 @@ export default function ClassificationPage() {
         )}
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-[#1a1a2e] to-[#2d2d44] rounded-xl p-8 text-center text-white">
+        <div className="bg-gradient-to-r from-[#0A0C11] to-[#2d2d44] rounded-xl p-8 text-center text-white">
           <h3 className="text-xl font-bold mb-2">{t('getProtection')}</h3>
           <p className="text-gray-300 mb-6">{t('ctaText')}</p>
           <Link
             href="/auth/signup"
-            className="inline-block bg-[#f5a623] text-[#1a1a2e] px-8 py-3 rounded-lg font-bold hover:bg-[#e6991a] transition-colors"
+            className="inline-block bg-[#1FE3C4] text-[#0A0C11] px-8 py-3 rounded-lg font-bold hover:bg-[#e6991a] transition-colors"
           >
             {t('startTrial')}
           </Link>

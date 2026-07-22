@@ -19,7 +19,7 @@ export default function SiteError({ error, reset }) {
         style={{
           fontSize: '48px',
           fontWeight: 800,
-          color: '#1a1a2e',
+          color: '#0A0C11',
           marginBottom: '12px',
         }}
       >
@@ -40,8 +40,8 @@ export default function SiteError({ error, reset }) {
           onClick={() => reset()}
           style={{
             padding: '12px 28px',
-            background: '#f5a623',
-            color: '#1a1a2e',
+            background: '#1FE3C4',
+            color: '#0A0C11',
             borderRadius: '8px',
             fontWeight: 700,
             fontSize: '15px',
@@ -56,14 +56,14 @@ export default function SiteError({ error, reset }) {
           style={{
             padding: '12px 28px',
             background: '#e5e7eb',
-            color: '#1a1a2e',
+            color: '#0A0C11',
             borderRadius: '8px',
             fontWeight: 700,
             fontSize: '15px',
             textDecoration: 'none',
           }}
         >
-          Go to ToolTime Pro
+          Go to Task Iguana
         </a>
       </div>
     </div>
