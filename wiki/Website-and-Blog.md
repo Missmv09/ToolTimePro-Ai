@@ -125,5 +125,5 @@ Published blog posts appear on your Task Iguana website automatically, giving yo
 ## Need Help?
 
 - **Email:** support@taskiguana.com
-- **Phone:** 1-888-980-8665
+- **Phone:** 1-844-744-8262
 - **Live Chat:** Click the chat icon in your dashboard

@@ -282,8 +282,8 @@ export default function Home() {
             {/* Language Switcher */}
             <LanguageSwitcher />
 
-            <a href="tel:1-888-980-8665" className="text-white/70 text-base flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors no-underline">
-              📞 <span>(888) 980-TOOL</span>
+            <a href="tel:1-844-744-8262" className="text-white/70 text-base flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors no-underline">
+              📞 <span>(844) 7-IGUANA</span>
             </a>
             <Link
               href="/auth/signup"

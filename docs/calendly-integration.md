@@ -123,7 +123,7 @@ Before your session, please:
 
 If you need to reschedule, use the link in this email.
 
-Questions? Email support@taskiguana.com or call 1-888-980-8665.
+Questions? Email support@taskiguana.com or call 1-844-744-8262.
 
 See you soon!
 — The Task Iguana Team

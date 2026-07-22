@@ -130,7 +130,7 @@ export default function IndustriesPage() {
             <Link href="/pricing" className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline">{t('pricing')}</Link>
             <Link href="/tools" className="text-white/70 font-medium text-base hover:text-white transition-colors no-underline">{t('freeTools')}</Link>
             <span className="text-white/70 text-base flex items-center gap-1">
-              📞 (888) 980-TOOL
+              📞 (844) 7-IGUANA
             </span>
             <Link
               href="/auth/login"
