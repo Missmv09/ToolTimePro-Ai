@@ -281,29 +281,59 @@ function matchServices(description: string): ServiceMatch[] {
   return matched;
 }
 
-function extractQuantityHint(description: string, serviceName: string): number | null {
-  // Try to find numbers near the service keywords
-  const patterns = [
-    /(\d+)\s*(?:acre|acres)/i,
-    /(\d+)\s*(?:tree|trees)/i,
-    /(\d+)\s*(?:window|windows)/i,
-    /(\d+)\s*(?:feet|ft|foot|linear)/i,
-    /(\d+)\s*(?:sq\s*ft|sqft|square\s*feet)/i,
-    /(\d+)\s*(?:yard|yards|cubic)/i,
-    /(\d+)\s*(?:hour|hours|hr|hrs)/i,
-  ];
+// Measurement patterns tagged with the kind of quantity they represent. Order
+// matters: more specific units (sqft) must be tried before ones whose keywords
+// they contain (linear feet), so "600 square feet" is read as area, not length.
+const MEASUREMENT_PATTERNS: { regex: RegExp; measures: string }[] = [
+  { regex: /(\d[\d,]*)\s*(?:sq\.?\s*ft|sqft|square\s*(?:feet|foot|ft))/i, measures: 'sqft' },
+  { regex: /(\d[\d,]*)\s*(?:linear\s*(?:feet|foot|ft)|lin\.?\s*ft|feet|foot|ft)\b/i, measures: 'linear_ft' },
+  { regex: /(\d[\d,]*)\s*(?:cubic\s*(?:yards?|yd)|cu\.?\s*yds?|yards?)/i, measures: 'cubic_yard' },
+  { regex: /(\d[\d,]*)\s*(?:hours?|hrs?)\b/i, measures: 'hour' },
+  { regex: /(\d[\d,]*)\s*(?:trees?)/i, measures: 'tree' },
+  { regex: /(\d[\d,]*)\s*(?:windows?)/i, measures: 'window' },
+];
 
-  for (const pattern of patterns) {
-    const match = description.match(pattern);
-    if (match) {
-      return parseInt(match[1], 10);
+// A measurement is only usable as a service's quantity when its unit matches
+// how the service is billed. This prevents a property-size measurement (e.g.
+// "600 sq ft") from being multiplied against a flat per-visit price like lawn
+// mowing at $45 -- which is how a $45 mow became a $27,000 quote.
+function measurementFitsService(measures: string, service: ServiceMatch): boolean {
+  switch (measures) {
+    case 'sqft':
+      return service.unit === 'sqft';
+    case 'linear_ft':
+      return service.unit === 'linear_ft';
+    case 'cubic_yard':
+      return service.unit === 'cubic_yard';
+    case 'hour':
+      return service.unit === 'hour';
+    case 'tree':
+      return service.name.includes('Tree');
+    case 'window':
+      return service.name.includes('Window');
+    default:
+      return false;
+  }
+}
+
+function extractQuantityHint(description: string, service: ServiceMatch): number | null {
+  // Only apply a spoken/typed measurement as the quantity when its unit is
+  // compatible with the service's billing unit. An incompatible measurement
+  // (e.g. yard square footage for a flat-rate service) is ignored so the
+  // service keeps its sensible default quantity.
+  for (const { regex, measures } of MEASUREMENT_PATTERNS) {
+    const match = description.match(regex);
+    if (!match) continue;
+    if (measurementFitsService(measures, service)) {
+      const value = parseInt(match[1].replace(/,/g, ''), 10);
+      if (Number.isFinite(value) && value > 0) return value;
     }
+    // Measurement found but not billed in this unit -- keep scanning in case a
+    // later pattern matches a unit this service does bill in.
   }
 
   // Check for qualitative hints
-  if (/half[- ]acre/i.test(description)) return serviceName.includes('Lawn') ? 1 : null;
-  if (/large|big/i.test(description)) return null; // Keep default but could bump later
-  if (/small|tiny/i.test(description)) return null;
+  if (/half[- ]acre/i.test(description)) return service.name.includes('Lawn') ? 1 : null;
 
   return null;
 }
@@ -398,7 +428,7 @@ export async function POST(request: NextRequest) {
 
     // Build service response objects
     const services = matched.map((m) => {
-      const qtyHint = extractQuantityHint(jobDescription, m.name);
+      const qtyHint = extractQuantityHint(jobDescription, m);
       const quantity = qtyHint ?? m.quantity;
       return {
         name: m.name,

@@ -105,6 +105,63 @@ function matchServices(description) {
   return matched;
 }
 
+// ---- Duplicated quantity-hint logic (must match route.ts) ----
+
+const MEASUREMENT_PATTERNS = [
+  { regex: /(\d[\d,]*)\s*(?:sq\.?\s*ft|sqft|square\s*(?:feet|foot|ft))/i, measures: 'sqft' },
+  { regex: /(\d[\d,]*)\s*(?:linear\s*(?:feet|foot|ft)|lin\.?\s*ft|feet|foot|ft)\b/i, measures: 'linear_ft' },
+  { regex: /(\d[\d,]*)\s*(?:cubic\s*(?:yards?|yd)|cu\.?\s*yds?|yards?)/i, measures: 'cubic_yard' },
+  { regex: /(\d[\d,]*)\s*(?:hours?|hrs?)\b/i, measures: 'hour' },
+  { regex: /(\d[\d,]*)\s*(?:trees?)/i, measures: 'tree' },
+  { regex: /(\d[\d,]*)\s*(?:windows?)/i, measures: 'window' },
+];
+
+function measurementFitsService(measures, service) {
+  switch (measures) {
+    case 'sqft': return service.unit === 'sqft';
+    case 'linear_ft': return service.unit === 'linear_ft';
+    case 'cubic_yard': return service.unit === 'cubic_yard';
+    case 'hour': return service.unit === 'hour';
+    case 'tree': return service.name.includes('Tree');
+    case 'window': return service.name.includes('Window');
+    default: return false;
+  }
+}
+
+function extractQuantityHint(description, service) {
+  for (const { regex, measures } of MEASUREMENT_PATTERNS) {
+    const match = description.match(regex);
+    if (!match) continue;
+    if (measurementFitsService(measures, service)) {
+      const value = parseInt(match[1].replace(/,/g, ''), 10);
+      if (Number.isFinite(value) && value > 0) return value;
+    }
+  }
+  if (/half[- ]acre/i.test(description)) return service.name.includes('Lawn') ? 1 : null;
+  return null;
+}
+
+// Minimal service definitions (name + unit + default quantity) for quantity
+// tests. Kept in sync with the pricing catalog in route.ts.
+const SERVICE_UNITS = {
+  'Lawn Mowing': { name: 'Lawn Mowing', unit: 'each', quantity: 1 },
+  'Painting': { name: 'Painting', unit: 'sqft', quantity: 200 },
+  'Sod Installation': { name: 'Sod Installation', unit: 'sqft', quantity: 500 },
+  'Fence Repair / Install': { name: 'Fence Repair / Install', unit: 'linear_ft', quantity: 20 },
+  'Mulch Installation': { name: 'Mulch Installation', unit: 'cubic_yard', quantity: 3 },
+  'Window Cleaning': { name: 'Window Cleaning', unit: 'each', quantity: 10 },
+  'Tree Trimming': { name: 'Tree Trimming', unit: 'each', quantity: 1 },
+  'Irrigation System Service': { name: 'Irrigation System Service', unit: 'hour', quantity: 2 },
+};
+
+// Resolve the effective quantity a service would receive for a description,
+// mirroring route.ts (hint if present, otherwise the catalog default).
+function effectiveQuantity(description, serviceName) {
+  const service = SERVICE_UNITS[serviceName];
+  const hint = extractQuantityHint(description, service);
+  return hint ?? service.quantity;
+}
+
 // ---- Helpers ----
 
 function matchedNames(description) {
@@ -560,5 +617,68 @@ describe('Edge cases – vague or ambiguous input', () => {
   test('gibberish matches nothing', () => {
     const names = matchedNames('asdfghjkl zxcvbnm');
     expect(names).toHaveLength(0);
+  });
+});
+
+// ====================================================================
+// SECTION 5: Quantity hints must respect the service's billing unit
+// (Regression: a "600 sq ft" lawn became 600 × $45 = $27,000)
+// ====================================================================
+
+describe('FIXED: square-footage does not inflate flat-rate services', () => {
+  test('"lawn mowing for 600 square feet" → Lawn stays quantity 1', () => {
+    expect(effectiveQuantity('Lawn mowing for 600 square feet', 'Lawn Mowing')).toBe(1);
+  });
+
+  test('"mow the 5,000 sqft backyard" → Lawn stays quantity 1', () => {
+    expect(effectiveQuantity('Mow the 5,000 sqft backyard', 'Lawn Mowing')).toBe(1);
+  });
+
+  test('"tree trimming, tree is 40 ft tall" → Tree stays quantity 1', () => {
+    expect(effectiveQuantity('Tree trimming, the tree is 40 ft tall', 'Tree Trimming')).toBe(1);
+  });
+});
+
+describe('Quantity hints apply when the unit matches the service', () => {
+  test('"paint 300 square feet" → Painting quantity 300', () => {
+    expect(effectiveQuantity('Paint 300 square feet of wall', 'Painting')).toBe(300);
+  });
+
+  test('"lay 500 sqft of new sod" → Sod quantity 500', () => {
+    expect(effectiveQuantity('Lay 500 sqft of new sod', 'Sod Installation')).toBe(500);
+  });
+
+  test('"install 40 linear feet of fence" → Fence quantity 40', () => {
+    expect(effectiveQuantity('Install 40 linear feet of fence', 'Fence Repair / Install')).toBe(40);
+  });
+
+  test('"spread 5 yards of mulch" → Mulch quantity 5', () => {
+    expect(effectiveQuantity('Spread 5 yards of mulch in the beds', 'Mulch Installation')).toBe(5);
+  });
+
+  test('"clean 15 windows" → Window Cleaning quantity 15', () => {
+    expect(effectiveQuantity('Clean 15 windows inside and out', 'Window Cleaning')).toBe(15);
+  });
+
+  test('"prune 3 trees" → Tree Trimming quantity 3', () => {
+    expect(effectiveQuantity('Prune 3 trees along the fence', 'Tree Trimming')).toBe(3);
+  });
+
+  test('"irrigation repair, about 3 hours" → Irrigation quantity 3', () => {
+    expect(effectiveQuantity('Irrigation repair, about 3 hours of work', 'Irrigation System Service')).toBe(3);
+  });
+});
+
+describe('Defaults are used when no compatible measurement is present', () => {
+  test('"mow the lawn" → Lawn default quantity 1', () => {
+    expect(effectiveQuantity('Mow the lawn out back', 'Lawn Mowing')).toBe(1);
+  });
+
+  test('"paint the bedroom" → Painting default quantity 200', () => {
+    expect(effectiveQuantity('Paint the bedroom', 'Painting')).toBe(200);
+  });
+
+  test('"half-acre lawn" → Lawn quantity 1', () => {
+    expect(effectiveQuantity('Half-acre lawn needs mowing', 'Lawn Mowing')).toBe(1);
   });
 });
