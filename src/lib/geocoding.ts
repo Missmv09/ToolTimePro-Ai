@@ -78,7 +78,7 @@ export async function geocodeAddress(address: string): Promise<GeoCoordinates | 
 
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'ToolTimePro/1.0 (field-service-management)',
+        'User-Agent': 'TaskIguana/1.0 (field-service-management)',
       },
     });
 

@@ -1,6 +1,6 @@
 # Test Account Setup Guide
 
-This guide walks you through setting up a complete test/demo environment for ToolTime Pro.
+This guide walks you through setting up a complete test/demo environment for Task Iguana.
 
 ## Quick Reference
 
@@ -16,7 +16,7 @@ This guide walks you through setting up a complete test/demo environment for Too
 
 ## Option 1: Quick Demo Mode (No Database)
 
-The fastest way to explore ToolTime Pro features without any setup:
+The fastest way to explore Task Iguana features without any setup:
 
 ```
 http://localhost:3000/demo/dashboard    - Dashboard preview

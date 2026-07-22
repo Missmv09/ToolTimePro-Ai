@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# ToolTimePro Project Audit Script
+# Task Iguana Project Audit Script
 # Comprehensive audit of the project structure, dependencies, and code quality
 
 echo "=============================================="
-echo "  ToolTimePro Project Audit"
+echo "  Task Iguana Project Audit"
 echo "  $(date)"
 echo "=============================================="
 echo ""

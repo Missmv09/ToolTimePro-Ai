@@ -1,4 +1,4 @@
-# ToolTime Pro Database Setup
+# Task Iguana Database Setup
 
 ## Step 1: Create Supabase Project
 
