@@ -51,7 +51,7 @@ BEGIN
         (
             v_worker_carlos,
             '00000000-0000-0000-0000-000000000000',
-            'carlos@tooltimepro.com',
+            'carlos@taskiguana.com',
             crypt('testpassword123', gen_salt('bf')),
             NOW(),
             NOW(),
@@ -64,7 +64,7 @@ BEGIN
         (
             v_worker_maria,
             '00000000-0000-0000-0000-000000000000',
-            'maria@tooltimepro.com',
+            'maria@taskiguana.com',
             crypt('testpassword123', gen_salt('bf')),
             NOW(),
             NOW(),
@@ -77,7 +77,7 @@ BEGIN
         (
             v_worker_james,
             '00000000-0000-0000-0000-000000000000',
-            'james@tooltimepro.com',
+            'james@taskiguana.com',
             crypt('testpassword123', gen_salt('bf')),
             NOW(),
             NOW(),
@@ -99,7 +99,7 @@ BEGIN
         (
             v_worker_carlos,
             v_company_id,
-            'carlos@tooltimepro.com',
+            'carlos@taskiguana.com',
             'Carlos Ramirez',
             '310-555-0601',
             'worker',
@@ -109,7 +109,7 @@ BEGIN
         (
             v_worker_maria,
             v_company_id,
-            'maria@tooltimepro.com',
+            'maria@taskiguana.com',
             'Maria Santos',
             '310-555-0602',
             'worker',
@@ -119,7 +119,7 @@ BEGIN
         (
             v_worker_james,
             v_company_id,
-            'james@tooltimepro.com',
+            'james@taskiguana.com',
             'James Wilson',
             '310-555-0603',
             'worker',
@@ -217,7 +217,7 @@ END $$;
 -- ============================================
 
 -- View workers
--- SELECT full_name, email, role, hourly_rate FROM users WHERE email LIKE '%@tooltimepro.com';
+-- SELECT full_name, email, role, hourly_rate FROM users WHERE email LIKE '%@taskiguana.com';
 
 -- View job prices
 -- SELECT title, total_amount, status FROM jobs ORDER BY scheduled_date;

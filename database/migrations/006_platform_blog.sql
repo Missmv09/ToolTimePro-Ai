@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS platform_blog_posts (
     excerpt TEXT,
     content TEXT NOT NULL,
     cover_image TEXT,
-    author_name VARCHAR(255) DEFAULT 'ToolTime Pro Team',
+    author_name VARCHAR(255) DEFAULT 'Task Iguana Team',
     category VARCHAR(100), -- e.g. 'tips', 'guides', 'industry-news', 'product-updates'
     tags TEXT[], -- array of tags
     meta_title VARCHAR(200),

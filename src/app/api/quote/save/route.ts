@@ -68,11 +68,12 @@ export async function POST(request: NextRequest) {
 
       // If the error is about columns not existing in schema cache,
       // retry without those fields
-      if (quoteError.message?.includes('created_by') || quoteError.message?.includes('sent_by') || quoteError.message?.includes('terms') || quoteError.code === '42703') {
+      if (quoteError.message?.includes('created_by') || quoteError.message?.includes('sent_by') || quoteError.message?.includes('terms') || quoteError.message?.includes('frequency') || quoteError.code === '42703') {
         const retryData = { ...quoteData }
         delete retryData.created_by
         delete retryData.terms
         delete retryData.sent_by
+        delete retryData.frequency
         delete retryData.deposit_amount
         delete retryData.deposit_required
         delete retryData.deposit_percentage

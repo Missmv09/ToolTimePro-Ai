@@ -86,7 +86,7 @@ Not sure where to start? We offer two onboarding packages:
 | **Assisted Onboarding** | $199 (one-time) | Guided setup call, service catalog configuration, team invites, booking page setup |
 | **White-Glove Setup** | $499 (one-time) | Full account configuration, data migration, custom website build, training session |
 
-Contact support@taskiguana.com or call 1-888-980-8665 to book.
+Contact support@taskiguana.com or call 1-844-744-8262 to book.
 
 ---
 

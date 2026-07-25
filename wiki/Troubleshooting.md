@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and solutions for Task Iguana. If your problem isn't listed here, contact support@taskiguana.com or call 1-888-980-8665.
+Common issues and solutions for Task Iguana. If your problem isn't listed here, contact support@taskiguana.com or call 1-844-744-8262.
 
 ---
 
@@ -174,7 +174,7 @@ Common issues and solutions for Task Iguana. If your problem isn't listed here, 
 ## Still Need Help?
 
 - **Email:** support@taskiguana.com
-- **Phone:** 1-888-980-8665
+- **Phone:** 1-844-744-8262
 - **Live Chat:** Click the chat icon in your dashboard
 - **Response time:** We typically respond within 2 hours during business hours
 

@@ -111,5 +111,5 @@ Extend your plan with powerful add-ons:
 
 Contact us:
 - **Email:** support@taskiguana.com
-- **Phone:** 1-888-980-8665
+- **Phone:** 1-844-744-8262
 - **Live Chat:** Available in your dashboard

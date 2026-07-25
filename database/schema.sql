@@ -1,4 +1,4 @@
--- ToolTime Pro Database Schema
+-- Task Iguana Database Schema
 -- Run this in Supabase SQL Editor (supabase.com > SQL Editor > New Query)
 
 -- Enable UUID extension
@@ -263,6 +263,7 @@ CREATE TABLE quotes (
     discount_amount DECIMAL(10,2) DEFAULT 0,
     total DECIMAL(10,2) DEFAULT 0,
     status VARCHAR(50) DEFAULT 'draft', -- draft, sent, viewed, approved, rejected, expired
+    frequency VARCHAR(20) DEFAULT 'one_time', -- one_time, weekly, biweekly, monthly (label-only)
     valid_until DATE,
     sent_at TIMESTAMP WITH TIME ZONE,
     viewed_at TIMESTAMP WITH TIME ZONE,

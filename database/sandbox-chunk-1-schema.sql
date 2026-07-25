@@ -1,6 +1,6 @@
 -- SANDBOX CHUNK 1 of 3 — base schema
 
--- ToolTime Pro Database Schema
+-- Task Iguana Database Schema
 -- Run this in Supabase SQL Editor (supabase.com > SQL Editor > New Query)
 
 -- Enable UUID extension

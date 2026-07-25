@@ -145,7 +145,7 @@ export default function HelpButton() {
                 <span className="text-xs font-medium text-gray-700">Email Us</span>
               </a>
               <a
-                href="tel:1-888-980-8665"
+                href="tel:1-844-744-8262"
                 className="flex flex-col items-center gap-1.5 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
               >
                 <Phone size={20} className="text-gold-500 group-hover:text-gold-600" />

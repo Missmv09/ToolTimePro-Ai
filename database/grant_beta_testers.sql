@@ -29,7 +29,7 @@ WHERE
   lower(c.email) IN (
     'missmv@gmail.com',
     'justinkirksey@hotmail.com',
-    'sandbox-test@tooltimepro.com',
+    'sandbox-test@taskiguana.com',
     'qat56217@gmail.com'
   )
   OR c.id IN (
@@ -38,7 +38,7 @@ WHERE
     WHERE lower(u.email) IN (
       'missmv@gmail.com',
       'justinkirksey@hotmail.com',
-      'sandbox-test@tooltimepro.com',
+      'sandbox-test@taskiguana.com',
       'qat56217@gmail.com'
     )
   );
