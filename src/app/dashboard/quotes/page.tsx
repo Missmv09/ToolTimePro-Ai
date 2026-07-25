@@ -1487,8 +1487,23 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
         deposit_percentage: quote.deposit_percentage,
       }
 
-      // Update existing quote
-      const { error: updateError } = await supabase.from('quotes').update(quoteData).eq('id', quote.id)
+      // Update existing quote. Some deployments may be behind on migrations
+      // (e.g. the `frequency` or deposit columns). Mirror the create path
+      // (/api/quote/save): if the failure is a missing column, strip the
+      // optional fields and retry so the core edit still saves.
+      let updateError = (await supabase.from('quotes').update(quoteData).eq('id', quote.id)).error
+      if (
+        updateError &&
+        (updateError.code === '42703' || /frequency|terms|deposit_/.test(updateError.message || ''))
+      ) {
+        const retryData = { ...quoteData }
+        delete retryData.frequency
+        delete retryData.terms
+        delete retryData.deposit_required
+        delete retryData.deposit_amount
+        delete retryData.deposit_percentage
+        updateError = (await supabase.from('quotes').update(retryData).eq('id', quote.id)).error
+      }
       if (updateError) {
         console.error('Error updating quote:', updateError)
         setSaveError(friendlySaveError(updateError.message))
