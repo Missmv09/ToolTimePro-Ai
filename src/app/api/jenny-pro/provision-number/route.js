@@ -31,7 +31,7 @@ function baseUrl() {
     process.env.PUBLIC_BASE_URL ||
     process.env.URL ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    'https://www.taskiguana.com';
+    'https://taskiguana.com';
   return raw.replace(/\/$/, '');
 }
 
