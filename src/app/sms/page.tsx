@@ -30,6 +30,12 @@ export default function SmsPage() {
           <section>
             <h2 className="text-xl font-bold mb-3">{t('programName')}</h2>
             <p>Task Iguana Service Notifications</p>
+            <p className="mt-2 text-sm text-[#0A0C11]/70">
+              Task Iguana is the field-service management platform at{' '}
+              <a href="https://taskiguana.com" className="text-[#1FE3C4] underline">taskiguana.com</a>,
+              formerly known as ToolTime Pro. Our A2P messaging brand remains registered
+              under the prior name, ToolTime Pro.
+            </p>
           </section>
 
           <section>
