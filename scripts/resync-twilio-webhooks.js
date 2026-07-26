@@ -16,8 +16,8 @@
  * alone.
  *
  * Target host resolution (same precedence as the app's baseUrl() helper):
- *   PUBLIC_BASE_URL -> URL (Netlify) -> NEXT_PUBLIC_SITE_URL -> https://www.taskiguana.com
- * Override with --base=https://www.taskiguana.com if needed.
+ *   PUBLIC_BASE_URL -> URL (Netlify) -> NEXT_PUBLIC_SITE_URL -> https://taskiguana.com
+ * Override with --base=https://taskiguana.com if needed.
  *
  * Modes:
  *   (default)   Audit only — read-only Twilio API calls, prints what WOULD
@@ -29,7 +29,7 @@
  * Usage:
  *   TWILIO_ACCOUNT_SID=AC... TWILIO_AUTH_TOKEN=... node scripts/resync-twilio-webhooks.js
  *   TWILIO_ACCOUNT_SID=AC... TWILIO_AUTH_TOKEN=... node scripts/resync-twilio-webhooks.js --write
- *   ... node scripts/resync-twilio-webhooks.js --base=https://www.taskiguana.com --write
+ *   ... node scripts/resync-twilio-webhooks.js --base=https://taskiguana.com --write
  *
  * NOTE: numbers attached to a Messaging Service receive INBOUND SMS via the
  * Messaging Service's own inbound webhook, not the number's smsUrl. This script
@@ -51,7 +51,7 @@ function resolveBase(argv) {
     process.env.PUBLIC_BASE_URL ||
     process.env.URL ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    'https://www.taskiguana.com';
+    'https://taskiguana.com';
   return raw.replace(/\/+$/, '');
 }
 
