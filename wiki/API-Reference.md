@@ -5,7 +5,7 @@
 
 Complete list of Task Iguana API endpoints, auto-generated from source code.
 
-**Base URL:** `https://app.taskiguana.com` (production) or `http://localhost:3000` (local dev)
+**Base URL:** `https://www.taskiguana.com` (production) or `http://localhost:3000` (local dev)
 
 ---
 
