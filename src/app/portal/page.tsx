@@ -138,7 +138,7 @@ export default function PortalDashboard() {
                   <div>
                     <p className="font-medium text-gray-900">{t('invoiceNumber', { number: inv.invoice_number })}</p>
                     <p className="text-xs text-gray-500">
-                      {inv.due_date ? t('dueDate', { date: new Date(inv.due_date).toLocaleDateString() }) : t('noDueDate')}
+                      {inv.due_date ? t('dueDate', { date: new Date(inv.due_date + 'T00:00:00').toLocaleDateString() }) : t('noDueDate')}
                     </p>
                   </div>
                 </div>
