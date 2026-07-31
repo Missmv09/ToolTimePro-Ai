@@ -353,7 +353,7 @@ export default function PaymentPlansPage() {
                             )}
                             <div>
                               <p className="text-sm font-medium">Installment {inst.installment_number}</p>
-                              <p className="text-xs text-gray-500">Due {new Date(inst.due_date).toLocaleDateString()}</p>
+                              <p className="text-xs text-gray-500">Due {new Date(inst.due_date + 'T00:00:00').toLocaleDateString()}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">

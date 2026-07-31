@@ -325,7 +325,11 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
   // Format date
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'N/A';
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    // valid_until is a DATE column ('YYYY-MM-DD'); new Date() parses it as UTC
+    // midnight and renders a day early in timezones behind UTC. Append a local
+    // time for date-only strings; leave full timestamps (created_at) untouched.
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? new Date(dateStr + 'T00:00:00') : new Date(dateStr);
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
