@@ -100,7 +100,9 @@
       "sending": "Enviando...",
       "requestSent": "¡Solicitud enviada!",
       "confirmNewTime": "Confirmaremos tu nuevo horario pronto.",
-      "loading": "Cargando citas..."
+      "loading": "Cargando citas...",
+      "reschedulePending": "Cambio de fecha solicitado — pendiente de confirmación",
+      "reschedulePendingDate": "Solicitaste cambiarlo al {date}. Lo confirmaremos pronto."
     },
     "messages": {
       "title": "Mensajes",
@@ -147,7 +149,8 @@
       "live": "En vivo",
       "crew": "Equipo: {members}",
       "updates": "Actualizaciones",
-      "loading": "Cargando rastreo..."
+      "loading": "Cargando rastreo...",
+      "reschedulePending": "Cambio de fecha solicitado — pendiente"
     },
     "documents": {
       "title": "Documentos",
