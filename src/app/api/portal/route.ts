@@ -181,6 +181,34 @@ export async function GET(request: NextRequest) {
       .in('status', ['scheduled', 'in_progress'])
       .order('scheduled_date', { ascending: true });
 
+    // Flag jobs with a pending reschedule request so the customer's own view
+    // reflects that their request is in flight (Bugs #50/#51) instead of still
+    // showing the appointment as plainly "confirmed".
+    const upcomingIds = (jobs || []).map((j) => j.id);
+    const pendingByJob: Record<string, { requested_date: string; requested_time_start: string | null }> = {};
+    if (upcomingIds.length > 0) {
+      const { data: pending } = await (supabase as any)
+        .from('reschedule_requests')
+        .select('job_id, requested_date, requested_time_start, created_at')
+        .eq('customer_id', session.customer_id)
+        .eq('status', 'pending')
+        .in('job_id', upcomingIds)
+        .order('created_at', { ascending: false });
+      for (const r of (pending || []) as { job_id: string; requested_date: string; requested_time_start: string | null }[]) {
+        // Keep the most recent pending request per job (ordered desc above)
+        if (!pendingByJob[r.job_id]) {
+          pendingByJob[r.job_id] = { requested_date: r.requested_date, requested_time_start: r.requested_time_start };
+        }
+      }
+    }
+
+    const upcoming = (jobs || []).map((j) => ({
+      ...j,
+      reschedule_pending: !!pendingByJob[j.id],
+      reschedule_requested_date: pendingByJob[j.id]?.requested_date ?? null,
+      reschedule_requested_time: pendingByJob[j.id]?.requested_time_start ?? null,
+    }));
+
     const { data: pastJobs } = await supabase
       .from('jobs')
       .select('id, title, scheduled_date, status, total_amount')
@@ -190,7 +218,7 @@ export async function GET(request: NextRequest) {
       .order('scheduled_date', { ascending: false })
       .limit(10);
 
-    return NextResponse.json({ upcoming: jobs || [], past: pastJobs || [] });
+    return NextResponse.json({ upcoming, past: pastJobs || [] });
   }
 
   // Fetch invoices
@@ -253,6 +281,19 @@ export async function GET(request: NextRequest) {
       latestNotes = data || [];
     }
 
+    // Pending reschedule requests, so the tracker reflects that a change was
+    // requested rather than still reading as "confirmed" (Bug #51).
+    const pendingReschedule = new Set<string>();
+    if (jobIds.length > 0) {
+      const { data } = await (supabase as any)
+        .from('reschedule_requests')
+        .select('job_id')
+        .eq('customer_id', session.customer_id)
+        .eq('status', 'pending')
+        .in('job_id', jobIds);
+      for (const r of (data || []) as { job_id: string }[]) pendingReschedule.add(r.job_id);
+    }
+
     // Merge crew + notes into jobs
     const enrichedJobs = (activeJobs || []).map((job: { id: string }) => {
       const crew = assignments
@@ -262,7 +303,7 @@ export async function GET(request: NextRequest) {
           return user?.full_name || 'Team member';
         });
       const notes = latestNotes.filter(n => n.job_id === job.id).slice(0, 3);
-      return { ...job, crew, statusUpdates: notes };
+      return { ...job, crew, statusUpdates: notes, reschedule_pending: pendingReschedule.has(job.id) };
     });
 
     return NextResponse.json({ jobs: enrichedJobs });

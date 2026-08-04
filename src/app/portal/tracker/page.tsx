@@ -31,6 +31,7 @@ interface TrackedJob {
   state: string | null;
   crew: string[];
   statusUpdates: StatusUpdate[];
+  reschedule_pending?: boolean;
 }
 
 export default function PortalTracker() {
@@ -108,6 +109,13 @@ export default function PortalTracker() {
                       {job.scheduled_time_start && ` at ${job.scheduled_time_start}`}
                       {job.scheduled_time_end && ` — ${job.scheduled_time_end}`}
                     </div>
+
+                    {job.reschedule_pending && (
+                      <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {t('reschedulePending')}
+                      </div>
+                    )}
 
                     {job.address && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
