@@ -172,13 +172,18 @@ function InvoicesContent() {
 
   const updateInvoiceStatus = async (invoiceId: string, newStatus: string) => {
     try {
-      const updates: { status: string; updated_at: string; paid_at?: string } = {
+      const updates: { status: string; updated_at: string; paid_at?: string; amount_paid?: number } = {
         status: newStatus,
         updated_at: new Date().toISOString()
       }
 
       if (newStatus === 'paid') {
         updates.paid_at = new Date().toISOString()
+        // Mark the invoice fully paid so balance (total - amount_paid) reads $0
+        // everywhere (portal, invoice detail). Without this, a manually-paid
+        // invoice kept amount_paid = 0 and still showed the full total owed.
+        const inv = invoices.find(i => i.id === invoiceId)
+        if (inv) updates.amount_paid = inv.total
       }
 
       const { error } = await supabase.from('invoices').update(updates).eq('id', invoiceId)
