@@ -120,7 +120,9 @@ export default function PortalInvoices() {
           {filtered.map(inv => {
             const badge = getStatusBadge(inv);
             const StatusIcon = badge.icon;
-            const balance = inv.total - inv.amount_paid;
+            // A paid invoice always reads $0 owed, even if amount_paid wasn't
+            // backfilled on older records.
+            const balance = inv.status === 'paid' ? 0 : inv.total - inv.amount_paid;
             const canPay = ['sent', 'viewed', 'partial', 'overdue'].includes(inv.status) && balance > 0;
 
             return (
