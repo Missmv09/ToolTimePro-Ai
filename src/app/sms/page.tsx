@@ -32,9 +32,9 @@ export default function SmsPage() {
             <p>Task Iguana Service Notifications</p>
             <p className="mt-2 text-sm text-[#0A0C11]/70">
               Task Iguana is the field-service management platform at{' '}
-              <a href="https://taskiguana.com" className="text-[#1FE3C4] underline">taskiguana.com</a>,
-              formerly known as ToolTime Pro. Our A2P messaging brand remains registered
-              under the prior name, ToolTime Pro.
+              <a href="https://taskiguana.com" className="text-[#1FE3C4] underline">taskiguana.com</a>.
+              All SMS messages, opt-in/opt-out flows, Privacy Policy, and Terms &amp; Conditions
+              are operated under the Task Iguana brand.
             </p>
           </section>
 

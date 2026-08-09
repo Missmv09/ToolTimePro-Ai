@@ -31,8 +31,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-bold mb-3">1. Introduction</h2>
             <p>
               Task Iguana (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the taskiguana.com website and the Task Iguana
-              platform. Task Iguana was formerly known as ToolTime Pro, and our SMS/A2P messaging program remains
-              registered under that prior name. This Privacy Policy explains how we collect, use, disclose, and
+              platform. This Privacy Policy explains how we collect, use, disclose, and
               safeguard your information when you use our services.
             </p>
           </section>
