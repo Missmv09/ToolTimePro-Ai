@@ -138,7 +138,7 @@ export default function PortalInvoices() {
                         <p>{t('sent', { date: new Date(inv.sent_at).toLocaleDateString() })}</p>
                       )}
                       {inv.due_date && inv.status !== 'paid' && (
-                        <p>{t('due', { date: new Date(inv.due_date).toLocaleDateString() })}</p>
+                        <p>{t('due', { date: new Date(inv.due_date + 'T00:00:00').toLocaleDateString() })}</p>
                       )}
                       {inv.paid_at && (
                         <p className="text-green-600">{t('paidDate', { date: new Date(inv.paid_at).toLocaleDateString() })}</p>

@@ -369,7 +369,7 @@ function InvoicesContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: phone,
-          customMessage: `Hi ${invoice.customer?.name}, this is a friendly reminder that invoice ${invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`} for $${invoice.total.toLocaleString()} is due${invoice.due_date ? ` on ${new Date(invoice.due_date).toLocaleDateString()}` : ''}. Please contact us if you have any questions.`,
+          customMessage: `Hi ${invoice.customer?.name}, this is a friendly reminder that invoice ${invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`} for $${invoice.total.toLocaleString()} is due${invoice.due_date ? ` on ${new Date(invoice.due_date + 'T00:00:00').toLocaleDateString()}` : ''}. Please contact us if you have any questions.`,
           companyId,
           customerId: invoice.customer?.id,
         }),
@@ -573,7 +573,7 @@ function InvoicesContent() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : '-'}
+                      {invoice.due_date ? new Date(invoice.due_date + 'T00:00:00').toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">

@@ -100,7 +100,9 @@
       "sending": "Sending...",
       "requestSent": "Request Sent!",
       "confirmNewTime": "We'll confirm your new time shortly.",
-      "loading": "Loading appointments..."
+      "loading": "Loading appointments...",
+      "reschedulePending": "Reschedule requested — pending confirmation",
+      "reschedulePendingDate": "You asked to move this to {date}. We’ll confirm shortly."
     },
     "messages": {
       "title": "Messages",
@@ -147,7 +149,8 @@
       "live": "Live",
       "crew": "Crew: {members}",
       "updates": "Updates",
-      "loading": "Loading tracker..."
+      "loading": "Loading tracker...",
+      "reschedulePending": "Reschedule requested — pending confirmation"
     },
     "documents": {
       "title": "Documents",

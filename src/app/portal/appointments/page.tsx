@@ -22,6 +22,9 @@ interface Job {
   scheduled_time_end: string | null;
   status: string;
   address: string | null;
+  reschedule_pending?: boolean;
+  reschedule_requested_date?: string | null;
+  reschedule_requested_time?: string | null;
 }
 
 interface PastJob {
@@ -149,7 +152,21 @@ export default function PortalAppointments() {
                   )}
                 </div>
 
-                {job.status === 'scheduled' && (
+                {job.reschedule_pending ? (
+                  <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                    <CalendarClock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-amber-800">{t('reschedulePending')}</p>
+                      {job.reschedule_requested_date && (
+                        <p className="text-amber-700">
+                          {t('reschedulePendingDate', {
+                            date: new Date(job.reschedule_requested_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : job.status === 'scheduled' ? (
                   <button
                     onClick={() => setRescheduleJob(job)}
                     className="mt-4 text-sm text-blue-600 font-medium flex items-center gap-1 hover:text-blue-700"
@@ -157,7 +174,7 @@ export default function PortalAppointments() {
                     <CalendarClock className="w-4 h-4" />
                     {t('requestReschedule')}
                   </button>
-                )}
+                ) : null}
               </div>
             ))}
           </div>

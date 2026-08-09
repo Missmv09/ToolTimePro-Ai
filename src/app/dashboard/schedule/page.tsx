@@ -7,6 +7,20 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import JennyReschedule from '@/components/JennyReschedule'
 
+// Dates are handled as local "YYYY-MM-DD" strings. `new Date("YYYY-MM-DD")`
+// parses as UTC midnight, which renders as the PREVIOUS day in timezones behind
+// UTC (e.g. US Pacific), so parse/format in LOCAL time instead.
+function parseLocalDate(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+function toISODate(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 interface Job {
   id: string
   title: string
@@ -22,7 +36,7 @@ interface Job {
 export default function SchedulePage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(toISODate(new Date()))
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
 
   const router = useRouter()
@@ -38,12 +52,12 @@ export default function SchedulePage() {
     let endDate = date
 
     if (viewMode === 'week') {
-      const d = new Date(date)
+      const d = parseLocalDate(date)
       const day = d.getDay()
       const weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day)
       const weekEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day + 6)
-      startDate = weekStart.toISOString().split('T')[0]
-      endDate = weekEnd.toISOString().split('T')[0]
+      startDate = toISODate(weekStart)
+      endDate = toISODate(weekEnd)
     }
 
     const { data, error } = await supabase
@@ -92,13 +106,13 @@ export default function SchedulePage() {
   }, [selectedDate, viewMode, companyId, fetchJobs])
 
   const changeDate = (days: number) => {
-    const newDate = new Date(selectedDate)
+    const newDate = parseLocalDate(selectedDate)
     newDate.setDate(newDate.getDate() + days)
-    setSelectedDate(newDate.toISOString().split('T')[0])
+    setSelectedDate(toISODate(newDate))
   }
 
   const goToToday = () => {
-    setSelectedDate(new Date().toISOString().split('T')[0])
+    setSelectedDate(toISODate(new Date()))
   }
 
   const statusColors: Record<string, string> = {
@@ -118,7 +132,7 @@ export default function SchedulePage() {
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return parseLocalDate(date).toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -296,12 +310,12 @@ export default function SchedulePage() {
         // Week View
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: 7 }).map((_, i) => {
-            const base = new Date(selectedDate)
+            const base = parseLocalDate(selectedDate)
             const day = base.getDay()
             const date = new Date(base.getFullYear(), base.getMonth(), base.getDate() - day + i)
-            const dateStr = date.toISOString().split('T')[0]
+            const dateStr = toISODate(date)
             const dayJobs = jobsByDate[dateStr] || []
-            const isToday = dateStr === new Date().toISOString().split('T')[0]
+            const isToday = dateStr === toISODate(new Date())
 
             return (
               <div key={i} className={`bg-white rounded-lg border min-h-[200px] ${isToday ? 'ring-2 ring-blue-500' : ''}`}>
