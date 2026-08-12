@@ -452,7 +452,8 @@ export default function DashboardDemoPage() {
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">🛡️</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/shield-iguana.svg" alt="" className="w-6 h-6" />
                   <h2 className="font-bold text-[#0A0C11]">{t('toolTimeShield')}</h2>
                 </div>
                 <Link href="/demo/shield" className="text-sm text-blue-600 font-medium no-underline hover:underline">{t('viewAll')} →</Link>
