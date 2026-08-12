@@ -85,7 +85,8 @@ export default function ShieldDemoPage() {
             ← {t('backToHome')}
           </Link>
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-4xl">🛡️</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/shield-iguana.svg" alt="Shield Iguana" className="w-11 h-11" />
             <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
             <div className="ml-auto"><LanguageSwitcher /></div>
           </div>
