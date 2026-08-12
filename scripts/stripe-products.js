@@ -10,7 +10,7 @@ const PRODUCTS = [
   {
     id: 'starter',
     name: 'Task Iguana — Starter',
-    description: 'Owner + 2 workers. Website, booking, quoting, invoicing, GPS clock-in, Task Iguana Shield, Jenny Lite included.',
+    description: 'Owner + 2 workers. Website, booking, quoting, invoicing, GPS clock-in, Shield Iguana, Jenny Lite included.',
     prices: [
       { key: 'monthly', amount: 4900, interval: 'month' },
       { key: 'annual', amount: 49000, interval: 'year' },

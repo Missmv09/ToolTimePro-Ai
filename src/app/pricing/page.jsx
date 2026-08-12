@@ -25,7 +25,7 @@ const TIERS = [
       'Smart quoting & invoicing',
       'GPS clock-in',
       'AI-powered quotes & reviews',
-      'Federal compliance (Task Iguana Shield)',
+      'Federal compliance (Shield Iguana)',
       '1-page website',
       'Spanish language support',
       'Jenny Lite — AI Chat & Lead Capture',

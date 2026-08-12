@@ -71,7 +71,7 @@ const helpSections: HelpSection[] = [
       { label: 'Adding Services', href: `${WIKI_BASE}/Adding-Services`, icon: Wrench },
       { label: 'Team Management', href: `${WIKI_BASE}/Team-Management`, icon: Users },
       { label: 'Mobile & Worker App', href: `${WIKI_BASE}/Mobile-and-Worker-App`, icon: Smartphone },
-      { label: 'Task Iguana Shield', href: `${WIKI_BASE}/ToolTime-Shield`, icon: Shield },
+      { label: 'Shield Iguana', href: `${WIKI_BASE}/Shield-Iguana`, icon: Shield },
       { label: 'Reports & Analytics', href: `${WIKI_BASE}/Reports-and-Analytics`, icon: BarChart3 },
     ],
   },

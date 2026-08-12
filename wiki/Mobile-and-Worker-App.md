@@ -124,4 +124,4 @@ Owners and admins access the full dashboard from their phone via the same mobile
 
 - [Manage your team](Team-Management) roles and permissions
 - [Set up GPS clock-in](Team-Management) requirements
-- [Review compliance](ToolTime-Shield) for break tracking and wage laws
+- [Review compliance](Shield-Iguana) for break tracking and wage laws
