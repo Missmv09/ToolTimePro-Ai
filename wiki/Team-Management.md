@@ -71,7 +71,7 @@ Task Iguana tracks labor laws across:
 - **New York** — Freelance protection act, wage theft laws
 - **Illinois** — Day labor rules, overtime regulations
 
-See [Task Iguana Shield](ToolTime-Shield) for full compliance features.
+See [Shield Iguana](Shield-Iguana) for full compliance features.
 
 ---
 
@@ -110,7 +110,7 @@ Workers clock in and out via the mobile app:
 ## Best Practices
 
 1. **Set roles carefully** — Give workers minimum necessary access
-2. **Classify correctly** — Use Task Iguana Shield's classification quiz if unsure about W-2 vs 1099
+2. **Classify correctly** — Use Shield Iguana's classification quiz if unsure about W-2 vs 1099
 3. **Enable GPS clock-in** — Creates accountability and proof of work
 4. **Review time logs weekly** — Catch overtime issues before they become costly
 5. **Keep certifications current** — Track expiration dates for licenses and insurance
@@ -120,5 +120,5 @@ Workers clock in and out via the mobile app:
 ## Next Steps
 
 - [Download the Worker App](Mobile-and-Worker-App) for your team
-- [Review compliance tools](ToolTime-Shield) for worker classification
+- [Review compliance tools](Shield-Iguana) for worker classification
 - [Explore dispatch features](Getting-Started) available on your plan

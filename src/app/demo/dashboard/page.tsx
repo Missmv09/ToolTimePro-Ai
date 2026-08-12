@@ -448,7 +448,7 @@ export default function DashboardDemoPage() {
               </div>
             </div>
 
-            {/* Task Iguana Shield — Compliance */}
+            {/* Shield Iguana — Compliance */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50">
                 <div className="flex items-center gap-2">

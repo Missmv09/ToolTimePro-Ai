@@ -455,7 +455,7 @@ export default function ShieldDemoPage() {
           </div>
         )}
 
-        <DemoLeadCapture featureName="Task Iguana Shield" source="shield_demo" />
+        <DemoLeadCapture featureName="Shield Iguana" source="shield_demo" />
 
         {/* Bottom CTA */}
         <div className="mt-8 bg-gradient-to-r from-[#0A0C11] to-[#2d2d4a] rounded-2xl p-8 text-center text-white">

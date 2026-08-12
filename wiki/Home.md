@@ -48,7 +48,7 @@ Task Iguana is an AI-powered field service management platform built for contrac
 | [Adding Services](Adding-Services) | Service catalog, pricing, categories |
 | [Team Management](Team-Management) | Workers, roles, permissions, blended workforce |
 | [Mobile & Worker App](Mobile-and-Worker-App) | GPS clock-in, job management, photo uploads |
-| [Task Iguana Shield](ToolTime-Shield) | Compliance, worker classification, HR toolkit |
+| [Shield Iguana](Shield-Iguana) | Compliance, worker classification, HR toolkit |
 | [Reports & Analytics](Reports-and-Analytics) | Revenue charts, worker hours, lead conversion |
 
 ---

@@ -10,7 +10,7 @@ Task Iguana is an AI-powered field service management platform for contractors. 
 ### How is Task Iguana different from Jobber, ServiceTitan, or Housecall Pro?
 - **AI-native from day one** — Jenny AI is included in every plan, not a premium add-on
 - **No per-user pricing traps** — Competitors charge $20/vehicle or $250+/technician. We don't.
-- **Built-in compliance** — Task Iguana Shield handles worker classification, wage laws, and HR docs
+- **Built-in compliance** — Shield Iguana handles worker classification, wage laws, and HR docs
 - **Bilingual** — Native English and Spanish support in every tier (40%+ of field crews are Spanish-speaking)
 - **Fast setup** — Running in 1–2 weeks, not 6–12 months
 - **Affordable** — Starting at $49/month vs $200+/month for comparable platforms
@@ -78,7 +78,7 @@ Go to **Team** → **+ Add Team Member**. Enter their details, set their role, a
 - **W-2 Employees** get full employment protections (break tracking, overtime, wage laws)
 - **1099 Contractors** have separate payment flows and classification guardrails
 
-Task Iguana manages both side by side. Use the **Worker Classification Quiz** in Task Iguana Shield to determine the correct classification.
+Task Iguana manages both side by side. Use the **Worker Classification Quiz** in Shield Iguana to determine the correct classification.
 
 ### Do workers need to download an app?
 No app store download needed. The Worker App is a mobile-optimized web app that works in any phone browser. Workers can add it to their home screen for an app-like experience.
@@ -93,8 +93,8 @@ Yes. Workers can switch to Spanish from their profile settings.
 ### How does GPS clock-in work?
 Workers tap **Clock In** on their phone when arriving at a job. Their GPS location is automatically recorded. Same for clock-out. Owners see all time entries with locations in the dashboard.
 
-### What is Task Iguana Shield?
-Task Iguana Shield is the built-in compliance suite. It includes worker classification quizzes, final wage calculators, AB5 checklists, HR document templates, and multi-state compliance tracking. See [Task Iguana Shield](ToolTime-Shield) for details.
+### What is Shield Iguana?
+Shield Iguana is the built-in compliance suite. It includes worker classification quizzes, final wage calculators, AB5 checklists, HR document templates, and multi-state compliance tracking. See [Shield Iguana](Shield-Iguana) for details.
 
 ### How does online booking work?
 Customers visit your booking page, browse your active services, pick a time slot, and book. The booking creates a lead/job in your dashboard. Smart calendar prevents double-bookings, and automatic reminders reduce no-shows.

@@ -78,7 +78,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
     switchReasons: [
       { title: 'AI That Runs Your Back Office', description: 'Jenny auto-dispatches crews, follows up on cold leads, alerts you about overdue invoices, and calculates job profitability — all on autopilot. HCP\'s AI just answers phones.' },
-      { title: 'Compliance Built In', description: 'Task Iguana Shield protects you from misclassification lawsuits, tracks break compliance, and covers 5 states. HCP has nothing like this.' },
+      { title: 'Compliance Built In', description: 'Shield Iguana protects you from misclassification lawsuits, tracks break compliance, and covers 5 states. HCP has nothing like this.' },
       { title: '75% Less Per User', description: 'Add team members for $7/mo vs $35/mo. A 10-person team saves over $3,000/year on user fees alone.' },
       { title: 'Material Estimator', description: '"Paint a 12x14 room" → instant material list with quantities, brands, and costs across 21 trades. No competitor has this.' },
     ],
@@ -185,7 +185,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
     switchReasons: [
       { title: 'AI-Native Platform', description: 'FieldPulse has no AI features. Task Iguana includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
-      { title: 'Compliance Protection', description: 'FieldPulse has no labor law compliance tools. Task Iguana Shield covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
+      { title: 'Compliance Protection', description: 'FieldPulse has no labor law compliance tools. Shield Iguana covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
       { title: 'Material Estimator', description: '21 trade-specific calculators with real Home Depot/Lowe\'s pricing. "Paint a 12x14 room" → instant material list. FieldPulse has nothing like this.' },
       { title: 'Transparent Pricing', description: 'FieldPulse hides their pricing behind a sales demo. Our pricing is published online — $49/mo starter, $79/mo pro, $129/mo elite. No surprises.' },
     ],
@@ -193,7 +193,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       { question: 'Why does FieldPulse hide their pricing?', answer: 'Many FSM platforms hide pricing to qualify leads through sales calls. Task Iguana believes in transparency — our pricing is published online with no hidden fees.' },
       { question: 'Can I migrate from FieldPulse?', answer: 'Yes! Export your customer list as a CSV and our team handles the import. Most migrations complete in under 24 hours.' },
       { question: 'Does Task Iguana have GPS tracking?', answer: 'Yes — our Worker App includes GPS clock-in/out, real-time location tracking, and route optimization. All included in every plan.' },
-      { question: 'What makes Task Iguana different from FieldPulse?', answer: 'Three things no competitor has: (1) Jenny AI that autonomously manages your back office, (2) Task Iguana Shield compliance tools for labor law, (3) Material Estimator covering 21 trades with real supplier pricing.' },
+      { question: 'What makes Task Iguana different from FieldPulse?', answer: 'Three things no competitor has: (1) Jenny AI that autonomously manages your back office, (2) Shield Iguana compliance tools for labor law, (3) Material Estimator covering 21 trades with real supplier pricing.' },
     ],
   },
 
@@ -240,7 +240,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
     switchReasons: [
       { title: 'AI That Runs Your Back Office', description: 'Jobber has zero AI. Task Iguana includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
-      { title: 'Compliance Protection', description: 'Jobber has no labor law tools. Task Iguana Shield covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
+      { title: 'Compliance Protection', description: 'Jobber has no labor law tools. Shield Iguana covers worker classification, break tracking, and multi-state compliance across CA, TX, FL, NY, and IL.' },
       { title: '75% Less Per User', description: 'Add team members for $7/mo vs $29/mo. A 10-person team saves over $2,600/year on user fees alone.' },
       { title: 'Material Estimator', description: '"Tile a 10x12 bathroom" → instant material list with quantities, brands, and costs across 21 trades. Jobber has nothing like this.' },
     ],
@@ -293,7 +293,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
     switchReasons: [
       { title: 'AI-Powered Operations', description: 'Kickserv is purely manual. Jenny AI auto-dispatches crews, follows up leads, alerts on overdue invoices, and calculates profitability — zero extra effort.' },
-      { title: 'Compliance Built In', description: 'Kickserv has no labor law tools. Task Iguana Shield covers worker classification, break compliance, and state-specific rules across CA, TX, FL, NY, and IL.' },
+      { title: 'Compliance Built In', description: 'Kickserv has no labor law tools. Shield Iguana covers worker classification, break compliance, and state-specific rules across CA, TX, FL, NY, and IL.' },
       { title: 'Trade-Specific Tools', description: 'Material estimator covers 21 trades with real supplier pricing. "Install 200 sq ft of hardwood" → instant material list. Kickserv can\'t do this.' },
       { title: 'Bilingual Support', description: 'Full Spanish language support throughout the platform. Over 30% of the trades workforce is Spanish-speaking — Task Iguana is built for them.' },
     ],
@@ -347,7 +347,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     switchReasons: [
       { title: 'Beyond Pest & Lawn', description: 'GorillaDesk is built for pest control and lawn care. Task Iguana supports 21 trades — HVAC, plumbing, electrical, painting, roofing, and more. One platform for any service business.' },
       { title: 'AI-Powered Operations', description: 'GorillaDesk is 100% manual. Jenny AI auto-dispatches, follows up on leads, sends payment reminders, and calculates job profitability automatically.' },
-      { title: 'Compliance Protection', description: 'No labor law tools in GorillaDesk. Task Iguana Shield handles worker classification, break tracking, and multi-state compliance for CA, TX, FL, NY, and IL.' },
+      { title: 'Compliance Protection', description: 'No labor law tools in GorillaDesk. Shield Iguana handles worker classification, break tracking, and multi-state compliance for CA, TX, FL, NY, and IL.' },
       { title: 'Better Per-User Economics', description: 'GorillaDesk charges per route ($49+/route). Task Iguana charges per user ($7/mo) so you can scale without route-based pricing surprises.' },
     ],
     faqs: [
@@ -399,7 +399,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
     switchReasons: [
       { title: 'AI Included, Not Add-On', description: 'Workiz charges extra for their Genius AI suite. Task Iguana includes Jenny AI in every plan — auto-dispatch, lead follow-up, cash flow alerts, and job costing at no additional cost.' },
-      { title: 'Compliance Protection', description: 'Workiz has no labor law tools. Task Iguana Shield handles worker classification, break tracking, and multi-state compliance to keep you protected.' },
+      { title: 'Compliance Protection', description: 'Workiz has no labor law tools. Shield Iguana handles worker classification, break tracking, and multi-state compliance to keep you protected.' },
       { title: '80% Lower Starting Price', description: 'Workiz Standard starts at $198/mo. Task Iguana starts at $49/mo with more features included. That\'s $1,800+/year in savings from day one.' },
       { title: 'Material Estimator', description: '21 trade-specific calculators with real supplier pricing. Get instant material lists for any job — a feature Workiz simply doesn\'t have.' },
     ],
@@ -454,7 +454,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     switchReasons: [
       { title: 'Right-Sized Pricing', description: 'Service Fusion starts at $225/mo even for a solo contractor. Task Iguana starts at $49/mo. Why pay for unlimited users when you only have 3?' },
       { title: 'AI-Native Platform', description: 'Service Fusion has no AI features. Jenny AI auto-dispatches crews, follows up leads, manages invoicing alerts, and calculates job profitability automatically.' },
-      { title: 'Compliance Built In', description: 'Service Fusion offers no labor law compliance. Task Iguana Shield covers worker classification, break tracking, and state-specific rules across CA, TX, FL, NY, and IL.' },
+      { title: 'Compliance Built In', description: 'Service Fusion offers no labor law compliance. Shield Iguana covers worker classification, break tracking, and state-specific rules across CA, TX, FL, NY, and IL.' },
       { title: 'No Nickel-and-Diming', description: 'Service Fusion charges extra for GPS ($25/vehicle), inventory, and other features. Task Iguana includes GPS tracking, inventory, and offline mode in every plan.' },
     ],
     faqs: [
