@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import {
-  Shield,
   Calculator,
   GitBranch,
   FileText,
@@ -87,9 +86,8 @@ export default function ShieldPage() {
       {/* Header */}
       <div className="bg-navy-gradient rounded-2xl p-8 text-white">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 bg-gold-500 rounded-xl flex items-center justify-center">
-            <Shield className="w-8 h-8 text-navy-500" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/shield-iguana.svg" alt="Shield Iguana" className="w-14 h-14" />
           <div>
             <h1 className="text-2xl font-bold">Shield Iguana</h1>
             <p className="text-white/70">Legal Protection Tools</p>
