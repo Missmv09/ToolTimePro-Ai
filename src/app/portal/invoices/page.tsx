@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { isPastDate } from '@/lib/dates';
 import Link from 'next/link';
 import {
   FileText,
@@ -62,7 +63,7 @@ export default function PortalInvoices() {
   }
 
   const getStatusBadge = (inv: Invoice) => {
-    const isOverdue = inv.status === 'overdue' || (inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid');
+    const isOverdue = inv.status === 'overdue' || (isPastDate(inv.due_date) && inv.status !== 'paid');
 
     if (inv.status === 'paid') return { label: t('statusPaid'), color: 'bg-green-100 text-green-700', icon: CheckCircle };
     if (isOverdue) return { label: t('statusOverdue'), color: 'bg-red-100 text-red-700', icon: AlertCircle };

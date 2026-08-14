@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
+import { isPastDate } from '@/lib/dates'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
@@ -443,7 +444,7 @@ function InvoicesContent() {
   const isOverdue = (invoice: Invoice) => {
     if (invoice.status === 'paid' || invoice.status === 'cancelled') return false
     if (!invoice.due_date) return false
-    return new Date(invoice.due_date) < new Date()
+    return isPastDate(invoice.due_date)
   }
 
   if (loading) {

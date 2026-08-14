@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { daysSince, daysUntil } from '@/lib/dates';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { pricesNeedAttention, calculatePriceIntelligence, type CategoryStalenessStatus } from '@/lib/supplier-pricing';
 import { getMaterialsByTrade, getMaterialById, type TradeType } from '@/lib/materials-database';
@@ -505,7 +506,7 @@ async function runCashFlowAlerts(
   for (const inv of newOverdue) {
     const customer = Array.isArray(inv.customer) ? inv.customer[0] : inv.customer;
     const balance = inv.total - inv.amount_paid;
-    const daysOverdue = Math.floor((now.getTime() - new Date(inv.due_date).getTime()) / 86400000);
+    const daysOverdue = daysSince(inv.due_date);
 
     await supabase.from('jenny_action_log').insert({
       company_id: companyId,
@@ -1290,8 +1291,7 @@ async function runQuoteExpirationCheck(
   for (const quote of expiringQuotes) {
     if (alreadyAlerted.has(quote.id)) continue;
 
-    const validUntil = new Date(quote.valid_until);
-    const daysUntilExpiry = Math.floor((validUntil.getTime() - now.getTime()) / 86400000);
+    const daysUntilExpiry = daysUntil(quote.valid_until);
     const isExpired = daysUntilExpiry < 0;
     const customer = Array.isArray(quote.customer) ? quote.customer[0] : quote.customer;
     const customerName = (customer as { name: string } | null)?.name || 'Unknown Customer';

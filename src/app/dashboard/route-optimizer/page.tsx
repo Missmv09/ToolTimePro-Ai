@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { parseLocalDate, toISODate, formatTime12 } from '@/lib/dates';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { supabase } from '@/lib/supabase';
@@ -187,7 +188,7 @@ function RouteMap({ jobs, optimizedOrder, isOptimized, onPinMoved }: {
         marker.bindPopup(`
           <strong>${index + 1}. ${customerName}</strong><br/>
           ${job?.address || ''}${job?.city ? `, ${job.city}` : ''}<br/>
-          ${job?.scheduled_time_start ? `Time: ${job.scheduled_time_start}` : ''}
+          ${job?.scheduled_time_start ? `Time: ${formatTime12(job.scheduled_time_start)}` : ''}
           ${approximate ? '<br/><em style="color:#b45309">Approximate — drag to correct</em>' : ''}
           ${draggable ? '<br/><span style="color:#6b7280;font-size:11px">Drag the pin to set the exact spot</span>' : ''}
         `);
@@ -253,7 +254,7 @@ export default function RouteOptimizerPage() {
   const [loading, setLoading] = useState(true);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizeError, setOptimizeError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(toISODate(new Date()));
   const [selectedJob, setSelectedJob] = useState<RouteJob | null>(null);
 
   // Settings state
@@ -561,9 +562,9 @@ export default function RouteOptimizerPage() {
     : jobs;
 
   const changeDate = (days: number) => {
-    const newDate = new Date(selectedDate);
+    const newDate = parseLocalDate(selectedDate);
     newDate.setDate(newDate.getDate() + days);
-    setSelectedDate(newDate.toISOString().split('T')[0]);
+    setSelectedDate(toISODate(newDate));
   };
 
   const formatDate = (date: string) => {
@@ -610,7 +611,7 @@ export default function RouteOptimizerPage() {
             &larr;
           </button>
           <button
-            onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+            onClick={() => setSelectedDate(toISODate(new Date()))}
             className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm font-medium"
           >
             Today
@@ -1070,7 +1071,7 @@ export default function RouteOptimizerPage() {
                       )}
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="font-semibold text-gray-900">{job.scheduled_time_start || 'TBD'}</p>
+                      <p className="font-semibold text-gray-900">{formatTime12(job.scheduled_time_start) || 'TBD'}</p>
                       <p className="text-xs text-gray-500 flex items-center gap-1 justify-end">
                         <User className="w-3 h-3" />
                         {getAssignedNames(job.assigned_users)}

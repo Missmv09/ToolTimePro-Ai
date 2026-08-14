@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatTime12 } from '@/lib/dates';
 import {
   Calendar,
   Clock,
@@ -141,7 +142,7 @@ export default function PortalAppointments() {
                   {job.scheduled_time_start && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Clock className="w-4 h-4 text-gray-400" />
-                      {job.scheduled_time_start}{job.scheduled_time_end ? ` — ${job.scheduled_time_end}` : ''}
+                      {formatTime12(job.scheduled_time_start)}{job.scheduled_time_end ? ` — ${formatTime12(job.scheduled_time_end)}` : ''}
                     </div>
                   )}
                   {job.address && (

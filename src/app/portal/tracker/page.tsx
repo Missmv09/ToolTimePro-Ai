@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatTime12 } from '@/lib/dates';
 import {
   MapPin,
   Clock,
@@ -106,8 +107,8 @@ export default function PortalTracker() {
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                      {job.scheduled_time_start && ` at ${job.scheduled_time_start}`}
-                      {job.scheduled_time_end && ` — ${job.scheduled_time_end}`}
+                      {job.scheduled_time_start && ` at ${formatTime12(job.scheduled_time_start)}`}
+                      {job.scheduled_time_end && ` — ${formatTime12(job.scheduled_time_end)}`}
                     </div>
 
                     {job.reschedule_pending && (
