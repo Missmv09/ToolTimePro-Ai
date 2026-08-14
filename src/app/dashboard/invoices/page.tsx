@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { isPastDate } from '@/lib/dates'
 import { supabase } from '@/lib/supabase'
+import { computeInvoiceTotals } from '@/lib/totals'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -770,10 +771,9 @@ function InvoiceModal({ invoice, companyId, customers, presetCustomerId, onClose
     setItems(newItems)
   }
 
-  const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
+  // Money math lives in @/lib/totals (single source of truth, unit-tested).
   const taxRate = parseFloat(formData.tax_rate) || 0
-  const tax = subtotal * (taxRate / 100)
-  const total = subtotal + tax
+  const { subtotal, tax_amount: tax, total } = computeInvoiceTotals(items, taxRate)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
