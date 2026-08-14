@@ -196,15 +196,25 @@ export default function TimeclockPage() {
     const clockInTime = new Date(currentEntry.clock_in)
     const totalHours = (clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60)
 
-    const { error } = await supabase
+    const clockOutData: Record<string, unknown> = {
+      clock_out: clockOutTime.toISOString(),
+      clock_out_location: location,
+      total_hours: Math.round(totalHours * 100) / 100,
+      status: 'completed',
+    }
+
+    let { error } = await supabase
       .from('time_entries')
-      .update({
-        clock_out: clockOutTime.toISOString(),
-        clock_out_location: location,
-        total_hours: Math.round(totalHours * 100) / 100,
-        status: 'completed',
-      })
+      .update(clockOutData)
       .eq('id', currentEntry.id)
+
+    // A DB behind on migration 046 lacks time_entries.total_hours; strip it and
+    // retry so the worker can still clock out.
+    if (error && (error.code === '42703' || /total_hours/.test(error.message || ''))) {
+      const retryData = { ...clockOutData }
+      delete retryData.total_hours
+      ;({ error } = await supabase.from('time_entries').update(retryData).eq('id', currentEntry.id))
+    }
 
     if (error) {
       alert('Failed to clock out: ' + error.message)
