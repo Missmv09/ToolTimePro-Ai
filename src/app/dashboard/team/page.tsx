@@ -1170,10 +1170,22 @@ function TeamMemberModal({ member, companyId, callerRole, onClose, onSave }: {
         updateData.admin_permissions = null
       }
 
-      const { error } = await supabase
+      let { error } = await supabase
         .from('users')
         .update(updateData)
         .eq('id', member.id)
+
+      // A DB behind on migration 045 lacks notes/home_address/home_city (and
+      // admin_permissions); strip the optional columns and retry so the core
+      // edit still saves.
+      if (error && (error.code === '42703' || /notes|home_address|home_city|admin_permissions/.test(error.message || ''))) {
+        const retryData = { ...updateData }
+        delete retryData.notes
+        delete retryData.home_address
+        delete retryData.home_city
+        delete retryData.admin_permissions
+        ;({ error } = await supabase.from('users').update(retryData).eq('id', member.id))
+      }
 
       if (error) {
         console.error('Error updating team member:', error)
