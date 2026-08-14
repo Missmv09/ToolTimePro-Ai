@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { Quote, Company, Customer } from '@/types/database';
+import { computeDepositAmount } from '@/lib/totals';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { frequencyLabel, frequencySuffix, isRecurringFrequency } from '@/lib/quote-frequency';
@@ -633,7 +634,7 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
                     <div className="flex justify-between text-sm pt-2 mt-2 border-t border-dashed border-gray-200">
                       <span className="text-gray-600 font-medium">Deposit Required</span>
                       <span className="text-gray-800 font-bold">
-                        ${(quote.deposit_amount || (quote.deposit_percentage ? (quote.deposit_percentage / 100) * (quote.total || 0) : 0)).toFixed(2)}
+                        ${computeDepositAmount(quote.deposit_amount, quote.deposit_percentage, quote.total || 0).toFixed(2)}
                       </span>
                     </div>
                   )}

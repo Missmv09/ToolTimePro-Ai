@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Company, Customer } from '@/types/database';
+import { computeBalanceDue } from '@/lib/totals';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
@@ -178,7 +179,7 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
   const customerAddress = [invoice.customer?.address, invoice.customer?.city, invoice.customer?.state, invoice.customer?.zip]
     .filter(Boolean)
     .join(', ');
-  const balanceDue = invoice.total - (invoice.amount_paid || 0);
+  const balanceDue = computeBalanceDue(invoice.total, invoice.amount_paid || 0);
 
   return (
     <div className="min-h-screen bg-gray-100">
