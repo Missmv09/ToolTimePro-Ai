@@ -59,6 +59,24 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.get('body').should('be.visible');
   });
 
+  it('TC-QUOTE-01: opens the New Quote menu and the Quick Quote modal', () => {
+    cy.visit('/dashboard/quotes');
+    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/quotes');
+    // Header "+ New Quote" opens a dropdown offering Smart Quote / Quick Quote.
+    cy.contains('button', /new quote/i, { timeout: 20000 }).click();
+    cy.contains(/smart quote/i, { timeout: 10000 }).should('be.visible');
+    cy.contains(/quick quote/i).should('be.visible').click();
+    // The Quick Quote modal renders (customer + line-item form).
+    cy.get('.fixed, [role="dialog"], form', { timeout: 10000 }).should('exist');
+  });
+
+  it('TC-INV-01: opens the New Invoice modal', () => {
+    cy.visit('/dashboard/invoices');
+    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/invoices');
+    cy.contains('button', /new invoice/i, { timeout: 20000 }).click();
+    cy.contains(/create new invoice|new invoice/i, { timeout: 10000 }).should('be.visible');
+  });
+
   it('TC-SEC-06: protected dashboard route requires auth (logged-out is redirected)', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
