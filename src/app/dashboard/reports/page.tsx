@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { parseLocalDate } from '@/lib/dates';
 import {
   AreaChart,
   Area,
@@ -206,7 +207,7 @@ export default function ReportsPage() {
         monthMap[key].revenue += Number(inv.total) || 0;
       }
       for (const job of completedJobs) {
-        const d = new Date(job.scheduled_date);
+        const d = parseLocalDate(job.scheduled_date);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         if (!monthMap[key]) monthMap[key] = { revenue: 0, jobs: 0 };
         monthMap[key].jobs += 1;

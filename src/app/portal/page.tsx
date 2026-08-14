@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { isPastDate, formatTime12 } from '@/lib/dates';
 import Link from 'next/link';
 import {
   Calendar,
@@ -46,7 +47,7 @@ export default function PortalDashboard() {
   }
 
   const totalOwed = (data.openInvoices || []).reduce((sum, inv) => sum + (inv.total - inv.amount_paid), 0);
-  const hasOverdue = (data.openInvoices || []).some(inv => inv.status === 'overdue' || (inv.due_date && new Date(inv.due_date) < new Date()));
+  const hasOverdue = (data.openInvoices || []).some(inv => inv.status === 'overdue' || isPastDate(inv.due_date));
 
   return (
     <div className="space-y-6">
@@ -102,7 +103,7 @@ export default function PortalDashboard() {
                 <p className="font-medium text-gray-900">{job.title}</p>
                 <p className="text-sm text-gray-500">
                   {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  {job.scheduled_time_start && ` at ${job.scheduled_time_start}`}
+                  {job.scheduled_time_start && ` at ${formatTime12(job.scheduled_time_start)}`}
                 </p>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -126,7 +127,7 @@ export default function PortalDashboard() {
           </div>
           {data.openInvoices.slice(0, 3).map(inv => {
             const balance = inv.total - inv.amount_paid;
-            const isOverdue = inv.status === 'overdue' || (inv.due_date && new Date(inv.due_date) < new Date());
+            const isOverdue = inv.status === 'overdue' || isPastDate(inv.due_date);
             return (
               <div key={inv.id} className="flex items-center justify-between py-3 border-b last:border-0">
                 <div className="flex items-center gap-3">

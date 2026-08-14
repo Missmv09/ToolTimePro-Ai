@@ -400,8 +400,8 @@ function JobsContent() {
                       )}
                     </div>
                     <p className="text-sm text-gray-500 truncate max-w-xs">{job.address}</p>
-                    {job.priority !== 'normal' && (
-                      <span className={`text-xs ${priorityColors[job.priority]}`}>
+                    {job.priority && job.priority !== 'normal' && (
+                      <span className={`text-xs ${priorityColors[job.priority] || ''}`}>
                         {job.priority.toUpperCase()}
                       </span>
                     )}

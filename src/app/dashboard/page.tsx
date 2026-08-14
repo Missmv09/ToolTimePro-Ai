@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { formatTime12 } from '@/lib/dates'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
@@ -409,7 +410,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-gray-900">
-                      {job.scheduled_time_start || 'TBD'}
+                      {formatTime12(job.scheduled_time_start) || 'TBD'}
                     </p>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       job.status === 'completed' ? 'bg-green-100 text-green-700' :
