@@ -34,11 +34,12 @@ const WORKER_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 
 function formatTime(timeStr: string | null): string {
   if (!timeStr) return '';
-  const [hours, minutes] = timeStr.split(':');
+  const [hours, minutes = '00'] = timeStr.split(':');
   const hour = parseInt(hours);
+  if (Number.isNaN(hour)) return timeStr;
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const displayHour = hour % 12 || 12;
-  return `${displayHour}:${minutes} ${ampm}`;
+  return `${displayHour}:${(minutes || '00').slice(0, 2)} ${ampm}`;
 }
 
 function formatCurrency(amount: number | null): string {
