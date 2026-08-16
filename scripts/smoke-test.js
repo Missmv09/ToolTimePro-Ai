@@ -20,8 +20,14 @@
 
 const baseUrl = (process.argv[2] || process.env.SMOKE_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const healthToken = process.env.HEALTH_CHECK_TOKEN || '';
-const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS || 20000);
-const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY || 6);
+const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS || 30000);
+const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY || 4);
+// Netlify serverless cold-starts the first hit to a heavy page, which can blow
+// past the timeout or reset the connection. Retry a failed check once (the
+// function is warm the second time) before declaring it down.
+const MAX_ATTEMPTS = Number(process.env.SMOKE_MAX_ATTEMPTS || 2);
+const RETRY_DELAY_MS = Number(process.env.SMOKE_RETRY_DELAY_MS || 1500);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Public routes that must render for prospects and trial users. None of these
 // require auth or seeded data — auth'd flows (dashboard, real booking,
@@ -80,7 +86,7 @@ async function fetchWithTimeout(url, opts = {}) {
   }
 }
 
-async function checkPage(path) {
+async function checkPage(path, attempt = 1) {
   const url = `${baseUrl}${path}`;
   const started = Date.now();
   try {
@@ -89,9 +95,18 @@ async function checkPage(path) {
     // A page is healthy if it returns a non-error status after following
     // redirects (locale middleware may 307 before settling on 200).
     const ok = res.status >= 200 && res.status < 400;
-    return { path, ok, status: res.status, ms };
+    if (!ok && attempt < MAX_ATTEMPTS) {
+      await sleep(RETRY_DELAY_MS);
+      return checkPage(path, attempt + 1);
+    }
+    return { path, ok, status: res.status, ms, attempt };
   } catch (err) {
-    return { path, ok: false, status: 'ERR', ms: Date.now() - started, error: err.message };
+    // Cold start / transient reset — retry once against the now-warm function.
+    if (attempt < MAX_ATTEMPTS) {
+      await sleep(RETRY_DELAY_MS);
+      return checkPage(path, attempt + 1);
+    }
+    return { path, ok: false, status: 'ERR', ms: Date.now() - started, error: err.message, attempt };
   }
 }
 
