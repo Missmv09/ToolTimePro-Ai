@@ -1,106 +1,26 @@
 /**
- * E2E tests for the customer-facing quote portal.
+ * E2E for the public customer quote portal (`/quote/[id]`).
  *
- * These tests use the built-in demo quote (id: "demo") so they run without
- * a database or API backend.  Start the dev server (`npm run dev`) before
- * running: `npx cypress run --spec cypress/e2e/customer-portal.cy.js`
+ * NOTE: the public quote API enforces UUID-only lookups as an anti-enumeration
+ * measure (see src/app/api/quote/public/route.ts), so the old self-contained
+ * "/quote/demo" fixture no longer exists — any non-UUID or unknown id renders
+ * the Not Found state. These tests validate that real, current behavior.
+ *
+ * The interactive approve / decline / signature flow needs a real seeded quote
+ * (a valid UUID in sent/viewed/approved state) and cannot run against a static
+ * demo fixture anymore. That flow is covered by the manual test matrix in
+ * docs/QA_TESTING_GUIDE.md §3 (Public quote → approve/decline). If we later seed
+ * a stable sandbox quote, we can add an E2E that visits its real URL.
  */
 
-describe('Customer Quote Portal – demo quote', () => {
-  beforeEach(() => {
-    cy.visit('/quote/demo');
+describe('Customer Quote Portal – public access', () => {
+  it('shows the Not Found state for a non-UUID id (the retired /quote/demo)', () => {
+    cy.visit('/quote/demo', { failOnStatusCode: false });
+    cy.contains('Quote Not Found', { timeout: 15000 }).should('be.visible');
   });
 
-  // ── Page load & content ─────────────────────────────────────────────────
-
-  it('renders the demo quote with company and customer details', () => {
-    cy.contains('Green Valley Landscaping').should('be.visible');
-    cy.contains('John Smith').should('be.visible');
-    cy.contains('$303.10').should('be.visible');
-  });
-
-  it('displays all line items', () => {
-    cy.contains('Front yard lawn mowing').should('be.visible');
-    cy.contains('Hedge trimming').should('be.visible');
-    cy.contains('Edge trimming').should('be.visible');
-    cy.contains('Gutter cleaning').should('be.visible');
-    cy.contains('Yard debris cleanup').should('be.visible');
-  });
-
-  it('shows the quote notes section', () => {
-    cy.contains('Work will be completed within 1-2 business days').should('be.visible');
-  });
-
-  // ── Approval flow ───────────────────────────────────────────────────────
-
-  it('opens signature modal and approves the quote', () => {
-    // Click sign & approve
-    cy.contains('Sign & Approve').click();
-
-    // Signature modal should appear
-    cy.contains('Sign to Approve').should('be.visible');
-
-    // Draw a simple signature on the canvas
-    cy.get('canvas').then(($canvas) => {
-      const canvas = $canvas[0];
-      const rect = canvas.getBoundingClientRect();
-      const x = rect.left + 50;
-      const y = rect.top + 40;
-
-      cy.wrap($canvas)
-        .trigger('mousedown', { clientX: x, clientY: y })
-        .trigger('mousemove', { clientX: x + 80, clientY: y + 10 })
-        .trigger('mouseup');
-    });
-
-    // Save the signature
-    cy.contains('Save').click();
-
-    // Now approve
-    cy.contains('Approve Quote').click();
-
-    // Should show success
-    cy.contains('Quote Approved!').should('be.visible');
-
-    // Action buttons should disappear
-    cy.contains('Sign & Approve').should('not.exist');
-    cy.contains('Decline').should('not.exist');
-  });
-
-  // ── Rejection flow ──────────────────────────────────────────────────────
-
-  it('declines the quote with a reason', () => {
-    cy.contains('Decline').click();
-
-    // Reason picker should appear
-    cy.contains('Why are you declining?').should('be.visible');
-
-    // Select a reason
-    cy.contains('Price too high').click();
-
-    // Confirm decline
-    cy.contains('Decline Quote').click();
-
-    // Should show declined message
-    cy.contains('Quote Declined').should('be.visible');
-    cy.contains('Price too high').should('be.visible');
-  });
-
-  it('cancels the decline flow and returns to action buttons', () => {
-    cy.contains('Decline').click();
-    cy.contains('Why are you declining?').should('be.visible');
-
-    cy.contains('Cancel').click();
-
-    // Action buttons should return
-    cy.contains('Sign & Approve').should('be.visible');
-    cy.contains('Decline').should('be.visible');
-  });
-
-  // ── Not-found quote ─────────────────────────────────────────────────────
-
-  it('shows not-found page for an invalid quote ID', () => {
+  it('shows the Not Found state for an unknown quote id', () => {
     cy.visit('/quote/nonexistent-id-12345', { failOnStatusCode: false });
-    cy.contains('Quote Not Found').should('be.visible');
+    cy.contains('Quote Not Found', { timeout: 15000 }).should('be.visible');
   });
 });

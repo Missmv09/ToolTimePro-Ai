@@ -35,11 +35,14 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     // Open the add-customer modal (button reads "Add Customer" / "Add Your First Customer").
     cy.contains('button', /add (your first )?customer/i, { timeout: 20000 }).first().click();
     cy.contains(/Add New Customer/i, { timeout: 10000 }).should('be.visible');
-    cy.get('.fixed, [role="dialog"], form').last().within(() => {
+    // Scope to the modal overlay itself (.fixed.inset-0) — not a generic
+    // `.fixed`/`form`, which can match a toast or chat widget rendered later in
+    // the DOM. Residential (default) shows Name as the first text input.
+    cy.get('.fixed.inset-0').within(() => {
       cy.get('input[type="text"]').first().clear().type(name);
       cy.get('input[type="email"]').first().clear().type(email);
       cy.get('input[type="tel"]').first().clear().type('5551234567');
-      cy.contains('button', /save|add|create/i).click();
+      cy.contains('button', /save customer|save|add|create/i).click();
     });
     cy.contains(name, { timeout: 20000 }).should('exist');
 
