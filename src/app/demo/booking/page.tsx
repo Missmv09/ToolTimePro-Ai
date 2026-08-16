@@ -269,6 +269,7 @@ export default function DemoBookingPage() {
               {demoServices.map((service) => (
                 <button
                   key={service.id}
+                  data-testid="booking-service"
                   onClick={() => selectService(service)}
                   className="w-full text-left bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-[#1FE3C4] hover:shadow-md transition-all group"
                 >
@@ -327,6 +328,7 @@ export default function DemoBookingPage() {
                   return (
                     <button
                       key={date}
+                      data-testid="booking-date"
                       onClick={() => selectDate(date)}
                       className={`p-4 rounded-xl border-2 text-center transition-all ${
                         isSelected
@@ -355,6 +357,8 @@ export default function DemoBookingPage() {
                     return (
                       <button
                         key={time}
+                        data-testid="booking-time"
+                        data-booked={isBooked ? 'true' : 'false'}
                         onClick={() => !isBooked && selectTime(time)}
                         disabled={isBooked}
                         className={`p-3 rounded-xl border-2 text-center font-medium transition-all ${
@@ -516,6 +520,7 @@ export default function DemoBookingPage() {
 
               <button
                 type="submit"
+                data-testid="booking-review"
                 className="w-full mt-6 py-4 bg-[#1FE3C4] text-[#0A0C11] rounded-xl font-bold text-lg hover:bg-[#e6991a] transition-colors"
               >
                 {t('reviewBooking')}
@@ -593,6 +598,7 @@ export default function DemoBookingPage() {
                 <button
                   onClick={confirmBooking}
                   disabled={isSubmitting}
+                  data-testid="booking-confirm"
                   className="w-full py-4 bg-[#00c853] text-white rounded-xl font-bold text-lg hover:bg-[#00a844] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
@@ -614,7 +620,7 @@ export default function DemoBookingPage() {
 
         {/* Step 5: Success */}
         {step === 'success' && (
-          <div className="text-center py-12">
+          <div className="text-center py-12" data-testid="booking-success">
             <div className="w-20 h-20 bg-[#e8f5e9] rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">✓</span>
             </div>

@@ -10,3 +10,6 @@ tsconfig.tsbuildinfo
 
 # Generated at build time by scripts/build-help-knowledge.js
 src/lib/help-knowledge.generated.js
+
+# Sentry build plugin auth token (local)
+.env.sentry-build-plugin

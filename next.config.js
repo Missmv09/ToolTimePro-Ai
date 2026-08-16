@@ -1,4 +1,5 @@
 const createNextIntlPlugin = require('next-intl/plugin');
+const { withSentryConfig } = require('@sentry/nextjs');
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
@@ -37,6 +38,11 @@ const serverEnvVars = [
 
 const nextConfig = {
   trailingSlash: true,
+  // Required on Next 14 so src/instrumentation.ts runs (loads Sentry server/edge
+  // config). Stable/default on Next 15+.
+  experimental: {
+    instrumentationHook: true,
+  },
   images: {
     unoptimized: true,
   },
@@ -87,4 +93,28 @@ const nextConfig = {
     ];
   },
 };
-module.exports = withNextIntl(nextConfig);
+// Sentry wraps the (already next-intl-wrapped) config. The Sentry webpack plugin
+// only uploads source maps when SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT
+// are present (build-time only), so builds without them — including CI and local
+// dev — succeed with no network calls and no source-map upload.
+module.exports = withSentryConfig(withNextIntl(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Quiet unless running in CI.
+  silent: !process.env.CI,
+  // Upload a broader set of client source maps for readable stack traces.
+  widenClientFileUpload: true,
+  // Skip source-map upload entirely unless an auth token is configured.
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+  webpack: {
+    // Strip the Sentry SDK's own debug logging from the client bundle.
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    // Do not auto-instrument Vercel Cron (this app runs on Netlify).
+    automaticVercelMonitors: false,
+  },
+});
