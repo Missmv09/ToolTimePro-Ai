@@ -4,6 +4,7 @@ import QuoteViewClient from './QuoteViewClient';
 // which is incompatible with ISR/SSG on Netlify and causes 5xx errors.
 export const dynamic = 'force-dynamic';
 
-export default function QuotePage({ params }: { params: { id: string } }) {
-  return <QuoteViewClient quoteId={params.id} />;
+export default async function QuotePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <QuoteViewClient quoteId={id} />;
 }

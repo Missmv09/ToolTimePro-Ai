@@ -33,8 +33,8 @@ function statusLabel(status: string): { label: string; phase: 'scheduled' | 'enr
   }
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
-  const token = params.token
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  const token = (await params).token
   if (!token) {
     return NextResponse.json({ error: 'Missing token' }, { status: 400 })
   }

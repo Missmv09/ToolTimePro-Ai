@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, use } from 'react'
 import type * as LeafletNS from 'leaflet'
 
 interface TrackingInfo {
@@ -36,7 +36,6 @@ function TrackMap({
 
     Promise.all([
       import('leaflet'),
-      // @ts-expect-error - CSS import for leaflet styles has no type declaration
       import('leaflet/dist/leaflet.css'),
     ]).then(([leaflet]) => {
       const L = leaflet.default
@@ -120,14 +119,15 @@ function formatTime(t: string | null): string {
   return `${h12}:${m} ${ampm}`
 }
 
-export default function TrackingPage({ params }: { params: { token: string } }) {
+export default function TrackingPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params)
   const [info, setInfo] = useState<TrackingInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/track/${params.token}`, { cache: 'no-store' })
+      const res = await fetch(`/api/track/${token}`, { cache: 'no-store' })
       if (!res.ok) {
         setError(res.status === 404 ? 'This tracking link is no longer available.' : 'Unable to load tracking info.')
         setInfo(null)
@@ -140,7 +140,7 @@ export default function TrackingPage({ params }: { params: { token: string } }) 
     } finally {
       setLoading(false)
     }
-  }, [params.token])
+  }, [token])
 
   useEffect(() => {
     load()
