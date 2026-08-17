@@ -38,11 +38,8 @@ const serverEnvVars = [
 
 const nextConfig = {
   trailingSlash: true,
-  // Required on Next 14 so src/instrumentation.ts runs (loads Sentry server/edge
-  // config). Stable/default on Next 15+.
-  experimental: {
-    instrumentationHook: true,
-  },
+  // instrumentation.ts (Sentry server/edge config) runs automatically on
+  // Next 15+ — the experimental.instrumentationHook flag was removed.
   images: {
     unoptimized: true,
   },
