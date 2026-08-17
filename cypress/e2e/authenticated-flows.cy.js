@@ -118,8 +118,14 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
       cy.get('input[placeholder="john@email.com"]').clear().type(`${uid}@example.com`);
 
       cy.get('input[placeholder="Description"]').first().clear().type('E2E line item');
-      cy.get('input[placeholder="Qty"]').first().clear().type(`${QTY}`);
-      cy.get('input[placeholder="Price"]').first().clear().type(`${PRICE}`);
+      // `{selectall}` rather than .clear() on these two: they are controlled
+      // number inputs seeded with 1 and 0. Clearing fires onChange('') -> Number('')
+      // -> 0, which re-renders "0" back into the field with the caret at the start,
+      // so a following .type('2') lands as "20". Selecting first replaces cleanly.
+      // The value assertions keep any future regression pointing at the input
+      // rather than surfacing as a confusing totals mismatch.
+      cy.get('input[placeholder="Qty"]').first().type(`{selectall}${QTY}`).should('have.value', `${QTY}`);
+      cy.get('input[placeholder="Price"]').first().type(`{selectall}${PRICE}`).should('have.value', `${PRICE}`);
 
       // TC-QUOTE-01's core assertion: the total actually calculates.
       cy.contains('Tax (8.75%)').should('be.visible'); // fails loudly if the rate moves
