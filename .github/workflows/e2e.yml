@@ -54,6 +54,27 @@ jobs:
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Warm up the deployment (avoid serverless cold-start flakiness)
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BASE_URL: ${{ secrets.E2E_BASE_URL }}
+        run: |
+          # Right after a deploy every Netlify function is cold, and the first
+          # hit to a heavy page can exceed 60s. cy.login() only allows 25s to
+          # reach /dashboard, so a cold sandbox fails the `before each` hook and
+          # takes the whole authenticated suite down with it — which is exactly
+          # what happened on the Next 16 merge. Pre-warm the routes the specs
+          # visit (two passes, failures ignored, 60s cap per request) so Cypress
+          # runs against warm pages. Mirrors the same step in smoke.yml.
+          # Best-effort: this step never fails the job.
+          paths="/auth/login /dashboard /dashboard/customers /dashboard/jobs /dashboard/quotes /dashboard/invoices /quote/demo"
+          for pass in 1 2; do
+            echo "— Warm-up pass $pass —"
+            for p in $paths; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
+              echo "  $p -> $code"
+            done
+          done
       - name: Cypress run (authenticated, against the sandbox)
         if: steps.guard.outputs.run == 'true'
         uses: cypress-io/github-action@v6
