@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Calculator, AlertTriangle, DollarSign, Clock, Info } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import LeadCaptureForm from '@/components/growth/LeadCaptureForm';
+import { GROWTH_EVENTS, trackEvent } from '@/lib/analytics';
 
 type RateType = 'hourly' | 'salary';
 
@@ -41,6 +43,7 @@ export default function CalculatorPage() {
     const penalty = dailyWage * effectiveDays;
 
     setResult({ dailyWage, penalty, effectiveDays });
+    trackEvent(GROWTH_EVENTS.TOOL_COMPLETED, { tool: 'calculator', rate_type: rateType });
   };
 
   const resetCalculator = () => {
@@ -251,6 +254,9 @@ export default function CalculatorPage() {
             )}
           </div>
         </div>
+
+        {/* Lead capture — only once there is a result worth emailing. */}
+        {result && <LeadCaptureForm source="tool_calculator" />}
 
         {/* Examples */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
