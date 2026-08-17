@@ -1,14 +1,13 @@
-// Sentry browser (client) initialization.
+// Sentry browser (client) initialization — runs in the visitor's browser and
+// captures the errors real users hit (the crashes a contractor sees on their
+// phone that you'd otherwise never reproduce). NO-OP until
+// NEXT_PUBLIC_SENTRY_DSN is set, so it is safe to ship before Sentry is
+// configured. See docs/QA_AUTOMATION_SETUP.md.
 //
-// This runs in the visitor's browser and captures the errors real users hit —
-// the crashes a contractor sees on their phone that you'd otherwise never
-// reproduce. It is a NO-OP until NEXT_PUBLIC_SENTRY_DSN is set, so it is safe
-// to ship before Sentry is configured. See docs/QA_AUTOMATION_SETUP.md.
-//
-// NOTE: On Next 14 + webpack this `sentry.client.config.ts` is the correct file
-// and Sentry injects it into the client bundle. When this app upgrades to Next
-// 15 and/or Turbopack, move this content to `src/instrumentation-client.ts`
-// (Sentry prints a deprecation notice about this at build time).
+// This is the Next 15.3+/16 location (`src/instrumentation-client.ts`), which
+// works under both webpack and Turbopack (Next 16's default bundler). It
+// replaces the old `sentry.client.config.ts`, which Sentry deprecated for
+// Turbopack.
 import * as Sentry from '@sentry/nextjs';
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
@@ -35,3 +34,7 @@ Sentry.init({
 
   debug: false,
 });
+
+// Instruments client-side App Router navigations for tracing (Next 15.3+).
+// Harmless when tracing/DSN is disabled.
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
