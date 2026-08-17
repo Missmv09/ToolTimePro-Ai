@@ -5,6 +5,7 @@ import InvoiceViewClient from './InvoiceViewClient';
 // static-to-dynamic 500 on the public invoice link (matches the quote page).
 export const dynamic = 'force-dynamic';
 
-export default function InvoicePage({ params }: { params: { id: string } }) {
-  return <InvoiceViewClient params={params} />;
+export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <InvoiceViewClient params={{ id }} />;
 }

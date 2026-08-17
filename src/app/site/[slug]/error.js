@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 export default function SiteError({ error, reset }) {
   return (
     <div
@@ -51,7 +53,7 @@ export default function SiteError({ error, reset }) {
         >
           Try Again
         </button>
-        <a
+        <Link
           href="/"
           style={{
             padding: '12px 28px',
@@ -64,7 +66,7 @@ export default function SiteError({ error, reset }) {
           }}
         >
           Go to Task Iguana
-        </a>
+        </Link>
       </div>
     </div>
   );

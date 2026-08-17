@@ -799,8 +799,8 @@ function InvoiceModal({ invoice, companyId, customers, presetCustomerId, onClose
         total,
         status: invoice?.status || 'draft',
         updated_at: new Date().toISOString(),
-        ...(formData.po_number ? { po_number: formData.po_number } : { po_number: null }),
-        ...(formData.payment_terms ? { payment_terms: formData.payment_terms } : { payment_terms: null }),
+        po_number: formData.po_number || null,
+        payment_terms: formData.payment_terms || null,
       }
 
       const stripCommercialColumns = (payload: typeof invoiceData) => {
