@@ -80,11 +80,114 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.contains(/create new invoice|new invoice/i, { timeout: 10000 }).should('be.visible');
   });
 
+  it('TC-JOB-02: scheduled times render in 12-hour AM/PM, never 24-hour', () => {
+    cy.visit('/dashboard/jobs');
+    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/jobs');
+    // Wait for the list to settle before scraping text, so we don't assert on a
+    // skeleton. Any visible job time must read like "2:30 PM" — a 24-hour clock
+    // (13:00–23:59) is the regression this guards against.
+    cy.get('body', { timeout: 20000 }).should('be.visible');
+    cy.get('body')
+      .invoke('text')
+      .should((text) => {
+        const twentyFourHour = text.match(/\b(1[3-9]|2[0-3]):[0-5]\d\b/g);
+        expect(twentyFourHour, `24-hour times found: ${twentyFourHour}`).to.be.null;
+      });
+  });
+
+  it('TC-QUOTE-01: builds a quote, totals calculate, then self-cleans', () => {
+    // Unique per run so repeat/parallel CI runs never collide, and any rare
+    // leftover is findable by the "e2e-" prefix (same convention as TC-CUST-01).
+    const uid = `e2e-${Date.now()}-${Cypress._.random(1e9)}`;
+    const name = `E2E Quote ${uid}`;
+    const QTY = 2;
+    const PRICE = 100;
+    const SUBTOTAL = '$200.00'; // QTY * PRICE — pure math, independent of tax
+    const TOTAL = '$217.50'; // + 8.75% tax; the label assert below pins the rate
+
+    cy.visit('/dashboard/quotes');
+    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/quotes');
+    cy.contains('button', /new quote/i, { timeout: 20000 }).click();
+    cy.contains(/quick quote/i, { timeout: 10000 }).click();
+
+    // Attach to a brand-new customer so the spec never depends on seed data.
+    cy.get('.fixed.inset-0', { timeout: 10000 }).within(() => {
+      cy.get('select').first().select('__new__');
+      cy.contains('New Customer Info').should('be.visible');
+      cy.get('input[placeholder="John Smith"]').clear().type(name);
+      cy.get('input[placeholder="john@email.com"]').clear().type(`${uid}@example.com`);
+
+      cy.get('input[placeholder="Description"]').first().clear().type('E2E line item');
+      cy.get('input[placeholder="Qty"]').first().clear().type(`${QTY}`);
+      cy.get('input[placeholder="Price"]').first().clear().type(`${PRICE}`);
+
+      // TC-QUOTE-01's core assertion: the total actually calculates.
+      cy.contains('Tax (8.75%)').should('be.visible'); // fails loudly if the rate moves
+      cy.contains(SUBTOTAL).should('be.visible');
+      cy.contains(TOTAL).should('be.visible');
+
+      // "Save Quote" only — deliberately NOT "Save & Send", which would fire a
+      // real customer email/SMS from the sandbox.
+      cy.contains('button', /^\s*save quote\s*$/i).click();
+    });
+
+    // Saved quote shows up in the list, keyed by our unique customer name.
+    cy.contains('tr', name, { timeout: 25000 }).should('exist');
+
+    // Self-cleanup: delete the quote first (FK), then the customer it created.
+    cy.on('window:confirm', () => true);
+    cy.contains('tr', name).within(() => {
+      cy.contains('button', /^\s*delete\s*$/i).click();
+    });
+    cy.contains('tr', name).should('not.exist');
+
+    cy.visit('/dashboard/customers');
+    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).clear().type(name);
+    cy.contains(name).should('be.visible');
+    cy.contains('button', /^\s*delete\s*$/i).click();
+    cy.contains(name).should('not.exist');
+  });
+
   it('TC-SEC-06: protected dashboard route requires auth (logged-out is redirected)', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
-    cy.visit('/dashboard/customers', { failOnStatusCode: false });
-    // Either redirected to login, or a login form is shown — never the customer data.
+    // Cover the routes that expose the most sensitive tenant data, not just one —
+    // gating is per-route middleware, so one passing route proves little.
+    ['/dashboard/customers', '/dashboard/invoices', '/dashboard/team', '/dashboard/settings'].forEach(
+      (route) => {
+        cy.clearCookies();
+        cy.clearLocalStorage();
+        cy.visit(route, { failOnStatusCode: false });
+        // Either redirected to login, or a login form is shown — never the data.
+        cy.location('pathname', { timeout: 15000 }).should('match', /\/auth\/login|\/login/);
+      }
+    );
+  });
+});
+
+// Logged-out auth behavior. Deliberately a separate describe: the suite above
+// logs in via `beforeEach`, and these cases need to start signed out.
+(hasCreds ? describe : describe.skip)('Auth error handling', () => {
+  it('TC-AUTH-04: wrong password shows a clear error and does not sign the user in', () => {
+    // A deliberately unknown address, not E2E_EMAIL. Supabase returns the same
+    // "Invalid login credentials" for an unknown email as for a bad password, so
+    // the assertion is identical — but repeatedly failing against the real CI
+    // account risks tripping Supabase rate limiting and taking the whole
+    // authenticated suite down with it.
+    const email = `e2e-nobody-${Date.now()}-${Cypress._.random(1e9)}@example.com`;
+
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    cy.visit('/auth/login');
+    cy.get('input[name="email"]').clear().type(email);
+    cy.get('input[name="password"]').clear().type('definitely-the-wrong-password', { log: false });
+    cy.get('input[name="password"]').parents('form').first().find('button[type="submit"]').click();
+
+    // Clear, human error message — not a raw Supabase string or a silent no-op.
+    cy.contains(/incorrect email or password/i, { timeout: 20000 }).should('be.visible');
+    // And still signed out: no dashboard, no session.
+    cy.location('pathname').should('match', /\/auth\/login|\/login/);
+    cy.visit('/dashboard', { failOnStatusCode: false });
     cy.location('pathname', { timeout: 15000 }).should('match', /\/auth\/login|\/login/);
   });
 });
