@@ -49,6 +49,13 @@ export default function GlobalError({
           >
             Try again
           </button>
+          {/*
+            Deliberately a plain <a>, not next/link: global-error replaces the
+            root layout (it renders its own <html>/<body>), so the router tree
+            that <Link> depends on has been torn down. A full page load is the
+            only reliable way out of this boundary.
+          */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
             style={{

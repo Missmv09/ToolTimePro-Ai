@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
 import * as Sentry from '@sentry/nextjs'
 
 // Segment-level error boundary — catches errors thrown while rendering a page
@@ -75,7 +76,7 @@ export default function Error({
         >
           Try again
         </button>
-        <a
+        <Link
           href="/"
           style={{
             padding: '10px 22px',
@@ -88,7 +89,7 @@ export default function Error({
           }}
         >
           Go home
-        </a>
+        </Link>
       </div>
     </div>
   )
