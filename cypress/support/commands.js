@@ -42,3 +42,25 @@ Cypress.Commands.add('login', () => {
     });
   });
 });
+
+/**
+ * Type a term into the customers search box.
+ *
+ * Re-queries before each action instead of chaining off one `cy.get`. The
+ * customers list loads asynchronously and React re-renders when the data
+ * arrives, which detaches an input grabbed a moment earlier — Cypress reports
+ * `cy.clear() failed because the page updated while this command was
+ * executing`, and the test fails on all three attempts because the race is
+ * timing-dependent, not random.
+ *
+ * `.should('not.be.disabled')` alone is not enough: it waits for the element
+ * found *at that moment* to become enabled, but says nothing about that same
+ * element still being attached one command later. Re-querying makes each
+ * action retry against the current DOM.
+ */
+Cypress.Commands.add('searchCustomers', (term) => {
+  const SEARCH = 'input[placeholder*="Search customers"]';
+  cy.get(SEARCH, { timeout: 20000 }).should('not.be.disabled');
+  cy.get(SEARCH).clear();
+  cy.get(SEARCH).type(term);
+});

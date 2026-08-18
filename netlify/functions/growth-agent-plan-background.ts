@@ -1,4 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+// Netlify Background Function: Growth Agent — Planner
+//
+// Background rather than a normal function because of a hard platform limit:
+// Netlify allows 10s for synchronous functions and 30s for scheduled ones,
+// while a single Opus planning call routinely runs longer than both. Running
+// this as a regular route produced a 502 mid-call. Background functions get
+// 15 minutes, which is the only tier that fits.
+//
+// Consequences of that choice, both fine here:
+//   - the caller always gets 202 immediately and never sees the result, so
+//     outcomes go to growth_tasks and the function log instead
+//   - it cannot be scheduled directly, so growth-agent-plan-cron triggers it
+//
+// Imports are relative, not '@/...' — the path alias is a tsconfig feature and
+// Netlify's esbuild bundler does not reliably resolve it for functions.
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
   PLANNER_SYSTEM_PROMPT,
@@ -6,22 +21,10 @@ import {
   parsePlannerResponse,
   type ExperimentRow,
   type MetricsRow,
-} from '@/lib/growth-planner';
-import { aiComplete, parseAIJson } from '@/lib/ai-client';
+} from '../../src/lib/growth-planner';
+import { COMPETITORS } from '../../src/lib/competitor-data';
 
-export const dynamic = 'force-dynamic';
-
-/**
- * Growth agent planner.
- *
- * Cron-triggered weekly. Reads the funnel, the content inventory, and past
- * experiment outcomes, then writes a ranked set of proposed tasks.
- *
- * It proposes; it does not act. Every task lands in growth_tasks with status
- * 'proposed' and reaches the public only after a human approves it in
- * /admin/growth. That gate is the whole safety model — the agent writes to one
- * table and nothing else.
- */
+const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
 const TASK_COUNT = 5;
 
@@ -34,31 +37,31 @@ function getSupabaseAdmin(): SupabaseClient | null {
   });
 }
 
-export async function GET(request: NextRequest) {
+export default async function handler(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    console.error('[Growth Planner] Unauthorized invocation');
+    return new Response('Unauthorized', { status: 401 });
   }
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return NextResponse.json({ error: 'Server config error' }, { status: 500 });
+    console.error('[Growth Planner] Supabase env vars not configured');
+    return new Response('Server config error', { status: 500 });
   }
 
   try {
-    // Don't stack plans. If last week's proposals are still sitting unreviewed,
-    // adding five more turns the approval queue into a backlog nobody reads —
-    // which is exactly how these systems get switched off.
+    // Don't stack plans. If last week's proposals are still unreviewed, adding
+    // five more turns the approval queue into a backlog nobody reads — which
+    // is how these systems end up switched off.
     const { count: pending } = await supabase
       .from('growth_tasks')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'proposed');
 
     if ((pending ?? 0) >= TASK_COUNT * 2) {
-      return NextResponse.json({
-        message: 'Skipped — unreviewed proposals already pending',
-        pending,
-      });
+      console.log(`[Growth Planner] Skipped — ${pending} unreviewed proposals pending`);
+      return new Response('Skipped', { status: 200 });
     }
 
     const [metricsResult, experimentsResult, contentResult] = await Promise.all([
@@ -83,11 +86,16 @@ export async function GET(request: NextRequest) {
       metrics: (metricsResult.data ?? []) as MetricsRow[],
       experiments: (experimentsResult.data ?? []) as ExperimentRow[],
       existingContent: (contentResult.data ?? []).map((row) => String(row.title)),
-      // Sourced from the competitor catalog rather than the database — these
-      // pages are code, not rows, so the file is the authority on what exists.
-      existingComparisons: await loadComparisonSlugs(),
+      // Comparison pages are code, not rows, so the catalog file is the
+      // authority on which ones exist.
+      existingComparisons: Object.keys(COMPETITORS),
       taskCount: TASK_COUNT,
     };
+
+    console.log(
+      `[Growth Planner] Planning from ${context.metrics.length} days of metrics, ` +
+        `${context.experiments.length} experiments`
+    );
 
     const aiResult = await aiComplete({
       systemPrompt: PLANNER_SYSTEM_PROMPT,
@@ -100,7 +108,7 @@ export async function GET(request: NextRequest) {
 
     if (tasks.length === 0) {
       console.error('[Growth Planner] No valid tasks in model output');
-      return NextResponse.json({ error: 'Planner produced no usable tasks' }, { status: 502 });
+      return new Response('No usable tasks', { status: 200 });
     }
 
     // One id per run, so a bad week's plan can be discarded as a batch.
@@ -122,27 +130,15 @@ export async function GET(request: NextRequest) {
 
     if (insertError) {
       console.error('[Growth Planner] Insert failed:', insertError.message);
-      return NextResponse.json({ error: 'Could not save plan' }, { status: 500 });
+      return new Response('Could not save plan', { status: 500 });
     }
 
-    console.log(`[Growth Planner] Proposed ${tasks.length} tasks (run ${planRunId})`);
-    return NextResponse.json({
-      message: 'Plan complete',
-      plan_run_id: planRunId,
-      tasks_proposed: tasks.length,
-      model: aiResult.model,
-    });
+    console.log(
+      `[Growth Planner] Proposed ${tasks.length} tasks (run ${planRunId}, model ${aiResult.model})`
+    );
+    return new Response('Plan complete', { status: 200 });
   } catch (error) {
     console.error('[Growth Planner] Error:', error);
-    return NextResponse.json({ error: 'Planner failed' }, { status: 500 });
-  }
-}
-
-async function loadComparisonSlugs(): Promise<string[]> {
-  try {
-    const { COMPETITORS } = await import('@/lib/competitor-data');
-    return Object.keys(COMPETITORS);
-  } catch {
-    return [];
+    return new Response('Planner failed', { status: 500 });
   }
 }
