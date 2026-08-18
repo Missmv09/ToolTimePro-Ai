@@ -30,6 +30,11 @@ interface LeadCaptureFormProps {
   headline?: string;
   /** Overrides the default supporting line. */
   description?: string;
+  /**
+   * The result the visitor just saw, echoed into the email so it contains
+   * their actual numbers rather than a generic acknowledgement.
+   */
+  resultData?: Record<string, unknown>;
 }
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
@@ -39,6 +44,7 @@ export default function LeadCaptureForm({
   sourceDetail,
   headline,
   description,
+  resultData,
 }: LeadCaptureFormProps) {
   const t = useTranslations('tools.leadCapture');
   const [email, setEmail] = useState('');
@@ -72,6 +78,7 @@ export default function LeadCaptureForm({
           source,
           sourceDetail: sourceDetail ?? null,
           marketingConsent: consent,
+          resultData: resultData ?? null,
           website: honeypot,
           ...readAttribution(),
         }),

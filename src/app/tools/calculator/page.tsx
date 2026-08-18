@@ -256,7 +256,18 @@ export default function CalculatorPage() {
         </div>
 
         {/* Lead capture — only once there is a result worth emailing. */}
-        {result && <LeadCaptureForm source="tool_calculator" />}
+        {result && (
+          <LeadCaptureForm
+            source="tool_calculator"
+            resultData={{
+              dailyWage: result.dailyWage,
+              penalty: result.penalty,
+              effectiveDays: result.effectiveDays,
+              daysEntered: Number(daysLate),
+              rateType,
+            }}
+          />
+        )}
 
         {/* Examples */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
