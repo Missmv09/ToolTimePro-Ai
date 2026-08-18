@@ -52,7 +52,7 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     // window.confirm. Isolate the row via search, accept the confirm, delete,
     // and assert it's gone — so the test leaves no data behind.
     cy.on('window:confirm', () => true);
-    cy.get('input[placeholder*="Search customers"]', { timeout: 10000 }).clear().type(name);
+    cy.get('input[placeholder*="Search customers"]', { timeout: 10000 }).should('not.be.disabled').clear().type(name);
     cy.contains(name).should('be.visible');
     cy.contains('button', /^\s*delete\s*$/i).click();
     cy.contains(name).should('not.exist');
@@ -143,7 +143,7 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.contains('tr', name).should('not.exist');
 
     cy.visit('/dashboard/customers');
-    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).clear().type(name);
+    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).should('not.be.disabled').clear().type(name);
     cy.contains(name).should('be.visible');
     cy.contains('button', /^\s*delete\s*$/i).click();
     cy.contains(name).should('not.exist');
@@ -219,7 +219,7 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.contains('tr', name).should('not.exist');
 
     cy.visit('/dashboard/customers');
-    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).clear().type(name);
+    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).should('not.be.disabled').clear().type(name);
     cy.contains(name).should('be.visible');
     cy.contains('button', /^\s*delete\s*$/i).click();
     cy.contains(name).should('not.exist');
