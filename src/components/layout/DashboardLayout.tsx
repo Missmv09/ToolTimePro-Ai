@@ -229,15 +229,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         >
           {/* Logo */}
           <div className="h-16 flex items-center px-4 border-b border-gray-200 flex-shrink-0">
-            <Link href="/dashboard">
+            <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
               <Image
-                src="/logo-01262026.png"
-                alt="Task Iguana"
-                width={160}
+                src="/logo-08182026.png"
+                alt=""
+                width={36}
                 height={36}
-                className="h-9 w-auto"
+                className="h-9 w-9 flex-shrink-0 rounded-lg"
                 priority
               />
+              <span className="text-lg font-bold text-navy-500 tracking-tight truncate">
+                Task Iguana
+              </span>
             </Link>
           </div>
 
