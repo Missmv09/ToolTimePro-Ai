@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ArrowLeft, FileText, Clock, AlertTriangle, CheckCircle, XCircle, Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import LeadCaptureForm from '@/components/growth/LeadCaptureForm';
 
 export default function FinalWagePage() {
   const t = useTranslations('tools.finalWage');
@@ -145,6 +146,15 @@ export default function FinalWagePage() {
             ))}
           </ul>
         </div>
+
+        {/* Lead capture. This page is a reference guide rather than a
+            calculator, so there's no result to gate on — the offer is the
+            guide itself. */}
+        <LeadCaptureForm
+          source="tool_final_wage"
+          headline={t('leadHeadline')}
+          description={t('leadDescription')}
+        />
 
         {/* Disclaimer */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">

@@ -153,7 +153,9 @@
       "disclaimer": "Esta lista es solo para fines informativos y no constituye asesoría legal. Consulta con un abogado laboral para orientación específica.",
       "getProtection": "Obtén Protección de Cumplimiento Completa",
       "ctaText": "Task Iguana incluye seguimiento automatizado de cumplimiento, recordatorios de fechas límite y la suite completa de Shield Iguana.",
-      "startTrial": "Prueba Gratis"
+      "startTrial": "Prueba Gratis",
+      "leadHeadline": "Guarde su progreso en la lista",
+      "leadDescription": "Le enviaremos esta lista por correo para que pueda terminarla después y tener un registro de lo que ya cubrió."
     },
     "finalWage": {
       "backToTools": "Volver a Herramientas Gratis",
@@ -206,7 +208,9 @@
       "disclaimer": "Esta guía proporciona información general sobre la ley de California y no constituye asesoría legal. Consulta con un abogado laboral para situaciones específicas.",
       "getProtection": "Automatiza el Cumplimiento de Pago Final",
       "ctaText": "Task Iguana calcula automáticamente los montos de pago final y te recuerda las fechas límite según el tipo de terminación.",
-      "startTrial": "Prueba Gratis"
+      "startTrial": "Prueba Gratis",
+      "leadHeadline": "Obtenga la guía de pago final",
+      "leadDescription": "Le enviaremos esta guía por correo para que tenga los plazos y las reglas de penalización a la mano cuando los necesite."
     },
     "routeOptimizer": {
       "title": "Optimizador de Rutas",
@@ -266,6 +270,19 @@
       "optimizationIssue": "Problema de Optimización",
       "geocodeHint": "Asegúrate de que los trabajos tengan direcciones válidas. El optimizador geocodifica las direcciones automáticamente usando OpenStreetMap.",
       "openDispatch": "Abrir Tablero de Despacho"
+    },
+    "leadCapture": {
+      "headline": "¿Quiere una copia de estos resultados?",
+      "description": "Le enviaremos este resultado por correo para que pueda guardarlo o compartirlo con su contador.",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "usted@suempresa.com",
+      "submit": "Envíenme los resultados",
+      "sending": "Enviando...",
+      "consentLabel": "También quiero recibir consejos ocasionales para administrar un negocio de servicios. Sin spam, cancele cuando quiera.",
+      "privacyNote": "Nunca vendemos su correo. Cancele la suscripción con un clic.",
+      "successTitle": "Revise su correo",
+      "successText": "Sus resultados van en camino. Si no los ve en unos minutos, revise su carpeta de spam.",
+      "errorGeneric": "Algo salió mal. Por favor intente de nuevo."
     }
   }
 }

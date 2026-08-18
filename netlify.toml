@@ -78,6 +78,14 @@
 [functions."calendar-sync-cron"]
   schedule = "*/30 * * * *"
 
+# Growth Funnel Snapshot — runs daily at 5am UTC
+# Records one row per day in growth_metrics_daily: leads captured by source,
+# signups, trials, paid accounts, and the derived conversion rates. This is the
+# time series the growth agent planner reads. Runs before the other daily crons
+# so the snapshot reflects a settled previous day.
+[functions."growth-metrics-cron"]
+  schedule = "0 5 * * *"
+
 # Appointment Reminders + Post-Job Follow-ups — runs once daily (16:00 UTC)
 # Texts customers a reminder the day before a job, and a thank-you + review
 # request after a job is completed. Runs once a day so a customer gets at most
