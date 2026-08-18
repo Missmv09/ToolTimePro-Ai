@@ -12,6 +12,14 @@
  *
  *   Company A = E2E_EMAIL / E2E_PASSWORD
  *   Company B = E2E_EMAIL_2 / E2E_PASSWORD_2   (a DIFFERENT company on the sandbox)
+ *
+ * IMPORTANT: Company B must have COMPLETED ONBOARDING. The dashboard hard-
+ * redirects any company with onboarding_completed = false to /onboarding, so a
+ * brand-new signup can't reach /dashboard/customers for the isolation check.
+ * Mark it complete once in the sandbox Supabase SQL editor:
+ *
+ *   update companies set onboarding_completed = true
+ *   where email = '<company B signup email>';
  */
 
 const A = { email: Cypress.env('E2E_EMAIL'), password: Cypress.env('E2E_PASSWORD') };
@@ -26,7 +34,11 @@ function loginAs(email, password) {
     cy.get('input[name="email"]').clear().type(email);
     cy.get('input[name="password"]').clear().type(password, { log: false });
     cy.get('input[name="password"]').parents('form').first().find('button[type="submit"]').click();
-    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard');
+    // A fresh company lands on /onboarding; an established one on /dashboard.
+    // Accept either — we only need to be logged in (off /auth/login). Company B
+    // must be onboarding-complete (see the header note) so it can reach the
+    // dashboard for the isolation assertion below.
+    cy.location('pathname', { timeout: 25000 }).should('match', /\/(dashboard|onboarding)/);
   });
 }
 

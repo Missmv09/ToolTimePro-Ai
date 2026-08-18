@@ -160,3 +160,7 @@ jobs:
         env:
           CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
           CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          # Second company for TC-X-01 (multi-tenant isolation). When unset, that
+          # spec skips itself; forwarding these activates it.
+          CYPRESS_E2E_EMAIL_2: ${{ secrets.E2E_EMAIL_2 }}
+          CYPRESS_E2E_PASSWORD_2: ${{ secrets.E2E_PASSWORD_2 }}
