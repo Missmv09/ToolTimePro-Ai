@@ -14,6 +14,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface DashboardData {
   customer: { name: string; email: string } | null;
@@ -33,7 +34,9 @@ export default function PortalDashboard() {
     if (!token) return;
 
     fetch('/api/portal', { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      // An empty body (function timeout, dropped connection) yields null,
+      // which renders the "unable to load" state rather than a zeroed dashboard.
+      .then(res => readJson(res))
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Calendar, FileText, Home, LogOut, Truck, Camera, MessageSquare, FolderOpen, Clock, Lock, X, Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { readJson } from '@/lib/http';
 
 interface PortalSession {
   token: string;
@@ -44,9 +45,9 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
     Promise.all([
       fetch('/api/portal?action=profile', { headers: { 'x-portal-token': token } }).then(res => {
         if (!res.ok) throw new Error('Invalid session');
-        return res.json();
+        return readJson(res, {});
       }),
-      fetch('/api/portal?action=check_pro', { headers: { 'x-portal-token': token } }).then(res => res.json()).catch(() => ({ hasPortalPro: false })),
+      fetch('/api/portal?action=check_pro', { headers: { 'x-portal-token': token } }).then(res => readJson(res, {})).catch(() => ({ hasPortalPro: false })),
     ])
       .then(([profileData, proData]) => {
         localStorage.setItem('portal_token', token);

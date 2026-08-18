@@ -12,6 +12,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface Document {
   id: string;
@@ -52,7 +53,7 @@ export default function PortalDocuments() {
     if (!token) return;
 
     fetch('/api/portal?action=documents', { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      .then(res => readJson(res, {}))
       .then(data => { setDocuments(data.documents || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);

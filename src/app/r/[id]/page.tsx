@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Star, ExternalLink, Loader2 } from 'lucide-react';
+import { readJson } from '@/lib/http';
 
 export default function ReviewRedirect() {
   const params = useParams();
@@ -21,7 +22,7 @@ export default function ReviewRedirect() {
     fetch(`/api/reviews/track?token=${trackingId}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
-        return res.json();
+        return readJson(res, {});
       })
       .then(data => {
         setCompanyName(data.companyName || '');

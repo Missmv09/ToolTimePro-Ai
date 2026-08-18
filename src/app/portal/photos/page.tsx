@@ -9,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface Photo {
   id: string;
@@ -44,7 +45,7 @@ export default function PortalPhotos() {
     if (!token) return;
 
     fetch('/api/portal?action=photos', { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      .then(res => readJson(res, {}))
       .then(data => {
         const jobList = data.jobs || [];
         setJobs(jobList);

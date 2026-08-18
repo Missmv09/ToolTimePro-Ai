@@ -13,6 +13,7 @@ import {
   Send,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface Job {
   id: string;
@@ -53,7 +54,7 @@ export default function PortalAppointments() {
     if (!token) return;
 
     fetch(`/api/portal?action=appointments`, { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      .then(res => readJson(res, {}))
       .then(data => {
         setUpcoming(data.upcoming || []);
         setPast(data.past || []);

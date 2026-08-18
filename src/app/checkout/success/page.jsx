@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
+import { readJson } from '@/lib/http';
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
@@ -26,7 +27,7 @@ function CheckoutSuccessContent() {
           if (!res.ok) {
             throw new Error(`Failed to load checkout session (status ${res.status})`);
           }
-          return res.json();
+          return readJson(res, {});
         })
         .then(data => setSession(data))
         .catch(err => {

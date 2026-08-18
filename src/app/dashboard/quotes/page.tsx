@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency'
 import { computeQuoteTotals, QUOTE_TAX_RATE } from '@/lib/totals'
+import { readJson } from '@/lib/http'
 
 interface QuoteItem {
   id: string
@@ -1572,7 +1573,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
         body: JSON.stringify({ quoteData, items: quoteItems }),
       })
 
-      const result = await res.json()
+      const result = await readJson(res, {})
 
       if (!res.ok) {
         console.error('Error creating quote:', result.error)
@@ -1616,7 +1617,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
         body: JSON.stringify({ quoteId, items: quoteItems }),
       })
 
-      const result = await res.json()
+      const result = await readJson(res, {})
 
       if (!res.ok) {
         console.error('Quote updated but items failed to save:', result.error)

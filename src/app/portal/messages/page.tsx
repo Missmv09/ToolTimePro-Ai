@@ -10,6 +10,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface Message {
   id: string;
@@ -48,7 +49,7 @@ export default function PortalMessages() {
       : '/api/portal?action=messages';
 
     fetch(url, { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      .then(res => readJson(res, {}))
       .then(data => {
         setMessages(data.messages || []);
         setUnreadCount(data.unreadCount || 0);

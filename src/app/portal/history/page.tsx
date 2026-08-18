@@ -12,6 +12,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface HistoryJob {
   id: string;
@@ -49,7 +50,7 @@ export default function PortalHistory() {
     if (!token) return;
 
     fetch('/api/portal?action=history', { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      .then(res => readJson(res, {}))
       .then(data => {
         setJobs(data.jobs || []);
         setStats(data.stats || { totalJobs: 0, completedJobs: 0, totalSpent: 0, memberSince: null });

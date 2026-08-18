@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { DollarSign, Package, Plus, RefreshCw, Pencil, History } from 'lucide-react'
+import { readJson } from '@/lib/http'
 
 interface StripeProduct {
   stripe_id: string
@@ -78,7 +79,7 @@ export default function AdminPricingPage() {
       body: JSON.stringify(body),
     })
 
-    const data = await res.json()
+    const data = await readJson(res, {})
     if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`)
     return data
   }, [getToken])

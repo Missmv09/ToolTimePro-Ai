@@ -2,6 +2,8 @@
 // Used by both the per-user sync route (manual "Sync Now") and the
 // sync-all route invoked by the scheduled cron function.
 
+import { readJson } from '@/lib/http'
+
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 
@@ -35,7 +37,7 @@ export async function getValidAccessToken(connection, supabaseAdmin) {
     throw new Error(`Token refresh failed: ${errBody}`)
   }
 
-  const tokens = await refreshResponse.json()
+  const tokens = await readJson(refreshResponse, {})
   const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString()
 
   // Update stored tokens
@@ -132,7 +134,7 @@ export async function syncJobToCalendar(job, accessToken, calendarId) {
     return null
   }
 
-  const event = await response.json()
+  const event = await readJson(response, {})
   return event.id
 }
 

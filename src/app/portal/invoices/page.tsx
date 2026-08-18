@@ -13,6 +13,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface Invoice {
   id: string;
@@ -36,7 +37,7 @@ export default function PortalInvoices() {
     if (!token) return;
 
     fetch(`/api/portal?action=invoices`, { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      .then(res => readJson(res, {}))
       .then(data => {
         setInvoices(data.invoices || []);
         setLoading(false);

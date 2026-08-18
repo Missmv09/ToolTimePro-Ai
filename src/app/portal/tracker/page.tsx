@@ -13,6 +13,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { readJson } from '@/lib/http';
 
 interface StatusUpdate {
   note_text: string;
@@ -51,7 +52,7 @@ export default function PortalTracker() {
     if (!token) return;
 
     fetch('/api/portal?action=tracker', { headers: { 'x-portal-token': token } })
-      .then(res => res.json())
+      .then(res => readJson(res, {}))
       .then(data => { setJobs(data.jobs || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);

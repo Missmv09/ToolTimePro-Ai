@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { readJson } from '@/lib/http';
 
 /*
  * Jenny Chat Widget — Renders on public Task Iguana sites.
@@ -248,7 +249,7 @@ export default function JennyLiteWidget({
     })
       .then((res) => {
         if (!res.ok) {
-          return res.json().then((data) => {
+          return readJson(res, {}).then((data) => {
             console.error('[Jenny] Lead save API error:', res.status, data);
             leadSavedRef.current = false; // Allow retry on failure
           });
@@ -330,7 +331,7 @@ export default function JennyLiteWidget({
               notes: `Preferred time: ${finalData.time} (booked via Jenny AI chat)`,
             }),
           })
-            .then((res) => res.json().then((data) => {
+            .then((res) => readJson(res, {}).then((data) => {
               if (!res.ok) {
                 console.error('Booking API error:', data);
                 setMessages((prev) => [

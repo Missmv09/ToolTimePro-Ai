@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MessageSquare, Check, AlertCircle } from 'lucide-react';
+import { readJson } from '@/lib/http';
 
 interface SmsPreferences {
   sms_consent: boolean;
@@ -23,7 +24,8 @@ export default function PortalPreferencesPage() {
     fetch('/api/portal?action=sms_preferences', {
       headers: { 'x-portal-token': token },
     })
-      .then(res => res.json())
+      // An empty body yields null, which renders the "no phone on file" state.
+      .then(res => readJson(res))
       .then(data => {
         setPrefs(data);
         setLoading(false);

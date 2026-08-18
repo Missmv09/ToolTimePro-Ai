@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseServerClient, createSupabaseAdminClient } from '@/lib/supabase-server'
+import { readJson } from '@/lib/http'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,7 +74,7 @@ async function refreshToken(connection: QBOConnection, supabase: SupabaseClient)
     throw new Error(`Failed to refresh token: ${errorText}`)
   }
 
-  const tokenData = await response.json()
+  const tokenData = await readJson(response, {})
   const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
 
   // Update tokens in database
@@ -109,7 +110,7 @@ async function fetchQBOData(
     throw new Error(`QBO API error: ${response.status} - ${errorText}`)
   }
 
-  return response.json()
+  return readJson(response, {})
 }
 
 export async function POST() {
