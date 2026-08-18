@@ -87,18 +87,25 @@
   schedule = "0 5 * * *"
 
 # Growth Agent Planner — runs Mondays at 6am UTC
-# Reads the funnel time series, past experiment outcomes, and the content
-# inventory, then proposes a ranked week of work into growth_tasks with status
-# 'proposed'. It only proposes — nothing reaches the public until a human
-# approves it in /admin/growth. Skips itself when unreviewed proposals are
-# already pending, so the queue never becomes a backlog.
+# Fires growth-agent-plan-background, which reads the funnel time series, past
+# experiment outcomes, and the content inventory, then proposes a ranked week of
+# work into growth_tasks with status 'proposed'. It only proposes — nothing
+# reaches the public until a human approves it in /admin/growth.
+#
+# The work lives in a *background* function because scheduled functions cap at
+# 30s and synchronous ones at 10s, while an Opus planning call runs longer than
+# both. Background functions get 15 minutes.
 [functions."growth-agent-plan-cron"]
   schedule = "0 6 * * 1"
 
 # Growth Agent Generator — runs weekdays at 7am UTC
-# Turns *approved* tasks into draft assets. Approved only: generating for an
-# unreviewed proposal spends tokens on work that may be rejected, and puts a
-# finished-looking draft in front of the reviewer that biases the decision.
+# Fires growth-agent-generate-background, which turns *approved* tasks into
+# draft assets. Approved only: generating for an unreviewed proposal spends
+# tokens on work that may be rejected, and puts a finished-looking draft in
+# front of the reviewer that biases the decision.
+#
+# Background function for the same timeout reason as the planner — it makes up
+# to three sequential AI calls.
 [functions."growth-agent-generate-cron"]
   schedule = "0 7 * * 1-5"
 

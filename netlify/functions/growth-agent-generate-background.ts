@@ -1,26 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+// Netlify Background Function: Growth Agent — Generator
+//
+// Background for the same reason as the planner: this makes up to three
+// sequential AI calls, which is far beyond Netlify's 10s synchronous and 30s
+// scheduled limits. Triggered by growth-agent-generate-cron.
+//
+// Only picks up tasks a human has approved. That is deliberate twice over: it
+// avoids spending tokens on work that may be rejected, and it avoids putting a
+// finished-looking draft in front of the reviewer, which biases the decision.
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
   buildGenerationPrompt,
   getAssetSpec,
   parseGeneratedAsset,
-} from '@/lib/growth-generator';
-import { isTaskType } from '@/lib/growth-planner';
-import { aiComplete, parseAIJson } from '@/lib/ai-client';
+} from '../../src/lib/growth-generator';
+import { isTaskType } from '../../src/lib/growth-planner';
 
-export const dynamic = 'force-dynamic';
-
-/**
- * Growth agent generator.
- *
- * Turns approved tasks into draft assets. Deliberately only picks up tasks with
- * status 'approved' — a proposed task is one nobody has looked at yet, and
- * generating for it would spend tokens on work that may be rejected, then put a
- * finished-looking draft in front of the reviewer and bias the decision.
- *
- * Cron-triggered, and also callable from the admin UI to generate one task on
- * demand via ?taskId=.
- */
+const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
 const BATCH_LIMIT = 3;
 
@@ -33,18 +29,30 @@ function getSupabaseAdmin(): SupabaseClient | null {
   });
 }
 
-export async function GET(request: NextRequest) {
+interface TaskRow {
+  id: string;
+  title: string;
+  rationale: string;
+  channel: string;
+  task_type: string;
+  expected_impact: string | null;
+}
+
+export default async function handler(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    console.error('[Growth Generator] Unauthorized invocation');
+    return new Response('Unauthorized', { status: 401 });
   }
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return NextResponse.json({ error: 'Server config error' }, { status: 500 });
+    console.error('[Growth Generator] Supabase env vars not configured');
+    return new Response('Server config error', { status: 500 });
   }
 
-  const taskId = request.nextUrl.searchParams.get('taskId');
+  // Optional ?taskId= to generate one specific task on demand.
+  const taskId = new URL(request.url).searchParams.get('taskId');
 
   try {
     let query = supabase
@@ -60,39 +68,31 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[Growth Generator] Task read failed:', error.message);
-      return NextResponse.json({ error: 'Could not read tasks' }, { status: 500 });
+      return new Response('Could not read tasks', { status: 500 });
     }
 
     if (!tasks?.length) {
-      return NextResponse.json({ message: 'No approved tasks awaiting generation', generated: 0 });
+      console.log('[Growth Generator] No approved tasks awaiting generation');
+      return new Response('Nothing to generate', { status: 200 });
     }
 
     let generated = 0;
     let failed = 0;
 
-    // Sequential rather than parallel: this runs on a schedule with nobody
-    // waiting, and three concurrent Opus-tier calls is a rate-limit spike for
-    // no benefit.
-    for (const task of tasks) {
+    // Sequential rather than parallel: nothing is waiting on this, and three
+    // concurrent AI calls is a rate-limit spike for no benefit.
+    for (const task of tasks as TaskRow[]) {
       const ok = await generateForTask(supabase, task);
       if (ok) generated += 1;
       else failed += 1;
     }
 
-    return NextResponse.json({ message: 'Generation complete', generated, failed });
+    console.log(`[Growth Generator] Generated ${generated}, failed ${failed}`);
+    return new Response('Generation complete', { status: 200 });
   } catch (error) {
     console.error('[Growth Generator] Error:', error);
-    return NextResponse.json({ error: 'Generator failed' }, { status: 500 });
+    return new Response('Generator failed', { status: 500 });
   }
-}
-
-interface TaskRow {
-  id: string;
-  title: string;
-  rationale: string;
-  channel: string;
-  task_type: string;
-  expected_impact: string | null;
 }
 
 async function generateForTask(supabase: SupabaseClient, task: TaskRow): Promise<boolean> {
@@ -163,9 +163,9 @@ async function generateForTask(supabase: SupabaseClient, task: TaskRow): Promise
 /**
  * Record why a task could not be generated.
  *
- * Kept visible rather than silently retried: a task that keeps failing usually
- * means the prompt or the task type is wrong, and hiding that behind a retry
- * loop burns tokens without anyone noticing.
+ * Left visible rather than silently retried: a task that keeps failing usually
+ * means the prompt or the task type is wrong, and a retry loop would burn
+ * tokens without anyone noticing.
  */
 async function markFailed(supabase: SupabaseClient, taskId: string, reason: string): Promise<void> {
   await supabase
