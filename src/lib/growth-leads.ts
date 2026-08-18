@@ -93,6 +93,25 @@ function cleanClickId(value: unknown): string | null {
   return trimmed;
 }
 
+/**
+ * Accept a small flat object of tool output and nothing else.
+ *
+ * Bounded on purpose: this lands in a JSONB column and is rendered into an
+ * email, so a nested or oversized payload is rejected rather than stored.
+ */
+const MAX_RESULT_KEYS = 20;
+
+function cleanResultData(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, v]) => ['string', 'number', 'boolean'].includes(typeof v))
+    .slice(0, MAX_RESULT_KEYS)
+    .map(([k, v]) => [k, typeof v === 'string' ? v.slice(0, MAX_TEXT_LENGTH) : v]);
+
+  return entries.length > 0 ? Object.fromEntries(entries) : null;
+}
+
 export interface LeadInput {
   email: string;
   source: LeadSource;
@@ -113,6 +132,12 @@ export interface LeadInput {
   gclid: string | null;
   gbraid: string | null;
   wbraid: string | null;
+  /**
+   * The tool output the visitor just saw, echoed back so the result email can
+   * contain their actual numbers. Browser-supplied and therefore untrusted —
+   * buildToolResultEmail coerces every field it reads.
+   */
+  resultData: Record<string, unknown> | null;
 }
 
 export type ValidationResult =
@@ -163,6 +188,7 @@ export function validateLeadInput(body: unknown): ValidationResult {
       gclid: cleanClickId(raw.gclid),
       gbraid: cleanClickId(raw.gbraid),
       wbraid: cleanClickId(raw.wbraid),
+      resultData: cleanResultData(raw.resultData),
     },
   };
 }
@@ -191,7 +217,10 @@ export function buildLeadRecord(input: LeadInput, now: string): Record<string, u
     marketing_consent: input.marketingConsent,
     marketing_consent_at: input.marketingConsent ? now : null,
     status: 'new',
-    metadata: { touches: [buildTouch(input, now)] },
+    metadata: {
+      touches: [buildTouch(input, now)],
+      ...(input.resultData ? { last_result: input.resultData } : {}),
+    },
     first_seen_at: now,
     last_seen_at: now,
   };
@@ -236,7 +265,12 @@ export function buildLeadUpdate(
 
   const update: Record<string, unknown> = {
     last_seen_at: now,
-    metadata: { ...existingMetadata, touches },
+    metadata: {
+      ...existingMetadata,
+      touches,
+      // Keep the newest result so a failed email send stays recoverable.
+      ...(input.resultData ? { last_result: input.resultData } : {}),
+    },
     marketing_consent: consent,
   };
 

@@ -4,7 +4,10 @@ import {
   validateLeadInput,
   buildLeadRecord,
   buildLeadUpdate,
+  type LeadInput,
 } from '@/lib/growth-leads';
+import { buildToolResultEmail } from '@/lib/growth-tool-results';
+import { sendToolResultEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +92,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Could not save your email' }, { status: 500 });
       }
 
+      await deliverResultEmail(input);
       return NextResponse.json(OK);
     }
 
@@ -107,9 +111,38 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[Growth Lead] Captured from ${input.source}`);
+    await deliverResultEmail(input);
     return NextResponse.json(OK);
   } catch (error) {
     console.error('[Growth Lead] Unexpected error:', error);
     return NextResponse.json({ error: 'Could not save your email' }, { status: 500 });
+  }
+}
+
+/**
+ * Send the visitor the result they asked for.
+ *
+ * Never throws. The lead is already saved by the time this runs, and a failed
+ * send is not a reason to tell someone their email didn't go through — that
+ * would push them to resubmit against a row that already exists. Failures are
+ * logged; the result itself is on the lead row (metadata.last_result), so a
+ * missed send is recoverable rather than lost.
+ */
+async function deliverResultEmail(input: LeadInput): Promise<void> {
+  const content = buildToolResultEmail(input.source, input.resultData);
+  // Sources with no result to report (pricing, blog, compare) return null —
+  // they get no email rather than an empty one.
+  if (!content) return;
+
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[Growth Lead] RESEND_API_KEY not set — result email skipped');
+    return;
+  }
+
+  try {
+    await sendToolResultEmail({ to: input.email, content });
+    console.log(`[Growth Lead] Result email sent for ${input.source}`);
+  } catch (error) {
+    console.error('[Growth Lead] Result email failed:', error);
   }
 }

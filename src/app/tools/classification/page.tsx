@@ -198,6 +198,7 @@ export default function ClassificationPage() {
             <LeadCaptureForm
               source="tool_classification"
               sourceDetail={isContractor ? 'contractor' : 'employee'}
+              resultData={{ outcome: isContractor ? 'contractor' : 'employee' }}
             />
 
             <button

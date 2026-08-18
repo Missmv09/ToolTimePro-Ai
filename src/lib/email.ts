@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import type { ToolResultEmail } from './growth-tool-results';
 
 let resend: Resend | null = null;
 
@@ -1261,5 +1262,85 @@ export async function sendPortalMagicLinkEmail({
   });
 
   if (error) throw new Error(`Failed to send portal magic link email: ${error.message}`);
+  return data;
+}
+
+// ============================================
+// Free Tool Result Email
+//
+// Backs the "we'll email you this result" promise on the free tools. The
+// content is assembled by buildToolResultEmail in growth-tool-results.ts; this
+// only renders it into the shared branded layout.
+//
+// Transactional, not marketing: it is the thing the visitor explicitly asked
+// for, so it carries no unsubscribe link. Anything sent because they ticked the
+// consent box is a separate send with its own opt-out.
+// ============================================
+
+/** Escape values before interpolating — result data originates in the browser. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export async function sendToolResultEmail({
+  to,
+  content,
+}: {
+  to: string;
+  content: ToolResultEmail;
+}) {
+  const rows = content.rows
+    .map(
+      (row, index) => `
+        <tr>
+          <td style="padding: 12px 16px; color: #4b5563; font-size: 15px; ${
+            index > 0 ? 'border-top: 1px solid #e5e7eb;' : ''
+          }">${escapeHtml(row.label)}</td>
+          <td style="padding: 12px 16px; color: #111827; font-size: 15px; font-weight: 600; text-align: right; ${
+            index > 0 ? 'border-top: 1px solid #e5e7eb;' : ''
+          }">${escapeHtml(row.value)}</td>
+        </tr>`
+    )
+    .join('');
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: content.subject,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">${escapeHtml(content.heading)}</h2>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        ${escapeHtml(content.intro)}
+      </p>
+
+      <table style="width: 100%; border-collapse: collapse; background: #f9fafb; border-radius: 8px; margin: 24px 0;">
+        ${rows}
+      </table>
+
+      ${
+        content.note
+          ? `<p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 16px 0 0 0;">
+               ${escapeHtml(content.note)}
+             </p>`
+          : ''
+      }
+
+      ${ctaButton(content.ctaText, `${BASE_URL}${content.ctaPath}`, '#3b82f6')}
+
+      <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
+        Task Iguana handles final pay, worker classification, and break compliance
+        automatically &mdash; so these numbers get calculated for you instead of
+        looked up. <a href="${BASE_URL}/pricing" style="color: #2E9BFF;">See plans</a>.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
   return data;
 }

@@ -167,6 +167,7 @@ export default function ChecklistPage() {
               source="tool_checklist"
               headline={t('leadHeadline')}
               description={t('leadDescription')}
+              resultData={{ completed: checkedItems.size, total: totalItems }}
             />
           </div>
         )}

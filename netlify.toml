@@ -86,6 +86,22 @@
 [functions."growth-metrics-cron"]
   schedule = "0 5 * * *"
 
+# Growth Agent Planner — runs Mondays at 6am UTC
+# Reads the funnel time series, past experiment outcomes, and the content
+# inventory, then proposes a ranked week of work into growth_tasks with status
+# 'proposed'. It only proposes — nothing reaches the public until a human
+# approves it in /admin/growth. Skips itself when unreviewed proposals are
+# already pending, so the queue never becomes a backlog.
+[functions."growth-agent-plan-cron"]
+  schedule = "0 6 * * 1"
+
+# Growth Agent Generator — runs weekdays at 7am UTC
+# Turns *approved* tasks into draft assets. Approved only: generating for an
+# unreviewed proposal spends tokens on work that may be rejected, and puts a
+# finished-looking draft in front of the reviewer that biases the decision.
+[functions."growth-agent-generate-cron"]
+  schedule = "0 7 * * 1-5"
+
 # Appointment Reminders + Post-Job Follow-ups — runs once daily (16:00 UTC)
 # Texts customers a reminder the day before a job, and a thank-you + review
 # request after a job is completed. Runs once a day so a customer gets at most

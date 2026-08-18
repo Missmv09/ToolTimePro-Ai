@@ -183,6 +183,46 @@ describe('click IDs', () => {
   });
 });
 
+describe('resultData', () => {
+  it('keeps flat scalar values from the tool', () => {
+    const result = validateLeadInput(
+      validInput({ resultData: { penalty: 6000, rateType: 'hourly', capped: true } })
+    );
+    expect(result.data.resultData).toEqual({ penalty: 6000, rateType: 'hourly', capped: true });
+  });
+
+  it('strips nested structures, which belong to no tool output', () => {
+    const result = validateLeadInput(
+      validInput({ resultData: { penalty: 100, nested: { a: 1 }, list: [1, 2] } })
+    );
+    expect(result.data.resultData).toEqual({ penalty: 100 });
+  });
+
+  it('bounds the payload so one row cannot be inflated', () => {
+    const wide = Object.fromEntries(Array.from({ length: 50 }, (_, i) => [`k${i}`, i]));
+    const result = validateLeadInput(validInput({ resultData: wide }));
+    expect(Object.keys(result.data.resultData)).toHaveLength(20);
+  });
+
+  it.each([
+    ['missing', undefined],
+    ['null', null],
+    ['an array', [1, 2, 3]],
+    ['a string', 'penalty=6000'],
+    ['an object with nothing usable', { nested: { a: 1 } }],
+  ])('treats %s as no result', (_label, value) => {
+    expect(validateLeadInput(validInput({ resultData: value })).data.resultData).toBeNull();
+  });
+
+  it('stores the result so a failed email send stays recoverable', () => {
+    const input = validateLeadInput(validInput({ resultData: { penalty: 6000 } })).data;
+    expect(buildLeadRecord(input, NOW).metadata.last_result).toEqual({ penalty: 6000 });
+    expect(buildLeadUpdate(input, { metadata: {} }, NOW).metadata.last_result).toEqual({
+      penalty: 6000,
+    });
+  });
+});
+
 describe('buildLeadRecord', () => {
   it('stamps the consent timestamp only when consent was given', () => {
     const consented = buildLeadRecord(
