@@ -14,7 +14,25 @@ const CLAUDE_MODELS = {
   high: 'claude-sonnet-4-6',
   // Fast tasks: chatbot, helper, review responses
   fast: 'claude-haiku-4-5-20251001',
+  // Hardest reasoning: the growth agent planner, which reads a funnel time
+  // series plus past experiment outcomes and decides what to do next. Kept as
+  // its own tier so raising the model here never changes the behaviour or cost
+  // of the existing 'high' routes.
+  reasoning: 'claude-opus-5',
 };
+
+// Models that reject `temperature`.
+//
+// Sampling parameters were removed on the Opus 5 / Sonnet 5 / 4.6+ family —
+// sending `temperature` to one of these returns a 400 and, because callClaude
+// falls through on error, would silently downgrade every reasoning call to the
+// OpenAI fallback. Matching on prefix so a future model in the family is
+// covered without another edit here.
+const NO_TEMPERATURE_PREFIXES = ['claude-opus-5', 'claude-sonnet-5', 'claude-fable-5', 'claude-opus-4-7', 'claude-opus-4-8'];
+
+function acceptsTemperature(model) {
+  return !NO_TEMPERATURE_PREFIXES.some((prefix) => model.startsWith(prefix));
+}
 
 // OpenAI fallback models
 const OPENAI_MODELS = {
@@ -108,7 +126,8 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1024, temperatur
         system: systemPrompt,
         messages: apiMessages,
         max_tokens: maxTokens,
-        temperature,
+        // Omitted on models that reject it — see NO_TEMPERATURE_PREFIXES.
+        ...(acceptsTemperature(model) ? { temperature } : {}),
       }),
     });
 
@@ -212,7 +231,7 @@ async function callOpenAI({ systemPrompt, messages, maxTokens = 1024, temperatur
  * @param {Array}  options.messages     - [{role: 'user'|'assistant', content: string|array}]
  * @param {number} [options.maxTokens=1024]
  * @param {number} [options.temperature=0.5]
- * @param {string} [options.tier='high'] - 'high' (complex reasoning/vision) or 'fast' (simple tasks)
+ * @param {string} [options.tier='high'] - 'reasoning' (hardest planning), 'high' (complex reasoning/vision) or 'fast' (simple tasks)
  * @returns {Promise<{content: string, provider: string, model: string}>}
  * @throws {Error} if both providers fail
  */
@@ -257,6 +276,7 @@ function parseAIJson(content) {
 }
 
 module.exports = {
+  acceptsTemperature,
   aiComplete,
   callClaude,
   callOpenAI,
