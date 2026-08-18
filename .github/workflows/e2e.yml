@@ -155,7 +155,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           install: true
-          spec: cypress/e2e/authenticated-flows.cy.js,cypress/e2e/customer-portal.cy.js,cypress/e2e/multi-tenant-isolation.cy.js,cypress/e2e/quote-public-link.cy.js
+          spec: cypress/e2e/authenticated-flows.cy.js,cypress/e2e/customer-portal.cy.js,cypress/e2e/multi-tenant-isolation.cy.js,cypress/e2e/quote-public-link.cy.js,cypress/e2e/worker-flows.cy.js
           config: baseUrl=${{ secrets.E2E_BASE_URL }}
         env:
           CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
@@ -164,3 +164,7 @@ jobs:
           # spec skips itself; forwarding these activates it.
           CYPRESS_E2E_EMAIL_2: ${{ secrets.E2E_EMAIL_2 }}
           CYPRESS_E2E_PASSWORD_2: ${{ secrets.E2E_PASSWORD_2 }}
+          # Worker account for the worker-app specs (TC-WORK-*). When unset, that
+          # spec skips itself; forwarding these activates it.
+          CYPRESS_E2E_WORKER_EMAIL: ${{ secrets.E2E_WORKER_EMAIL }}
+          CYPRESS_E2E_WORKER_PASSWORD: ${{ secrets.E2E_WORKER_PASSWORD }}
