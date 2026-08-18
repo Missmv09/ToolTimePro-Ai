@@ -54,7 +54,10 @@ function loginAs(email, password) {
     cy.contains('button', /add (your first )?customer/i, { timeout: 20000 }).first().click();
     cy.contains(/Add New Customer/i, { timeout: 10000 }).should('be.visible');
     cy.get('.fixed.inset-0').within(() => {
-      cy.get('input[type="text"]').first().clear().type(name);
+      // The modal disables its inputs while it loads company data on a cold
+      // function; wait for the first field to enable before typing, or cy.type()
+      // fails "targeted a disabled element". Once it's enabled the rest are too.
+      cy.get('input[type="text"]').first().should('not.be.disabled').clear().type(name);
       cy.get('input[type="email"]').first().clear().type(custEmail);
       cy.get('input[type="tel"]').first().clear().type('5551234567');
       cy.contains('button', /save customer|save|add|create/i).click();

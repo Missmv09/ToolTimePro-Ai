@@ -39,7 +39,9 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     // `.fixed`/`form`, which can match a toast or chat widget rendered later in
     // the DOM. Residential (default) shows Name as the first text input.
     cy.get('.fixed.inset-0').within(() => {
-      cy.get('input[type="text"]').first().clear().type(name);
+      // Wait for the modal's inputs to enable (they load disabled on a cold
+      // function) before typing, else cy.type() fails "targeted a disabled element".
+      cy.get('input[type="text"]').first().should('not.be.disabled').clear().type(name);
       cy.get('input[type="email"]').first().clear().type(email);
       cy.get('input[type="tel"]').first().clear().type('5551234567');
       cy.contains('button', /save customer|save|add|create/i).click();
@@ -68,21 +70,23 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     // service and worker are optional, so this needs no seed data. A unique
     // title makes the row findable; 14:30 also exercises the 12-hour render.
     cy.get('.fixed.inset-0', { timeout: 10000 }).within(() => {
-      cy.get('input[placeholder="e.g., Weekly pool cleaning"]').clear().type(title);
+      cy.get('input[placeholder="e.g., Weekly pool cleaning"]').should('not.be.disabled').clear().type(title);
       cy.get('input[placeholder="123 Main St"]').clear().type('123 E2E Test St');
       cy.get('input[type="date"]').first().type('2027-01-15');
       cy.get('input[type="time"]').first().type('14:30');
       cy.contains('button', /^\s*save job\s*$/i).click();
     });
 
-    cy.contains('tr', title, { timeout: 25000 }).should('exist');
+    cy.contains('tr', title, { timeout: 40000 }).should('exist');
 
     // Self-cleanup (row Delete is guarded by window.confirm).
     cy.on('window:confirm', () => true);
     cy.contains('tr', title).within(() => {
       cy.contains('button', /^\s*delete\s*$/i).click();
     });
-    cy.contains('tr', title).should('not.exist');
+    // A cold delete endpoint can take a beat to remove the row; give the
+    // disappearance the same cold-start budget as the appearance above.
+    cy.contains('tr', title, { timeout: 20000 }).should('not.exist');
   });
 
   it('TC-QUOTE-01: opens the New Quote menu and the Quick Quote modal', () => {
@@ -107,7 +111,7 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.contains('button', /add (your first )?customer/i, { timeout: 20000 }).first().click();
     cy.contains(/Add New Customer/i, { timeout: 10000 }).should('be.visible');
     cy.get('.fixed.inset-0').within(() => {
-      cy.get('input[type="text"]').first().clear().type(name);
+      cy.get('input[type="text"]').first().should('not.be.disabled').clear().type(name);
       cy.get('input[type="email"]').first().clear().type(`${uid}@example.com`);
       cy.get('input[type="tel"]').first().clear().type('5551234567');
       cy.contains('button', /save customer|save|add|create/i).click();
@@ -119,7 +123,7 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/invoices');
     cy.contains('button', /new invoice/i, { timeout: 20000 }).click();
     cy.get('.fixed.inset-0', { timeout: 10000 }).within(() => {
-      cy.get('select').first().select(name); // customer select (first in the modal)
+      cy.get('select').first().should('not.be.disabled').select(name); // customer select (first in the modal)
       cy.get('input[placeholder="Description"]').first().clear().type('E2E line item');
       cy.get('input[placeholder="Qty"]').first().type('{selectall}1').should('have.value', '1');
       cy.get('input[placeholder="Price"]').first().type('{selectall}100').should('have.value', '100');
@@ -128,7 +132,8 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     });
 
     // Invoice shows up in the list keyed by the customer name — number generated.
-    cy.contains('tr', name, { timeout: 25000 }).should('exist');
+    // Same cold-start budget as the quote/job create flows above.
+    cy.contains('tr', name, { timeout: 40000 }).should('exist');
 
     // Cleanup: delete the invoice, then the customer it was for.
     cy.on('window:confirm', () => true);
@@ -176,7 +181,7 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
 
     // Attach to a brand-new customer so the spec never depends on seed data.
     cy.get('.fixed.inset-0', { timeout: 10000 }).within(() => {
-      cy.get('select').first().select('__new__');
+      cy.get('select').first().should('not.be.disabled').select('__new__');
       cy.contains('New Customer Info').should('be.visible');
       cy.get('input[placeholder="John Smith"]').clear().type(name);
       cy.get('input[placeholder="john@email.com"]').clear().type(`${uid}@example.com`);
@@ -202,7 +207,9 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     });
 
     // Saved quote shows up in the list, keyed by our unique customer name.
-    cy.contains('tr', name, { timeout: 25000 }).should('exist');
+    // A cold quote-save endpoint (the warm-up only touches GET routes) can run
+    // long on the first hit, so allow a full cold-start budget here.
+    cy.contains('tr', name, { timeout: 40000 }).should('exist');
 
     // Self-cleanup: delete the quote first (FK), then the customer it created.
     cy.on('window:confirm', () => true);
