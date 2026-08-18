@@ -69,14 +69,14 @@ function loginAs(email, password) {
     cy.visit('/dashboard/customers');
     // Guard against a false pass: confirm B's own customers page actually loaded
     // (search box present) before asserting the absence of A's record.
-    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).should('not.be.disabled').clear().type(name);
+    cy.searchCustomers(name);
     cy.contains(name).should('not.exist');
 
     // ── Cleanup: Company A deletes the customer ──────────────────────────────
     loginAs(A.email, A.password);
     cy.visit('/dashboard/customers');
     cy.on('window:confirm', () => true);
-    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).should('not.be.disabled').clear().type(name);
+    cy.searchCustomers(name);
     cy.contains(name, { timeout: 20000 }).should('be.visible');
     cy.contains('button', /^\s*delete\s*$/i).click();
     cy.contains(name).should('not.exist');

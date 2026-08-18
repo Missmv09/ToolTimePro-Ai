@@ -72,7 +72,7 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.contains('tr', name).should('not.exist');
 
     cy.visit('/dashboard/customers');
-    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).clear().type(name);
+    cy.searchCustomers(name);
     cy.contains(name).should('be.visible');
     cy.contains('button', /^\s*delete\s*$/i).click();
     cy.contains(name).should('not.exist');
