@@ -55,6 +55,8 @@ Site settings → Environment variables. For each variable below, set "Specific 
 
 Any var left unscoped falls through to its production value — double-check the list above covers every secret that writes to a shared external system.
 
+> **Deploy Previews are a separate scope.** The table above scopes to *branch deploys → sandbox*, which does not cover the per-PR preview builds. Those still resolve to production credentials. This is why `e2e-authenticated` runs on push and manual dispatch only, never on `pull_request`: the authenticated specs create and delete customers, so running them against a deploy preview today would write to the production database. To gain pre-merge coverage, first add **Deploy Previews** to the scopes of every variable above, then point the job at `deploy-preview-<PR>--<site>.netlify.app`.
+
 ### Keep the sandbox Supabase from pausing
 
 Free-tier Supabase projects pause after 7 days of no real database activity. The

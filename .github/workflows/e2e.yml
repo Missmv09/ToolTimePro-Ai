@@ -40,7 +40,30 @@ jobs:
   # Authenticated E2E — runs against the deployed sandbox with a real login.
   # Skips automatically until the E2E_* secrets are configured, so it never
   # breaks CI before you wire them up.
+  #
+  # Push and manual dispatch only — deliberately NOT on pull_request.
+  #
+  # This job tests a DEPLOYED environment (E2E_BASE_URL = the sandbox), not the
+  # checked-out code. On a pull request the sandbox is serving whatever was last
+  # back-synced, which does not include the PR — so the job ran the PR's spec
+  # files against a different application build. That combination cannot
+  # validate a change: it failed on PRs that touched neither the pages under
+  # test nor auth, and no commit on those branches could turn it green. A check
+  # that is red for reasons the author cannot act on trains everyone to ignore
+  # red, which is worse than not running it.
+  #
+  # On push, the steps below resolve the commit the sandbox should be serving
+  # and wait for that exact deploy, so the app and the specs match.
+  #
+  # To restore pre-merge coverage, point this at the PR's own Netlify deploy
+  # preview (deploy-preview-<N>--<site>.netlify.app). That requires a Netlify
+  # change FIRST: per docs/SANDBOX.md the Supabase/Stripe vars are scoped to
+  # branch deploys only, and Deploy Previews is a separate scope, so previews
+  # currently fall through to PRODUCTION credentials. These specs create and
+  # delete customers — running them against a preview before those vars are
+  # scoped would mutate production data.
   e2e-authenticated:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
