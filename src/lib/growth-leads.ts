@@ -79,6 +79,20 @@ function cleanUrl(value: unknown): string | null {
   return null;
 }
 
+/**
+ * Click IDs are opaque platform-generated tokens. They are URL-safe by
+ * construction, so anything containing characters that cannot appear in one is
+ * not a click ID and would only pollute the conversion upload.
+ */
+const CLICK_ID_PATTERN = /^[A-Za-z0-9_.\-]{1,512}$/;
+
+function cleanClickId(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || !CLICK_ID_PATTERN.test(trimmed)) return null;
+  return trimmed;
+}
+
 export interface LeadInput {
   email: string;
   source: LeadSource;
@@ -94,6 +108,11 @@ export interface LeadInput {
   utmCampaign: string | null;
   utmTerm: string | null;
   utmContent: string | null;
+  // Ad platform click IDs. Google requires exactly one of these on an
+  // uploaded conversion; see migration 049.
+  gclid: string | null;
+  gbraid: string | null;
+  wbraid: string | null;
 }
 
 export type ValidationResult =
@@ -141,6 +160,9 @@ export function validateLeadInput(body: unknown): ValidationResult {
       utmCampaign: cleanText(raw.utmCampaign, MAX_TEXT_LENGTH),
       utmTerm: cleanText(raw.utmTerm, MAX_TEXT_LENGTH),
       utmContent: cleanText(raw.utmContent, MAX_TEXT_LENGTH),
+      gclid: cleanClickId(raw.gclid),
+      gbraid: cleanClickId(raw.gbraid),
+      wbraid: cleanClickId(raw.wbraid),
     },
   };
 }
@@ -163,6 +185,9 @@ export function buildLeadRecord(input: LeadInput, now: string): Record<string, u
     utm_campaign: input.utmCampaign,
     utm_term: input.utmTerm,
     utm_content: input.utmContent,
+    gclid: input.gclid,
+    gbraid: input.gbraid,
+    wbraid: input.wbraid,
     marketing_consent: input.marketingConsent,
     marketing_consent_at: input.marketingConsent ? now : null,
     status: 'new',
@@ -183,6 +208,12 @@ export function buildLeadRecord(input: LeadInput, now: string): Record<string, u
  * Consent is upgrade-only for the same reason it defaults to false — someone
  * opting in on a second visit counts, but a later form submitted without the
  * box ticked does not silently revoke it (that's what unsubscribe is for).
+ *
+ * Click IDs are the one attribution field that DOES get overwritten. Google
+ * attributes a conversion to the last ad click, so if someone returns via a
+ * newer ad, that newer click is the one to report. A visit with no click ID
+ * leaves the stored one alone rather than clearing it — organic browsing
+ * between the ad click and the conversion must not erase the ad click.
  */
 export function buildLeadUpdate(
   input: LeadInput,
@@ -214,6 +245,11 @@ export function buildLeadUpdate(
     update.marketing_consent_at = now;
   }
 
+  // Last ad click wins — see the note above.
+  if (input.gclid) update.gclid = input.gclid;
+  if (input.gbraid) update.gbraid = input.gbraid;
+  if (input.wbraid) update.wbraid = input.wbraid;
+
   // Fill in details we didn't have before, without clobbering what we did.
   if (input.name) update.name = input.name;
   if (input.companyName) update.company_name = input.companyName;
@@ -229,5 +265,6 @@ function buildTouch(input: LeadInput, now: string): Record<string, unknown> {
     source_detail: input.sourceDetail,
     landing_page: input.landingPage,
     utm_campaign: input.utmCampaign,
+    click_id: input.gclid || input.gbraid || input.wbraid || null,
   };
 }

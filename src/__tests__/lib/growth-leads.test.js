@@ -137,6 +137,52 @@ describe('validateLeadInput', () => {
   });
 });
 
+describe('click IDs', () => {
+  it('accepts the identifiers Google requires on an uploaded conversion', () => {
+    const result = validateLeadInput(
+      validInput({ gclid: 'Cj0KCQjw_abc-123', gbraid: 'gb.456', wbraid: 'wb_789' })
+    );
+    expect(result.data.gclid).toBe('Cj0KCQjw_abc-123');
+    expect(result.data.gbraid).toBe('gb.456');
+    expect(result.data.wbraid).toBe('wb_789');
+  });
+
+  it('rejects values that cannot be a platform click ID', () => {
+    const result = validateLeadInput(
+      validInput({ gclid: '<script>alert(1)</script>', gbraid: 'has spaces' })
+    );
+    expect(result.data.gclid).toBeNull();
+    expect(result.data.gbraid).toBeNull();
+  });
+
+  it('drops absent and over-long values', () => {
+    const result = validateLeadInput(validInput({ gclid: 'x'.repeat(600) }));
+    expect(result.data.gclid).toBeNull();
+    expect(validateLeadInput(validInput()).data.gclid).toBeNull();
+  });
+
+  it('stores the click ID on a new lead', () => {
+    const record = buildLeadRecord(validateLeadInput(validInput({ gclid: 'abc' })).data, NOW);
+    expect(record.gclid).toBe('abc');
+    expect(record.metadata.touches[0].click_id).toBe('abc');
+  });
+
+  // Google attributes a conversion to the LAST ad click, unlike the
+  // first-touch utm_* columns which must never be overwritten.
+  it('overwrites a stored click ID when the visitor returns via a new ad', () => {
+    const input = validateLeadInput(validInput({ gclid: 'newer-click' })).data;
+    const update = buildLeadUpdate(input, { metadata: {} }, NOW);
+    expect(update.gclid).toBe('newer-click');
+  });
+
+  it('leaves a stored click ID alone when the return visit is organic', () => {
+    const update = buildLeadUpdate(validateLeadInput(validInput()).data, { metadata: {} }, NOW);
+    expect(update).not.toHaveProperty('gclid');
+    expect(update).not.toHaveProperty('gbraid');
+    expect(update).not.toHaveProperty('wbraid');
+  });
+});
+
 describe('buildLeadRecord', () => {
   it('stamps the consent timestamp only when consent was given', () => {
     const consented = buildLeadRecord(

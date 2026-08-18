@@ -93,14 +93,66 @@ export function trackPageview(path: string): void {
 }
 
 /**
- * Read UTM parameters and referrer from the current browser location.
+ * Attribution capture.
  *
- * Used by the lead capture form so first-touch attribution is recorded against
- * the lead row server-side, independent of whether the analytics provider
- * loaded at all. That independence is the point: attribution has to survive an
- * ad blocker, because the growth agent's decisions depend on it.
+ * Two problems this solves, both of which lose data if ignored:
+ *
+ * 1. Ad and campaign parameters exist in the URL only on the landing page.
+ *    Someone arrives on /tools/final-wage?gclid=... , reads it, wanders to
+ *    /tools/calculator, and submits there — by then window.location.search is
+ *    empty and the click is untraceable. So we persist on first sight and read
+ *    from storage at submit time.
+ *
+ * 2. The analytics provider may never load (ad blockers are common in this
+ *    audience). Attribution therefore lives in our own storage and is posted to
+ *    our own endpoint, independent of PostHog entirely.
+ *
+ * First-touch vs last-click: campaign parameters keep the FIRST values seen,
+ * matching the first-touch semantics of growth_leads.source. Click IDs keep the
+ * MOST RECENT, because Google attributes a conversion to the last ad click and
+ * expects that click's ID on upload. The two systems want different answers and
+ * both are correct for their purpose.
  */
+
+/** Matches Google's default 90-day click attribution window. */
+const ATTRIBUTION_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+
+const CAMPAIGN_STORAGE_KEY = 'ti_attribution';
+const CLICK_ID_STORAGE_KEY = 'ti_click_id';
+
+/**
+ * Ad platform click identifiers, in priority order.
+ *
+ * Google requires exactly one of these on an uploaded conversion — gclid for
+ * ordinary web clicks, gbraid for iOS app-to-web, wbraid for iOS web-to-web.
+ * They are mutually exclusive in practice; the order here decides the winner
+ * in the event a URL somehow carries more than one.
+ */
+export const CLICK_ID_PARAMS = ['gclid', 'gbraid', 'wbraid'] as const;
+
+export type ClickIdType = (typeof CLICK_ID_PARAMS)[number];
+
+export interface StoredClickId {
+  type: ClickIdType;
+  value: string;
+  at: number;
+}
+
 export interface AttributionParams {
+  landingPage?: string;
+  referrer?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  gclid?: string;
+  gbraid?: string;
+  wbraid?: string;
+}
+
+interface StoredCampaign {
+  at: number;
   landingPage?: string;
   referrer?: string;
   utmSource?: string;
@@ -110,23 +162,126 @@ export interface AttributionParams {
   utmContent?: string;
 }
 
-export function readAttribution(): AttributionParams {
-  if (typeof window === 'undefined') return {};
+function readStorage<T>(key: string): T | null {
+  try {
+    // localStorage throws in Safari private mode and when cookies are blocked.
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as T & { at?: number };
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (typeof parsed.at !== 'number' || Date.now() - parsed.at > ATTRIBUTION_TTL_MS) {
+      window.localStorage.removeItem(key);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: unknown): void {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Storage unavailable or full. Attribution degrades to same-page-only,
+    // which is strictly better than throwing on a page the user is reading.
+  }
+}
+
+/** The click ID present in the current URL, if any. */
+function clickIdFromUrl(params: URLSearchParams): StoredClickId | null {
+  for (const type of CLICK_ID_PARAMS) {
+    const value = params.get(type)?.trim();
+    if (value) return { type, value, at: Date.now() };
+  }
+  return null;
+}
+
+/**
+ * Persist campaign parameters and click IDs from the current URL.
+ *
+ * Safe to call on every route change — it only writes when there is something
+ * new worth keeping. Must run regardless of whether the analytics provider is
+ * configured, since a conversion that can't be attributed is wasted ad spend
+ * whether or not PostHog is switched on.
+ */
+export function captureAttribution(): void {
+  if (typeof window === 'undefined') return;
   try {
     const params = new URLSearchParams(window.location.search);
-    const value = (key: string) => params.get(key) || undefined;
-    return {
-      landingPage: window.location.pathname,
-      // Same-origin referrers are internal navigation, not acquisition.
-      referrer: document.referrer && !document.referrer.startsWith(window.location.origin)
+
+    // Click IDs: newest wins, because Google attributes to the last click.
+    const clickId = clickIdFromUrl(params);
+    if (clickId) {
+      writeStorage(CLICK_ID_STORAGE_KEY, clickId);
+    }
+
+    // Campaign parameters: first touch wins, so never overwrite.
+    if (readStorage<StoredCampaign>(CAMPAIGN_STORAGE_KEY)) return;
+
+    const value = (key: string) => params.get(key)?.trim() || undefined;
+    const utmSource = value('utm_source');
+    const referrer =
+      document.referrer && !document.referrer.startsWith(window.location.origin)
         ? document.referrer
-        : undefined,
-      utmSource: value('utm_source'),
+        : undefined;
+
+    // Nothing worth recording on a direct visit with no referrer — storing an
+    // empty first touch would lock out a real one arriving later.
+    if (!utmSource && !referrer && !clickId) return;
+
+    writeStorage(CAMPAIGN_STORAGE_KEY, {
+      at: Date.now(),
+      landingPage: window.location.pathname,
+      referrer,
+      utmSource,
       utmMedium: value('utm_medium'),
       utmCampaign: value('utm_campaign'),
       utmTerm: value('utm_term'),
       utmContent: value('utm_content'),
+    } satisfies StoredCampaign);
+  } catch (error) {
+    onError('captureAttribution', error);
+  }
+}
+
+/**
+ * Everything known about how this visitor arrived, for submission with a lead.
+ *
+ * Merges the stored first touch with the current URL, so it works whether the
+ * visitor submits on the page they landed on or three pages later.
+ */
+export function readAttribution(): AttributionParams {
+  if (typeof window === 'undefined') return {};
+  try {
+    // Pick up anything in the current URL that hasn't been stored yet.
+    captureAttribution();
+
+    const params = new URLSearchParams(window.location.search);
+    const stored = readStorage<StoredCampaign>(CAMPAIGN_STORAGE_KEY);
+    const current = (key: string) => params.get(key)?.trim() || undefined;
+
+    const attribution: AttributionParams = {
+      // The landing page is where the visit started, not where they submitted.
+      landingPage: stored?.landingPage || window.location.pathname,
+      referrer:
+        stored?.referrer ||
+        (document.referrer && !document.referrer.startsWith(window.location.origin)
+          ? document.referrer
+          : undefined),
+      utmSource: stored?.utmSource || current('utm_source'),
+      utmMedium: stored?.utmMedium || current('utm_medium'),
+      utmCampaign: stored?.utmCampaign || current('utm_campaign'),
+      utmTerm: stored?.utmTerm || current('utm_term'),
+      utmContent: stored?.utmContent || current('utm_content'),
     };
+
+    const clickId = readStorage<StoredClickId>(CLICK_ID_STORAGE_KEY);
+    if (clickId) {
+      attribution[clickId.type] = clickId.value;
+    }
+
+    return attribution;
   } catch (error) {
     onError('readAttribution', error);
     return {};

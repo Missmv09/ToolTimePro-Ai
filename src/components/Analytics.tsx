@@ -15,7 +15,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Script from 'next/script';
-import { trackPageview } from '@/lib/analytics';
+import { captureAttribution, trackPageview } from '@/lib/analytics';
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
@@ -27,6 +27,17 @@ interface PostHogInit {
 export default function Analytics() {
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
+
+  // Persist ad click IDs and campaign parameters from the landing URL.
+  //
+  // This runs before the NEXT_PUBLIC_POSTHOG_KEY check below and does not
+  // touch the provider, deliberately: a gclid exists in the URL only on the
+  // landing page, and losing it means a lead that later becomes a paying
+  // customer can never be reported back to Google Ads. That must not depend
+  // on whether product analytics happens to be configured.
+  useEffect(() => {
+    captureAttribution();
+  }, [pathname]);
 
   // Pageviews are driven here rather than by the library (see capture_pageview
   // below), so this fires for the landing page once the provider is ready and
