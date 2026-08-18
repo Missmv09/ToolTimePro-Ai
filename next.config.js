@@ -34,6 +34,11 @@ const serverEnvVars = [
   'GOOGLE_CLIENT_SECRET',
   'STRIPE_CONNECT_WEBHOOK_SECRET',
   'TWILIO_2FA_MESSAGING_SERVICE_SID',
+  // Netlify build metadata — surfaced by /api/health so CI can tell which
+  // commit a deployment is actually serving.
+  'COMMIT_REF',
+  'BRANCH',
+  'CONTEXT',
 ];
 
 const nextConfig = {
