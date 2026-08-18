@@ -56,10 +56,33 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.contains(name).should('not.exist');
   });
 
-  it('TC-JOB-01: opens the jobs page', () => {
+  it('TC-JOB-01: creates a job, sees it in the list, then self-cleans', () => {
+    const uid = `e2e-${Date.now()}-${Cypress._.random(1e9)}`;
+    const title = `E2E Job ${uid}`;
+
     cy.visit('/dashboard/jobs');
-    cy.location('pathname').should('include', '/dashboard/jobs');
-    cy.get('body').should('be.visible');
+    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/jobs');
+    cy.contains('button', /new job/i, { timeout: 20000 }).click();
+
+    // Only address + date + start time are required (validateForm); customer,
+    // service and worker are optional, so this needs no seed data. A unique
+    // title makes the row findable; 14:30 also exercises the 12-hour render.
+    cy.get('.fixed.inset-0', { timeout: 10000 }).within(() => {
+      cy.get('input[placeholder="e.g., Weekly pool cleaning"]').clear().type(title);
+      cy.get('input[placeholder="123 Main St"]').clear().type('123 E2E Test St');
+      cy.get('input[type="date"]').first().type('2027-01-15');
+      cy.get('input[type="time"]').first().type('14:30');
+      cy.contains('button', /^\s*save job\s*$/i).click();
+    });
+
+    cy.contains('tr', title, { timeout: 25000 }).should('exist');
+
+    // Self-cleanup (row Delete is guarded by window.confirm).
+    cy.on('window:confirm', () => true);
+    cy.contains('tr', title).within(() => {
+      cy.contains('button', /^\s*delete\s*$/i).click();
+    });
+    cy.contains('tr', title).should('not.exist');
   });
 
   it('TC-QUOTE-01: opens the New Quote menu and the Quick Quote modal', () => {
@@ -73,11 +96,52 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.get('.fixed, [role="dialog"], form', { timeout: 10000 }).should('exist');
   });
 
-  it('TC-INV-01: opens the New Invoice modal', () => {
+  it('TC-INV-01: creates an invoice with a line item, sees it, then self-cleans', () => {
+    const uid = `e2e-${Date.now()}-${Cypress._.random(1e9)}`;
+    const name = `E2E Inv ${uid}`;
+
+    // The invoice modal needs an EXISTING customer (no inline new-customer
+    // option), so create one first — a residential customer's dropdown option
+    // is just its name, which we select below.
+    cy.visit('/dashboard/customers');
+    cy.contains('button', /add (your first )?customer/i, { timeout: 20000 }).first().click();
+    cy.contains(/Add New Customer/i, { timeout: 10000 }).should('be.visible');
+    cy.get('.fixed.inset-0').within(() => {
+      cy.get('input[type="text"]').first().clear().type(name);
+      cy.get('input[type="email"]').first().clear().type(`${uid}@example.com`);
+      cy.get('input[type="tel"]').first().clear().type('5551234567');
+      cy.contains('button', /save customer|save|add|create/i).click();
+    });
+    cy.contains(name, { timeout: 20000 }).should('exist');
+
+    // Create the invoice for that customer.
     cy.visit('/dashboard/invoices');
     cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/invoices');
     cy.contains('button', /new invoice/i, { timeout: 20000 }).click();
-    cy.contains(/create new invoice|new invoice/i, { timeout: 10000 }).should('be.visible');
+    cy.get('.fixed.inset-0', { timeout: 10000 }).within(() => {
+      cy.get('select').first().select(name); // customer select (first in the modal)
+      cy.get('input[placeholder="Description"]').first().clear().type('E2E line item');
+      cy.get('input[placeholder="Qty"]').first().type('{selectall}1').should('have.value', '1');
+      cy.get('input[placeholder="Price"]').first().type('{selectall}100').should('have.value', '100');
+      // "Save Invoice" (not "Send Invoice", which would email the customer).
+      cy.contains('button', /^\s*save invoice\s*$/i).click();
+    });
+
+    // Invoice shows up in the list keyed by the customer name — number generated.
+    cy.contains('tr', name, { timeout: 25000 }).should('exist');
+
+    // Cleanup: delete the invoice, then the customer it was for.
+    cy.on('window:confirm', () => true);
+    cy.contains('tr', name).within(() => {
+      cy.contains('button', /^\s*delete\s*$/i).click();
+    });
+    cy.contains('tr', name).should('not.exist');
+
+    cy.visit('/dashboard/customers');
+    cy.get('input[placeholder*="Search customers"]', { timeout: 20000 }).clear().type(name);
+    cy.contains(name).should('be.visible');
+    cy.contains('button', /^\s*delete\s*$/i).click();
+    cy.contains(name).should('not.exist');
   });
 
   it('TC-JOB-02: scheduled times render in 12-hour AM/PM, never 24-hour', () => {
