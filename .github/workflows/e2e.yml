@@ -7,6 +7,12 @@ on:
     branches: [main, sandbox]
   workflow_dispatch:
 
+# The authenticated job reads the back-sync workflow's run status to know when
+# the sandbox branch has been updated for this commit.
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   # Public / unauthenticated E2E — builds and serves the app locally, no secrets
   # needed. This is the always-on regression gate.
@@ -54,6 +60,60 @@ jobs:
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
+      # A push to main immediately triggers backsync-sandbox.yml, which pushes
+      # main -> sandbox and starts a Netlify sandbox build. Without this gate the
+      # suite races that deploy: Netlify serves the OLD build until the new one
+      # publishes, then swaps atomically mid-run, killing in-flight requests and
+      # failing cy.login()'s `before each` hook. Work out which commit the
+      # sandbox is supposed to be serving so the next step can wait for it.
+      - name: Resolve the commit the sandbox should be serving
+        id: target
+        if: steps.guard.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ "$GITHUB_EVENT_NAME" != "push" ]; then
+            echo "::notice::${GITHUB_EVENT_NAME} run — the sandbox is on its own commit, so waiting only for a steady deploy."
+            echo "commit=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$GITHUB_REF_NAME" = "sandbox" ]; then
+            echo "Push to sandbox — waiting for $GITHUB_SHA to go live."
+            echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Push to main: the sandbox tip is whatever back-sync lands, which is
+          # this SHA on a fast-forward or a merge commit when sandbox carries
+          # unpromoted work. Wait for that workflow, then read the real tip.
+          api="/repos/$GITHUB_REPOSITORY/actions/workflows/backsync-sandbox.yml/runs?head_sha=$GITHUB_SHA"
+          conclusion=""
+          for _ in $(seq 1 40); do   # up to ~10 min
+            conclusion=$(gh api "$api" --jq '.workflow_runs[0] | select(.status == "completed") | .conclusion' 2>/dev/null || echo "")
+            [ -n "$conclusion" ] && break
+            sleep 15
+          done
+
+          if [ "$conclusion" != "success" ]; then
+            echo "::warning::Back-sync to sandbox did not complete successfully for $GITHUB_SHA (conclusion: ${conclusion:-none yet}). Falling back to waiting for a steady deploy of whatever the sandbox is serving."
+            echo "commit=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tip=$(git ls-remote origin refs/heads/sandbox | cut -f1)
+          echo "Back-sync succeeded — sandbox tip is $tip."
+          echo "commit=$tip" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the sandbox deploy to publish
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BASE_URL: ${{ secrets.E2E_BASE_URL }}
+          EXPECT_COMMIT: ${{ steps.target.outputs.commit }}
+        run: node scripts/wait-for-deploy.js
+
       - name: Warm up the deployment (avoid serverless cold-start flakiness)
         if: steps.guard.outputs.run == 'true'
         env:
@@ -75,13 +135,36 @@ jobs:
               echo "  $p -> $code"
             done
           done
+
+          # The login chain is more than the login page: after Supabase accepts
+          # the password the app calls these routes, and the 2FA check fails
+          # CLOSED — a cold-start timeout there signs the user straight back out
+          # and leaves Cypress sitting on /auth/login. Warm them too. They 401
+          # without a token, which is fine: the function boots either way.
+          echo "— Warming the login-chain API routes —"
+          for p in /api/auth/check-needs-password /api/auth/session-guard; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
+            echo "  GET $p -> $code"
+          done
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 -X POST \
+            -H 'Content-Type: application/json' -d '{}' \
+            "$BASE_URL/api/auth/2fa/check-device" || echo "ERR")
+          echo "  POST /api/auth/2fa/check-device -> $code"
       - name: Cypress run (authenticated, against the sandbox)
         if: steps.guard.outputs.run == 'true'
         uses: cypress-io/github-action@v6
         with:
           install: true
-          spec: cypress/e2e/authenticated-flows.cy.js,cypress/e2e/customer-portal.cy.js,cypress/e2e/multi-tenant-isolation.cy.js,cypress/e2e/quote-public-link.cy.js
+          spec: cypress/e2e/authenticated-flows.cy.js,cypress/e2e/customer-portal.cy.js,cypress/e2e/multi-tenant-isolation.cy.js,cypress/e2e/quote-public-link.cy.js,cypress/e2e/worker-flows.cy.js
           config: baseUrl=${{ secrets.E2E_BASE_URL }}
         env:
           CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
           CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          # Second company for TC-X-01 (multi-tenant isolation). When unset, that
+          # spec skips itself; forwarding these activates it.
+          CYPRESS_E2E_EMAIL_2: ${{ secrets.E2E_EMAIL_2 }}
+          CYPRESS_E2E_PASSWORD_2: ${{ secrets.E2E_PASSWORD_2 }}
+          # Worker account for the worker-app specs (TC-WORK-*). When unset, that
+          # spec skips itself; forwarding these activates it.
+          CYPRESS_E2E_WORKER_EMAIL: ${{ secrets.E2E_WORKER_EMAIL }}
+          CYPRESS_E2E_WORKER_PASSWORD: ${{ secrets.E2E_WORKER_PASSWORD }}

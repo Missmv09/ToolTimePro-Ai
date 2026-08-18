@@ -49,6 +49,42 @@ CYPRESS_E2E_EMAIL=you@example.com CYPRESS_E2E_PASSWORD=secret \
   --config baseUrl=https://sandbox--lively-yeot-c640cd.netlify.app
 ```
 
+## Why the authenticated job waits before it runs
+
+The authenticated suite runs against the **deployed sandbox**, and a push to
+`main` starts two things at once: `backsync-sandbox.yml` pushes `main` →
+`sandbox` (which starts a Netlify sandbox build), and this job starts hitting
+the sandbox URL. Netlify keeps the previous deploy live until the new one
+publishes, then swaps atomically — so "the site returns 200" is not the same as
+"the site is done deploying". A swap landing mid-run kills in-flight requests,
+and the failure surfaces in `cy.login()`'s `before each` hook as
+`expected '/auth/login/' to include '/dashboard'`, which looks like a broken
+login but is a deploy race.
+
+So the job now, before running Cypress:
+
+1. **Resolves the commit the sandbox should be serving** — waits for the
+   back-sync workflow for this SHA, then reads the `sandbox` branch tip.
+2. **Waits for that commit to actually be live** (`scripts/wait-for-deploy.js`),
+   polling `/api/health`, which reports the build's `COMMIT_REF`. It requires
+   several consecutive fast responses on the same commit, so a mid-flight deploy
+   restarts the wait instead of poisoning the run. If the deployment can't
+   report its commit (or is too old to have `/api/health`), it falls back to
+   waiting for a steady, responsive build.
+3. **Warms the login-chain API routes** as well as the pages — after Supabase
+   accepts the password the app calls `/api/auth/check-needs-password` and
+   `/api/auth/2fa/check-device`, and **the 2FA check fails closed**: if it
+   cold-starts past its timeout the app signs the user back out and stays on
+   `/auth/login`.
+
+### If the login step fails anyway
+
+`cy.login()` reports what the page was showing when it gave up — the red error
+box's text, or "asking for a 2FA code" (the E2E account must have 2FA disabled),
+or "no error shown" when a request simply timed out. Read that message first; it
+names the cause. If the gate itself fails with "never became ready", the Netlify
+deploy for that commit is stuck or failed — check the deploy, not the tests.
+
 ## Adding more coverage
 
 The authenticated specs are intentionally a small, reliable starting set. Grow
