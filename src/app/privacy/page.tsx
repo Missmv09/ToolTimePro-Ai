@@ -30,7 +30,8 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-xl font-bold mb-3">1. Introduction</h2>
             <p>
-              Task Iguana (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the taskiguana.com website and the Task Iguana
+              Task Iguana is a customer-facing brand operated by Minty Pink LLC. Task Iguana
+              (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the taskiguana.com website and the Task Iguana
               platform. This Privacy Policy explains how we collect, use, disclose, and
               safeguard your information when you use our services.
             </p>
