@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useJennyActions } from '@/hooks/useJennyActions';
 import type { JennyActionType } from '@/types/jenny-actions';
-import { ACTION_DESCRIPTIONS, DEFAULT_ACTION_CONFIGS } from '@/types/jenny-actions';
+import { ACTION_DESCRIPTIONS, DEFAULT_ACTION_CONFIGS, CONFIGURABLE_ACTION_TYPES } from '@/types/jenny-actions';
 import {
   Zap,
   MessageSquare,
@@ -39,6 +39,20 @@ const STATUS_STYLES: Record<string, { icon: typeof CheckCircle; color: string; l
   skipped: { icon: X, color: 'text-gray-400', label: 'Skipped' },
 };
 
+/**
+ * Action types that render editable settings above the Save button. Everything
+ * else in CONFIGURABLE_ACTION_TYPES is toggle-only and runs on the defaults in
+ * DEFAULT_ACTION_CONFIGS, so showing it a bare "Save Settings" button would
+ * imply there is something to save.
+ */
+const TYPES_WITH_SETTINGS = new Set<JennyActionType>([
+  'auto_dispatch',
+  'lead_follow_up',
+  'cash_flow_alert',
+  'job_costing',
+  'review_request',
+]);
+
 export default function JennyActionsPage() {
   const { actionLog, stats, lastRunAt, isLoading, error, isEnabled, getConfig, saveConfig, refetch } = useJennyActions();
   const [expandedAction, setExpandedAction] = useState<JennyActionType | null>(null);
@@ -50,9 +64,8 @@ export default function JennyActionsPage() {
 
   useEffect(() => {
     // Initialize local configs from fetched configs
-    const actionTypes: JennyActionType[] = ['auto_dispatch', 'lead_follow_up', 'cash_flow_alert', 'job_costing', 'review_request'];
     const initial: Record<string, Record<string, unknown>> = {};
-    for (const type of actionTypes) {
+    for (const type of CONFIGURABLE_ACTION_TYPES) {
       initial[type] = getConfig(type);
     }
     setLocalConfigs(initial);
@@ -113,7 +126,7 @@ export default function JennyActionsPage() {
     await refetch();
   };
 
-  const actionTypes: JennyActionType[] = ['auto_dispatch', 'lead_follow_up', 'cash_flow_alert', 'job_costing', 'review_request'];
+  const actionTypes = CONFIGURABLE_ACTION_TYPES;
   const pendingActions = actionLog.filter(a => a.status === 'pending');
 
   return (
@@ -520,13 +533,25 @@ export default function JennyActionsPage() {
                       </>
                     )}
 
-                    <button
-                      onClick={() => handleSaveConfig(actionType)}
-                      disabled={savingConfig === actionType}
-                      className="btn-primary text-sm"
-                    >
-                      {savingConfig === actionType ? 'Saving...' : 'Save Settings'}
-                    </button>
+                    {!TYPES_WITH_SETTINGS.has(actionType) && (
+                      <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600">
+                        <p>
+                          This one has nothing to configure — Jenny runs it on sensible
+                          defaults and tells you when something needs your attention.
+                          Use the toggle above to turn it on or off.
+                        </p>
+                      </div>
+                    )}
+
+                    {TYPES_WITH_SETTINGS.has(actionType) && (
+                      <button
+                        onClick={() => handleSaveConfig(actionType)}
+                        disabled={savingConfig === actionType}
+                        className="btn-primary text-sm"
+                      >
+                        {savingConfig === actionType ? 'Saving...' : 'Save Settings'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

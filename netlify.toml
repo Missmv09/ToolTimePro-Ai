@@ -109,6 +109,13 @@
 [functions."growth-agent-generate-cron"]
   schedule = "0 7 * * 1-5"
 
+# Jenny Weekly Digest — runs Mondays at 15:00 UTC
+# Emails each company a receipt of the autonomous work Jenny did last week,
+# covering the seven complete days before the run. Jenny's actions are
+# invisible by nature; this is the only place they become legible.
+[functions."jenny-digest-cron"]
+  schedule = "0 15 * * 1"
+
 # Appointment Reminders + Post-Job Follow-ups — runs once daily (16:00 UTC)
 # Texts customers a reminder the day before a job, and a thank-you + review
 # request after a job is completed. Runs once a day so a customer gets at most
