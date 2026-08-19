@@ -1,0 +1,65 @@
+name: Promotion guard
+
+# Keeps the sandbox gate real.
+#
+# The authenticated Cypress suite is the only check that exercises a logged-in
+# app against a deployed environment, and it can only run where isolated
+# credentials exist — that is the `sandbox` branch deploy (docs/SANDBOX.md).
+# It therefore runs on push to `sandbox`, never on a pull request.
+#
+# Which means a feature branch merged straight into `main` reaches production
+# having never been through it. Nothing enforced the intended route, so the
+# gate was advisory, and the default path skipped it.
+#
+# This job makes it explicit: pull requests into `main` come from `sandbox`.
+# The promotion PR that promote-sandbox.yml opens satisfies this by
+# construction; a feature branch does not.
+#
+# Genuine emergencies still need a way through, so the `hotfix` label is an
+# escape hatch. It is deliberately a label rather than a branch-name
+# convention: applying it is a visible, attributable act on the PR, and the
+# check re-runs when it changes.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  sandbox-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require changes to reach main via sandbox
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+
+          echo "Head branch: $HEAD_REF"
+          echo "Labels: $LABELS"
+
+          if [ "$HEAD_REF" = "sandbox" ]; then
+            echo "Promotion PR from sandbox — the authenticated E2E suite has already run against this code on the sandbox deploy."
+            exit 0
+          fi
+
+          # Match the label as a whole JSON string element so a label merely
+          # containing the word (e.g. "needs-hotfix-review") does not qualify.
+          if printf '%s' "$LABELS" | grep -q '"hotfix"'; then
+            echo "::warning::Merging into main without the sandbox gate because this PR is labelled 'hotfix'. The authenticated E2E suite has NOT run against this code. Verify the change on https://sandbox.taskiguana.com after back-sync completes."
+            exit 0
+          fi
+
+          echo "::error::This PR targets main from '$HEAD_REF' rather than from 'sandbox', so the authenticated E2E suite never ran against it (that suite runs on push to sandbox — see .github/workflows/e2e.yml)."
+          echo ""
+          echo "To land this change:"
+          echo "  1. Retarget or merge this branch into 'sandbox' instead of 'main'."
+          echo "  2. Push to sandbox triggers the authenticated suite against the sandbox deploy."
+          echo "  3. When it is green, promote-sandbox.yml opens the sandbox -> main PR automatically."
+          echo ""
+          echo "For a genuine emergency, add the 'hotfix' label to this PR and the check will pass with a warning."
+          exit 1
