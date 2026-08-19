@@ -23,6 +23,7 @@ import {
   type MetricsRow,
 } from '../../src/lib/growth-planner';
 import { COMPETITORS } from '../../src/lib/competitor-data';
+import { authorizeCronRequest } from '../../src/lib/cron-auth';
 
 const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
@@ -38,30 +39,12 @@ function getSupabaseAdmin(): SupabaseClient | null {
 }
 
 export default async function handler(request: Request) {
-  // Auth failures here were indistinguishable from each other, which cost an
-  // afternoon: "the variable isn't reaching the function" and "the value
-  // doesn't match" both printed the same line. Report which one it is, by
-  // length and prefix only — never the secret itself, since these logs are
-  // readable by anyone with Netlify access.
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization') || '';
-
-  if (!cronSecret) {
-    console.error(
-      '[Growth Planner] CRON_SECRET is not visible to this function. The variable is ' +
-        'either unset, or its Netlify scopes exclude Functions.'
-    );
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    const sent = authHeader.replace(/^Bearer /, '');
-    console.error(
-      `[Growth Planner] Secret mismatch. Expected ${cronSecret.length} chars starting ` +
-        `"${cronSecret.slice(0, 4)}", received ${sent.length} chars starting ` +
-        `"${sent.slice(0, 4)}".` +
-        (sent.length === 0 ? ' No Bearer token was sent at all.' : '')
-    );
+  // Auth lives in src/lib/cron-auth so the planner, the generator and their
+  // cron triggers cannot drift apart, and so a rejection says which of the
+  // three distinct failures happened instead of just "no".
+  const auth = authorizeCronRequest(request);
+  if (!auth.ok) {
+    console.error(`[Growth Planner] Unauthorized. ${auth.reason}`);
     return new Response('Unauthorized', { status: 401 });
   }
 

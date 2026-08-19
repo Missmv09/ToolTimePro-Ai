@@ -15,6 +15,7 @@ import {
   parseGeneratedAsset,
 } from '../../src/lib/growth-generator';
 import { isTaskType } from '../../src/lib/growth-planner';
+import { authorizeCronRequest } from '../../src/lib/cron-auth';
 
 const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
@@ -39,30 +40,11 @@ interface TaskRow {
 }
 
 export default async function handler(request: Request) {
-  // Auth failures here were indistinguishable from each other, which cost an
-  // afternoon: "the variable isn't reaching the function" and "the value
-  // doesn't match" both printed the same line. Report which one it is, by
-  // length and prefix only — never the secret itself, since these logs are
-  // readable by anyone with Netlify access.
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization') || '';
-
-  if (!cronSecret) {
-    console.error(
-      '[Growth Generator] CRON_SECRET is not visible to this function. The variable is ' +
-        'either unset, or its Netlify scopes exclude Functions.'
-    );
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    const sent = authHeader.replace(/^Bearer /, '');
-    console.error(
-      `[Growth Generator] Secret mismatch. Expected ${cronSecret.length} chars starting ` +
-        `"${cronSecret.slice(0, 4)}", received ${sent.length} chars starting ` +
-        `"${sent.slice(0, 4)}".` +
-        (sent.length === 0 ? ' No Bearer token was sent at all.' : '')
-    );
+  // See the planner: shared so the two cannot drift, and so the log names the
+  // actual failure rather than reporting every cause identically.
+  const auth = authorizeCronRequest(request);
+  if (!auth.ok) {
+    console.error(`[Growth Generator] Unauthorized. ${auth.reason}`);
     return new Response('Unauthorized', { status: 401 });
   }
 
