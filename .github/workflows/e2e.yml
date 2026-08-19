@@ -83,6 +83,53 @@ jobs:
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # Defence in depth for the specs below, which create AND delete customers
+      # and invoices (TC-CUST-01, TC-INV-01). Today the only thing keeping them
+      # away from production data is the job-level `if:` and the fact that
+      # E2E_BASE_URL happens to point at the sandbox. Neither survives a typo in
+      # the secret or a future edit that widens the trigger, and the failure mode
+      # is silent destruction of real rows rather than a red build.
+      #
+      # So assert it directly: if the target host is production, stop.
+      #
+      # This checks the host, not the credentials behind it — the two came apart
+      # once already. A deploy preview serves a non-production domain while
+      # still resolving to the production database, so that case is rejected by
+      # name until the Netlify scoping in docs/SANDBOX.md is done.
+      - name: Refuse to run destructive specs against production
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BASE_URL: ${{ secrets.E2E_BASE_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::E2E_BASE_URL is empty. Cypress would fall back to its own baseUrl, which is not something this job can vouch for. Set the secret to the sandbox URL."
+            exit 1
+          fi
+
+          # scheme://host:port/path -> host
+          host=$(printf '%s' "$BASE_URL" \
+            | sed -E 's#^[a-zA-Z][a-zA-Z0-9+.-]*://##; s#/.*$##; s#:[0-9]+$##' \
+            | tr '[:upper:]' '[:lower:]')
+
+          case "$host" in
+            taskiguana.com|www.taskiguana.com|tooltimepro.com|www.tooltimepro.com)
+              echo "::error::E2E_BASE_URL resolves to production ($host). The authenticated specs create and delete customers and invoices, so this run would mutate real data. Point E2E_BASE_URL at the sandbox (see docs/SANDBOX.md)."
+              exit 1
+              ;;
+            deploy-preview-*)
+              echo "::error::E2E_BASE_URL points at a Netlify deploy preview ($host). Per docs/SANDBOX.md the Supabase and Stripe variables are scoped to branch deploys only, so previews resolve to PRODUCTION credentials — the domain is safe but the database behind it is not. Add Deploy Previews to those variable scopes before pointing this job at a preview."
+              exit 1
+              ;;
+            "")
+              echo "::error::Could not parse a host out of E2E_BASE_URL. Expected something like https://sandbox.taskiguana.com."
+              exit 1
+              ;;
+          esac
+
+          echo "Target host is $host — not production. Proceeding."
       # A push to main immediately triggers backsync-sandbox.yml, which pushes
       # main -> sandbox and starts a Netlify sandbox build. Without this gate the
       # suite races that deploy: Netlify serves the OLD build until the new one

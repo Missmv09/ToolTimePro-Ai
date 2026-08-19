@@ -44,6 +44,8 @@ When adding new products or add-ons:
 - Push with `git push -u origin <branch-name>`
 - Merge main into your branch before creating PR if branch is behind
 - Check CI passes before requesting merge
+- **Target `sandbox`, not `main`.** The authenticated Cypress suite only runs on push to `sandbox`, because that is the only deploy with isolated Supabase/Stripe credentials (docs/SANDBOX.md). A branch merged straight into `main` reaches production without ever having been through it, so `promotion-guard.yml` fails PRs into `main` whose head is not `sandbox`. Once sandbox is green, `promote-sandbox.yml` opens the `sandbox -> main` PR for you
+- The `hotfix` label bypasses that gate for emergencies, with a warning — it means the authenticated suite has not run, so verify on the sandbox after back-sync
 
 ### Common Pitfalls to Avoid
 - Don't define cron schedules in both `netlify.toml` AND function config exports
