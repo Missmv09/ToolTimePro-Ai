@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: HTTP smoke (health + public pages)
         env:
           SMOKE_BASE_URL: ${{ needs.resolve-url.outputs.base_url }}
@@ -62,7 +62,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Warm up the deployment (avoid serverless cold-start flakiness)
         env:
