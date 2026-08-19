@@ -23,7 +23,11 @@ name: Promotion guard
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    # `edited` matters: retargeting a PR fires it, and without it a PR could be
+    # opened against `sandbox`, pass, and then be repointed at `main` with the
+    # gate never running. Check runs bind to a commit rather than to the base
+    # branch, so nothing else re-evaluates on a base change.
+    types: [opened, synchronize, reopened, labeled, unlabeled, edited]
 
 permissions:
   contents: read
