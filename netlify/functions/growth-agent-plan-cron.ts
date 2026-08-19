@@ -8,6 +8,8 @@
 // answer 202 immediately and discard the body. Outcomes land in growth_tasks
 // and the background function's own log.
 
+import { cronAuthHeaders } from '../../src/lib/cron-auth';
+
 export default async function handler() {
   const siteUrl = process.env.URL || process.env.DEPLOY_PRIME_URL || 'http://localhost:8888';
   const cronSecret = process.env.CRON_SECRET || '';
@@ -17,7 +19,10 @@ export default async function handler() {
       `${siteUrl}/.netlify/functions/growth-agent-plan-background`,
       {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${cronSecret}` },
+        // Both headers carry the same secret. Authorization is the conventional
+        // one; X-Cron-Secret is the one that survives if the platform consumes
+        // or rewrites Authorization on its way to a background function.
+        headers: cronAuthHeaders(cronSecret),
       }
     );
 

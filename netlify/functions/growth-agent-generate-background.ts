@@ -15,6 +15,7 @@ import {
   parseGeneratedAsset,
 } from '../../src/lib/growth-generator';
 import { isTaskType } from '../../src/lib/growth-planner';
+import { authorizeCronRequest } from '../../src/lib/cron-auth';
 
 const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
@@ -39,9 +40,11 @@ interface TaskRow {
 }
 
 export default async function handler(request: Request) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
-    console.error('[Growth Generator] Unauthorized invocation');
+  // See the planner: shared so the two cannot drift, and so the log names the
+  // actual failure rather than reporting every cause identically.
+  const auth = authorizeCronRequest(request);
+  if (!auth.ok) {
+    console.error(`[Growth Generator] Unauthorized. ${auth.reason}`);
     return new Response('Unauthorized', { status: 401 });
   }
 
