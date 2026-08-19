@@ -357,7 +357,7 @@ export default function PricingPage() {
     <div className="pricing-page">
       {/* Navigation */}
       <nav className="nav">
-        <Link href="/"><Image src="/logo-horizontal-white-01262026.png" alt="Task Iguana" width={180} height={40} className="logo-img" /></Link>
+        <Link href="/"><Image src="/logo-horizontal-white-08182026.png" alt="Task Iguana" width={180} height={40} className="logo-img" /></Link>
         <div className="nav-links">
           <Link href="/#features">{t('features')}</Link>
           <Link href="/pricing" className="active">{t('pricingNav')}</Link>

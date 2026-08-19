@@ -46,7 +46,7 @@ export default function ChecklistPage() {
             <div className="flex items-center gap-6">
               <Link href="/">
                 <Image
-                  src="/logo-01262026.png"
+                  src="/logo-08182026.png"
                   alt="Task Iguana"
                   width={140}
                   height={32}

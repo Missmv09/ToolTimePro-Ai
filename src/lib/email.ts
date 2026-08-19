@@ -60,7 +60,7 @@ function emailLayout(content: string): string {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 32px 40px; text-align: center;">
           <table cellpadding="0" cellspacing="0" border="0" align="center"><tr>
-            <td style="vertical-align: middle;"><img src="${BASE_URL}/logo-horizontal-white-01262026.png" alt="Task Iguana" width="200" style="display: block; height: auto;" /></td>
+            <td style="vertical-align: middle;"><img src="${BASE_URL}/logo-horizontal-white-08182026.png" alt="Task Iguana" width="200" style="display: block; height: auto;" /></td>
           </tr></table>
         </div>
         <!-- Body -->

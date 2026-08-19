@@ -35,7 +35,7 @@ export default function UnsubscribePage({ params }: { params: Promise<{ token: s
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
       <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-md w-full text-center">
         <Link href="/" className="inline-block mb-6">
-          <Image src="/logo-01262026.png" alt="Task Iguana" width={160} height={36} className="h-9 w-auto mx-auto" />
+          <Image src="/logo-08182026.png" alt="Task Iguana" width={160} height={36} className="h-9 w-auto mx-auto" />
         </Link>
 
         {status === 'done' ? (
