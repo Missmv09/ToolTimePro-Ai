@@ -104,7 +104,11 @@ export default async function handler(request: Request) {
     const aiResult = await aiComplete({
       systemPrompt: PLANNER_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: buildPlannerPrompt(context) }],
-      maxTokens: 4000,
+      // 16000, not 4000. The reasoning tier is Opus 5, which runs extended
+      // thinking by default, and thinking tokens are drawn from max_tokens.
+      // A week's plan needs perhaps 2k of JSON, but the reasoning that gets
+      // there can exceed 4k on its own and leave nothing for the answer.
+      maxTokens: 16000,
       tier: 'reasoning',
     });
 
