@@ -20,6 +20,34 @@ export type JennyActionType =
 
 export type ActionStatus = 'pending' | 'executed' | 'skipped' | 'failed';
 
+/**
+ * Action types an owner turns on and off per company.
+ *
+ * Excludes 'price_staleness' and 'hr_law_update': those are platform-wide
+ * signals that run unconditionally in the cron and are not backed by a
+ * jenny_action_configs row, so offering a toggle for them would do nothing.
+ *
+ * This is the list the settings page renders and the list migration 051
+ * permits in jenny_action_configs — keep the three in sync.
+ */
+export const CONFIGURABLE_ACTION_TYPES: JennyActionType[] = [
+  'auto_dispatch',
+  'lead_follow_up',
+  'cash_flow_alert',
+  'job_costing',
+  'review_request',
+  'quote_expiration',
+  'contractor_payment',
+  'cert_expiration',
+  'insurance_expiry',
+  'w9_compliance',
+  'classification_review',
+  'compliance_escalation',
+  'contract_end_date',
+];
+
+
+
 export interface JennyActionLog {
   id: string;
   company_id: string;
