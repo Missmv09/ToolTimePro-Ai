@@ -26,7 +26,9 @@ export default async function RootLayout({
         <meta name="theme-color" content="#1FE3C4" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+        {/* iOS ignores SVG here and falls back to a screenshot of the page,
+            so this must stay a PNG. 180x180 is the current iOS size. */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-08182026.png" />
       </head>
       <body>
         <FetchPatch />

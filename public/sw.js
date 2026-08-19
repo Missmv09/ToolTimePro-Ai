@@ -1,7 +1,12 @@
 // Task Iguana Service Worker
 // Provides offline-first experience for the Worker App
 
-const CACHE_NAME = 'tooltime-worker-v1';
+// Bump this on every release that changes a precached page or a static
+// asset served from an unchanged URL. The activate handler deletes every
+// cache whose name differs, so a bump is the only thing that evicts stale
+// entries — the fetch handler below is cache-first for /icons/, .png and
+// .svg, which otherwise pins old artwork in an installed app forever.
+const CACHE_NAME = 'taskiguana-worker-v2';
 const OFFLINE_PAGE = '/worker/offline/';
 
 // Static assets to cache on install
