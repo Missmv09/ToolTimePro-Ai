@@ -25,7 +25,21 @@ const SECRET_HEADERS = ['authorization', 'x-cron-secret'] as const;
  * scheme is capitalized inconsistently across callers.
  */
 function normalizeSecret(raw: string): string {
-  return raw.replace(/^\s*bearer\s+/i, '').trim();
+  return stripWrappingQuotes(raw.replace(/^\s*bearer\s+/i, '').trim());
+}
+
+/**
+ * Removes one matched pair of wrapping quotes.
+ *
+ * Copying a value out of a JS console yields `'abc'`, quotes included, and
+ * pasting that into a dashboard field stores the quotes as part of the secret.
+ * They are invisible in a masked input and survive trim(), so the mismatch that
+ * follows looks like a wrong secret rather than a wrapped one. Only a matched
+ * pair is stripped, so a secret that genuinely contains a quote is untouched.
+ */
+function stripWrappingQuotes(value: string): string {
+  const match = /^(['"`])([\s\S]*)\1$/.exec(value);
+  return match ? match[2] : value;
 }
 
 /** Describes a value without revealing it: length plus a 4-char prefix. */
@@ -46,7 +60,7 @@ function describe(value: string): string {
  * with Netlify access, so the secret itself must never appear in them.
  */
 export function authorizeCronRequest(request: Request): CronAuthResult {
-  const expected = (process.env.CRON_SECRET || '').trim();
+  const expected = stripWrappingQuotes((process.env.CRON_SECRET || '').trim());
 
   if (!expected) {
     return {
@@ -88,7 +102,7 @@ export function authorizeCronRequest(request: Request): CronAuthResult {
 
 /** Headers a caller should send so the check above passes under either path. */
 export function cronAuthHeaders(secret: string): Record<string, string> {
-  const clean = secret.trim();
+  const clean = stripWrappingQuotes(secret.trim());
   return {
     Authorization: `Bearer ${clean}`,
     'X-Cron-Secret': clean,

@@ -59,6 +59,37 @@ describe('authorizeCronRequest', () => {
     expect(authorizeCronRequest(req({ Authorization: `Bearer ${SECRET} ` })).ok).toBe(true);
   });
 
+  it('ignores quotes picked up by copying the value out of a JS console', () => {
+    // The real incident: `crypto.randomUUID()` was copied as 'abc' and the
+    // quotes were stored as part of the secret, where they are invisible in a
+    // masked field and survive trim().
+    process.env.CRON_SECRET = `'${SECRET}'`;
+    expect(authorizeCronRequest(req({ 'X-Cron-Secret': SECRET })).ok).toBe(true);
+    expect(authorizeCronRequest(req({ Authorization: `Bearer '${SECRET}'` })).ok).toBe(true);
+  });
+
+  it('handles double and back quotes the same way', () => {
+    process.env.CRON_SECRET = `"${SECRET}"`;
+    expect(authorizeCronRequest(req({ 'X-Cron-Secret': SECRET })).ok).toBe(true);
+    process.env.CRON_SECRET = `\`${SECRET}\``;
+    expect(authorizeCronRequest(req({ 'X-Cron-Secret': SECRET })).ok).toBe(true);
+  });
+
+  it('leaves an unmatched quote alone, so half-deleted pairs still fail loudly', () => {
+    // Deleting one of the two quotes is the natural first guess, and it does
+    // not fix anything. That must stay a visible failure rather than being
+    // papered over, since the remaining character is genuinely part of the
+    // stored value and the two sides really do differ.
+    process.env.CRON_SECRET = `'${SECRET}`;
+    expect(authorizeCronRequest(req({ 'X-Cron-Secret': SECRET })).ok).toBe(false);
+  });
+
+  it('does not strip quotes from inside a secret that legitimately contains them', () => {
+    const quoted = `ab'cd`;
+    process.env.CRON_SECRET = quoted;
+    expect(authorizeCronRequest(req({ 'X-Cron-Secret': quoted })).ok).toBe(true);
+  });
+
   it('still rejects a wrong secret', () => {
     const result = authorizeCronRequest(req({ Authorization: 'Bearer not-the-secret' }));
     expect(result.ok).toBe(false);
