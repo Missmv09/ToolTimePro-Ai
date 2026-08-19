@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { buildWeeklyDigest, weeklyPeriod, type DigestLogRow } from '@/lib/jenny-digest';
 import { sendJennyWeeklyDigestEmail } from '@/lib/email';
+import { authorizeCronRequest } from '@/lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,9 +23,9 @@ function getSupabaseAdmin() {
  * them an empty digest is worse than staying quiet.
  */
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  const auth = authorizeCronRequest(request);
+  if (!auth.ok) {
+    console.error(`[jenny-digest] unauthorized: ${auth.reason}`);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

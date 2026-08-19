@@ -53,3 +53,13 @@ When adding new products or add-ons:
 - Always add `customer_portal_pro` when listing add-ons (it's new and easy to forget)
 - When adding a Jenny autonomous action, update all four places or it silently never runs: the `action_type` CHECK on `jenny_action_log` AND `jenny_action_configs` (see migration 051), `JennyActionType`, and `CONFIGURABLE_ACTION_TYPES`. The dispatcher iterates over enabled config rows, so a type the constraint rejects is dead code
 - Never write `await supabase.from(...).insert(...)` without checking `error` — supabase-js resolves with `{ error }` instead of throwing, so constraint violations vanish silently. Tests mock Supabase and will not catch it
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

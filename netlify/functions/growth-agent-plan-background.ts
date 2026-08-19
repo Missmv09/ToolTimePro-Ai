@@ -23,6 +23,7 @@ import {
   type MetricsRow,
 } from '../../src/lib/growth-planner';
 import { COMPETITORS } from '../../src/lib/competitor-data';
+import { authorizeCronRequest } from '../../src/lib/cron-auth';
 
 const { aiComplete, parseAIJson } = require('../../src/lib/ai-client');
 
@@ -38,9 +39,12 @@ function getSupabaseAdmin(): SupabaseClient | null {
 }
 
 export default async function handler(request: Request) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
-    console.error('[Growth Planner] Unauthorized invocation');
+  // Auth lives in src/lib/cron-auth so the planner, the generator and their
+  // cron triggers cannot drift apart, and so a rejection says which of the
+  // three distinct failures happened instead of just "no".
+  const auth = authorizeCronRequest(request);
+  if (!auth.ok) {
+    console.error(`[Growth Planner] Unauthorized. ${auth.reason}`);
     return new Response('Unauthorized', { status: 401 });
   }
 

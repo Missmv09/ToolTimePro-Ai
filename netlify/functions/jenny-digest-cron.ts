@@ -2,6 +2,8 @@
 // Runs Mondays at 15:00 UTC via netlify.toml schedule (morning across US time zones).
 // Emails each company a receipt of what Jenny did autonomously last week.
 
+import { cronAuthHeaders } from '../../src/lib/cron-auth';
+
 export default async function handler() {
   const siteUrl = process.env.URL || process.env.DEPLOY_PRIME_URL || 'http://localhost:3000';
   const cronSecret = process.env.CRON_SECRET || '';
@@ -9,9 +11,8 @@ export default async function handler() {
   try {
     const response = await fetch(`${siteUrl}/api/jenny-digest`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${cronSecret}`,
-      },
+      // Both headers carry the same secret — see src/lib/cron-auth.ts.
+      headers: cronAuthHeaders(cronSecret),
     });
 
     const data = await response.json();
