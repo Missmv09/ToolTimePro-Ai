@@ -3,7 +3,12 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Node 22, not 20. @supabase/supabase-js requires a native WebSocket, which
+  # Node 20 does not provide — constructing a client threw "Node.js detected but
+  # native WebSocket not found" and took down every function that talks to the
+  # database. Node 20 is also past end-of-life. Keep this in step with .nvmrc,
+  # package.json engines, and the workflows in .github/workflows.
+  NODE_VERSION = "22"
   SECRETS_SCAN_ENABLED = "false"
 
 # ============================================================
