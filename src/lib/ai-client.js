@@ -140,8 +140,35 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1024, temperatur
     }
 
     const data = await response.json();
-    const text = data.content?.[0]?.text?.trim();
-    if (!text) return { error: 'Claude returned empty response' };
+
+    // Find the text block by type, never by index. Claude Opus 5 runs extended
+    // thinking by default, so content[0] is a `thinking` block with no `.text`
+    // field — reading index 0 discarded a perfectly good answer and reported it
+    // as an empty response, which then fell through to the other provider.
+    const text = data.content
+      ?.filter((block) => block?.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim();
+
+    if (!text) {
+      // Say why it was empty. These three causes need different responses:
+      // a refusal is a prompt problem, truncation is a max_tokens problem, and
+      // anything else is worth seeing the actual block types for.
+      if (data.stop_reason === 'refusal') {
+        const category = data.stop_details?.category || 'unspecified';
+        return { error: `Claude declined the request (category: ${category})` };
+      }
+      if (data.stop_reason === 'max_tokens') {
+        return {
+          error:
+            `Claude hit the ${maxTokens}-token limit before producing any text. ` +
+            'Thinking tokens count against max_tokens — raise it for this call.',
+        };
+      }
+      const kinds = (data.content || []).map((block) => block?.type).join(', ') || 'none';
+      return { error: `Claude returned no text block (stop_reason: ${data.stop_reason}, blocks: ${kinds})` };
+    }
 
     return { content: text, provider: 'claude', model };
   } catch (err) {
