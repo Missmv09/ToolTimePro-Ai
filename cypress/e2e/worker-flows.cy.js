@@ -24,8 +24,30 @@ function workerLogin() {
     cy.get('input[type="email"]').clear().type(worker.email);
     cy.get('input[type="password"]').clear().type(worker.password, { log: false });
     cy.get('form').find('button[type="submit"]').click();
-    // Successful worker login lands under /worker (redirects to /worker/timeclock).
-    cy.location('pathname', { timeout: 25000 }).should('include', '/worker');
+
+    // This assertion used to read `should('include', '/worker')` — which
+    // '/worker/login' ITSELF satisfies. It passed the instant it ran, whether or
+    // not the login worked, so cy.session cached a signed-out session and every
+    // spec below ran unauthenticated. The app then had no session to read and
+    // TC-WORK-04 saw no timeclock, for four CI rounds, while the login failure
+    // that caused it was never reported.
+    //
+    // So assert we actually LEFT the login page, and say why when we did not —
+    // same shape as cy.login() in cypress/support/commands.js.
+    cy.get('body', { timeout: 45000 }).should(($body) => {
+      const { pathname } = $body[0].ownerDocument.location;
+      if (!pathname.includes('/worker/login')) return;
+
+      const alert = $body.find('.bg-red-50, [role="alert"]').first().text().trim();
+      throw new Error(
+        `Worker login did not leave /worker/login (still at ${pathname}).`
+        + (alert
+          ? ` The page is showing: "${alert}".`
+          : ' The page is showing no error, so the request is still in flight or timed out.')
+        + ' Check E2E_WORKER_EMAIL / E2E_WORKER_PASSWORD, and that the account is'
+        + ' confirmed and attached to a company (database/TEST_ACCOUNT_SETUP.md).'
+      );
+    });
   });
 }
 

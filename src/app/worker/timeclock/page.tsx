@@ -76,8 +76,14 @@ export default function TimeclockPage() {
     setLoadError(null)
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+      // No session is the logged-out case, not a fault: the layout above owns
+      // the redirect to /worker/login, so bail quietly rather than flashing an
+      // error card on the way out. Check the user before the error — Supabase
+      // reports a missing session as one.
+      if (!user) return
+
       if (authError) throw authError
-      if (!user) throw new Error('Not signed in')
 
       setUserId(user.id)
 

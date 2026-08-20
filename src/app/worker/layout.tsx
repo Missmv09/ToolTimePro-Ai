@@ -38,14 +38,19 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
     setAuthError(null)
     try {
       const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser()
-      if (authErr) throw authErr
 
+      // Check the user BEFORE the error. Having no session is not a failure —
+      // it is the logged-out case, and it has to redirect. Supabase reports it
+      // as an error ("Auth session missing!"), so throwing on `authErr` first
+      // parks a signed-out worker on an error card instead of the login page.
       if (!authUser) {
         if (pathname !== '/worker/login' && pathname !== '/worker/login/') {
           router.push('/worker/login')
         }
         return
       }
+
+      if (authErr) throw authErr
 
       // Note the join: `companies` has its own RLS, so this can fail for a
       // worker who can read their own users row perfectly well.
