@@ -9,6 +9,7 @@ import {
   Clock,
   TrendingUp,
   TrendingDown,
+  Minus,
   ArrowRight,
   AlertTriangle,
 } from 'lucide-react';
@@ -90,9 +91,16 @@ export default function AdminDashboardPage() {
 
   if (!stats) return null;
 
-  const signupGrowth = stats.newSignupsLastMonth > 0
-    ? Math.round(((stats.newSignupsThisMonth - stats.newSignupsLastMonth) / stats.newSignupsLastMonth) * 100)
-    : stats.newSignupsThisMonth > 0 ? 100 : 0;
+  // null means the percentage is undefined, not zero. Growth from a zero
+  // baseline has no meaningful percentage — reporting the first signup of a
+  // month as "+100%" invents a number, and reading 0 -> 0 as "+0%" with an up arrow shows
+  // no movement as if it were growth. Both are worse than saying nothing.
+  const signupGrowth =
+    stats.newSignupsLastMonth > 0
+      ? Math.round(
+          ((stats.newSignupsThisMonth - stats.newSignupsLastMonth) / stats.newSignupsLastMonth) * 100
+        )
+      : null;
 
   const trialConversionRate = stats.totalCompanies > 0
     ? Math.round((stats.paidCompanies / stats.totalCompanies) * 100)
@@ -148,14 +156,32 @@ export default function AdminDashboardPage() {
               <p className="text-gray-400 text-sm">Last Month</p>
               <p className="text-xl text-gray-300">{stats.newSignupsLastMonth}</p>
             </div>
-            <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-              signupGrowth >= 0
-                ? 'bg-green-500/10 text-green-400'
-                : 'bg-red-500/10 text-red-400'
-            }`}>
-              {signupGrowth >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-              {signupGrowth >= 0 ? '+' : ''}{signupGrowth}%
-            </div>
+            {/* Four states, not two: no baseline to compare against, flat,
+                up, and down. Flat is grey and arrowless so it cannot be
+                mistaken at a glance for growth. */}
+            {signupGrowth === null ? (
+              <div className="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-700/50 text-gray-400">
+                <Minus size={16} />
+                {stats.newSignupsThisMonth > 0 ? 'No baseline' : 'No signups yet'}
+              </div>
+            ) : (
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                signupGrowth > 0
+                  ? 'bg-green-500/10 text-green-400'
+                  : signupGrowth < 0
+                    ? 'bg-red-500/10 text-red-400'
+                    : 'bg-gray-700/50 text-gray-400'
+              }`}>
+                {signupGrowth > 0 ? (
+                  <TrendingUp size={16} />
+                ) : signupGrowth < 0 ? (
+                  <TrendingDown size={16} />
+                ) : (
+                  <Minus size={16} />
+                )}
+                {signupGrowth > 0 ? '+' : ''}{signupGrowth}%
+              </div>
+            )}
           </div>
         </div>
 
