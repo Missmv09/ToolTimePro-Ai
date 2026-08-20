@@ -47,12 +47,32 @@ const CLOCK_OUT = /clock out/i;
 const END_BREAK = /end break/i;
 const ANY_ACTION = /clock in|clock out|end break/i;
 
-function resetToClockedOut() {
+// `cy.contains` reports only what it could NOT find, which sent three separate
+// debugging rounds chasing the wrong cause. Assert the same thing by hand so
+// the failure prints what WAS on screen — every button label plus the page's
+// own text. The screenshot artifact says the same, but the log is readable
+// without downloading anything and outlives artifact retention.
+function waitForActionButton() {
   // 40s, not the usual 20: the /worker routes are warmed by e2e.yml but the
-  // sandbox can still be cold here, and this gate covers auth + the users row +
-  // the open time_entry lookup before any button mounts.
-  cy.contains('button', ANY_ACTION, { timeout: 40000 })
-    .should('be.visible')
+  // sandbox can still be cold here, and this gate covers the layout's auth
+  // check plus the page's own time_entry lookup before any button mounts.
+  cy.get('body', { timeout: 40000 }).should(($body) => {
+    const labels = [...$body.find('button')]
+      .map((el) => (el.innerText || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    const pageText = $body.text().replace(/\s+/g, ' ').trim().slice(0, 500);
+    expect(
+      labels.join(' | '),
+      `no CLOCK IN / CLOCK OUT / END BREAK button on /worker/timeclock. `
+        + `Buttons present: [${labels.join(' | ') || 'none'}]. Page text: "${pageText || '(empty)'}"`
+    ).to.match(ANY_ACTION);
+  });
+}
+
+function resetToClockedOut() {
+  waitForActionButton();
+
+  cy.contains('button', ANY_ACTION)
     .invoke('text')
     .then((label) => {
       if (END_BREAK.test(label)) {
