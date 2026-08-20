@@ -197,7 +197,7 @@ jobs:
           # visit (two passes, failures ignored, 60s cap per request) so Cypress
           # runs against warm pages. Mirrors the same step in smoke.yml.
           # Best-effort: this step never fails the job.
-          paths="/auth/login /dashboard /dashboard/customers /dashboard/jobs /dashboard/quotes /dashboard/invoices /quote/demo"
+          paths="/auth/login /dashboard /dashboard/customers /dashboard/jobs /dashboard/quotes /dashboard/invoices /quote/demo /worker/login /worker /worker/timeclock"
           for pass in 1 2; do
             echo "— Warm-up pass $pass —"
             for p in $paths; do
