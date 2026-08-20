@@ -59,7 +59,10 @@
       "jobForShift": "Job for this shift",
       "generalShift": "General shift (no job)",
       "workingOn": "Working on",
-      "noCustomer": "No customer"
+      "noCustomer": "No customer",
+      "loadFailed": "Couldn't load your timeclock",
+      "tryAgain": "Try Again",
+      "clockInFailed": "Failed to clock in: "
     },
     "time": {
       "weekOf": "Week of",

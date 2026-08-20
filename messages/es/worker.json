@@ -59,7 +59,10 @@
       "jobForShift": "Trabajo para este turno",
       "generalShift": "Turno general (sin trabajo)",
       "workingOn": "Trabajando en",
-      "noCustomer": "Sin cliente"
+      "noCustomer": "Sin cliente",
+      "loadFailed": "No se pudo cargar tu reloj",
+      "tryAgain": "Reintentar",
+      "clockInFailed": "No se pudo registrar la entrada: "
     },
     "time": {
       "weekOf": "Semana del",

@@ -29,8 +29,50 @@ function workerLogin() {
   });
 }
 
+// The timeclock has THREE action states, not two, and only one action button
+// is mounted at a time:
+//
+//   clocked out            → CLOCK IN
+//   clocked in             → CLOCK OUT
+//   clocked in + on break  → END BREAK   (neither clock button is in the DOM)
+//
+// Until the page resolves its clock state it renders a bare spinner with no
+// button at all, and while a write is in flight every label reads "Please
+// wait...". So: wait for a real label, then walk whatever state we found back
+// to clocked out. This spec shares its worker account with manual sandbox
+// smoke-testing and retries itself up to 3×, so it cannot assume how the
+// account was left — an unhandled on-break state wedges it permanently.
+const CLOCK_IN = /clock in/i;
+const CLOCK_OUT = /clock out/i;
+const END_BREAK = /end break/i;
+const ANY_ACTION = /clock in|clock out|end break/i;
+
+function resetToClockedOut() {
+  // 40s, not the usual 20: the /worker routes are warmed by e2e.yml but the
+  // sandbox can still be cold here, and this gate covers auth + the users row +
+  // the open time_entry lookup before any button mounts.
+  cy.contains('button', ANY_ACTION, { timeout: 40000 })
+    .should('be.visible')
+    .invoke('text')
+    .then((label) => {
+      if (END_BREAK.test(label)) {
+        cy.contains('button', END_BREAK).click();
+        cy.contains('button', CLOCK_OUT, { timeout: 20000 }).should('be.visible').click();
+      } else if (CLOCK_OUT.test(label)) {
+        cy.contains('button', CLOCK_OUT).click();
+      }
+    });
+
+  // Whichever branch ran, the flow under test starts from here.
+  cy.contains('button', CLOCK_IN, { timeout: 20000 }).should('be.visible');
+}
+
 (hasWorker ? describe : describe.skip)('Worker app flows', () => {
+  let alerts = [];
+
   beforeEach(() => {
+    alerts = [];
+    cy.on('window:alert', (msg) => alerts.push(msg));
     workerLogin();
   });
 
@@ -59,30 +101,18 @@ function workerLogin() {
     cy.visit('/worker/timeclock');
     cy.location('pathname', { timeout: 25000 }).should('include', '/worker/timeclock');
 
-    // The timeclock renders ONLY a loading spinner until it fetches the current
-    // clock state (auth + users + open time_entry); a CLOCK IN/OUT button appears
-    // only once that resolves. Wait for a button before the reset check below —
-    // otherwise that synchronous check runs against the spinner (no buttons yet),
-    // skips, and the flow times out. The /worker routes aren't always warm (see
-    // the warm-up step in e2e.yml), so give this the full cold-start budget.
-    cy.contains('button', /clock (in|out)/i, { timeout: 40000 }).should('be.visible');
-
-    // Reset to a known CLOCKED-OUT state. Cypress retries this spec up to 3×, and
-    // an earlier attempt can leave an open time entry — which renders CLOCK OUT.
-    // If so, clock out first so the flow always starts from CLOCK IN. Regex-test
-    // the body text (not jQuery :contains) so it's case-insensitive; the "Clocked
-    // In" status label doesn't contain the substring "clock out", so this is true
-    // only when the CLOCK OUT button is actually present.
-    cy.get('body').then(($b) => {
-      if (/clock out/i.test($b.text())) {
-        cy.contains('button', /clock out/i).click();
-        cy.contains('button', /clock in/i, { timeout: 20000 }).should('be.visible');
-      }
-    });
+    resetToClockedOut();
 
     // Clock in → the button flips to Clock Out → clock back out → flips back.
-    cy.contains('button', /clock in/i, { timeout: 20000 }).should('be.visible').click();
-    cy.contains('button', /clock out/i, { timeout: 20000 }).should('be.visible').click();
-    cy.contains('button', /clock in/i, { timeout: 20000 }).should('be.visible');
+    cy.contains('button', CLOCK_IN, { timeout: 20000 }).should('be.visible').click();
+    cy.contains('button', CLOCK_OUT, { timeout: 20000 }).should('be.visible').click();
+    cy.contains('button', CLOCK_IN, { timeout: 20000 }).should('be.visible');
+
+    // The page reports write failures through window.alert, which Cypress stubs
+    // and swallows. Without this the DB error behind a failed clock-in surfaces
+    // only as "timed out retrying" 20 seconds later, naming the wrong cause.
+    cy.then(() => {
+      expect(alerts, 'timeclock reported no errors').to.deep.equal([]);
+    });
   });
 });
