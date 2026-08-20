@@ -58,11 +58,22 @@ function workerLogin() {
   it('TC-WORK-04: worker can clock in and clock out', () => {
     cy.visit('/worker/timeclock');
     cy.location('pathname', { timeout: 25000 }).should('include', '/worker/timeclock');
-    cy.get('body', { timeout: 20000 }).should('be.visible');
 
-    // Reset to a known state: if a prior run left an open entry, clock out first.
+    // The timeclock renders ONLY a loading spinner until it fetches the current
+    // clock state; a CLOCK IN/OUT button appears only once that resolves. Wait
+    // for a button before the reset check below — otherwise that synchronous
+    // check runs against the spinner (no buttons yet), skips, and the flow times
+    // out whenever a prior attempt left the worker clocked in.
+    cy.contains('button', /clock (in|out)/i, { timeout: 25000 }).should('be.visible');
+
+    // Reset to a known CLOCKED-OUT state. Cypress retries this spec up to 3×, and
+    // an earlier attempt can leave an open time entry — which renders CLOCK OUT.
+    // If so, clock out first so the flow always starts from CLOCK IN. Regex-test
+    // the body text (not jQuery :contains) so it's case-insensitive; the "Clocked
+    // In" status label doesn't contain the substring "clock out", so this is true
+    // only when the CLOCK OUT button is actually present.
     cy.get('body').then(($b) => {
-      if ($b.find('button:contains("CLOCK OUT")').length) {
+      if (/clock out/i.test($b.text())) {
         cy.contains('button', /clock out/i).click();
         cy.contains('button', /clock in/i, { timeout: 20000 }).should('be.visible');
       }
