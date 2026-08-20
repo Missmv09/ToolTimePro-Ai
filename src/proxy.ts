@@ -5,7 +5,7 @@ const MAIN_DOMAIN = 'taskiguana.com'
 const SUPPORTED_LOCALES = ['en', 'es']
 const DEFAULT_LOCALE = 'en'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // --- Subdomain → path redirect for customer sites ---
   const hostname = request.headers.get('host') || ''
   if (

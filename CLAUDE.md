@@ -19,7 +19,7 @@ Task Iguana is a field service management SaaS for contractors (landscaping, plu
 ### Architecture Rules
 - **Supabase** is the database — all queries go through `@/lib/supabase`
 - **Stripe prices** use `NEXT_PUBLIC_STRIPE_PRICES` JSON env var parsed by `@/lib/stripe-prices.js` — never hardcode price IDs
-- **Auth** is via Supabase Auth (client-side localStorage + middleware cookie refresh)
+- **Auth** is via Supabase Auth (client-side localStorage + cookie refresh in `src/proxy.ts`)
 - **Cron schedules** go in `netlify.toml` ONLY — never duplicate in function file config exports
 - **Static marketing site** lives in `tooltimepro/` — separate from the Next.js app
 
