@@ -6,7 +6,9 @@
       "route": "Ruta",
       "hours": "Horas",
       "profile": "Perfil",
-      "signOut": "Cerrar sesión"
+      "signOut": "Cerrar sesión",
+      "loadFailed": "No se pudo cargar tu cuenta",
+      "tryAgain": "Reintentar"
     },
     "home": {
       "title": "Trabajos de hoy",
