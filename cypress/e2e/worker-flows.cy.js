@@ -60,11 +60,12 @@ function workerLogin() {
     cy.location('pathname', { timeout: 25000 }).should('include', '/worker/timeclock');
 
     // The timeclock renders ONLY a loading spinner until it fetches the current
-    // clock state; a CLOCK IN/OUT button appears only once that resolves. Wait
-    // for a button before the reset check below — otherwise that synchronous
-    // check runs against the spinner (no buttons yet), skips, and the flow times
-    // out whenever a prior attempt left the worker clocked in.
-    cy.contains('button', /clock (in|out)/i, { timeout: 25000 }).should('be.visible');
+    // clock state (auth + users + open time_entry); a CLOCK IN/OUT button appears
+    // only once that resolves. Wait for a button before the reset check below —
+    // otherwise that synchronous check runs against the spinner (no buttons yet),
+    // skips, and the flow times out. The /worker routes aren't always warm (see
+    // the warm-up step in e2e.yml), so give this the full cold-start budget.
+    cy.contains('button', /clock (in|out)/i, { timeout: 40000 }).should('be.visible');
 
     // Reset to a known CLOCKED-OUT state. Cypress retries this spec up to 3×, and
     // an earlier attempt can leave an open time entry — which renders CLOCK OUT.
