@@ -30,8 +30,9 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold mb-3">1. Acceptance of Terms</h2>
             <p>
-              By accessing or using the Task Iguana platform (&quot;Service&quot;), you agree to be bound by these
-              Terms &amp; Conditions. If you do not agree to these terms, do not use the Service.
+              Task Iguana is a customer-facing brand operated by Minty Pink LLC. By accessing or using the
+              Task Iguana platform (&quot;Service&quot;), you agree to be bound by these Terms &amp; Conditions.
+              If you do not agree to these terms, do not use the Service.
             </p>
           </section>
 
