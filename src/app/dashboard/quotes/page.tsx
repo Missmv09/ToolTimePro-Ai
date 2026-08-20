@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency'
+import { computeQuoteTotals, QUOTE_TAX_RATE } from '@/lib/totals'
 
 interface QuoteItem {
   id: string
@@ -1332,14 +1333,8 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
     setItems(newItems)
   }
 
-  const calculateTotals = () => {
-    const subtotal = items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0)
-    const tax_amount = subtotal * 0.0875 // CA sales tax estimate
-    const total = subtotal + tax_amount
-    return { subtotal, tax_amount, total }
-  }
-
-  const { subtotal, tax_amount, total } = calculateTotals()
+  // Money math lives in @/lib/totals (single source of truth, unit-tested).
+  const { subtotal, tax_amount, total } = computeQuoteTotals(items)
 
   // Map low-level/server errors to a safe, actionable message. Never surface
   // raw database internals (e.g. "permission denied for table quotes") to the
@@ -1454,7 +1449,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       valid_until: formData.valid_until,
       frequency: formData.frequency,
       subtotal: Number(subtotal) || 0,
-      tax_rate: 8.75,
+      tax_rate: QUOTE_TAX_RATE,
       tax_amount: Number(tax_amount) || 0,
       total: Number(total) || 0,
       status: quote?.status || 'draft',

@@ -115,7 +115,7 @@ export default function IndustriesPage() {
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo-horizontal-white-01262026.png"
+              src="/logo-horizontal-white-08182026.png"
               alt="Task Iguana"
               width={180}
               height={40}
@@ -343,7 +343,7 @@ export default function IndustriesPage() {
             <div className="md:col-span-2">
               <Link href="/" className="inline-block mb-4">
                 <Image
-                  src="/logo-horizontal-white-01262026.png"
+                  src="/logo-horizontal-white-08182026.png"
                   alt="Task Iguana"
                   width={180}
                   height={40}

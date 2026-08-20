@@ -62,7 +62,7 @@ export default function BlogPostPage() {
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo-horizontal-white-01262026.png"
+              src="/logo-horizontal-white-08182026.png"
               alt="Task Iguana"
               width={180}
               height={40}

@@ -141,13 +141,13 @@ export default function PortalMessages() {
           )}
         </div>
 
-        {threads.length === 0 ? (
+        {threads.length === 0 && jobs.length === 0 ? (
           <div className="bg-white rounded-xl p-8 shadow-sm text-center">
             <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <h3 className="font-medium text-gray-700">{t('noMessages')}</h3>
             <p className="text-sm text-gray-500 mt-1">{t('noMessagesDescription')}</p>
           </div>
-        ) : (
+        ) : threads.length > 0 ? (
           <div className="space-y-2">
             {threads.map(([key, thread]) => (
               <button
@@ -177,7 +177,7 @@ export default function PortalMessages() {
               </button>
             ))}
           </div>
-        )}
+        ) : null}
 
         {/* Start new message if there are jobs */}
         {jobs.length > 0 && threads.length === 0 && (

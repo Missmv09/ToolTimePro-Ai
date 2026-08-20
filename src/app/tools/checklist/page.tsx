@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, CheckSquare, Square, CheckCircle, AlertTriangle, Download, Printer } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import LeadCaptureForm from '@/components/growth/LeadCaptureForm';
 
 const checklistCategories = [
   { key: 'category1', items: ['class1', 'class2', 'class3', 'class4'] },
@@ -45,7 +46,7 @@ export default function ChecklistPage() {
             <div className="flex items-center gap-6">
               <Link href="/">
                 <Image
-                  src="/logo-01262026.png"
+                  src="/logo-08182026.png"
                   alt="Task Iguana"
                   width={140}
                   height={32}
@@ -156,6 +157,20 @@ export default function ChecklistPage() {
             </div>
           </div>
         ))}
+
+        {/* Lead capture — held back until they've engaged with the checklist,
+            so it reads as "save your progress" rather than an interruption.
+            Hidden when printing, like the CTA below. */}
+        {checkedItems.size > 0 && (
+          <div className="print:hidden">
+            <LeadCaptureForm
+              source="tool_checklist"
+              headline={t('leadHeadline')}
+              description={t('leadDescription')}
+              resultData={{ completed: checkedItems.size, total: totalItems }}
+            />
+          </div>
+        )}
 
         {/* Disclaimer */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">

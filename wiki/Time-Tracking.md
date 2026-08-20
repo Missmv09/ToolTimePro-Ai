@@ -59,7 +59,7 @@ For California-based businesses, Task Iguana monitors:
 - **Rest Breaks** — 10-minute paid rest break per 4 hours worked
 - **Overtime** — Time-and-a-half after 8 hours/day or 40 hours/week
 
-> **See Also:** [Task Iguana Shield](ToolTime-Shield) for full compliance monitoring.
+> **See Also:** [Shield Iguana](Shield-Iguana) for full compliance monitoring.
 
 ---
 
@@ -112,7 +112,7 @@ Export time data for payroll processing:
 
 - **Jobs** — Time entries are linked to specific jobs for accurate job costing
 - **Reports** — Worker hours feed into the Reports dashboard
-- **Compliance** — Break data feeds into Task Iguana Shield compliance monitoring
+- **Compliance** — Break data feeds into Shield Iguana compliance monitoring
 - **Invoicing** — Track labor hours for accurate customer billing
 
 ---

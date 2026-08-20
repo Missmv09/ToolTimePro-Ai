@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { isPastDate } from '@/lib/dates'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -207,7 +208,7 @@ export default function PaymentPlansPage() {
   const completedPlans = plans.filter(p => p.status === 'completed')
   const overdueInstallments = plans
     .flatMap(p => (p.installments || []).filter(i =>
-      i.status === 'pending' && new Date(i.due_date) < new Date()
+      i.status === 'pending' && isPastDate(i.due_date)
     ))
 
   const statusBadge = (status: string) => {
@@ -340,7 +341,7 @@ export default function PaymentPlansPage() {
                 {selectedPlan?.id === plan.id ? (
                   <div className="space-y-2 mt-4 border-t pt-4">
                     {(plan.installments || []).map(inst => {
-                      const isOverdue = inst.status === 'pending' && new Date(inst.due_date) < new Date()
+                      const isOverdue = inst.status === 'pending' && isPastDate(inst.due_date)
                       return (
                         <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                           <div className="flex items-center gap-3">

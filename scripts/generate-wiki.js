@@ -123,7 +123,7 @@ Task Iguana offers three core plans, standalone options, and powerful add-ons. N
 | Smart quoting + e-signatures | Yes | Yes | Yes |
 | Invoicing + card payments | Yes | Yes | Yes |
 | GPS clock-in (worker app) | Yes | Yes | Yes |
-| Task Iguana Shield (compliance) | Yes | Yes | Yes |
+| Shield Iguana (compliance) | Yes | Yes | Yes |
 | HR document library (10+ templates) | Yes | Yes | Yes |
 | Spanish language support | Yes | Yes | Yes |
 | Chat & email support | Yes | Yes | Yes |

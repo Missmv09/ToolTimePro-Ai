@@ -3,7 +3,12 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Node 22, not 20. @supabase/supabase-js requires a native WebSocket, which
+  # Node 20 does not provide — constructing a client threw "Node.js detected but
+  # native WebSocket not found" and took down every function that talks to the
+  # database. Node 20 is also past end-of-life. Keep this in step with .nvmrc,
+  # package.json engines, and the workflows in .github/workflows.
+  NODE_VERSION = "22"
   SECRETS_SCAN_ENABLED = "false"
 
 # ============================================================
@@ -77,6 +82,44 @@
 # Calendar so the sync is automatic without clicking "Sync Now".
 [functions."calendar-sync-cron"]
   schedule = "*/30 * * * *"
+
+# Growth Funnel Snapshot — runs daily at 5am UTC
+# Records one row per day in growth_metrics_daily: leads captured by source,
+# signups, trials, paid accounts, and the derived conversion rates. This is the
+# time series the growth agent planner reads. Runs before the other daily crons
+# so the snapshot reflects a settled previous day.
+[functions."growth-metrics-cron"]
+  schedule = "0 5 * * *"
+
+# Growth Agent Planner — runs Mondays at 6am UTC
+# Fires growth-agent-plan-background, which reads the funnel time series, past
+# experiment outcomes, and the content inventory, then proposes a ranked week of
+# work into growth_tasks with status 'proposed'. It only proposes — nothing
+# reaches the public until a human approves it in /admin/growth.
+#
+# The work lives in a *background* function because scheduled functions cap at
+# 30s and synchronous ones at 10s, while an Opus planning call runs longer than
+# both. Background functions get 15 minutes.
+[functions."growth-agent-plan-cron"]
+  schedule = "0 6 * * 1"
+
+# Growth Agent Generator — runs weekdays at 7am UTC
+# Fires growth-agent-generate-background, which turns *approved* tasks into
+# draft assets. Approved only: generating for an unreviewed proposal spends
+# tokens on work that may be rejected, and puts a finished-looking draft in
+# front of the reviewer that biases the decision.
+#
+# Background function for the same timeout reason as the planner — it makes up
+# to three sequential AI calls.
+[functions."growth-agent-generate-cron"]
+  schedule = "0 7 * * 1-5"
+
+# Jenny Weekly Digest — runs Mondays at 15:00 UTC
+# Emails each company a receipt of the autonomous work Jenny did last week,
+# covering the seven complete days before the run. Jenny's actions are
+# invisible by nature; this is the only place they become legible.
+[functions."jenny-digest-cron"]
+  schedule = "0 15 * * 1"
 
 # Appointment Reminders + Post-Job Follow-ups — runs once daily (16:00 UTC)
 # Texts customers a reminder the day before a job, and a thank-you + review

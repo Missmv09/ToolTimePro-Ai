@@ -1,4 +1,6 @@
 import { Resend } from 'resend';
+import type { ToolResultEmail } from './growth-tool-results';
+import { digestHeadline, type WeeklyDigest } from './jenny-digest';
 
 let resend: Resend | null = null;
 
@@ -59,7 +61,7 @@ function emailLayout(content: string): string {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 32px 40px; text-align: center;">
           <table cellpadding="0" cellspacing="0" border="0" align="center"><tr>
-            <td style="vertical-align: middle;"><img src="${BASE_URL}/logo-horizontal-white-01262026.png" alt="Task Iguana" width="200" style="display: block; height: auto;" /></td>
+            <td style="vertical-align: middle;"><img src="${BASE_URL}/logo-horizontal-white-08182026.png" alt="Task Iguana" width="200" style="display: block; height: auto;" /></td>
           </tr></table>
         </div>
         <!-- Body -->
@@ -1262,4 +1264,198 @@ export async function sendPortalMagicLinkEmail({
 
   if (error) throw new Error(`Failed to send portal magic link email: ${error.message}`);
   return data;
+}
+
+// ============================================
+// Free Tool Result Email
+//
+// Backs the "we'll email you this result" promise on the free tools. The
+// content is assembled by buildToolResultEmail in growth-tool-results.ts; this
+// only renders it into the shared branded layout.
+//
+// Transactional, not marketing: it is the thing the visitor explicitly asked
+// for, so it carries no unsubscribe link. Anything sent because they ticked the
+// consent box is a separate send with its own opt-out.
+// ============================================
+
+/** Escape values before interpolating — result data originates in the browser. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export async function sendToolResultEmail({
+  to,
+  content,
+}: {
+  to: string;
+  content: ToolResultEmail;
+}) {
+  const rows = content.rows
+    .map(
+      (row, index) => `
+        <tr>
+          <td style="padding: 12px 16px; color: #4b5563; font-size: 15px; ${
+            index > 0 ? 'border-top: 1px solid #e5e7eb;' : ''
+          }">${escapeHtml(row.label)}</td>
+          <td style="padding: 12px 16px; color: #111827; font-size: 15px; font-weight: 600; text-align: right; ${
+            index > 0 ? 'border-top: 1px solid #e5e7eb;' : ''
+          }">${escapeHtml(row.value)}</td>
+        </tr>`
+    )
+    .join('');
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: content.subject,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 22px;">${escapeHtml(content.heading)}</h2>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        ${escapeHtml(content.intro)}
+      </p>
+
+      <table style="width: 100%; border-collapse: collapse; background: #f9fafb; border-radius: 8px; margin: 24px 0;">
+        ${rows}
+      </table>
+
+      ${
+        content.note
+          ? `<p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 16px 0 0 0;">
+               ${escapeHtml(content.note)}
+             </p>`
+          : ''
+      }
+
+      ${ctaButton(content.ctaText, `${BASE_URL}${content.ctaPath}`, '#3b82f6')}
+
+      <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
+        Task Iguana handles final pay, worker classification, and break compliance
+        automatically &mdash; so these numbers get calculated for you instead of
+        looked up. <a href="${BASE_URL}/pricing" style="color: #2E9BFF;">See plans</a>.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
+// ============================================
+// Jenny Weekly Digest
+// ============================================
+
+/**
+ * The receipt for Jenny's autonomous work.
+ *
+ * Jenny's background actions are real but invisible — nobody sees the overdue
+ * invoice that got flagged or the cold lead that got a follow-up. This email
+ * is the only place that work becomes legible, so it is deliberately concrete:
+ * real action titles with real dates, not a summary the reader has to trust.
+ *
+ * Titles come from jenny_action_log and can contain customer names, so every
+ * interpolated value is escaped.
+ */
+export async function sendJennyWeeklyDigestEmail({
+  to,
+  name,
+  digest,
+}: {
+  to: string;
+  name: string;
+  digest: WeeklyDigest;
+}) {
+  const headline = digestHeadline(digest);
+
+  const periodLabel = `${formatDigestDate(digest.periodStart)} – ${formatDigestDate(digest.periodEnd)}`;
+
+  const sections = digest.categories
+    .map((category) => {
+      const itemRows = category.items
+        .map(
+          (item) => `
+            <tr>
+              <td style="padding: 8px 0; color: #4b5563; font-size: 14px; line-height: 1.5; border-bottom: 1px solid #f3f4f6;">
+                ${escapeHtml(item.title)}
+              </td>
+              <td style="padding: 8px 0 8px 12px; color: #9ca3af; font-size: 13px; white-space: nowrap; text-align: right; border-bottom: 1px solid #f3f4f6;">
+                ${formatDigestDate(item.date)}
+              </td>
+            </tr>`
+        )
+        .join('');
+
+      // The count is the headline for the category; the titles below are a
+      // sample. Say so when there are more, or the list reads as the total.
+      const moreCount = category.count - category.items.length;
+      const moreLine =
+        moreCount > 0
+          ? `<p style="margin: 10px 0 0 0; color: #9ca3af; font-size: 13px;">
+               + ${moreCount} more
+             </p>`
+          : '';
+
+      const awaitingLine =
+        category.awaiting > 0
+          ? `<p style="margin: 10px 0 0 0; color: #92400e; font-size: 13px; font-weight: 600;">
+               ${category.awaiting} waiting on you
+             </p>`
+          : '';
+
+      return `
+        <div style="margin: 0 0 28px 0;">
+          <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+            <tr>
+              <td style="color: #111827; font-size: 16px; font-weight: 700;">${escapeHtml(category.label)}</td>
+              <td style="text-align: right; color: #2E9BFF; font-size: 16px; font-weight: 700;">${category.count}</td>
+            </tr>
+          </table>
+          <p style="margin: 4px 0 12px 0; color: #6b7280; font-size: 13px;">${escapeHtml(category.blurb)}</p>
+          <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse;">
+            ${itemRows}
+          </table>
+          ${moreLine}
+          ${awaitingLine}
+        </div>`;
+    })
+    .join('');
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `${headline} — week of ${formatDigestDate(digest.periodStart)}`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 4px 0; font-size: 22px;">${escapeHtml(headline)}</h2>
+      <p style="color: #9ca3af; font-size: 14px; margin: 0 0 28px 0;">${periodLabel}</p>
+
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 28px 0;">
+        Hi ${escapeHtml(name)} — here's everything Jenny did in the background this week,
+        while you were running jobs.
+      </p>
+
+      ${sections}
+
+      ${ctaButton('Open your dashboard', `${BASE_URL}/dashboard`, '#2E9BFF')}
+
+      <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 24px 0 0 0;">
+        Jenny checks your jobs, invoices, leads, and compliance deadlines every 15 minutes.
+        You can turn individual actions on or off in
+        <a href="${BASE_URL}/dashboard/settings" style="color: #2E9BFF; text-decoration: none;">Settings</a>.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
+/** "Mar 3" from an ISO date, in UTC so it matches the period the query used. */
+function formatDigestDate(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }

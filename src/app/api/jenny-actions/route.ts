@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { daysSince, daysUntil } from '@/lib/dates';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { pricesNeedAttention, calculatePriceIntelligence, type CategoryStalenessStatus } from '@/lib/supplier-pricing';
 import { getMaterialsByTrade, getMaterialById, type TradeType } from '@/lib/materials-database';
@@ -13,6 +14,47 @@ function getSupabaseAdmin() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createClient(url, key);
+}
+
+/**
+ * Row shape for jenny_action_log. Loose on purpose — each action contributes
+ * its own metadata — but the fields the digest and the dashboard read are
+ * named so a typo surfaces at compile time instead of at query time.
+ */
+interface ActionLogRow {
+  /** NULL for platform-wide alerts (price staleness, HR law updates). */
+  company_id: string | null;
+  action_type: string;
+  title: string;
+  description: string;
+  status?: 'pending' | 'executed' | 'skipped' | 'failed';
+  target_id?: string | null;
+  target_type?: string | null;
+  target_name?: string | null;
+  result?: string | null;
+  metadata?: Record<string, unknown> | null;
+  executed_at?: string | null;
+}
+
+/**
+ * Write one row to jenny_action_log, surfacing failures.
+ *
+ * supabase-js resolves with { error } rather than throwing, so a bare
+ * `await supabase.from(...).insert(...)` discards write failures silently.
+ * That is how a CHECK constraint listing only five action_types went
+ * unnoticed while the cron dispatched fifteen (see migration 051): the
+ * inserts were rejected on every run and nothing said so.
+ *
+ * Logging is best-effort by design — a failed audit write must not abort the
+ * action that already happened — but it is never silent.
+ */
+async function logAction(supabase: SB, row: ActionLogRow): Promise<void> {
+  const { error } = await supabase.from('jenny_action_log').insert(row);
+  if (error) {
+    console.error(
+      `[jenny-actions] failed to log ${row.action_type} for company ${row.company_id ?? 'platform'}: ${error.message}`
+    );
+  }
 }
 
 // GET — Cron-triggered: Run all autonomous Jenny actions across all companies
@@ -238,7 +280,7 @@ async function runAutoDispatch(
 
     if (requireApproval) {
       // Log as pending — owner must approve
-      await supabase.from('jenny_action_log').insert({
+      await logAction(supabase, {
         company_id: companyId,
         action_type: 'auto_dispatch',
         title: `Suggest: Assign ${selectedWorker.full_name} to ${job.title}`,
@@ -257,7 +299,7 @@ async function runAutoDispatch(
       });
 
       if (!error) {
-        await supabase.from('jenny_action_log').insert({
+        await logAction(supabase, {
           company_id: companyId,
           action_type: 'auto_dispatch',
           title: `Assigned ${selectedWorker.full_name} to ${job.title}`,
@@ -350,7 +392,7 @@ async function runLeadFollowUp(
       const hasConsent = consentMap.get(lead.customer_id);
       if (!hasConsent) {
         // Log skipped follow-up for audit trail
-        await supabase.from('jenny_action_log').insert({
+        await logAction(supabase, {
           company_id: companyId,
           action_type: 'lead_follow_up',
           title: `Follow-up skipped for ${lead.name} — no SMS consent`,
@@ -406,7 +448,7 @@ async function runLeadFollowUp(
 
     if (!fuError) {
       // Log the action
-      await supabase.from('jenny_action_log').insert({
+      await logAction(supabase, {
         company_id: companyId,
         action_type: 'lead_follow_up',
         title: `Follow-up #${nextAttempt} sent to ${lead.name}`,
@@ -477,7 +519,7 @@ async function runCashFlowAlerts(
   if (newOverdue.length === 0) return 0;
 
   // Create summary alert
-  await supabase.from('jenny_action_log').insert({
+  await logAction(supabase, {
     company_id: companyId,
     action_type: 'cash_flow_alert',
     title: `$${totalOverdue.toLocaleString('en-US', { minimumFractionDigits: 2 })} in overdue invoices`,
@@ -505,9 +547,9 @@ async function runCashFlowAlerts(
   for (const inv of newOverdue) {
     const customer = Array.isArray(inv.customer) ? inv.customer[0] : inv.customer;
     const balance = inv.total - inv.amount_paid;
-    const daysOverdue = Math.floor((now.getTime() - new Date(inv.due_date).getTime()) / 86400000);
+    const daysOverdue = daysSince(inv.due_date);
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'cash_flow_alert',
       title: `Invoice #${inv.invoice_number}: $${balance.toFixed(2)} overdue (${daysOverdue} days)`,
@@ -601,7 +643,7 @@ async function runJobCosting(
 
     // Log action
     const isUnprofitable = profitMargin < alertThreshold;
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'job_costing',
       title: isUnprofitable
@@ -732,7 +774,7 @@ async function runReviewRequests(
     });
 
     // Log the action
-    await (supabase as any).from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'review_request',
       title: `${platformLabel} review request sent to ${customer.name}`,
@@ -810,7 +852,7 @@ async function runPriceStalenessCheck(supabase: SB): Promise<number> {
       warningList.length > 0 ? `WARNING:\n${warningList.map(s => `  - ${s}`).join('\n')}` : '',
     ].filter(Boolean).join('\n');
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: null,
       action_type: 'price_staleness',
       title,
@@ -887,7 +929,7 @@ async function runPriceStalenessCheck(supabase: SB): Promise<number> {
         }
       }
 
-      await supabase.from('jenny_action_log').insert({
+      await logAction(supabase, {
         company_id: null,
         action_type: 'price_staleness',
         title: driftTitle,
@@ -970,7 +1012,7 @@ async function runCertExpirationCheck(
       ? `${workerName}'s ${cert.cert_name} has EXPIRED`
       : `${workerName}'s ${cert.cert_name} expires in ${daysUntilExpiry} days`;
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'cert_expiration',
       title,
@@ -1037,7 +1079,7 @@ async function runInsuranceExpiryCheck(
     const user = Array.isArray(contractor.user) ? contractor.user[0] : contractor.user;
     const name = (user as { full_name: string } | null)?.full_name || contractor.business_name || 'Unknown Contractor';
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'insurance_expiry',
       title: isExpired
@@ -1099,7 +1141,7 @@ async function runW9ComplianceCheck(
     return (user as { full_name: string } | null)?.full_name || c.business_name || 'Unknown';
   });
 
-  await supabase.from('jenny_action_log').insert({
+  await logAction(supabase, {
     company_id: companyId,
     action_type: 'w9_compliance',
     title: `${missingW9.length} contractor${missingW9.length > 1 ? 's' : ''} missing W-9 forms`,
@@ -1163,7 +1205,7 @@ async function runClassificationReviewCheck(
     const reviewDate = new Date(worker.next_review_date);
     const daysOverdue = Math.floor((now.getTime() - reviewDate.getTime()) / 86400000);
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'classification_review',
       title: `${name}: Classification review ${daysOverdue} days overdue`,
@@ -1227,7 +1269,7 @@ async function runComplianceEscalation(
     .map(([sev, count]) => `${count} ${sev}${count > 1 ? 's' : ''}`)
     .join(', ');
 
-  await supabase.from('jenny_action_log').insert({
+  await logAction(supabase, {
     company_id: companyId,
     action_type: 'compliance_escalation',
     title: `${unacknowledged.length} compliance alert${unacknowledged.length > 1 ? 's' : ''} need attention`,
@@ -1290,8 +1332,7 @@ async function runQuoteExpirationCheck(
   for (const quote of expiringQuotes) {
     if (alreadyAlerted.has(quote.id)) continue;
 
-    const validUntil = new Date(quote.valid_until);
-    const daysUntilExpiry = Math.floor((validUntil.getTime() - now.getTime()) / 86400000);
+    const daysUntilExpiry = daysUntil(quote.valid_until);
     const isExpired = daysUntilExpiry < 0;
     const customer = Array.isArray(quote.customer) ? quote.customer[0] : quote.customer;
     const customerName = (customer as { name: string } | null)?.name || 'Unknown Customer';
@@ -1301,7 +1342,7 @@ async function runQuoteExpirationCheck(
       await supabase.from('quotes').update({ status: 'expired' }).eq('id', quote.id);
     }
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'quote_expiration',
       title: isExpired
@@ -1368,7 +1409,7 @@ async function runContractorPaymentCheck(
     const newInvoices = submitted.filter((inv: { id: string }) => !alreadyAlerted.has(inv.id));
 
     if (newInvoices.length > 0) {
-      await supabase.from('jenny_action_log').insert({
+      await logAction(supabase, {
         company_id: companyId,
         action_type: 'contractor_payment',
         title: `${submitted.length} contractor invoice${submitted.length > 1 ? 's' : ''} awaiting approval ($${totalAmount.toFixed(2)})`,
@@ -1396,7 +1437,7 @@ async function runContractorPaymentCheck(
     const newApproved = approved.filter((inv: { id: string }) => !alreadyAlerted.has(inv.id));
 
     if (newApproved.length > 0) {
-      await supabase.from('jenny_action_log').insert({
+      await logAction(supabase, {
         company_id: companyId,
         action_type: 'contractor_payment',
         title: `${approved.length} approved invoice${approved.length > 1 ? 's' : ''} awaiting payment ($${totalApproved.toFixed(2)})`,
@@ -1470,7 +1511,7 @@ async function runContractEndDateCheck(
     const user = Array.isArray(contractor.user) ? contractor.user[0] : contractor.user;
     const name = (user as { full_name: string } | null)?.full_name || contractor.business_name || 'Unknown Contractor';
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'contract_end_date',
       title: isExpired
@@ -1586,7 +1627,7 @@ async function runReviewRequest(
 
     if (!customerPhone) continue; // Need phone for SMS review request
 
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: companyId,
       action_type: 'review_request',
       title: `Request ${platformLabel} review from ${customerName} for "${job.title}"`,
@@ -1641,7 +1682,7 @@ async function runHrLawUpdateCheck(supabase: SB): Promise<number> {
 
   // If no states are stale, log a clean check and exit
   if (staleStates.length === 0) {
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: null,
       action_type: 'hr_law_update',
       title: `All ${enabledStates.length} state compliance rules are current`,
@@ -1686,7 +1727,7 @@ async function runHrLawUpdateCheck(supabase: SB): Promise<number> {
     `Outdated rules may lead to misclassification penalties or wage violations. Please review and update state compliance data.`;
 
   // Log the alert
-  await supabase.from('jenny_action_log').insert({
+  await logAction(supabase, {
     company_id: null, // platform-wide alert
     action_type: 'hr_law_update',
     title,
@@ -1707,7 +1748,7 @@ async function runHrLawUpdateCheck(supabase: SB): Promise<number> {
 
   // Also log individual state alerts for granularity
   for (const detail of staleDetails) {
-    await supabase.from('jenny_action_log').insert({
+    await logAction(supabase, {
       company_id: null,
       action_type: 'hr_law_update',
       title: `${detail.stateName} (${detail.stateCode}): Rules are ${detail.daysSinceUpdate} days old`,

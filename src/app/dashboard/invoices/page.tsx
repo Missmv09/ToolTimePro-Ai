@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
+import { isPastDate } from '@/lib/dates'
 import { supabase } from '@/lib/supabase'
+import { computeInvoiceTotals } from '@/lib/totals'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -172,13 +174,18 @@ function InvoicesContent() {
 
   const updateInvoiceStatus = async (invoiceId: string, newStatus: string) => {
     try {
-      const updates: { status: string; updated_at: string; paid_at?: string } = {
+      const updates: { status: string; updated_at: string; paid_at?: string; amount_paid?: number } = {
         status: newStatus,
         updated_at: new Date().toISOString()
       }
 
       if (newStatus === 'paid') {
         updates.paid_at = new Date().toISOString()
+        // Mark the invoice fully paid so balance (total - amount_paid) reads $0
+        // everywhere (portal, invoice detail). Without this, a manually-paid
+        // invoice kept amount_paid = 0 and still showed the full total owed.
+        const inv = invoices.find(i => i.id === invoiceId)
+        if (inv) updates.amount_paid = inv.total
       }
 
       const { error } = await supabase.from('invoices').update(updates).eq('id', invoiceId)
@@ -438,7 +445,7 @@ function InvoicesContent() {
   const isOverdue = (invoice: Invoice) => {
     if (invoice.status === 'paid' || invoice.status === 'cancelled') return false
     if (!invoice.due_date) return false
-    return new Date(invoice.due_date) < new Date()
+    return isPastDate(invoice.due_date)
   }
 
   if (loading) {
@@ -764,10 +771,9 @@ function InvoiceModal({ invoice, companyId, customers, presetCustomerId, onClose
     setItems(newItems)
   }
 
-  const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
+  // Money math lives in @/lib/totals (single source of truth, unit-tested).
   const taxRate = parseFloat(formData.tax_rate) || 0
-  const tax = subtotal * (taxRate / 100)
-  const total = subtotal + tax
+  const { subtotal, tax_amount: tax, total } = computeInvoiceTotals(items, taxRate)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -793,8 +799,8 @@ function InvoiceModal({ invoice, companyId, customers, presetCustomerId, onClose
         total,
         status: invoice?.status || 'draft',
         updated_at: new Date().toISOString(),
-        ...(formData.po_number ? { po_number: formData.po_number } : { po_number: null }),
-        ...(formData.payment_terms ? { payment_terms: formData.payment_terms } : { payment_terms: null }),
+        po_number: formData.po_number || null,
+        payment_terms: formData.payment_terms || null,
       }
 
       const stripCommercialColumns = (payload: typeof invoiceData) => {

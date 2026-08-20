@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, GitBranch, CheckCircle, XCircle, AlertTriangle, RotateCcw, ArrowRight } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import LeadCaptureForm from '@/components/growth/LeadCaptureForm';
+import { GROWTH_EVENTS, trackEvent } from '@/lib/analytics';
 
 type Answer = 'yes' | 'no' | null;
 
@@ -28,6 +30,11 @@ export default function ClassificationPage() {
 
     if (currentQuestion < 2) {
       setCurrentQuestion(currentQuestion + 1);
+    } else if (newAnswers.every((a) => a !== null)) {
+      trackEvent(GROWTH_EVENTS.TOOL_COMPLETED, {
+        tool: 'classification',
+        outcome: newAnswers.every((a) => a === 'yes') ? 'contractor' : 'employee',
+      });
     }
   };
 
@@ -49,7 +56,7 @@ export default function ClassificationPage() {
             <div className="flex items-center gap-6">
               <Link href="/">
                 <Image
-                  src="/logo-01262026.png"
+                  src="/logo-08182026.png"
                   alt="Task Iguana"
                   width={140}
                   height={32}
@@ -185,6 +192,14 @@ export default function ClassificationPage() {
                 ))}
               </div>
             </div>
+
+            {/* The classification outcome is the thing worth keeping a record
+                of, so offer to email it alongside the result. */}
+            <LeadCaptureForm
+              source="tool_classification"
+              sourceDetail={isContractor ? 'contractor' : 'employee'}
+              resultData={{ outcome: isContractor ? 'contractor' : 'employee' }}
+            />
 
             <button
               onClick={resetTest}

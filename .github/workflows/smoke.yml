@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: HTTP smoke (health + public pages)
         env:
           SMOKE_BASE_URL: ${{ needs.resolve-url.outputs.base_url }}
@@ -62,8 +62,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
+      - name: Warm up the deployment (avoid serverless cold-start flakiness)
+        env:
+          BASE_URL: ${{ needs.resolve-url.outputs.base_url }}
+        run: |
+          # A cold Netlify function can take >60s on first hit, which makes the
+          # Cypress smoke run flaky (and painfully slow) right after a deploy.
+          # Pre-warm the public routes the specs visit — two passes, failures
+          # ignored — so Cypress runs against already-warm pages. Best-effort:
+          # this step never fails the job.
+          paths="/ /pricing /jenny /blog /privacy /terms /industries /sms /compare /tools /tools/calculator /auth/login /auth/signup /demo/booking /demo/dashboard /demo/invoicing /quote/demo"
+          for pass in 1 2; do
+            echo "— Warm-up pass $pass —"
+            for p in $paths; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
+              echo "  $p -> $code"
+            done
+          done
       - name: Run Cypress against the deployment
         uses: cypress-io/github-action@v6
         with:

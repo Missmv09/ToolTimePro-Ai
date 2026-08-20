@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback, ReactNode } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User as DbUser, Company } from '@/types/database';
@@ -44,6 +45,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const mountedRef = useRef(true);
   const initCompleteRef = useRef(false);
   const nullGraceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Tag Sentry errors with the signed-in customer so a crash report says WHO it
+  // happened to, not just an anonymous stack trace. No-op until a Sentry DSN is
+  // configured. Cleared on sign-out so errors are never mis-attributed.
+  useEffect(() => {
+    if (user) {
+      Sentry.setUser({ id: user.id, email: user.email ?? undefined });
+    } else {
+      Sentry.setUser(null);
+    }
+  }, [user]);
 
   // Fetch user profile and company data
   const fetchUserData = async (userId: string) => {

@@ -7,6 +7,12 @@ on:
     branches: [main, sandbox]
   workflow_dispatch:
 
+# The authenticated job reads the back-sync workflow's run status to know when
+# the sandbox branch has been updated for this commit.
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   # Public / unauthenticated E2E — builds and serves the app locally, no secrets
   # needed. This is the always-on regression gate.
@@ -16,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - run: npm ci
       - name: Cypress run (public specs against a local build)
@@ -34,13 +40,36 @@ jobs:
   # Authenticated E2E — runs against the deployed sandbox with a real login.
   # Skips automatically until the E2E_* secrets are configured, so it never
   # breaks CI before you wire them up.
+  #
+  # Push and manual dispatch only — deliberately NOT on pull_request.
+  #
+  # This job tests a DEPLOYED environment (E2E_BASE_URL = the sandbox), not the
+  # checked-out code. On a pull request the sandbox is serving whatever was last
+  # back-synced, which does not include the PR — so the job ran the PR's spec
+  # files against a different application build. That combination cannot
+  # validate a change: it failed on PRs that touched neither the pages under
+  # test nor auth, and no commit on those branches could turn it green. A check
+  # that is red for reasons the author cannot act on trains everyone to ignore
+  # red, which is worse than not running it.
+  #
+  # On push, the steps below resolve the commit the sandbox should be serving
+  # and wait for that exact deploy, so the app and the specs match.
+  #
+  # To restore pre-merge coverage, point this at the PR's own Netlify deploy
+  # preview (deploy-preview-<N>--<site>.netlify.app). That requires a Netlify
+  # change FIRST: per docs/SANDBOX.md the Supabase/Stripe vars are scoped to
+  # branch deploys only, and Deploy Previews is a separate scope, so previews
+  # currently fall through to PRODUCTION credentials. These specs create and
+  # delete customers — running them against a preview before those vars are
+  # scoped would mutate production data.
   e2e-authenticated:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - run: npm ci
       - name: Check for E2E credentials
@@ -54,13 +83,158 @@ jobs:
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # Defence in depth for the specs below, which create AND delete customers
+      # and invoices (TC-CUST-01, TC-INV-01). Today the only thing keeping them
+      # away from production data is the job-level `if:` and the fact that
+      # E2E_BASE_URL happens to point at the sandbox. Neither survives a typo in
+      # the secret or a future edit that widens the trigger, and the failure mode
+      # is silent destruction of real rows rather than a red build.
+      #
+      # So assert it directly: if the target host is production, stop.
+      #
+      # This checks the host, not the credentials behind it — the two came apart
+      # once already. A deploy preview serves a non-production domain while
+      # still resolving to the production database, so that case is rejected by
+      # name until the Netlify scoping in docs/SANDBOX.md is done.
+      - name: Refuse to run destructive specs against production
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BASE_URL: ${{ secrets.E2E_BASE_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::E2E_BASE_URL is empty. Cypress would fall back to its own baseUrl, which is not something this job can vouch for. Set the secret to the sandbox URL."
+            exit 1
+          fi
+
+          # scheme://host:port/path -> host
+          host=$(printf '%s' "$BASE_URL" \
+            | sed -E 's#^[a-zA-Z][a-zA-Z0-9+.-]*://##; s#/.*$##; s#:[0-9]+$##' \
+            | tr '[:upper:]' '[:lower:]')
+
+          case "$host" in
+            taskiguana.com|www.taskiguana.com|tooltimepro.com|www.tooltimepro.com)
+              echo "::error::E2E_BASE_URL resolves to production ($host). The authenticated specs create and delete customers and invoices, so this run would mutate real data. Point E2E_BASE_URL at the sandbox (see docs/SANDBOX.md)."
+              exit 1
+              ;;
+            deploy-preview-*)
+              echo "::error::E2E_BASE_URL points at a Netlify deploy preview ($host). Per docs/SANDBOX.md the Supabase and Stripe variables are scoped to branch deploys only, so previews resolve to PRODUCTION credentials — the domain is safe but the database behind it is not. Add Deploy Previews to those variable scopes before pointing this job at a preview."
+              exit 1
+              ;;
+            "")
+              echo "::error::Could not parse a host out of E2E_BASE_URL. Expected something like https://sandbox.taskiguana.com."
+              exit 1
+              ;;
+          esac
+
+          echo "Target host is $host — not production. Proceeding."
+      # A push to main immediately triggers backsync-sandbox.yml, which pushes
+      # main -> sandbox and starts a Netlify sandbox build. Without this gate the
+      # suite races that deploy: Netlify serves the OLD build until the new one
+      # publishes, then swaps atomically mid-run, killing in-flight requests and
+      # failing cy.login()'s `before each` hook. Work out which commit the
+      # sandbox is supposed to be serving so the next step can wait for it.
+      - name: Resolve the commit the sandbox should be serving
+        id: target
+        if: steps.guard.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ "$GITHUB_EVENT_NAME" != "push" ]; then
+            echo "::notice::${GITHUB_EVENT_NAME} run — the sandbox is on its own commit, so waiting only for a steady deploy."
+            echo "commit=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$GITHUB_REF_NAME" = "sandbox" ]; then
+            echo "Push to sandbox — waiting for $GITHUB_SHA to go live."
+            echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Push to main: the sandbox tip is whatever back-sync lands, which is
+          # this SHA on a fast-forward or a merge commit when sandbox carries
+          # unpromoted work. Wait for that workflow, then read the real tip.
+          api="/repos/$GITHUB_REPOSITORY/actions/workflows/backsync-sandbox.yml/runs?head_sha=$GITHUB_SHA"
+          conclusion=""
+          for _ in $(seq 1 40); do   # up to ~10 min
+            conclusion=$(gh api "$api" --jq '.workflow_runs[0] | select(.status == "completed") | .conclusion' 2>/dev/null || echo "")
+            [ -n "$conclusion" ] && break
+            sleep 15
+          done
+
+          if [ "$conclusion" != "success" ]; then
+            echo "::warning::Back-sync to sandbox did not complete successfully for $GITHUB_SHA (conclusion: ${conclusion:-none yet}). Falling back to waiting for a steady deploy of whatever the sandbox is serving."
+            echo "commit=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tip=$(git ls-remote origin refs/heads/sandbox | cut -f1)
+          echo "Back-sync succeeded — sandbox tip is $tip."
+          echo "commit=$tip" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the sandbox deploy to publish
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BASE_URL: ${{ secrets.E2E_BASE_URL }}
+          EXPECT_COMMIT: ${{ steps.target.outputs.commit }}
+        run: node scripts/wait-for-deploy.js
+
+      - name: Warm up the deployment (avoid serverless cold-start flakiness)
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BASE_URL: ${{ secrets.E2E_BASE_URL }}
+        run: |
+          # Right after a deploy every Netlify function is cold, and the first
+          # hit to a heavy page can exceed 60s. cy.login() only allows 25s to
+          # reach /dashboard, so a cold sandbox fails the `before each` hook and
+          # takes the whole authenticated suite down with it — which is exactly
+          # what happened on the Next 16 merge. Pre-warm the routes the specs
+          # visit (two passes, failures ignored, 60s cap per request) so Cypress
+          # runs against warm pages. Mirrors the same step in smoke.yml.
+          # Best-effort: this step never fails the job.
+          paths="/auth/login /dashboard /dashboard/customers /dashboard/jobs /dashboard/quotes /dashboard/invoices /quote/demo"
+          for pass in 1 2; do
+            echo "— Warm-up pass $pass —"
+            for p in $paths; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
+              echo "  $p -> $code"
+            done
+          done
+
+          # The login chain is more than the login page: after Supabase accepts
+          # the password the app calls these routes, and the 2FA check fails
+          # CLOSED — a cold-start timeout there signs the user straight back out
+          # and leaves Cypress sitting on /auth/login. Warm them too. They 401
+          # without a token, which is fine: the function boots either way.
+          echo "— Warming the login-chain API routes —"
+          for p in /api/auth/check-needs-password /api/auth/session-guard; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
+            echo "  GET $p -> $code"
+          done
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 -X POST \
+            -H 'Content-Type: application/json' -d '{}' \
+            "$BASE_URL/api/auth/2fa/check-device" || echo "ERR")
+          echo "  POST /api/auth/2fa/check-device -> $code"
       - name: Cypress run (authenticated, against the sandbox)
         if: steps.guard.outputs.run == 'true'
         uses: cypress-io/github-action@v6
         with:
           install: true
-          spec: cypress/e2e/authenticated-flows.cy.js,cypress/e2e/customer-portal.cy.js
+          spec: cypress/e2e/authenticated-flows.cy.js,cypress/e2e/customer-portal.cy.js,cypress/e2e/multi-tenant-isolation.cy.js,cypress/e2e/quote-public-link.cy.js,cypress/e2e/worker-flows.cy.js
           config: baseUrl=${{ secrets.E2E_BASE_URL }}
         env:
           CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
           CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          # Second company for TC-X-01 (multi-tenant isolation). When unset, that
+          # spec skips itself; forwarding these activates it.
+          CYPRESS_E2E_EMAIL_2: ${{ secrets.E2E_EMAIL_2 }}
+          CYPRESS_E2E_PASSWORD_2: ${{ secrets.E2E_PASSWORD_2 }}
+          # Worker account for the worker-app specs (TC-WORK-*). When unset, that
+          # spec skips itself; forwarding these activates it.
+          CYPRESS_E2E_WORKER_EMAIL: ${{ secrets.E2E_WORKER_EMAIL }}
+          CYPRESS_E2E_WORKER_PASSWORD: ${{ secrets.E2E_WORKER_PASSWORD }}

@@ -162,7 +162,7 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
             <Image
-              src="/logo-horizontal-white-01262026.png"
+              src="/logo-horizontal-white-08182026.png"
               alt="Task Iguana"
               width={180}
               height={40}
@@ -593,7 +593,14 @@ export default function Home() {
                     {card.badge}
                   </span>
                 )}
-                <div className="text-[2.5rem] mb-3">{card.icon}</div>
+                <div className="mb-3 text-[2.5rem] flex items-center justify-center">
+                  {card.href === '/demo/shield' ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src="/shield-iguana.svg" alt="" className="h-10 w-10" />
+                  ) : (
+                    card.icon
+                  )}
+                </div>
                 <h3 className="text-[1.125rem] font-extrabold text-white mb-2">{card.name}</h3>
                 <p className="text-[0.875rem] text-[#8e8e9f] leading-relaxed mb-3">{card.description}</p>
                 <span className="text-[#1FE3C4] font-semibold text-[0.875rem] group-hover:underline">{t('tryDemo')} →</span>
@@ -1020,7 +1027,7 @@ export default function Home() {
             <div className="md:col-span-2">
               <Link href="/" className="inline-block mb-4">
                 <Image
-                  src="/logo-horizontal-white-01262026.png"
+                  src="/logo-horizontal-white-08182026.png"
                   alt="Task Iguana"
                   width={180}
                   height={40}

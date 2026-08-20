@@ -76,7 +76,7 @@
       "disclaimer": "Disclaimer",
       "disclaimerText": "This calculator provides estimates for informational purposes only. Actual penalties may vary based on specific circumstances, good faith disputes, and other factors. The \"willfulness\" requirement means penalties may not apply if the delay was due to a genuine dispute over wages owed. Always consult with an employment attorney for specific situations.",
       "getFullProtection": "Get Full Compliance Protection",
-      "ctaText": "Task Iguana includes automated final pay tracking, compliance alerts, and the full Task Iguana Shield suite.",
+      "ctaText": "Task Iguana includes automated final pay tracking, compliance alerts, and the full Shield Iguana suite.",
       "startTrial": "Start Free Trial"
     },
     "classification": {
@@ -115,7 +115,7 @@
       "progress": "Progress",
       "disclaimer": "This tool provides general information only and does not constitute legal advice. Worker classification is complex and fact-specific. Always consult with an employment attorney for your specific situation.",
       "getProtection": "Get Full Compliance Protection",
-      "ctaText": "Task Iguana includes worker classification tracking, AB5 compliance alerts, and the full Task Iguana Shield suite.",
+      "ctaText": "Task Iguana includes worker classification tracking, AB5 compliance alerts, and the full Shield Iguana suite.",
       "startTrial": "Start Free Trial"
     },
     "checklist": {
@@ -152,8 +152,10 @@
       "warningText": "If you answer \"No\" to any ABC Test condition for a worker, that worker should likely be classified as an employee, not an independent contractor.",
       "disclaimer": "This checklist is for informational purposes only and does not constitute legal advice. Consult with an employment attorney for specific guidance.",
       "getProtection": "Get Full Compliance Protection",
-      "ctaText": "Task Iguana includes automated compliance tracking, deadline reminders, and the full Task Iguana Shield suite.",
-      "startTrial": "Start Free Trial"
+      "ctaText": "Task Iguana includes automated compliance tracking, deadline reminders, and the full Shield Iguana suite.",
+      "startTrial": "Start Free Trial",
+      "leadHeadline": "Save your checklist progress",
+      "leadDescription": "We will email you this checklist so you can finish it later and keep a record of what you have covered."
     },
     "finalWage": {
       "backToTools": "Back to Free Tools",
@@ -206,7 +208,9 @@
       "disclaimer": "This guide provides general information about California law and does not constitute legal advice. Consult with an employment attorney for specific situations.",
       "getProtection": "Automate Final Pay Compliance",
       "ctaText": "Task Iguana automatically calculates final pay amounts and reminds you of deadlines based on termination type.",
-      "startTrial": "Start Free Trial"
+      "startTrial": "Start Free Trial",
+      "leadHeadline": "Get the final pay guide",
+      "leadDescription": "We will email you this guide so you have the deadlines and penalty rules on hand when you need them."
     },
     "routeOptimizer": {
       "title": "Route Optimizer",
@@ -266,6 +270,19 @@
       "optimizationIssue": "Optimization Issue",
       "geocodeHint": "Make sure jobs have valid addresses. The optimizer geocodes addresses automatically using OpenStreetMap.",
       "openDispatch": "Open Dispatch Board"
+    },
+    "leadCapture": {
+      "headline": "Want a copy of these results?",
+      "description": "We will email you this result so you can save it or share it with your bookkeeper.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@yourcompany.com",
+      "submit": "Email me the results",
+      "sending": "Sending...",
+      "consentLabel": "Also send me occasional tips on running a field service business. No spam, unsubscribe anytime.",
+      "privacyNote": "We never sell your email. Unsubscribe in one click.",
+      "successTitle": "Check your inbox",
+      "successText": "Your results are on the way. If you do not see them in a few minutes, check your spam folder.",
+      "errorGeneric": "Something went wrong. Please try again."
     }
   }
 }
