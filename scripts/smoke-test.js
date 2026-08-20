@@ -93,7 +93,7 @@ async function checkPage(path, attempt = 1) {
     const res = await fetchWithTimeout(url);
     const ms = Date.now() - started;
     // A page is healthy if it returns a non-error status after following
-    // redirects (locale middleware may 307 before settling on 200).
+    // redirects (locale proxy may 307 before settling on 200).
     const ok = res.status >= 200 && res.status < 400;
     if (!ok && attempt < MAX_ATTEMPTS) {
       await sleep(RETRY_DELAY_MS);

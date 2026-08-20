@@ -92,7 +92,7 @@ Core operational surfaces to exercise (create / edit / delete where applicable):
 - **Responsive / mobile** — the worker app is mobile-first; test on a phone viewport.
 - **Multi-tenant isolation (RLS)** — seed a second company; confirm one company never
   sees another's customers, jobs, or invoices.
-- **i18n** — locale middleware may 307-redirect; verify language switching if in scope.
+- **i18n** — locale proxy may 307-redirect; verify language switching if in scope.
 - **Email/SMS** — confirm Resend emails and Twilio SMS fire (test creds) for booking
   confirmations, review requests, and invoice reminders.
 - **Error states** — invalid IDs on public links, expired sessions, network failures.

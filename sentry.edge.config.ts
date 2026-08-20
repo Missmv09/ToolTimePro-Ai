@@ -1,4 +1,4 @@
-// Sentry Edge runtime initialization (middleware, edge routes).
+// Sentry Edge runtime initialization (proxy, edge routes).
 // NO-OP until NEXT_PUBLIC_SENTRY_DSN is set.
 import * as Sentry from '@sentry/nextjs';
 
