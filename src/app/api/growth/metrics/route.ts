@@ -80,9 +80,15 @@ export async function GET(request: NextRequest) {
     // current scale this is far cheaper than eight separate count queries,
     // and it keeps the derived rates internally consistent (all computed
     // from the same read rather than from eight racing ones).
+    // Test accounts are excluded, not counted. This snapshot is the growth
+    // agent planner's entire view of the funnel — counting hand-made accounts
+    // told it there were paying customers to optimise for, and it planned a
+    // week of work accordingly. A planner reasoning over invented numbers is
+    // worse than one reasoning over honest zeroes.
     const { data: companies, error: companiesError } = await supabase
       .from('companies')
-      .select('id, plan, subscription_status, onboarding_completed, trial_starts_at, created_at');
+      .select('id, plan, subscription_status, onboarding_completed, trial_starts_at, created_at')
+      .eq('is_test', false);
 
     if (companiesError) {
       console.error('[Growth Metrics] Companies read failed:', companiesError.message);
@@ -178,9 +184,14 @@ async function linkConvertedLeads(
 
   if (recentIds.length === 0) return 0;
 
+  // Redundant today — recentIds comes from an already-filtered list — but this
+  // marks leads as 'converted', so a test account slipping through would
+  // permanently overstate lead conversion. Cheap to make the invariant local
+  // rather than dependent on what the caller happened to pass.
   const { data: recent, error } = await supabase
     .from('companies')
     .select('id, email, created_at')
+    .eq('is_test', false)
     .in('id', recentIds);
 
   if (error || !recent?.length) {

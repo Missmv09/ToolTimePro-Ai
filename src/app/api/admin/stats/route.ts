@@ -36,18 +36,20 @@ export async function GET(request: Request) {
       planDistributionResult,
     ] = await Promise.all([
       // Total companies
-      supabase.from('companies').select('*', { count: 'exact', head: true }),
+      supabase.from('companies').select('*', { count: 'exact', head: true }).eq('is_test', false),
 
       // Active companies (signed up in last 30 days or have stripe_customer_id)
       supabase
         .from('companies')
         .select('*', { count: 'exact', head: true })
+        .eq('is_test', false)
         .or(`stripe_customer_id.not.is.null,created_at.gte.${thirtyDaysAgo}`),
 
       // Trial companies (no stripe_customer_id, trial not expired)
       supabase
         .from('companies')
         .select('*', { count: 'exact', head: true })
+        .eq('is_test', false)
         .is('stripe_customer_id', null)
         .gte('trial_ends_at', now.toISOString()),
 
@@ -55,18 +57,21 @@ export async function GET(request: Request) {
       supabase
         .from('companies')
         .select('*', { count: 'exact', head: true })
+        .eq('is_test', false)
         .not('stripe_customer_id', 'is', null),
 
       // New signups this month
       supabase
         .from('companies')
         .select('*', { count: 'exact', head: true })
+        .eq('is_test', false)
         .gte('created_at', startOfMonth),
 
       // New signups last month
       supabase
         .from('companies')
         .select('*', { count: 'exact', head: true })
+        .eq('is_test', false)
         .gte('created_at', startOfLastMonth)
         .lte('created_at', endOfLastMonth),
 
@@ -77,6 +82,7 @@ export async function GET(request: Request) {
       supabase
         .from('companies')
         .select('id, name, email, plan, stripe_customer_id, trial_starts_at, trial_ends_at, created_at, industry')
+        .eq('is_test', false)
         .order('created_at', { ascending: false })
         .limit(10),
 
@@ -84,6 +90,7 @@ export async function GET(request: Request) {
       supabase
         .from('companies')
         .select('id, name, email, trial_ends_at, created_at')
+        .eq('is_test', false)
         .is('stripe_customer_id', null)
         .gte('trial_ends_at', now.toISOString())
         .lte('trial_ends_at', sevenDaysAgo.replace('-', '+')) // next 7 days
@@ -91,7 +98,7 @@ export async function GET(request: Request) {
         .limit(10),
 
       // Plan distribution
-      supabase.from('companies').select('plan'),
+      supabase.from('companies').select('plan').eq('is_test', false),
     ]);
 
     // Calculate plan distribution

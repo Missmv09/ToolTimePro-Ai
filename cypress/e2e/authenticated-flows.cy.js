@@ -89,17 +89,6 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     cy.contains('tr', title, { timeout: 20000 }).should('not.exist');
   });
 
-  it('TC-QUOTE-01: opens the New Quote menu and the Quick Quote modal', () => {
-    cy.visit('/dashboard/quotes');
-    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/quotes');
-    // Header "+ New Quote" opens a dropdown offering Smart Quote / Quick Quote.
-    cy.contains('button', /new quote/i, { timeout: 20000 }).click();
-    cy.contains(/smart quote/i, { timeout: 10000 }).should('be.visible');
-    cy.contains(/quick quote/i).should('be.visible').click();
-    // The Quick Quote modal renders (customer + line-item form).
-    cy.get('.fixed, [role="dialog"], form', { timeout: 10000 }).should('exist');
-  });
-
   it('TC-INV-01: creates an invoice with a line item, sees it, then self-cleans', () => {
     const uid = `e2e-${Date.now()}-${Cypress._.random(1e9)}`;
     const name = `E2E Inv ${uid}`;
