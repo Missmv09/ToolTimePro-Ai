@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useTranslations } from 'next-intl'
 
@@ -36,6 +36,7 @@ export default function TimeclockPage() {
   const [currentEntry, setCurrentEntry] = useState<TimeEntry | null>(null)
   const [activeBreak, setActiveBreak] = useState<ActiveBreak | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -66,27 +67,61 @@ export default function TimeclockPage() {
     }
   }, [])
 
-  useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+  // Every exit from this has to clear `loading` — the page renders nothing but
+  // a spinner while it is set, and no clock button exists in that state. When
+  // only the happy path cleared it, a worker whose session or profile lookup
+  // hiccuped was left on a spinner forever, with no error and no way to retry.
+  const init = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+      // No session is the logged-out case, not a fault: the layout above owns
+      // the redirect to /worker/login, so bail quietly rather than flashing an
+      // error card on the way out. Check the user before the error — Supabase
+      // reports a missing session as one.
       if (!user) return
+
+      if (authError) throw authError
 
       setUserId(user.id)
 
-      const { data: userData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('company_id')
         .eq('id', user.id)
         .single()
 
-      if (userData) {
-        setCompanyId(userData.company_id)
-        fetchCurrentEntry(user.id)
-        fetchTodaysJobs(user.id, userData.company_id)
-      }
+      if (userError) throw userError
+      if (!userData) throw new Error('No worker profile found for this account')
+
+      setCompanyId(userData.company_id)
+
+      // Clock state decides which button renders, so it must resolve before the
+      // spinner clears. Today's jobs only fill a dropdown — load them in the
+      // background instead of holding the whole page behind them.
+      await fetchCurrentEntry(user.id)
+      void fetchTodaysJobs(user.id, userData.company_id)
+    } catch (err) {
+      console.error('Error initializing timeclock:', err)
+      // Supabase rejects with a plain `{ code, message }`, not an Error, so
+      // String(err) here would put "[object Object]" on screen.
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+            ? String((err as { message: unknown }).message)
+            : String(err)
+      setLoadError(message)
+    } finally {
+      setLoading(false)
     }
-    init()
   }, [])
+
+  useEffect(() => {
+    void init()
+  }, [init])
 
   // Today's jobs assigned to this worker, so clocked time attaches to a real
   // job + customer instead of being orphaned ("Unknown Customer" / "No job").
@@ -121,49 +156,48 @@ export default function TimeclockPage() {
     }
   }
 
+  // Throws on a real failure so init() can show an error instead of guessing.
+  // Reporting "clocked out" when the query actually failed is the dangerous
+  // wrong answer: the worker clocks in again and opens a second entry.
   const fetchCurrentEntry = async (uId: string) => {
-    try {
-      // Get today's open time entry (no clock_out)
-      const today = new Date().toISOString().split('T')[0]
+    // Today's open time entry (no clock_out). PGRST116 is .single()'s "no rows",
+    // which is the ordinary clocked-out case rather than an error.
+    const today = new Date().toISOString().split('T')[0]
 
-      const { data: entry, error: entryError } = await supabase
-        .from('time_entries')
-        .select('*')
-        .eq('user_id', uId)
-        .is('clock_out', null)
-        .gte('clock_in', today)
-        .order('clock_in', { ascending: false })
-        .limit(1)
-        .single()
+    const { data: entry, error: entryError } = await supabase
+      .from('time_entries')
+      .select('*')
+      .eq('user_id', uId)
+      .is('clock_out', null)
+      .gte('clock_in', today)
+      .order('clock_in', { ascending: false })
+      .limit(1)
+      .single()
 
-      if (entryError && entryError.code !== 'PGRST116') {
-        console.error('Error fetching time entry:', entryError.message)
-      }
+    if (entryError && entryError.code !== 'PGRST116') throw entryError
 
-      if (entry) {
-        setCurrentEntry(entry)
+    setCurrentEntry(entry || null)
 
-        // Check for active break
-        const { data: breakData, error: breakError } = await supabase
-          .from('breaks')
-          .select('*')
-          .eq('time_entry_id', entry.id)
-          .is('break_end', null)
-          .single()
-
-        if (breakError && breakError.code !== 'PGRST116') {
-          console.error('Error fetching active break:', breakError.message)
-        }
-
-        if (breakData) {
-          setActiveBreak(breakData)
-        }
-      }
-    } catch (err) {
-      console.error('Error initializing timeclock:', err)
+    if (!entry) {
+      setActiveBreak(null)
+      return
     }
 
-    setLoading(false)
+    // The break lookup stays best-effort: unlike the entry above it only drives
+    // a label and the break buttons, and clockOut() clears breaks regardless —
+    // not worth blocking the page (and the clock-out it offers) over.
+    const { data: breakData, error: breakError } = await supabase
+      .from('breaks')
+      .select('*')
+      .eq('time_entry_id', entry.id)
+      .is('break_end', null)
+      .single()
+
+    if (breakError && breakError.code !== 'PGRST116') {
+      console.error('Error fetching active break:', breakError.message)
+    }
+
+    setActiveBreak(breakData || null)
   }
 
   const clockIn = async () => {
@@ -182,7 +216,16 @@ export default function TimeclockPage() {
       .select()
       .single()
 
-    if (!error && data) {
+    if (error) {
+      // Silently ignoring this left the button reading CLOCK IN with no entry
+      // created and nothing said — the worker taps again and again, and the
+      // shift never starts. Match clockOut()/startBreak() and say so.
+      alert(t('clockInFailed') + error.message)
+      setActionLoading(false)
+      return
+    }
+
+    if (data) {
       setCurrentEntry(data)
     }
     setActionLoading(false)
@@ -299,6 +342,23 @@ export default function TimeclockPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-md mx-auto">
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-6 text-center">
+          <p className="text-lg font-semibold text-red-800 mb-2">{t('loadFailed')}</p>
+          <p className="text-sm text-red-700 mb-4 break-words">{loadError}</p>
+          <button
+            onClick={() => void init()}
+            className="w-full py-4 bg-red-600 text-white text-lg font-bold rounded-xl hover:bg-red-700 transition-colors"
+          >
+            {t('tryAgain')}
+          </button>
+        </div>
       </div>
     )
   }

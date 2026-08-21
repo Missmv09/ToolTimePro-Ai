@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -24,35 +24,63 @@ interface WorkerUser {
 export default function WorkerLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<WorkerUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
   const pathname = usePathname()
   const router = useRouter()
   const t = useTranslations('worker.layout')
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
+  // A failure here used to fall through to `if (!user) return null` below, which
+  // renders a BLANK PAGE: no children, no error, no way back. The worker taps
+  // the app and gets white. Every failure now lands on an error with a retry,
+  // and only the redirect-to-login path leaves `user` unset.
+  const checkAuth = useCallback(async () => {
+    setLoading(true)
+    setAuthError(null)
+    try {
+      const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser()
 
+      // Check the user BEFORE the error. Having no session is not a failure —
+      // it is the logged-out case, and it has to redirect. Supabase reports it
+      // as an error ("Auth session missing!"), so throwing on `authErr` first
+      // parks a signed-out worker on an error card instead of the login page.
       if (!authUser) {
         if (pathname !== '/worker/login' && pathname !== '/worker/login/') {
           router.push('/worker/login')
         }
-        setLoading(false)
         return
       }
 
-      const { data: userData } = await supabase
+      if (authErr) throw authErr
+
+      // Note the join: `companies` has its own RLS, so this can fail for a
+      // worker who can read their own users row perfectly well.
+      const { data: userData, error: userErr } = await supabase
         .from('users')
         .select('*, company:companies(name)')
         .eq('id', authUser.id)
         .single()
 
-      if (userData) {
-        setUser(userData)
-      }
+      if (userErr) throw userErr
+      if (!userData) throw new Error('No worker profile found for this account')
+
+      setUser(userData)
+    } catch (err) {
+      console.error('Worker auth check failed:', err)
+      // Supabase rejects with a plain `{ code, message }`, not an Error.
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+            ? String((err as { message: unknown }).message)
+            : String(err)
+      setAuthError(message)
+    } finally {
       setLoading(false)
     }
+  }, [pathname, router])
 
-    checkAuth()
+  useEffect(() => {
+    void checkAuth()
 
     // Register service worker for offline support
     if ('serviceWorker' in navigator) {
@@ -62,7 +90,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
         console.warn('[SW] Registration failed:', err)
       })
     }
-  }, [pathname, router])
+  }, [checkAuth])
 
   const handleSignOut = async () => {
     localStorage.removeItem('tooltime_worker_session')
@@ -100,6 +128,24 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
     )
   }
 
+  if (authError) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-red-50 border-2 border-red-300 rounded-2xl p-6 text-center">
+          <p className="text-lg font-semibold text-red-800 mb-2">{t('loadFailed')}</p>
+          <p className="text-sm text-red-700 mb-4 break-words">{authError}</p>
+          <button
+            onClick={() => void checkAuth()}
+            className="w-full py-4 bg-red-600 text-white text-lg font-bold rounded-xl hover:bg-red-700 transition-colors"
+          >
+            {t('tryAgain')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Only reachable while the redirect to /worker/login is in flight.
   if (!user) {
     return null
   }
