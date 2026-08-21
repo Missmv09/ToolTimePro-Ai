@@ -132,6 +132,24 @@ it('still redirects to the login page when there is no session', async () => {
   expect(screen.queryByText(/couldn't load your account/i)).not.toBeInTheDocument();
 });
 
+it('redirects — does not show an error — when Supabase reports the session as missing', async () => {
+  // Supabase returns BOTH a null user and an AuthSessionMissingError when there
+  // is no session. Treating that error as a fault stranded signed-out workers on
+  // an error card reading "Auth session missing!" instead of sending them to
+  // the login page, which is exactly what the sandbox run showed.
+  mockGetUser.mockResolvedValue({
+    data: { user: null },
+    error: { name: 'AuthSessionMissingError', message: 'Auth session missing!', status: 400 },
+  });
+
+  render(<WorkerLayout><p>timeclock goes here</p></WorkerLayout>);
+
+  await screen.findByText((_, el) => el?.tagName === 'BODY');
+  expect(mockPush).toHaveBeenCalledWith('/worker/login');
+  expect(screen.queryByText(/couldn't load your account/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/auth session missing/i)).not.toBeInTheDocument();
+});
+
 it('renders the login page itself without the auth gate', async () => {
   pathname = '/worker/login/';
 
