@@ -36,6 +36,47 @@ secrets** (GitHub → repo **Settings → Secrets and variables → Actions**):
 Once set, the `e2e-authenticated` job runs on every push/PR. You can also run it
 on demand from the **Actions** tab → **E2E (Cypress)** → **Run workflow**.
 
+### Enabling the customer-portal isolation spec
+
+`cypress/e2e/portal-isolation.cy.js` covers the **customer-vs-customer** boundary,
+which is a different mechanism from TC-X-01 and not covered by it.
+
+TC-X-01 proves company-vs-company on the dashboard, where queries run under the
+anon key with a user JWT and **Postgres RLS** is the enforcement. The portal runs
+through `/api/portal` under `SUPABASE_SERVICE_ROLE_KEY`, which **bypasses RLS** —
+its isolation depends entirely on every query filtering by `session.customer_id`
+and `session.company_id` by hand. One new portal query that omits that filter
+leaks every customer's invoices to every other customer, with no database-level
+backstop. This spec is the thing that would catch it.
+
+Portal login is a magic link, so instead of round-tripping a real inbox, seed two
+long-lived sessions for **two different customers of the same company** on the
+sandbox and store the RAW tokens as repo secrets:
+
+| Secret | Value |
+|--------|-------|
+| `E2E_PORTAL_TOKEN_A` | Raw token for customer A |
+| `E2E_PORTAL_TOKEN_B` | Raw token for customer B (a **different** customer) |
+
+`customer_sessions.token` stores the SHA-256 hex of the raw token, never the
+token itself, so seed it hashed:
+
+```sql
+insert into customer_sessions (token, customer_id, company_id, email, expires_at, is_active)
+values (encode(digest('<raw-token-A>', 'sha256'), 'hex'),
+        '<customer-A-uuid>', '<company-uuid>', '<customer A email>',
+        now() + interval '365 days', true);
+```
+
+(Needs `pgcrypto` for `digest()`; `create extension if not exists pgcrypto;`.)
+
+> **Customer A must own at least one invoice or appointment.** Otherwise "B sees
+> none of A's records" is vacuously true and would stay green through a total
+> leak. The spec asserts A has data and fails loudly if not, rather than passing
+> on an empty sandbox.
+
+The suite **skips** until both tokens are set. Sandbox only — never production.
+
 ## Running locally
 
 ```bash
