@@ -1,5 +1,17 @@
 -- 053: Mark test accounts so they stop counting as customers.
 --
+-- APPLY THIS BY HAND. This directory is not automated: migrate.yml watches
+-- `supabase/migrations/**` and runs `supabase db push`, which never reads
+-- `database/migrations/`. README.md calls these "run in order after the base
+-- schema", and the numbering makes them look automated when they are not.
+--
+-- That matters here more than usual, because the code in this same change
+-- filters eleven queries on the column below. Deploying it before the column
+-- exists breaks the admin stats route and the growth metrics route outright
+-- (Postgres 42703, undefined column), so run this against sandbox and
+-- production BEFORE the deploy reaches them. It is idempotent — ADD COLUMN IF
+-- NOT EXISTS and CREATE INDEX IF NOT EXISTS — so re-running is harmless.
+--
 -- Every funnel number the platform reports — the admin dashboard's conversion
 -- rate, and the growth_metrics_daily snapshot the growth agent planner reads —
 -- counted every row in `companies`. With no real customers yet, that meant the
