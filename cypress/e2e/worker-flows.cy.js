@@ -18,39 +18,6 @@ const worker = {
 };
 const hasWorker = !!worker.email && !!worker.password;
 
-function workerLogin() {
-  cy.session(['worker', worker.email], () => {
-    cy.visit('/worker/login');
-    cy.get('input[type="email"]').clear().type(worker.email);
-    cy.get('input[type="password"]').clear().type(worker.password, { log: false });
-    cy.get('form').find('button[type="submit"]').click();
-
-    // This assertion used to read `should('include', '/worker')` — which
-    // '/worker/login' ITSELF satisfies. It passed the instant it ran, whether or
-    // not the login worked, so cy.session cached a signed-out session and every
-    // spec below ran unauthenticated. The app then had no session to read and
-    // TC-WORK-04 saw no timeclock, for four CI rounds, while the login failure
-    // that caused it was never reported.
-    //
-    // So assert we actually LEFT the login page, and say why when we did not —
-    // same shape as cy.login() in cypress/support/commands.js.
-    cy.get('body', { timeout: 45000 }).should(($body) => {
-      const { pathname } = $body[0].ownerDocument.location;
-      if (!pathname.includes('/worker/login')) return;
-
-      const alert = $body.find('.bg-red-50, [role="alert"]').first().text().trim();
-      throw new Error(
-        `Worker login did not leave /worker/login (still at ${pathname}).`
-        + (alert
-          ? ` The page is showing: "${alert}".`
-          : ' The page is showing no error, so the request is still in flight or timed out.')
-        + ' Check E2E_WORKER_EMAIL / E2E_WORKER_PASSWORD, and that the account is'
-        + ' confirmed and attached to a company (database/TEST_ACCOUNT_SETUP.md).'
-      );
-    });
-  });
-}
-
 // The timeclock has THREE action states, not two, and only one action button
 // is mounted at a time:
 //
@@ -91,6 +58,51 @@ function waitForActionButton() {
   });
 }
 
+function workerLogin() {
+  cy.session(['worker', worker.email], () => {
+    cy.visit('/worker/login');
+    cy.get('input[type="email"]').clear().type(worker.email);
+    cy.get('input[type="password"]').clear().type(worker.password, { log: false });
+    cy.get('form').find('button[type="submit"]').click();
+
+    // This assertion used to read `should('include', '/worker')` — which
+    // '/worker/login' ITSELF satisfies. It passed the instant it ran, whether or
+    // not the login worked, so cy.session cached a signed-out session and every
+    // spec below ran unauthenticated. The app then had no session to read and
+    // TC-WORK-04 saw no timeclock, for four CI rounds, while the login failure
+    // that caused it was never reported.
+    //
+    // So assert we actually LEFT the login page, and say why when we did not —
+    // same shape as cy.login() in cypress/support/commands.js.
+    cy.get('body', { timeout: 45000 }).should(($body) => {
+      const { pathname } = $body[0].ownerDocument.location;
+      if (!pathname.includes('/worker/login')) return;
+
+      const alert = $body.find('.bg-red-50, [role="alert"]').first().text().trim();
+      throw new Error(
+        `Worker login did not leave /worker/login (still at ${pathname}).`
+        + (alert
+          ? ` The page is showing: "${alert}".`
+          : ' The page is showing no error, so the request is still in flight or timed out.')
+        + ' Check E2E_WORKER_EMAIL / E2E_WORKER_PASSWORD, and that the account is'
+        + ' confirmed and attached to a company (database/TEST_ACCOUNT_SETUP.md).'
+      );
+    });
+  }, {
+    // Validate the session instead of trusting the cache. A restored session
+    // that does not actually log the app in is worse than no cache at all:
+    // every spec below then runs signed out against a login page, which is
+    // exactly how TC-WORK-04 spent five CI rounds reporting a missing button.
+    // When this check fails Cypress re-runs the setup above and logs in again,
+    // so a session that does not survive restore costs a re-login, not a
+    // mystery failure three tests later.
+    validate() {
+      cy.visit('/worker/timeclock');
+      cy.contains('button', ANY_ACTION, { timeout: 40000 }).should('be.visible');
+    },
+  });
+}
+
 function resetToClockedOut() {
   waitForActionButton();
 
@@ -120,13 +132,19 @@ function resetToClockedOut() {
 
   it('TC-WORK-01: worker logs in and lands in the worker app', () => {
     cy.visit('/worker/timeclock');
-    cy.location('pathname', { timeout: 25000 }).should('include', '/worker');
-    cy.get('body').should('be.visible');
+    // NOT `should('include', '/worker')` — '/worker/login' satisfies that, so
+    // the old assertion passed while signed out. Same for `body` being
+    // "visible", which an empty or logged-out page also is. Assert we are past
+    // the login page and the app actually rendered.
+    cy.location('pathname', { timeout: 25000 }).should('not.include', '/worker/login');
+    waitForActionButton();
   });
 
   it("TC-WORK-02: worker home loads today's jobs with 12-hour times", () => {
     cy.visit('/worker');
-    cy.location('pathname', { timeout: 25000 }).should('include', '/worker');
+    // Signed out, this lands on /worker/login, where the 24-hour check below is
+    // vacuously true — as its own comment concedes it can be. Rule that out.
+    cy.location('pathname', { timeout: 25000 }).should('not.include', '/worker/login');
     cy.get('body', { timeout: 20000 }).should('be.visible');
     // Any job time shown must read as AM/PM — a 24-hour clock (13:00–23:59) is
     // the regression this guards against (same check as TC-JOB-02). Vacuously
