@@ -319,21 +319,27 @@ export async function GET(request: NextRequest) {
       // Photos for a specific job
       if (!isValidUUID(jobId)) return NextResponse.json({ error: 'Invalid job ID' }, { status: 400 });
 
-      const { data: photos } = await supabase
-        .from('job_photos')
-        .select('id, photo_url, photo_type, caption, created_at')
-        .eq('job_id', jobId)
-        .order('created_at', { ascending: true });
-
-      // Verify job belongs to customer
+      // Ownership FIRST, then read. jobId is client-supplied, and this route runs
+      // under the service-role key, so RLS will not second-guess a query that
+      // forgets to scope itself. Fetching the photos before this check and
+      // relying on the 404 below to withhold them worked, but left the rows one
+      // reordering or early return away from being served to the wrong customer.
+      // Scoped by company too, matching every other query in this file.
       const { data: job } = await supabase
         .from('jobs')
         .select('id, title')
         .eq('id', jobId)
         .eq('customer_id', session.customer_id)
+        .eq('company_id', session.company_id)
         .single();
 
       if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+
+      const { data: photos } = await supabase
+        .from('job_photos')
+        .select('id, photo_url, photo_type, caption, created_at')
+        .eq('job_id', jobId)
+        .order('created_at', { ascending: true });
 
       return NextResponse.json({ photos: photos || [], job });
     }
