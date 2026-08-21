@@ -6,7 +6,9 @@
       "route": "Route",
       "hours": "Hours",
       "profile": "Profile",
-      "signOut": "Sign Out"
+      "signOut": "Sign Out",
+      "loadFailed": "Couldn't load your account",
+      "tryAgain": "Try Again"
     },
     "home": {
       "title": "Today's Jobs",
@@ -59,7 +61,10 @@
       "jobForShift": "Job for this shift",
       "generalShift": "General shift (no job)",
       "workingOn": "Working on",
-      "noCustomer": "No customer"
+      "noCustomer": "No customer",
+      "loadFailed": "Couldn't load your timeclock",
+      "tryAgain": "Try Again",
+      "clockInFailed": "Failed to clock in: "
     },
     "time": {
       "weekOf": "Week of",

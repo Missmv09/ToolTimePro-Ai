@@ -37,6 +37,19 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
 
+      # Cypress writes a screenshot of the exact DOM at the moment of failure.
+      # Without this they die with the runner, and a red run leaves only the
+      # assertion text — which says what was missing, never what was on screen
+      # instead. That cost a full debugging round on TC-WORK-04.
+      - name: Upload Cypress screenshots (public)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-public
+          path: cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 14
+
   # Authenticated E2E — runs against the deployed sandbox with a real login.
   # Skips automatically until the E2E_* secrets are configured, so it never
   # breaks CI before you wire them up.
@@ -197,7 +210,7 @@ jobs:
           # visit (two passes, failures ignored, 60s cap per request) so Cypress
           # runs against warm pages. Mirrors the same step in smoke.yml.
           # Best-effort: this step never fails the job.
-          paths="/auth/login /dashboard /dashboard/customers /dashboard/jobs /dashboard/quotes /dashboard/invoices /quote/demo"
+          paths="/auth/login /dashboard /dashboard/customers /dashboard/jobs /dashboard/quotes /dashboard/invoices /quote/demo /worker/login /worker /worker/timeclock"
           for pass in 1 2; do
             echo "— Warm-up pass $pass —"
             for p in $paths; do
@@ -238,3 +251,16 @@ jobs:
           # spec skips itself; forwarding these activates it.
           CYPRESS_E2E_WORKER_EMAIL: ${{ secrets.E2E_WORKER_EMAIL }}
           CYPRESS_E2E_WORKER_PASSWORD: ${{ secrets.E2E_WORKER_PASSWORD }}
+
+      # See the note on the public job above. This one matters more: these specs
+      # run against the deployed sandbox, so the failure is not reproducible
+      # from the checkout afterwards — the screenshot is the only record of what
+      # the page actually rendered.
+      - name: Upload Cypress screenshots (authenticated)
+        if: failure() && steps.guard.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-authenticated
+          path: cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 14

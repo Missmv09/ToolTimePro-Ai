@@ -18,31 +18,133 @@ const worker = {
 };
 const hasWorker = !!worker.email && !!worker.password;
 
+// The timeclock has THREE action states, not two, and only one action button
+// is mounted at a time:
+//
+//   clocked out            → CLOCK IN
+//   clocked in             → CLOCK OUT
+//   clocked in + on break  → END BREAK   (neither clock button is in the DOM)
+//
+// Until the page resolves its clock state it renders a bare spinner with no
+// button at all, and while a write is in flight every label reads "Please
+// wait...". So: wait for a real label, then walk whatever state we found back
+// to clocked out. This spec shares its worker account with manual sandbox
+// smoke-testing and retries itself up to 3×, so it cannot assume how the
+// account was left — an unhandled on-break state wedges it permanently.
+const CLOCK_IN = /clock in/i;
+const CLOCK_OUT = /clock out/i;
+const END_BREAK = /end break/i;
+const ANY_ACTION = /clock in|clock out|end break/i;
+
+// `cy.contains` reports only what it could NOT find, which sent three separate
+// debugging rounds chasing the wrong cause. Assert the same thing by hand so
+// the failure prints what WAS on screen — every button label plus the page's
+// own text. The screenshot artifact says the same, but the log is readable
+// without downloading anything and outlives artifact retention.
+function waitForActionButton() {
+  // 40s, not the usual 20: the /worker routes are warmed by e2e.yml but the
+  // sandbox can still be cold here, and this gate covers the layout's auth
+  // check plus the page's own time_entry lookup before any button mounts.
+  cy.get('body', { timeout: 40000 }).should(($body) => {
+    const labels = [...$body.find('button')]
+      .map((el) => (el.innerText || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    const pageText = $body.text().replace(/\s+/g, ' ').trim().slice(0, 500);
+    expect(
+      labels.join(' | '),
+      `no CLOCK IN / CLOCK OUT / END BREAK button on /worker/timeclock. `
+        + `Buttons present: [${labels.join(' | ') || 'none'}]. Page text: "${pageText || '(empty)'}"`
+    ).to.match(ANY_ACTION);
+  });
+}
+
 function workerLogin() {
   cy.session(['worker', worker.email], () => {
     cy.visit('/worker/login');
     cy.get('input[type="email"]').clear().type(worker.email);
     cy.get('input[type="password"]').clear().type(worker.password, { log: false });
     cy.get('form').find('button[type="submit"]').click();
-    // Successful worker login lands under /worker (redirects to /worker/timeclock).
-    cy.location('pathname', { timeout: 25000 }).should('include', '/worker');
+
+    // This assertion used to read `should('include', '/worker')` — which
+    // '/worker/login' ITSELF satisfies. It passed the instant it ran, whether or
+    // not the login worked, so cy.session cached a signed-out session and every
+    // spec below ran unauthenticated. The app then had no session to read and
+    // TC-WORK-04 saw no timeclock, for four CI rounds, while the login failure
+    // that caused it was never reported.
+    //
+    // So assert we actually LEFT the login page, and say why when we did not —
+    // same shape as cy.login() in cypress/support/commands.js.
+    cy.get('body', { timeout: 45000 }).should(($body) => {
+      const { pathname } = $body[0].ownerDocument.location;
+      if (!pathname.includes('/worker/login')) return;
+
+      const alert = $body.find('.bg-red-50, [role="alert"]').first().text().trim();
+      throw new Error(
+        `Worker login did not leave /worker/login (still at ${pathname}).`
+        + (alert
+          ? ` The page is showing: "${alert}".`
+          : ' The page is showing no error, so the request is still in flight or timed out.')
+        + ' Check E2E_WORKER_EMAIL / E2E_WORKER_PASSWORD, and that the account is'
+        + ' confirmed and attached to a company (database/TEST_ACCOUNT_SETUP.md).'
+      );
+    });
+  }, {
+    // Validate the session instead of trusting the cache. A restored session
+    // that does not actually log the app in is worse than no cache at all:
+    // every spec below then runs signed out against a login page, which is
+    // exactly how TC-WORK-04 spent five CI rounds reporting a missing button.
+    // When this check fails Cypress re-runs the setup above and logs in again,
+    // so a session that does not survive restore costs a re-login, not a
+    // mystery failure three tests later.
+    validate() {
+      cy.visit('/worker/timeclock');
+      cy.contains('button', ANY_ACTION, { timeout: 40000 }).should('be.visible');
+    },
   });
 }
 
+function resetToClockedOut() {
+  waitForActionButton();
+
+  cy.contains('button', ANY_ACTION)
+    .invoke('text')
+    .then((label) => {
+      if (END_BREAK.test(label)) {
+        cy.contains('button', END_BREAK).click();
+        cy.contains('button', CLOCK_OUT, { timeout: 20000 }).should('be.visible').click();
+      } else if (CLOCK_OUT.test(label)) {
+        cy.contains('button', CLOCK_OUT).click();
+      }
+    });
+
+  // Whichever branch ran, the flow under test starts from here.
+  cy.contains('button', CLOCK_IN, { timeout: 20000 }).should('be.visible');
+}
+
 (hasWorker ? describe : describe.skip)('Worker app flows', () => {
+  let alerts = [];
+
   beforeEach(() => {
+    alerts = [];
+    cy.on('window:alert', (msg) => alerts.push(msg));
     workerLogin();
   });
 
   it('TC-WORK-01: worker logs in and lands in the worker app', () => {
     cy.visit('/worker/timeclock');
-    cy.location('pathname', { timeout: 25000 }).should('include', '/worker');
-    cy.get('body').should('be.visible');
+    // NOT `should('include', '/worker')` — '/worker/login' satisfies that, so
+    // the old assertion passed while signed out. Same for `body` being
+    // "visible", which an empty or logged-out page also is. Assert we are past
+    // the login page and the app actually rendered.
+    cy.location('pathname', { timeout: 25000 }).should('not.include', '/worker/login');
+    waitForActionButton();
   });
 
   it("TC-WORK-02: worker home loads today's jobs with 12-hour times", () => {
     cy.visit('/worker');
-    cy.location('pathname', { timeout: 25000 }).should('include', '/worker');
+    // Signed out, this lands on /worker/login, where the 24-hour check below is
+    // vacuously true — as its own comment concedes it can be. Rule that out.
+    cy.location('pathname', { timeout: 25000 }).should('not.include', '/worker/login');
     cy.get('body', { timeout: 20000 }).should('be.visible');
     // Any job time shown must read as AM/PM — a 24-hour clock (13:00–23:59) is
     // the regression this guards against (same check as TC-JOB-02). Vacuously
@@ -58,19 +160,19 @@ function workerLogin() {
   it('TC-WORK-04: worker can clock in and clock out', () => {
     cy.visit('/worker/timeclock');
     cy.location('pathname', { timeout: 25000 }).should('include', '/worker/timeclock');
-    cy.get('body', { timeout: 20000 }).should('be.visible');
 
-    // Reset to a known state: if a prior run left an open entry, clock out first.
-    cy.get('body').then(($b) => {
-      if ($b.find('button:contains("CLOCK OUT")').length) {
-        cy.contains('button', /clock out/i).click();
-        cy.contains('button', /clock in/i, { timeout: 20000 }).should('be.visible');
-      }
-    });
+    resetToClockedOut();
 
     // Clock in → the button flips to Clock Out → clock back out → flips back.
-    cy.contains('button', /clock in/i, { timeout: 20000 }).should('be.visible').click();
-    cy.contains('button', /clock out/i, { timeout: 20000 }).should('be.visible').click();
-    cy.contains('button', /clock in/i, { timeout: 20000 }).should('be.visible');
+    cy.contains('button', CLOCK_IN, { timeout: 20000 }).should('be.visible').click();
+    cy.contains('button', CLOCK_OUT, { timeout: 20000 }).should('be.visible').click();
+    cy.contains('button', CLOCK_IN, { timeout: 20000 }).should('be.visible');
+
+    // The page reports write failures through window.alert, which Cypress stubs
+    // and swallows. Without this the DB error behind a failed clock-in surfaces
+    // only as "timed out retrying" 20 seconds later, naming the wrong cause.
+    cy.then(() => {
+      expect(alerts, 'timeclock reported no errors').to.deep.equal([]);
+    });
   });
 });
