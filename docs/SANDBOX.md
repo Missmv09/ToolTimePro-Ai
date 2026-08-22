@@ -144,6 +144,21 @@ Runs both layers on a daily schedule and on manual dispatch. Configure once:
 - **Settings → Variables → `SMOKE_BASE_URL`** — e.g. the sandbox URL
 - **Settings → Secrets → `HEALTH_CHECK_TOKEN`** — same value as the Netlify env var
 
+The token has to exist in **three** places, and all three must match:
+
+1. **Netlify** → Site settings → Environment variables → `HEALTH_CHECK_TOKEN`,
+   scoped to all contexts (production *and* branch deploys, so sandbox works too).
+2. **`next.config.js` → `serverEnvVars`** — already listed. Netlify does not
+   pass server-side env vars to the function runtime; the build inlines only the
+   names in that array. Miss this and the route answers 503 "Health check is
+   disabled" however the Netlify var is set.
+3. **GitHub** → Settings → Secrets and variables → Actions → Secrets →
+   `HEALTH_CHECK_TOKEN`, so the workflow can authenticate.
+
+Generate one with `openssl rand -hex 32`. It is a shared secret guarding a
+diagnostic that reports env-var and Supabase key shapes — treat it like a
+credential, and re-issue it in all three places if it leaks.
+
 Then trigger from the Actions tab ("Smoke (deployed)" → Run workflow), optionally
 overriding the URL to point at prod after a release.
 
