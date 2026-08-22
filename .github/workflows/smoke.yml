@@ -73,14 +73,38 @@ jobs:
           # Pre-warm the public routes the specs visit — two passes, failures
           # ignored — so Cypress runs against already-warm pages. Best-effort:
           # this step never fails the job.
-          paths="/ /pricing /jenny /blog /privacy /terms /industries /sms /compare /tools /tools/calculator /auth/login /auth/signup /demo/booking /demo/dashboard /demo/invoicing /quote/demo"
+          #
+          # -L is load-bearing, not decoration. next.config.js sets
+          # `trailingSlash: true`, so every path except `/` answers 308 and the
+          # page itself is never rendered. Without -L this loop warmed exactly
+          # one route while reporting a wall of 308s that read like success —
+          # which is how Cypress kept hitting cold functions and dying with
+          # ETIMEDOUT on /, /pricing and /tools (runs 74 and 75).
+          #
+          # The path list comes from smoke-test.js so the two cannot drift: a
+          # page added there is warmed here automatically.
+          #
+          # Every command below is guarded: this step is diagnostic only and
+          # must never be the thing that fails the job (the shell runs -e).
+          paths=$(node scripts/smoke-test.js --list-paths)
           for pass in 1 2; do
             echo "— Warm-up pass $pass —"
             for p in $paths; do
-              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
-              echo "  $p -> $code"
+              out=$(curl -sL -o /dev/null -w "%{http_code} %{time_total}" \
+                --max-time 90 "$BASE_URL$p") || out="ERR -"
+              code=${out%% *}
+              secs=${out##* }
+              # Flag anything still slow once warm: a page that needs seconds on
+              # the second pass is the one that will time out under Cypress.
+              slow=""
+              if [ "$pass" = 2 ] && [ "${secs%%.*}" -ge 5 ] 2>/dev/null; then
+                slow="  <-- still slow when warm"
+              fi
+              if [ "$code" = ERR ]; then timing="(no response)"; else timing="${secs}s"; fi
+              printf '  %-28s -> %-4s %s%s\n' "$p" "$code" "$timing" "$slow"
             done
           done
+
       - name: Run Cypress against the deployment
         uses: cypress-io/github-action@v6
         with:
@@ -90,3 +114,16 @@ jobs:
           # All current specs hit public/demo routes, so they run against a live
           # deploy with no seeded data or login required.
           CYPRESS_baseUrl: ${{ needs.resolve-url.outputs.base_url }}
+
+      # These specs run against a DEPLOYED url, so a failure cannot be
+      # reproduced from the checkout afterwards — the screenshot is the only
+      # record of what the page actually served. e2e.yml already does this for
+      # both of its jobs; smoke was the one red surface still discarding them.
+      - name: Upload Cypress screenshots (smoke)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-smoke
+          path: cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 14

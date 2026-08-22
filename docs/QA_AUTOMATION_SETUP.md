@@ -99,6 +99,11 @@ Add as a **Secret** (optional — enables the DB/env health check):
 |---|---|
 | `HEALTH_CHECK_TOKEN` | same value as the `HEALTH_CHECK_TOKEN` Netlify env var |
 
+Setting it in Netlify is not enough on its own — the name must also appear in
+`serverEnvVars` in `next.config.js` (it does), or the health route reads
+undefined at runtime and returns 503. See docs/SANDBOX.md for the full
+three-place setup.
+
 ### c) Stripe price audit (`.github/workflows/ci.yml`)
 Verifies your Stripe prices/products are in sync on every push — your money
 flows are the highest-risk thing to get wrong.
