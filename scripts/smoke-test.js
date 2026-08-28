@@ -68,6 +68,14 @@ const PAGES = [
   '/quote/demo',
 ];
 
+// The Smoke workflow warms every one of these before Cypress runs. It shells
+// out to `--list-paths` rather than keeping its own copy, so the warm-up cannot
+// silently drift out of step with what we actually check.
+if (process.argv.includes('--list-paths')) {
+  for (const p of PAGES) console.log(p);
+  process.exit(0);
+}
+
 function color(code, s) {
   return process.stdout.isTTY ? `\x1b[${code}m${s}\x1b[0m` : s;
 }
@@ -75,6 +83,24 @@ const green = (s) => color('32', s);
 const red = (s) => color('31', s);
 const yellow = (s) => color('33', s);
 const dim = (s) => color('2', s);
+
+// undici reports every socket-level failure as the bare string "fetch failed"
+// and hides the real reason (ECONNRESET, ETIMEDOUT, DNS) on `err.cause`. Walk
+// the cause chain so a red run names its own cause instead of costing a
+// debugging round to reproduce.
+function describeError(err) {
+  const parts = [];
+  let e = err;
+  const seen = new Set();
+  while (e && !seen.has(e)) {
+    seen.add(e);
+    const code = e.code ? ` (${e.code})` : '';
+    const text = `${e.message || e}${code}`;
+    if (!parts.includes(text)) parts.push(text);
+    e = e.cause;
+  }
+  return parts.join(' ← ');
+}
 
 async function fetchWithTimeout(url, opts = {}) {
   const controller = new AbortController();
@@ -106,7 +132,7 @@ async function checkPage(path, attempt = 1) {
       await sleep(RETRY_DELAY_MS);
       return checkPage(path, attempt + 1);
     }
-    return { path, ok: false, status: 'ERR', ms: Date.now() - started, error: err.message, attempt };
+    return { path, ok: false, status: 'ERR', ms: Date.now() - started, error: describeError(err), attempt };
   }
 }
 
@@ -134,7 +160,7 @@ async function checkHealth() {
       diagnoses: body && Array.isArray(body.diagnoses) ? body.diagnoses : null,
     };
   } catch (err) {
-    return { path: '/api/website-builder/health', ok: false, status: 'ERR', ms: Date.now() - started, error: err.message };
+    return { path: '/api/website-builder/health', ok: false, status: 'ERR', ms: Date.now() - started, error: describeError(err) };
   }
 }
 

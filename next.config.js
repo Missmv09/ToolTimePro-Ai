@@ -34,6 +34,11 @@ const serverEnvVars = [
   'GOOGLE_CLIENT_SECRET',
   'STRIPE_CONNECT_WEBHOOK_SECRET',
   'TWILIO_2FA_MESSAGING_SERVICE_SID',
+  // Gates /api/website-builder/health. Without this line the route reads
+  // undefined at runtime and answers 503 "Health check is disabled" no matter
+  // what is set in Netlify — which is why the Smoke workflow logged
+  // "HEALTH_CHECK_TOKEN not set" and skipped the DB/env probe.
+  'HEALTH_CHECK_TOKEN',
   // Netlify build metadata — surfaced by /api/health so CI can tell which
   // commit a deployment is actually serving.
   'COMMIT_REF',
