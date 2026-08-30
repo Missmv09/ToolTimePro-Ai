@@ -23,10 +23,13 @@ const healthToken = process.env.HEALTH_CHECK_TOKEN || '';
 const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS || 30000);
 const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY || 4);
 // Netlify serverless cold-starts the first hit to a heavy page, which can blow
-// past the timeout or reset the connection. Retry a failed check once (the
-// function is warm the second time) before declaring it down.
-const MAX_ATTEMPTS = Number(process.env.SMOKE_MAX_ATTEMPTS || 2);
-const RETRY_DELAY_MS = Number(process.env.SMOKE_RETRY_DELAY_MS || 1500);
+// past the timeout or reset the connection. Retry a failed check (the function
+// is warm by then) before declaring it down, backing off between attempts —
+// a fixed 1.5s retry just lands in the same cold start that failed the first.
+const MAX_ATTEMPTS = Number(process.env.SMOKE_MAX_ATTEMPTS || 3);
+const RETRY_DELAY_MS = Number(process.env.SMOKE_RETRY_DELAY_MS || 3000);
+// How long to let the very first request take before giving up on warming.
+const WARMUP_BUDGET_MS = Number(process.env.SMOKE_WARMUP_BUDGET_MS || 90000);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Public routes that must render for prospects and trial users. None of these
@@ -122,18 +125,57 @@ async function checkPage(path, attempt = 1) {
     // redirects (locale proxy may 307 before settling on 200).
     const ok = res.status >= 200 && res.status < 400;
     if (!ok && attempt < MAX_ATTEMPTS) {
-      await sleep(RETRY_DELAY_MS);
+      await sleep(RETRY_DELAY_MS * attempt);
       return checkPage(path, attempt + 1);
     }
     return { path, ok, status: res.status, ms, attempt };
   } catch (err) {
     // Cold start / transient reset — retry once against the now-warm function.
     if (attempt < MAX_ATTEMPTS) {
-      await sleep(RETRY_DELAY_MS);
+      await sleep(RETRY_DELAY_MS * attempt);
       return checkPage(path, attempt + 1);
     }
     return { path, ok: false, status: 'ERR', ms: Date.now() - started, error: describeError(err), attempt };
   }
+}
+
+// Netlify serves every page in PAGES from a SINGLE Next.js handler function, so
+// the very first request to a cold deploy pays the whole container boot and the
+// rest are free. Firing four of them at once (CONCURRENCY) means four requests
+// race that boot and some lose: the handler answers ECONNRESET, or nothing at
+// all until the 30s timeout aborts it.
+//
+// That is not a hypothesis. Every failure this script has ever reported sits in
+// the first concurrent batch — PAGES[0..3], `/` `/pricing` `/jenny` `/sms` —
+// and nothing past index 3 has ever failed:
+//   run 83  `/`               ECONNRESET after 7.6s   (while /pricing passed at 8.4s)
+//   run 80  `/jenny` `/sms`   aborted at the 30s timeout
+//   run 75  `/sms`            fetch failed
+// The per-check retry did not save them because it fired 1.5s later, still
+// inside the same cold start.
+//
+// So serialise one request before the pool and let it take as long as it needs.
+// This CANNOT hide a broken deployment: the result is reported, never asserted,
+// and every path is still checked for real afterwards — a page that 500s warms
+// the handler and then fails its own check exactly as before. All it removes is
+// the race.
+async function warmUp() {
+  const started = Date.now();
+  const deadline = started + WARMUP_BUDGET_MS;
+  let attempt = 0;
+  let lastError = null;
+  while (Date.now() < deadline) {
+    attempt++;
+    try {
+      const res = await fetchWithTimeout(`${baseUrl}/`);
+      return { ok: true, status: res.status, ms: Date.now() - started, attempt };
+    } catch (err) {
+      lastError = describeError(err);
+      if (Date.now() >= deadline) break;
+      await sleep(RETRY_DELAY_MS);
+    }
+  }
+  return { ok: false, status: 'ERR', ms: Date.now() - started, attempt, error: lastError };
 }
 
 async function checkHealth() {
@@ -186,7 +228,10 @@ function row(label, result) {
   }
   const tag = result.ok ? green('✓ PASS') : red('✗ FAIL');
   const status = result.ok ? dim(String(result.status)) : red(String(result.status));
-  console.log(`${tag}  ${label.padEnd(34)} ${status} ${ms}${result.error ? '  ' + red(result.error) : ''}`);
+  // A page that only passed on retry is one cold start away from going red.
+  // Say so, rather than logging an unqualified PASS that hides the warning.
+  const retried = result.attempt > 1 ? yellow(`  (attempt ${result.attempt})`) : '';
+  console.log(`${tag}  ${label.padEnd(34)} ${status} ${ms}${retried}${result.error ? '  ' + red(result.error) : ''}`);
   if (result.diagnoses && (!result.ok || result.diagnoses[0] !== 'All checks passed.')) {
     for (const d of result.diagnoses) console.log(`        ${red('↳')} ${d}`);
   }
@@ -194,6 +239,14 @@ function row(label, result) {
 
 (async () => {
   console.log(`\nSmoke testing ${color('1', baseUrl)}\n`);
+
+  const warm = await warmUp();
+  if (warm.ok) {
+    console.log(dim(`— Warm-up —  GET / → ${warm.status} in ${warm.ms}ms (attempt ${warm.attempt})\n`));
+  } else {
+    console.log(yellow(`— Warm-up —  GET / never answered in ${warm.ms}ms across ${warm.attempt} attempt(s): ${warm.error}`));
+    console.log(yellow('  Proceeding anyway — the checks below decide whether the deployment is actually down.\n'));
+  }
 
   console.log(dim('— Health / environment —'));
   const health = await checkHealth();
