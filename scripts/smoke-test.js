@@ -71,6 +71,10 @@ const PAGES = [
   '/quote/demo',
 ];
 
+// Netlify serves this API route from a DIFFERENT lambda than the page handler
+// above, so warming a page does nothing for it — see warmUp().
+const HEALTH_PATH = '/api/website-builder/health';
+
 // The Smoke workflow warms every one of these before Cypress runs. It shells
 // out to `--list-paths` rather than keeping its own copy, so the warm-up cannot
 // silently drift out of step with what we actually check.
@@ -159,50 +163,82 @@ async function checkPage(path, attempt = 1) {
 // and every path is still checked for real afterwards — a page that 500s warms
 // the handler and then fails its own check exactly as before. All it removes is
 // the race.
-async function warmUp() {
+//
+// Warm BOTH lambdas. Netlify splits the Next.js app across more than one
+// function, and `/api/*` is not the one that serves pages — so warming `/`
+// leaves the health route as cold as if nothing had run. Run #84 is the proof:
+// warm-up got `/` in 2747ms, every page then passed, and the health probe --
+// the first and only request to touch the API lambda -- still burned 7004ms
+// and died on ECONNRESET. Two lambdas, two warm-ups.
+async function warmOne(path, deadline) {
   const started = Date.now();
-  const deadline = started + WARMUP_BUDGET_MS;
   let attempt = 0;
   let lastError = null;
   while (Date.now() < deadline) {
     attempt++;
     try {
-      const res = await fetchWithTimeout(`${baseUrl}/`);
-      return { ok: true, status: res.status, ms: Date.now() - started, attempt };
+      // Any answer means the container booted. 401/503 warm it exactly as well
+      // as 200 does, so this deliberately does not care about the status — the
+      // real check afterwards is what judges it.
+      const res = await fetchWithTimeout(`${baseUrl}${path}`);
+      return { path, ok: true, status: res.status, ms: Date.now() - started, attempt };
     } catch (err) {
       lastError = describeError(err);
       if (Date.now() >= deadline) break;
       await sleep(RETRY_DELAY_MS);
     }
   }
-  return { ok: false, status: 'ERR', ms: Date.now() - started, attempt, error: lastError };
+  return { path, ok: false, status: 'ERR', ms: Date.now() - started, attempt, error: lastError };
 }
 
-async function checkHealth() {
+async function warmUp() {
+  const deadline = Date.now() + WARMUP_BUDGET_MS;
+  // Deliberately token-less: this only needs to boot the lambda, and a warm-up
+  // must never be the thing that leaks the token into a log line.
+  return [await warmOne('/', deadline), await warmOne(HEALTH_PATH, deadline)];
+}
+
+// This check gets the same retry budget as checkPage. It did not, originally,
+// and that was the whole of run #84: the pages all passed (four of them only on
+// attempt 2) while the health probe took the first, coldest hit at 7004ms and
+// died on ECONNRESET with no second attempt to fall back on. One unprotected
+// path was enough to fail the job.
+async function checkHealth(attempt = 1) {
   if (!healthToken) {
     return {
-      path: '/api/website-builder/health',
+      path: HEALTH_PATH,
       skipped: true,
       note: 'HEALTH_CHECK_TOKEN not set — skipping DB/env diagnostic.',
     };
   }
-  const url = `${baseUrl}/api/website-builder/health?token=${encodeURIComponent(healthToken)}`;
+  const url = `${baseUrl}${HEALTH_PATH}?token=${encodeURIComponent(healthToken)}`;
   const started = Date.now();
+  const retry = async () => {
+    await sleep(RETRY_DELAY_MS * attempt);
+    return checkHealth(attempt + 1);
+  };
   try {
     const res = await fetchWithTimeout(url);
     const ms = Date.now() - started;
     let body = null;
     try { body = await res.json(); } catch { /* non-JSON */ }
     const ok = res.status === 200 && body && body.ok === true;
+    // Retry only what a cold start can explain. A 401 (token mismatch) or a 503
+    // (env var absent) is a settled configuration answer — retrying it just
+    // burns 9s to print the same thing, and the report should say it plainly.
+    const transient = res.status >= 500 && res.status !== 503;
+    if (!ok && transient && attempt < MAX_ATTEMPTS) return retry();
     return {
-      path: '/api/website-builder/health',
+      path: HEALTH_PATH,
       ok,
       status: res.status,
       ms,
+      attempt,
       diagnoses: body && Array.isArray(body.diagnoses) ? body.diagnoses : null,
     };
   } catch (err) {
-    return { path: '/api/website-builder/health', ok: false, status: 'ERR', ms: Date.now() - started, error: describeError(err) };
+    if (attempt < MAX_ATTEMPTS) return retry();
+    return { path: HEALTH_PATH, ok: false, status: 'ERR', ms: Date.now() - started, error: describeError(err), attempt };
   }
 }
 
@@ -240,13 +276,16 @@ function row(label, result) {
 (async () => {
   console.log(`\nSmoke testing ${color('1', baseUrl)}\n`);
 
-  const warm = await warmUp();
-  if (warm.ok) {
-    console.log(dim(`— Warm-up —  GET / → ${warm.status} in ${warm.ms}ms (attempt ${warm.attempt})\n`));
-  } else {
-    console.log(yellow(`— Warm-up —  GET / never answered in ${warm.ms}ms across ${warm.attempt} attempt(s): ${warm.error}`));
-    console.log(yellow('  Proceeding anyway — the checks below decide whether the deployment is actually down.\n'));
+  console.log(dim('— Warm-up —'));
+  for (const w of await warmUp()) {
+    if (w.ok) {
+      console.log(dim(`  GET ${w.path.padEnd(32)} -> ${w.status} in ${w.ms}ms (attempt ${w.attempt})`));
+    } else {
+      console.log(yellow(`  GET ${w.path.padEnd(32)} -> no answer in ${w.ms}ms across ${w.attempt} attempt(s): ${w.error}`));
+      console.log(yellow('  Proceeding anyway — the checks below decide whether the deployment is actually down.'));
+    }
   }
+  console.log('');
 
   console.log(dim('— Health / environment —'));
   const health = await checkHealth();
