@@ -209,10 +209,15 @@ http://localhost:3000/demo/booking (demo mode)
 
 ## Reset Test Data
 
-To start fresh with new seed data:
+Two levels of reset. Both are sandbox-only; never run either against the
+production project.
+
+### Level 1: clear transactional data, keep the accounts
+
+Keeps `auth.users`, `users`, and `companies` so existing logins still work.
+Run in the Supabase SQL Editor, then run `seed.sql` again if you want demo rows:
 
 ```sql
--- Delete all data except auth users (run in Supabase SQL Editor)
 DELETE FROM payments;
 DELETE FROM invoice_items;
 DELETE FROM invoices;
@@ -229,10 +234,48 @@ DELETE FROM jobs;
 DELETE FROM leads;
 DELETE FROM services;
 DELETE FROM customers;
--- Don't delete users or companies - they're linked to auth
-
--- Then run seed.sql again
 ```
+
+### Level 2: wipe accounts so the same emails can sign up again
+
+Use `database/reset_test_data.sql`. It deletes companies (everything with a
+`company_id` cascades), stray customers, and the `auth.users` rows, which is
+the part a manual delete usually misses: the signup route returns
+"An account with this email already exists" (409) while a confirmed auth user
+is still there, even if its `users` and `companies` rows are gone. Set
+`v_confirm` to `SANDBOX` and optionally list emails in `v_keep_emails` before
+running. The query at the bottom of the script lists any leftover orphan auth
+users and should return nothing.
+
+If you already deleted rows by hand from the Table Editor, run the script
+anyway. It is idempotent and will clean up the orphaned auth users.
+
+### After a Level 2 reset (checklist)
+
+The repo and CI reference specific accounts, so a full wipe breaks these
+until they are re-created:
+
+1. **Sign up again** at `/auth/signup` for each test owner. Use the same
+   emails if you want `grant_beta_testers.sql` to keep working.
+2. **Re-run `database/grant_beta_testers.sql`** so the QA companies get the
+   Elite plan, `is_beta_tester`, and the one-year trial back.
+3. **Flag them as test accounts** so they stay out of growth metrics:
+   `UPDATE companies SET is_test = true WHERE lower(email) IN (...)`.
+4. **Refresh the GitHub Actions secrets** used by `.github/workflows/e2e.yml`
+   if any of the accounts or passwords changed: `E2E_EMAIL` /
+   `E2E_PASSWORD` (company A), `E2E_EMAIL_2` / `E2E_PASSWORD_2` (company B,
+   for the multi-tenant isolation spec), and `E2E_WORKER_EMAIL` /
+   `E2E_WORKER_PASSWORD` (a worker user in company A).
+5. **Re-create the worker user** for company A via Supabase Auth plus a
+   `users` row with `role = 'worker'` (see "Adding Test Workers" above).
+6. **Re-seed the two portal sessions** for two customers of company A and
+   store the raw tokens as `E2E_PORTAL_TOKEN_A` / `E2E_PORTAL_TOKEN_B`.
+   Customer A must own at least one invoice or appointment. The SQL is in
+   `docs/E2E_TESTING.md` under "Enabling the customer-portal isolation spec".
+
+Until steps 4 to 6 are done, the `e2e-authenticated` job on the next push to
+`sandbox` fails at login rather than skipping, because the secrets are still
+set but point at accounts that no longer exist.
 
 ---
 
