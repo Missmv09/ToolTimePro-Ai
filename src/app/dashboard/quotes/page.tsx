@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency'
 import { computeQuoteTotals, QUOTE_TAX_RATE } from '@/lib/totals'
+import { matchesQuoteFilter, computeQuoteFunnelStats } from '@/lib/quote-status'
 
 interface QuoteItem {
   id: string
@@ -93,6 +94,13 @@ function QuotesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
+  const statusParam = searchParams.get('status')
+
+  // Deep links such as the approval-request email's ?status=pending_approval
+  // should open on that tab.
+  useEffect(() => {
+    if (statusParam) setFilter(statusParam)
+  }, [statusParam])
   const { user, dbUser, company, isLoading: authLoading } = useAuth()
 
   // Get company_id from AuthContext
@@ -111,10 +119,9 @@ function QuotesContent() {
       .eq('company_id', compId)
       .order('created_at', { ascending: false })
 
-    if (filter !== 'all' && filter !== 'needs_follow_up') {
-      query = query.eq('status', filter)
-    }
-
+    // Tabs are applied client-side (see matchesQuoteFilter) so the stats cards
+    // always reflect the whole company and the Sent tab can include quotes
+    // that have since been accepted or declined.
     if (customerFilter) {
       query = query.eq('customer_id', customerFilter)
     }
@@ -130,9 +137,6 @@ function QuotesContent() {
         .eq('company_id', compId)
         .order('created_at', { ascending: false })
 
-      if (filter !== 'all' && filter !== 'needs_follow_up') {
-        fallbackQuery = fallbackQuery.eq('status', filter)
-      }
       if (customerFilter) {
         fallbackQuery = fallbackQuery.eq('customer_id', customerFilter)
       }
@@ -209,7 +213,7 @@ function QuotesContent() {
       })) as Quote[]
     )
     setLoading(false)
-  }, [filter, customerFilter])
+  }, [customerFilter])
 
   const fetchCustomers = async (compId: string) => {
     const { data } = await supabase
@@ -244,7 +248,7 @@ function QuotesContent() {
     if (companyId) {
       fetchQuotes(companyId)
     }
-  }, [filter, companyId, customerFilter, fetchQuotes])
+  }, [companyId, customerFilter, fetchQuotes])
 
   const updateQuoteStatus = async (quoteId: string, newStatus: string) => {
     const { error } = await supabase
@@ -784,13 +788,14 @@ function QuotesContent() {
       {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">
         {['all', 'needs_follow_up', 'draft', 'pending_approval', 'sent', 'viewed', 'approved', 'rejected'].map((status) => {
-          const needsFollowUpCount = status === 'needs_follow_up'
-            ? quotes.filter(q => getFollowUpStatus(q) !== null).length
-            : 0
+          const count = quotes.filter(q => matchesQuoteFilter(q, status, getFollowUpStatus(q) !== null)).length
+          const needsFollowUpCount = status === 'needs_follow_up' ? count : 0
+          const label = status === 'all' ? 'All' : status === 'needs_follow_up' ? 'Needs Follow-up' : statusLabels[status] || status
           return (
             <button
               key={status}
               onClick={() => setFilter(status)}
+              title={status === 'sent' ? 'Every quote that has gone out to a customer, including ones since accepted or declined' : undefined}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === status
                   ? status === 'needs_follow_up' ? 'bg-amber-600 text-white' : 'bg-blue-600 text-white'
@@ -799,7 +804,7 @@ function QuotesContent() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {status === 'all' ? 'All' : status === 'needs_follow_up' ? `Needs Follow-up${needsFollowUpCount > 0 ? ` (${needsFollowUpCount})` : ''}` : statusLabels[status] || status}
+              {label}{count > 0 && status !== 'all' ? ` (${count})` : ''}
             </button>
           )
         })}
@@ -846,39 +851,45 @@ function QuotesContent() {
         )
       })()}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {/* Stats — sent vs. outcome, always across the whole company regardless of the active tab */}
+      {(() => {
+        const stats = computeQuoteFunnelStats(quotes)
+        return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg border">
           <p className="text-sm text-gray-500">Total Quotes</p>
-          <p className="text-2xl font-bold">{quotes.length}</p>
+          <p className="text-2xl font-bold">{stats.total}</p>
         </div>
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-600">Pending</p>
-          <p className="text-2xl font-bold text-blue-700">
-            ${quotes.filter(q => ['pending_approval', 'sent', 'viewed'].includes(q.status)).reduce((sum, q) => sum + q.total, 0).toLocaleString()}
+          <p className="text-sm text-blue-600">Sent</p>
+          <p className="text-2xl font-bold text-blue-700">{stats.sentCount}</p>
+          <p className="text-xs text-blue-600 mt-1">
+            {stats.awaitingCount} awaiting response · ${stats.awaitingAmount.toLocaleString()}
           </p>
         </div>
         <div className="bg-green-50 p-4 rounded-lg border border-green-200">
           <p className="text-sm text-green-600">Accepted</p>
-          <p className="text-2xl font-bold text-green-700">
-            ${quotes.filter(q => q.status === 'approved').reduce((sum, q) => sum + q.total, 0).toLocaleString()}
-          </p>
+          <p className="text-2xl font-bold text-green-700">{stats.acceptedCount}</p>
+          <p className="text-xs text-green-600 mt-1">${stats.acceptedAmount.toLocaleString()}</p>
+        </div>
+        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+          <p className="text-sm text-red-600">Declined</p>
+          <p className="text-2xl font-bold text-red-700">{stats.declinedCount}</p>
+          <p className="text-xs text-red-600 mt-1">${stats.declinedAmount.toLocaleString()}</p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg border">
           <p className="text-sm text-gray-500">Conversion Rate</p>
-          <p className="text-2xl font-bold">
-            {quotes.length > 0
-              ? Math.round((quotes.filter(q => q.status === 'approved').length / quotes.filter(q => !['draft', 'pending_approval'].includes(q.status)).length) * 100) || 0
-              : 0}%
-          </p>
+          <p className="text-2xl font-bold">{stats.conversionRate}%</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.acceptedCount} of {stats.sentCount} sent</p>
         </div>
       </div>
+        )
+      })()}
 
       {/* Quotes Table */}
       {(() => {
-        const displayQuotes = filter === 'needs_follow_up'
-          ? quotes.filter(q => getFollowUpStatus(q) !== null)
-          : quotes
+        const displayQuotes = quotes.filter(q => matchesQuoteFilter(q, filter, getFollowUpStatus(q) !== null))
+        const filterLabel = filter === 'all' ? '' : filter === 'needs_follow_up' ? 'Needs Follow-up' : statusLabels[filter] || filter
         return (
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full">
@@ -899,12 +910,14 @@ function QuotesContent() {
                 <td colSpan={7} className="px-6 py-16 text-center">
                   <span className="text-4xl block mb-4">{filter === 'needs_follow_up' ? '👍' : '📝'}</span>
                   <h3 className="text-lg font-semibold text-gray-700 mb-1">
-                    {filter === 'needs_follow_up' ? 'All caught up!' : 'No quotes yet'}
+                    {filter === 'needs_follow_up' ? 'All caught up!' : quotes.length > 0 ? `No ${filterLabel.toLowerCase()} quotes` : 'No quotes yet'}
                   </h3>
                   <p className="text-gray-500 max-w-sm mx-auto">
                     {filter === 'needs_follow_up'
                       ? 'No quotes need follow-up right now — nice work!'
-                      : 'Send a customer a professional estimate — they can approve it right from their phone.'}
+                      : quotes.length > 0
+                        ? 'Nothing matches this tab yet. Pick another tab or choose All to see every quote.'
+                        : 'Send a customer a professional estimate — they can approve it right from their phone.'}
                   </p>
                 </td>
               </tr>
