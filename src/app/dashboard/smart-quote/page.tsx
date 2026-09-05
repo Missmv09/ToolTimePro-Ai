@@ -4,9 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency';
+import type { Locale } from '@/i18n/config';
 
 // Types
 interface LineItem {
@@ -110,20 +112,29 @@ interface AiTiers {
   best: AiTier;
 }
 
-// Quick add services
+// Quick add services — `key` maps to tools.smartQuote.lineItems.quickAdd.* for the label
 const quickAddServices = [
-  { icon: '🌿', name: 'Lawn Care', price: 45, unit: 'each' as const },
-  { icon: '🌳', name: 'Tree Trim', price: 120, unit: 'each' as const },
-  { icon: '🧹', name: 'Cleanup', price: 65, unit: 'each' as const },
-  { icon: '🔧', name: 'Repair', price: 85, unit: 'hour' as const },
-  { icon: '🏊', name: 'Pool Service', price: 95, unit: 'each' as const },
-  { icon: '🪟', name: 'Window Clean', price: 8, unit: 'each' as const },
-  { icon: '🎨', name: 'Painting', price: 3, unit: 'sqft' as const },
-  { icon: '💡', name: 'Electrical', price: 95, unit: 'hour' as const },
+  { icon: '🌿', key: 'lawnCare', price: 45, unit: 'each' as const },
+  { icon: '🌳', key: 'treeTrim', price: 120, unit: 'each' as const },
+  { icon: '🧹', key: 'cleanup', price: 65, unit: 'each' as const },
+  { icon: '🔧', key: 'repair', price: 85, unit: 'hour' as const },
+  { icon: '🏊', key: 'poolService', price: 95, unit: 'each' as const },
+  { icon: '🪟', key: 'windowClean', price: 8, unit: 'each' as const },
+  { icon: '🎨', key: 'painting', price: 3, unit: 'sqft' as const },
+  { icon: '💡', key: 'electrical', price: 95, unit: 'hour' as const },
 ];
+
+const LINE_ITEM_UNITS: LineItem['unit'][] = ['each', 'hour', 'sqft', 'linear_ft', 'cubic_yard'];
 
 export default function SmartQuotingPage() {
   const router = useRouter();
+  const t = useTranslations('tools.smartQuote');
+  // The page language comes from the site-wide NEXT_LOCALE cookie (see
+  // src/i18n/request.ts). The EN/ES toggle below writes that cookie and
+  // reloads, exactly like the shared LanguageSwitcher, so every translated
+  // string on the page (and the voice-recognition locale) follows it.
+  const locale = useLocale();
+  const language: Locale = locale === 'es' ? 'es' : 'en';
   const { user, dbUser, company, isLoading: authLoading } = useAuth();
 
   // Company and auth state - get from AuthContext
@@ -179,7 +190,12 @@ export default function SmartQuotingPage() {
     notes: '',
     sms_consent: false,
   });
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+
+  const switchLanguage = (next: Locale) => {
+    if (next === language) return;
+    document.cookie = `NEXT_LOCALE=${next};path=/;max-age=31536000`;
+    window.location.reload();
+  };
 
   // Line items state
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
@@ -188,9 +204,9 @@ export default function SmartQuotingPage() {
   // Good/Better/Best options
   const [showMultipleOptions, setShowMultipleOptions] = useState(false);
   const [quoteOptions, setQuoteOptions] = useState<QuoteOption[]>([
-    { name: 'Good', description: 'Basic service', items: [], total: 0 },
-    { name: 'Better', description: 'Standard + extras', items: [], total: 0 },
-    { name: 'Best', description: 'Premium full service', items: [], total: 0 },
+    { name: t('tiers.good'), description: t('tiers.goodDesc'), items: [], total: 0 },
+    { name: t('tiers.better'), description: t('tiers.betterDesc'), items: [], total: 0 },
+    { name: t('tiers.best'), description: t('tiers.bestDesc'), items: [], total: 0 },
   ]);
 
   // Quote details
@@ -242,7 +258,7 @@ export default function SmartQuotingPage() {
   // Voice quote functions
   const startVoiceRecording = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Voice recognition is not supported in your browser. Try Chrome.');
+      alert(t('voice.unsupported'));
       return;
     }
 
@@ -287,7 +303,7 @@ export default function SmartQuotingPage() {
     } catch (err) {
       console.error('Could not start voice recognition:', err);
       setIsRecording(false);
-      alert('Could not start the microphone. Please try again, or use manual entry.');
+      alert(t('voice.micError'));
     }
   };
 
@@ -509,7 +525,7 @@ export default function SmartQuotingPage() {
     } catch (error) {
       console.error('Error analyzing photo with AI:', error);
       // Show error to user
-      setAiWarnings(['Photo analysis failed. Please try again or enter items manually.']);
+      setAiWarnings([t('photo.failed')]);
     } finally {
       setIsAnalyzingPhoto(false);
       setQuoteMode('manual');
@@ -520,7 +536,7 @@ export default function SmartQuotingPage() {
   const addLineItem = (service?: typeof quickAddServices[0]) => {
     const newItem: LineItem = {
       id: generateId(),
-      description: service?.name || '',
+      description: service ? t(`lineItems.quickAdd.${service.key}`) : '',
       quantity: 1,
       unit: service?.unit || 'each',
       price: service?.price || 0,
@@ -666,7 +682,7 @@ export default function SmartQuotingPage() {
     const formatted = formatPhoneNumber(value);
     setNewCustomer(prev => ({ ...prev, phone: formatted }));
     if (formatted && !isValidPhone(formatted)) {
-      setCustomerFormErrors(prev => ({ ...prev, phone: 'Please enter a valid 10-digit phone number' }));
+      setCustomerFormErrors(prev => ({ ...prev, phone: t('customer.invalidPhone') }));
     } else {
       setCustomerFormErrors(prev => ({ ...prev, phone: undefined }));
     }
@@ -675,7 +691,7 @@ export default function SmartQuotingPage() {
   const handleNewCustomerEmail = (value: string) => {
     setNewCustomer(prev => ({ ...prev, email: value }));
     if (value && !isValidEmail(value)) {
-      setCustomerFormErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+      setCustomerFormErrors(prev => ({ ...prev, email: t('customer.invalidEmail') }));
     } else {
       setCustomerFormErrors(prev => ({ ...prev, email: undefined }));
     }
@@ -688,10 +704,10 @@ export default function SmartQuotingPage() {
     // Validate
     const errors: { email?: string; phone?: string } = {};
     if (newCustomer.email && !isValidEmail(newCustomer.email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = t('customer.invalidEmail');
     }
     if (newCustomer.phone && !isValidPhone(newCustomer.phone)) {
-      errors.phone = 'Please enter a valid 10-digit phone number';
+      errors.phone = t('customer.invalidPhone');
     }
     if (Object.keys(errors).length > 0) {
       setCustomerFormErrors(errors);
@@ -764,13 +780,13 @@ export default function SmartQuotingPage() {
             .select('id, name, phone, email, address, state, sms_consent')
             .single();
           if (retry.error) {
-            alert('Error creating customer: ' + retry.error.message);
+            alert(t('customer.createError', { message: retry.error.message }));
             setIsSavingCustomer(false);
             return;
           }
           setSelectedCustomer(retry.data as Customer);
         } else {
-          alert('Error creating customer: ' + error.message);
+          alert(t('customer.createError', { message: error.message }));
           setIsSavingCustomer(false);
           return;
         }
@@ -791,7 +807,7 @@ export default function SmartQuotingPage() {
 
       setShowNewCustomerForm(false);
     } catch (err) {
-      alert('An unexpected error occurred. Please try again.');
+      alert(t('customer.unexpectedError'));
     }
 
     setIsSavingCustomer(false);
@@ -815,7 +831,7 @@ export default function SmartQuotingPage() {
   // Save quote to Supabase (as draft)
   const saveQuote = async (asDraft: boolean = true) => {
     if (!companyId) {
-      setSaveError('Please log in to save quotes');
+      setSaveError(t('errors.loginToSave'));
       return null;
     }
 
@@ -826,7 +842,7 @@ export default function SmartQuotingPage() {
       // Refresh session to ensure auth token is still valid
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !sessionData.session) {
-        setSaveError('Your session has expired. Please refresh the page and log in again.');
+        setSaveError(t('errors.sessionExpired'));
         setIsSaving(false);
         return null;
       }
@@ -876,7 +892,7 @@ export default function SmartQuotingPage() {
 
           if (customerError) {
             console.error('Error creating customer:', customerError);
-            setSaveError('Failed to create customer: ' + customerError.message);
+            setSaveError(t('errors.createCustomer', { message: customerError.message }));
             setIsSaving(false);
             return null;
           }
@@ -939,13 +955,13 @@ export default function SmartQuotingPage() {
       const result = await res.json();
 
       if (!res.ok) {
-        setSaveError(result.error || 'Failed to create quote');
+        setSaveError(result.error || t('errors.createQuote'));
         setIsSaving(false);
         return null;
       }
 
       if (result.itemsError) {
-        setSaveError('Quote was created but line items failed to save: ' + result.itemsError);
+        setSaveError(t('errors.itemsFailed', { message: result.itemsError }));
         setIsSaving(false);
         return result.quote;
       }
@@ -954,8 +970,8 @@ export default function SmartQuotingPage() {
       return result.quote;
     } catch (err) {
       console.error('Error saving quote:', err);
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setSaveError('Failed to save quote: ' + message);
+      const message = err instanceof Error ? err.message : t('errors.unknown');
+      setSaveError(t('errors.saveFailed', { message }));
       setIsSaving(false);
       return null;
     }
@@ -1004,10 +1020,10 @@ export default function SmartQuotingPage() {
           });
           if (!smsRes.ok) {
             const smsResult = await smsRes.json().catch(() => ({}));
-            sendErrors.push(`SMS failed: ${smsResult.error || 'Unknown error'}`);
+            sendErrors.push(t('errors.smsFailed', { message: smsResult.error || t('errors.unknown') }));
           }
         } catch {
-          sendErrors.push('SMS failed: Network error');
+          sendErrors.push(t('errors.smsFailed', { message: t('errors.networkError') }));
         }
       }
 
@@ -1040,15 +1056,15 @@ export default function SmartQuotingPage() {
           });
           if (!emailRes.ok) {
             const emailResult = await emailRes.json().catch(() => ({}));
-            sendErrors.push(`Email failed: ${emailResult.error || 'Unknown error'}`);
+            sendErrors.push(t('errors.emailFailed', { message: emailResult.error || t('errors.unknown') }));
           }
         } catch {
-          sendErrors.push('Email failed: Network error');
+          sendErrors.push(t('errors.emailFailed', { message: t('errors.networkError') }));
         }
       }
 
       if (sendErrors.length > 0) {
-        setSaveError(`Quote saved but delivery had issues: ${sendErrors.join('. ')}`);
+        setSaveError(t('errors.deliveryIssues', { message: sendErrors.join('. ') }));
       }
 
       setIsSending(false);
@@ -1069,20 +1085,20 @@ export default function SmartQuotingPage() {
       <div className="bg-gradient-to-r from-navy-500 to-navy-600 text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Link href="/dashboard/quotes" className="text-white/70 hover:text-white text-sm mb-4 inline-block">
-            ← Back to Quotes
+            {t('backToQuotes')}
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-4xl">📝</span>
-            <h1 className="text-3xl font-bold">Smart Quoting</h1>
+            <h1 className="text-3xl font-bold">{t('title')}</h1>
           </div>
-          <p className="text-white/80">Create quotes in 60 seconds. Win more jobs.</p>
+          <p className="text-white/80">{t('subtitle')}</p>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Quote Mode Selection */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-navy-500 mb-4">How would you like to create this quote?</h2>
+          <h2 className="text-lg font-semibold text-navy-500 mb-4">{t('modeQuestion')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* AI Describe */}
             <button
@@ -1094,8 +1110,8 @@ export default function SmartQuotingPage() {
               }`}
             >
               <div className="text-4xl mb-2">🤖</div>
-              <div className="font-semibold text-navy-500">AI Describe</div>
-              <div className="text-sm text-gray-500 mt-1">Type job details</div>
+              <div className="font-semibold text-navy-500">{t('modes.describe')}</div>
+              <div className="text-sm text-gray-500 mt-1">{t('modes.describeSub')}</div>
             </button>
 
             {/* Voice Quote */}
@@ -1108,8 +1124,8 @@ export default function SmartQuotingPage() {
               }`}
             >
               <div className="text-4xl mb-2">🎤</div>
-              <div className="font-semibold text-navy-500">Voice Quote</div>
-              <div className="text-sm text-gray-500 mt-1">Speak your quote</div>
+              <div className="font-semibold text-navy-500">{t('modes.voice')}</div>
+              <div className="text-sm text-gray-500 mt-1">{t('modes.voiceSub')}</div>
             </button>
 
             {/* Photo Quote */}
@@ -1122,8 +1138,8 @@ export default function SmartQuotingPage() {
               }`}
             >
               <div className="text-4xl mb-2">📸</div>
-              <div className="font-semibold text-navy-500">Photo Quote</div>
-              <div className="text-sm text-gray-500 mt-1">AI Vision analysis</div>
+              <div className="font-semibold text-navy-500">{t('modes.photo')}</div>
+              <div className="text-sm text-gray-500 mt-1">{t('modes.photoSub')}</div>
             </button>
 
             {/* Manual Quote */}
@@ -1136,8 +1152,8 @@ export default function SmartQuotingPage() {
               }`}
             >
               <div className="text-4xl mb-2">✏️</div>
-              <div className="font-semibold text-navy-500">Manual Quote</div>
-              <div className="text-sm text-gray-500 mt-1">Traditional form</div>
+              <div className="font-semibold text-navy-500">{t('modes.manual')}</div>
+              <div className="text-sm text-gray-500 mt-1">{t('modes.manualSub')}</div>
             </button>
           </div>
 
@@ -1146,16 +1162,16 @@ export default function SmartQuotingPage() {
             <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border border-purple-200">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-2xl">🤖</span>
-                <h3 className="font-semibold text-navy-500">AI Quote Generator</h3>
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">GPT-4 Powered</span>
+                <h3 className="font-semibold text-navy-500">{t('describe.title')}</h3>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">{t('describe.badge')}</span>
               </div>
               <p className="text-gray-600 mb-4 text-sm">
-                Describe the job in your own words. Our AI will analyze it and suggest line items with competitive pricing.
+                {t('describe.intro')}
               </p>
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Example: Customer has a half-acre lot with overgrown grass about 8 inches tall. They need regular mowing, the hedges along the front walkway trimmed (about 40 feet), and fall leaf cleanup for the whole yard. There are also 2 medium oak trees that need some dead branches removed..."
+                placeholder={t('describe.placeholder')}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[120px] text-sm"
               />
               <div className="flex items-center gap-3 mt-4">
@@ -1167,17 +1183,17 @@ export default function SmartQuotingPage() {
                   {isProcessingDescription ? (
                     <>
                       <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
-                      AI is analyzing...
+                      {t('describe.analyzing')}
                     </>
                   ) : (
                     <>
                       <span>✨</span>
-                      Generate Quote with AI
+                      {t('describe.generate')}
                     </>
                   )}
                 </button>
                 <span className="text-sm text-gray-500">
-                  {jobDescription.length > 0 && `${jobDescription.split(' ').length} words`}
+                  {jobDescription.length > 0 && t('describe.words', { count: jobDescription.split(' ').length })}
                 </span>
               </div>
             </div>
@@ -1190,9 +1206,9 @@ export default function SmartQuotingPage() {
                 {!isRecording && !isProcessingVoice && (
                   <>
                     <p className="text-gray-600 mb-4">
-                      Click the microphone and describe the job. For example:
+                      {t('voice.intro')}
                       <br />
-                      <span className="italic">&quot;Lawn mowing for half acre, hedge trimming, and gutter cleaning&quot;</span>
+                      <span className="italic">{t('voice.example')}</span>
                     </p>
                     <button
                       onClick={startVoiceRecording}
@@ -1207,10 +1223,10 @@ export default function SmartQuotingPage() {
                   <>
                     <div className="flex items-center justify-center gap-2 mb-4">
                       <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-red-600 font-medium">Recording...</span>
+                      <span className="text-red-600 font-medium">{t('voice.recording')}</span>
                     </div>
                     <div className="bg-white p-4 rounded-lg mb-4 min-h-[60px]">
-                      <p className="text-gray-700">{voiceTranscript || 'Listening...'}</p>
+                      <p className="text-gray-700">{voiceTranscript || t('voice.listening')}</p>
                     </div>
                     <button
                       onClick={stopVoiceRecording}
@@ -1218,14 +1234,14 @@ export default function SmartQuotingPage() {
                     >
                       <span className="text-4xl">⏹️</span>
                     </button>
-                    <p className="text-sm text-gray-500 mt-2">Click to stop and process</p>
+                    <p className="text-sm text-gray-500 mt-2">{t('voice.stopHint')}</p>
                   </>
                 )}
 
                 {isProcessingVoice && (
                   <div className="flex flex-col items-center">
                     <div className="animate-spin w-12 h-12 border-4 border-gold-500 border-t-transparent rounded-full mb-4"></div>
-                    <p className="text-gray-600">AI is parsing your quote...</p>
+                    <p className="text-gray-600">{t('voice.parsing')}</p>
                   </div>
                 )}
               </div>
@@ -1237,14 +1253,14 @@ export default function SmartQuotingPage() {
             <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-2xl">📸</span>
-                <h3 className="font-semibold text-navy-500">AI Vision Analysis</h3>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">GPT-4 Vision</span>
+                <h3 className="font-semibold text-navy-500">{t('photo.title')}</h3>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{t('photo.badge')}</span>
               </div>
               <div className="text-center">
                 {!photoPreview && !isAnalyzingPhoto && (
                   <>
                     <p className="text-gray-600 mb-4">
-                      Take a photo of the job site. Our AI Vision will analyze the property and suggest accurate line items with competitive pricing.
+                      {t('photo.intro')}
                     </p>
                     <input
                       type="file"
@@ -1260,20 +1276,20 @@ export default function SmartQuotingPage() {
                     >
                       <span className="text-5xl">📸</span>
                     </button>
-                    <p className="text-sm text-gray-500 mt-3">Tap to take photo or upload from gallery</p>
+                    <p className="text-sm text-gray-500 mt-3">{t('photo.tapHint')}</p>
                   </>
                 )}
 
                 {isAnalyzingPhoto && (
                   <div className="flex flex-col items-center">
                     {photoPreview && (
-                      <Image src={photoPreview} alt="Job site" className="w-64 h-48 object-cover rounded-lg mb-4 shadow-md" width={256} height={192} />
+                      <Image src={photoPreview} alt={t('photo.alt')} className="w-64 h-48 object-cover rounded-lg mb-4 shadow-md" width={256} height={192} />
                     )}
                     <div className="flex items-center gap-3 mb-2">
                       <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
                       <div className="text-left">
-                        <p className="text-gray-700 font-medium">AI Vision analyzing photo...</p>
-                        <p className="text-sm text-gray-500">Identifying services, estimating quantities, calculating prices</p>
+                        <p className="text-gray-700 font-medium">{t('photo.analyzing')}</p>
+                        <p className="text-sm text-gray-500">{t('photo.analyzingSub')}</p>
                       </div>
                     </div>
                   </div>
@@ -1286,24 +1302,24 @@ export default function SmartQuotingPage() {
           {photoAnalysis && (
             <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
               <h4 className="font-medium text-navy-500 mb-2 flex items-center gap-2">
-                <span>🔍</span> AI Property Analysis
+                <span>🔍</span> {t('photo.analysisTitle')}
               </h4>
               <div className="grid md:grid-cols-3 gap-3 text-sm">
                 {photoAnalysis.propertySize && (
                   <div className="bg-white p-3 rounded-lg">
-                    <div className="text-gray-500 text-xs">Property Size</div>
+                    <div className="text-gray-500 text-xs">{t('photo.propertySize')}</div>
                     <div className="font-medium text-navy-500">{photoAnalysis.propertySize}</div>
                   </div>
                 )}
                 {photoAnalysis.condition && (
                   <div className="bg-white p-3 rounded-lg">
-                    <div className="text-gray-500 text-xs">Current Condition</div>
+                    <div className="text-gray-500 text-xs">{t('photo.condition')}</div>
                     <div className="font-medium text-navy-500">{photoAnalysis.condition}</div>
                   </div>
                 )}
                 {photoAnalysis.challenges && photoAnalysis.challenges.length > 0 && (
                   <div className="bg-white p-3 rounded-lg">
-                    <div className="text-gray-500 text-xs">Considerations</div>
+                    <div className="text-gray-500 text-xs">{t('photo.considerations')}</div>
                     <div className="font-medium text-navy-500">{photoAnalysis.challenges.join(', ')}</div>
                   </div>
                 )}
@@ -1315,7 +1331,7 @@ export default function SmartQuotingPage() {
           {aiWarnings.length > 0 && (
             <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
               <h4 className="font-medium text-amber-700 mb-2 flex items-center gap-2">
-                <span>⚠️</span> AI Notes
+                <span>⚠️</span> {t('aiNotes')}
               </h4>
               <ul className="text-sm text-amber-800 space-y-1">
                 {aiWarnings.map((warning, idx) => (
@@ -1332,10 +1348,12 @@ export default function SmartQuotingPage() {
             {/* Customer Section */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-navy-500">Customer</h2>
-                <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1">
+                <h2 className="text-lg font-semibold text-navy-500">{t('customer.title')}</h2>
+                <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1" role="group" aria-label="Language">
                   <button
-                    onClick={() => setLanguage('en')}
+                    type="button"
+                    onClick={() => switchLanguage('en')}
+                    aria-pressed={language === 'en'}
                     className={`px-3 py-1 rounded-full text-sm transition-colors ${
                       language === 'en' ? 'bg-white shadow-sm' : ''
                     }`}
@@ -1343,7 +1361,9 @@ export default function SmartQuotingPage() {
                     🇺🇸 EN
                   </button>
                   <button
-                    onClick={() => setLanguage('es')}
+                    type="button"
+                    onClick={() => switchLanguage('es')}
+                    aria-pressed={language === 'es'}
                     className={`px-3 py-1 rounded-full text-sm transition-colors ${
                       language === 'es' ? 'bg-white shadow-sm' : ''
                     }`}
@@ -1371,9 +1391,9 @@ export default function SmartQuotingPage() {
                           <div className="text-sm text-gray-500">{selectedCustomer.address}</div>
                         )}
                         {selectedCustomer.sms_consent ? (
-                          <span className="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">SMS Opted In</span>
+                          <span className="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{t('customer.smsOptedIn')}</span>
                         ) : (
-                          <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">No SMS consent — email only</span>
+                          <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{t('customer.noSmsConsent')}</span>
                         )}
                       </div>
                     </div>
@@ -1381,7 +1401,7 @@ export default function SmartQuotingPage() {
                       onClick={clearSelectedCustomer}
                       className="text-sm text-gray-500 hover:text-red-500 transition-colors px-3 py-1 rounded-lg hover:bg-white"
                     >
-                      Change
+                      {t('customer.change')}
                     </button>
                   </div>
                 </div>
@@ -1393,7 +1413,7 @@ export default function SmartQuotingPage() {
                       {/* Customer Search */}
                       <div className="relative mb-3">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Search Existing Customer
+                          {t('customer.searchLabel')}
                         </label>
                         <input
                           type="text"
@@ -1403,7 +1423,7 @@ export default function SmartQuotingPage() {
                             setShowCustomerDropdown(true);
                           }}
                           onFocus={() => setShowCustomerDropdown(true)}
-                          placeholder="Search by name, phone, or email..."
+                          placeholder={t('customer.searchPlaceholder')}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                         />
                         {showCustomerDropdown && customerSearch && (
@@ -1430,12 +1450,12 @@ export default function SmartQuotingPage() {
                                 className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-0"
                               >
                                 <div className="font-medium text-navy-500">{customer.name}</div>
-                                <div className="text-sm text-gray-500">{customer.phone || 'No phone'} • {customer.address || 'No address'}</div>
+                                <div className="text-sm text-gray-500">{customer.phone || t('customer.noPhone')} • {customer.address || t('customer.noAddress')}</div>
                               </button>
                             ))}
                             {filteredCustomers.length === 0 && (
                               <div className="px-4 py-3">
-                                <div className="text-gray-500 text-sm mb-2">No customers found matching &quot;{customerSearch}&quot;</div>
+                                <div className="text-gray-500 text-sm mb-2">{t('customer.noMatch', { query: customerSearch })}</div>
                                 <button
                                   onClick={() => {
                                     setNewCustomer(prev => ({ ...prev, name: customerSearch }));
@@ -1445,7 +1465,7 @@ export default function SmartQuotingPage() {
                                   }}
                                   className="w-full text-left px-3 py-2 bg-gold-50 hover:bg-gold-100 text-gold-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                                 >
-                                  <span className="text-lg">+</span> Add &quot;{customerSearch}&quot; as New Customer
+                                  <span className="text-lg">+</span> {t('customer.addAsNew', { query: customerSearch })}
                                 </button>
                               </div>
                             )}
@@ -1456,14 +1476,14 @@ export default function SmartQuotingPage() {
                       {/* Divider with Add New button */}
                       <div className="flex items-center gap-3 mb-3">
                         <div className="flex-1 border-t border-gray-200"></div>
-                        <span className="text-sm text-gray-400">or</span>
+                        <span className="text-sm text-gray-400">{t('customer.or')}</span>
                         <div className="flex-1 border-t border-gray-200"></div>
                       </div>
                       <button
                         onClick={() => setShowNewCustomerForm(true)}
                         className="w-full py-3 border-2 border-dashed border-gold-300 rounded-lg text-gold-600 hover:bg-gold-50 hover:border-gold-400 transition-colors font-medium flex items-center justify-center gap-2"
                       >
-                        <span className="text-xl">+</span> Add New Customer
+                        <span className="text-xl">+</span> {t('customer.addNew')}
                       </button>
                     </>
                   ) : (
@@ -1471,7 +1491,7 @@ export default function SmartQuotingPage() {
                     <div className="border border-gold-200 bg-gold-50/30 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-navy-500 flex items-center gap-2">
-                          <span className="text-lg">+</span> New Customer
+                          <span className="text-lg">+</span> {t('customer.newTitle')}
                         </h3>
                         <button
                           onClick={() => {
@@ -1481,7 +1501,7 @@ export default function SmartQuotingPage() {
                           }}
                           className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                         >
-                          Cancel
+                          {t('customer.cancel')}
                         </button>
                       </div>
 
@@ -1490,25 +1510,25 @@ export default function SmartQuotingPage() {
                         <div className="grid md:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Name <span className="text-red-500">*</span>
+                              {t('customer.name')} <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
                               value={newCustomer.name}
                               onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
-                              placeholder="John Smith"
+                              placeholder={t('customer.namePlaceholder')}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Phone <span className="text-red-500">*</span>
+                              {t('customer.phone')} <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="tel"
                               value={newCustomer.phone}
                               onChange={(e) => handleNewCustomerPhone(e.target.value)}
-                              placeholder="(555) 123-4567"
+                              placeholder={t('customer.phonePlaceholder')}
                               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${customerFormErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
                             />
                             {customerFormErrors.phone && <p className="text-red-500 text-xs mt-1">{customerFormErrors.phone}</p>}
@@ -1517,12 +1537,12 @@ export default function SmartQuotingPage() {
 
                         {/* Email */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('customer.email')}</label>
                           <input
                             type="email"
                             value={newCustomer.email}
                             onChange={(e) => handleNewCustomerEmail(e.target.value)}
-                            placeholder="john@email.com"
+                            placeholder={t('customer.emailPlaceholder')}
                             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${customerFormErrors.email ? 'border-red-500' : 'border-gray-300'}`}
                           />
                           {customerFormErrors.email && <p className="text-red-500 text-xs mt-1">{customerFormErrors.email}</p>}
@@ -1530,12 +1550,12 @@ export default function SmartQuotingPage() {
 
                         {/* Address */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('customer.address')}</label>
                           <input
                             type="text"
                             value={newCustomer.address}
                             onChange={(e) => setNewCustomer(prev => ({ ...prev, address: e.target.value }))}
-                            placeholder="123 Main St"
+                            placeholder={t('customer.addressPlaceholder')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                           />
                         </div>
@@ -1543,17 +1563,17 @@ export default function SmartQuotingPage() {
                         {/* City, State, Zip */}
                         <div className="grid grid-cols-3 gap-3">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('customer.city')}</label>
                             <input
                               type="text"
                               value={newCustomer.city}
                               onChange={(e) => setNewCustomer(prev => ({ ...prev, city: e.target.value }))}
-                              placeholder="City"
+                              placeholder={t('customer.cityPlaceholder')}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('customer.state')}</label>
                             <input
                               type="text"
                               value={newCustomer.state}
@@ -1570,7 +1590,7 @@ export default function SmartQuotingPage() {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">ZIP</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('customer.zip')}</label>
                             <input
                               type="text"
                               value={newCustomer.zip}
@@ -1583,12 +1603,12 @@ export default function SmartQuotingPage() {
 
                         {/* Notes */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('customer.notes')}</label>
                           <textarea
                             value={newCustomer.notes}
                             onChange={(e) => setNewCustomer(prev => ({ ...prev, notes: e.target.value }))}
                             rows={2}
-                            placeholder="Gate code, preferred contact time, etc."
+                            placeholder={t('customer.notesPlaceholder')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                           />
                         </div>
@@ -1598,9 +1618,9 @@ export default function SmartQuotingPage() {
                           <div className="flex items-start gap-3">
                             <span className="mt-0.5 text-blue-500 text-lg">&#x2139;</span>
                             <div>
-                              <span className="text-sm font-medium text-blue-800">SMS consent will be collected from the customer</span>
+                              <span className="text-sm font-medium text-blue-800">{t('customer.smsNoticeTitle')}</span>
                               <p className="text-xs text-blue-600 mt-0.5">
-                                The quote will be sent via email first. The customer can opt in to text messages when they view or approve the quote.
+                                {t('customer.smsNoticeText')}
                               </p>
                             </div>
                           </div>
@@ -1615,10 +1635,10 @@ export default function SmartQuotingPage() {
                           {isSavingCustomer ? (
                             <>
                               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
-                              Saving...
+                              {t('customer.saving')}
                             </>
                           ) : (
-                            <>Save & Select Customer</>
+                            <>{t('customer.saveSelect')}</>
                           )}
                         </button>
                       </div>
@@ -1631,7 +1651,7 @@ export default function SmartQuotingPage() {
             {/* Line Items Section */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-navy-500">Line Items</h2>
+                <h2 className="text-lg font-semibold text-navy-500">{t('lineItems.title')}</h2>
                 {lineItems.length > 0 && (
                   <button
                     onClick={async () => {
@@ -1643,7 +1663,7 @@ export default function SmartQuotingPage() {
                     className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-sm rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
                   >
                     <span>🤖</span>
-                    <span>AI Optimize Prices</span>
+                    <span>{t('lineItems.optimizePrices')}</span>
                   </button>
                 )}
               </div>
@@ -1652,12 +1672,12 @@ export default function SmartQuotingPage() {
               <div className="flex flex-wrap gap-2 mb-6">
                 {quickAddServices.map((service) => (
                   <button
-                    key={service.name}
+                    key={service.key}
                     onClick={() => addLineItem(service)}
                     className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-navy-500 transition-colors flex items-center gap-1"
                   >
                     <span>{service.icon}</span>
-                    <span>{service.name}</span>
+                    <span>{t(`lineItems.quickAdd.${service.key}`)}</span>
                     <span className="text-gray-500">${service.price}</span>
                   </button>
                 ))}
@@ -1665,7 +1685,7 @@ export default function SmartQuotingPage() {
                   onClick={() => addLineItem()}
                   className="px-3 py-2 bg-gold-100 hover:bg-gold-200 rounded-lg text-sm font-medium text-gold-700 transition-colors"
                 >
-                  + Custom
+                  {t('lineItems.custom')}
                 </button>
               </div>
 
@@ -1673,19 +1693,19 @@ export default function SmartQuotingPage() {
               {lineItems.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <div className="text-4xl mb-2">📋</div>
-                  <p>No items yet. Use quick add buttons or voice/photo to add items.</p>
+                  <p>{t('lineItems.empty')}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-2 px-2 text-sm font-medium text-gray-500">Description</th>
-                        <th className="text-center py-2 px-2 text-sm font-medium text-gray-500 w-20">Qty</th>
-                        <th className="text-center py-2 px-2 text-sm font-medium text-gray-500 w-24">Unit</th>
-                        <th className="text-right py-2 px-2 text-sm font-medium text-gray-500 w-24">Price</th>
-                        <th className="text-right py-2 px-2 text-sm font-medium text-gray-500 w-24">Total</th>
-                        <th className="text-center py-2 px-2 text-sm font-medium text-gray-500 w-16">AI</th>
+                        <th className="text-left py-2 px-2 text-sm font-medium text-gray-500">{t('lineItems.description')}</th>
+                        <th className="text-center py-2 px-2 text-sm font-medium text-gray-500 w-20">{t('lineItems.qty')}</th>
+                        <th className="text-center py-2 px-2 text-sm font-medium text-gray-500 w-24">{t('lineItems.unit')}</th>
+                        <th className="text-right py-2 px-2 text-sm font-medium text-gray-500 w-24">{t('lineItems.price')}</th>
+                        <th className="text-right py-2 px-2 text-sm font-medium text-gray-500 w-24">{t('lineItems.total')}</th>
+                        <th className="text-center py-2 px-2 text-sm font-medium text-gray-500 w-16">{t('lineItems.ai')}</th>
                         <th className="w-10"></th>
                       </tr>
                     </thead>
@@ -1698,7 +1718,7 @@ export default function SmartQuotingPage() {
                               value={item.description}
                               onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
                               className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-gold-500 focus:border-gold-500"
-                              placeholder="Service description"
+                              placeholder={t('lineItems.descPlaceholder')}
                             />
                           </td>
                           <td className="py-2 px-2">
@@ -1716,11 +1736,9 @@ export default function SmartQuotingPage() {
                               onChange={(e) => updateLineItem(item.id, { unit: e.target.value as LineItem['unit'] })}
                               className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-gold-500 focus:border-gold-500"
                             >
-                              <option value="each">each</option>
-                              <option value="hour">hour</option>
-                              <option value="sqft">sq ft</option>
-                              <option value="linear_ft">linear ft</option>
-                              <option value="cubic_yard">cubic yd</option>
+                              {LINE_ITEM_UNITS.map((unit) => (
+                                <option key={unit} value={unit}>{t(`lineItems.units.${unit}`)}</option>
+                              ))}
                             </select>
                           </td>
                           <td className="py-2 px-2">
@@ -1743,7 +1761,7 @@ export default function SmartQuotingPage() {
                             <button
                               onClick={() => getAiSuggestion(item)}
                               className="p-1 hover:bg-gold-100 rounded transition-colors"
-                              title="Get AI price suggestion"
+                              title={t('lineItems.aiTooltip')}
                             >
                               💡
                             </button>
@@ -1751,10 +1769,10 @@ export default function SmartQuotingPage() {
                               <div className="absolute z-20 right-0 mt-1 p-4 bg-white border border-gray-200 rounded-lg shadow-xl text-left text-sm w-72">
                                 <div className="flex items-center gap-2 mb-2">
                                   <span className="text-lg">🤖</span>
-                                  <div className="font-medium text-navy-500">AI Price Analysis</div>
+                                  <div className="font-medium text-navy-500">{t('lineItems.aiAnalysis')}</div>
                                 </div>
                                 <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                                  <div className="text-xs text-gray-500 mb-1">Market Rate Range</div>
+                                  <div className="text-xs text-gray-500 mb-1">{t('lineItems.marketRange')}</div>
                                   <div className="text-lg font-bold text-navy-500">
                                     ${item.aiSuggestion.min} - ${item.aiSuggestion.max}
                                   </div>
@@ -1767,12 +1785,12 @@ export default function SmartQuotingPage() {
                                     : 'bg-red-50 text-red-700'
                                 }`}>
                                   <div className="font-medium">
-                                    Your price: ${item.price}
+                                    {t('lineItems.yourPrice', { price: item.price })}{' '}
                                     {item.price >= item.aiSuggestion.min && item.price <= item.aiSuggestion.max
-                                      ? ' ✓ Competitive'
+                                      ? t('lineItems.competitive')
                                       : item.price < item.aiSuggestion.min
-                                      ? ' ⚠️ Below market'
-                                      : ' ⚠️ Above market'}
+                                      ? t('lineItems.belowMarket')
+                                      : t('lineItems.aboveMarket')}
                                   </div>
                                 </div>
                                 {item.aiReason && (
@@ -1789,7 +1807,7 @@ export default function SmartQuotingPage() {
                                       }}
                                       className="flex-1 px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors"
                                     >
-                                      Use ${item.aiSuggestion.min}
+                                      {t('lineItems.use', { price: item.aiSuggestion.min })}
                                     </button>
                                   )}
                                   {item.price > item.aiSuggestion.max && (
@@ -1800,14 +1818,14 @@ export default function SmartQuotingPage() {
                                       }}
                                       className="flex-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs rounded transition-colors"
                                     >
-                                      Use ${item.aiSuggestion.max}
+                                      {t('lineItems.use', { price: item.aiSuggestion.max })}
                                     </button>
                                   )}
                                   <button
                                     onClick={() => setShowAiSuggestion(null)}
                                     className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded"
                                   >
-                                    Close
+                                    {t('lineItems.close')}
                                   </button>
                                 </div>
                               </div>
@@ -1832,7 +1850,7 @@ export default function SmartQuotingPage() {
                 onClick={() => addLineItem()}
                 className="mt-4 px-4 py-2 border-2 border-dashed border-gray-300 hover:border-gold-500 rounded-lg text-gray-500 hover:text-gold-600 transition-colors w-full"
               >
-                + Add Line Item
+                {t('lineItems.addLineItem')}
               </button>
             </div>
 
@@ -1842,18 +1860,18 @@ export default function SmartQuotingPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">💰</span>
-                    <h2 className="text-lg font-semibold text-navy-500">AI Suggested Upsells</h2>
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Increase Revenue</span>
+                    <h2 className="text-lg font-semibold text-navy-500">{t('upsells.title')}</h2>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">{t('upsells.badge')}</span>
                   </div>
                   <button
                     onClick={() => setShowUpsells(false)}
                     className="text-gray-400 hover:text-gray-600 text-sm"
                   >
-                    Dismiss
+                    {t('upsells.dismiss')}
                   </button>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Based on the services above, these additions could add value for the customer:
+                  {t('upsells.intro')}
                 </p>
                 <div className="grid md:grid-cols-2 gap-3">
                   {aiUpsells.map((upsell, idx) => (
@@ -1874,7 +1892,7 @@ export default function SmartQuotingPage() {
                           onClick={() => addUpsellToQuote(upsell)}
                           className="mt-2 px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-full transition-colors"
                         >
-                          + Add
+                          {t('upsells.add')}
                         </button>
                       </div>
                     </div>
@@ -1889,7 +1907,7 @@ export default function SmartQuotingPage() {
                 <div className="flex items-start gap-2">
                   <span className="text-xl">💡</span>
                   <div>
-                    <div className="font-medium text-navy-500 text-sm">AI Recommendation</div>
+                    <div className="font-medium text-navy-500 text-sm">{t('aiRecommendation')}</div>
                     <p className="text-sm text-gray-600 mt-1">{aiNotes}</p>
                   </div>
                 </div>
@@ -1900,8 +1918,8 @@ export default function SmartQuotingPage() {
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-navy-500">Good / Better / Best Options</h2>
-                  <p className="text-sm text-gray-500">Offer multiple pricing tiers to win more jobs</p>
+                  <h2 className="text-lg font-semibold text-navy-500">{t('tiers.title')}</h2>
+                  <p className="text-sm text-gray-500">{t('tiers.subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   {lineItems.length > 0 && !aiTiers && (
@@ -1913,11 +1931,11 @@ export default function SmartQuotingPage() {
                       {isGeneratingTiers ? (
                         <>
                           <div className="animate-spin w-3 h-3 border-2 border-purple-700 border-t-transparent rounded-full"></div>
-                          Generating...
+                          {t('tiers.generating')}
                         </>
                       ) : (
                         <>
-                          <span>🤖</span> AI Generate Tiers
+                          <span>🤖</span> {t('tiers.generate')}
                         </>
                       )}
                     </button>
@@ -1961,12 +1979,12 @@ export default function SmartQuotingPage() {
                             </div>
                             {index === 1 && (
                               <div className="text-center">
-                                <span className="text-xs bg-gold-200 text-gold-800 px-2 py-0.5 rounded-full">Recommended</span>
+                                <span className="text-xs bg-gold-200 text-gold-800 px-2 py-0.5 rounded-full">{t('tiers.recommended')}</span>
                               </div>
                             )}
                             {tier.extras && tier.extras.length > 0 && (
                               <div className="mt-3 pt-3 border-t border-gray-200">
-                                <div className="text-xs text-gray-500 mb-1">Includes:</div>
+                                <div className="text-xs text-gray-500 mb-1">{t('tiers.includes')}</div>
                                 <ul className="text-xs text-gray-600 space-y-1">
                                   {tier.extras.slice(0, 3).map((extra, i) => (
                                     <li key={i} className="flex items-start gap-1">
@@ -1984,7 +2002,7 @@ export default function SmartQuotingPage() {
                   ) : (
                     // Default tiers (simple multiplier)
                     <div className="grid md:grid-cols-3 gap-4">
-                      {['Good', 'Better', 'Best'].map((tier, index) => (
+                      {(['good', 'better', 'best'] as const).map((tier, index) => (
                         <div
                           key={tier}
                           className={`p-4 rounded-xl border-2 ${
@@ -1995,16 +2013,16 @@ export default function SmartQuotingPage() {
                             <div className="text-2xl mb-1">
                               {index === 0 ? '⭐' : index === 1 ? '⭐⭐' : '⭐⭐⭐'}
                             </div>
-                            <div className="font-bold text-navy-500">{tier}</div>
+                            <div className="font-bold text-navy-500">{t(`tiers.${tier}`)}</div>
                             <div className="text-sm text-gray-500">
-                              {index === 0 ? 'Basic service' : index === 1 ? 'Standard + extras' : 'Premium full service'}
+                              {t(`tiers.${tier}Desc`)}
                             </div>
                           </div>
                           <div className="text-center text-2xl font-bold text-navy-500">
                             ${(subtotal * (1 + index * 0.35)).toFixed(0)}
                           </div>
                           <p className="text-xs text-gray-500 text-center mt-2">
-                            {index === 0 ? 'Essential items only' : index === 1 ? 'Recommended' : 'Everything included'}
+                            {t(`tiers.${tier}Note`)}
                           </p>
                         </div>
                       ))}
@@ -2013,7 +2031,7 @@ export default function SmartQuotingPage() {
                   {aiTiers && (
                     <div className="mt-3 text-center">
                       <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
-                        🤖 AI-optimized pricing tiers
+                        {t('tiers.aiOptimized')}
                       </span>
                     </div>
                   )}
@@ -2023,33 +2041,32 @@ export default function SmartQuotingPage() {
 
             {/* Notes */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-navy-500 mb-4">Notes & Terms</h2>
+              <h2 className="text-lg font-semibold text-navy-500 mb-4">{t('notes.title')}</h2>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any notes, terms, or special instructions..."
+                placeholder={t('notes.placeholder')}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 min-h-[100px]"
               />
               <div className="mt-4 flex flex-wrap items-center gap-4">
-                <label className="text-sm text-gray-600">Quote valid for:</label>
+                <label className="text-sm text-gray-600">{t('notes.validFor')}</label>
                 <select
                   value={validDays}
                   onChange={(e) => setValidDays(Number(e.target.value))}
                   className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                 >
-                  <option value={7}>7 days</option>
-                  <option value={14}>14 days</option>
-                  <option value={30}>30 days</option>
-                  <option value={60}>60 days</option>
+                  {[7, 14, 30, 60].map((days) => (
+                    <option key={days} value={days}>{t('notes.days', { count: days })}</option>
+                  ))}
                 </select>
-                <label className="text-sm text-gray-600">Service frequency:</label>
+                <label className="text-sm text-gray-600">{t('notes.frequency')}</label>
                 <select
                   value={frequency}
                   onChange={(e) => setFrequency(e.target.value)}
                   className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                 >
                   {QUOTE_FREQUENCIES.map((f) => (
-                    <option key={f.value} value={f.value}>{f.label}</option>
+                    <option key={f.value} value={f.value}>{t(`notes.frequencies.${f.value}`)}</option>
                   ))}
                 </select>
               </div>
@@ -2059,7 +2076,7 @@ export default function SmartQuotingPage() {
           {/* Quote Summary Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-6">
-              <h2 className="text-lg font-semibold text-navy-500 mb-4">Quote Summary</h2>
+              <h2 className="text-lg font-semibold text-navy-500 mb-4">{t('summary.title')}</h2>
 
               {/* Customer Preview */}
               {newCustomer.name && (
@@ -2072,20 +2089,20 @@ export default function SmartQuotingPage() {
 
               {/* Items Count */}
               <div className="text-sm text-gray-500 mb-4">
-                {lineItems.length} item{lineItems.length !== 1 ? 's' : ''}
+                {t('summary.items', { count: lineItems.length })}
               </div>
 
               {/* Totals */}
               <div className="space-y-2 border-t border-gray-200 pt-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal</span>
+                  <span className="text-gray-500">{t('summary.subtotal')}</span>
                   <span className="text-navy-500">${subtotal.toFixed(2)}</span>
                 </div>
 
                 {/* Tax */}
                 <div className="flex justify-between items-center text-sm">
                   <div>
-                    <span className="text-gray-500">Tax</span>
+                    <span className="text-gray-500">{t('summary.tax')}</span>
                     {(() => {
                       const detectedState = selectedCustomer?.state || detectStateFromAddress(newCustomer.address);
                       return detectedState ? (
@@ -2110,7 +2127,7 @@ export default function SmartQuotingPage() {
 
                 {/* Discount */}
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Discount</span>
+                  <span className="text-gray-500">{t('summary.discount')}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400">$</span>
                     <input
@@ -2124,11 +2141,11 @@ export default function SmartQuotingPage() {
                 </div>
 
                 <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2 mt-2">
-                  <span className="text-navy-500">Total</span>
+                  <span className="text-navy-500">{t('summary.total')}</span>
                   <span className="text-gold-600">
                     ${grandTotal.toFixed(2)}
                     {frequencySuffix(frequency) && (
-                      <span className="text-sm font-normal text-gray-500 ml-1">{frequencySuffix(frequency)}</span>
+                      <span className="text-sm font-normal text-gray-500 ml-1">{t(`notes.frequencySuffix.${frequency}`)}</span>
                     )}
                   </span>
                 </div>
@@ -2137,7 +2154,7 @@ export default function SmartQuotingPage() {
               {/* Send Options */}
               <div className="mt-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Send via:</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('summary.sendVia')}</label>
                   {selectedCustomer?.sms_consent ? (
                     <div className="flex gap-2">
                       {['sms', 'email', 'both'].map((method) => (
@@ -2150,7 +2167,7 @@ export default function SmartQuotingPage() {
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
-                          {method === 'sms' ? 'SMS' : method === 'email' ? 'Email' : 'Both'}
+                          {method === 'sms' ? t('summary.sms') : method === 'email' ? t('summary.email') : t('summary.both')}
                         </button>
                       ))}
                     </div>
@@ -2158,25 +2175,25 @@ export default function SmartQuotingPage() {
                     <div>
                       <div className="flex gap-2">
                         <div className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-navy-500 text-white text-center">
-                          Email
+                          {t('summary.email')}
                         </div>
                         <button
                           disabled
                           className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
-                          title="Customer must opt in to SMS first"
+                          title={t('summary.smsOptInFirst')}
                         >
-                          SMS
+                          {t('summary.sms')}
                         </button>
                         <button
                           disabled
                           className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
-                          title="Customer must opt in to SMS first"
+                          title={t('summary.smsOptInFirst')}
                         >
-                          Both
+                          {t('summary.both')}
                         </button>
                       </div>
                       <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                        <span>&#9888;</span> SMS unavailable — customer hasn&apos;t opted in yet. They can opt in when they view the quote.
+                        <span>&#9888;</span> {t('summary.smsUnavailable')}
                       </p>
                     </div>
                   )}
@@ -2192,8 +2209,8 @@ export default function SmartQuotingPage() {
                 {quoteSent ? (
                   <div className="p-4 bg-green-50 rounded-lg text-center">
                     <div className="text-4xl mb-2">✅</div>
-                    <div className="font-medium text-green-700">Quote Saved & Sent!</div>
-                    <div className="text-sm text-green-600">Redirecting to dashboard...</div>
+                    <div className="font-medium text-green-700">{t('summary.sent')}</div>
+                    <div className="text-sm text-green-600">{t('summary.redirecting')}</div>
                   </div>
                 ) : (
                   <button
@@ -2204,12 +2221,12 @@ export default function SmartQuotingPage() {
                     {isSending ? (
                       <>
                         <div className="animate-spin w-5 h-5 border-2 border-navy-900 border-t-transparent rounded-full"></div>
-                        Saving & Sending...
+                        {t('summary.sending')}
                       </>
                     ) : (
                       <>
                         <span>📤</span>
-                        Send Quote
+                        {t('summary.send')}
                       </>
                     )}
                   </button>
@@ -2224,17 +2241,17 @@ export default function SmartQuotingPage() {
                     {isSaving && !isSending ? (
                       <>
                         <div className="animate-spin w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full"></div>
-                        Saving...
+                        {t('summary.saving')}
                       </>
                     ) : (
-                      <>💾 Save Draft</>
+                      <>{t('summary.saveDraft')}</>
                     )}
                   </button>
                   <Link
                     href="/dashboard/quotes"
                     className="flex-1 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition-colors text-center"
                   >
-                    Cancel
+                    {t('summary.cancel')}
                   </Link>
                 </div>
               </div>
