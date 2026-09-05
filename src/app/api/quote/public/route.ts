@@ -7,6 +7,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    // The dashboard's "View" link opens this same page so the sender can check
+    // what the customer will see. That must not count as a customer view, or a
+    // freshly sent quote flips to "viewed" (and leaves the Sent tab) before the
+    // customer has opened it.
+    const isPreview = searchParams.get('preview') === '1'
 
     if (!id) {
       return NextResponse.json({ error: 'Quote ID is required' }, { status: 400 })
@@ -53,8 +58,8 @@ export async function GET(request: NextRequest) {
       .eq('quote_id', quote.id)
       .order('created_at', { ascending: true })
 
-    // Mark as viewed if currently sent
-    if (quote.status === 'sent') {
+    // Mark as viewed if currently sent (never for the sender's own preview)
+    if (quote.status === 'sent' && !isPreview) {
       await supabase
         .from('quotes')
         .update({

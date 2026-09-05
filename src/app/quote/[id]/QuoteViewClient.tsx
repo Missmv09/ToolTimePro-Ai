@@ -24,7 +24,7 @@ interface QuoteWithDetails extends Quote {
 }
 
 
-export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
+export default function CustomerQuoteView({ quoteId, preview = false }: { quoteId: string; preview?: boolean }) {
   const t = useTranslations('misc.quote');
   const [quote, setQuote] = useState<QuoteWithDetails | null>(null);
   const [items, setItems] = useState<QuoteLineItem[]>([]);
@@ -55,7 +55,9 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
 
     try {
       // Fetch quote via server-side API (bypasses RLS for public access)
-      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(quoteId)}`);
+      // preview=1 tells the API this is the sender checking their own quote,
+      // so it must not be marked as viewed by the customer.
+      const res = await fetch(`/api/quote/public?id=${encodeURIComponent(quoteId)}${preview ? '&preview=1' : ''}`);
 
       if (!res.ok) {
         throw new Error('Quote not found');
@@ -77,7 +79,7 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
     } finally {
       setIsLoading(false);
     }
-  }, [quoteId]);
+  }, [quoteId, preview]);
 
   useEffect(() => {
     fetchQuote();
@@ -377,6 +379,11 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {preview && (
+        <div className="bg-amber-100 border-b border-amber-300 text-amber-900 text-sm text-center px-4 py-2">
+          Preview — this is what your customer sees. Opening it here does not mark the quote as viewed.
+        </div>
+      )}
       {/* Company Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-6">
