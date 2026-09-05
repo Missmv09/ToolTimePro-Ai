@@ -7,7 +7,11 @@ A safe place to preview and test changes against a real-looking stack before the
 - A stable URL like `https://sandbox--<your-site>.netlify.app` that rebuilds every time you push to the `sandbox` branch.
 - Isolated data: a separate Supabase project so test writes can never corrupt prod rows.
 - Test-mode Stripe: checkout flows work end-to-end without real charges.
-- Real cron schedules still fire, but against the sandbox Supabase — so scheduled-function regressions surface here first.
+- Scheduled functions do **not** run here. Netlify fires `netlify.toml` crons only for the
+  published production deploy, never for a branch deploy, so nothing in `netlify/functions/*-cron.ts`
+  ever touches the sandbox Supabase on a schedule. The sandbox database sees traffic only when
+  something drives the sandbox URL — in practice the authenticated Cypress suite on push to `sandbox`.
+  That is why the keep-alive below is not optional: it is the sandbox project's only guaranteed heartbeat.
 
 ## One-time setup
 
@@ -74,10 +78,22 @@ in the prod deploy context, *not* the sandbox branch deploy):
 | `SUPABASE_SANDBOX_URL` | sandbox project URL |
 | `SUPABASE_SANDBOX_KEY` | sandbox anon key |
 
-Without these, the cron keeps Prod alive but the sandbox project will pause after
-a week of inactivity. You can confirm both are being pinged in the Netlify
-function logs — each run logs one `Pinging production…` and one `Pinging
-sandbox…` line.
+Without these the cron keeps Prod alive and **fails the run** rather than
+quietly skipping the sandbox: the response is a 502 whose `problems` array names
+the missing variable, and the log carries a `MISCONFIGURED sandbox` line. A
+healthy run returns 200 and logs one `Pinging production…` and one `Pinging
+sandbox…` line — so in the Netlify **Functions → supabase-keepalive-cron** log,
+green means both projects were genuinely queried.
+
+If a deployment has no sandbox project at all, say so on purpose by setting
+`SUPABASE_SANDBOX_KEEPALIVE=off`. That silences the check as a deliberate
+decision instead of an oversight.
+
+> This is what the August 2026 pause cost us. The two vars above were never set,
+> so every run pinged production, returned `success: true`, and never mentioned
+> the sandbox — silence and success were indistinguishable. The project crossed
+> the 7-day line unnoticed and the authenticated E2E suite failed five specs with
+> `"Unable to connect to the server"` before anyone looked at the database.
 
 ### 5. Seed Stripe test-mode products
 
@@ -177,3 +193,24 @@ Do the same for `sandbox` if you want sandbox to stay green too.
 - **Cron jobs running twice:** you have the same schedule defined in both `netlify.toml` and a function config export. Keep it in `netlify.toml` only (per `CLAUDE.md`).
 - **Stripe webhook 400s:** `STRIPE_WEBHOOK_SECRET` doesn't match the endpoint. Each environment needs its own webhook + secret.
 - **Data showing up in prod:** a service-role key is pointing at the prod Supabase. Search the Netlify env var list for any `SUPABASE_*` var that isn't sandbox-scoped.
+- **Sandbox login fails with "Unable to connect to the server":** the sandbox Supabase project is most likely paused. See [Recovering a paused sandbox](#recovering-a-paused-sandbox).
+
+### Recovering a paused sandbox
+
+A paused project cannot be woken by traffic — the keep-alive will keep failing
+until a human restores it:
+
+1. **Restore it.** Supabase dashboard → the `tooltimepro-sandbox` project →
+   **Restore project**. Takes a few minutes.
+2. **Fix the cause.** Confirm `SUPABASE_SANDBOX_URL` / `SUPABASE_SANDBOX_KEY` are
+   set and scoped to production/all in Netlify, then trigger
+   `supabase-keepalive-cron` and check the run returns 200 with an empty
+   `problems` array. If it doesn't, the sandbox is on the clock again the moment
+   the last push goes quiet.
+3. **Verify.** Re-run **E2E (Cypress)** on `sandbox`. Login reaching `/dashboard`
+   is the signal the database is actually back.
+
+Telling a pause apart from other sandbox breakage, from the E2E failure alone:
+`"Unable to connect to the server"` at the login screen means nothing answered —
+suspect the database. `"Invalid login credentials"` or a 2FA prompt means the
+database answered fine and the problem is the E2E account, not the project.

@@ -73,7 +73,9 @@
 # Supabase Keep-Alive — runs every 3 days at 6am UTC
 # Pings every configured Supabase project (Prod + Sandbox) in one run with a
 # real SQL query to prevent free-tier projects from pausing (7-day inactivity
-# limit). Set SUPABASE_SANDBOX_URL / SUPABASE_SANDBOX_KEY to include sandbox.
+# limit). Sandbox needs SUPABASE_SANDBOX_URL / SUPABASE_SANDBOX_KEY; if they are
+# missing the run fails with a 502 naming them rather than skipping sandbox
+# silently. Set SUPABASE_SANDBOX_KEEPALIVE=off to opt out on purpose
 [functions."supabase-keepalive-cron"]
   schedule = "0 6 */3 * *"
 
