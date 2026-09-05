@@ -4,6 +4,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { pricesNeedAttention, calculatePriceIntelligence, type CategoryStalenessStatus } from '@/lib/supplier-pricing';
 import { getMaterialsByTrade, getMaterialById, type TradeType } from '@/lib/materials-database';
 import { getEnabledStates, isRulesStale, type StateComplianceRules } from '@/lib/state-compliance';
+import { sendSMS } from '@/lib/twilio';
+import { authenticateRequest } from '@/lib/server-auth';
+import { DEFAULT_ACTION_CONFIGS } from '@/types/jenny-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,6 +90,7 @@ export async function GET(request: NextRequest) {
     quote_expiration: { checked: 0, acted: 0 },
     contractor_payment: { checked: 0, acted: 0 },
     contract_end_date: { checked: 0, acted: 0 },
+    customer_reactivation: { checked: 0, acted: 0 },
   };
 
   try {
@@ -177,6 +181,11 @@ export async function GET(request: NextRequest) {
           case 'review_request':
             results.review_request.checked++;
             results.review_request.acted += await runReviewRequest(supabase, companyId, config);
+            break;
+
+          case 'customer_reactivation':
+            results.customer_reactivation.checked++;
+            results.customer_reactivation.acted += await runCustomerReactivation(supabase, companyId, config);
             break;
         }
       }
@@ -436,6 +445,25 @@ async function runLeadFollowUp(
       .replace(/{company_name}/g, company.name || 'us')
       .replace(/{service}/g, lead.service_requested || 'your project')
       .replace(/{phone}/g, company.phone || '');
+
+    // Send it. Until this call existed the action only wrote the audit rows
+    // and reported "sent" — no text ever left the building.
+    const sms = await sendSMS({ to: lead.phone, body: message });
+    if (!sms.success) {
+      await logAction(supabase, {
+        company_id: companyId,
+        action_type: 'lead_follow_up',
+        title: `Follow-up #${nextAttempt} to ${lead.name} failed to send`,
+        description: `Twilio rejected the ${targetDay}-day follow-up SMS to ${lead.name} (${lead.phone}): ${sms.error || 'unknown error'}.`,
+        status: 'failed',
+        target_id: lead.id,
+        target_type: 'lead',
+        target_name: lead.name,
+        metadata: { attempt: nextAttempt, day: targetDay, phone: lead.phone, error: sms.error || null },
+        executed_at: new Date().toISOString(),
+      });
+      continue;
+    }
 
     // Record the follow-up
     const { error: fuError } = await supabase.from('lead_follow_ups').insert({
@@ -1595,15 +1623,19 @@ async function runReviewRequest(
   const oneDayAgo = new Date(now.getTime() - 86400000).toISOString();
   const twoDaysAgo = new Date(now.getTime() - 2 * 86400000).toISOString();
 
-  const { data: recentlyCompleted } = await supabase
+  const { data: completedRows } = await supabase
     .from('jobs')
-    .select('id, title, customer_id, completed_at, customer:customers(name, phone, email)')
+    .select('id, title, customer_id, completed_at, followup_sent_at, customer:customers(name, phone, email, sms_consent)')
     .eq('company_id', companyId)
     .eq('status', 'completed')
     .gte('completed_at', twoDaysAgo)
     .lte('completed_at', oneDayAgo);
 
-  if (!recentlyCompleted || recentlyCompleted.length === 0) return 0;
+  // The daily reminders cron (/api/jenny-pro/reminders) already texts a
+  // thank-you + review link and stamps followup_sent_at. Don't ask twice.
+  const recentlyCompleted = (completedRows || []).filter((j: { followup_sent_at?: string | null }) => !j.followup_sent_at);
+
+  if (recentlyCompleted.length === 0) return 0;
 
   // Check for existing review requests
   const jobIds = recentlyCompleted.map((j: { id: string }) => j.id);
@@ -1624,8 +1656,10 @@ async function runReviewRequest(
     const customer = Array.isArray(job.customer) ? job.customer[0] : job.customer;
     const customerName = (customer as { name: string } | null)?.name || 'Customer';
     const customerPhone = (customer as { phone: string } | null)?.phone;
+    const consented = (customer as { sms_consent?: boolean } | null)?.sms_consent === true;
 
     if (!customerPhone) continue; // Need phone for SMS review request
+    if (!consented) continue; // TCPA: marketing text needs opt-in
 
     await logAction(supabase, {
       company_id: companyId,
@@ -1647,6 +1681,206 @@ async function runReviewRequest(
     });
 
     acted++;
+  }
+
+  return acted;
+}
+
+// ============================================================
+// REVIEW REQUEST APPROVAL: owner clicked Approve — send the text now
+// ============================================================
+interface PendingReviewLog {
+  id: string;
+  target_id: string | null;
+  target_name: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
+async function approveReviewRequest(
+  supabase: SB,
+  companyId: string,
+  logEntry: PendingReviewLog
+): Promise<{ ok: boolean; error?: string }> {
+  const meta = logEntry.metadata || {};
+  const phone = meta.customer_phone as string | undefined;
+  const reviewLink = meta.review_link as string | undefined;
+  const platform = (meta.review_platform as string) || 'google';
+  const customerName = (meta.customer_name as string) || 'there';
+  if (!phone) return { ok: false, error: 'No customer phone on this request' };
+  if (!reviewLink) return { ok: false, error: 'No review link configured' };
+
+  const { data: company } = await supabase.from('companies').select('name').eq('id', companyId).single();
+  const companyName = (company as { name?: string } | null)?.name || 'us';
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.taskiguana.com';
+  const trackingToken = `rv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  const trackedLink = `${siteUrl}/r/${trackingToken}`;
+
+  const text = `Hi ${customerName}! Thanks for choosing ${companyName}. Would you take 30 seconds to leave us a ${platform === 'yelp' ? 'Yelp' : 'Google'} review? ${trackedLink} Reply STOP to opt out.`;
+  const sms = await sendSMS({ to: phone, body: text });
+  if (!sms.success) {
+    await supabase.from('jenny_action_log').update({
+      status: 'failed',
+      result: `SMS failed: ${sms.error || 'unknown error'}`,
+    }).eq('id', logEntry.id);
+    return { ok: false, error: sms.error || 'Failed to send SMS' };
+  }
+
+  const now = new Date().toISOString();
+  const { error: rrError } = await supabase.from('review_requests').insert({
+    company_id: companyId,
+    job_id: logEntry.target_id,
+    customer_id: (meta.customer_id as string) || null,
+    customer_name: customerName,
+    customer_phone: phone,
+    review_link: reviewLink,
+    review_platform: platform,
+    status: 'sent',
+    channel: 'sms',
+    sent_at: now,
+    tracking_token: trackingToken,
+  });
+  if (rrError) console.error('[jenny-actions] review_requests insert failed:', rrError.message);
+
+  if (logEntry.target_id) {
+    const { error: jobErr } = await supabase.from('jobs').update({ followup_sent_at: now }).eq('id', logEntry.target_id);
+    if (jobErr) console.error('[jenny-actions] followup_sent_at update failed:', jobErr.message);
+  }
+
+  const { error: logErr } = await supabase.from('jenny_action_log').update({
+    status: 'executed',
+    executed_at: now,
+    result: 'Approved by owner — review request sent',
+    metadata: { ...meta, tracking_token: trackingToken, twilio_sid: sms.messageId || null },
+  }).eq('id', logEntry.id);
+  if (logErr) console.error('[jenny-actions] action log update failed:', logErr.message);
+
+  return { ok: true };
+}
+
+// ============================================================
+// CUSTOMER REACTIVATION: text consented customers who have gone quiet
+// ============================================================
+function renderTemplate(template: string, vars: Record<string, string>): string {
+  return Object.entries(vars).reduce(
+    (out, [key, value]) => out.replace(new RegExp(`\\{${key}\\}`, 'g'), value),
+    template
+  );
+}
+
+async function runCustomerReactivation(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  const defaults = DEFAULT_ACTION_CONFIGS.customer_reactivation as Record<string, unknown>;
+  const monthsInactive = Math.max(1, Number(config.months_inactive) || Number(defaults.months_inactive) || 6);
+  const cooldownDays = Math.max(7, Number(config.cooldown_days) || Number(defaults.cooldown_days) || 90);
+  const maxPerRun = Math.max(1, Number(config.max_per_run) || Number(defaults.max_per_run) || 10);
+  const template = (config.sms_template as string) || (defaults.sms_template as string);
+
+  const { data: company } = await supabase.from('companies').select('name, phone').eq('id', companyId).single();
+  if (!company) return 0;
+  const companyName = (company as { name?: string }).name || 'us';
+  const companyPhone = (company as { phone?: string }).phone || '';
+
+  // Only customers who opted in to texts. Reactivation is marketing, not a
+  // transactional notice, so consent is non-negotiable.
+  const { data: customers } = await supabase
+    .from('customers')
+    .select('id, name, phone, sms_consent')
+    .eq('company_id', companyId)
+    .eq('sms_consent', true)
+    .not('phone', 'is', null)
+    .limit(1000);
+  if (!customers || customers.length === 0) return 0;
+
+  const customerIds = customers.map((c: { id: string }) => c.id);
+
+  const { data: jobs } = await supabase
+    .from('jobs')
+    .select('customer_id, title, status, scheduled_date, completed_at, created_at')
+    .eq('company_id', companyId)
+    .in('customer_id', customerIds)
+    .limit(5000);
+
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - monthsInactive * 30 * 86400000);
+
+  // Per customer: most recent job activity, plus whether anything is upcoming.
+  const lastActivity = new Map<string, { at: Date; title: string }>();
+  const hasUpcoming = new Set<string>();
+  for (const job of (jobs || []) as Array<{ customer_id: string; title: string; status: string; scheduled_date: string | null; completed_at: string | null; created_at: string }>) {
+    if (!job.customer_id || job.status === 'cancelled') continue;
+    const candidates = [job.completed_at, job.scheduled_date, job.created_at]
+      .filter(Boolean)
+      .map((d) => new Date(d as string))
+      .filter((d) => Number.isFinite(d.getTime()));
+    if (candidates.length === 0) continue;
+    const at = new Date(Math.max(...candidates.map((d) => d.getTime())));
+    if (job.scheduled_date && new Date(job.scheduled_date) >= now && job.status !== 'completed') {
+      hasUpcoming.add(job.customer_id);
+    }
+    const prev = lastActivity.get(job.customer_id);
+    if (!prev || at > prev.at) lastActivity.set(job.customer_id, { at, title: job.title || 'service' });
+  }
+
+  // Don't nag: one reactivation text per customer per cooldown window.
+  const cooldownStart = new Date(now.getTime() - cooldownDays * 86400000).toISOString();
+  const { data: recentLogs } = await supabase
+    .from('jenny_action_log')
+    .select('target_id')
+    .eq('company_id', companyId)
+    .eq('action_type', 'customer_reactivation')
+    .gte('created_at', cooldownStart)
+    .in('target_id', customerIds);
+  const recentlyContacted = new Set((recentLogs || []).map((r: { target_id: string }) => r.target_id));
+
+  let acted = 0;
+  for (const customer of customers as Array<{ id: string; name: string; phone: string }>) {
+    if (acted >= maxPerRun) break;
+    const last = lastActivity.get(customer.id);
+    if (!last) continue; // never served — that's a lead, not a lapsed customer
+    if (last.at > cutoff) continue; // still active
+    if (hasUpcoming.has(customer.id)) continue;
+    if (recentlyContacted.has(customer.id)) continue;
+
+    const firstName = String(customer.name || '').trim().split(/\s+/)[0] || 'there';
+    const message = renderTemplate(template, {
+      customer_name: firstName,
+      company_name: companyName,
+      last_service: last.title,
+      phone: companyPhone,
+    });
+
+    const sms = await sendSMS({ to: customer.phone, body: message });
+    const monthsAgo = Math.floor((now.getTime() - last.at.getTime()) / (30 * 86400000));
+
+    await logAction(supabase, {
+      company_id: companyId,
+      action_type: 'customer_reactivation',
+      title: sms.success
+        ? `Win-back text sent to ${customer.name}`
+        : `Win-back text to ${customer.name} failed`,
+      description: sms.success
+        ? `Jenny texted ${customer.name} (${customer.phone}) — last job "${last.title}" was ${monthsAgo} months ago.`
+        : `Twilio rejected the win-back text to ${customer.name} (${customer.phone}): ${sms.error || 'unknown error'}.`,
+      status: sms.success ? 'executed' : 'failed',
+      target_id: customer.id,
+      target_type: 'customer',
+      target_name: customer.name,
+      metadata: {
+        phone: customer.phone,
+        last_service: last.title,
+        last_activity_at: last.at.toISOString(),
+        months_inactive: monthsAgo,
+        twilio_sid: sms.messageId || null,
+        error: sms.error || null,
+      },
+      executed_at: new Date().toISOString(),
+    });
+
+    if (sms.success) acted++;
   }
 
   return acted;
@@ -1774,15 +2008,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Server config error' }, { status: 500 });
   }
 
-  const authHeader = request.headers.get('x-user-id');
-  if (!authHeader) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  // Bearer token / body token / cookie (what the dashboard actually sends),
+  // with the legacy x-user-id header kept for internal callers. The dashboard
+  // never sent x-user-id, so every Approve / Dismiss / Run-now click was a 401.
+  let userId: string | null = null;
+  const { user, error: authResponse } = await authenticateRequest(request, body?._authToken as string | undefined);
+  if (user?.id) {
+    userId = user.id;
+  } else {
+    const legacy = request.headers.get('x-user-id');
+    if (legacy) userId = legacy;
+  }
+  if (!userId) {
+    return authResponse || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { data: dbUser } = await supabase
     .from('users')
     .select('company_id, role')
-    .eq('id', authHeader)
+    .eq('id', userId)
     .single();
 
   if (!dbUser?.company_id || !['owner', 'admin'].includes(dbUser.role)) {
@@ -1790,8 +2041,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const { action } = body;
+    const { action } = body as { action?: string };
 
     if (action === 'run_all') {
       // Run all enabled actions for this company
@@ -1845,6 +2095,9 @@ export async function POST(request: NextRequest) {
           case 'review_request':
             results.review_request = await runReviewRequest(supabase, dbUser.company_id, c);
             break;
+          case 'customer_reactivation':
+            results.customer_reactivation = await runCustomerReactivation(supabase, dbUser.company_id, c);
+            break;
         }
       }
 
@@ -1859,9 +2112,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, results });
     }
 
-    if (action === 'approve_dispatch') {
-      const { actionLogId } = body;
-      // Approve a pending dispatch suggestion
+    if (action === 'approve_dispatch' || action === 'approve' || action === 'approve_review_request') {
+      const { actionLogId } = body as { actionLogId?: string };
+      // Approve a pending suggestion (dispatch or review request)
       const { data: logEntry } = await supabase
         .from('jenny_action_log')
         .select('*')
@@ -1873,6 +2126,13 @@ export async function POST(request: NextRequest) {
       if (!logEntry) return NextResponse.json({ error: 'Action not found' }, { status: 404 });
 
       const metadata = logEntry.metadata as Record<string, unknown>;
+
+      if (logEntry.action_type === 'review_request') {
+        const sent = await approveReviewRequest(supabase, dbUser.company_id, logEntry as unknown as PendingReviewLog);
+        if (!sent.ok) return NextResponse.json({ error: sent.error }, { status: 400 });
+        return NextResponse.json({ success: true, sent: true });
+      }
+
       const workerId = metadata?.worker_id as string;
       const jobId = logEntry.target_id;
 
@@ -1893,7 +2153,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'dismiss') {
-      const { actionLogId } = body;
+      const { actionLogId } = body as { actionLogId?: string };
       await supabase.from('jenny_action_log').update({
         status: 'skipped',
         result: 'Dismissed by owner',

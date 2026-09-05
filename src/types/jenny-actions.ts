@@ -16,7 +16,8 @@ export type JennyActionType =
   | 'compliance_escalation'
   | 'quote_expiration'
   | 'contractor_payment'
-  | 'contract_end_date';
+  | 'contract_end_date'
+  | 'customer_reactivation';
 
 export type ActionStatus = 'pending' | 'executed' | 'skipped' | 'failed';
 
@@ -44,6 +45,7 @@ export const CONFIGURABLE_ACTION_TYPES: JennyActionType[] = [
   'classification_review',
   'compliance_escalation',
   'contract_end_date',
+  'customer_reactivation',
 ];
 
 
@@ -176,6 +178,15 @@ export interface ContractEndDateConfig {
   warn_days_before: number[]; // e.g. [30, 14, 7] days before end
 }
 
+// Customer Reactivation (win-back) Config
+export interface CustomerReactivationConfig {
+  enabled: boolean;
+  months_inactive: number; // Text customers whose last job is older than this
+  cooldown_days: number; // Never text the same customer twice within this window
+  max_per_run: number; // Cap per cron run so a big backlog trickles out
+  sms_template: string; // {customer_name} {company_name} {last_service} {phone}
+}
+
 // Default configs for new companies
 export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unknown>> = {
   auto_dispatch: {
@@ -288,6 +299,15 @@ export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unkn
     enabled: true,
     warn_days_before: [30, 14, 7],
   } satisfies ContractEndDateConfig,
+
+  customer_reactivation: {
+    enabled: false,
+    months_inactive: 6,
+    cooldown_days: 90,
+    max_per_run: 10,
+    sms_template:
+      "Hi {customer_name}, it's {company_name}. It's been a while since your {last_service} — want to get something on the calendar? Reply here and I can book you in, or call {phone}. Reply STOP to opt out.",
+  } satisfies CustomerReactivationConfig,
 };
 
 // Action descriptions for the dashboard
@@ -366,5 +386,10 @@ export const ACTION_DESCRIPTIONS: Record<JennyActionType, { title: string; descr
     title: 'Contract End Date Alerts',
     description: 'Weekly check for contractor agreements ending within 30 days. Triggers offboarding planning or contract renewal conversations.',
     icon: 'Calendar',
+  },
+  customer_reactivation: {
+    title: 'Customer Win-Back',
+    description: 'Jenny texts past customers who have not booked in 6 months and offers to get them back on the calendar. Opted-in customers only, one text per quarter.',
+    icon: 'RefreshCw',
   },
 };
