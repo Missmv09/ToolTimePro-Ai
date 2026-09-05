@@ -28,6 +28,22 @@ interface SMSConversation {
   message_count: number;
   lead_id: string | null;
   booking_id?: string | null;
+  source?: string | null;
+  human_takeover_until?: string | null;
+}
+
+interface SMSMessage {
+  id: string;
+  direction: 'inbound' | 'outbound';
+  body: string;
+  status: string | null;
+  sender?: 'customer' | 'jenny' | 'owner' | 'system' | null;
+  created_at: string;
+}
+
+function takeoverActive(conv: SMSConversation | null): boolean {
+  if (!conv?.human_takeover_until) return false;
+  return new Date(conv.human_takeover_until).getTime() > Date.now();
 }
 
 interface JennyProStats {
@@ -48,6 +64,8 @@ interface JennyProSettings {
   business_info: string;
   reminders_enabled: boolean;
   review_followup_enabled: boolean;
+  lead_alerts_enabled: boolean;
+  lead_auto_reply_enabled: boolean;
 }
 
 const DEFAULT_SETTINGS: JennyProSettings = {
@@ -61,6 +79,8 @@ const DEFAULT_SETTINGS: JennyProSettings = {
   business_info: '',
   reminders_enabled: true,
   review_followup_enabled: true,
+  lead_alerts_enabled: true,
+  lead_auto_reply_enabled: false,
 };
 
 export default function JennyProPage() {
@@ -101,6 +121,23 @@ function JennyProDashboard() {
   const [portingSubmitting, setPortingSubmitting] = useState(false);
   const [portError, setPortError] = useState('');
   const [showPorting, setShowPorting] = useState(false);
+
+  // Inbox thread state
+  const [selectedConv, setSelectedConv] = useState<SMSConversation | null>(null);
+  const [messages, setMessages] = useState<SMSMessage[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+  const [inboxError, setInboxError] = useState('');
+
+  // Deep link: /dashboard/jenny-pro?tab=conversations (used by the inbox
+  // notification). Read from window instead of useSearchParams so the page
+  // stays prerenderable without a Suspense boundary.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab === 'conversations' || tab === 'settings') setActiveTab(tab);
+  }, []);
 
   const fetchConversations = useCallback(async () => {
     if (!dbUser?.company_id) return;
@@ -150,6 +187,8 @@ function JennyProDashboard() {
           business_info: data.business_info || '',
           reminders_enabled: data.reminders_enabled !== false,
           review_followup_enabled: data.review_followup_enabled !== false,
+          lead_alerts_enabled: data.lead_alerts_enabled !== false,
+          lead_auto_reply_enabled: data.lead_auto_reply_enabled === true,
         });
       }
     } catch {
@@ -177,6 +216,8 @@ function JennyProDashboard() {
           business_info: settings.business_info,
           reminders_enabled: settings.reminders_enabled,
           review_followup_enabled: settings.review_followup_enabled,
+          lead_alerts_enabled: settings.lead_alerts_enabled,
+          lead_auto_reply_enabled: settings.lead_auto_reply_enabled,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'company_id' }
@@ -313,6 +354,81 @@ function JennyProDashboard() {
     fetchNumber();
     fetchPortRequest();
   }, [fetchConversations, fetchSettings, fetchNumber, fetchPortRequest]);
+
+  // ── Inbox ────────────────────────────────────────────────────────────────
+  const loadMessages = useCallback(async (conversationId: string) => {
+    setLoadingMessages(true);
+    try {
+      const { data } = await supabase
+        .from('jenny_sms_messages')
+        .select('id, direction, body, status, sender, created_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(200);
+      setMessages((data as SMSMessage[]) || []);
+    } catch {
+      setMessages([]);
+    }
+    setLoadingMessages(false);
+  }, []);
+
+  const openConversation = useCallback((conv: SMSConversation) => {
+    setSelectedConv(conv);
+    setInboxError('');
+    setReplyText('');
+    loadMessages(conv.id);
+  }, [loadMessages]);
+
+  const postInbox = useCallback(async (action: 'reply' | 'resolve' | 'handback' | 'takeover', extra: Record<string, unknown> = {}) => {
+    if (!selectedConv) return { ok: false, error: 'No conversation selected' };
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    const res = await fetch('/api/jenny-pro/conversations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ action, conversationId: selectedConv.id, _authToken: token, ...extra }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: data.error || 'Request failed' };
+    return { ok: true, ...data };
+  }, [selectedConv]);
+
+  const refreshThread = useCallback(async () => {
+    if (!selectedConv) return;
+    await fetchConversations();
+    const { data } = await supabase
+      .from('jenny_sms_conversations')
+      .select('*')
+      .eq('id', selectedConv.id)
+      .maybeSingle();
+    if (data) setSelectedConv(data as SMSConversation);
+    await loadMessages(selectedConv.id);
+  }, [selectedConv, fetchConversations, loadMessages]);
+
+  const sendReply = useCallback(async () => {
+    const text = replyText.trim();
+    if (!text || !selectedConv) return;
+    setSendingReply(true);
+    setInboxError('');
+    const r = await postInbox('reply', { body: text });
+    if (r.ok) {
+      setReplyText('');
+      await refreshThread();
+    } else {
+      setInboxError(r.error || 'Could not send. Please try again.');
+    }
+    setSendingReply(false);
+  }, [replyText, selectedConv, postInbox, refreshThread]);
+
+  const inboxAction = useCallback(async (action: 'resolve' | 'handback' | 'takeover') => {
+    setInboxError('');
+    const r = await postInbox(action);
+    if (r.ok) await refreshThread();
+    else setInboxError(r.error || 'Request failed');
+  }, [postInbox, refreshThread]);
 
   const isBetaTester = company?.is_beta_tester;
 
@@ -453,7 +569,7 @@ function JennyProDashboard() {
         </div>
       )}
 
-      {/* Conversations Tab */}
+      {/* Conversations Tab — two-way inbox */}
       {activeTab === 'conversations' && (
         <div className="space-y-4">
           {loading ? (
@@ -467,41 +583,185 @@ function JennyProDashboard() {
               <h3 className="text-lg font-medium text-gray-900 mb-1">No conversations yet</h3>
               <p className="text-gray-500">
                 SMS conversations will appear here as Jenny interacts with your customers.
-                Conversations are auto-created from booking confirmations, lead follow-ups, and inbound messages.
+                Conversations are auto-created from booking confirmations, lead follow-ups, website leads, and inbound messages.
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border divide-y">
-              {conversations.map((conv) => (
-                <div key={conv.id} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900">{conv.customer_name}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          conv.status === 'needs_response'
-                            ? 'bg-red-100 text-red-700'
-                            : conv.status === 'active'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {conv.status === 'needs_response' ? 'Needs Response' : conv.status === 'active' ? 'Active' : 'Resolved'}
-                        </span>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              {/* Thread list */}
+              <div className={`bg-white rounded-xl border divide-y lg:col-span-2 ${selectedConv ? 'hidden lg:block' : ''}`}>
+                {conversations.map((conv) => (
+                  <button
+                    type="button"
+                    key={conv.id}
+                    onClick={() => openConversation(conv)}
+                    className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${selectedConv?.id === conv.id ? 'bg-blue-50' : ''}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-gray-900">{conv.customer_name}</p>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            conv.status === 'needs_response'
+                              ? 'bg-red-100 text-red-700'
+                              : conv.status === 'active'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {conv.status === 'needs_response' ? 'Needs Response' : conv.status === 'active' ? 'Active' : 'Resolved'}
+                          </span>
+                          {takeoverActive(conv) && (
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">You&apos;re replying</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-0.5">{conv.customer_phone}</p>
+                        <p className="text-sm text-gray-600 mt-1 truncate">{conv.last_message}</p>
                       </div>
-                      <p className="text-sm text-gray-500 mt-0.5">{conv.customer_phone}</p>
-                      <p className="text-sm text-gray-600 mt-1 truncate">{conv.last_message}</p>
+                      <div className="text-right flex-shrink-0 ml-4">
+                        <p className="text-xs text-gray-400">
+                          {new Date(conv.last_message_at).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {conv.message_count} messages
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right flex-shrink-0 ml-4">
-                      <p className="text-xs text-gray-400">
-                        {new Date(conv.last_message_at).toLocaleDateString()}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {conv.message_count} messages
-                      </p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Thread view */}
+              <div className="bg-white rounded-xl border lg:col-span-3 flex flex-col min-h-[420px]">
+                {!selectedConv ? (
+                  <div className="flex-1 flex items-center justify-center p-8 text-center">
+                    <div>
+                      <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                      <p className="text-gray-500 text-sm">Pick a conversation to read the thread and reply as yourself.</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ) : (
+                  <>
+                    <div className="p-4 border-b flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedConv(null)}
+                          className="lg:hidden text-xs text-blue-600 mb-1"
+                        >
+                          ← All conversations
+                        </button>
+                        <p className="font-semibold text-gray-900 truncate">{selectedConv.customer_name}</p>
+                        <p className="text-sm text-gray-500">{selectedConv.customer_phone}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        {takeoverActive(selectedConv) ? (
+                          <button
+                            type="button"
+                            onClick={() => inboxAction('handback')}
+                            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                          >
+                            Hand back to Jenny
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => inboxAction('takeover')}
+                            className="px-3 py-1.5 text-xs font-medium rounded-lg border text-gray-700 hover:bg-gray-50"
+                          >
+                            Pause Jenny here
+                          </button>
+                        )}
+                        {selectedConv.status !== 'resolved' && (
+                          <button
+                            type="button"
+                            onClick={() => inboxAction('resolve')}
+                            className="px-3 py-1.5 text-xs font-medium rounded-lg border text-gray-700 hover:bg-gray-50"
+                          >
+                            Mark resolved
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={refreshThread}
+                          className="p-1.5 rounded-lg border text-gray-500 hover:bg-gray-50"
+                          aria-label="Refresh thread"
+                        >
+                          <RefreshCw size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {takeoverActive(selectedConv) && (
+                      <div className="px-4 py-2 bg-green-50 text-green-800 text-xs border-b">
+                        You&apos;re driving this thread. Jenny stays quiet and pings you when the customer replies.
+                        She takes over again automatically in a few hours, or when you hand it back.
+                      </div>
+                    )}
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[480px]">
+                      {loadingMessages ? (
+                        <p className="text-sm text-gray-400 text-center">Loading messages...</p>
+                      ) : messages.length === 0 ? (
+                        <p className="text-sm text-gray-400 text-center">No messages logged for this thread yet.</p>
+                      ) : (
+                        messages.map((m) => {
+                          const mine = m.direction === 'outbound';
+                          const who = !mine ? selectedConv.customer_name : m.sender === 'owner' ? 'You' : m.sender === 'system' ? 'Automation' : 'Jenny';
+                          return (
+                            <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                                !mine
+                                  ? 'bg-gray-100 text-gray-900'
+                                  : m.sender === 'owner'
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-blue-600 text-white'
+                              }`}>
+                                <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                                <p className={`text-[10px] mt-1 ${mine ? 'text-white/70' : 'text-gray-400'}`}>
+                                  {who} · {new Date(m.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                                  {m.status === 'failed' ? ' · failed' : ''}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    <div className="p-4 border-t">
+                      {inboxError && <p className="text-xs text-red-600 mb-2">{inboxError}</p>}
+                      <div className="flex gap-2 items-end">
+                        <textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              sendReply();
+                            }
+                          }}
+                          rows={2}
+                          maxLength={1200}
+                          placeholder={`Text ${selectedConv.customer_name} as yourself… (Enter to send, Shift+Enter for a new line)`}
+                          className="flex-1 border rounded-lg p-3 text-sm resize-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={sendReply}
+                          disabled={sendingReply || !replyText.trim()}
+                          className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          <Send size={16} />
+                          {sendingReply ? 'Sending…' : 'Send'}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-2">
+                        Sending a reply pauses Jenny on this thread so she doesn&apos;t talk over you.
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -576,6 +836,48 @@ function JennyProDashboard() {
                 aria-pressed={settings.review_followup_enabled}
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.review_followup_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Instant lead alerts */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-lg border mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Instant new-lead alerts</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  The moment someone submits your website contact form, get an in-app notification and a
+                  text to your escalation number below. Speed-to-lead wins the job.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, lead_alerts_enabled: !s.lead_alerts_enabled }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.lead_alerts_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.lead_alerts_enabled}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.lead_alerts_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Text new leads back instantly */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-lg border mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Jenny texts new leads back instantly</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  When a website lead leaves a phone number, Jenny replies within seconds, asks what day
+                  works, and books them from the conversation. You&apos;ll see the thread in SMS Conversations.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, lead_auto_reply_enabled: !s.lead_auto_reply_enabled }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  settings.lead_auto_reply_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                aria-pressed={settings.lead_auto_reply_enabled}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.lead_auto_reply_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
 

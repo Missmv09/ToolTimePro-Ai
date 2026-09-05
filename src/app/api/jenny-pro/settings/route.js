@@ -71,6 +71,8 @@ export async function POST(request) {
     business_info,
     reminders_enabled,
     review_followup_enabled,
+    lead_alerts_enabled,
+    lead_auto_reply_enabled,
   } = body;
 
   const settingsPayload = {
@@ -85,6 +87,8 @@ export async function POST(request) {
     business_info,
     reminders_enabled,
     review_followup_enabled,
+    lead_alerts_enabled,
+    lead_auto_reply_enabled,
     updated_at: new Date().toISOString(),
   };
 
@@ -97,12 +101,14 @@ export async function POST(request) {
   // A DB behind on migrations 038/041/042 lacks operator_language/business_info/
   // reminders_enabled/review_followup_enabled; strip them and retry so settings
   // still save.
-  if (error && (error.code === '42703' || /operator_language|business_info|reminders_enabled|review_followup_enabled/.test(error.message || ''))) {
+  if (error && (error.code === '42703' || /operator_language|business_info|reminders_enabled|review_followup_enabled|lead_alerts_enabled|lead_auto_reply_enabled/.test(error.message || ''))) {
     const retry = { ...settingsPayload };
     delete retry.operator_language;
     delete retry.business_info;
     delete retry.reminders_enabled;
     delete retry.review_followup_enabled;
+    delete retry.lead_alerts_enabled;
+    delete retry.lead_auto_reply_enabled;
     ({ data, error } = await supabase
       .from('jenny_pro_settings')
       .upsert(retry, { onConflict: 'company_id' })

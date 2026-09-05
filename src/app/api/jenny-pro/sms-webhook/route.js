@@ -5,6 +5,7 @@ import { classifyKeyword, detectLanguage, resolveReplyLanguage, t } from '@/lib/
 import { notifyOperatorInApp, notifyOperatorSMS } from '@/lib/jenny-notify';
 import { resolveCompanyByNumber } from '@/lib/jenny-company';
 import { getUpcomingBookings, isDuplicate, rescheduleBooking, cancelBooking } from '@/lib/jenny-bookings';
+import { isHumanTakeoverActive } from '@/lib/jenny-inbox';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,7 +105,7 @@ export async function POST(request) {
     // Find or create the active conversation for this customer.
     const { data: existing } = await supabase
       .from('jenny_sms_conversations')
-      .select('id, message_count, language')
+      .select('id, message_count, language, human_takeover_until')
       .eq('company_id', companyId)
       .eq('customer_phone', from)
       .neq('status', 'resolved')
@@ -163,6 +164,7 @@ export async function POST(request) {
         body,
         twilio_sid: messageSid,
         status: 'received',
+        sender: 'customer',
       });
     }
 
@@ -173,6 +175,7 @@ export async function POST(request) {
           direction: 'outbound',
           body: text,
           status: 'sent',
+          sender: 'jenny',
         });
         await supabase
           .from('jenny_sms_conversations')
@@ -202,6 +205,28 @@ export async function POST(request) {
     if (keyword === 'help') {
       await logOutbound(t(kwLang).help);
       return twiml(t(kwLang).help);
+    }
+
+    // ── Human takeover: the owner is driving this thread ───────────────────
+    // They replied from the inbox recently, so Jenny stays quiet: log the text
+    // (already done above), ping the owner, and send nothing back.
+    if (isHumanTakeoverActive(existing)) {
+      const opLang = settings?.operator_language || 'en';
+      const who = knownCustomer?.name || existing?.customer_name || from;
+      await Promise.all([
+        notifyOperatorSMS(
+          settings?.escalation_phone,
+          `💬 ${who}: "${body.slice(0, 140)}" — reply in your Jenny inbox.`
+        ),
+        notifyOperatorInApp(supabase, {
+          companyId,
+          type: 'new_lead',
+          title: opLang === 'es' ? 'Nuevo mensaje en tu bandeja' : 'New reply in your inbox',
+          message: `${who}: ${body.slice(0, 140)}`,
+          link: '/dashboard/jenny-pro?tab=conversations',
+        }),
+      ]);
+      return twiml(null);
     }
 
     // ── Run the booking agent ──────────────────────────────────────────────

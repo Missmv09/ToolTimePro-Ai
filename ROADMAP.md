@@ -1,5 +1,14 @@
 # Task Iguana — Future Roadmap
 
+## Replace Housecall Pro + GoHighLevel (one vendor, one bill)
+- [x] **Two-Way SMS Inbox** — Owner replies to any Jenny thread from the dashboard; Jenny pauses on takeover and resumes on hand-back
+- [x] **Instant Lead Alerts** — Website form → in-app + SMS to owner in seconds; optional Jenny auto-reply that opens a booking thread
+- [x] **Customer Win-Back** — Jenny texts opted-in customers quiet for 6+ months (autonomous action `customer_reactivation`)
+- [x] **Missed-Call Text-Back** — Owner ring-through, then Jenny texts the caller and books via SMS
+- [ ] **Google Business / Facebook Messenger in the inbox** — same thread view, more channels
+- [ ] **Email drip campaigns** — Jenny follow-ups over email for leads without a phone
+- [ ] **Zapier / webhook out** — `src/lib/zapier.ts` is still a stub
+
 ## Review & Reputation (Add-on Revenue Opportunities)
 - [ ] **Review Monitoring Dashboard** — Track Google rating over time, review volume trends, competitor comparison
 - [ ] **AI Review Response Writer** — Jenny drafts professional replies to Google reviews (positive and negative)
