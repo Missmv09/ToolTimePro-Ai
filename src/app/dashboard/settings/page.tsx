@@ -27,7 +27,20 @@ interface CompanyForm {
   company_description: string
   default_hourly_rate: string
   preferred_language: string
+  timezone: string
+  default_tax_rate: string
 }
+
+// Common US zones first; any IANA name typed elsewhere is preserved as-is.
+const TIMEZONE_OPTIONS = [
+  { value: 'America/New_York', label: 'Eastern (New York)' },
+  { value: 'America/Chicago', label: 'Central (Chicago)' },
+  { value: 'America/Denver', label: 'Mountain (Denver)' },
+  { value: 'America/Phoenix', label: 'Arizona (no DST)' },
+  { value: 'America/Los_Angeles', label: 'Pacific (Los Angeles)' },
+  { value: 'America/Anchorage', label: 'Alaska' },
+  { value: 'Pacific/Honolulu', label: 'Hawaii' },
+]
 
 const DAYS_OF_WEEK = [
   { key: 'mon', label: 'Mon' },
@@ -212,6 +225,8 @@ function SettingsContent() {
     company_description: '',
     default_hourly_rate: '',
     preferred_language: 'en',
+    timezone: 'America/Los_Angeles',
+    default_tax_rate: '',
   })
 
   // Initialize form when company data loads
@@ -238,6 +253,8 @@ function SettingsContent() {
         company_description: (c.company_description as string) || '',
         default_hourly_rate: c.default_hourly_rate ? String(c.default_hourly_rate) : '',
         preferred_language: (c.preferred_language as string) || 'en',
+        timezone: (c.timezone as string) || 'America/Los_Angeles',
+        default_tax_rate: c.default_tax_rate != null && c.default_tax_rate !== '' ? String(c.default_tax_rate) : '',
       })
       // Load quote approval settings
       const approvalSettings = c.quote_approval_settings as { required?: boolean; approver_ids?: string[] } | null
@@ -348,6 +365,10 @@ function SettingsContent() {
         company_description: companyForm.company_description || null,
         default_hourly_rate: companyForm.default_hourly_rate ? Number(companyForm.default_hourly_rate) : null,
         preferred_language: companyForm.preferred_language || 'en',
+        timezone: companyForm.timezone || 'America/Los_Angeles',
+        default_tax_rate: companyForm.default_tax_rate !== '' && !Number.isNaN(Number(companyForm.default_tax_rate))
+          ? Number(companyForm.default_tax_rate)
+          : null,
       }
 
       // Try saving all fields at once
@@ -698,6 +719,22 @@ function SettingsContent() {
                       </select>
                       <p className="text-xs text-gray-500 mt-1">Language for customer-facing documents.</p>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Time Zone</label>
+                      <select
+                        value={companyForm.timezone}
+                        onChange={(e) => setCompanyForm({ ...companyForm, timezone: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        {!TIMEZONE_OPTIONS.some((o) => o.value === companyForm.timezone) && (
+                          <option value={companyForm.timezone}>{companyForm.timezone}</option>
+                        )}
+                        {TIMEZONE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Used for calendar sync, reminders, and after-hours detection.</p>
+                    </div>
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -818,6 +855,24 @@ function SettingsContent() {
                 {/* === INVOICING & QUOTES === */}
                 <div className="border-t pt-6">
                   <h3 className="text-sm font-semibold text-gray-800 mb-4">Invoicing &amp; Quotes</h3>
+                  <div className="mb-4 max-w-xs">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Default Sales Tax Rate (%)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      step="0.01"
+                      value={companyForm.default_tax_rate}
+                      onChange={(e) => setCompanyForm({ ...companyForm, default_tax_rate: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g. 8.25"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Pre-fills new quotes and invoices. Leave blank to estimate from each customer&apos;s state. You can edit it per document.
+                    </p>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Default Quote Terms &amp; Conditions

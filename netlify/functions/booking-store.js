@@ -1,12 +1,18 @@
-// Netlify Function for booking storage and retrieval
-// Handles saving bookings and checking for conflicts
-// Uses Supabase when configured, falls back to in-memory for demo
+// Netlify Function backing the public marketing-site chatbot demo
+// (tooltimepro/chatbot.html → "Try Jenny Live"). It stores DEMO bookings in
+// the `chatbot_bookings` table (migration 054) and checks for slot conflicts.
+//
+// These are marketing leads, not tenant jobs: the demo has no company context.
+// Real online bookings go through /api/bookings into `jobs`.
+//
+// The in-memory store below is used ONLY when Supabase is not configured
+// (local dev). When Supabase IS configured and the insert fails, the request
+// fails — it must never report success for a booking that was not persisted.
 
 const { createClient } = require('@supabase/supabase-js');
 const Twilio = require('twilio');
 
-// In-memory store for demo mode (resets on function cold start)
-// In production, this would always use Supabase
+// In-memory store for local dev without Supabase (resets on cold start).
 let demoBookings = [];
 
 // Lazy Twilio initialization
@@ -43,8 +49,9 @@ async function sendBookingConfirmationSMS({ to, customerName, serviceName, date,
       return { sent: false, reason: 'not_configured' };
     }
 
+    // This is the marketing demo: be explicit that no real appointment exists.
     const smsParams = {
-      body: `Hi ${customerName}! Your ${serviceName} appointment is confirmed for ${date} at ${time}. We'll see you then! Reply STOP to opt out.`,
+      body: `Hi ${customerName}! This is a demo of Task Iguana's Jenny assistant. Your sample ${serviceName} booking for ${date} at ${time} was recorded — no real appointment was scheduled. Reply STOP to opt out.`,
       to: formatPhone(to),
     };
 
@@ -262,13 +269,22 @@ exports.handler = async (event, context) => {
           });
 
         if (error) {
-          console.error('Supabase insert error:', error);
-          // Fall through to demo mode
+          // Do NOT fall through to the in-memory store: that returned
+          // `success: true` and texted a confirmation for a booking nobody
+          // could ever see.
+          console.error('chatbot_bookings insert failed:', error.message || error);
+          return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({
+              error: 'Booking could not be saved',
+              message: "Sorry, we couldn't save that booking right now. Please try again in a moment.",
+            }),
+          };
         }
+      } else {
+        demoBookings.push(appointment);
       }
-
-      // Always save to demo store for this session
-      demoBookings.push(appointment);
 
       console.log('New booking saved:', appointment);
 
@@ -286,7 +302,8 @@ exports.handler = async (event, context) => {
         headers,
         body: JSON.stringify({
           success: true,
-          message: 'Booking saved successfully',
+          demo: true,
+          message: 'Demo booking saved',
           appointment,
           smsStatus: 'queued',
         }),
