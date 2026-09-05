@@ -69,6 +69,15 @@ jest.mock('@supabase/supabase-js', () => ({
   })),
 }));
 
+const mockSendSMS = jest.fn();
+jest.mock('@/lib/twilio', () => ({
+  sendSMS: (...args) => mockSendSMS(...args),
+}));
+
+jest.mock('@/lib/server-auth', () => ({
+  authenticateRequest: jest.fn().mockResolvedValue({ user: null, error: null }),
+}));
+
 jest.mock('@/lib/supplier-pricing', () => ({
   pricesNeedAttention: jest.fn(() => ({ needsUpdate: false, daysSinceUpdate: 30, daysUntilStale: 335 })),
 }));
@@ -117,6 +126,7 @@ function makeUnauthorizedRequest() {
 describe('/api/jenny-actions (GET - Cron)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSendSMS.mockResolvedValue({ success: true, messageId: 'SM-test' });
     // Reset all table responses
     Object.keys(tableResponses).forEach(key => delete tableResponses[key]);
   });
@@ -426,6 +436,138 @@ describe('/api/jenny-actions (GET - Cron)', () => {
   // ----------------------------------------------------------
   // REVIEW REQUEST
   // ----------------------------------------------------------
+  // ----------------------------------------------------------
+  // LEAD FOLLOW-UP — must actually send, not just log
+  // ----------------------------------------------------------
+  describe('lead_follow_up action', () => {
+    const fiveDaysAgo = new Date(Date.now() - 5 * 86400000).toISOString();
+
+    function setupColdLead() {
+      setTableResponse('jenny_action_configs', [{
+        company_id: 'comp-1',
+        action_type: 'lead_follow_up',
+        enabled: true,
+        config: { enabled: true, follow_up_days: [3, 7, 14], max_attempts: 3, messages: [] },
+        company: { id: 'comp-1', name: 'Test Co' },
+      }]);
+      setTableResponse('companies', [{ name: 'Test Co', phone: '555-0100' }]);
+      setTableResponse('leads', [{
+        id: 'lead-1', name: 'Bob Builder', phone: '+15551230000', email: null,
+        service_requested: 'Fence', status: 'new', created_at: fiveDaysAgo, customer_id: 'cust-1',
+      }]);
+      setTableResponse('lead_follow_ups', []);
+      setTableResponse('customers', [{ id: 'cust-1', sms_consent: true }]);
+      setTableResponse('jenny_action_log', []);
+    }
+
+    it('texts the lead through Twilio and records the follow-up', async () => {
+      setupColdLead();
+      const response = await GET(makeCronRequest());
+      const body = await response.json();
+
+      expect(body.results.lead_follow_up.acted).toBe(1);
+      expect(mockSendSMS).toHaveBeenCalledTimes(1);
+      expect(mockSendSMS).toHaveBeenCalledWith({ to: '+15551230000', body: expect.stringContaining('Bob Builder') });
+
+      const followUp = mockInsert.mock.calls.find(([row]) => row.lead_id === 'lead-1' && row.attempt_number === 1);
+      expect(followUp).toBeDefined();
+      const log = mockInsert.mock.calls.find(([row]) => row.action_type === 'lead_follow_up');
+      expect(log[0].status).toBe('executed');
+    });
+
+    it('logs a failure and records nothing when Twilio rejects the text', async () => {
+      setupColdLead();
+      mockSendSMS.mockResolvedValue({ success: false, error: 'Unreachable' });
+      const response = await GET(makeCronRequest());
+      const body = await response.json();
+
+      expect(body.results.lead_follow_up.acted).toBe(0);
+      const followUp = mockInsert.mock.calls.find(([row]) => row.lead_id === 'lead-1' && row.attempt_number === 1);
+      expect(followUp).toBeUndefined();
+      const log = mockInsert.mock.calls.find(([row]) => row.action_type === 'lead_follow_up');
+      expect(log[0].status).toBe('failed');
+      expect(log[0].metadata.error).toBe('Unreachable');
+    });
+  });
+
+  // ----------------------------------------------------------
+  // CUSTOMER REACTIVATION (win-back)
+  // ----------------------------------------------------------
+  describe('customer_reactivation action', () => {
+    const eightMonthsAgo = new Date(Date.now() - 8 * 30 * 86400000).toISOString();
+    const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString();
+
+    function setupReactivation({ jobs, logs = [] }) {
+      setTableResponse('jenny_action_configs', [{
+        company_id: 'comp-1',
+        action_type: 'customer_reactivation',
+        enabled: true,
+        config: { enabled: true, months_inactive: 6, cooldown_days: 90, max_per_run: 10 },
+        company: { id: 'comp-1', name: 'Test Co' },
+      }]);
+      setTableResponse('companies', [{ name: 'Test Co', phone: '555-0100' }]);
+      setTableResponse('customers', [
+        { id: 'c-dormant', name: 'Maria Lopez', phone: '+15550000001', sms_consent: true },
+        { id: 'c-active', name: 'Active Andy', phone: '+15550000002', sms_consent: true },
+        { id: 'c-never', name: 'Never Served', phone: '+15550000003', sms_consent: true },
+      ]);
+      setTableResponse('jobs', jobs);
+      setTableResponse('jenny_action_log', logs);
+    }
+
+    it('texts only customers whose last job is older than the window', async () => {
+      setupReactivation({
+        jobs: [
+          { customer_id: 'c-dormant', title: 'Spring Cleanup', status: 'completed', completed_at: eightMonthsAgo, scheduled_date: eightMonthsAgo.slice(0, 10), created_at: eightMonthsAgo },
+          { customer_id: 'c-active', title: 'Mowing', status: 'completed', completed_at: lastMonth, scheduled_date: lastMonth.slice(0, 10), created_at: lastMonth },
+        ],
+      });
+
+      const response = await GET(makeCronRequest());
+      const body = await response.json();
+
+      expect(body.results.customer_reactivation.checked).toBe(1);
+      expect(body.results.customer_reactivation.acted).toBe(1);
+      expect(mockSendSMS).toHaveBeenCalledTimes(1);
+      const [{ to, body: text }] = mockSendSMS.mock.calls[0];
+      expect(to).toBe('+15550000001');
+      expect(text).toContain('Maria');
+      expect(text).toContain('Test Co');
+      expect(text).toContain('Spring Cleanup');
+      expect(text).toContain('STOP');
+
+      const log = mockInsert.mock.calls.find(([row]) => row.action_type === 'customer_reactivation');
+      expect(log[0]).toMatchObject({ status: 'executed', target_id: 'c-dormant', target_type: 'customer' });
+    });
+
+    it('skips a dormant customer who has an upcoming job', async () => {
+      const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      setupReactivation({
+        jobs: [
+          { customer_id: 'c-dormant', title: 'Spring Cleanup', status: 'completed', completed_at: eightMonthsAgo, scheduled_date: eightMonthsAgo.slice(0, 10), created_at: eightMonthsAgo },
+          { customer_id: 'c-dormant', title: 'Fall Cleanup', status: 'scheduled', completed_at: null, scheduled_date: nextWeek, created_at: lastMonth },
+        ],
+      });
+      const response = await GET(makeCronRequest());
+      const body = await response.json();
+      expect(body.results.customer_reactivation.acted).toBe(0);
+      expect(mockSendSMS).not.toHaveBeenCalled();
+    });
+
+    it('respects the cooldown so nobody gets nagged twice', async () => {
+      setupReactivation({
+        jobs: [
+          { customer_id: 'c-dormant', title: 'Spring Cleanup', status: 'completed', completed_at: eightMonthsAgo, scheduled_date: eightMonthsAgo.slice(0, 10), created_at: eightMonthsAgo },
+        ],
+        logs: [{ target_id: 'c-dormant' }],
+      });
+      const response = await GET(makeCronRequest());
+      const body = await response.json();
+      expect(body.results.customer_reactivation.acted).toBe(0);
+      expect(mockSendSMS).not.toHaveBeenCalled();
+    });
+  });
+
   describe('review_request action', () => {
     it('suggests review requests for recently completed jobs', async () => {
       const completedAt = new Date(Date.now() - 36 * 3600000).toISOString(); // 36 hours ago
@@ -516,6 +658,7 @@ describe('/api/jenny-actions (GET - Cron)', () => {
         'price_staleness', 'hr_law_update', 'cert_expiration', 'insurance_expiry',
         'w9_compliance', 'classification_review', 'compliance_escalation',
         'quote_expiration', 'contractor_payment', 'contract_end_date', 'review_request',
+        'customer_reactivation',
       ];
 
       for (const action of expectedActions) {

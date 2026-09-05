@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useJennyActions } from '@/hooks/useJennyActions';
+import { supabase } from '@/lib/supabase';
 import type { JennyActionType } from '@/types/jenny-actions';
 import { ACTION_DESCRIPTIONS, DEFAULT_ACTION_CONFIGS, CONFIGURABLE_ACTION_TYPES } from '@/types/jenny-actions';
 import {
@@ -29,8 +30,26 @@ import {
 } from 'lucide-react';
 
 const ACTION_ICONS: Record<string, typeof Zap> = {
-  Zap, MessageSquare, DollarSign, TrendingUp, Star,
+  Zap, MessageSquare, DollarSign, TrendingUp, Star, RefreshCw,
 };
+
+/**
+ * POST to /api/jenny-actions with the signed-in user's token. The route
+ * authenticates via Bearer header (and _authToken in the body as a fallback
+ * that survives Netlify's trailing-slash redirect).
+ */
+async function postJennyAction(body: Record<string, unknown>) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  return fetch('/api/jenny-actions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ ...body, _authToken: token }),
+  });
+}
 
 const STATUS_STYLES: Record<string, { icon: typeof CheckCircle; color: string; label: string }> = {
   executed: { icon: CheckCircle, color: 'text-green-500', label: 'Executed' },
@@ -51,6 +70,7 @@ const TYPES_WITH_SETTINGS = new Set<JennyActionType>([
   'cash_flow_alert',
   'job_costing',
   'review_request',
+  'customer_reactivation',
 ]);
 
 export default function JennyActionsPage() {
@@ -96,11 +116,7 @@ export default function JennyActionsPage() {
   const handleRunAll = async () => {
     setRunning(true);
     try {
-      await fetch('/api/jenny-actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'run_all' }),
-      });
+      await postJennyAction({ action: 'run_all' });
       await refetch();
     } catch (err) {
       console.error('Failed to run Jenny actions:', err);
@@ -108,23 +124,20 @@ export default function JennyActionsPage() {
     setRunning(false);
   };
 
+  // Server dispatches by the log row's action_type (dispatch → assign the
+  // crew, review_request → send the text), so one handler covers both.
   const handleApproveDispatch = async (actionLogId: string) => {
-    await fetch('/api/jenny-actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'approve_dispatch', actionLogId }),
-    });
+    await postJennyAction({ action: 'approve', actionLogId });
     await refetch();
   };
 
   const handleDismiss = async (actionLogId: string) => {
-    await fetch('/api/jenny-actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'dismiss', actionLogId }),
-    });
+    await postJennyAction({ action: 'dismiss', actionLogId });
     await refetch();
   };
+
+  const approveLabel = (actionType: string) =>
+    actionType === 'review_request' ? 'Send request' : 'Approve';
 
   const actionTypes = CONFIGURABLE_ACTION_TYPES;
   const pendingActions = actionLog.filter(a => a.status === 'pending');
@@ -237,7 +250,7 @@ export default function JennyActionsPage() {
                     onClick={() => handleApproveDispatch(action.id)}
                     className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 flex items-center gap-1"
                   >
-                    <ThumbsUp className="w-3.5 h-3.5" /> Approve
+                    <ThumbsUp className="w-3.5 h-3.5" /> {approveLabel(action.action_type)}
                   </button>
                   <button
                     onClick={() => handleDismiss(action.id)}
@@ -528,7 +541,63 @@ export default function JennyActionsPage() {
                         </div>
                         <div className="bg-amber-50 rounded-lg p-3 text-sm text-amber-700">
                           <p className="font-medium text-amber-800 mb-1">How it works:</p>
-                          <p>After a job is marked complete, Jenny waits the configured delay, then sends the customer an SMS with a tracked link to your Google review page. You can see click rates and review status in your Reviews dashboard.</p>
+                          <p>After a job is marked complete, Jenny queues a review request for the customer here under Pending Approval. One click sends the SMS with a tracked link to your review page. Only customers who opted in to texts are queued. You can see click rates and review status in your Reviews dashboard.</p>
+                        </div>
+                      </>
+                    )}
+
+                    {actionType === 'customer_reactivation' && (
+                      <>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Quiet for at least</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number" min="1" max="36"
+                                value={(config.months_inactive as number) || 6}
+                                onChange={e => updateLocalConfig(actionType, 'months_inactive', parseInt(e.target.value) || 6)}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                              />
+                              <span className="text-sm text-gray-500">months</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Don&apos;t text again for</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number" min="7" max="365"
+                                value={(config.cooldown_days as number) || 90}
+                                onChange={e => updateLocalConfig(actionType, 'cooldown_days', parseInt(e.target.value) || 90)}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                              />
+                              <span className="text-sm text-gray-500">days</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Max texts per run</label>
+                            <input
+                              type="number" min="1" max="100"
+                              value={(config.max_per_run as number) || 10}
+                              onChange={e => updateLocalConfig(actionType, 'max_per_run', parseInt(e.target.value) || 10)}
+                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                          <textarea
+                            rows={3}
+                            value={(config.sms_template as string) || ''}
+                            onChange={e => updateLocalConfig(actionType, 'sms_template', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 text-sm"
+                          />
+                          <p className="text-xs text-gray-400 mt-1">
+                            Placeholders: <code>{'{customer_name}'}</code> <code>{'{company_name}'}</code> <code>{'{last_service}'}</code> <code>{'{phone}'}</code>. Keep &quot;Reply STOP to opt out&quot; in the text.
+                          </p>
+                        </div>
+                        <div className="bg-amber-50 rounded-lg p-3 text-sm text-amber-700">
+                          <p className="font-medium text-amber-800 mb-1">How it works:</p>
+                          <p>Every run, Jenny finds customers who opted in to texts, had at least one job with you, have nothing upcoming, and have been quiet longer than the window above. She texts them once, then leaves them alone for the cooldown period. Replies land in your Jenny Pro inbox and she can book them straight from there.</p>
                         </div>
                       </>
                     )}
@@ -599,11 +668,11 @@ export default function JennyActionsPage() {
                       {new Date(action.created_at).toLocaleString()}
                     </p>
                   </div>
-                  {action.status === 'pending' && action.action_type === 'auto_dispatch' && (
+                  {action.status === 'pending' && ['auto_dispatch', 'review_request'].includes(action.action_type) && (
                     <div className="flex gap-1.5">
                       <button onClick={() => handleApproveDispatch(action.id)}
                         className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200">
-                        Approve
+                        {approveLabel(action.action_type)}
                       </button>
                       <button onClick={() => handleDismiss(action.id)}
                         className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium hover:bg-gray-200">

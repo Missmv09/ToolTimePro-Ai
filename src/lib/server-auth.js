@@ -47,6 +47,9 @@ function decodeSupabaseJWT(token) {
  * falls back to local JWT decode if the network call fails.
  *
  * Returns { user } on success or { error: NextResponse } on failure.
+ *
+ * @param {Request} request
+ * @param {string | null | undefined} [bodyToken]
  */
 export async function authenticateRequest(request, bodyToken = null) {
   const candidates = [];
