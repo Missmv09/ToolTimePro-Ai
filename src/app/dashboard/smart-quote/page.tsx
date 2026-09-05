@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency';
+import { DISCOUNT_TYPES, calcDiscountAmount, type DiscountType } from '@/lib/quote-discount';
 
 // Types
 interface LineItem {
@@ -196,6 +197,7 @@ export default function SmartQuotingPage() {
   // Quote details
   const [taxRate, setTaxRate] = useState(8.75);
   const [discount, setDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState<DiscountType>('fixed');
   const [notes, setNotes] = useState('');
   const [validDays, setValidDays] = useState(30);
   const [frequency, setFrequency] = useState<string>(DEFAULT_QUOTE_FREQUENCY);
@@ -203,7 +205,7 @@ export default function SmartQuotingPage() {
   // Calculate totals
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
   const taxAmount = subtotal * (taxRate / 100);
-  const discountAmount = discount;
+  const discountAmount = calcDiscountAmount(subtotal, discount, discountType);
   const grandTotal = subtotal + taxAmount - discountAmount;
 
   // Generate unique ID
@@ -2112,14 +2114,41 @@ export default function SmartQuotingPage() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Discount</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400">$</span>
+                    <div
+                      role="group"
+                      aria-label="Discount type"
+                      className="flex rounded border border-gray-200 overflow-hidden"
+                    >
+                      {DISCOUNT_TYPES.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setDiscountType(opt.value)}
+                          aria-pressed={discountType === opt.value}
+                          title={opt.value === 'percent' ? 'Percentage of subtotal' : 'Fixed dollar amount'}
+                          className={`px-2 py-1 text-xs font-medium transition-colors ${
+                            discountType === opt.value
+                              ? 'bg-navy-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                     <input
                       type="number"
                       value={discount}
                       onChange={(e) => setDiscount(Number(e.target.value))}
-                      className="w-20 px-2 py-1 border border-gray-200 rounded text-right text-sm"
+                      aria-label={discountType === 'percent' ? 'Discount percent' : 'Discount amount'}
+                      className="w-16 px-2 py-1 border border-gray-200 rounded text-right text-sm"
                       min="0"
+                      max={discountType === 'percent' ? 100 : undefined}
+                      step={discountType === 'percent' ? '0.1' : '0.01'}
                     />
+                    <span className="text-navy-500 w-20 text-right">
+                      {discountAmount > 0 ? `-$${discountAmount.toFixed(2)}` : '$0.00'}
+                    </span>
                   </div>
                 </div>
 
