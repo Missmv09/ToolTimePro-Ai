@@ -23,7 +23,12 @@ const fs = require('fs');
 const path = require('path');
 
 const REPO_ROOT = path.join(__dirname, '..', '..', '..');
-const MIGRATION = path.join(REPO_ROOT, 'database/migrations/051_jenny_action_types_widen.sql');
+// The most recent migration that (re)defines both CHECK constraints. Each
+// widening drops and re-adds them, so the latest one is the whole truth.
+const MIGRATION = path.join(
+  REPO_ROOT,
+  'supabase/migrations/20260905000000_jenny_inbox_lead_alerts_reactivation.sql'
+);
 const ROUTE = path.join(REPO_ROOT, 'src/app/api/jenny-actions/route.ts');
 const TYPES = path.join(REPO_ROOT, 'src/types/jenny-actions.ts');
 
@@ -32,7 +37,7 @@ const read = (p) => fs.readFileSync(p, 'utf8');
 /** Pull the quoted values out of one `ADD CONSTRAINT <name> ... CHECK (...)`. */
 function constraintValues(sql, constraintName) {
   const start = sql.indexOf(`ADD CONSTRAINT ${constraintName}`);
-  if (start === -1) throw new Error(`constraint ${constraintName} not found in migration 051`);
+  if (start === -1) throw new Error(`constraint ${constraintName} not found in ${path.basename(MIGRATION)}`);
 
   // The CHECK list ends at the first `));` after the constraint name.
   const end = sql.indexOf('));', start);

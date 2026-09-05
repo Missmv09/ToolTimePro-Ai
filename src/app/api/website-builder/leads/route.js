@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { notifyNewLead } from '@/lib/lead-alerts';
 
 export const dynamic = 'force-dynamic';
 
@@ -136,6 +137,25 @@ export async function POST(request) {
     const crmResult = await tryInsert('leads', crmRecord);
     if (crmResult.success) saved = true;
 
+    // Newest lead for this company+name so the alert can link the Jenny thread
+    // to the CRM row. Optional; the alert works without it.
+    let crmLeadId = null;
+    if (crmResult.success && resolvedCompanyId) {
+      try {
+        const { data: justSaved } = await supabase
+          .from('leads')
+          .select('id')
+          .eq('company_id', resolvedCompanyId)
+          .eq('name', trimmedName)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        crmLeadId = justSaved?.id || null;
+      } catch {
+        // lookup is optional
+      }
+    }
+
     // If neither table accepted the lead, return error
     if (!saved) {
       console.error('[Website Leads] All inserts failed for lead:', { name: trimmedName, source: leadSource, companyId: resolvedCompanyId, siteId: resolvedSiteId });
@@ -146,6 +166,27 @@ export async function POST(request) {
     }
 
     console.log('[Website Leads] Lead saved:', { name: trimmedName, source: leadSource, companyId: resolvedCompanyId });
+
+    // Speed-to-lead: tell the owner now (in-app + SMS) and, if they opted in,
+    // have Jenny text the lead back immediately. Best-effort — never fails the form.
+    if (resolvedCompanyId) {
+      try {
+        await notifyNewLead(supabase, {
+          companyId: resolvedCompanyId,
+          lead: {
+            id: crmLeadId,
+            name: trimmedName,
+            phone: trimmedPhone,
+            email: trimmedEmail,
+            service_requested: trimmedService,
+            message: trimmedMessage,
+            source: leadSource,
+          },
+        });
+      } catch (alertErr) {
+        console.error('[Website Leads] alert failed:', alertErr?.message || alertErr);
+      }
+    }
 
     return NextResponse.json(
       { success: true, message: 'Thank you! We\'ll be in touch soon.' },
