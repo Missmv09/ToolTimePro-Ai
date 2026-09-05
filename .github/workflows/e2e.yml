@@ -210,11 +210,17 @@ jobs:
           # visit (two passes, failures ignored, 60s cap per request) so Cypress
           # runs against warm pages. Mirrors the same step in smoke.yml.
           # Best-effort: this step never fails the job.
+          #
+          # -L matters: next.config sets trailingSlash, so every bare path gets a
+          # 308 to its slashed form from the Netlify edge. Without following it,
+          # every probe below reported 308 in ~50ms and no function ever booted
+          # (see any pre-fix run: two full passes of "-> 308"). Same flag as the
+          # smoke.yml warm-up.
           paths="/auth/login /dashboard /dashboard/customers /dashboard/jobs /dashboard/quotes /dashboard/invoices /quote/demo /worker/login /worker /worker/timeclock"
           for pass in 1 2; do
             echo "— Warm-up pass $pass —"
             for p in $paths; do
-              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
+              code=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
               echo "  $p -> $code"
             done
           done
@@ -226,10 +232,11 @@ jobs:
           # without a token, which is fine: the function boots either way.
           echo "— Warming the login-chain API routes —"
           for p in /api/auth/check-needs-password /api/auth/session-guard; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
+            code=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 60 "$BASE_URL$p" || echo "ERR")
             echo "  GET $p -> $code"
           done
-          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 -X POST \
+          # 308 preserves method and body, so -L re-POSTs to the slashed route.
+          code=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 60 -X POST \
             -H 'Content-Type: application/json' -d '{}' \
             "$BASE_URL/api/auth/2fa/check-device" || echo "ERR")
           echo "  POST /api/auth/2fa/check-device -> $code"
