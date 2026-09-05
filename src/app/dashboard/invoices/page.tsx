@@ -28,6 +28,8 @@ interface InvoiceCustomer {
   sms_consent?: boolean
   customer_type?: 'residential' | 'commercial' | null
   business_name?: string | null
+  card_brand?: string | null
+  card_last4?: string | null
 }
 
 interface Invoice {
@@ -76,39 +78,32 @@ function InvoicesContent() {
   const companyId = dbUser?.company_id || null
 
   const fetchInvoices = useCallback(async (compId: string) => {
-    let query = supabase
-      .from('invoices')
-      .select(`
-        *,
-        customer:customers(id, name, email, phone, address, city, state, zip, sms_consent, customer_type, business_name),
-        items:invoice_items(*)
-      `)
-      .eq('company_id', compId)
-      .order('created_at', { ascending: false })
+    // Newest column set first, then progressively older shapes so the list
+    // still loads on a database that has not run a recent migration:
+    //   054 (card on file) → 037 (commercial customers) → base.
+    const selects = [
+      'customer:customers(id, name, email, phone, address, city, state, zip, sms_consent, customer_type, business_name, card_brand, card_last4)',
+      'customer:customers(id, name, email, phone, address, city, state, zip, sms_consent, customer_type, business_name)',
+      'customer:customers(id, name, email, phone, address, city, state, zip, sms_consent)',
+    ]
+    const missingColumn = (msg?: string) =>
+      !!msg && ['card_brand', 'card_last4', 'customer_type', 'business_name'].some((c) => msg.includes(c))
 
-    if (filter !== 'all') {
-      query = query.eq('status', filter)
-    }
-
-    let { data, error } = await query
-
-    if (error?.message?.includes('customer_type') || error?.message?.includes('business_name')) {
-      // Migration 037 not applied — retry without commercial columns
-      let fallback = supabase
+    let data: Invoice[] | null = null
+    let error: { message?: string } | null = null
+    for (const customerSelect of selects) {
+      let query = supabase
         .from('invoices')
-        .select(`
-          *,
-          customer:customers(id, name, email, phone, address, city, state, zip, sms_consent),
-          items:invoice_items(*)
-        `)
+        .select(`*, ${customerSelect}, items:invoice_items(*)`)
         .eq('company_id', compId)
         .order('created_at', { ascending: false })
       if (filter !== 'all') {
-        fallback = fallback.eq('status', filter)
+        query = query.eq('status', filter)
       }
-      const retry = await fallback
-      data = retry.data
-      error = retry.error
+      const result = await query
+      data = result.data as Invoice[] | null
+      error = result.error
+      if (!error || !missingColumn(error.message)) break
     }
 
     if (error) {
@@ -205,7 +200,7 @@ function InvoicesContent() {
     await updateInvoiceStatus(invoice.id, 'paid')
 
     // Record payment
-    await supabase.from('payments').insert({
+    const { error: paymentError } = await supabase.from('payments').insert({
       company_id: companyId,
       invoice_id: invoice.id,
       customer_id: invoice.customer_id,
@@ -213,6 +208,24 @@ function InvoicesContent() {
       payment_method: 'manual',
       status: 'completed',
     })
+    if (paymentError) console.error('Error recording payment:', paymentError.message)
+
+    // Receipt + delayed review request, same pipeline as an online payment.
+    // Fire-and-forget: a failed receipt must not undo "Mark Paid".
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const authToken = sessionData?.session?.access_token
+      fetch('/api/invoice/receipt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({ invoiceId: invoice.id, amount: invoice.total, paymentMethod: 'manual' }),
+      }).catch((e) => console.warn('Receipt send failed:', e))
+    } catch (e) {
+      console.warn('Receipt send failed:', e)
+    }
 
     // Update any booked leads for this customer to "won" now that payment is received
     if (invoice.customer_id && companyId) {
@@ -222,6 +235,34 @@ function InvoicesContent() {
         .eq('company_id', companyId)
         .eq('customer_id', invoice.customer_id)
         .eq('status', 'booked')
+    }
+  }
+
+  const chargeCardOnFile = async (invoice: Invoice) => {
+    const last4 = invoice.customer?.card_last4
+    const balance = Math.max(0, (invoice.total || 0) - ((invoice as Invoice & { amount_paid?: number }).amount_paid || 0))
+    if (!window.confirm(`Charge $${balance.toFixed(2)} to ${invoice.customer?.name || 'this customer'}'s card ending in ${last4}?`)) return
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const authToken = sessionData?.session?.access_token
+      const res = await fetch('/api/invoice/charge-card', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({ invoiceId: invoice.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        alert(`Charge failed: ${data.error || `HTTP ${res.status}`}${data.declineCode ? ` (${data.declineCode})` : ''}`)
+        return
+      }
+      alert(`Charged $${Number(data.amount || balance).toFixed(2)} to card ending in ${last4}. Receipt sent.`)
+      if (companyId) fetchInvoices(companyId)
+    } catch (e) {
+      alert(`Charge failed: ${e instanceof Error ? e.message : 'network error'}`)
     }
   }
 
@@ -609,6 +650,15 @@ function InvoicesContent() {
                             >
                               Mark Paid
                             </button>
+                            {invoice.customer?.card_last4 && (
+                              <button
+                                onClick={() => chargeCardOnFile(invoice)}
+                                className="text-emerald-700 hover:text-emerald-900 text-sm"
+                                title={`Charge the card on file (${invoice.customer.card_brand || 'card'} •••• ${invoice.customer.card_last4})`}
+                              >
+                                Charge card ••••{invoice.customer.card_last4}
+                              </button>
+                            )}
                             {(invoice.status === 'sent' || overdue) && (
                               <>
                                 <button

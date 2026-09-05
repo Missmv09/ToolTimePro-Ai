@@ -95,7 +95,7 @@ export async function POST(request: Request) {
           destination: company.stripe_connect_account_id,
         },
       },
-      success_url: `${baseUrl}/quote/${quoteId}?deposit_paid=true`,
+      success_url: `${baseUrl}/quote/${quoteId}?deposit_paid=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/quote/${quoteId}`,
       metadata: {
         type: 'quote_deposit',

@@ -127,3 +127,11 @@
 # one reminder (the day before), even independent of the per-job "sent" flag.
 [functions."appointment-reminders-cron"]
   schedule = "0 16 * * *"
+
+# Review Request Dispatcher — runs every 15 minutes
+# Sends the review requests queued by the after-payment pipeline (paid
+# invoice) and by job completion, each due companies.review_delay_hours
+# (default 2h) after the event. Also queues newly completed jobs. The daily
+# appointment-reminders follow-up remains as a backstop.
+[functions."review-requests-cron"]
+  schedule = "*/15 * * * *"
