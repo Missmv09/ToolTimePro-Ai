@@ -4,6 +4,7 @@
 
 let mockJobsResults = [[], []];
 let mockActionConfigs = [];
+let mockClaimedJobs = [];
 let mockJobsIdx = 0;
 const mockUpdateCalls = [];
 const mockReviewInserts = [];
@@ -38,7 +39,11 @@ jest.mock('@supabase/supabase-js', () => ({
         return obj;
       }
       if (table === 'review_requests') {
-        return { insert: (payload) => { mockReviewInserts.push(payload); return Promise.resolve({ error: null }); } };
+        return {
+          insert: (payload) => { mockReviewInserts.push(payload); return Promise.resolve({ error: null }); },
+          // Jobs the dispatcher already owns (any review_requests row) are skipped
+          select: () => ({ in: () => Promise.resolve({ data: mockClaimedJobs.map((id) => ({ job_id: id })) }) }),
+        };
       }
       return { select: () => Promise.resolve({ data: [] }) };
     },
@@ -60,6 +65,7 @@ describe('/api/jenny-pro/reminders', () => {
     jest.clearAllMocks();
     mockJobsResults = [[], []];
     mockActionConfigs = [];
+    mockClaimedJobs = [];
     mockJobsIdx = 0;
     mockUpdateCalls.length = 0;
     mockReviewInserts.length = 0;
@@ -124,6 +130,23 @@ describe('/api/jenny-pro/reminders', () => {
     expect(mockUpdateCalls.some((u) => u.followup_sent_at)).toBe(true);
     expect(mockReviewInserts.length).toBe(1);
     expect(mockReviewInserts[0].review_platform).toBe('google');
+  });
+
+  it('leaves a completed job alone when the review dispatcher already owns it', async () => {
+    mockClaimedJobs = ['j2'];
+    mockJobsResults = [
+      [],
+      [{
+        id: 'j2', title: 'Lawn Care', company_id: 'c1', customer_id: 'cu1', updated_at: new Date().toISOString(),
+        customer: { name: 'Maria', phone: '+15551112222', sms_consent: true },
+        company: { name: 'Green Co', google_review_link: 'https://g.page/review' },
+      }],
+    ];
+    const res = await GET(req());
+    const data = await res.json();
+    expect(data.followupsSent).toBe(0);
+    expect(mockSendSMS).not.toHaveBeenCalled();
+    expect(mockReviewInserts.length).toBe(0);
   });
 
   it('uses the contractor\'s review link from the Jenny Actions config', async () => {

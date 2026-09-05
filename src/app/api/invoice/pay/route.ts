@@ -14,7 +14,7 @@ function getSupabaseAdmin() {
 // POST - Create a Stripe Checkout session for invoice payment
 export async function POST(request: Request) {
   try {
-    const { invoiceId } = await request.json()
+    const { invoiceId, saveCard } = await request.json()
 
     if (!invoiceId) {
       return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 })
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     // Fetch invoice with company info
     const { data: invoice } = await supabase
       .from('invoices')
-      .select('*, company:companies(id, name, stripe_connect_account_id, stripe_connect_onboarded)')
+      .select('*, company:companies(id, name, stripe_connect_account_id, stripe_connect_onboarded), customer:customers(id, email)')
       .eq('id', invoiceId)
       .single()
 
@@ -63,6 +63,12 @@ export async function POST(request: Request) {
     const stripe = getStripe()
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://taskiguana.com'
 
+    const customer = invoice.customer as { id: string; email: string | null } | null
+    // Card on file: only when the customer explicitly ticked "save my card".
+    // setup_future_usage attaches the PaymentMethod to a platform Customer so
+    // recurring services can be charged off-session later (chargeCardOnFile).
+    const wantsCardOnFile = saveCard === true
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [{
@@ -80,13 +86,20 @@ export async function POST(request: Request) {
         transfer_data: {
           destination: company.stripe_connect_account_id,
         },
+        ...(wantsCardOnFile ? { setup_future_usage: 'off_session' as const } : {}),
       },
-      success_url: `${baseUrl}/invoice/${invoiceId}?paid=true`,
+      ...(wantsCardOnFile ? { customer_creation: 'always' as const } : {}),
+      ...(customer?.email ? { customer_email: customer.email } : {}),
+      // session_id lets the thank-you page confirm the payment server-side
+      // without waiting on the webhook (see /api/stripe/checkout/confirm).
+      success_url: `${baseUrl}/invoice/${invoiceId}?paid=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/invoice/${invoiceId}`,
       metadata: {
         type: 'invoice_payment',
         invoice_id: invoiceId,
         company_id: company.id,
+        customer_id: customer?.id || '',
+        save_card: wantsCardOnFile ? '1' : '0',
       },
     })
 
