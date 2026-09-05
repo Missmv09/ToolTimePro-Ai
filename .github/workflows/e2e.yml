@@ -89,13 +89,39 @@ jobs:
         id: guard
         env:
           E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          E2E_EMAIL_2: ${{ secrets.E2E_EMAIL_2 }}
+          E2E_PASSWORD_2: ${{ secrets.E2E_PASSWORD_2 }}
+          E2E_WORKER_EMAIL: ${{ secrets.E2E_WORKER_EMAIL }}
+          E2E_WORKER_PASSWORD: ${{ secrets.E2E_WORKER_PASSWORD }}
         run: |
           if [ -z "$E2E_EMAIL" ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "::warning::E2E_EMAIL secret not set — skipping authenticated E2E. Add E2E_EMAIL, E2E_PASSWORD, and E2E_BASE_URL repo secrets to enable."
-          else
-            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          # A secret pasted with a trailing space or newline is sent to Supabase
+          # verbatim and comes back as "Invalid login credentials" 45 seconds
+          # later, three specs in a row, which reads like a deleted account. The
+          # runner's log masker trims values, so the tell in the log is a bare
+          # space after the "***" — easy to miss. Name it here instead.
+          bad=""
+          for name in E2E_EMAIL E2E_PASSWORD E2E_EMAIL_2 E2E_PASSWORD_2 E2E_WORKER_EMAIL E2E_WORKER_PASSWORD; do
+            value="${!name}"
+            [ -z "$value" ] && continue
+            trimmed="${value#"${value%%[![:space:]]*}"}"
+            trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+            if [ "$value" != "$trimmed" ]; then
+              bad="$bad $name"
+            fi
+          done
+          if [ -n "$bad" ]; then
+            echo "::error::These secrets have leading or trailing whitespace:$bad. Re-enter each one in Settings → Secrets and variables → Actions with no space or newline around the value."
+            exit 1
+          fi
+
+          echo "run=true" >> "$GITHUB_OUTPUT"
 
       # Defence in depth for the specs below, which create AND delete customers
       # and invoices (TC-CUST-01, TC-INV-01). Today the only thing keeping them
