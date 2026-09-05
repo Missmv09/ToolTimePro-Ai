@@ -1086,7 +1086,8 @@ function QuotesContent() {
                         </button>
                       )}
                       <Link
-                        href={`/quote/${quote.id}`}
+                        href={`/quote/${quote.id}?preview=1`}
+                        title="Preview what your customer sees. Opening it here does not mark the quote as viewed."
                         className="text-purple-600 hover:text-purple-800 text-sm"
                         target="_blank"
                       >
