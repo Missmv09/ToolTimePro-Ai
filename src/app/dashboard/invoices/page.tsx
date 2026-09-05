@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
-import { isPastDate } from '@/lib/dates'
+import { INVOICE_FILTERS, isInvoiceOverdue, matchesInvoiceFilter } from '@/lib/invoice-filters'
 import { supabase } from '@/lib/supabase'
 import { computeInvoiceTotals } from '@/lib/totals'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -76,7 +76,13 @@ function InvoicesContent() {
   const companyId = dbUser?.company_id || null
 
   const fetchInvoices = useCallback(async (compId: string) => {
-    let query = supabase
+    // Fetch every invoice for the company; the status tabs are applied
+    // client-side (see matchesInvoiceFilter) because the tab names describe
+    // lifecycle stages, not literal DB status values — e.g. a "sent" invoice
+    // becomes `viewed` once the customer opens it, and nothing ever writes
+    // `overdue`, so filtering the query by `status = filter` left those tabs
+    // empty.
+    const query = supabase
       .from('invoices')
       .select(`
         *,
@@ -86,15 +92,11 @@ function InvoicesContent() {
       .eq('company_id', compId)
       .order('created_at', { ascending: false })
 
-    if (filter !== 'all') {
-      query = query.eq('status', filter)
-    }
-
     let { data, error } = await query
 
     if (error?.message?.includes('customer_type') || error?.message?.includes('business_name')) {
       // Migration 037 not applied — retry without commercial columns
-      let fallback = supabase
+      const retry = await supabase
         .from('invoices')
         .select(`
           *,
@@ -103,10 +105,6 @@ function InvoicesContent() {
         `)
         .eq('company_id', compId)
         .order('created_at', { ascending: false })
-      if (filter !== 'all') {
-        fallback = fallback.eq('status', filter)
-      }
-      const retry = await fallback
       data = retry.data
       error = retry.error
     }
@@ -117,7 +115,7 @@ function InvoicesContent() {
       setInvoices(data || [])
     }
     setLoading(false)
-  }, [filter])
+  }, [])
 
   const fetchCustomers = useCallback(async (compId: string) => {
     const { data, error } = await supabase
@@ -157,12 +155,6 @@ function InvoicesContent() {
       setLoading(false)
     }
   }, [authLoading, user, companyId, router, fetchInvoices, fetchCustomers])
-
-  useEffect(() => {
-    if (companyId) {
-      fetchInvoices(companyId)
-    }
-  }, [filter, companyId, fetchInvoices])
 
   // Auto-open the "New Invoice" modal when arriving from a customer card link
   useEffect(() => {
@@ -441,12 +433,10 @@ function InvoicesContent() {
     cancelled: 'bg-gray-100 text-gray-500',
   }
 
-  // Check for overdue invoices
-  const isOverdue = (invoice: Invoice) => {
-    if (invoice.status === 'paid' || invoice.status === 'cancelled') return false
-    if (!invoice.due_date) return false
-    return isPastDate(invoice.due_date)
-  }
+  // Check for overdue invoices (shared with the Overdue tab filter)
+  const isOverdue = (invoice: Invoice) => isInvoiceOverdue(invoice)
+
+  const visibleInvoices = invoices.filter(i => matchesInvoiceFilter(i, filter))
 
   if (loading) {
     return (
@@ -485,7 +475,7 @@ function InvoicesContent() {
 
       {/* Filters */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {['all', 'draft', 'sent', 'paid', 'overdue'].map((status) => (
+        {INVOICE_FILTERS.map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -534,18 +524,29 @@ function InvoicesContent() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {invoices.length === 0 ? (
+            {visibleInvoices.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <span className="text-4xl block mb-4">💰</span>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-1">No invoices yet</h3>
-                  <p className="text-gray-500 max-w-sm mx-auto">
-                    Send a customer an invoice and get paid online — no more chasing checks.
-                  </p>
+                  {invoices.length === 0 ? (
+                    <>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-1">No invoices yet</h3>
+                      <p className="text-gray-500 max-w-sm mx-auto">
+                        Send a customer an invoice and get paid online — no more chasing checks.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-1">No {filter} invoices</h3>
+                      <p className="text-gray-500 max-w-sm mx-auto">
+                        None of your {invoices.length} invoices are {filter} right now. Try another tab.
+                      </p>
+                    </>
+                  )}
                 </td>
               </tr>
             ) : (
-              invoices.map((invoice) => {
+              visibleInvoices.map((invoice) => {
                 const overdue = isOverdue(invoice)
                 return (
                   <tr key={invoice.id} className={`hover:bg-gray-50 ${overdue ? 'bg-red-50' : ''}`}>
