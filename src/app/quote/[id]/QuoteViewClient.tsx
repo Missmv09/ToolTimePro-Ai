@@ -80,13 +80,27 @@ export default function CustomerQuoteView({ quoteId }: { quoteId: string }) {
   }, [quoteId]);
 
   useEffect(() => {
-    fetchQuote();
     // Check for deposit paid return
     const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
     if (urlParams.get('deposit_paid') === 'true') {
       setDepositPaid(true);
       setQuoteStatus('approved');
       window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    if (sessionId) {
+      // Confirm the deposit server-side with Stripe (records the payment,
+      // creates the invoice, sends the receipt) without waiting on the webhook.
+      fetch('/api/stripe/checkout/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      })
+        .catch(() => null)
+        .finally(() => fetchQuote());
+    } else {
+      fetchQuote();
     }
   }, [fetchQuote]);
 

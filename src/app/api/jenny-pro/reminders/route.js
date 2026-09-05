@@ -156,7 +156,26 @@ export async function GET(request) {
     .lte('updated_at', windowEnd)
     .limit(500);
 
+  // The review-request dispatcher (/api/reviews/dispatch, every 15 min) now
+  // owns the timed follow-up: it queues a request per completed job and per
+  // paid invoice. Any job that already has a review_requests row — pending,
+  // sent, or skipped — is its responsibility, so this daily pass only catches
+  // jobs nothing else picked up.
+  const claimedJobIds = new Set();
+  if (done && done.length > 0) {
+    try {
+      const { data: claimed } = await supabase
+        .from('review_requests')
+        .select('job_id')
+        .in('job_id', done.map((j) => j.id));
+      (claimed || []).forEach((r) => { if (r.job_id) claimedJobIds.add(r.job_id); });
+    } catch {
+      // table may not exist yet
+    }
+  }
+
   for (const job of done || []) {
+    if (claimedJobIds.has(job.id)) continue;
     const s = settingsMap.get(job.company_id);
     if (s && s.review_followup_enabled === false) continue;
     const cust = job.customer;
