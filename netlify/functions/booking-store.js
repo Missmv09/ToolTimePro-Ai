@@ -1,6 +1,6 @@
 // Netlify Function backing the public marketing-site chatbot demo
 // (tooltimepro/chatbot.html → "Try Jenny Live"). It stores DEMO bookings in
-// the `chatbot_bookings` table (migration 054) and checks for slot conflicts.
+// the `chatbot_bookings` table (migration 055) and checks for slot conflicts.
 //
 // These are marketing leads, not tenant jobs: the demo has no company context.
 // Real online bookings go through /api/bookings into `jobs`.
