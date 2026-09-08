@@ -8,11 +8,12 @@
 
 const { aiComplete, parseAIJson } = require('./ai-client');
 const { detectLanguage, resolveReplyLanguage, t } = require('./jenny-language');
+const { resolveBusinessHours, describeBusinessHours, todayInTimezone } = require('./business-hours');
 
-// Today's date in the company's local context (server is UTC; good enough for
-// "tomorrow / next Tuesday" style relative scheduling at day granularity).
-function todayISO() {
-  return new Date().toISOString().split('T')[0];
+// Today's date in the company's timezone (the server runs in UTC, which is a
+// different calendar day for several hours every evening in the US).
+function todayISO(timezone) {
+  return todayInTimezone(timezone);
 }
 
 function matchesEmergency(text, keywords) {
@@ -24,7 +25,8 @@ function matchesEmergency(text, keywords) {
   return list.some((k) => lower.includes(String(k).toLowerCase()));
 }
 
-function buildSystemPrompt({ companyName, businessType, services, lang, today, channel, businessInfo, existingBookings }) {
+function buildSystemPrompt({ companyName, businessType, services, lang, today, channel, businessInfo, existingBookings, businessHours }) {
+  const hoursText = describeBusinessHours(resolveBusinessHours(businessHours));
   const existingLines = existingBookings && existingBookings.length
     ? existingBookings
         .map((b) => `- ${b.title || 'Appointment'} on ${b.scheduled_date} at ${b.scheduled_time_start}`)
@@ -79,7 +81,7 @@ Your goal is to collect, conversationally and warmly:
 3. The date and time they want
 You may also capture a street address if they offer it, but it is optional.
 
-Booking hours are 8:00 AM to 5:00 PM, Monday–Saturday. If they ask for a time outside that, offer the nearest valid slot.
+Booking hours are ${hoursText}. Do not book outside these hours or on days not listed; if they ask for a time outside that, offer the nearest valid slot.
 
 You MUST reply with a single JSON object and NOTHING else, in this exact shape:
 {
@@ -131,18 +133,17 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
     };
   }
 
-  // Load company + services context (only if not provided).
-  let companyName = company?.name;
-  let businessType = company?.business_type;
-  if (!companyName) {
-    const { data } = await supabase
-      .from('companies')
-      .select('name, business_type')
-      .eq('id', companyId)
-      .single();
-    companyName = data?.name;
-    businessType = data?.business_type;
-  }
+  // Load company + services context. Always hit the DB for hours/timezone:
+  // callers usually pass only { name, business_type }.
+  const { data: companyRow } = await supabase
+    .from('companies')
+    .select('name, business_type, business_hours, timezone')
+    .eq('id', companyId)
+    .single();
+  const companyName = company?.name || companyRow?.name;
+  const businessType = company?.business_type || companyRow?.business_type;
+  const businessHours = companyRow?.business_hours ?? company?.business_hours ?? null;
+  const timezone = companyRow?.timezone || company?.timezone || null;
 
   const { data: services } = await supabase
     .from('services')
@@ -156,10 +157,11 @@ async function runJennyAgent({ supabase, companyId, company, settings, history =
     businessType,
     services: services || [],
     lang,
-    today: todayISO(),
+    today: todayISO(timezone),
     channel,
     businessInfo: settings?.business_info || '',
     existingBookings,
+    businessHours,
   });
 
   let ai;

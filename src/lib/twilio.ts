@@ -133,6 +133,32 @@ export const SMS_TEMPLATES = {
     time: string;
   }) => `Hi ${data.workerName}! New job assigned: ${data.customerName} at ${data.address}, ${data.time}. Check the app for details.`,
 
+  paymentReceipt: (data: {
+    customerName: string;
+    companyName: string;
+    amount: number;
+    invoiceNumber: string;
+    receiptLink: string;
+  }) => `Hi ${data.customerName}! ${data.companyName} received your payment of $${data.amount.toFixed(2)} for invoice ${data.invoiceNumber}. Thank you! Receipt: ${data.receiptLink}`,
+
+  depositReceipt: (data: {
+    customerName: string;
+    companyName: string;
+    amount: number;
+    balanceDue: number;
+    invoiceNumber: string;
+    receiptLink: string;
+  }) => `Hi ${data.customerName}! ${data.companyName} received your $${data.amount.toFixed(2)} payment for invoice ${data.invoiceNumber}. Remaining balance: $${data.balanceDue.toFixed(2)}. Receipt: ${data.receiptLink}`,
+
+  reviewRequest: (data: {
+    customerName: string;
+    companyName: string;
+    reviewLink?: string;
+    platformLabel?: string;
+  }) => data.reviewLink
+    ? `Hi ${data.customerName}! Thanks for choosing ${data.companyName}. Would you take a minute to leave us a ${data.platformLabel ? `${data.platformLabel} ` : ''}review? ${data.reviewLink}`
+    : `Hi ${data.customerName}! Thanks for choosing ${data.companyName}. We hope everything went great - reply to this text to let us know how we did!`,
+
   runningLate: (data: {
     customerName: string;
     companyName: string;

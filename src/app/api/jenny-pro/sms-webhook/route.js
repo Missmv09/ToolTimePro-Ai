@@ -90,7 +90,7 @@ export async function POST(request) {
     const supabase = getSupabase();
 
     // Resolve which company owns this Twilio number (multi-tenant routing →
-    // JENNY_COMPANY_ID pin → first company).
+    // JENNY_COMPANY_ID pin). Unmapped numbers get no reply.
     const company = await resolveCompanyByNumber(supabase, to);
     if (!company) return twiml(null);
     const companyId = company.id;

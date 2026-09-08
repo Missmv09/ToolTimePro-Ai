@@ -161,7 +161,15 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     const QTY = 2;
     const PRICE = 100;
     const SUBTOTAL = '$200.00'; // QTY * PRICE — pure math, independent of tax
-    const TOTAL = '$217.50'; // + 8.75% tax; the label assert below pins the rate
+    // The quote modal no longer has a fixed rate: it defaults to the company's
+    // default_tax_rate, else a customer-state estimate, else 0 (lib/sales-tax).
+    // That default depends on sandbox tenant settings this spec does not own,
+    // so set the rate explicitly and assert the math against what we typed.
+    // An integer rate avoids typing "8." into a number input, which the
+    // browser sanitises to "" mid-keystroke.
+    const TAX_RATE = 10;
+    const TAX = '$20.00'; // SUBTOTAL * 10%
+    const TOTAL = '$220.00'; // SUBTOTAL + TAX
 
     cy.visit('/dashboard/quotes');
     cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard/quotes');
@@ -185,9 +193,14 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
       cy.get('input[placeholder="Qty"]').first().type(`{selectall}${QTY}`).should('have.value', `${QTY}`);
       cy.get('input[placeholder="Price"]').first().type(`{selectall}${PRICE}`).should('have.value', `${PRICE}`);
 
-      // TC-QUOTE-01's core assertion: the total actually calculates.
-      cy.contains('Tax (8.75%)').should('be.visible'); // fails loudly if the rate moves
+      cy.get('input[aria-label="Tax rate percent"]')
+        .type(`{selectall}${TAX_RATE}`)
+        .should('have.value', `${TAX_RATE}`);
+
+      // TC-QUOTE-01's core assertion: the totals actually calculate from the
+      // line item and the rate we set.
       cy.contains(SUBTOTAL).should('be.visible');
+      cy.contains(TAX).should('be.visible');
       cy.contains(TOTAL).should('be.visible');
 
       // "Save Quote" only — deliberately NOT "Save & Send", which would fire a

@@ -2,6 +2,8 @@
 // Used by both the per-user sync route (manual "Sync Now") and the
 // sync-all route invoked by the scheduled cron function.
 
+import { DEFAULT_TIMEZONE, resolveTimezone } from './business-hours'
+
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 
@@ -54,8 +56,12 @@ export async function getValidAccessToken(connection, supabaseAdmin) {
 /**
  * Create or update a Google Calendar event for a job.
  * Returns the event id, or null on failure / no schedulable date.
+ *
+ * `timeZone` is the tenant's IANA zone (companies.timezone). Job times are
+ * stored as local wall-clock strings, so the event must carry the company's
+ * zone — stamping every tenant Pacific put East-coast jobs three hours late.
  */
-export async function syncJobToCalendar(job, accessToken, calendarId) {
+export async function syncJobToCalendar(job, accessToken, calendarId, timeZone = DEFAULT_TIMEZONE) {
   const startDate = job.scheduled_date
   if (!startDate) return null
 
@@ -80,11 +86,11 @@ export async function syncJobToCalendar(job, accessToken, calendarId) {
       .join('\n'),
     start: {
       dateTime: startDateTime,
-      timeZone: 'America/Los_Angeles',
+      timeZone,
     },
     end: {
       dateTime: endDateTime,
-      timeZone: 'America/Los_Angeles',
+      timeZone,
     },
     location: customerAddress || undefined,
   }
@@ -168,8 +174,15 @@ export async function syncConnection(connection, supabaseAdmin) {
   let syncedCount = 0
   const calendarId = connection.calendar_id || 'primary'
 
+  const { data: companyRow } = await supabaseAdmin
+    .from('companies')
+    .select('timezone')
+    .eq('id', connection.company_id)
+    .maybeSingle()
+  const timeZone = resolveTimezone(companyRow?.timezone)
+
   for (const job of jobs || []) {
-    const eventId = await syncJobToCalendar(job, accessToken, calendarId)
+    const eventId = await syncJobToCalendar(job, accessToken, calendarId, timeZone)
     if (eventId) {
       // Store the gcal_event_id on the job if it changed
       if (eventId !== job.gcal_event_id) {
