@@ -63,18 +63,16 @@ describe('resolveCompanyByNumber', () => {
     expect(company.id).toBe('pinned-co');
   });
 
-  it('falls back to the first company when neither mapping nor pin is set', async () => {
+  it('returns null (never another tenant) when neither mapping nor pin is set', async () => {
     delete process.env.JENNY_COMPANY_ID;
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const supabase = makeSupabase({ numberMatch: null, firstCompanyId: 'first-co' });
     const company = await resolveCompanyByNumber(supabase, '+17657895752');
-    expect(company.id).toBe('first-co');
-  });
-
-  it('returns null when there are no companies at all', async () => {
-    delete process.env.JENNY_COMPANY_ID;
-    const supabase = makeSupabase({ numberMatch: null, firstCompanyId: null });
-    const company = await resolveCompanyByNumber(supabase, '+17657895752');
     expect(company).toBeNull();
+    // The old "first company in the DB" fallback must not come back: it
+    // answered unmapped numbers as an arbitrary contractor.
+    expect(supabase.from('companies').limit).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it('skips the number lookup for an empty/short number', async () => {

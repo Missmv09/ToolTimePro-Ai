@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { INVOICE_FILTERS, isInvoiceOverdue, matchesInvoiceFilter } from '@/lib/invoice-filters'
 import { supabase } from '@/lib/supabase'
 import { computeInvoiceTotals } from '@/lib/totals'
+import { resolveDefaultTaxRate, parseTaxRate } from '@/lib/sales-tax'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -706,6 +707,7 @@ function InvoicesContent() {
           companyId={companyId!}
           customers={customers}
           presetCustomerId={editingInvoice ? null : presetCustomerId}
+          companyDefaultTaxRate={(company as unknown as Record<string, unknown> | null)?.default_tax_rate ?? null}
           onClose={() => {
             setShowModal(false)
             if (shouldOpenNew) router.replace('/dashboard/invoices')
@@ -744,32 +746,27 @@ function InvoicesContent() {
   )
 }
 
-// US state sales tax rates (general state rate, does not include local taxes)
-const STATE_TAX_RATES: Record<string, number> = {
-  AL: 4, AZ: 5.6, AR: 6.5, CA: 7.25, CO: 2.9, CT: 6.35, DC: 6, DE: 0,
-  FL: 6, GA: 4, HI: 4, ID: 6, IL: 6.25, IN: 7, IA: 6, KS: 6.5,
-  KY: 6, LA: 4.45, ME: 5.5, MD: 6, MA: 6.25, MI: 6, MN: 6.875, MS: 7,
-  MO: 4.225, MT: 0, NE: 5.5, NV: 6.85, NH: 0, NJ: 6.625, NM: 5.125,
-  NY: 4, NC: 4.75, ND: 5, OH: 5.75, OK: 4.5, OR: 0, PA: 6, RI: 7,
-  SC: 6, SD: 4.5, TN: 7, TX: 6.25, UT: 6.1, VT: 6, VA: 5.3,
-  WA: 6.5, WV: 6, WI: 5, WY: 4,
-}
-
-function InvoiceModal({ invoice, companyId, customers, presetCustomerId, onClose, onSave, onSaveAndSend }: {
+function InvoiceModal({ invoice, companyId, customers, presetCustomerId, companyDefaultTaxRate, onClose, onSave, onSaveAndSend }: {
   invoice: Invoice | null
   companyId: string
   customers: InvoiceCustomer[]
   presetCustomerId?: string | null
+  companyDefaultTaxRate?: unknown
   onClose: () => void
   onSave: () => void
   onSaveAndSend?: (invoiceId: string) => void
 }) {
   const presetCustomer = presetCustomerId ? customers.find(c => c.id === presetCustomerId) : undefined
+  // Existing invoices keep their saved rate. New ones: company default →
+  // customer-state estimate → 0 (shared logic in @/lib/sales-tax).
   const initialTaxRate =
-    invoice?.tax_rate != null ? String(invoice.tax_rate) :
-    presetCustomer?.state && STATE_TAX_RATES[presetCustomer.state.toUpperCase()] !== undefined
-      ? String(STATE_TAX_RATES[presetCustomer.state.toUpperCase()])
-      : '0'
+    invoice?.tax_rate != null
+      ? String(invoice.tax_rate)
+      : String(resolveDefaultTaxRate({
+          companyDefault: companyDefaultTaxRate,
+          customerState: presetCustomer?.state,
+          customerAddress: presetCustomer?.address,
+        }).rate)
   const initialTerms: PaymentTerms | '' =
     (invoice?.payment_terms as PaymentTerms | undefined) ||
     (presetCustomer?.customer_type === 'commercial' ? 'net_30' : '')
@@ -939,9 +936,17 @@ function InvoiceModal({ invoice, companyId, customers, presetCustomerId, onClose
                 onChange={(e) => {
                   const custId = e.target.value
                   const cust = customers.find(c => c.id === custId)
-                  const autoTaxRate = cust?.state && STATE_TAX_RATES[cust.state.toUpperCase()] !== undefined
-                    ? String(STATE_TAX_RATES[cust.state.toUpperCase()])
-                    : formData.tax_rate
+                  // Only re-estimate from the customer's state when the company
+                  // has no default rate of its own; keep whatever is typed otherwise.
+                  const resolved = resolveDefaultTaxRate({
+                    companyDefault: companyDefaultTaxRate,
+                    customerState: cust?.state,
+                    customerAddress: cust?.address,
+                  })
+                  const autoTaxRate =
+                    parseTaxRate(companyDefaultTaxRate) === null && resolved.source === 'state'
+                      ? String(resolved.rate)
+                      : formData.tax_rate
                   // Commercial customers default to Net 30 unless terms are already set
                   const shouldDefaultTerms = cust?.customer_type === 'commercial' && !formData.payment_terms
                   const nextTerms: PaymentTerms | '' = shouldDefaultTerms ? 'net_30' : formData.payment_terms

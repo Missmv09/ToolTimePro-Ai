@@ -37,7 +37,7 @@ function builder(table) {
   obj.limit = jest.fn(() => obj);
   obj.maybeSingle = jest.fn(() => Promise.resolve(maybeSingleResult(table)));
   obj.single = jest.fn(() => Promise.resolve(singleResult(table)));
-  // Awaiting the builder directly (e.g. companies.select().limit(1))
+  // Awaiting the builder directly (e.g. jobs.select()...neq())
   obj.then = (resolve) => resolve(awaitResult(table));
   return obj;
 }
@@ -50,6 +50,10 @@ function awaitResult(table) {
 }
 
 function maybeSingleResult(table) {
+  // The inbound Twilio number must be mapped to a tenant: there is no
+  // "first company in the DB" fallback any more (it leaked calls cross-tenant).
+  if (table === 'company_phone_numbers') return { data: { company_id: 'comp-1' } };
+  if (table === 'companies') return { data: { id: 'comp-1', name: 'Green Co', business_type: 'landscaping' } };
   if (table === 'jenny_pro_settings') return { data: settingsRow };
   if (table === 'jenny_sms_conversations') return { data: existingConversation };
   if (table === 'customers') return { data: null };

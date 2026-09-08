@@ -917,6 +917,9 @@ function JennyProDashboard() {
                   onChange={(e) => setSettings((s) => ({ ...s, after_hours_greeting: e.target.value }))}
                   placeholder={`Thank you for calling ${company?.name || 'our office'}. Our office is currently closed, but I can help with emergencies and take messages.`}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Jenny picks the greeting using your Business Hours and Time Zone from Settings → Company.
+                </p>
               </div>
 
               <div>

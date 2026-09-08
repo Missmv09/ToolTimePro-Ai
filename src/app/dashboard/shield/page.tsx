@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { STATE_COMPLIANCE } from '@/lib/state-compliance';
 import {
   Calculator,
   GitBranch,
@@ -57,10 +58,16 @@ const tools = [
   },
 ];
 
+// Pulled from the compliance library so this tile can never lag behind the
+// rate the rest of Shield enforces (it was hardcoded "$16.00 / 2024" while
+// state-compliance.ts already said $16.50 effective 2026).
+const caWage = STATE_COMPLIANCE.CA.wage;
+const caWageYear = caWage.minimumWageEffectiveDate.slice(0, 4);
+
 const quickStats = [
   {
-    label: 'CA Minimum Wage 2024',
-    value: '$16.00/hr',
+    label: `CA Minimum Wage ${caWageYear}`,
+    value: `$${caWage.minimumWage.toFixed(2)}/hr`,
     note: 'Some cities higher',
   },
   {

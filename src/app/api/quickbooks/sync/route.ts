@@ -46,6 +46,8 @@ interface QBOInvoice {
   Id: string
   DocNumber?: string
   TotalAmt: number
+  /** Present when the invoice carries sales tax; TotalTax is the tax portion of TotalAmt. */
+  TxnTaxDetail?: { TotalTax?: number; TxnTaxCodeRef?: { value: string } }
   Balance: number
   DueDate?: string
   TxnDate?: string
@@ -307,14 +309,24 @@ export async function POST() {
           status = 'overdue'
         }
 
+        // QBO's TotalAmt already includes tax; split it back out so the imported
+        // invoice shows the same subtotal / tax breakdown the customer saw.
+        // (This used to force tax to 0 and subtotal = total.)
+        const total = Number(qboInvoice.TotalAmt) || 0
+        const taxAmount = Math.max(0, Number(qboInvoice.TxnTaxDetail?.TotalTax) || 0)
+        const subtotal = Math.max(0, total - taxAmount)
+        const taxRate = subtotal > 0 && taxAmount > 0
+          ? Math.round((taxAmount / subtotal) * 10000) / 100
+          : 0
+
         const invoiceData = {
           company_id: companyId,
           customer_id: customerId,
           invoice_number: docNumber,
-          total: qboInvoice.TotalAmt,
-          subtotal: qboInvoice.TotalAmt,
-          tax_rate: 0,
-          tax_amount: 0,
+          total,
+          subtotal,
+          tax_rate: taxRate,
+          tax_amount: taxAmount,
           discount_amount: 0,
           amount_paid: qboInvoice.TotalAmt - qboInvoice.Balance,
           status,
