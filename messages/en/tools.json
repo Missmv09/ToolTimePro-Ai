@@ -369,7 +369,8 @@
         "invalidPhone": "Please enter a valid 10-digit phone number",
         "invalidEmail": "Please enter a valid email address",
         "createError": "Error creating customer: {message}",
-        "unexpectedError": "An unexpected error occurred. Please try again."
+        "unexpectedError": "An unexpected error occurred. Please try again.",
+        "languageLabel": "Language"
       },
       "lineItems": {
         "title": "Line Items",
@@ -474,7 +475,12 @@
         "send": "Send Quote",
         "saving": "Saving...",
         "saveDraft": "💾 Save Draft",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "discountType": "Discount type",
+        "discountPercentTip": "Percentage of subtotal",
+        "discountFixedTip": "Fixed dollar amount",
+        "discountPercentLabel": "Discount percent",
+        "discountAmountLabel": "Discount amount"
       },
       "errors": {
         "loginToSave": "Please log in to save quotes",

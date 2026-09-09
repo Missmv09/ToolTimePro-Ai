@@ -7,7 +7,8 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency'
-import { computeQuoteTotals, QUOTE_TAX_RATE } from '@/lib/totals'
+import { computeQuoteTotals } from '@/lib/totals'
+import { resolveDefaultTaxRate } from '@/lib/sales-tax'
 
 interface QuoteItem {
   id: string
@@ -78,7 +79,7 @@ function Loading() {
 
 function QuotesContent() {
   const [quotes, setQuotes] = useState<Quote[]>([])
-  const [customers, setCustomers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [customers, setCustomers] = useState<{ id: string; name: string; email: string; state?: string | null; address?: string | null }[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
@@ -214,7 +215,7 @@ function QuotesContent() {
   const fetchCustomers = async (compId: string) => {
     const { data } = await supabase
       .from('customers')
-      .select('id, name, email')
+      .select('id, name, email, state, address')
       .eq('company_id', compId)
       .order('name')
     setCustomers(data || [])
@@ -1213,6 +1214,7 @@ function QuotesContent() {
           userId={user?.id || null}
           customers={customers}
           defaultQuoteTerms={(company as unknown as Record<string, unknown>)?.default_quote_terms as string || ''}
+          companyDefaultTaxRate={(company as unknown as Record<string, unknown>)?.default_tax_rate ?? null}
           isOwnerOrAdmin={isOwnerOrAdmin}
           onClose={() => {
             setShowModal(false)
@@ -1243,12 +1245,13 @@ function QuotesContent() {
   )
 }
 
-function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, isOwnerOrAdmin, onClose, onSave, onSaveAndSend }: {
+function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, companyDefaultTaxRate, isOwnerOrAdmin, onClose, onSave, onSaveAndSend }: {
   quote: Quote | null
   companyId: string
   userId: string | null
-  customers: { id: string; name: string; email: string }[]
+  customers: { id: string; name: string; email: string; state?: string | null; address?: string | null }[]
   defaultQuoteTerms: string
+  companyDefaultTaxRate: unknown
   isOwnerOrAdmin: boolean
   onClose: () => void
   onSave: () => void
@@ -1270,6 +1273,30 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
+  // Tax rate (percent). Existing quotes keep what was saved; new quotes start
+  // from the company default, then a customer-state estimate, then 0.
+  const initialCustomer = quote?.customer_id ? customers.find(c => c.id === quote.customer_id) : undefined
+  const [taxRate, setTaxRate] = useState<string>(() =>
+    quote?.tax_rate != null
+      ? String(quote.tax_rate)
+      : String(resolveDefaultTaxRate({
+          companyDefault: companyDefaultTaxRate,
+          customerState: initialCustomer?.state,
+          customerAddress: initialCustomer?.address,
+        }).rate)
+  )
+  // When a new quote's customer changes and the company has no default rate,
+  // re-estimate from that customer's state.
+  const applyCustomerTaxDefault = (customerId: string) => {
+    if (quote) return
+    const cust = customers.find(c => c.id === customerId)
+    const resolved = resolveDefaultTaxRate({
+      companyDefault: companyDefaultTaxRate,
+      customerState: cust?.state,
+      customerAddress: cust?.address,
+    })
+    setTaxRate(String(resolved.rate))
+  }
   const [depositRequired, setDepositRequired] = useState(quote?.deposit_required || false)
   const [depositType, setDepositType] = useState<'fixed' | 'percentage'>(
     quote?.deposit_percentage ? 'percentage' : 'fixed'
@@ -1334,7 +1361,8 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
   }
 
   // Money math lives in @/lib/totals (single source of truth, unit-tested).
-  const { subtotal, tax_amount, total } = computeQuoteTotals(items)
+  const taxRateNumber = Number(taxRate) || 0
+  const { subtotal, tax_amount, total } = computeQuoteTotals(items, taxRateNumber)
 
   // Map low-level/server errors to a safe, actionable message. Never surface
   // raw database internals (e.g. "permission denied for table quotes") to the
@@ -1449,7 +1477,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
       valid_until: formData.valid_until,
       frequency: formData.frequency,
       subtotal: Number(subtotal) || 0,
-      tax_rate: QUOTE_TAX_RATE,
+      tax_rate: taxRateNumber,
       tax_amount: Number(tax_amount) || 0,
       total: Number(total) || 0,
       status: quote?.status || 'draft',
@@ -1533,7 +1561,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
               oldData,
               newData: {
                 subtotal: Number(subtotal) || 0,
-                tax_rate: 8.75,
+                tax_rate: taxRateNumber,
                 tax_amount: Number(tax_amount) || 0,
                 total: Number(total) || 0,
                 notes: formData.notes,
@@ -1661,6 +1689,7 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
                   } else {
                     setIsNewCustomer(false)
                     setFormData({ ...formData, customer_id: e.target.value })
+                    applyCustomerTaxDefault(e.target.value)
                   }
                 }}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -1847,8 +1876,21 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, is
               <span className="text-gray-600">Subtotal</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Tax (8.75%)</span>
+            <div className="flex justify-between items-center text-sm">
+              <label className="text-gray-600 flex items-center gap-2">
+                Tax
+                <input
+                  type="number"
+                  value={taxRate}
+                  onChange={(e) => setTaxRate(e.target.value)}
+                  min="0"
+                  max="20"
+                  step="0.01"
+                  aria-label="Tax rate percent"
+                  className="w-20 px-2 py-1 border rounded text-right text-sm focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-gray-400">%</span>
+              </label>
               <span>${tax_amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg">

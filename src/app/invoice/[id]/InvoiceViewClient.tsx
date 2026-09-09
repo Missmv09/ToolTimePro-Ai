@@ -41,6 +41,17 @@ const PAYMENT_TERMS_LABELS: Record<PaymentTerms, string> = {
   net_60: 'Net 60',
 };
 
+interface PaymentRecord {
+  id: string;
+  amount: number;
+  payment_method: string | null;
+  paid_at: string | null;
+  card_brand: string | null;
+  card_last4: string | null;
+  receipt_sent_at: string | null;
+  notes: string | null;
+}
+
 interface InvoiceWithDetails {
   id: string;
   invoice_number: string | null;
@@ -54,10 +65,11 @@ interface InvoiceWithDetails {
   due_date: string | null;
   notes: string | null;
   created_at: string;
+  paid_at?: string | null;
   po_number: string | null;
   payment_terms: PaymentTerms | null;
-  company: Company | null;
-  customer: (Customer & { customer_type?: 'residential' | 'commercial' | null; business_name?: string | null }) | null;
+  company: (Company & { google_review_link?: string | null; yelp_review_link?: string | null }) | null;
+  customer: (Customer & { customer_type?: 'residential' | 'commercial' | null; business_name?: string | null; card_last4?: string | null }) | null;
 }
 
 export default function InvoiceViewClient({ params }: { params: { id: string } }) {
@@ -70,6 +82,9 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [companyPaymentMethods, setCompanyPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [confirming, setConfirming] = useState(false);
+  const [saveCard, setSaveCard] = useState(false);
 
   const fetchInvoice = useCallback(async () => {
     setIsLoading(true);
@@ -99,6 +114,7 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
       setInvoice(data.invoice as InvoiceWithDetails);
       setItems((data.items as InvoiceItem[]) || []);
       setCompanyPaymentMethods((data.paymentMethods as PaymentMethod[]) || []);
+      setPayments((data.payments as PaymentRecord[]) || []);
     } catch (err) {
       console.error('Error fetching invoice:', err);
       setError('Invoice not found');
@@ -108,12 +124,30 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
   }, [params.id]);
 
   useEffect(() => {
-    fetchInvoice();
     // Check for payment success return
     const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
     if (urlParams.get('paid') === 'true') {
       setPaymentSuccess(true);
       window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    if (sessionId) {
+      // Confirm server-side with Stripe so the invoice flips to paid even if
+      // the webhook is late or not configured; then load the updated invoice.
+      setConfirming(true);
+      fetch('/api/stripe/checkout/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      })
+        .catch(() => null)
+        .finally(() => {
+          setConfirming(false);
+          fetchInvoice();
+        });
+    } else {
+      fetchInvoice();
     }
   }, [fetchInvoice]);
 
@@ -124,7 +158,7 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
       const res = await fetch('/api/invoice/pay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invoiceId: invoice?.id }),
+        body: JSON.stringify({ invoiceId: invoice?.id, saveCard }),
       });
       const data = await res.json();
       if (res.ok && data.url) {
@@ -152,10 +186,16 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
     });
   };
 
-  if (isLoading) {
+  if (isLoading || confirming) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center gap-3">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        {confirming && (
+          <div className="text-center">
+            <p className="text-gray-700 font-medium">{t('confirmingPayment')}</p>
+            <p className="text-gray-500 text-sm">{t('confirmingPaymentMessage')}</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -180,6 +220,20 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
     .filter(Boolean)
     .join(', ');
   const balanceDue = computeBalanceDue(invoice.total, invoice.amount_paid || 0);
+  const isPaid = invoice.status === 'paid';
+  const isPartial = !isPaid && (invoice.amount_paid || 0) > 0;
+  const latestPayment = payments[0] || null;
+  const reviewLink = invoice.company?.google_review_link || invoice.company?.yelp_review_link || null;
+  const bookingLink = invoice.company?.id ? `/book/${invoice.company.id}` : null;
+  const customerFirstName = (invoice.customer?.name || '').split(' ')[0];
+  const receiptContact = invoice.customer?.email || invoice.customer?.phone || null;
+  const paidWithLabel = latestPayment?.card_last4
+    ? `${latestPayment.card_brand ? latestPayment.card_brand.charAt(0).toUpperCase() + latestPayment.card_brand.slice(1) : 'Card'} •••• ${latestPayment.card_last4}`
+    : latestPayment?.payment_method === 'stripe' || latestPayment?.payment_method === 'card_on_file'
+    ? 'Card'
+    : latestPayment?.payment_method
+    ? latestPayment.payment_method.charAt(0).toUpperCase() + latestPayment.payment_method.slice(1)
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -221,7 +275,7 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
 
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Payment Success Banner */}
-        {paymentSuccess && invoice.status !== 'paid' && (
+        {paymentSuccess && !isPaid && !isPartial && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center">
             <div className="text-4xl mb-2">&#10003;</div>
             <h2 className="text-xl font-bold text-green-700">{t('paymentSubmitted')}</h2>
@@ -231,14 +285,109 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
           </div>
         )}
 
-        {/* Paid Banner */}
-        {invoice.status === 'paid' && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center">
+        {/* Paid Banner + Receipt */}
+        {isPaid && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6" data-testid="paid-banner">
+            <div className="text-center">
+              <div className="text-4xl mb-2">&#10003;</div>
+              <h2 className="text-xl font-bold text-green-700">{t('paymentReceived')}</h2>
+              <p className="text-green-700 text-sm mt-1">
+                {customerFirstName ? t('paymentReceivedThanks', { name: customerFirstName }) : t('thankYouPayment')}
+              </p>
+              {receiptContact && (
+                <p className="text-green-600 text-xs mt-1">{t('receiptSentTo', { contact: receiptContact })}</p>
+              )}
+            </div>
+
+            <div className="bg-white rounded-lg border border-green-100 mt-5 p-4 print:border-0">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('receiptTitle')}</div>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="text-xs text-blue-600 hover:text-blue-800 print:hidden"
+                >
+                  {t('printReceipt')}
+                </button>
+              </div>
+              <dl className="grid grid-cols-2 gap-y-1 text-sm">
+                <dt className="text-gray-500">{t('amountPaid')}</dt>
+                <dd className="text-right font-semibold text-gray-800">${(invoice.amount_paid || invoice.total || 0).toFixed(2)}</dd>
+                <dt className="text-gray-500">{t('paidOn')}</dt>
+                <dd className="text-right text-gray-800">{formatDate(latestPayment?.paid_at || invoice.paid_at || invoice.created_at)}</dd>
+                {paidWithLabel && (
+                  <>
+                    <dt className="text-gray-500">{t('paidWith')}</dt>
+                    <dd className="text-right text-gray-800">{paidWithLabel}</dd>
+                  </>
+                )}
+                <dt className="text-gray-500">{t('invoiceNumber')}</dt>
+                <dd className="text-right text-gray-800">{invoice.invoice_number || invoice.id.slice(0, 8)}</dd>
+                <dt className="text-gray-500 pt-2 border-t border-gray-100">{t('balanceDue')}</dt>
+                <dd className="text-right text-green-700 font-semibold pt-2 border-t border-gray-100">{t('paidInFull')}</dd>
+              </dl>
+              {invoice.customer?.card_last4 && (
+                <p className="text-xs text-gray-500 mt-3">{t('cardSavedNotice', { last4: invoice.customer.card_last4 })}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Deposit / Partial Payment Banner */}
+        {isPartial && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center" data-testid="deposit-banner">
             <div className="text-4xl mb-2">&#10003;</div>
-            <h2 className="text-xl font-bold text-green-700">{t('paymentReceived')}</h2>
-            <p className="text-green-600 text-sm mt-1">
-              {t('thankYouPayment')}
+            <h2 className="text-xl font-bold text-green-700">{t('depositReceived')}</h2>
+            <p className="text-green-700 text-sm mt-1">
+              {t('depositReceivedMessage', { amount: `$${balanceDue.toFixed(2)}` })}
             </p>
+            {receiptContact && (
+              <p className="text-green-600 text-xs mt-1">{t('receiptSentTo', { contact: receiptContact })}</p>
+            )}
+          </div>
+        )}
+
+        {/* What's next — rebook, review, contact */}
+        {isPaid && (bookingLink || reviewLink || invoice.company?.phone) && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 print:hidden" data-testid="next-steps">
+            <h3 className="font-semibold text-gray-800 mb-4">{t('whatsNext')}</h3>
+            <div className="grid sm:grid-cols-3 gap-4">
+              {bookingLink && (
+                <a
+                  href={bookingLink}
+                  className="block border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="text-2xl mb-2">📅</div>
+                  <div className="font-medium text-gray-800">{t('bookAgainTitle')}</div>
+                  <div className="text-sm text-gray-500 mt-1">{t('bookAgainText')}</div>
+                  <div className="text-sm font-semibold text-blue-600 mt-3">{t('bookAgainButton')} &rarr;</div>
+                </a>
+              )}
+              {reviewLink && (
+                <a
+                  href={reviewLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block border border-gray-200 rounded-lg p-4 hover:border-amber-400 hover:bg-amber-50 transition-colors"
+                >
+                  <div className="text-2xl mb-2">⭐</div>
+                  <div className="font-medium text-gray-800">{t('reviewTitle')}</div>
+                  <div className="text-sm text-gray-500 mt-1">{t('reviewText', { company: invoice.company?.name || 'us' })}</div>
+                  <div className="text-sm font-semibold text-amber-600 mt-3">{t('reviewButton')} &rarr;</div>
+                </a>
+              )}
+              {invoice.company?.phone && (
+                <a
+                  href={`tel:${invoice.company.phone}`}
+                  className="block border border-gray-200 rounded-lg p-4 hover:border-green-400 hover:bg-green-50 transition-colors"
+                >
+                  <div className="text-2xl mb-2">📞</div>
+                  <div className="font-medium text-gray-800">{t('contactTitle')}</div>
+                  <div className="text-sm text-gray-500 mt-1">{t('contactText')}</div>
+                  <div className="text-sm font-semibold text-green-600 mt-3">{t('contactButton', { phone: invoice.company.phone })}</div>
+                </a>
+              )}
+            </div>
           </div>
         )}
 
@@ -401,6 +550,19 @@ export default function InvoiceViewClient({ params }: { params: { id: string } }
               <p className="text-xs text-gray-400 text-center mt-2">
                 {t('securePayment')}
               </p>
+              <label className="flex items-start gap-2 mt-3 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={saveCard}
+                  onChange={(e) => setSaveCard(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  data-testid="save-card-checkbox"
+                />
+                <span>
+                  <span className="font-medium text-gray-700">{t('saveCardLabel')}</span>
+                  <span className="block text-xs text-gray-400 mt-0.5">{t('saveCardHelp', { company: invoice.company?.name || 'This company' })}</span>
+                </span>
+              </label>
             </div>
           )}
 

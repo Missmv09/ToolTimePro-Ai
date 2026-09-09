@@ -8,6 +8,13 @@
 // This module ONLY touches the database. Sending confirmations (SMS/voice) is
 // the caller's responsibility, so each channel can localize its own messaging.
 
+const {
+  resolveBusinessHours,
+  getDayHours,
+  slotsForDay,
+  nextOpenDate,
+} = require('./business-hours');
+
 // Calculate end time based on start time and duration
 function calculateEndTime(startTime, durationMinutes) {
   const [hours, minutes] = startTime.split(':').map(Number);
@@ -56,6 +63,16 @@ async function createBooking(supabase, params) {
   let finalDate = scheduledDate;
   let finalTimeStart = scheduledTimeStart;
 
+  // Tenant context: display name for confirmations, and the business hours
+  // configured in Settings (drives auto-advance slot selection below).
+  const { data: companyRow } = await supabase
+    .from('companies')
+    .select('name, business_hours')
+    .eq('id', companyId)
+    .single();
+  const companyName = companyRow?.name || 'Our team';
+  const businessHours = resolveBusinessHours(companyRow?.business_hours);
+
   // Get all booked slots for the requested date
   const { data: existingJobs, error: checkError } = await supabase
     .from('jobs')
@@ -80,23 +97,20 @@ async function createBooking(supabase, params) {
       };
     }
 
-    // Flexible bookings: find the next open hourly slot (08:00–17:00)
-    const slots = [];
-    for (let h = 8; h <= 17; h++) {
-      slots.push(`${String(h).padStart(2, '0')}:00`);
-    }
+    // Flexible bookings: find the next open hourly slot within the tenant's
+    // configured hours for that day.
+    const slots = slotsForDay(getDayHours(businessHours, scheduledDate));
     const nextOpen = slots.find((s) => !bookedTimes.has(s));
 
     if (nextOpen) {
       finalTimeStart = nextOpen;
     } else {
-      // Entire day full — move to the next business day
-      const d = new Date(scheduledDate + 'T00:00:00');
-      do {
-        d.setDate(d.getDate() + 1);
-      } while (d.getDay() === 0 || d.getDay() === 6);
-      finalDate = d.toISOString().split('T')[0];
-      finalTimeStart = '09:00';
+      // Entire day full (or closed that day) — first slot of the next open day.
+      const nextDate = nextOpenDate(businessHours, scheduledDate);
+      if (nextDate) {
+        finalDate = nextDate;
+        finalTimeStart = slotsForDay(getDayHours(businessHours, nextDate))[0] || finalTimeStart;
+      }
     }
   }
 
@@ -194,7 +208,7 @@ async function createBooking(supabase, params) {
   }
 
   // Run lead creation and company name fetch in parallel (independent queries)
-  const [leadResult, companyResult] = await Promise.all([
+  const [leadResult] = await Promise.all([
     supabase.from('leads').insert({
       company_id: companyId,
       customer_id: customerId,
@@ -207,14 +221,11 @@ async function createBooking(supabase, params) {
       source: source || 'online_booking',
       status: 'new',
     }),
-    supabase.from('companies').select('name').eq('id', companyId).single(),
   ]);
 
   if (leadResult.error) {
     console.error('[booking-core] Lead insert error:', leadResult.error);
   }
-
-  const companyName = companyResult.data?.name || 'Our team';
 
   return {
     ok: true,

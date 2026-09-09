@@ -24,7 +24,11 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
     const name = `E2E QPublic ${uid}`;
     const QTY = 2;
     const PRICE = 100;
-    const TOTAL = '$217.50'; // 2 * 100 + 8.75% tax
+    // The modal's default rate comes from tenant settings (company default,
+    // else customer-state estimate, else 0), so pin it explicitly — see
+    // TC-QUOTE-01 for why an integer rate.
+    const TAX_RATE = 10;
+    const TOTAL = '$220.00'; // 2 * 100 + 10% tax
 
     // ── Create a quote attached to a brand-new customer (no seed dependency) ──
     cy.visit('/dashboard/quotes');
@@ -40,6 +44,9 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
       cy.get('input[placeholder="Description"]').first().clear().type('E2E line item');
       cy.get('input[placeholder="Qty"]').first().type(`{selectall}${QTY}`).should('have.value', `${QTY}`);
       cy.get('input[placeholder="Price"]').first().type(`{selectall}${PRICE}`).should('have.value', `${PRICE}`);
+      cy.get('input[aria-label="Tax rate percent"]')
+        .type(`{selectall}${TAX_RATE}`)
+        .should('have.value', `${TAX_RATE}`);
       cy.contains(TOTAL).should('be.visible');
       cy.contains('button', /^\s*save quote\s*$/i).click();
     });

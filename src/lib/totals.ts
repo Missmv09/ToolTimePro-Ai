@@ -3,8 +3,8 @@
 // Historically these calculations were duplicated inline inside the quote and
 // invoice modal components (each ~1,900-line files) with no unit tests, and the
 // quote path hardcoded an 8.75% tax while the invoice path used a variable rate.
-// That divergence is exactly the kind of thing that silently mis-charges a
-// customer, so the math now lives here, is exported, and is unit-tested.
+// That divergence silently mis-charged customers outside California, so the
+// math lives here, both paths take an explicit rate, and it is unit-tested.
 //
 // NOTE: these functions intentionally do NOT round. The callers store raw values
 // and format with `.toFixed(2)` only for display — matching the prior behavior.
@@ -20,12 +20,6 @@ export interface Totals {
   tax_amount: number;
   total: number;
 }
-
-/**
- * Default sales-tax rate (percent) applied to quotes. Previously hardcoded as
- * the literal `0.0875` inside the quote modal ("CA sales tax estimate").
- */
-export const QUOTE_TAX_RATE = 8.75;
 
 /** Total for a single line item: quantity × unit price. */
 export function computeLineItemTotal(item: LineItemLike): number {
@@ -52,9 +46,18 @@ export function computeTotals(
   return { subtotal, tax_amount, total };
 }
 
-/** Quote totals — always uses the fixed {@link QUOTE_TAX_RATE}. */
-export function computeQuoteTotals(items: LineItemLike[]): Totals {
-  return computeTotals(items, QUOTE_TAX_RATE);
+/**
+ * Quote totals — uses the quote's own tax rate (percent).
+ *
+ * This used to apply a fixed 8.75% for every tenant. The default for a new
+ * quote now comes from `resolveDefaultTaxRate` in `@/lib/sales-tax`
+ * (company default → customer-state estimate → 0), and is editable per quote.
+ */
+export function computeQuoteTotals(
+  items: LineItemLike[],
+  taxRatePercent: number | string,
+): Totals {
+  return computeTotals(items, taxRatePercent);
 }
 
 /** Invoice totals — uses a user-supplied tax rate (percent). */

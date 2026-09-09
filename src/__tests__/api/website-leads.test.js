@@ -32,6 +32,11 @@ jest.mock('@supabase/supabase-js', () => ({
   })),
 }));
 
+const mockNotifyNewLead = jest.fn().mockResolvedValue({ alerted: true, smsAlerted: false, autoReplied: false });
+jest.mock('@/lib/lead-alerts', () => ({
+  notifyNewLead: (...args) => mockNotifyNewLead(...args),
+}));
+
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
 
@@ -130,6 +135,45 @@ describe('/api/website-builder/leads', () => {
 
       expect(response.status).toBe(404);
       expect(body.error).toBe('Site not found');
+    });
+  });
+
+  describe('speed-to-lead alerts', () => {
+    it('fires the owner alert with the site company and the lead details', async () => {
+      const response = await POST(makeRequest({
+        siteId: VALID_SITE.id,
+        name: 'John Doe',
+        phone: '555-123-4567',
+        service: 'Water heater',
+        message: 'No hot water since Tuesday',
+      }));
+      expect(response.status).toBe(200);
+      expect(mockNotifyNewLead).toHaveBeenCalledTimes(1);
+      expect(mockNotifyNewLead).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          companyId: VALID_SITE.company_id,
+          lead: expect.objectContaining({
+            name: 'John Doe',
+            phone: '555-123-4567',
+            service_requested: 'Water heater',
+            message: 'No hot water since Tuesday',
+          }),
+        })
+      );
+    });
+
+    it('does not alert when there is no company to alert', async () => {
+      await POST(makeRequest({ name: 'Jane', email: 'jane@example.com', source: 'smart_quote_demo' }));
+      expect(mockNotifyNewLead).not.toHaveBeenCalled();
+    });
+
+    it('still returns success when the alert throws', async () => {
+      mockNotifyNewLead.mockRejectedValueOnce(new Error('twilio down'));
+      const response = await POST(makeRequest({ siteId: VALID_SITE.id, name: 'John Doe' }));
+      const body = await response.json();
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
     });
   });
 

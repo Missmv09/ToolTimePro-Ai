@@ -1459,3 +1459,228 @@ function formatDigestDate(isoDate: string): string {
   const date = new Date(`${isoDate}T00:00:00Z`);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
+
+// ============================================
+// Payment Receipt (sent the moment a payment lands)
+// ============================================
+
+export async function sendPaymentReceiptEmail({
+  to,
+  customerName,
+  companyName,
+  companyPhone,
+  companyEmail,
+  invoiceNumber,
+  amountPaid,
+  paidAt,
+  paymentLabel,
+  total,
+  amountPaidToDate,
+  balanceDue,
+  kind = 'payment',
+  items,
+  invoiceLink,
+  bookingLink,
+  cardSaved = false,
+  cardLast4,
+}: {
+  to: string;
+  customerName: string;
+  companyName: string;
+  companyPhone?: string | null;
+  companyEmail?: string | null;
+  invoiceNumber: string;
+  amountPaid: number;
+  paidAt: string;
+  paymentLabel: string;
+  total: number;
+  amountPaidToDate: number;
+  balanceDue: number;
+  kind?: 'payment' | 'deposit';
+  items?: { description: string; quantity: number; unit_price: number; total_price?: number; total?: number }[];
+  invoiceLink: string;
+  bookingLink?: string | null;
+  cardSaved?: boolean;
+  cardLast4?: string | null;
+}) {
+  const formatCurrency = (amount?: number | null) =>
+    `$${(Number(amount) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const escape = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const firstName = (customerName || 'there').split(' ')[0];
+  const paidDate = new Date(paidAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const isDeposit = kind === 'deposit' || balanceDue > 0;
+  const subject = isDeposit
+    ? `${kind === 'deposit' ? 'Deposit' : 'Payment'} received - ${formatCurrency(amountPaid)} to ${companyName} (${formatCurrency(balanceDue)} remaining)`
+    : `Receipt from ${companyName} - ${formatCurrency(amountPaid)} paid`;
+
+  const lineItemsHtml =
+    items && items.length > 0
+      ? `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+        <thead>
+          <tr style="background: #f9fafb;">
+            <th style="padding: 10px 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Item</th>
+            <th style="padding: 10px 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Qty</th>
+            <th style="padding: 10px 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items
+            .map((item) => {
+              const lineTotal = item.total ?? item.total_price ?? (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
+              return `
+          <tr>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px;">${escape(item.description)}</td>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: center;">${item.quantity}</td>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(lineTotal)}</td>
+          </tr>`;
+            })
+            .join('')}
+        </tbody>
+      </table>`
+      : '';
+
+  const nextStepsHtml = `
+      <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 28px 0 8px 0;">
+        <p style="margin: 0 0 12px 0; color: #111827; font-weight: 700; font-size: 15px;">What's next</p>
+        ${bookingLink ? `
+        <p style="margin: 0 0 10px 0; color: #374151; font-size: 14px; line-height: 1.6;">
+          <strong>Need us again?</strong> Book your next visit online in under a minute:<br />
+          <a href="${bookingLink}" style="color: #2E9BFF; text-decoration: none; font-weight: 600;">Book your next service &rarr;</a>
+        </p>` : ''}
+        ${companyPhone ? `
+        <p style="margin: 0 0 10px 0; color: #374151; font-size: 14px; line-height: 1.6;">
+          <strong>Questions about this receipt?</strong> Call or text ${escape(companyName)} at
+          <a href="tel:${escape(companyPhone)}" style="color: #2E9BFF; text-decoration: none;">${escape(companyPhone)}</a>${companyEmail ? ` or email <a href="mailto:${escape(companyEmail)}" style="color: #2E9BFF; text-decoration: none;">${escape(companyEmail)}</a>` : ''}.
+        </p>` : companyEmail ? `
+        <p style="margin: 0 0 10px 0; color: #374151; font-size: 14px; line-height: 1.6;">
+          <strong>Questions about this receipt?</strong> Email <a href="mailto:${escape(companyEmail)}" style="color: #2E9BFF; text-decoration: none;">${escape(companyEmail)}</a>.
+        </p>` : ''}
+        ${cardSaved ? `
+        <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.6;">
+          Your card${cardLast4 ? ` ending in ${escape(cardLast4)}` : ''} is saved for future services with ${escape(companyName)}. Contact them any time to remove it.
+        </p>` : ''}
+      </div>`;
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject,
+    html: emailLayout(`
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; width: 56px; height: 56px; line-height: 56px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 28px; font-weight: 700;">&#10003;</div>
+      </div>
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px; text-align: center;">
+        ${kind === 'deposit' ? 'Deposit received' : 'Payment received'} &mdash; thank you, ${escape(firstName)}!
+      </h2>
+      <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px 0; text-align: center;">
+        This is your receipt from <strong>${escape(companyName)}</strong>.
+      </p>
+
+      <div style="background: #f9fafb; border-radius: 8px; padding: 16px 20px; margin: 20px 0;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;">Amount paid</td>
+            <td style="padding: 4px 0; color: #111827; font-size: 18px; text-align: right; font-weight: 700;">${formatCurrency(amountPaid)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;">Date</td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${paidDate}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;">Paid with</td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${escape(paymentLabel)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;">Invoice</td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${escape(invoiceNumber)}</td>
+          </tr>
+          ${isDeposit ? `
+          <tr>
+            <td style="padding: 10px 0 4px 0; color: #374151; font-size: 14px; border-top: 1px solid #e5e7eb;">Invoice total</td>
+            <td style="padding: 10px 0 4px 0; color: #374151; font-size: 14px; text-align: right; border-top: 1px solid #e5e7eb;">${formatCurrency(total)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;">Paid to date</td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${formatCurrency(amountPaidToDate)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #b45309; font-size: 14px; font-weight: 600;">Balance due${kind === 'deposit' ? ' on completion' : ''}</td>
+            <td style="padding: 4px 0; color: #b45309; font-size: 14px; text-align: right; font-weight: 700;">${formatCurrency(balanceDue)}</td>
+          </tr>` : `
+          <tr>
+            <td style="padding: 10px 0 4px 0; color: #16a34a; font-size: 14px; font-weight: 600; border-top: 1px solid #e5e7eb;">Balance</td>
+            <td style="padding: 10px 0 4px 0; color: #16a34a; font-size: 14px; text-align: right; font-weight: 700; border-top: 1px solid #e5e7eb;">Paid in full</td>
+          </tr>`}
+        </table>
+      </div>
+
+      ${lineItemsHtml}
+
+      ${ctaButton(isDeposit ? 'View invoice' : 'View receipt', invoiceLink, '#16a34a')}
+
+      ${nextStepsHtml}
+
+      <p style="color: #9ca3af; font-size: 12px; margin: 24px 0 0 0;">
+        Keep this email for your records. Sent on behalf of ${escape(companyName)} via Task Iguana.
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
+// ============================================
+// Review Request (delayed after payment / job completion)
+// ============================================
+
+export async function sendReviewRequestEmail({
+  to,
+  customerName,
+  companyName,
+  reviewLink,
+  platformLabel,
+  bookingLink,
+}: {
+  to: string;
+  customerName: string;
+  companyName: string;
+  /** Tracking link (/r/<token>); omit when the company has no review link yet. */
+  reviewLink?: string | null;
+  platformLabel?: string | null;
+  bookingLink?: string | null;
+}) {
+  const escape = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const firstName = (customerName || 'there').split(' ')[0];
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `How did we do, ${firstName}?`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Thanks for choosing ${escape(companyName)}, ${escape(firstName)}!</h2>
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">
+        We hope everything went smoothly. ${reviewLink
+          ? `If you have a minute, a quick ${platformLabel ? `${escape(platformLabel)} ` : ''}review helps other homeowners find us and means a lot to our small team.`
+          : 'If you have a minute, reply to this email and let us know how we did. Your feedback goes straight to the team.'}
+      </p>
+
+      ${reviewLink ? ctaButton(`Leave a ${platformLabel ? `${escape(platformLabel)} ` : ''}review`, reviewLink, '#f59e0b') : ''}
+
+      ${reviewLink ? `
+      <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; text-align: center;">
+        Not happy with something? Please tell us first &mdash; reply to this email and we'll make it right.
+      </p>` : ''}
+
+      ${bookingLink ? `
+      <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0; text-align: center;">
+        Need us again? <a href="${bookingLink}" style="color: #2E9BFF; text-decoration: none; font-weight: 600;">Book your next service</a>
+      </p>` : ''}
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}

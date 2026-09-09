@@ -1,5 +1,5 @@
 import { getServiceSupabase, resolveCompany, buildSay, voiceResponse } from '@/lib/jenny-voice';
-import { t } from '@/lib/jenny-language';
+import { pickGreeting } from '@/lib/jenny-greeting';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,26 +36,28 @@ export async function POST(request) {
 
     const { data: settings } = await supabase
       .from('jenny_pro_settings')
-      .select('escalation_phone, language')
+      .select('escalation_phone, language, business_hours_greeting, after_hours_greeting')
       .eq('company_id', company.id)
       .maybeSingle();
 
     const lang = settings?.language === 'es' ? 'es' : 'en';
+    const { greeting, isCustom } = pickGreeting({ settings, company, lang });
 
     // If we have the owner's number, ring them first, then fall back to Jenny.
     if (settings?.escalation_phone) {
-      const greeting = lang === 'es'
+      const connecting = lang === 'es'
         ? 'Un momento, le conectamos con nuestro equipo.'
         : 'One moment while we connect you with our team.';
       const dial =
         `<Dial timeout="18" action="/api/jenny-pro/voice/after-dial" method="POST">` +
         `<Number>${settings.escalation_phone}</Number>` +
         `</Dial>`;
-      return voiceResponse(buildSay(greeting, lang) + dial);
+      // A tenant's custom greeting is spoken before the transfer attempt.
+      const intro = isCustom ? buildSay(greeting, lang) : '';
+      return voiceResponse(intro + buildSay(connecting, lang) + dial);
     }
 
     // No owner number — go straight to the AI receptionist.
-    const greeting = t(lang).voiceGreeting(company.name || 'our office');
     return voiceResponse(
       buildSay(greeting, lang) +
         `<Redirect method="POST">/api/jenny-pro/voice/gather</Redirect>`

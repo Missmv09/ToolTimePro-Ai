@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency';
 import type { Locale } from '@/i18n/config';
+import { detectStateFromAddress, resolveDefaultTaxRate, parseTaxRate } from '@/lib/sales-tax';
+import { DISCOUNT_TYPES, calcDiscountAmount, type DiscountType } from '@/lib/quote-discount';
 
 // Types
 interface LineItem {
@@ -30,58 +32,6 @@ interface Customer {
   address: string | null;
   state: string | null;
   sms_consent?: boolean;
-}
-
-// US state sales tax rates (2024 averages including state + avg local)
-const STATE_TAX_RATES: Record<string, number> = {
-  AL: 9.24, AK: 1.76, AZ: 8.40, AR: 9.47, CA: 8.68,
-  CO: 7.77, CT: 6.35, DE: 0, FL: 7.02, GA: 7.37,
-  HI: 4.44, ID: 6.02, IL: 8.82, IN: 7.00, IA: 6.94,
-  KS: 8.70, KY: 6.00, LA: 9.55, ME: 5.50, MD: 6.00,
-  MA: 6.25, MI: 6.00, MN: 7.49, MS: 7.07, MO: 8.30,
-  MT: 0, NE: 6.94, NV: 8.23, NH: 0, NJ: 6.63,
-  NM: 7.72, NY: 8.52, NC: 6.99, ND: 6.96, OH: 7.24,
-  OK: 8.98, OR: 0, PA: 6.34, RI: 7.00, SC: 7.44,
-  SD: 6.40, TN: 9.55, TX: 8.20, UT: 7.19, VT: 6.36,
-  VA: 5.75, WA: 9.29, WV: 6.50, WI: 5.43, WY: 5.36,
-  DC: 6.00,
-};
-
-// Two-letter state abbreviations for matching
-const STATE_ABBREVS = new Set(Object.keys(STATE_TAX_RATES));
-
-// Full state names to abbreviations
-const STATE_NAMES: Record<string, string> = {
-  alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA',
-  colorado: 'CO', connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA',
-  hawaii: 'HI', idaho: 'ID', illinois: 'IL', indiana: 'IN', iowa: 'IA',
-  kansas: 'KS', kentucky: 'KY', louisiana: 'LA', maine: 'ME', maryland: 'MD',
-  massachusetts: 'MA', michigan: 'MI', minnesota: 'MN', mississippi: 'MS', missouri: 'MO',
-  montana: 'MT', nebraska: 'NE', nevada: 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
-  'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH',
-  oklahoma: 'OK', oregon: 'OR', pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
-  'south dakota': 'SD', tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT',
-  virginia: 'VA', washington: 'WA', 'west virginia': 'WV', wisconsin: 'WI', wyoming: 'WY',
-  'district of columbia': 'DC',
-};
-
-function detectStateFromAddress(address: string): string | null {
-  if (!address) return null;
-  const trimmed = address.trim();
-
-  // Try matching ", ST 12345" or ", ST" at end of address
-  const abbrMatch = trimmed.match(/,\s*([A-Z]{2})\s*\d{0,5}\s*$/);
-  if (abbrMatch && STATE_ABBREVS.has(abbrMatch[1])) {
-    return abbrMatch[1];
-  }
-
-  // Try matching full state name anywhere in the address
-  const lower = trimmed.toLowerCase();
-  for (const [name, abbr] of Object.entries(STATE_NAMES)) {
-    if (lower.includes(name)) return abbr;
-  }
-
-  return null;
 }
 
 interface QuoteOption {
@@ -210,8 +160,24 @@ export default function SmartQuotingPage() {
   ]);
 
   // Quote details
-  const [taxRate, setTaxRate] = useState(8.75);
+  // Tax rate (percent): company default → customer-state estimate → 0.
+  // Never a hardcoded California rate.
+  const companyDefaultTaxRate = parseTaxRate((company as unknown as Record<string, unknown> | null)?.default_tax_rate);
+  const [taxRate, setTaxRate] = useState<number>(() => companyDefaultTaxRate ?? 0);
+  const [taxRateTouched, setTaxRateTouched] = useState(false);
+  useEffect(() => {
+    // Company loads after first render; adopt its default until the user edits.
+    if (companyDefaultTaxRate !== null && !taxRateTouched) setTaxRate(companyDefaultTaxRate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyDefaultTaxRate]);
+  // When the company has no default, estimate from the customer's state.
+  const applyStateTax = (state: string | null | undefined) => {
+    if (companyDefaultTaxRate !== null || taxRateTouched) return;
+    const resolved = resolveDefaultTaxRate({ customerState: state });
+    if (resolved.source === 'state') setTaxRate(resolved.rate);
+  };
   const [discount, setDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState<DiscountType>('fixed');
   const [notes, setNotes] = useState('');
   const [validDays, setValidDays] = useState(30);
   const [frequency, setFrequency] = useState<string>(DEFAULT_QUOTE_FREQUENCY);
@@ -219,7 +185,7 @@ export default function SmartQuotingPage() {
   // Calculate totals
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
   const taxAmount = subtotal * (taxRate / 100);
-  const discountAmount = discount;
+  const discountAmount = calcDiscountAmount(subtotal, discount, discountType);
   const grandTotal = subtotal + taxAmount - discountAmount;
 
   // Generate unique ID
@@ -800,10 +766,7 @@ export default function SmartQuotingPage() {
       }
 
       // Auto-set tax rate from state
-      const stateAbbr = newCustomer.state.toUpperCase();
-      if (stateAbbr && STATE_TAX_RATES[stateAbbr] !== undefined) {
-        setTaxRate(STATE_TAX_RATES[stateAbbr]);
-      }
+      applyStateTax(newCustomer.state);
 
       setShowNewCustomerForm(false);
     } catch (err) {
@@ -1349,7 +1312,7 @@ export default function SmartQuotingPage() {
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-navy-500">{t('customer.title')}</h2>
-                <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1" role="group" aria-label="Language">
+                <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1" role="group" aria-label={t('customer.languageLabel')}>
                   <button
                     type="button"
                     onClick={() => switchLanguage('en')}
@@ -1440,10 +1403,7 @@ export default function SmartQuotingPage() {
                                     address: customer.address || '',
                                     city: '', state: customer.state || '', zip: '', notes: '', sms_consent: customer.sms_consent || false,
                                   });
-                                  const state = customer.state || detectStateFromAddress(customer.address || '');
-                                  if (state && STATE_TAX_RATES[state] !== undefined) {
-                                    setTaxRate(STATE_TAX_RATES[state]);
-                                  }
+                                  applyStateTax(customer.state || detectStateFromAddress(customer.address || ''));
                                   setCustomerSearch('');
                                   setShowCustomerDropdown(false);
                                 }}
@@ -1579,10 +1539,7 @@ export default function SmartQuotingPage() {
                               value={newCustomer.state}
                               onChange={(e) => setNewCustomer(prev => ({ ...prev, state: e.target.value }))}
                               onBlur={(e) => {
-                                const abbr = e.target.value.toUpperCase();
-                                if (abbr && STATE_TAX_RATES[abbr] !== undefined) {
-                                  setTaxRate(STATE_TAX_RATES[abbr]);
-                                }
+                                applyStateTax(e.target.value);
                               }}
                               placeholder="CA"
                               maxLength={2}
@@ -2114,7 +2071,7 @@ export default function SmartQuotingPage() {
                     <input
                       type="number"
                       value={taxRate}
-                      onChange={(e) => setTaxRate(Number(e.target.value))}
+                      onChange={(e) => { setTaxRateTouched(true); setTaxRate(Number(e.target.value)); }}
                       className="w-16 px-2 py-1 border border-gray-200 rounded text-right text-sm"
                       min="0"
                       max="20"
@@ -2129,14 +2086,41 @@ export default function SmartQuotingPage() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">{t('summary.discount')}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400">$</span>
+                    <div
+                      role="group"
+                      aria-label={t('summary.discountType')}
+                      className="flex rounded border border-gray-200 overflow-hidden"
+                    >
+                      {DISCOUNT_TYPES.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setDiscountType(opt.value)}
+                          aria-pressed={discountType === opt.value}
+                          title={opt.value === 'percent' ? t('summary.discountPercentTip') : t('summary.discountFixedTip')}
+                          className={`px-2 py-1 text-xs font-medium transition-colors ${
+                            discountType === opt.value
+                              ? 'bg-navy-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                     <input
                       type="number"
                       value={discount}
                       onChange={(e) => setDiscount(Number(e.target.value))}
-                      className="w-20 px-2 py-1 border border-gray-200 rounded text-right text-sm"
+                      aria-label={discountType === 'percent' ? t('summary.discountPercentLabel') : t('summary.discountAmountLabel')}
+                      className="w-16 px-2 py-1 border border-gray-200 rounded text-right text-sm"
                       min="0"
+                      max={discountType === 'percent' ? 100 : undefined}
+                      step={discountType === 'percent' ? '0.1' : '0.01'}
                     />
+                    <span className="text-navy-500 w-20 text-right">
+                      {discountAmount > 0 ? `-$${discountAmount.toFixed(2)}` : '$0.00'}
+                    </span>
                   </div>
                 </div>
 

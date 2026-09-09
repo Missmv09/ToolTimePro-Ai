@@ -369,7 +369,8 @@
         "invalidPhone": "Ingresa un número de teléfono válido de 10 dígitos",
         "invalidEmail": "Ingresa un correo electrónico válido",
         "createError": "Error al crear el cliente: {message}",
-        "unexpectedError": "Ocurrió un error inesperado. Inténtalo de nuevo."
+        "unexpectedError": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+        "languageLabel": "Idioma"
       },
       "lineItems": {
         "title": "Partidas",
@@ -474,7 +475,12 @@
         "send": "Enviar Cotización",
         "saving": "Guardando...",
         "saveDraft": "💾 Guardar Borrador",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "discountType": "Tipo de descuento",
+        "discountPercentTip": "Porcentaje del subtotal",
+        "discountFixedTip": "Monto fijo en dólares",
+        "discountPercentLabel": "Porcentaje de descuento",
+        "discountAmountLabel": "Monto del descuento"
       },
       "errors": {
         "loginToSave": "Inicia sesión para guardar cotizaciones",
