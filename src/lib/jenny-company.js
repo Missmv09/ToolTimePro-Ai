@@ -5,7 +5,10 @@
 //      contractor's number → their company.
 //   2. JENNY_COMPANY_ID env var — explicit single-tenant pin (useful for
 //      testing or a single live business).
-//   3. First company in the DB — legacy single-tenant fallback.
+//
+// There is deliberately NO "first company in the DB" fallback. An unmapped
+// number must resolve to nothing, otherwise a stray call or text would be
+// answered under another contractor's name and booked into their calendar.
 //
 // Used by the SMS webhook and the voice receptionist so both answer as the
 // correct contractor (their name, services, and calendar).
@@ -13,7 +16,7 @@
 /**
  * @param {object} supabase - service-role client (bypasses RLS)
  * @param {string} toNumber - the Twilio number that was texted/called
- * @returns {Promise<{id: string, name: string|null, business_type: string|null} | null>}
+ * @returns {Promise<{id: string, name: string|null, business_type: string|null, business_hours: object|null, timezone: string|null} | null>}
  */
 async function resolveCompanyByNumber(supabase, toNumber) {
   let companyId = null;
@@ -36,22 +39,19 @@ async function resolveCompanyByNumber(supabase, toNumber) {
     companyId = process.env.JENNY_COMPANY_ID;
   }
 
-  // 3. Legacy fallback — first company
   if (!companyId) {
-    const { data: companies } = await supabase.from('companies').select('id').limit(1);
-    if (companies?.length) companyId = companies[0].id;
+    console.warn('[jenny-company] No company mapped for inbound number', toNumber);
+    return null;
   }
-
-  if (!companyId) return null;
 
   // Load the company's display info for greetings / messaging.
   const { data: company } = await supabase
     .from('companies')
-    .select('id, name, business_type')
+    .select('id, name, business_type, business_hours, timezone')
     .eq('id', companyId)
     .maybeSingle();
 
-  return company || { id: companyId, name: null, business_type: null };
+  return company || { id: companyId, name: null, business_type: null, business_hours: null, timezone: null };
 }
 
 module.exports = { resolveCompanyByNumber };

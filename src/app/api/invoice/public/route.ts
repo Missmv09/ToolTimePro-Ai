@@ -71,6 +71,20 @@ export async function GET(request: NextRequest) {
       paymentMethods = pmData || []
     }
 
+    // Payment history for the receipt block on the thank-you page. Only the
+    // fields the customer needs; never the Stripe ids.
+    let payments: unknown[] = []
+    if (invoice.status === 'paid' || invoice.status === 'partial' || (invoice.amount_paid || 0) > 0) {
+      const { data: payData } = await supabase
+        .from('payments')
+        .select('id, amount, payment_method, paid_at, card_brand, card_last4, receipt_sent_at, notes')
+        .eq('invoice_id', invoice.id)
+        .eq('status', 'completed')
+        .order('paid_at', { ascending: false })
+        .limit(10)
+      payments = payData || []
+    }
+
     // Mark as viewed if currently sent
     if (invoice.status === 'sent') {
       await supabase
@@ -83,7 +97,7 @@ export async function GET(request: NextRequest) {
       invoice.status = 'viewed'
     }
 
-    return NextResponse.json({ invoice, items: items || [], paymentMethods })
+    return NextResponse.json({ invoice, items: items || [], paymentMethods, payments })
   } catch (err) {
     console.error('Error fetching public invoice:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

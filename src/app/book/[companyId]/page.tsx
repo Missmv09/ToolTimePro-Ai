@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { normalizeBusinessHours } from '@/lib/business-hours';
 import type { Service, Company } from '@/types/database';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -72,6 +73,28 @@ function generateTimeSlots(
   }
 
   return slots;
+}
+
+// Normalize either stored shape into the { monday: { open, close, enabled } }
+// form the slot/date generators above expect. All seven days are emitted so a
+// day the tenant left unchecked is treated as closed rather than "no settings".
+function toBookingHours(raw: unknown): BusinessHours | null {
+  const normalized = normalizeBusinessHours(raw as Record<string, unknown> | null) as
+    | Record<string, { open: string; close: string }>
+    | null;
+  if (!normalized) return null;
+  const longNames: Record<string, string> = {
+    sun: 'sunday', mon: 'monday', tue: 'tuesday', wed: 'wednesday',
+    thu: 'thursday', fri: 'friday', sat: 'saturday',
+  };
+  const out: BusinessHours = {};
+  for (const [short, long] of Object.entries(longNames)) {
+    const day = normalized[short];
+    out[long] = day
+      ? { open: day.open, close: day.close, enabled: true }
+      : { open: '00:00', close: '00:00', enabled: false };
+  }
+  return out;
 }
 
 // Format time for display
@@ -160,7 +183,12 @@ export default function BookingPage() {
 
   const daysAhead = bookingSettings?.days_ahead || 14;
   const slotDuration = bookingSettings?.slot_duration || 30;
-  const businessHours = bookingSettings?.business_hours || null;
+  // Hours come from Settings → Company (companies.business_hours). The older
+  // booking_settings blob is honoured if present, but nothing writes it, so
+  // without this fallback the tenant's configured hours were ignored here.
+  const businessHours = toBookingHours(
+    bookingSettings?.business_hours ?? (company as unknown as { business_hours?: unknown } | null)?.business_hours
+  );
 
   const availableDates = getAvailableDates(daysAhead, businessHours);
   const timeSlots = booking.date
