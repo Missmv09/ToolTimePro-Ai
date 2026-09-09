@@ -114,7 +114,10 @@ const jennyFeatures = [
 
 // Comparison with competitors
 const competitorComparison = [
-  { feature: 'AI Phone Receptionist', jenny: true, jobber: '$349+/mo extra', housecall: false },
+  { feature: 'AI Phone Receptionist', jenny: true, jobber: '$349+/mo extra', housecall: 'Paid add-on, English only' },
+  { feature: 'Two-Way SMS Inbox + AI Takeover', jenny: true, jobber: 'Limited', housecall: 'Inbox only, no AI' },
+  { feature: 'Missed-Call Text-Back', jenny: true, jobber: false, housecall: false },
+  { feature: 'Customer Win-Back Campaigns', jenny: true, jobber: false, housecall: 'Paid marketing add-on' },
   { feature: 'AI Quote Generation', jenny: true, jobber: false, housecall: false },
   { feature: 'AI Review Responses', jenny: true, jobber: false, housecall: false },
   { feature: '24/7 Lead Capture Chatbot', jenny: true, jobber: false, housecall: false },

@@ -1,5 +1,4 @@
 import {
-  QUOTE_TAX_RATE,
   computeLineItemTotal,
   computeSubtotal,
   computeTotals,
@@ -62,22 +61,21 @@ describe('lib/totals — money math', () => {
     });
   });
 
-  describe('computeQuoteTotals (fixed 8.75% CA estimate)', () => {
-    it('exposes the historical tax rate as a constant', () => {
-      expect(QUOTE_TAX_RATE).toBe(8.75);
-    });
-
-    it('applies exactly 8.75% — identical to the old inline `subtotal * 0.0875`', () => {
+  describe('computeQuoteTotals (per-quote rate)', () => {
+    it('applies the supplied rate — no hidden California default', () => {
       const items = [
         { quantity: 2, unit_price: 100 }, // 200
         { quantity: 1, unit_price: 50 }, // 50
       ];
       const subtotal = 250;
-      const { tax_amount, total } = computeQuoteTotals(items);
-      // Regression guard: must equal the literal the quote modal used to compute.
-      expect(tax_amount).toBe(subtotal * 0.0875);
+      const { tax_amount, total } = computeQuoteTotals(items, 8.75);
       expect(tax_amount).toBeCloseTo(21.875, 10);
       expect(total).toBe(subtotal + subtotal * 0.0875);
+    });
+
+    it('a 0% tenant (e.g. Oregon) gets no tax on the quote', () => {
+      const items = [{ quantity: 1, unit_price: 1000 }];
+      expect(computeQuoteTotals(items, 0)).toEqual({ subtotal: 1000, tax_amount: 0, total: 1000 });
     });
   });
 
@@ -91,12 +89,9 @@ describe('lib/totals — money math', () => {
       });
     });
 
-    it('differs from the quote path for the same items (documents the intended divergence)', () => {
+    it('matches the quote path for the same items and rate (no divergence)', () => {
       const items = [{ quantity: 1, unit_price: 1000 }];
-      const quote = computeQuoteTotals(items); // 8.75%
-      const invoiceNoTax = computeInvoiceTotals(items, 0); // 0%
-      expect(quote.total).toBe(1087.5);
-      expect(invoiceNoTax.total).toBe(1000);
+      expect(computeQuoteTotals(items, 8.25)).toEqual(computeInvoiceTotals(items, 8.25));
     });
   });
 

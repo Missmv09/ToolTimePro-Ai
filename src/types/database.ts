@@ -50,6 +50,8 @@ export interface Database {
           default_hourly_rate: number | null
           quote_approval_settings: Json | null
           preferred_language: string
+          timezone: string
+          default_tax_rate: number | null
           created_at: string
           updated_at: string
         }
@@ -90,6 +92,8 @@ export interface Database {
           default_hourly_rate?: number | null
           quote_approval_settings?: Json | null
           preferred_language?: string
+          timezone?: string
+          default_tax_rate?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -130,6 +134,8 @@ export interface Database {
           default_hourly_rate?: number | null
           quote_approval_settings?: Json | null
           preferred_language?: string
+          timezone?: string
+          default_tax_rate?: number | null
           created_at?: string
           updated_at?: string
         }

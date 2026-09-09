@@ -37,7 +37,7 @@ function builder(table) {
   obj.limit = jest.fn(() => obj);
   obj.maybeSingle = jest.fn(() => Promise.resolve(maybeSingleResult(table)));
   obj.single = jest.fn(() => Promise.resolve(singleResult(table)));
-  // Awaiting the builder directly (e.g. companies.select().limit(1))
+  // Awaiting the builder directly (e.g. jobs.select()...neq())
   obj.then = (resolve) => resolve(awaitResult(table));
   return obj;
 }
@@ -50,6 +50,10 @@ function awaitResult(table) {
 }
 
 function maybeSingleResult(table) {
+  // The inbound Twilio number must be mapped to a tenant: there is no
+  // "first company in the DB" fallback any more (it leaked calls cross-tenant).
+  if (table === 'company_phone_numbers') return { data: { company_id: 'comp-1' } };
+  if (table === 'companies') return { data: { id: 'comp-1', name: 'Green Co', business_type: 'landscaping' } };
   if (table === 'jenny_pro_settings') return { data: settingsRow };
   if (table === 'jenny_sms_conversations') return { data: existingConversation };
   if (table === 'customers') return { data: null };
@@ -159,6 +163,46 @@ describe('/api/jenny-pro/sms-webhook', () => {
     expect(inserts.jobs).toBeUndefined();
     // Operator gets an urgent notification.
     expect(inserts.notifications && inserts.notifications.length).toBeGreaterThan(0);
+  });
+
+  it('stays quiet and pings the owner while a human has taken over the thread', async () => {
+    existingConversation = {
+      id: 'conv-1',
+      message_count: 4,
+      language: 'en',
+      customer_name: 'Maria',
+      human_takeover_until: new Date(Date.now() + 3600_000).toISOString(),
+    };
+
+    const res = await POST(smsRequest({ body: 'Yes 3pm works for me' }));
+    const xml = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(xml).toBe('<Response></Response>'); // no AI reply
+    expect(mockAiComplete).not.toHaveBeenCalled();
+    // The inbound text is still logged so the owner sees it in the inbox...
+    const inbound = (inserts.jenny_sms_messages || []).find((m) => m.direction === 'inbound');
+    expect(inbound).toMatchObject({ sender: 'customer', body: 'Yes 3pm works for me' });
+    // ...and the owner is notified in-app with a link into the inbox.
+    expect(inserts.notifications && inserts.notifications.length).toBeGreaterThan(0);
+    expect(inserts.notifications[0][0].link).toContain('tab=conversations');
+  });
+
+  it('resumes answering once the takeover window has lapsed', async () => {
+    existingConversation = {
+      id: 'conv-1',
+      message_count: 4,
+      language: 'en',
+      human_takeover_until: new Date(Date.now() - 60_000).toISOString(),
+    };
+    mockAiComplete.mockResolvedValue({
+      content: JSON.stringify({ reply: 'Great, what day?', language: 'en', intent: 'booking', ready_to_book: false, booking: null }),
+    });
+
+    const res = await POST(smsRequest({ body: 'hello again' }));
+    const xml = await res.text();
+    expect(xml).toContain('Great, what day?');
+    expect(mockAiComplete).toHaveBeenCalled();
   });
 
   it('does not book when auto_booking is disabled', async () => {
