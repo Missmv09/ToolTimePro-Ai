@@ -112,7 +112,9 @@ function LoginContent() {
     setError(null)
 
     try {
-      const { error } = await signIn(email, password)
+      // Trim: a trailing space from mobile autocomplete (or a pasted value)
+      // reaches Supabase verbatim and comes back as "Invalid login credentials".
+      const { error } = await signIn(email.trim(), password)
 
       if (error) {
         const message = error.message || 'An unexpected error occurred'

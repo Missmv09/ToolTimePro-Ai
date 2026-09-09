@@ -38,7 +38,30 @@ function loginAs(email, password) {
     // Accept either — we only need to be logged in (off /auth/login). Company B
     // must be onboarding-complete (see the header note) so it can reach the
     // dashboard for the isolation assertion below.
-    cy.location('pathname', { timeout: 25000 }).should('match', /\/(dashboard|onboarding)/);
+    //
+    // Assert against the page, not just the URL, so a failure says WHY (same
+    // reasoning as cy.login() in support/commands.js): a bare URL assertion
+    // reads "expected '/auth/login/' to match ..." and cannot tell a rejected
+    // password from a 2FA prompt from a request that never came back. It also
+    // says WHICH account, because this spec logs in as two of them.
+    cy.get('body', { timeout: 45000 }).should(($body) => {
+      const { pathname } = $body[0].ownerDocument.location;
+      if (/\/(dashboard|onboarding)/.test(pathname)) return;
+
+      const alert = $body.find('.bg-red-50, [role="alert"]').first().text().trim();
+      const needs2fa = $body.find('#twofa-code').length > 0;
+      throw new Error(
+        `Login as ${email} did not reach /dashboard or /onboarding — still at ${pathname}.`
+        + (needs2fa
+          ? ' The app is asking for a 2FA code, so this account cannot log in unattended:'
+            + ' disable 2FA for it (users.two_fa_enabled), or mark the CI device as trusted.'
+          : '')
+        + (alert
+          ? ` The page is showing: "${alert}".`
+          : ' The page is showing no error, so the login chain is still in flight'
+            + ' or a request timed out (check the deployment is warm and finished publishing).')
+      );
+    });
   });
 }
 
