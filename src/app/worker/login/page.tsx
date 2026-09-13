@@ -55,9 +55,11 @@ export default function WorkerLoginPage() {
         console.error('Failed to update last_login_at:', updateError)
       }
 
-      // Workers and admins/owners can access worker app
+      // Workers and admins/owners can access worker app.
+      // No router.refresh() after the push: see src/app/auth/login/page.tsx —
+      // a refresh racing a push crashes React's commit with removeChild and
+      // shows the error boundary instead of the timeclock.
       router.push('/worker/timeclock')
-      router.refresh()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
       if (message === 'Failed to fetch') {
