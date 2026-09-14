@@ -446,6 +446,7 @@ CREATE TABLE qbo_connections (
     token_expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     connected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_sync_at TIMESTAMP WITH TIME ZONE,
+    sync_status TEXT DEFAULT 'active',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -924,6 +925,7 @@ CREATE TABLE IF NOT EXISTS qbo_connections (
     token_expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     connected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_sync_at TIMESTAMP WITH TIME ZONE,
+    sync_status TEXT DEFAULT 'active',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -102,8 +102,17 @@ function LoginContent() {
     }
 
     const redirectTo = searchParams.get('redirect')
+    // Do NOT call router.refresh() after this push. The two navigations run as
+    // concurrent transitions: the refresh re-renders the root layout from the
+    // server for the CURRENT url (still the login page) while the push is
+    // swapping in the destination. React then tries to unmount the login page's
+    // DOM from a parent the refresh has already replaced and throws
+    // "NotFoundError: Failed to execute 'removeChild' on 'Node'", which lands
+    // the user on the "Something went wrong on our end" error boundary until
+    // they reload. Nothing server-rendered depends on the auth state here
+    // (auth is client-side via AuthContext; src/proxy.ts does not gate these
+    // routes), so the refresh had nothing to refresh.
     router.push(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/dashboard')
-    router.refresh()
   }, [router, searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
