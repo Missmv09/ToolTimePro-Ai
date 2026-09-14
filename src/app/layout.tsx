@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Analytics from '@/components/Analytics';
 import { FetchPatch } from '@/lib/patch-fetch';
+import { DomPatch } from '@/lib/patch-dom';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -32,6 +33,7 @@ export default async function RootLayout({
       </head>
       <body>
         <FetchPatch />
+        <DomPatch />
         <Analytics />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AuthProvider>{children}</AuthProvider>
