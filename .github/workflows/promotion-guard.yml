@@ -22,7 +22,12 @@ name: Promotion guard
 
 on:
   pull_request:
-    branches: [main]
+    # Runs for PRs into `sandbox` too, and passes there. Check runs bind to a
+    # commit, not to the base branch, so a feature-branch PR that failed the
+    # gate against `main` and was then retargeted to `sandbox` kept showing the
+    # stale failure with nothing to refresh it. A passing run on the retarget
+    # replaces it.
+    branches: [main, sandbox]
     # `edited` matters: retargeting a PR fires it, and without it a PR could be
     # opened against `sandbox`, pass, and then be repointed at `main` with the
     # gate never running. Check runs bind to a commit rather than to the base
@@ -39,12 +44,19 @@ jobs:
       - name: Require changes to reach main via sandbox
         env:
           HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
           LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: |
           set -euo pipefail
 
           echo "Head branch: $HEAD_REF"
+          echo "Base branch: $BASE_REF"
           echo "Labels: $LABELS"
+
+          if [ "$BASE_REF" = "sandbox" ]; then
+            echo "PR into sandbox — this is the intended route. The authenticated E2E suite runs against the sandbox deploy once it is merged and pushed."
+            exit 0
+          fi
 
           if [ "$HEAD_REF" = "sandbox" ]; then
             echo "Promotion PR from sandbox — the authenticated E2E suite has already run against this code on the sandbox deploy."
