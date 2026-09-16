@@ -657,7 +657,7 @@ describe('/api/jenny-actions (GET - Cron)', () => {
         'auto_dispatch', 'lead_follow_up', 'cash_flow_alert', 'job_costing',
         'price_staleness', 'hr_law_update', 'cert_expiration', 'insurance_expiry',
         'w9_compliance', 'classification_review', 'compliance_escalation',
-        'quote_expiration', 'contractor_payment', 'contract_end_date', 'review_request',
+        'quote_expiration', 'quote_follow_up', 'contractor_payment', 'contract_end_date', 'review_request',
         'customer_reactivation',
       ];
 
@@ -676,5 +676,111 @@ describe('/api/jenny-actions (GET - Cron)', () => {
       // When no configs, returns early without ran_at
       expect(response.status).toBe(200);
     });
+  });
+});
+
+// ============================================================
+// QUOTE FOLLOW-UP (customer-facing reminder about an unanswered quote)
+// ============================================================
+
+jest.mock('@/lib/email', () => ({
+  sendQuoteReminderEmail: jest.fn().mockResolvedValue({ id: 'em-test' }),
+}));
+
+describe('quote_follow_up action', () => {
+  const TEN_AM_LA = new Date('2026-09-16T17:00:00Z');
+  const THREE_AM_LA = new Date('2026-09-16T10:00:00Z');
+
+  function seed({ sentDaysAgo = 5, reminderCount = 0, smsConsent = true } = {}) {
+    const sentAt = new Date(Date.now() - sentDaysAgo * 86400000).toISOString();
+    setTableResponse('jenny_action_configs', [{
+      company_id: 'comp-1',
+      action_type: 'quote_follow_up',
+      enabled: true,
+      config: { enabled: true, channel: 'sms' },
+      company: { id: 'comp-1', name: 'Test Co' },
+    }]);
+    setTableResponse('companies', [{ id: 'comp-1', name: 'Test Co', phone: '555-0100', timezone: 'America/Los_Angeles' }]);
+    setTableResponse('quotes', [{
+      id: 'quote-1',
+      quote_number: 'Q-1',
+      status: 'sent',
+      total: 300,
+      valid_until: null,
+      sent_at: sentAt,
+      created_at: sentAt,
+      reminder_count: reminderCount,
+      last_reminder_at: null,
+      customer: { id: 'cust-1', name: 'Alice', phone: '5551234567', email: null, sms_consent: smsConsent },
+    }]);
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSendSMS.mockResolvedValue({ success: true, messageId: 'SM-test' });
+    Object.keys(tableResponses).forEach((key) => delete tableResponses[key]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('texts an opted-in customer about a quote unanswered for 3+ days and logs it', async () => {
+    jest.useFakeTimers({ now: TEN_AM_LA });
+    seed();
+
+    const response = await GET(makeCronRequest());
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.results.quote_follow_up).toEqual({ checked: 1, acted: 1 });
+
+    expect(mockSendSMS).toHaveBeenCalledTimes(1);
+    const sms = mockSendSMS.mock.calls[0][0];
+    expect(sms.to).toBe('5551234567');
+    expect(sms.body).toContain('Test Co');
+    expect(sms.body).toContain('/quote/quote-1');
+    expect(sms.body).toContain('$300.00');
+
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      action_type: 'quote_follow_up',
+      status: 'executed',
+      target_id: 'quote-1',
+    }));
+  });
+
+  it('sends nothing outside daytime hours in the company time zone', async () => {
+    jest.useFakeTimers({ now: THREE_AM_LA });
+    seed();
+
+    const body = await (await GET(makeCronRequest())).json();
+    expect(body.results.quote_follow_up).toEqual({ checked: 1, acted: 0 });
+    expect(mockSendSMS).not.toHaveBeenCalled();
+  });
+
+  it('leaves a freshly sent quote alone', async () => {
+    jest.useFakeTimers({ now: TEN_AM_LA });
+    seed({ sentDaysAgo: 1 });
+
+    const body = await (await GET(makeCronRequest())).json();
+    expect(body.results.quote_follow_up).toEqual({ checked: 1, acted: 0 });
+    expect(mockSendSMS).not.toHaveBeenCalled();
+  });
+
+  it('never texts a customer who has not opted in', async () => {
+    jest.useFakeTimers({ now: TEN_AM_LA });
+    seed({ smsConsent: false });
+
+    const body = await (await GET(makeCronRequest())).json();
+    expect(body.results.quote_follow_up).toEqual({ checked: 1, acted: 0 });
+    expect(mockSendSMS).not.toHaveBeenCalled();
+  });
+
+  it('stops once the reminder cap is reached', async () => {
+    jest.useFakeTimers({ now: TEN_AM_LA });
+    seed({ reminderCount: 2 });
+
+    const body = await (await GET(makeCronRequest())).json();
+    expect(body.results.quote_follow_up).toEqual({ checked: 1, acted: 0 });
+    expect(mockSendSMS).not.toHaveBeenCalled();
   });
 });

@@ -15,6 +15,7 @@ export type JennyActionType =
   | 'classification_review'
   | 'compliance_escalation'
   | 'quote_expiration'
+  | 'quote_follow_up'
   | 'contractor_payment'
   | 'contract_end_date'
   | 'customer_reactivation';
@@ -38,6 +39,7 @@ export const CONFIGURABLE_ACTION_TYPES: JennyActionType[] = [
   'job_costing',
   'review_request',
   'quote_expiration',
+  'quote_follow_up',
   'contractor_payment',
   'cert_expiration',
   'insurance_expiry',
@@ -166,6 +168,17 @@ export interface QuoteExpirationConfig {
   auto_expire: boolean; // Auto-mark as expired
 }
 
+// Quote Follow-Up Config (customer-facing reminders about unanswered quotes)
+export interface QuoteFollowUpConfig {
+  enabled: boolean;
+  first_reminder_days: number; // Days after sending before the first reminder
+  reminder_interval_days: number; // Days between reminders after the first
+  max_reminders: number; // Stop after this many (manual + automatic count together)
+  channel: 'sms' | 'email' | 'both'; // SMS only ever goes to opted-in customers
+  max_per_run: number; // Cap per cron run so a backlog trickles out
+  sms_template: string; // {customer_name} {company_name} {total} {quote_link} {phone}
+}
+
 // Contractor Payment Config
 export interface ContractorPaymentConfig {
   enabled: boolean;
@@ -290,6 +303,17 @@ export const DEFAULT_ACTION_CONFIGS: Record<JennyActionType, Record<string, unkn
     auto_expire: true,
   } satisfies QuoteExpirationConfig,
 
+  quote_follow_up: {
+    enabled: false,
+    first_reminder_days: 3,
+    reminder_interval_days: 4,
+    max_reminders: 2,
+    channel: 'both',
+    max_per_run: 20,
+    sms_template:
+      "Hi {customer_name}, it's {company_name}. Just checking in on the {total} quote we sent you — you can view or approve it here: {quote_link}. Questions? Call or text {phone}. Reply STOP to opt out.",
+  } satisfies QuoteFollowUpConfig,
+
   contractor_payment: {
     enabled: true,
     remind_after_days: 3,
@@ -376,6 +400,11 @@ export const ACTION_DESCRIPTIONS: Record<JennyActionType, { title: string; descr
     title: 'Quote Expiration Alerts',
     description: 'Daily check for quotes expiring within 7 days. Nudges the sales team to close or refresh quotes before they go stale.',
     icon: 'Clock',
+  },
+  quote_follow_up: {
+    title: 'Quote Follow-Up',
+    description: 'A quote nobody answered is the most common lost job. Jenny texts or emails the customer a friendly reminder with the quote link after 3 days, once more a few days later, then stops. Sent during daytime hours only, and never to customers who have not opted in to texts.',
+    icon: 'MessageSquare',
   },
   contractor_payment: {
     title: 'Contractor Payment Reminders',
