@@ -4,6 +4,8 @@ import {
   isAwaitingResponse,
   matchesQuoteFilter,
   computeQuoteFunnelStats,
+  wonAfterReminder,
+  REMINDER_ATTRIBUTION_WINDOW_DAYS,
 } from '@/lib/quote-status';
 
 describe('lib/quote-status — Sent tab semantics', () => {
@@ -91,5 +93,41 @@ describe('lib/quote-status — Sent tab semantics', () => {
       ]);
       expect(stats.acceptedAmount).toBe(25);
     });
+  });
+});
+
+describe('wonAfterReminder — crediting a reminder with an acceptance', () => {
+  const day = 86400000;
+  const reminded = new Date('2026-09-10T15:00:00Z');
+  const iso = (ms: number) => new Date(ms).toISOString();
+
+  it('credits an acceptance inside the window after the last reminder', () => {
+    expect(wonAfterReminder({ status: 'approved', last_reminder_at: reminded.toISOString(), approved_at: iso(reminded.getTime() + 2 * day) })).toBe(true);
+    expect(wonAfterReminder({ status: 'approved', last_reminder_at: reminded.toISOString(), approved_at: iso(reminded.getTime() + REMINDER_ATTRIBUTION_WINDOW_DAYS * day) })).toBe(true);
+  });
+
+  it('does not credit an acceptance outside the window, before the reminder, or without stamps', () => {
+    expect(wonAfterReminder({ status: 'approved', last_reminder_at: reminded.toISOString(), approved_at: iso(reminded.getTime() + (REMINDER_ATTRIBUTION_WINDOW_DAYS + 1) * day) })).toBe(false);
+    expect(wonAfterReminder({ status: 'approved', last_reminder_at: reminded.toISOString(), approved_at: iso(reminded.getTime() - day) })).toBe(false);
+    expect(wonAfterReminder({ status: 'approved', last_reminder_at: null, approved_at: iso(reminded.getTime() + day) })).toBe(false);
+    expect(wonAfterReminder({ status: 'approved', last_reminder_at: reminded.toISOString(), approved_at: null })).toBe(false);
+  });
+
+  it('only ever credits accepted quotes', () => {
+    expect(wonAfterReminder({ status: 'rejected', last_reminder_at: reminded.toISOString(), approved_at: iso(reminded.getTime() + day) })).toBe(false);
+    expect(wonAfterReminder({ status: 'viewed', last_reminder_at: reminded.toISOString(), approved_at: iso(reminded.getTime() + day) })).toBe(false);
+  });
+
+  it('rolls up into the funnel stats as reminded and recovered', () => {
+    const stats = computeQuoteFunnelStats([
+      { status: 'approved', total: 500, reminder_count: 1, last_reminder_at: reminded.toISOString(), approved_at: iso(reminded.getTime() + day) },
+      { status: 'approved', total: 900, reminder_count: 0, last_reminder_at: null, approved_at: iso(reminded.getTime() + day) },
+      { status: 'rejected', total: 200, reminder_count: 2, last_reminder_at: reminded.toISOString() },
+      { status: 'sent', total: 300, reminder_count: 1, last_reminder_at: reminded.toISOString() },
+    ]);
+    expect(stats.remindedCount).toBe(3);
+    expect(stats.recoveredCount).toBe(1);
+    expect(stats.recoveredAmount).toBe(500);
+    expect(stats.acceptedAmount).toBe(1400);
   });
 });

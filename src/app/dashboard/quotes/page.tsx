@@ -9,7 +9,7 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/lib/quote-frequency'
 import { computeQuoteTotals } from '@/lib/totals'
 import { resolveDefaultTaxRate } from '@/lib/sales-tax'
-import { matchesQuoteFilter, computeQuoteFunnelStats } from '@/lib/quote-status'
+import { matchesQuoteFilter, computeQuoteFunnelStats, REMINDER_ATTRIBUTION_WINDOW_DAYS } from '@/lib/quote-status'
 
 interface QuoteItem {
   id: string
@@ -39,6 +39,7 @@ interface Quote {
   last_followed_up_at: string | null
   reminder_count?: number | null
   last_reminder_at?: string | null
+  approved_at?: string | null
   deposit_required?: boolean
   deposit_amount?: number | null
   deposit_percentage?: number | null
@@ -297,9 +298,12 @@ function QuotesContent() {
   }, [companyId, customerFilter, fetchQuotes])
 
   const updateQuoteStatus = async (quoteId: string, newStatus: string) => {
+    const now = new Date().toISOString()
     const { error } = await supabase
       .from('quotes')
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      // Stamp approved_at on a manual acceptance too, so reminder attribution
+      // and reports see the same date the customer-facing approval sets.
+      .update({ status: newStatus, updated_at: now, ...(newStatus === 'approved' ? { approved_at: now } : {}) })
       .eq('id', quoteId)
 
     if (error) {
@@ -504,7 +508,7 @@ function QuotesContent() {
     // Update quote status
     await supabase
       .from('quotes')
-      .update({ status: 'approved' })
+      .update({ status: 'approved', approved_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq('id', quote.id)
 
     fetchQuotes(companyId)
@@ -983,7 +987,7 @@ function QuotesContent() {
       {(() => {
         const stats = computeQuoteFunnelStats(quotes)
         return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg border">
           <p className="text-sm text-gray-500">Total Quotes</p>
           <p className="text-2xl font-bold">{stats.total}</p>
@@ -1009,6 +1013,16 @@ function QuotesContent() {
           <p className="text-sm text-gray-500">Conversion Rate</p>
           <p className="text-2xl font-bold">{stats.conversionRate}%</p>
           <p className="text-xs text-gray-500 mt-1">{stats.acceptedCount} of {stats.sentCount} sent</p>
+        </div>
+        <div
+          className="bg-emerald-50 p-4 rounded-lg border border-emerald-200"
+          title={`Quotes accepted within ${REMINDER_ATTRIBUTION_WINDOW_DAYS} days of a reminder, whether you sent it or Jenny did`}
+        >
+          <p className="text-sm text-emerald-700">Won After Reminder</p>
+          <p className="text-2xl font-bold text-emerald-800">${stats.recoveredAmount.toLocaleString()}</p>
+          <p className="text-xs text-emerald-700 mt-1">
+            {stats.recoveredCount} of {stats.remindedCount} reminded
+          </p>
         </div>
       </div>
         )
