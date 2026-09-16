@@ -20,8 +20,14 @@ const hasCreds = !!Cypress.env('E2E_EMAIL') && !!Cypress.env('E2E_PASSWORD');
 
   it('TC-AUTH-03: lands on the dashboard after login', () => {
     cy.visit('/dashboard');
-    cy.location('pathname', { timeout: 25000 }).should('include', '/dashboard');
-    cy.get('body').should('be.visible');
+    // Not just "includes /dashboard": the error boundary keeps that URL too.
+    cy.location('pathname', { timeout: 25000 })
+      .should('include', '/dashboard')
+      .and('not.include', '/auth/login');
+    // The page itself, not merely a visible <body> (an empty body is visible).
+    cy.get('aside nav a[href^="/dashboard"]', { timeout: 25000 }).should('exist');
+    cy.get('main h1', { timeout: 25000 }).should('contain.text', 'Dashboard');
+    cy.contains('Something went wrong on our end').should('not.exist');
   });
 
   it('TC-CUST-01: creates a uniquely-namespaced customer, sees it, then deletes it (self-cleanup)', () => {
