@@ -1018,6 +1018,85 @@ export async function sendSchedulingRequestEmail({
 }
 
 // ============================================
+// Quote Reminder Email (follow-up on an unanswered quote)
+// ============================================
+
+export async function sendQuoteReminderEmail({
+  to,
+  customerName,
+  quoteNumber,
+  total,
+  validUntil,
+  quoteLink,
+  companyName,
+  companyPhone,
+  reminderNumber = 1,
+}: {
+  to: string;
+  customerName: string;
+  quoteNumber: string;
+  total: number;
+  validUntil?: string;
+  quoteLink: string;
+  companyName?: string;
+  companyPhone?: string;
+  reminderNumber?: number;
+}) {
+  const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedValidUntil = validUntil
+    ? new Date(`${validUntil}T00:00:00`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
+  const from = companyName || 'Our team';
+  const opener = reminderNumber > 1
+    ? `We wanted to check in one more time about your quote from ${from}.`
+    : `Just a friendly check-in on the quote ${from} sent you.`;
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Checking in on your ${formattedTotal} quote from ${from}`,
+    html: emailLayout(`
+      <h2 style="color: #111827; margin: 0 0 8px 0; font-size: 22px;">Hi ${customerName},</h2>
+      <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+        ${opener} It is ready whenever you are, and you can approve it right from your phone.
+      </p>
+
+      <div style="background: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Quote #:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${quoteNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Total:</strong></td>
+            <td style="padding: 4px 0; color: #111827; font-size: 16px; font-weight: 700; text-align: right;">${formattedTotal}</td>
+          </tr>
+          ${formattedValidUntil ? `
+          <tr>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px;"><strong>Valid Until:</strong></td>
+            <td style="padding: 4px 0; color: #374151; font-size: 14px; text-align: right;">${formattedValidUntil}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+
+      ${ctaButton('View & Approve Quote', quoteLink, '#22c55e')}
+
+      <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 24px 0 0 0;">
+        Have questions or want to change something? Just reply to this email${companyPhone ? ` or call ${from} at ${companyPhone}` : ''}.
+      </p>
+
+      <p style="color: #9ca3af; font-size: 13px; margin: 24px 0 0 0;">
+        If the button doesn't work, paste this link into your browser:<br />
+        <a href="${quoteLink}" style="color: #3b82f6; word-break: break-all; font-size: 12px;">${quoteLink}</a>
+      </p>
+    `),
+  });
+
+  if (error) throw new Error(`Failed to send email: ${error.message}`);
+  return data;
+}
+
+// ============================================
 // Quote Approval Request Email (sent to owner/admin)
 // ============================================
 

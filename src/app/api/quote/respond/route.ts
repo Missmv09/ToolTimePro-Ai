@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { wonAfterReminder } from '@/lib/quote-status'
 import { createClient } from '@supabase/supabase-js'
 import { sendQuoteAcceptedEmail } from '@/lib/email'
 
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     const { data: quote, error: fetchError } = await supabase
       .from('quotes')
       .select(`
-        id, status, notes, quote_number, total,
+        id, status, notes, quote_number, total, company_id, reminder_count, last_reminder_at,
         company:companies(id, name, email, phone),
         customer:customers(id, name, email, phone)
       `)
@@ -69,17 +70,42 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'approve') {
+      const approvedAt = new Date().toISOString()
       const { error: updateError } = await supabase
         .from('quotes')
         .update({
           status: 'approved',
-          approved_at: new Date().toISOString(),
+          approved_at: approvedAt,
           ...(signature ? { signature_url: signature } : {}),
         })
         .eq('id', quoteId)
 
       if (updateError) {
         return NextResponse.json({ error: updateError.message }, { status: 500 })
+      }
+
+      // Give the reminder its due: an acceptance shortly after a follow-up
+      // shows up in the Jenny feed and weekly digest as a win, so the owner
+      // can see the follow-ups paying off rather than just going out.
+      if (wonAfterReminder({ status: 'approved', last_reminder_at: quote.last_reminder_at, approved_at: approvedAt }) && quote.company_id) {
+        const customerName = (quote.customer as { name?: string } | null)?.name || 'the customer'
+        const label = quote.quote_number || quoteId.slice(0, 8)
+        const total = Number(quote.total) || 0
+        const { error: logError } = await supabase.from('jenny_action_log').insert({
+          company_id: quote.company_id,
+          action_type: 'quote_follow_up',
+          title: `Quote ${label} for ${customerName} accepted after a reminder ($${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`,
+          description: `${customerName} accepted the quote after reminder ${quote.reminder_count || 1}. Follow-up is paying off.`,
+          status: 'executed',
+          target_id: quoteId,
+          target_type: 'quote',
+          target_name: `Quote ${label} for ${customerName}`,
+          metadata: { outcome: 'won_after_reminder', reminder_count: quote.reminder_count || 0, total, approved_at: approvedAt, last_reminder_at: quote.last_reminder_at },
+          executed_at: approvedAt,
+        })
+        if (logError) {
+          console.error(`[quote-respond] failed to log reminder win for quote ${quoteId}: ${logError.message}`)
+        }
       }
 
       // Send confirmation email to customer

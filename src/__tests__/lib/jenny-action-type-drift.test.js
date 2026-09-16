@@ -27,7 +27,7 @@ const REPO_ROOT = path.join(__dirname, '..', '..', '..');
 // widening drops and re-adds them, so the latest one is the whole truth.
 const MIGRATION = path.join(
   REPO_ROOT,
-  'supabase/migrations/20260905000000_jenny_inbox_lead_alerts_reactivation.sql'
+  'supabase/migrations/20260916000000_quote_follow_up_reminders.sql'
 );
 const ROUTE = path.join(REPO_ROOT, 'src/app/api/jenny-actions/route.ts');
 const TYPES = path.join(REPO_ROOT, 'src/types/jenny-actions.ts');

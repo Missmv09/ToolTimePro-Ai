@@ -41,12 +41,14 @@ function quote(id, status, total, quote_number) {
   };
 }
 
+const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
 const QUOTES = [
   quote(1, 'draft', 100, 'Q-DRAFT'),
   quote(2, 'pending_approval', 200, 'Q-PENDING'),
   quote(3, 'sent', 300, 'Q-SENT'),
   quote(4, 'viewed', 400, 'Q-VIEWED'),
-  quote(5, 'approved', 500, 'Q-ACCEPTED-A'),
+  // Reminded two days ago, accepted today: credited to the reminder.
+  { ...quote(5, 'approved', 500, 'Q-ACCEPTED-A'), reminder_count: 1, last_reminder_at: twoDaysAgo, approved_at: now },
   quote(6, 'approved', 600, 'Q-ACCEPTED-B'),
   quote(7, 'rejected', 700, 'Q-DECLINED'),
 ];
@@ -145,6 +147,8 @@ describe('Quotes dashboard — Sent tab and funnel stats', () => {
       expect(screen.getByText('40%')).toBeInTheDocument();
       expect(screen.getByText('2 awaiting response · $700')).toBeInTheDocument();
       expect(screen.getByText('$1,100')).toBeInTheDocument();
+      expect(screen.getByText('Won After Reminder')).toBeInTheDocument();
+      expect(screen.getByText('1 of 1 reminded')).toBeInTheDocument();
     };
     expectStats();
     fireEvent.click(tab('Viewed'));

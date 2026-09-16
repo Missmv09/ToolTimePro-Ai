@@ -33,6 +33,7 @@ import {
   Brain,
   BarChart3,
   CreditCard,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -94,6 +95,9 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeatur
   );
 
   if (canAccessFeature('jenny_pro')) items.push({ href: '/dashboard/jenny-pro', label: 'Jenny Pro', icon: Phone });
+  // Jenny's autonomous actions (quote follow-up, win-back, alerts). The page
+  // itself is not plan-gated; several actions default on for every plan.
+  items.push({ href: '/dashboard/jenny-actions', label: 'Jenny Actions', icon: Zap });
 
   if (canAccessFeature('website_builder')) items.push({ href: '/dashboard/website-builder', label: 'Website Builder', icon: Globe });
   if (canAccessFeature('blog')) items.push({ href: '/dashboard/blog', label: 'Blog', icon: BookOpen });

@@ -70,12 +70,23 @@ const TYPES_WITH_SETTINGS = new Set<JennyActionType>([
   'cash_flow_alert',
   'job_costing',
   'review_request',
+  'quote_follow_up',
   'customer_reactivation',
 ]);
 
 export default function JennyActionsPage() {
   const { actionLog, stats, lastRunAt, isLoading, error, isEnabled, getConfig, saveConfig, refetch } = useJennyActions();
   const [expandedAction, setExpandedAction] = useState<JennyActionType | null>(null);
+
+  // Deep link: /dashboard/jenny-actions?action=quote_follow_up opens that card.
+  // The Quotes page nudge and the post-reminder prompt link here.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const wanted = new URLSearchParams(window.location.search).get('action');
+    if (wanted && (CONFIGURABLE_ACTION_TYPES as string[]).includes(wanted)) {
+      setExpandedAction(wanted as JennyActionType);
+    }
+  }, []);
   const [running, setRunning] = useState(false);
   const [savingConfig, setSavingConfig] = useState<string | null>(null);
 
@@ -542,6 +553,77 @@ export default function JennyActionsPage() {
                         <div className="bg-amber-50 rounded-lg p-3 text-sm text-amber-700">
                           <p className="font-medium text-amber-800 mb-1">How it works:</p>
                           <p>After a job is marked complete, Jenny queues a review request for the customer here under Pending Approval. One click sends the SMS with a tracked link to your review page. Only customers who opted in to texts are queued. You can see click rates and review status in your Reviews dashboard.</p>
+                        </div>
+                      </>
+                    )}
+
+                    {actionType === 'quote_follow_up' && (
+                      <>
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">First reminder after</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number" min="1" max="60"
+                                value={(config.first_reminder_days as number) || 3}
+                                onChange={e => updateLocalConfig(actionType, 'first_reminder_days', parseInt(e.target.value) || 3)}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                              />
+                              <span className="text-sm text-gray-500">days</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Then every</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number" min="1" max="60"
+                                value={(config.reminder_interval_days as number) || 4}
+                                onChange={e => updateLocalConfig(actionType, 'reminder_interval_days', parseInt(e.target.value) || 4)}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                              />
+                              <span className="text-sm text-gray-500">days</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Stop after</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number" min="1" max="5"
+                                value={(config.max_reminders as number) || 2}
+                                onChange={e => updateLocalConfig(actionType, 'max_reminders', parseInt(e.target.value) || 2)}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                              />
+                              <span className="text-sm text-gray-500">reminders</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Send by</label>
+                            <select
+                              value={(config.channel as string) || 'both'}
+                              onChange={e => updateLocalConfig(actionType, 'channel', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            >
+                              <option value="both">Text and email</option>
+                              <option value="sms">Text only</option>
+                              <option value="email">Email only</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Text message</label>
+                          <textarea
+                            rows={3}
+                            value={(config.sms_template as string) || ''}
+                            onChange={e => updateLocalConfig(actionType, 'sms_template', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 text-sm"
+                          />
+                          <p className="text-xs text-gray-400 mt-1">
+                            Placeholders: <code>{'{customer_name}'}</code> <code>{'{company_name}'}</code> <code>{'{total}'}</code> <code>{'{quote_link}'}</code> <code>{'{phone}'}</code>. Keep &quot;Reply STOP to opt out&quot; in the text. The email uses its own branded template.
+                          </p>
+                        </div>
+                        <div className="bg-amber-50 rounded-lg p-3 text-sm text-amber-700">
+                          <p className="font-medium text-amber-800 mb-1">How it works:</p>
+                          <p>Jenny watches quotes that are sent or viewed with no answer. Once the first wait has passed she texts (opted-in customers only) and/or emails a friendly check-in with the quote link, then repeats on the schedule above until the cap, the customer responds, or the quote expires. Reminders go out between 9am and 7pm in your time zone. The &quot;Send Reminder&quot; button on the Quotes page uses the same wording and counts toward the same cap.</p>
                         </div>
                       </>
                     )}

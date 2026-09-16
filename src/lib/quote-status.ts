@@ -24,6 +24,32 @@ export function isAwaitingResponse(status: string): boolean {
 }
 
 /**
+ * A reminder gets credit for an acceptance that follows it within this many
+ * days. Beyond that the customer most likely decided for other reasons.
+ */
+export const REMINDER_ATTRIBUTION_WINDOW_DAYS = 7
+
+export interface ReminderAttributionFields {
+  status: string
+  last_reminder_at?: string | null
+  approved_at?: string | null
+}
+
+/**
+ * Was this quote accepted within the attribution window after a reminder?
+ * Requires a real approved_at stamp; rows without one are never credited,
+ * so the number can only understate, never flatter.
+ */
+export function wonAfterReminder(quote: ReminderAttributionFields): boolean {
+  if (quote.status !== 'approved' || !quote.last_reminder_at || !quote.approved_at) return false
+  const reminded = new Date(quote.last_reminder_at).getTime()
+  const approved = new Date(quote.approved_at).getTime()
+  if (Number.isNaN(reminded) || Number.isNaN(approved)) return false
+  const gap = approved - reminded
+  return gap >= 0 && gap <= REMINDER_ATTRIBUTION_WINDOW_DAYS * 86400000
+}
+
+/**
  * Does a quote belong in the given dashboard tab?
  *
  * - `all` shows everything.
@@ -54,10 +80,17 @@ export interface QuoteFunnelStats {
   declinedAmount: number
   /** Accepted as a whole-number percentage of everything that was sent (0 when nothing was sent). */
   conversionRate: number
+  /** Quotes that received at least one reminder (any current status). */
+  remindedCount: number
+  /** Accepted within the attribution window after a reminder. */
+  recoveredCount: number
+  recoveredAmount: number
 }
 
 /** Sent-vs-outcome numbers for the stats cards, computed over every quote in the company. */
-export function computeQuoteFunnelStats(quotes: { status: string; total: number }[]): QuoteFunnelStats {
+export function computeQuoteFunnelStats(
+  quotes: ({ status: string; total: number; reminder_count?: number | null } & Partial<ReminderAttributionFields>)[],
+): QuoteFunnelStats {
   const stats: QuoteFunnelStats = {
     total: quotes.length,
     sentCount: 0,
@@ -68,6 +101,9 @@ export function computeQuoteFunnelStats(quotes: { status: string; total: number 
     declinedCount: 0,
     declinedAmount: 0,
     conversionRate: 0,
+    remindedCount: 0,
+    recoveredCount: 0,
+    recoveredAmount: 0,
   }
 
   for (const quote of quotes) {
@@ -82,6 +118,11 @@ export function computeQuoteFunnelStats(quotes: { status: string; total: number 
     } else if (quote.status === 'rejected') {
       stats.declinedCount += 1
       stats.declinedAmount += amount
+    }
+    if ((Number(quote.reminder_count) || 0) > 0) stats.remindedCount += 1
+    if (wonAfterReminder({ status: quote.status, last_reminder_at: quote.last_reminder_at, approved_at: quote.approved_at })) {
+      stats.recoveredCount += 1
+      stats.recoveredAmount += amount
     }
   }
 
