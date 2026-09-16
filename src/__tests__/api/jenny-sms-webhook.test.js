@@ -16,19 +16,33 @@ jest.mock('@/lib/twilio', () => ({
 
 // Records every insert so tests can assert side effects.
 let inserts = {};
+let updates = {};
 let existingConversation = null;
 let settingsRow = { auto_booking: true, language: 'both', operator_language: 'en' };
+// Quote-reply fixtures: the customer on file for the inbound number, and the
+// open quote they were recently reminded about (null = none).
+let customerRow = null;
+let quoteInPlay = null;
 
 function recordInsert(table, payload) {
   inserts[table] = inserts[table] || [];
   inserts[table].push(payload);
 }
 
+function recordUpdate(table, payload) {
+  updates[table] = updates[table] || [];
+  updates[table].push(payload);
+}
+
 function builder(table) {
   const obj = {};
-  const passthrough = ['select', 'eq', 'neq', 'or', 'ilike', 'order', 'update'];
+  const passthrough = ['select', 'eq', 'neq', 'or', 'ilike', 'order', 'in', 'gte'];
   passthrough.forEach((m) => {
     obj[m] = jest.fn(() => obj);
+  });
+  obj.update = jest.fn((payload) => {
+    recordUpdate(table, payload);
+    return obj;
   });
   obj.insert = jest.fn((payload) => {
     recordInsert(table, payload);
@@ -56,7 +70,8 @@ function maybeSingleResult(table) {
   if (table === 'companies') return { data: { id: 'comp-1', name: 'Green Co', business_type: 'landscaping' } };
   if (table === 'jenny_pro_settings') return { data: settingsRow };
   if (table === 'jenny_sms_conversations') return { data: existingConversation };
-  if (table === 'customers') return { data: null };
+  if (table === 'customers') return { data: customerRow };
+  if (table === 'quotes') return { data: quoteInPlay };
   return { data: null };
 }
 
@@ -91,7 +106,10 @@ describe('/api/jenny-pro/sms-webhook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     inserts = {};
+    updates = {};
     existingConversation = null;
+    customerRow = null;
+    quoteInPlay = null;
     settingsRow = { auto_booking: true, language: 'both', operator_language: 'en' };
   });
 
@@ -228,5 +246,88 @@ describe('/api/jenny-pro/sms-webhook', () => {
     expect(res.status).toBe(200);
     expect(xml).toContain('<Message>');
     expect(inserts.jobs).toBeUndefined(); // auto_booking off → no job created
+  });
+});
+
+// ── Replies to quote reminders ───────────────────────────────────────────────
+
+describe('/api/jenny-pro/sms-webhook — quote reminder replies', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    inserts = {};
+    updates = {};
+    existingConversation = null;
+    settingsRow = { auto_booking: true, language: 'both', operator_language: 'en', escalation_phone: '+15550009999' };
+    customerRow = { id: 'cust-1', name: 'Jane Customer' };
+    quoteInPlay = {
+      id: '11111111-2222-4333-8444-555555555555', quote_number: 'Q-42', status: 'sent', total: 1250,
+      reminder_count: 1, last_reminder_at: new Date(Date.now() - 2 * 86400000).toISOString(), customer_id: 'cust-1',
+    };
+  });
+
+  const { sendSMS } = require('@/lib/twilio');
+
+  it('accepts the quote when the customer replies yes, tells the owner, and skips the booking agent', async () => {
+    const res = await POST(smsRequest({ body: 'Yes please' }));
+    const xml = await res.text();
+    expect(xml).toContain('Great news');
+    expect(xml).toContain('Green Co');
+
+    expect(updates.quotes).toEqual([expect.objectContaining({ status: 'approved', approved_at: expect.any(String) })]);
+    expect(inserts.jenny_action_log).toEqual([expect.objectContaining({ action_type: 'quote_follow_up', status: 'executed' })]);
+    expect(inserts.notifications.flat()).toEqual([expect.objectContaining({ type: 'quote_accepted', link: '/dashboard/quotes?status=approved' })]);
+    expect(sendSMS).toHaveBeenCalledWith(expect.objectContaining({ to: '+15550009999', body: expect.stringContaining('accepted quote Q-42') }));
+    expect(mockAiComplete).not.toHaveBeenCalled();
+  });
+
+  it('declines the quote on a clear no', async () => {
+    const res = await POST(smsRequest({ body: 'No thanks' }));
+    expect(await res.text()).toContain('Understood');
+    expect(updates.quotes).toEqual([expect.objectContaining({ status: 'rejected' })]);
+    expect(inserts.notifications.flat()[0].title).toBe('Quote declined by text');
+    expect(mockAiComplete).not.toHaveBeenCalled();
+  });
+
+  it('hands a question to the owner without changing the quote', async () => {
+    const res = await POST(smsRequest({ body: 'Can you do it any cheaper?' }));
+    expect(await res.text()).toContain('passed your message');
+    expect(updates.quotes[0].status).toBeUndefined();
+    expect(updates.quotes[0].follow_up_date).toEqual(expect.any(String));
+    expect(inserts.notifications.flat()[0]).toMatchObject({ type: 'new_lead', link: '/dashboard/quotes?status=needs_follow_up' });
+    expect(inserts.jenny_action_log[0]).toMatchObject({ status: 'pending' });
+    expect(mockAiComplete).not.toHaveBeenCalled();
+  });
+
+  it('still records a yes during a human takeover but stays silent', async () => {
+    existingConversation = { id: 'conv-1', message_count: 3, language: 'en', human_takeover_until: new Date(Date.now() + 3600000).toISOString() };
+    const res = await POST(smsRequest({ body: 'yes' }));
+    expect(await res.text()).not.toContain('Great news');
+    expect(updates.quotes).toEqual([expect.objectContaining({ status: 'approved' })]);
+    expect(inserts.notifications.flat()).toEqual([expect.objectContaining({ type: 'quote_accepted' })]);
+  });
+
+  it('treats a bare "yes" as the SMS opt-in it always was when there is no reminded quote', async () => {
+    quoteInPlay = null;
+    const res = await POST(smsRequest({ body: 'yes' }));
+    expect(await res.text()).toContain('subscribed again');
+    expect(updates.quotes).toBeUndefined();
+    expect(mockAiComplete).not.toHaveBeenCalled();
+  });
+
+  it('falls through to the booking agent for other texts when there is no reminded quote', async () => {
+    quoteInPlay = null;
+    mockAiComplete.mockResolvedValue({
+      content: JSON.stringify({ reply: 'Happy to help! What service do you need?', language: 'en', intent: 'inquiry', ready_to_book: false, booking: null }),
+    });
+    const res = await POST(smsRequest({ body: 'sounds good, what do you offer' }));
+    expect(await res.text()).toContain('Happy to help');
+    expect(updates.quotes).toBeUndefined();
+    expect(mockAiComplete).toHaveBeenCalled();
+  });
+
+  it('answers in Spanish when the customer replies in Spanish', async () => {
+    const res = await POST(smsRequest({ body: 'Sí, adelante' }));
+    expect(await res.text()).toMatch(/Excelente/);
+    expect(updates.quotes).toEqual([expect.objectContaining({ status: 'approved' })]);
   });
 });

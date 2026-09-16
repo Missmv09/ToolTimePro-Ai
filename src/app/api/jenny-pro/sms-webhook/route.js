@@ -6,6 +6,7 @@ import { notifyOperatorInApp, notifyOperatorSMS } from '@/lib/jenny-notify';
 import { resolveCompanyByNumber } from '@/lib/jenny-company';
 import { getUpcomingBookings, isDuplicate, rescheduleBooking, cancelBooking } from '@/lib/jenny-bookings';
 import { isHumanTakeoverActive } from '@/lib/jenny-inbox';
+import { findQuoteInPlay, handleQuoteReply } from '@/lib/quote-reply';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +50,20 @@ function twiml(message) {
 }
 
 // Format a YYYY-MM-DD + HH:MM for a friendly confirmation line.
+// The customer on file for an inbound number, if any (last 10 digits match).
+async function findCustomerByPhone(supabase, companyId, from) {
+  const cleanPhone = String(from || '').replace(/\D/g, '').slice(-10);
+  if (cleanPhone.length < 7) return null;
+  const { data } = await supabase
+    .from('customers')
+    .select('id, name')
+    .eq('company_id', companyId)
+    .or(`phone.ilike.%${cleanPhone}%`)
+    .limit(1)
+    .maybeSingle();
+  return data || null;
+}
+
 function fmtDate(dateStr) {
   try {
     return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
@@ -198,13 +213,63 @@ export async function POST(request) {
       // Twilio auto-responds to STOP; return empty to avoid a double reply.
       return twiml(null);
     }
-    if (keyword === 'start') {
-      await logOutbound(t(kwLang).optInConfirm);
-      return twiml(t(kwLang).optInConfirm);
-    }
     if (keyword === 'help') {
       await logOutbound(t(kwLang).help);
       return twiml(t(kwLang).help);
+    }
+
+    // ── Reply to a quote reminder ──────────────────────────────────────────
+    // If this customer was recently reminded about an open quote, read the
+    // text as an answer to that quote before letting the booking agent have
+    // it: a clear yes accepts, a clear no declines, anything else goes to the
+    // owner as a question. Runs even during a human takeover so a "yes" is
+    // never missed, but stays silent then so Jenny does not talk over the owner.
+    const quoteCustomer = knownCustomer || (await findCustomerByPhone(supabase, companyId, from));
+    if (quoteCustomer) {
+      const quoteInPlay = await findQuoteInPlay(supabase, companyId, quoteCustomer.id);
+      if (quoteInPlay) {
+        const outcome = await handleQuoteReply({
+          supabase,
+          companyId,
+          companyName: company.name || 'Our team',
+          customer: quoteCustomer,
+          quote: quoteInPlay,
+          body,
+          lang: kwLang,
+        });
+        const opLang = settings?.operator_language || 'en';
+        const icon = outcome.intent === 'accept' ? '✅' : outcome.intent === 'decline' ? '❌' : '💬';
+        await Promise.all([
+          notifyOperatorSMS(settings?.escalation_phone, `${icon} ${outcome.ownerMessage}`),
+          notifyOperatorInApp(supabase, {
+            companyId,
+            type: outcome.notificationType,
+            title: outcome.ownerTitle,
+            message: outcome.ownerMessage,
+            link: outcome.ownerLink,
+          }),
+        ]);
+        if (conversationId) {
+          await supabase
+            .from('jenny_sms_conversations')
+            .update({
+              last_intent: `quote_${outcome.intent}`,
+              ...(outcome.intent === 'accept' || outcome.intent === 'decline' ? { status: 'resolved' } : {}),
+            })
+            .eq('id', conversationId);
+        }
+        if (isHumanTakeoverActive(existing)) return twiml(null);
+        await logOutbound(outcome.reply);
+        return twiml(outcome.reply);
+      }
+    }
+
+    // ── Opt-in keyword (START / YES / UNSTOP) ──────────────────────────────
+    // Checked after the quote reply so "yes" to a reminder is an acceptance;
+    // without a quote in play it is the opt-in it always was.
+    if (keyword === 'start') {
+      await logOutbound(t(kwLang).optInConfirm);
+      return twiml(t(kwLang).optInConfirm);
     }
 
     // ── Human takeover: the owner is driving this thread ───────────────────
