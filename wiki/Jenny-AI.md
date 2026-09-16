@@ -140,6 +140,24 @@ Jenny Exec Admin is your AI-powered executive assistant, built for business owne
 
 ---
 
+## Jenny Autonomous Actions
+
+Jenny does not only answer; she acts. **Jenny Actions** in the sidebar (also at `/dashboard/jenny-actions`) lists the jobs she can run on her own. Each has an on/off toggle, most have settings, and every one logs what it did to an activity feed on that page and to your weekly digest email.
+
+Customer-facing actions, off by default until you turn them on:
+
+- **Quote Follow-Up** — texts or emails customers about unanswered quotes after a few days, up to a cap, daytime only. See [Following Up on Quotes](Quotes-and-Estimates#following-up-on-quotes).
+- **Smart Follow-Up** — re-engages cold leads at 3, 7, and 14 days.
+- **Customer Win-Back** — texts past customers who have not booked in a while.
+- **Review Requests** — asks happy customers for a review after a job.
+- **Auto-Dispatch** — assigns new bookings to the nearest available crew.
+
+Owner-facing alerts, most on by default: quote expiration, cash flow, job costing, contractor payment reminders, certification and insurance expiry, W-9 compliance, classification reviews, compliance escalation, and contract end dates.
+
+Use **Run Now** on the page to fire every enabled action immediately instead of waiting for the schedule.
+
+---
+
 ## Plan Availability
 
 | Plan | Jenny Lite | Jenny Pro | Jenny Exec Admin |

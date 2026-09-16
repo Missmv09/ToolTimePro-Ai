@@ -93,13 +93,51 @@ All notifications appear in your dashboard bell icon and via email.
 
 ---
 
+## Following Up on Quotes
+
+A quote nobody answered is the most common lost job. Task Iguana gives you three ways to chase one, from fully manual to fully automatic.
+
+### The Needs Follow-up tab
+
+The Quotes page has a **Needs Follow-up** tab that collects every sent or viewed quote that is overdue, due today, or has sat for three days with no response and no follow-up date set. An amber banner at the top of the page shows the same list.
+
+### Send Reminder (one click)
+
+On any sent or viewed quote, click **Send Reminder**. Task Iguana confirms who it will contact and how, then:
+
+- **Texts** the customer if they have a phone number **and** have opted in to SMS
+- **Emails** the customer if they have an email address
+- Includes a link to view and approve the quote
+- Records "Reminder 1 sent [date]" on the quote and clears the follow-up flag for a few days
+
+Reminders count toward a cap (two by default) shared with Jenny's automatic follow-up, so a customer is never over-messaged.
+
+### Followed Up (you reached out yourself)
+
+If you called or visited the customer, click **Followed Up**. It records the date and snoozes the follow-up flag for three days. Nothing is sent.
+
+### Automatic follow-up with Jenny
+
+Turn on **Quote Follow-Up** under **Jenny Actions** in the sidebar and Jenny handles it:
+
+- First reminder 3 days after the quote is sent (configurable)
+- A second reminder 4 days later (configurable), then she stops
+- Only between 9am and 7pm in your company's time zone
+- Never to a quote that was accepted, declined, or expired
+- Never by text to a customer who has not opted in
+- Every reminder appears in the Jenny activity feed and the weekly digest
+
+You can change the wait, the interval, the cap, whether she uses text, email, or both, and the wording of the text. Manual and automatic reminders share the same cap.
+
+---
+
 ## Best Practices
 
 1. **Respond quickly** — Send quotes within hours of an inquiry to close 3x faster
 2. **Use the Material Estimator** — Accurate material costs build customer trust
 3. **Set expiration dates** — Creates urgency (7–14 days is typical)
 4. **Include clear scope** — Detail what's included and excluded to avoid disputes
-5. **Follow up** — If a quote hasn't been viewed in 48 hours, send a reminder
+5. **Follow up** — Use Send Reminder on any unanswered quote, or turn on Jenny's Quote Follow-Up so it happens automatically (see [Following Up on Quotes](#following-up-on-quotes))
 
 ---
 

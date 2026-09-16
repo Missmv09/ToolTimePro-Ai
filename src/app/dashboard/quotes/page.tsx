@@ -50,6 +50,7 @@ interface Quote {
 
 // How far "Followed Up" pushes the next follow-up date.
 const FOLLOW_UP_SNOOZE_DAYS = 3
+const AUTO_FOLLOW_UP_NUDGE_KEY = 'quotes.autoFollowUpNudgeHiddenUntil'
 
 function getFollowUpStatus(quote: Quote): 'overdue' | 'due_today' | 'upcoming' | 'auto_stale' | null {
   const now = new Date()
@@ -94,6 +95,9 @@ function QuotesContent() {
   const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null)
   const [remindingQuoteId, setRemindingQuoteId] = useState<string | null>(null)
+  // null = unknown (still loading, or the table is unavailable); never nudge on unknown.
+  const [autoFollowUpEnabled, setAutoFollowUpEnabled] = useState<boolean | null>(null)
+  const [nudgeDismissed, setNudgeDismissed] = useState(true)
   const [historyQuoteId, setHistoryQuoteId] = useState<string | null>(null)
   const [editHistory, setEditHistory] = useState<{ id: string; editor_name: string; change_summary: string; revision_number: number; changes: Record<string, { old: unknown; new: unknown }>; created_at: string }[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
@@ -108,6 +112,25 @@ function QuotesContent() {
   useEffect(() => {
     if (statusParam) setFilter(statusParam)
   }, [statusParam])
+
+  // The "let Jenny follow up" nudge stays hidden for two weeks once dismissed.
+  useEffect(() => {
+    try {
+      const until = Number(localStorage.getItem(AUTO_FOLLOW_UP_NUDGE_KEY) || 0)
+      setNudgeDismissed(until > Date.now())
+    } catch {
+      setNudgeDismissed(false)
+    }
+  }, [])
+
+  const dismissAutoFollowUpNudge = () => {
+    setNudgeDismissed(true)
+    try {
+      localStorage.setItem(AUTO_FOLLOW_UP_NUDGE_KEY, String(Date.now() + 14 * 24 * 60 * 60 * 1000))
+    } catch {
+      // Private mode or blocked storage: the nudge simply returns next visit.
+    }
+  }
   const { user, dbUser, company, isLoading: authLoading } = useAuth()
 
   // Get company_id from AuthContext
@@ -222,6 +245,21 @@ function QuotesContent() {
     setLoading(false)
   }, [customerFilter])
 
+  // Is Jenny's automatic quote follow-up switched on for this company?
+  const fetchAutoFollowUp = async (compId: string) => {
+    const { data, error } = await supabase
+      .from('jenny_action_configs')
+      .select('enabled')
+      .eq('company_id', compId)
+      .eq('action_type', 'quote_follow_up')
+      .maybeSingle()
+    if (error) {
+      setAutoFollowUpEnabled(null)
+      return
+    }
+    setAutoFollowUpEnabled(data?.enabled === true)
+  }
+
   const fetchCustomers = async (compId: string) => {
     const { data } = await supabase
       .from('customers')
@@ -245,6 +283,7 @@ function QuotesContent() {
     if (companyId) {
       fetchQuotes(companyId)
       fetchCustomers(companyId)
+      fetchAutoFollowUp(companyId)
     } else {
       // No company_id yet, stop loading to avoid infinite loop
       setLoading(false)
@@ -719,7 +758,10 @@ function QuotesContent() {
         return
       }
       const sent = [data.result?.sms === 'sent' ? 'text' : null, data.result?.email === 'sent' ? 'email' : null].filter(Boolean)
-      alert(`Reminder sent to ${who} by ${sent.join(' and ')}.${data.result?.error ? `\n\nNote: ${data.result.error}` : ''}`)
+      const autoTip = autoFollowUpEnabled === false
+        ? '\n\nTip: Jenny can send these for you automatically. Turn on Quote Follow-Up under Jenny Actions in the sidebar.'
+        : ''
+      alert(`Reminder sent to ${who} by ${sent.join(' and ')}.${data.result?.error ? `\n\nNote: ${data.result.error}` : ''}${autoTip}`)
       if (companyId) fetchQuotes(companyId)
     } finally {
       setRemindingQuoteId(null)
@@ -908,6 +950,34 @@ function QuotesContent() {
           </div>
         )
       })()}
+
+      {/* Nudge: automatic follow-up exists and is off, while quotes sit unanswered */}
+      {autoFollowUpEnabled === false && !nudgeDismissed && quotes.some(q => getFollowUpStatus(q) !== null) && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+          <div className="text-blue-600 text-xl mt-0.5">&#10024;</div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-blue-900">Jenny can send these reminders for you</h3>
+            <p className="text-sm text-blue-800 mt-1">
+              Turn on Quote Follow-Up and Jenny will text or email customers about unanswered quotes after a few days, then stop after two tries. You keep the Send Reminder button for anything you want to handle yourself.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <Link
+              href="/dashboard/jenny-actions?action=quote_follow_up"
+              className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-700"
+            >
+              Set it up
+            </Link>
+            <button
+              onClick={dismissAutoFollowUpNudge}
+              className="text-sm text-blue-700 hover:text-blue-900 px-2 py-1.5"
+              title="Hide for two weeks"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stats — sent vs. outcome, always across the whole company regardless of the active tab */}
       {(() => {

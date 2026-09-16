@@ -77,6 +77,16 @@ const TYPES_WITH_SETTINGS = new Set<JennyActionType>([
 export default function JennyActionsPage() {
   const { actionLog, stats, lastRunAt, isLoading, error, isEnabled, getConfig, saveConfig, refetch } = useJennyActions();
   const [expandedAction, setExpandedAction] = useState<JennyActionType | null>(null);
+
+  // Deep link: /dashboard/jenny-actions?action=quote_follow_up opens that card.
+  // The Quotes page nudge and the post-reminder prompt link here.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const wanted = new URLSearchParams(window.location.search).get('action');
+    if (wanted && (CONFIGURABLE_ACTION_TYPES as string[]).includes(wanted)) {
+      setExpandedAction(wanted as JennyActionType);
+    }
+  }, []);
   const [running, setRunning] = useState(false);
   const [savingConfig, setSavingConfig] = useState<string | null>(null);
 
