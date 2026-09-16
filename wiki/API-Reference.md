@@ -16,6 +16,8 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 | `/api/admin/companies` | `GET` `POST` | `src/app/api/admin/companies/route.ts` |
 | `/api/admin/companies/[id]` | `GET` | `src/app/api/admin/companies/[id]/route.ts` |
 | `/api/admin/companies/[id]/actions` | `POST` | `src/app/api/admin/companies/[id]/actions/route.ts` |
+| `/api/admin/companies/grant-beta` | `POST` | `src/app/api/admin/companies/grant-beta/route.ts` |
+| `/api/admin/growth` | `GET` `PATCH` | `src/app/api/admin/growth/route.ts` |
 | `/api/admin/settings/admins` | `GET` `POST` `DELETE` | `src/app/api/admin/settings/admins/route.ts` |
 | `/api/admin/stats` | `GET` | `src/app/api/admin/stats/route.ts` |
 | `/api/admin/verify` | `GET` | `src/app/api/admin/verify/route.ts` |
@@ -63,6 +65,7 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 | Endpoint | Methods | Source |
 |----------|---------|--------|
 | `/api/checkout` | `GET` | `src/app/api/checkout/route.js` |
+| `/api/checkout/provision` | `POST` | `src/app/api/checkout/provision/route.js` |
 | `/api/checkout/session` | `GET` | `src/app/api/checkout/session/route.js` |
 
 ## Google Calendar
@@ -73,7 +76,21 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 | `/api/google-calendar/connect` | `POST` | `src/app/api/google-calendar/connect/route.js` |
 | `/api/google-calendar/disconnect` | `POST` | `src/app/api/google-calendar/disconnect/route.js` |
 | `/api/google-calendar/sync` | `POST` | `src/app/api/google-calendar/sync/route.js` |
-| `/api/google-calendar/sync-all` | `GET`, `POST` | `src/app/api/google-calendar/sync-all/route.js` |
+| `/api/google-calendar/sync-all` | `GET` `POST` | `src/app/api/google-calendar/sync-all/route.js` |
+
+## Growth
+
+| Endpoint | Methods | Source |
+|----------|---------|--------|
+| `/api/growth/lead` | `POST` | `src/app/api/growth/lead/route.ts` |
+| `/api/growth/metrics` | `GET` | `src/app/api/growth/metrics/route.ts` |
+| `/api/growth/unsubscribe` | `POST` | `src/app/api/growth/unsubscribe/route.ts` |
+
+## Health
+
+| Endpoint | Methods | Source |
+|----------|---------|--------|
+| `/api/health` | `GET` | `src/app/api/health/route.js` |
 
 ## Help
 
@@ -91,14 +108,29 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 
 | Endpoint | Methods | Source |
 |----------|---------|--------|
+| `/api/invoice/charge-card` | `POST` | `src/app/api/invoice/charge-card/route.js` |
 | `/api/invoice/pay` | `POST` | `src/app/api/invoice/pay/route.ts` |
+| `/api/invoice/public` | `GET` | `src/app/api/invoice/public/route.ts` |
+| `/api/invoice/receipt` | `POST` | `src/app/api/invoice/receipt/route.js` |
 | `/api/invoice/send` | `POST` | `src/app/api/invoice/send/route.ts` |
+
+## Jenny
+
+| Endpoint | Methods | Source |
+|----------|---------|--------|
+| `/api/jenny/reschedule` | `POST` | `src/app/api/jenny/reschedule/route.ts` |
 
 ## Jenny Actions
 
 | Endpoint | Methods | Source |
 |----------|---------|--------|
 | `/api/jenny-actions` | `GET` `POST` | `src/app/api/jenny-actions/route.ts` |
+
+## Jenny Digest
+
+| Endpoint | Methods | Source |
+|----------|---------|--------|
+| `/api/jenny-digest` | `GET` | `src/app/api/jenny-digest/route.ts` |
 
 ## Jenny Exec
 
@@ -110,14 +142,23 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 
 | Endpoint | Methods | Source |
 |----------|---------|--------|
+| `/api/jenny-pro/conversations` | `POST` | `src/app/api/jenny-pro/conversations/route.js` |
+| `/api/jenny-pro/port-request` | `GET` `POST` | `src/app/api/jenny-pro/port-request/route.js` |
+| `/api/jenny-pro/port-status` | `POST` | `src/app/api/jenny-pro/port-status/route.js` |
+| `/api/jenny-pro/provision-number` | `POST` | `src/app/api/jenny-pro/provision-number/route.js` |
+| `/api/jenny-pro/reminders` | `GET` | `src/app/api/jenny-pro/reminders/route.js` |
 | `/api/jenny-pro/settings` | `GET` `POST` | `src/app/api/jenny-pro/settings/route.js` |
-| `/api/jenny-pro/sms-webhook` | `POST` | `src/app/api/jenny-pro/sms-webhook/route.js` |
+| `/api/jenny-pro/sms-webhook` | `GET` `POST` | `src/app/api/jenny-pro/sms-webhook/route.js` |
+| `/api/jenny-pro/voice` | `GET` `POST` | `src/app/api/jenny-pro/voice/route.js` |
+| `/api/jenny-pro/voice/after-dial` | `POST` | `src/app/api/jenny-pro/voice/after-dial/route.js` |
+| `/api/jenny-pro/voice/gather` | `POST` | `src/app/api/jenny-pro/voice/gather/route.js` |
 
 ## Jobs
 
 | Endpoint | Methods | Source |
 |----------|---------|--------|
 | `/api/jobs/assign` | `POST` | `src/app/api/jobs/assign/route.ts` |
+| `/api/jobs/delete` | `POST` | `src/app/api/jobs/delete/route.ts` |
 | `/api/jobs/list` | `GET` | `src/app/api/jobs/list/route.ts` |
 | `/api/jobs/save` | `POST` | `src/app/api/jobs/save/route.ts` |
 
@@ -160,6 +201,7 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 | `/api/quote/notify-cancellation` | `POST` | `src/app/api/quote/notify-cancellation/route.ts` |
 | `/api/quote/notify-scheduling` | `POST` | `src/app/api/quote/notify-scheduling/route.ts` |
 | `/api/quote/public` | `GET` | `src/app/api/quote/public/route.ts` |
+| `/api/quote/remind` | `POST` | `src/app/api/quote/remind/route.ts` |
 | `/api/quote/request-scheduling` | `POST` | `src/app/api/quote/request-scheduling/route.ts` |
 | `/api/quote/respond` | `POST` | `src/app/api/quote/respond/route.ts` |
 | `/api/quote/save` | `POST` | `src/app/api/quote/save/route.ts` |
@@ -178,6 +220,7 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 | Endpoint | Methods | Source |
 |----------|---------|--------|
 | `/api/reviews` | `GET` `POST` | `src/app/api/reviews/route.js` |
+| `/api/reviews/dispatch` | `GET` | `src/app/api/reviews/dispatch/route.ts` |
 | `/api/reviews/track` | `GET` | `src/app/api/reviews/track/route.ts` |
 
 ## Routes
@@ -224,6 +267,7 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 
 | Endpoint | Methods | Source |
 |----------|---------|--------|
+| `/api/stripe/checkout/confirm` | `POST` | `src/app/api/stripe/checkout/confirm/route.ts` |
 | `/api/stripe/connect` | `POST` | `src/app/api/stripe/connect/route.js` |
 | `/api/stripe/connect/callback` | `POST` | `src/app/api/stripe/connect/callback/route.js` |
 | `/api/stripe/connect/status` | `GET` | `src/app/api/stripe/connect/status/route.js` |
@@ -243,6 +287,14 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 | `/api/team-member/delete` | `POST` | `src/app/api/team-member/delete/route.ts` |
 | `/api/team-member/toggle-status` | `POST` | `src/app/api/team-member/toggle-status/route.ts` |
 | `/api/team-member/update-email` | `POST` | `src/app/api/team-member/update-email/route.ts` |
+
+## Track
+
+| Endpoint | Methods | Source |
+|----------|---------|--------|
+| `/api/track/[token]` | `GET` | `src/app/api/track/[token]/route.ts` |
+| `/api/track/location` | `POST` | `src/app/api/track/location/route.ts` |
+| `/api/track/send` | `POST` | `src/app/api/track/send/route.ts` |
 
 ## Trial Reminders
 
@@ -281,6 +333,6 @@ Complete list of Task Iguana API endpoints, auto-generated from source code.
 
 ---
 
-> **Total endpoints:** 94 routes across 35 groups
+> **Total endpoints:** 122 routes across 40 groups
 
-_Last generated: 2026-05-31_
+_Last generated: 2026-09-16_

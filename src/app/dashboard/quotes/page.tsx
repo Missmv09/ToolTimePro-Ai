@@ -37,6 +37,8 @@ interface Quote {
   sent_at: string | null
   follow_up_date: string | null
   last_followed_up_at: string | null
+  reminder_count?: number | null
+  last_reminder_at?: string | null
   deposit_required?: boolean
   deposit_amount?: number | null
   deposit_percentage?: number | null
@@ -45,6 +47,9 @@ interface Quote {
   creator?: { full_name: string } | null
   sender?: { full_name: string } | null
 }
+
+// How far "Followed Up" pushes the next follow-up date.
+const FOLLOW_UP_SNOOZE_DAYS = 3
 
 function getFollowUpStatus(quote: Quote): 'overdue' | 'due_today' | 'upcoming' | 'auto_stale' | null {
   const now = new Date()
@@ -88,6 +93,7 @@ function QuotesContent() {
   const [showNewQuoteDropdown, setShowNewQuoteDropdown] = useState(false)
   const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null)
+  const [remindingQuoteId, setRemindingQuoteId] = useState<string | null>(null)
   const [historyQuoteId, setHistoryQuoteId] = useState<string | null>(null)
   const [editHistory, setEditHistory] = useState<{ id: string; editor_name: string; change_summary: string; revision_number: number; changes: Record<string, { old: unknown; new: unknown }>; created_at: string }[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
@@ -655,11 +661,20 @@ function QuotesContent() {
     setDeletingQuoteId(null)
   }
 
+  // Records that you reached out yourself (a call, a visit) and pushes the
+  // next follow-up out so the amber flag clears instead of nagging again
+  // tomorrow.
   const markAsFollowedUp = async (quote: Quote) => {
     if (!companyId) return
+    const next = new Date()
+    next.setDate(next.getDate() + FOLLOW_UP_SNOOZE_DAYS)
     const { error } = await supabase
       .from('quotes')
-      .update({ last_followed_up_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .update({
+        last_followed_up_at: new Date().toISOString(),
+        follow_up_date: next.toISOString().slice(0, 10),
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', quote.id)
 
     if (error) {
@@ -667,6 +682,48 @@ function QuotesContent() {
       return
     }
     if (companyId) fetchQuotes(companyId)
+  }
+
+  // Sends the customer a check-in by text (opted-in only) and/or email with
+  // the quote link. The server stamps the quote and logs it to the Jenny feed.
+  const sendReminder = async (quote: Quote) => {
+    if (!companyId) return
+    const who = quote.customer?.name || 'this customer'
+    const channels = [
+      quote.customer?.phone && quote.customer?.sms_consent ? 'text' : null,
+      quote.customer?.email ? 'email' : null,
+    ].filter(Boolean)
+    if (channels.length === 0) {
+      alert(`Cannot send a reminder: ${who} has no email, and no phone number with text consent.`)
+      return
+    }
+    const nth = (quote.reminder_count || 0) + 1
+    if (!confirm(`Send reminder ${nth} to ${who} by ${channels.join(' and ')} now?`)) return
+
+    setRemindingQuoteId(quote.id)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        alert('Your session has expired. Please refresh the page and log in again.')
+        return
+      }
+      const res = await fetch('/api/quote/remind', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ quoteId: quote.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        alert('Reminder not sent: ' + (data.error || 'unknown error'))
+        return
+      }
+      const sent = [data.result?.sms === 'sent' ? 'text' : null, data.result?.email === 'sent' ? 'email' : null].filter(Boolean)
+      alert(`Reminder sent to ${who} by ${sent.join(' and ')}.${data.result?.error ? `\n\nNote: ${data.result.error}` : ''}`)
+      if (companyId) fetchQuotes(companyId)
+    } finally {
+      setRemindingQuoteId(null)
+    }
   }
 
   const setFollowUpDate = async (quoteId: string, date: string | null) => {
@@ -989,11 +1046,15 @@ function QuotesContent() {
                             Sent {Math.floor((Date.now() - new Date(quote.sent_at || quote.created_at).getTime()) / (1000 * 60 * 60 * 24))}d ago
                           </p>
                         )}
-                        {quote.last_followed_up_at && (
+                        {quote.last_reminder_at ? (
+                          <p className="text-xs text-gray-400 mt-1">
+                            Reminder {quote.reminder_count || 1} sent {new Date(quote.last_reminder_at).toLocaleDateString()}
+                          </p>
+                        ) : quote.last_followed_up_at ? (
                           <p className="text-xs text-gray-400 mt-1">
                             Last: {new Date(quote.last_followed_up_at).toLocaleDateString()}
                           </p>
-                        )}
+                        ) : null}
                       </div>
                     ) : (
                       <span className="text-xs text-gray-400">-</span>
@@ -1078,9 +1139,20 @@ function QuotesContent() {
                           </button>
                         </>
                       )}
+                      {['sent', 'viewed'].includes(quote.status) && (
+                        <button
+                          onClick={() => sendReminder(quote)}
+                          disabled={remindingQuoteId === quote.id}
+                          title="Text and/or email the customer a friendly check-in with the quote link"
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:opacity-50"
+                        >
+                          {remindingQuoteId === quote.id ? 'Sending...' : 'Send Reminder'}
+                        </button>
+                      )}
                       {['sent', 'viewed'].includes(quote.status) && followUpStatus && (
                         <button
                           onClick={() => markAsFollowedUp(quote)}
+                          title="You reached out yourself (call, visit). Clears the follow-up flag for a few days."
                           className="text-amber-600 hover:text-amber-800 text-sm font-medium"
                         >
                           Followed Up

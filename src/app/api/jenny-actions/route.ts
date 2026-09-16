@@ -7,6 +7,15 @@ import { getEnabledStates, isRulesStale, type StateComplianceRules } from '@/lib
 import { sendSMS } from '@/lib/twilio';
 import { authenticateRequest } from '@/lib/server-auth';
 import { DEFAULT_ACTION_CONFIGS } from '@/types/jenny-actions';
+import {
+  OPEN_QUOTE_STATUSES,
+  customerOf,
+  isWithinSendWindow,
+  quoteLabel,
+  quoteReminderDue,
+  resolveQuoteReminderConfig,
+  sendQuoteReminder,
+} from '@/lib/quote-reminder';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,6 +97,7 @@ export async function GET(request: NextRequest) {
     classification_review: { checked: 0, acted: 0 },
     compliance_escalation: { checked: 0, acted: 0 },
     quote_expiration: { checked: 0, acted: 0 },
+    quote_follow_up: { checked: 0, acted: 0 },
     contractor_payment: { checked: 0, acted: 0 },
     contract_end_date: { checked: 0, acted: 0 },
     customer_reactivation: { checked: 0, acted: 0 },
@@ -168,6 +178,10 @@ export async function GET(request: NextRequest) {
             results.quote_expiration.acted += await runQuoteExpirationCheck(supabase, companyId, config);
             break;
 
+          case 'quote_follow_up':
+            results.quote_follow_up.checked++;
+            results.quote_follow_up.acted += await runQuoteFollowUp(supabase, companyId, config);
+            break;
           case 'contractor_payment':
             results.contractor_payment.checked++;
             results.contractor_payment.acted += await runContractorPaymentCheck(supabase, companyId, config);
@@ -2086,6 +2100,9 @@ export async function POST(request: NextRequest) {
           case 'quote_expiration':
             results.quote_expiration = await runQuoteExpirationCheck(supabase, dbUser.company_id, c);
             break;
+          case 'quote_follow_up':
+            results.quote_follow_up = await runQuoteFollowUp(supabase, dbUser.company_id, c);
+            break;
           case 'contractor_payment':
             results.contractor_payment = await runContractorPaymentCheck(supabase, dbUser.company_id, c);
             break;
@@ -2167,4 +2184,67 @@ export async function POST(request: NextRequest) {
     console.error('Jenny actions error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
+}
+
+// ============================================================
+// QUOTE FOLLOW-UP — remind the customer about an unanswered quote
+// ============================================================
+
+/**
+ * Text and/or email the customer about a quote that is still sent/viewed
+ * with no answer. The spacing, cap, channel, and wording come from the
+ * company's config row; the send itself lives in lib/quote-reminder so the
+ * manual "Send Reminder" button and this action share one cooldown.
+ *
+ * Runs every 15 minutes but only sends during the company's daytime.
+ */
+async function runQuoteFollowUp(
+  supabase: SB,
+  companyId: string,
+  config: Record<string, unknown>
+): Promise<number> {
+  const cfg = resolveQuoteReminderConfig(config);
+  const now = new Date();
+
+  const { data: company } = await supabase
+    .from('companies')
+    .select('id, name, phone, timezone')
+    .eq('id', companyId)
+    .single();
+  if (!company) return 0;
+  if (!isWithinSendWindow(now, company.timezone)) return 0;
+
+  const { data: openQuotes } = await supabase
+    .from('quotes')
+    .select('id, quote_number, status, total, valid_until, sent_at, created_at, reminder_count, last_reminder_at, customer:customers(id, name, phone, email, sms_consent)')
+    .eq('company_id', companyId)
+    .in('status', [...OPEN_QUOTE_STATUSES]);
+  if (!openQuotes || openQuotes.length === 0) return 0;
+
+  let acted = 0;
+  for (const quote of openQuotes) {
+    if (acted >= cfg.max_per_run) break;
+    const verdict = quoteReminderDue(quote, cfg, now);
+    if (!verdict.due) continue;
+
+    const result = await sendQuoteReminder({ supabase, quote, company, config: cfg, source: 'jenny', now });
+    if (result.ok) {
+      acted++;
+      continue;
+    }
+    const customerName = customerOf(quote)?.name || 'the customer';
+    await logAction(supabase, {
+      company_id: companyId,
+      action_type: 'quote_follow_up',
+      title: `Reminder for quote ${quoteLabel(quote)} could not be sent`,
+      description: `Jenny tried to follow up with ${customerName} but delivery failed: ${result.error || 'unknown error'}. She will try again next run.`,
+      status: 'failed',
+      target_id: quote.id,
+      target_type: 'quote',
+      target_name: `Quote ${quoteLabel(quote)} for ${customerName}`,
+      metadata: { source: 'jenny', sms: result.sms, email: result.email, error: result.error },
+      executed_at: now.toISOString(),
+    });
+  }
+  return acted;
 }
