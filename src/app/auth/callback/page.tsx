@@ -71,20 +71,40 @@ function AuthCallbackContent() {
         // Step 3: Server-side password check — reads app_metadata directly
         // from the database via admin API.  This is the ONLY reliable check;
         // the client-side JWT may not contain our needs_password flag.
+        //
+        // WITH RETRIES and FAIL-CLOSED. The auth API can be cold right after a
+        // deploy, and a single transient failure here used to fall straight
+        // through into the app — leaving a brand-new user with a temp password
+        // they never set, and locked out on their next login. So retry, and
+        // only skip the set-password step when the server POSITIVELY confirms a
+        // password is already set. On "needs password" OR any uncertainty, send
+        // them to /auth/set-password rather than into the dashboard.
         setStatus('redirecting')
-        try {
-          const res = await fetch('/api/auth/check-needs-password', {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          })
-          if (res.ok) {
-            const { needsPassword } = await res.json()
-            if (needsPassword) {
-              router.replace('/auth/set-password')
-              return
+        let confirmedHasPassword = false
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const res = await fetch('/api/auth/check-needs-password', {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            })
+            if (res.ok) {
+              const { needsPassword } = await res.json()
+              if (needsPassword) {
+                router.replace('/auth/set-password')
+                return
+              }
+              confirmedHasPassword = true
+              break
             }
+          } catch {
+            // transient (cold function / network) — fall through to retry
           }
-        } catch {
-          // If the check fails, fall through to onboarding check below.
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+        }
+        if (!confirmedHasPassword) {
+          // Never confirmed a password is set — fail closed to set-password
+          // instead of dropping the user into the app without one.
+          router.replace('/auth/set-password')
+          return
         }
 
         // Step 4: Check onboarding status directly from the database.
