@@ -11,28 +11,36 @@ _Last updated from the manual QA run on the sandbox (`sandbox--lively-yeot-c640c
 
 ## 🔴 Bugs / blockers found in QA
 
-### 1. Successful online payments don't auto-mark invoices "Paid"
-**Impact:** high — the core of "accept online payments." A customer pays by card, the
-charge succeeds at Stripe, but the invoice stays **unpaid** ("Mark Paid" button still
-shows, never moves to the Paid tab). Owner would have to reconcile every payment by
-hand, and payment reminders could go to customers who already paid.
+### 1. Stripe webhooks not wired — successful payments & subscriptions don't reflect in-app
+**Impact:** high — the core of "accept online payments" and "sell plans." There are **two
+separate** Stripe webhooks and **both** are un-wired on the sandbox (and must be set up
+for production too). The code paths are correct; this is Dashboard + env config.
 
-**Cause:** config, not code. The invoice is marked paid only by the
-`checkout.session.completed` webhook at `/api/webhook/stripe-connect`, verified with
-`STRIPE_CONNECT_WEBHOOK_SECRET`. That webhook is not wired on the sandbox (and must be
-set up for production too). The code path is correct.
+**1a. Invoice payments →** invoice stays **unpaid** after a successful card payment
+("Mark Paid" still shows, never moves to the Paid tab). Owner would reconcile every
+payment by hand, and reminders could go to customers who already paid.
+- Endpoint `/api/webhook/stripe-connect`, secret `STRIPE_CONNECT_WEBHOOK_SECRET`.
+- Event: `checkout.session.completed` (covers invoice payments *and* quote deposits).
 
-**Fix (per environment):**
-1. Stripe Dashboard → Developers → Webhooks → add an endpoint:
-   - **Test:** `https://sandbox--lively-yeot-c640cd.netlify.app/api/webhook/stripe-connect`
-   - **Live:** `https://taskiguana.com/api/webhook/stripe-connect`
-   - Event: `checkout.session.completed` (covers invoice payments *and* quote deposits).
-2. Copy the endpoint's signing secret (`whsec_…`).
-3. Set `STRIPE_CONNECT_WEBHOOK_SECRET` in Netlify env for that scope (sandbox branch /
-   production) → redeploy.
-4. Re-test: pay a fresh invoice with `4242 4242 4242 4242` → it should auto-flip to Paid.
-   If not, the endpoint's recent deliveries show why (`Invalid signature` = secret
-   mismatch; `Missing signature or secret` = env var not set).
+**1b. Subscriptions / plans →** after a successful plan checkout ("You're subscribed —
+Elite"), the app **stays on Free Trial** and never upgrades. Confirmed in TC-BILL-01.
+- Endpoint `/api/webhook/stripe`, secret `STRIPE_WEBHOOK_SECRET`.
+- Events: `checkout.session.completed`, `customer.subscription.created`,
+  `customer.subscription.updated`, `customer.subscription.deleted`.
+
+**Fix (per environment — do both endpoints):**
+1. Stripe Dashboard → Developers → Webhooks → add each endpoint:
+   - Invoices: `…/api/webhook/stripe-connect`
+   - Billing:  `…/api/webhook/stripe`
+   - **Test host:** `https://sandbox--lively-yeot-c640cd.netlify.app`
+   - **Live host:** `https://taskiguana.com`
+2. Copy each endpoint's signing secret (`whsec_…`).
+3. Set `STRIPE_CONNECT_WEBHOOK_SECRET` and `STRIPE_WEBHOOK_SECRET` in the Netlify env for
+   that scope (sandbox branch / production) → redeploy.
+4. Re-test: pay an invoice with `4242…` → flips to Paid; subscribe to a plan → plan
+   upgrades. If not, the endpoint's recent deliveries show why (`Invalid signature` =
+   secret mismatch; `Missing signature or secret` = env var not set).
+
 
 ### 2. Quote approval gate not enforced before send
 **Impact:** medium — an employee/admin can send a quote (with pricing) to a customer
@@ -89,7 +97,7 @@ reset link → set a password.
 | TC-INV-03 — Pay invoice with card | ✅ Pass at Stripe; **but** invoice doesn't auto-mark Paid → bug #1 |
 | TC-INV-04 — Declined card | ✅ Pass (declined, invoice stayed unpaid) |
 | TC-QUOTE-03 — Customer approves quote | ✅ Pass (moved to Accepted, owner notified) |
-| TC-BILL-01 — Plan checkout | ⏳ Not yet run |
+| TC-BILL-01 — Plan checkout | ✅ Checkout succeeds; **but** plan doesn't upgrade in-app → webhook 1b |
 | TC-WORK-03 — Worker "On my way" SMS | ⏳ Not yet run |
 
 **Prerequisite discovered:** the invoice **Pay Now** button only appears once the company
