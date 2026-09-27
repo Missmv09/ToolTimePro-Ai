@@ -48,6 +48,22 @@ done as the owner, which can't reveal the gap.
 **If confirmed missing (feature work):** non-owner send → `pending_approval` → owner
 approves → then send; gate the send API by role, not just the UI.
 
+### 3. New-signup could land in the app without ever setting a password — FIXED
+**Impact:** high (front door). On email confirmation, `/auth/callback` checks
+`check-needs-password` and should route new users to `/auth/set-password`. That check
+can fail transiently (cold auth function), and the old code **fell through straight into
+the app** — leaving a brand-new user with a temp password they never set, locked out on
+next login. Intermittent: it hit a tester's signup but not others'. The `set-password`
+page had the same weakness (it trusted a client-side flag Supabase can drop).
+
+**Fix:** both now **fail closed**. The callback retries the server check and only skips
+set-password when a password is *positively* confirmed; on "needs password" or any
+uncertainty it routes to `/auth/set-password`. The set-password page redirects away only
+when the *server* confirms a password exists, and otherwise stays put.
+
+**Immediate recovery for an already-stuck account:** "Forgot password" on the login page →
+reset link → set a password.
+
 ---
 
 ## 🚦 Config / dashboard tasks before launch (no code)
