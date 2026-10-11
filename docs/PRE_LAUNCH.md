@@ -119,3 +119,13 @@ These are being handled as feature work, not in the QA pass:
   outstanding quotes (leads and overdue invoices already have this; quotes don't).
 - **Card-on-file → auto-charge** for recurring services (lawn/pool/pest, plans) — the
   biggest accounts-receivable lever for a solo operator.
+
+---
+
+## ⚠️ Gotcha: sandbox env-var changes need a SANDBOX BRANCH deploy
+Netlify "Trigger deploy → Deploy site" rebuilds **production (`main`)**, not the sandbox.
+The sandbox site (`sandbox--…netlify.app`) is a **branch deploy of `sandbox`**, so after
+changing a secret for the sandbox you must deploy the **`sandbox` branch** (push a commit
+to `sandbox`, or retry the latest `Branch Deploy: sandbox@…` in Netlify) — otherwise the
+sandbox keeps running the old build with the old value. This is what delayed the billing
+webhook fix: the new `STRIPE_WEBHOOK_SECRET` was only ever applied to production builds.
