@@ -77,6 +77,20 @@ jobs:
   # scoped would mutate production data.
   e2e-authenticated:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # One authenticated run at a time. Every run signs in as the same E2E
+    # user on the same sandbox, and the app enforces a single active session
+    # per user (useSessionGuard: each login overwrites users.active_session_id
+    # and every other browser is signed out on its next 30s check). Merging a
+    # promotion PR pushes main and back-syncs sandbox, so two runs start
+    # within a minute of each other and each keeps signing the other out.
+    # TC-QUOTE-01, the longest test, then lands on /auth/login mid-save and
+    # its row never appears: it failed in BOTH overlapping runs on 2026-09-24
+    # (main 35965615461, sandbox 35965676266) and passed on a solo re-run.
+    # Not cancel-in-progress: a queued run waits instead of killing one
+    # mid-cleanup, which would strand its e2e- rows on the sandbox.
+    concurrency:
+      group: e2e-authenticated-sandbox
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

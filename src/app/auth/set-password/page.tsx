@@ -85,20 +85,39 @@ export default function SetPasswordPage() {
       return () => clearTimeout(timeout);
     }
 
-    // If the user already set their password, skip this page.
-    // Check both user_metadata and app_metadata — the flag could be in either.
-    const needsPw =
-      user.app_metadata?.needs_password === true ||
-      user.user_metadata?.needs_password === true;
-    if (!needsPw) {
-      if (dbUser?.role === 'worker') {
-        router.replace('/worker');
-      } else if (company?.onboarding_completed) {
-        router.replace('/dashboard');
-      } else {
-        router.replace('/onboarding');
+    // Only LEAVE this page when the SERVER confirms the user already has a
+    // password. The client JWT can be missing needs_password (Supabase clears
+    // user_metadata on some auth flows), so trusting it here would bounce a
+    // genuine new user back to the dashboard without ever setting one — the
+    // same lockout the callback fails closed against. On any uncertainty, stay
+    // and let them set a password (harmless if they already had one).
+    let cancelled = false;
+    const verifyAndMaybeRedirect = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (!token) return; // no token yet — stay
+        const res = await fetch('/api/auth/check-needs-password', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return; // uncertain — stay
+        const { needsPassword } = await res.json();
+        if (needsPassword || cancelled) return; // still needs one — stay
+        if (dbUser?.role === 'worker') {
+          router.replace('/worker');
+        } else if (company?.onboarding_completed) {
+          router.replace('/dashboard');
+        } else {
+          router.replace('/onboarding');
+        }
+      } catch {
+        // uncertain — stay on the set-password page
       }
-    }
+    };
+    verifyAndMaybeRedirect();
+    return () => {
+      cancelled = true;
+    };
   }, [user, dbUser, company, authLoading, sessionReady, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
