@@ -129,3 +129,24 @@ changing a secret for the sandbox you must deploy the **`sandbox` branch** (push
 to `sandbox`, or retry the latest `Branch Deploy: sandbox@…` in Netlify) — otherwise the
 sandbox keeps running the old build with the old value. This is what delayed the billing
 webhook fix: the new `STRIPE_WEBHOOK_SECRET` was only ever applied to production builds.
+
+## ⚠️ Gotcha: per-context secrets need a value in the "Branch deploys" slot
+**Root cause of the webhook 100% error rate.** Both `STRIPE_WEBHOOK_SECRET` and
+`STRIPE_CONNECT_WEBHOOK_SECRET` in Netlify are set to **"Different value for each deploy
+context."** That is correct — production uses the **live** signing secret and the sandbox
+uses the **test** one — but the **Branch deploys** slot was left **empty**, so the sandbox
+(a branch deploy) ran with **no webhook secret at all**. Stripe's events reached the
+endpoints (`charming-serenity` → `/api/webhook/stripe`, `charming-oasis` →
+`/api/webhook/stripe-connect`) but every delivery failed signature verification →
+**100% error rate**, so plans never flipped and invoices never auto-marked Paid.
+
+**Correct setup (per secret):** keep "Different value for each deploy context"; put the
+**live** endpoint's `whsec_…` in **Production** and the **sandbox** endpoint's `whsec_…`
+in **Branch deploys**. Map: `charming-serenity` secret → `STRIPE_WEBHOOK_SECRET` (Branch
+deploys); `charming-oasis` secret → `STRIPE_CONNECT_WEBHOOK_SECRET` (Branch deploys). A
+Stripe endpoint's signing secret is permanent — reveal and copy it, never delete/recreate
+the endpoint. Then redeploy the `sandbox` branch.
+
+**Note on endpoint names:** the live billing endpoint we chased earlier (`dynamic-radiance`,
+0 deliveries) was in a *different* sandbox and was a red herring. The real listeners in the
+app's sandbox are `charming-serenity` (billing) and `charming-oasis` (invoices).
