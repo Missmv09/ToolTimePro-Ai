@@ -1,4 +1,9 @@
 /**
+ * @jest-environment jsdom
+ * @jest-environment-options {"url": "https://taskiguana.com/"}
+ */
+
+/**
  * Tests for ad click ID and campaign attribution capture.
  *
  * The failure mode these guard against is silent and expensive: a click ID
@@ -12,13 +17,7 @@ import { captureAttribution, readAttribution, CLICK_ID_PARAMS } from '@/lib/anal
 /** Point jsdom at a URL without triggering a real navigation. */
 function visit(url) {
   const parsed = new URL(url, 'https://taskiguana.com');
-  delete window.location;
-  window.location = {
-    search: parsed.search,
-    pathname: parsed.pathname,
-    origin: parsed.origin,
-    href: parsed.href,
-  };
+  window.history.replaceState({}, '', parsed.pathname + parsed.search);
 }
 
 function setReferrer(value) {
