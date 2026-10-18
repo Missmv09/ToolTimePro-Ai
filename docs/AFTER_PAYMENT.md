@@ -45,7 +45,7 @@ Card on file is consent-first: nothing is saved unless the customer ticks the bo
 
 1. **Run migration** `database/migrations/054_after_payment_experience.sql` in the Supabase SQL editor. It adds `payments.customer_id` (the webhook and "Mark Paid" were inserting it into a column that never existed, so those inserts were silently failing), the review queue columns, and the card-on-file columns. Everything degrades gracefully before the migration runs, but receipts will not show card details and review requests will not queue.
 2. **Register the Connect webhook** in Stripe → Developers → Webhooks (test mode for sandbox, live mode for prod):
-   - Endpoint: `https://<site>/api/webhook/stripe-connect`
+   - Endpoint: `https://<site>/api/webhook/stripe-connect/` (keep the trailing slash: `trailingSlash: true` 308-redirects the slashless URL, and Stripe does not follow redirects)
    - Events: `checkout.session.completed`, `account.updated`
    - Copy the signing secret into `STRIPE_CONNECT_WEBHOOK_SECRET` (branch-scoped for sandbox) and redeploy. Netlify functions only pick up env changes on deploy.
 3. **Review links**: Dashboard → Jenny Actions → Review request config (or `companies.google_review_link` / `yelp_review_link`). Without a link the request still goes out as a thank-you asking for a reply.

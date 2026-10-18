@@ -28,6 +28,9 @@ function getSupabase() {
   return supabase;
 }
 
+// Register in Stripe as <site>/api/webhook/stripe/ — with the trailing slash.
+// next.config.js sets trailingSlash: true, so the slashless URL gets a 308
+// redirect, and Stripe does not follow redirects (every delivery fails).
 export async function POST(request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
