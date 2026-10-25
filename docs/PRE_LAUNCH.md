@@ -12,9 +12,17 @@ _Last updated from the manual QA run on the sandbox (`sandbox--lively-yeot-c640c
 ## 🔴 Bugs / blockers found in QA
 
 ### 1. Stripe webhooks not wired — successful payments & subscriptions don't reflect in-app
+**✅ RESOLVED on sandbox (verified end-to-end).** Root cause was the **trailing slash**:
+the endpoint URLs in Stripe were registered without the trailing `/`, so with
+`trailingSlash: true` every delivery got a **308 redirect** — which Stripe does not follow
+— and died before the handler (or the signing-secret check) ever ran. The "100% error
+rate" and "secret mismatch" theories were both downstream symptoms of this. Adding the
+trailing slash to both endpoint URLs made `checkout.session.completed` return **200** and
+the plan flip to Elite in-app. **Still TODO: set up the two LIVE endpoints the same way
+(with trailing slashes) before launch — see config tasks below.**
+
 **Impact:** high — the core of "accept online payments" and "sell plans." There are **two
-separate** Stripe webhooks and **both** are un-wired on the sandbox (and must be set up
-for production too). The code paths are correct; this is Dashboard + env config.
+separate** Stripe webhooks. The code paths are correct; this is Dashboard + env config.
 
 **1a. Invoice payments →** invoice stays **unpaid** after a successful card payment
 ("Mark Paid" still shows, never moves to the Paid tab). Owner would reconcile every
