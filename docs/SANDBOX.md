@@ -90,9 +90,14 @@ Copy the resulting `NEXT_PUBLIC_STRIPE_PRICES` JSON into the sandbox-scoped env 
 ### 6. Point a Stripe webhook at the sandbox URL
 
 Stripe dashboard → Developers → Webhooks (test mode) → add endpoint:
-`https://sandbox--<site-name>.netlify.app/api/webhook/stripe`
+`https://sandbox--<site-name>.netlify.app/api/webhook/stripe/`
 
-(The Stripe Connect webhook, if used, is `/api/webhook/stripe-connect`.)
+(The Stripe Connect webhook, if used, is `/api/webhook/stripe-connect/`.)
+
+**Keep the trailing slash.** `next.config.js` sets `trailingSlash: true`, so
+`/api/webhook/stripe` (no slash) answers with a 308 redirect. Stripe does not follow
+redirects: every delivery fails as "other errors", and Stripe disables the endpoint
+after a few days of failures. The same applies to the live endpoints on `taskiguana.com`.
 
 Copy the signing secret into `STRIPE_WEBHOOK_SECRET` (sandbox scope).
 
@@ -176,4 +181,6 @@ Do the same for `sandbox` if you want sandbox to stay green too.
 - **Sandbox build uses prod env vars:** the variable isn't scoped to the `sandbox` branch. Re-check step 4.
 - **Cron jobs running twice:** you have the same schedule defined in both `netlify.toml` and a function config export. Keep it in `netlify.toml` only (per `CLAUDE.md`).
 - **Stripe webhook 400s:** `STRIPE_WEBHOOK_SECRET` doesn't match the endpoint. Each environment needs its own webhook + secret.
+- **Stripe webhook "other errors" / 3xx:** the endpoint URL is missing its trailing slash (see step 6). Edit the URL in Stripe to end in `/` — no new secret needed.
+- **Keys, secret and prices from different Stripe environments:** Stripe test mode and each Stripe sandbox are separate environments with their own keys, webhooks, signing secrets and price IDs (all keys look like `sk_test_…`). `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and `NEXT_PUBLIC_STRIPE_PRICES` must all come from the same one.
 - **Data showing up in prod:** a service-role key is pointing at the prod Supabase. Search the Netlify env var list for any `SUPABASE_*` var that isn't sandbox-scoped.

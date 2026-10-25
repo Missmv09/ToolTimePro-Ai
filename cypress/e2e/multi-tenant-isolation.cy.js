@@ -74,6 +74,7 @@ function loginAs(email, password) {
     // ── Company A creates a uniquely-named customer ──────────────────────────
     loginAs(A.email, A.password);
     cy.visit('/dashboard/customers');
+    cy.assertDashboardPage('Company A (E2E_EMAIL)');
     cy.contains('button', /add (your first )?customer/i, { timeout: 20000 }).first().click();
     cy.contains(/Add New Customer/i, { timeout: 10000 }).should('be.visible');
     cy.get('.fixed.inset-0').within(() => {
@@ -90,6 +91,7 @@ function loginAs(email, password) {
     // ── Company B must NOT see it (the isolation assertion) ──────────────────
     loginAs(B.email, B.password);
     cy.visit('/dashboard/customers');
+    cy.assertDashboardPage('Company B (E2E_EMAIL_2)');
     // Guard against a false pass: confirm B's own customers page actually loaded
     // (search box present) before asserting the absence of A's record.
     cy.searchCustomers(name);
@@ -98,6 +100,7 @@ function loginAs(email, password) {
     // ── Cleanup: Company A deletes the customer ──────────────────────────────
     loginAs(A.email, A.password);
     cy.visit('/dashboard/customers');
+    cy.assertDashboardPage('Company A (E2E_EMAIL)');
     cy.on('window:confirm', () => true);
     cy.searchCustomers(name);
     cy.contains(name, { timeout: 20000 }).should('be.visible');

@@ -13,7 +13,9 @@ function getSupabaseAdmin() {
 }
 
 // Stripe Connect webhook. Register it in Stripe (Developers → Webhooks) as
-//   <site>/api/webhook/stripe-connect  with events:
+//   <site>/api/webhook/stripe-connect/  with events:
+// (trailing slash required: trailingSlash: true 308-redirects the slashless
+// URL, and Stripe does not follow redirects)
 //   checkout.session.completed, account.updated
 // and set STRIPE_CONNECT_WEBHOOK_SECRET to that endpoint's signing secret.
 //

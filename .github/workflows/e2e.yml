@@ -25,13 +25,36 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+      # Start and wait here instead of through the action's start/wait-on.
+      # Since GitHub began forcing Node 20 actions onto Node 24, the action's
+      # wait-on gives up on the first refused connection ("Socket closed before
+      # the connection was established", 10ms after `npm start`) instead of
+      # retrying, so the job failed before Cypress ran a single spec.
+      - name: Start the app and wait for it
+        run: |
+          nohup npm start > "$RUNNER_TEMP/next-start.log" 2>&1 &
+          for i in $(seq 1 60); do
+            # Any HTTP response means the server is up (/ may 308 to a slash URL).
+            if curl -s -o /dev/null http://localhost:3000/; then
+              echo "App is up after $((i * 2))s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::App did not answer on http://localhost:3000 within 120s"
+          cat "$RUNNER_TEMP/next-start.log"
+          exit 1
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
       - name: Cypress run (public specs against a local build)
         uses: cypress-io/github-action@v6
         with:
-          build: npm run build
-          start: npm start
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 120
           spec: cypress/e2e/public-pages.cy.js,cypress/e2e/public-extended.cy.js,cypress/e2e/booking-demo.cy.js
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co

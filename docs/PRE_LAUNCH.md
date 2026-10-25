@@ -19,19 +19,22 @@ for production too). The code paths are correct; this is Dashboard + env config.
 **1a. Invoice payments →** invoice stays **unpaid** after a successful card payment
 ("Mark Paid" still shows, never moves to the Paid tab). Owner would reconcile every
 payment by hand, and reminders could go to customers who already paid.
-- Endpoint `/api/webhook/stripe-connect`, secret `STRIPE_CONNECT_WEBHOOK_SECRET`.
+- Endpoint `/api/webhook/stripe-connect/`, secret `STRIPE_CONNECT_WEBHOOK_SECRET`.
 - Event: `checkout.session.completed` (covers invoice payments *and* quote deposits).
 
 **1b. Subscriptions / plans →** after a successful plan checkout ("You're subscribed —
 Elite"), the app **stays on Free Trial** and never upgrades. Confirmed in TC-BILL-01.
-- Endpoint `/api/webhook/stripe`, secret `STRIPE_WEBHOOK_SECRET`.
+- Endpoint `/api/webhook/stripe/`, secret `STRIPE_WEBHOOK_SECRET`.
 - Events: `checkout.session.completed`, `customer.subscription.created`,
   `customer.subscription.updated`, `customer.subscription.deleted`.
 
 **Fix (per environment — do both endpoints):**
 1. Stripe Dashboard → Developers → Webhooks → add each endpoint:
-   - Invoices: `…/api/webhook/stripe-connect`
-   - Billing:  `…/api/webhook/stripe`
+   - Invoices: `…/api/webhook/stripe-connect/`
+   - Billing:  `…/api/webhook/stripe/`
+   - **Keep the trailing slash.** `next.config.js` sets `trailingSlash: true`, so the
+     slashless URL answers with a 308 redirect, and Stripe does not follow redirects —
+     every delivery fails as "other errors" and the endpoint is eventually disabled.
    - **Test host:** `https://sandbox--lively-yeot-c640cd.netlify.app`
    - **Live host:** `https://taskiguana.com`
 2. Copy each endpoint's signing secret (`whsec_…`).
@@ -39,7 +42,8 @@ Elite"), the app **stays on Free Trial** and never upgrades. Confirmed in TC-BIL
    that scope (sandbox branch / production) → redeploy.
 4. Re-test: pay an invoice with `4242…` → flips to Paid; subscribe to a plan → plan
    upgrades. If not, the endpoint's recent deliveries show why (`Invalid signature` =
-   secret mismatch; `Missing signature or secret` = env var not set).
+   secret mismatch; `Missing signature or secret` = env var not set; a 3xx = the URL is
+   missing its trailing slash).
 
 
 ### 2. Quote approval gate not enforced before send
