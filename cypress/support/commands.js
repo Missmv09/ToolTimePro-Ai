@@ -48,25 +48,61 @@ Cypress.Commands.add('login', () => {
     // error boundary, so the URL check above passed on a broken app.
     // Require the dashboard chrome to have rendered, and name the error
     // boundary when it is what rendered instead.
-    assertDashboardRendered();
+    assertDashboardRendered('The E2E_EMAIL account');
   }, {
     // A cached session that no longer logs in (expired token, account reset,
     // single-session guard kicked it) must be re-created, not trusted.
     validate() {
       cy.visit('/dashboard');
-      assertDashboardRendered();
+      assertDashboardRendered('The E2E_EMAIL account');
     },
   });
 });
 
 /**
- * The signed-in dashboard shell has rendered: the sidebar navigation exists
- * and the segment error boundary is not on screen. Fails with the boundary's
- * own text when that is what the user would be looking at.
+ * The current dashboard page rendered its own content, not the trial gate.
+ *
+ * TrialExpiredGate swaps every /dashboard page for a "Your free trial has
+ * ended" card once the company's trial_ends_at passes (unless it is a beta
+ * tester or has a Stripe customer). The sidebar still renders around it, so a
+ * shell-only check passes, and every spec then fails on its first button with
+ * "never found /new quote/i" — which is how both sandbox E2E companies broke
+ * on 2026-10-12 (runs 38206730395, 38293684041) without the logs saying why.
+ * Waits for either the page heading or the card, and names the card.
  */
-function assertDashboardRendered() {
+Cypress.Commands.add('assertDashboardPage', (who) => {
+  cy.get('body', { timeout: 45000 }).should(($body) => {
+    if (TRIAL_EXPIRED.test($body.text())) throw trialExpiredError(who);
+    if ($body.find('main h1').length === 0) {
+      throw new Error(
+        `${who}: the page heading (main h1) has not rendered.`
+        + ` Page text: "${$body.text().replace(/\s+/g, ' ').trim().slice(0, 300)}"`
+      );
+    }
+  });
+});
+
+const TRIAL_EXPIRED = /Your free trial has ended/i;
+
+function trialExpiredError(who) {
+  return new Error(
+    `${who} is on an expired free trial: the dashboard rendered TrialExpiredGate`
+    + ' ("Your free trial has ended") instead of the page. This is sandbox data, not'
+    + ' a code bug. Mark the company as a beta tester: add the account\'s email to'
+    + ' database/grant_beta_testers.sql and run it in the SANDBOX Supabase SQL Editor.'
+  );
+}
+
+/**
+ * The signed-in dashboard has rendered: the sidebar navigation exists, the
+ * segment error boundary is not on screen, and the page itself rendered
+ * rather than the expired-trial gate. Fails naming whichever of those the
+ * user would actually be looking at.
+ */
+function assertDashboardRendered(who) {
   cy.get('body', { timeout: 45000 }).should(($body) => {
     const text = $body.text();
+    if (TRIAL_EXPIRED.test(text)) throw trialExpiredError(who);
     if (/Something went wrong on our end/i.test(text)) {
       throw new Error(
         'Login reached /dashboard but the page rendered the error boundary'
@@ -79,6 +115,15 @@ function assertDashboardRendered() {
     if ($body.find('aside nav a[href^="/dashboard"]').length === 0) {
       throw new Error(
         'Dashboard sidebar navigation has not rendered.'
+        + ` Page text: "${text.replace(/\s+/g, ' ').trim().slice(0, 300)}"`
+      );
+    }
+    // The sidebar renders before the company loads, and the trial gate only
+    // replaces the page once it has. Wait for the page's own heading, so the
+    // trial check above gets its chance instead of passing on the shell.
+    if ($body.find('main h1').length === 0) {
+      throw new Error(
+        'Dashboard shell rendered but the page heading (main h1) has not.'
         + ` Page text: "${text.replace(/\s+/g, ' ').trim().slice(0, 300)}"`
       );
     }
