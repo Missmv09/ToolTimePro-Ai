@@ -2,12 +2,27 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const MAIN_DOMAIN = 'taskiguana.com'
+const LEGACY_DOMAIN = 'tooltimepro.com'
 const SUPPORTED_LOCALES = ['en', 'es']
 const DEFAULT_LOCALE = 'en'
 
 export async function proxy(request: NextRequest) {
   // --- Subdomain → path redirect for customer sites ---
-  const hostname = request.headers.get('host') || ''
+  const hostname = (request.headers.get('host') || '').split(':')[0]
+
+  // --- Legacy brand domain → primary domain ---
+  // tooltimepro.com is a Netlify domain alias, and Netlify serves aliases
+  // as-is rather than redirecting them, so pages kept showing the old domain.
+  // API routes are excluded by the matcher below, so Stripe/Twilio webhooks
+  // still registered on the old host keep working (they don't follow redirects).
+  if (hostname === LEGACY_DOMAIN || hostname === `www.${LEGACY_DOMAIN}`) {
+    const target = new URL(
+      request.nextUrl.pathname + request.nextUrl.search,
+      `https://www.${MAIN_DOMAIN}`
+    )
+    return NextResponse.redirect(target, 301)
+  }
+
   if (
     hostname.endsWith(`.${MAIN_DOMAIN}`) &&
     hostname !== `www.${MAIN_DOMAIN}` &&
