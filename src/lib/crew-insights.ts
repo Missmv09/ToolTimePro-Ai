@@ -444,3 +444,70 @@ export function jobSpansFromTimeEntries(
   }
   return out;
 }
+
+// ── Weekly digest ───────────────────────────────────────────────────
+
+export interface CrewDigest {
+  /** Completed jobs in the week that had a checklist. */
+  jobsWithChecklist: number;
+  /** From the last 30 days — recognition needs more than a week of jobs. */
+  recognitions: { name: string; title: string }[];
+  /** This week. */
+  tappedThrough: { name: string; count: number }[];
+  /** This week. */
+  awayChecks: number;
+  /** This week. */
+  runningLongAlerts: number;
+  /** Workers with a coaching note over the last 30 days. */
+  conversations: number;
+  isEmpty: boolean;
+}
+
+/**
+ * The crew section of the owner's weekly email. Recognition leads; the rest
+ * is counts with a link to Crew Insights, never a ranking.
+ */
+export function buildCrewDigest(params: {
+  monthJobs: CrewJob[];
+  weekStart: string;
+  weekEnd: string;
+  runningLongAlerts: number;
+  names: Record<string, string>;
+}): CrewDigest {
+  const { monthJobs, weekStart, weekEnd, runningLongAlerts, names } = params;
+  const name = (id: string) => names[id] || 'Team member';
+  const month = buildCrewReport(monthJobs);
+  const weekJobs = monthJobs.filter((j) => j.scheduledDate >= weekStart && j.scheduledDate <= weekEnd);
+
+  const tapped: Record<string, number> = {};
+  let awayChecks = 0;
+  for (const job of weekJobs) {
+    if (isTappedThrough(job)) {
+      for (const w of new Set(job.items.map((i) => i.completedBy).filter(Boolean) as string[])) {
+        tapped[w] = (tapped[w] || 0) + 1;
+      }
+    }
+    for (const item of job.items) {
+      if (item.completed && checkLocationStatus(item, job.jobLat, job.jobLng) === 'away') awayChecks++;
+    }
+  }
+
+  const recognitions = month.workers
+    .flatMap((w) => w.recognitions.map((r) => ({ name: name(w.workerId), title: r.title })))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const tappedThrough = Object.entries(tapped)
+    .map(([id, count]) => ({ name: name(id), count }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const jobsWithChecklist = weekJobs.filter((j) => j.items.some((i) => i.completed)).length;
+  const conversations = month.workers.filter((w) => w.coaching.length > 0).length;
+
+  return {
+    jobsWithChecklist,
+    recognitions,
+    tappedThrough,
+    awayChecks,
+    runningLongAlerts,
+    conversations,
+    isEmpty: jobsWithChecklist === 0 && recognitions.length === 0 && runningLongAlerts === 0,
+  };
+}

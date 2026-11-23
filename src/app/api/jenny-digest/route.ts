@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { buildWeeklyDigest, weeklyPeriod, type DigestLogRow } from '@/lib/jenny-digest';
 import { sendJennyWeeklyDigestEmail } from '@/lib/email';
 import { authorizeCronRequest } from '@/lib/cron-auth';
+import { loadCrewJobs, daysAgo } from '@/lib/crew-data';
+import { buildCrewDigest, type CrewDigest } from '@/lib/crew-insights';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,8 +91,9 @@ export async function GET(request: NextRequest) {
         }
 
         const digest = buildWeeklyDigest((logs || []) as DigestLogRow[], start, end);
+        const crew = await loadCrewDigest(supabase, companyId, start, end);
 
-        if (digest.isEmpty) {
+        if (digest.isEmpty && (!crew || crew.isEmpty)) {
           results.skipped_empty++;
           continue;
         }
@@ -111,6 +114,7 @@ export async function GET(request: NextRequest) {
           to: owner.email,
           name: owner.full_name?.split(' ')[0] || 'there',
           digest,
+          crew,
         });
 
         // Record only after a successful send, so a send failure retries on
@@ -148,4 +152,43 @@ function nextDay(isoDate: string): string {
   const d = new Date(`${isoDate}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * The crew section is extra: if anything about it fails, the Jenny digest
+ * still goes out without it.
+ */
+async function loadCrewDigest(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  companyId: string,
+  start: string,
+  end: string
+): Promise<CrewDigest | null> {
+  try {
+    const [monthJobs, usersRes, alertsRes] = await Promise.all([
+      loadCrewJobs(supabase, companyId, { since: daysAgo(30, new Date(`${nextDay(end)}T00:00:00Z`)) }),
+      supabase.from('users').select('id, full_name').eq('company_id', companyId),
+      supabase
+        .from('job_checklists')
+        .select('id, jobs!inner(company_id)', { count: 'exact', head: true })
+        .eq('jobs.company_id', companyId)
+        .gte('overdue_alerted_at', `${start}T00:00:00Z`)
+        .lt('overdue_alerted_at', `${nextDay(end)}T00:00:00Z`),
+    ]);
+    if (alertsRes.error) console.error(`[jenny-digest] running-long count for ${companyId}: ${alertsRes.error.message}`);
+    const names: Record<string, string> = {};
+    for (const u of (usersRes.data || []) as { id: string; full_name: string | null }[]) {
+      if (u.full_name) names[u.id] = u.full_name;
+    }
+    return buildCrewDigest({
+      monthJobs,
+      weekStart: start,
+      weekEnd: end,
+      runningLongAlerts: alertsRes.error ? 0 : alertsRes.count || 0,
+      names,
+    });
+  } catch (err) {
+    console.error(`[jenny-digest] crew section failed for ${companyId}:`, err);
+    return null;
+  }
 }

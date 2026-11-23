@@ -8,6 +8,7 @@ import {
   typicalByStepFromReport,
   suggestEndTime,
   jobSpansFromTimeEntries,
+  buildCrewDigest,
   type CrewJob,
   type LiveChecklistItem,
 } from '@/lib/crew-insights';
@@ -262,5 +263,34 @@ describe('jobSpansFromTimeEntries', () => {
     ]);
     expect(spans.a).toEqual({ clockIn: at(0), clockOut: at(90) });
     expect(spans.b).toEqual({ clockIn: at(0), clockOut: null });
+  });
+});
+
+describe('buildCrewDigest', () => {
+  it('leads with recognition and counts this week\'s issues without ranking anyone', () => {
+    const month = [
+      ...times(6, () => crewJob('ana', { minutes: 60 })),
+      ...times(6, () => crewJob('ben', { minutes: 62 })),
+      { ...crewJob('tap', { minutes: 60, tapped: true }), scheduledDate: '2026-11-18' },
+      { ...crewJob('far', { minutes: 60, away: true }), scheduledDate: '2026-11-19' },
+    ];
+    const d = buildCrewDigest({
+      monthJobs: month,
+      weekStart: '2026-11-16',
+      weekEnd: '2026-11-22',
+      runningLongAlerts: 2,
+      names: { ana: 'Ana', ben: 'Ben', tap: 'Tad', far: 'Fay' },
+    });
+    expect(d.recognitions.map((r) => r.name)).toEqual(expect.arrayContaining(['Ana', 'Ben']));
+    expect(d.recognitions.some((r) => r.name === 'Tad')).toBe(false);
+    expect(d.tappedThrough).toEqual([{ name: 'Tad', count: 1 }]);
+    expect(d.awayChecks).toBe(3);
+    expect(d.jobsWithChecklist).toBe(2);
+    expect(d.runningLongAlerts).toBe(2);
+    expect(d.isEmpty).toBe(false);
+  });
+
+  it('is empty when there is nothing to say', () => {
+    expect(buildCrewDigest({ monthJobs: [], weekStart: '2026-11-16', weekEnd: '2026-11-22', runningLongAlerts: 0, names: {} }).isEmpty).toBe(true);
   });
 });
