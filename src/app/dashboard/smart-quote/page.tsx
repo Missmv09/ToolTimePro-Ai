@@ -11,6 +11,8 @@ import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/l
 import type { Locale } from '@/i18n/config';
 import { detectStateFromAddress, resolveDefaultTaxRate, parseTaxRate } from '@/lib/sales-tax';
 import { DISCOUNT_TYPES, calcDiscountAmount, type DiscountType } from '@/lib/quote-discount';
+import { usePriceBook } from '@/hooks/usePriceBook';
+import { priceBookItemToLine } from '@/lib/price-book';
 
 // Types
 interface LineItem {
@@ -149,6 +151,7 @@ export default function SmartQuotingPage() {
 
   // Line items state
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  const { items: priceBookItems } = usePriceBook();
   const [showAiSuggestion, setShowAiSuggestion] = useState<string | null>(null);
 
   // Good/Better/Best options
@@ -509,6 +512,14 @@ export default function SmartQuotingPage() {
       total: service?.price || 0,
     };
     setLineItems(prev => [...prev, newItem]);
+  };
+
+  // Add a line straight from the company's price book.
+  const addPriceBookItem = (priceBookItemId: string) => {
+    const pbItem = priceBookItems.find((i) => i.id === priceBookItemId);
+    if (!pbItem) return;
+    const line = priceBookItemToLine(pbItem);
+    setLineItems(prev => [...prev, { id: generateId(), ...line }]);
   };
 
   const updateLineItem = (id: string, updates: Partial<LineItem>) => {
@@ -948,6 +959,66 @@ export default function SmartQuotingPage() {
     }
   };
 
+  // Notify the company's owner(s)/approvers that a quote is waiting for their
+  // review. Mirrors the dashboard's submit-for-approval notification. Best
+  // effort: a failed notification must never crash the save.
+  const notifyOwnersOfPendingQuote = async (
+    quote: { id: string; quote_number?: string | null; total?: number | null },
+    customerName: string,
+  ) => {
+    if (!companyId) return;
+    const quoteNum = quote.quote_number || `Q-${quote.id.slice(0, 8)}`;
+    const dashboardLink = `${window.location.origin}/dashboard/quotes?status=pending_approval`;
+    const itemCount = lineItems.filter((i) => i.description).length;
+    const quoteTotal = quote.total || 0;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const { data: owners } = await supabase
+        .from('users')
+        .select('phone, full_name, email')
+        .eq('company_id', companyId)
+        .in('role', ['owner', 'admin', 'worker_admin']);
+      for (const owner of owners || []) {
+        if (owner.phone) {
+          await fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: owner.phone,
+              template: 'custom',
+              data: {
+                message: `Quote ${quoteNum} for ${customerName || 'a customer'} ($${quoteTotal.toLocaleString()}) needs your approval. Open your dashboard to review.`,
+              },
+              companyId,
+            }),
+          });
+        }
+        if (owner.email) {
+          await fetch('/api/quote/notify-approval', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({
+              to: owner.email,
+              ownerName: owner.full_name || 'Boss',
+              quoteNumber: quoteNum,
+              customerName: customerName || 'Customer',
+              total: quoteTotal,
+              itemCount,
+              submittedBy: dbUser?.full_name,
+              dashboardLink,
+            }),
+          });
+        }
+      }
+    } catch {
+      // best-effort; never block on a notification failure
+    }
+  };
+
   // Send quote (save and mark as sent)
   const sendQuote = async () => {
     setIsSending(true);
@@ -958,6 +1029,22 @@ export default function SmartQuotingPage() {
       const customerPhone = selectedCustomer?.phone || newCustomer.phone;
       const customerEmail = selectedCustomer?.email || newCustomer.email;
       const quoteLink = `${window.location.origin}/quote/${quote.id}`;
+
+      // The server holds a quote at 'pending_approval' when the sender is not
+      // allowed to send it directly (e.g. a worker, or an admin at a company
+      // that requires approval). The customer must NOT be contacted — route it
+      // to the owner(s) for review instead.
+      if (quote.status === 'pending_approval') {
+        await notifyOwnersOfPendingQuote(quote, customerName);
+        setIsSending(false);
+        alert(
+          'This quote needs owner approval before it can go to the customer. ' +
+            'Your manager has been notified to review it — you can see it under ' +
+            '"Pending Approval" in Quotes.',
+        );
+        router.push('/dashboard/quotes?status=pending_approval');
+        return;
+      }
 
       const sendErrors: string[] = [];
 
@@ -1624,6 +1711,28 @@ export default function SmartQuotingPage() {
                   </button>
                 )}
               </div>
+
+              {/* Add from the company's price book */}
+              {priceBookItems.length > 0 && (
+                <div className="mb-3">
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) addPriceBookItem(e.target.value);
+                      e.target.value = '';
+                    }}
+                    className="input max-w-sm"
+                    aria-label="Add from price book"
+                  >
+                    <option value="">+ Add from price book…</option>
+                    {priceBookItems.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} — ${item.default_price}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Quick Add Buttons */}
               <div className="flex flex-wrap gap-2 mb-6">

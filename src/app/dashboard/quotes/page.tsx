@@ -10,6 +10,10 @@ import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/l
 import { computeQuoteTotals } from '@/lib/totals'
 import { resolveDefaultTaxRate } from '@/lib/sales-tax'
 import { matchesQuoteFilter, computeQuoteFunnelStats, REMINDER_ATTRIBUTION_WINDOW_DAYS } from '@/lib/quote-status'
+import { canSendQuoteDirectly } from '@/lib/quote-approval'
+import type { AdminPermissions } from '@/lib/permissions'
+import { usePriceBook } from '@/hooks/usePriceBook'
+import { priceBookItemToLine } from '@/lib/price-book'
 
 interface QuoteItem {
   id: string
@@ -559,12 +563,18 @@ function QuotesContent() {
 
   // Quote approval workflow: determine if current user can send directly
   const approvalSettings = (company as Record<string, unknown> | null)?.quote_approval_settings as { required?: boolean; approver_ids?: string[] } | null
-  const approvalRequired = approvalSettings?.required || false
   const isOwner = dbUser?.role === 'owner'
   const isDesignatedApprover = approvalSettings?.approver_ids?.includes(user?.id || '') || false
-  // Can send directly if: approval not required (and has quotes perm), OR user is owner, OR user is designated approver
-  const canSendDirectly = !approvalRequired ? isOwnerOrAdmin : (isOwner || isDesignatedApprover)
-  // Can approve pending quotes (same logic)
+  // Single source of truth — shared with the smart-quote builder and the
+  // server-side gate in /api/quote/save — for whether this user may send a
+  // quote straight to the customer, or must route it for owner approval.
+  const canSendDirectly = canSendQuoteDirectly({
+    role: dbUser?.role,
+    userId: user?.id,
+    adminPermissions: (dbUser as Record<string, unknown> | null)?.admin_permissions as AdminPermissions | null,
+    approvalSettings,
+  })
+  // Can approve pending quotes
   const canApproveQuotes = isOwner || isDesignatedApprover
 
   const submitForApproval = async (quote: Quote) => {
@@ -1443,6 +1453,19 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, co
   const [items, setItems] = useState<{ description: string; quantity: number; unit_price: number }[]>(
     [{ description: '', quantity: 1, unit_price: 0 }]
   )
+  const { items: priceBookItems } = usePriceBook()
+  // Add a line straight from the company's price book.
+  const addPriceBookItem = (priceBookItemId: string) => {
+    const pbItem = priceBookItems.find((i) => i.id === priceBookItemId)
+    if (!pbItem) return
+    const line = priceBookItemToLine(pbItem)
+    setItems((prev) => {
+      // Replace a single blank starter row, otherwise append.
+      const onlyBlank = prev.length === 1 && !prev[0].description && !prev[0].unit_price
+      const next = { description: line.description, quantity: line.quantity, unit_price: line.price }
+      return onlyBlank ? [next] : [...prev, next]
+    })
+  }
   // Tax rate (percent). Existing quotes keep what was saved; new quotes start
   // from the company default, then a customer-state estimate, then 0.
   const initialCustomer = quote?.customer_id ? customers.find(c => c.id === quote.customer_id) : undefined
@@ -2031,13 +2054,33 @@ function QuoteModal({ quote, companyId, userId, customers, defaultQuoteTerms, co
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={addItem}
-              className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-            >
-              + Add line item
-            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={addItem}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                + Add line item
+              </button>
+              {priceBookItems.length > 0 && (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) addPriceBookItem(e.target.value)
+                    e.target.value = ''
+                  }}
+                  className="text-sm border border-gray-300 rounded-lg px-2 py-1"
+                  aria-label="Add from price book"
+                >
+                  <option value="">+ Add from price book…</option>
+                  {priceBookItems.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} — ${item.default_price}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
 
           {/* Totals */}
