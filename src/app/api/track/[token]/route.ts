@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checklistProgress, type ChecklistProgress } from '@/lib/job-checklist'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,7 +61,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
   const customer = Array.isArray(job.customer) ? job.customer[0] : job.customer
   const firstAssignment = job.assigned_users?.[0]?.user
   const techUser = Array.isArray(firstAssignment) ? firstAssignment[0] : firstAssignment
-  const { label, phase } = statusLabel(job.status)
+  const status = statusLabel(job.status)
+  let { label } = status
+  const { phase } = status
+
+  // Once the tech has checked a step they're on site: show which step they're
+  // on instead of "on the way". Step names only — no times or worker detail.
+  let progress: ChecklistProgress | null = null
+  if (job.status === 'in_progress') {
+    const { data: items, error: itemsError } = await admin
+      .from('job_checklists')
+      .select('item_text, sort_order, is_completed')
+      .eq('job_id', job.id)
+    if (itemsError) console.error('[track] checklist:', itemsError.message)
+    progress = checklistProgress(items || [])
+    if (progress) label = 'Work in progress'
+  }
 
   // Expose the technician's live position only while en route and only if the
   // fix is recent (within 10 minutes) — stale or off-job positions stay hidden.
@@ -77,6 +93,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
 
   return NextResponse.json({
     techLocation,
+    progress,
     companyName: company?.name || 'Your service provider',
     customerName: customer?.name || null,
     techFirstName: firstName(techUser?.full_name),

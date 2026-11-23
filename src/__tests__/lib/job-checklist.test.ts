@@ -2,6 +2,7 @@ import {
   loadOrCreateJobChecklist,
   setChecklistItemCompleted,
   recordChecklistItemLocation,
+  checklistProgress,
   formatChecklistTime,
   rowToItem,
 } from '@/lib/job-checklist';
@@ -163,5 +164,23 @@ describe('rowToItem', () => {
       id: 'x', item_text: 't', is_required: null, is_completed: null,
       completed_at: null, completed_by: null, sort_order: null,
     }).required).toBe(true);
+  });
+});
+
+describe('checklistProgress', () => {
+  const row = (t: string, o: number, c: boolean) => ({ item_text: t, sort_order: o, is_completed: c });
+
+  it('is null until something is checked (tech not on site yet)', () => {
+    expect(checklistProgress([])).toBeNull();
+    expect(checklistProgress([row('Arrive', 0, false)])).toBeNull();
+  });
+
+  it('reports done/total and the next unchecked step in order', () => {
+    expect(checklistProgress([row('Cleanup', 2, false), row('Arrive', 0, true), row('Work', 1, false)]))
+      .toEqual({ done: 1, total: 3, current: 'Work' });
+  });
+
+  it('has no current step when everything is checked', () => {
+    expect(checklistProgress([row('Arrive', 0, true)])).toEqual({ done: 1, total: 1, current: null });
   });
 });

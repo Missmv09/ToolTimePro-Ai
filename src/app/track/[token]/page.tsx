@@ -15,6 +15,7 @@ interface TrackingInfo {
   windowEnd: string | null
   destination: { lat: number; lng: number; city: string | null } | null
   techLocation: { lat: number; lng: number } | null
+  progress: { done: number; total: number; current: string | null } | null
 }
 
 // Live map showing the destination and (when en route) the technician's
@@ -179,7 +180,24 @@ export default function TrackingPage({ params }: { params: Promise<{ token: stri
                 </span>
               </div>
 
-              {info.phase === 'enroute' && (
+              {info.phase === 'enroute' && info.progress && (
+                <div className="mb-4">
+                  <p className="text-gray-700">
+                    {info.techFirstName ? <><strong>{info.techFirstName}</strong> is</> : 'Your technician is'} on site
+                    {info.progress.current ? <> and working on: <strong>{info.progress.current}</strong></> : ' and wrapping up'}.
+                  </p>
+                  <div className="mt-3 h-2 rounded-full bg-gray-200 overflow-hidden" aria-hidden>
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${Math.round((info.progress.done / info.progress.total) * 100)}%`, background: phaseColor }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {info.progress.done} of {info.progress.total} steps done
+                  </p>
+                </div>
+              )}
+              {info.phase === 'enroute' && !info.progress && (
                 <p className="text-gray-700 mb-4">
                   {info.techFirstName ? <><strong>{info.techFirstName}</strong> is</> : 'Your technician is'} on the way to you now
                   {info.techLocation ? ' — follow along on the map below.' : '.'}

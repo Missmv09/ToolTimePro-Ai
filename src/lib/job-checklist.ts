@@ -182,3 +182,27 @@ export function formatChecklistTime(iso: string | null, timeZone?: string | null
     return date.toLocaleTimeString('en-US', opts);
   }
 }
+
+export interface ChecklistProgress {
+  done: number;
+  total: number;
+  /** The next unchecked step, or null when everything is checked. */
+  current: string | null;
+}
+
+/**
+ * Customer-facing progress. Null until the worker has checked something, which
+ * is the signal they're on site rather than still driving.
+ */
+export function checklistProgress(
+  rows: { item_text: string; sort_order: number | null; is_completed: boolean | null }[]
+): ChecklistProgress | null {
+  const ordered = [...rows].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const done = ordered.filter((r) => r.is_completed).length;
+  if (ordered.length === 0 || done === 0) return null;
+  return {
+    done,
+    total: ordered.length,
+    current: ordered.find((r) => !r.is_completed)?.item_text ?? null,
+  };
+}
