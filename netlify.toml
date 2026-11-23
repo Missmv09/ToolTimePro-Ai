@@ -135,3 +135,9 @@
 # appointment-reminders follow-up remains as a backstop.
 [functions."review-requests-cron"]
   schedule = "*/15 * * * *"
+
+# Job Step Running Long — runs every 15 minutes
+# Notifies owners/admins when the checklist step a clocked-in worker is on has
+# run past max(2x typical, typical + 20 min). Once per step (overdue_alerted_at).
+[functions."running-long-cron"]
+  schedule = "*/15 * * * *"

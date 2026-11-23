@@ -58,6 +58,9 @@ function JobsContent() {
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
   const fromQuoteId = searchParams.get('fromQuote')
+  // ?job=<id> opens that job (links from notifications, e.g. a step running long)
+  const openJobId = searchParams.get('job')
+  const openedJobRef = useRef<string | null>(null)
   const initialFilter = searchParams.get('filter') || 'all'
 
   const [filter, setFilter] = useState<string>(initialFilter)
@@ -199,6 +202,16 @@ function JobsContent() {
       fetchJobs(companyId)
     }
   }, [companyId, fetchJobs])
+
+  useEffect(() => {
+    if (!openJobId || loading || openedJobRef.current === openJobId) return
+    const target = jobs.find((j) => j.id === openJobId)
+    if (target) {
+      openedJobRef.current = openJobId
+      setEditingJob(target)
+      setShowModal(true)
+    }
+  }, [openJobId, loading, jobs])
 
   // Auto-open create job modal when coming from an approved quote
   useEffect(() => {
