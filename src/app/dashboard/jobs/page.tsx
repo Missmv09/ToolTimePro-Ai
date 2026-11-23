@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import { fetchJobChecklist, formatChecklistTime, type SavedChecklistItem } from '@/lib/job-checklist'
 
 interface Job {
   id: string
@@ -1055,6 +1056,8 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
             />
           </div>
 
+          {job && <JobChecklistProgress jobId={job.id} workers={workers} />}
+
           <div className="flex gap-3 pt-4">
             <button
               type="button"
@@ -1073,6 +1076,64 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+// Read-only view of what the worker checked off on site, and when.
+function JobChecklistProgress({ jobId, workers }: {
+  jobId: string
+  workers: { id: string; full_name: string }[]
+}) {
+  const { company } = useAuth()
+  const [items, setItems] = useState<SavedChecklistItem[] | null>(null)
+  const [loadError, setLoadError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchJobChecklist(supabase, jobId)
+      .then((rows) => { if (!cancelled) setItems(rows) })
+      .catch((err) => {
+        console.error('Failed to load job checklist:', err)
+        if (!cancelled) setLoadError(true)
+      })
+    return () => { cancelled = true }
+  }, [jobId])
+
+  // Nothing to show until a worker has opened the job (that creates the list).
+  if (loadError || !items || items.length === 0) return null
+
+  const workerName = (id: string | null) =>
+    workers.find((w) => w.id === id)?.full_name || 'Team member'
+  const done = items.filter((i) => i.completed).length
+
+  return (
+    <div className="border rounded-lg p-3" data-testid="job-checklist-progress">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-700">Job Checklist</span>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+          {done}/{items.length}
+        </span>
+      </div>
+      <ul className="space-y-1.5">
+        {items.map((item) => (
+          <li key={item.id} className="flex items-start gap-2 text-sm">
+            <span className={item.completed ? 'text-green-600' : 'text-gray-300'} aria-hidden>
+              {item.completed ? '✓' : '○'}
+            </span>
+            <span className={`flex-1 ${item.completed ? 'text-gray-900' : 'text-gray-500'}`}>
+              {item.text}
+              {item.required && !item.completed && <span className="text-red-500 ml-1">*</span>}
+            </span>
+            {item.completed && item.completedAt && (
+              <span className="text-xs text-gray-500 text-right whitespace-nowrap">
+                {formatChecklistTime(item.completedAt, company?.timezone)}
+                <span className="block">{workerName(item.completedBy)}</span>
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

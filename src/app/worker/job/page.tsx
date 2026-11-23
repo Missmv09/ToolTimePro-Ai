@@ -20,12 +20,18 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useWorkerAuth } from '@/contexts/WorkerAuthContext';
 import { useTranslations } from 'next-intl';
+import {
+  loadOrCreateJobChecklist,
+  setChecklistItemCompleted,
+  formatChecklistTime,
+} from '@/lib/job-checklist';
 
 interface ChecklistItem {
   id: string;
   text: string;
   completed: boolean;
   required: boolean;
+  completedAt: string | null;
 }
 
 interface Photo {
@@ -82,7 +88,7 @@ function JobDetailContent() {
   const jobId = searchParams.get('id');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { worker: authWorker, isLoading: authLoading, isAuthenticated } = useWorkerAuth();
+  const { worker: authWorker, company, isLoading: authLoading, isAuthenticated } = useWorkerAuth();
   const t = useTranslations('worker.job');
 
   // Derive worker data from auth context (memoized to prevent infinite re-fetch loop)
@@ -97,6 +103,9 @@ function JobDetailContent() {
   const [error, setError] = useState<string | null>(null);
 
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  // False when job_checklists couldn't be used: checks then live in memory
+  // only, as they did before the table was wired up.
+  const [checklistSaved, setChecklistSaved] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
@@ -143,12 +152,27 @@ function JobDetailContent() {
       if (jobError) throw jobError;
 
       setJob(jobData as Job);
-      setChecklist(getDefaultChecklistKeys().map(item => ({
-        id: item.id,
+      const template = getDefaultChecklistKeys().map(item => ({
         text: t(item.key),
-        completed: false,
         required: item.required,
-      })));
+      }));
+      try {
+        const saved = await loadOrCreateJobChecklist(supabase, jobId, template);
+        setChecklist(saved.map(({ id, text, required, completed, completedAt }) => ({
+          id, text, required, completed, completedAt,
+        })));
+        setChecklistSaved(true);
+      } catch (checklistErr) {
+        console.error('Checklist not saved, using local checklist:', checklistErr);
+        setChecklist(getDefaultChecklistKeys().map((item, i) => ({
+          id: item.id,
+          text: template[i].text,
+          completed: false,
+          required: item.required,
+          completedAt: null,
+        })));
+        setChecklistSaved(false);
+      }
 
       // Check for active time entry
       const { data: timeEntry } = await supabase
@@ -441,10 +465,28 @@ function JobDetailContent() {
     }
   };
 
-  const toggleChecklist = (id: string) => {
+  const toggleChecklist = async (id: string) => {
+    const item = checklist.find((i) => i.id === id);
+    if (!item) return;
+    const completed = !item.completed;
+    const previous = { completed: item.completed, completedAt: item.completedAt };
+
+    // Optimistic: the stamp shows immediately; the server value replaces it.
+    const optimisticAt = completed ? new Date().toISOString() : null;
     setChecklist((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item))
+      prev.map((i) => (i.id === id ? { ...i, completed, completedAt: optimisticAt } : i))
     );
+
+    if (!checklistSaved || !worker) return;
+
+    try {
+      const { completedAt } = await setChecklistItemCompleted(supabase, id, completed, worker.id);
+      setChecklist((prev) => prev.map((i) => (i.id === id ? { ...i, completedAt } : i)));
+    } catch (err) {
+      console.error('Failed to save checklist item:', err);
+      setChecklist((prev) => prev.map((i) => (i.id === id ? { ...i, ...previous } : i)));
+      alert(t('checklistSaveFailed'));
+    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -671,11 +713,19 @@ function JobDetailContent() {
                     <span className="text-red-500 ml-1">*</span>
                   )}
                 </span>
+                {item.completed && item.completedAt && (
+                  <span className="text-xs text-green-700 whitespace-nowrap flex-shrink-0">
+                    {formatChecklistTime(item.completedAt, company?.timezone)}
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
           <p className="text-xs text-gray-500 mt-3">{t('requiredBeforeComplete')}</p>
+          {!checklistSaved && checklist.length > 0 && (
+            <p className="text-xs text-amber-700 mt-1">{t('checklistNotSaved')}</p>
+          )}
         </div>
 
         {/* Photo Upload */}
