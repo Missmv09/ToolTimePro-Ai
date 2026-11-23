@@ -1,5 +1,19 @@
 // Competitor comparison data for SEO landing pages
 // Each competitor has pricing, features, and positioning data
+//
+// Task Iguana's own prices, seat limits and plan availability are NOT typed
+// here: they come from compare-pricing.ts, which reads plan-features.ts.
+// Only the competitor's side and the prose are maintained by hand.
+
+import {
+  EXTRA_USER_LABEL,
+  addonPrice,
+  availability,
+  planLabel,
+  savingsRange,
+  schedulingLabel,
+  yearlyCost,
+} from './compare-pricing';
 
 export interface CompetitorPlan {
   name: string;
@@ -21,27 +35,36 @@ export interface CostExample {
   competitor: number;
 }
 
-export interface CompetitorData {
+/** Hand-maintained fields. `savingsRange` is computed from `costExamples`. */
+export interface CompetitorSource {
   slug: string;
   name: string;
   tagline: string;
   heroSubtitle: string;
-  savingsRange: string;
   painPoints: string[];
   plans: CompetitorPlan[];
   features: FeatureRow[];
   costExamples: CostExample[];
   switchReasons: { title: string; description: string }[];
   faqs: { question: string; answer: string }[];
+  /**
+   * Month the competitor's own prices and features were last checked against
+   * their public site, as 'YYYY-MM'. Unset until a check has been done.
+   */
+  lastVerified?: string;
 }
 
-export const COMPETITORS: Record<string, CompetitorData> = {
+export interface CompetitorData extends CompetitorSource {
+  /** e.g. "$480-$2,040/year" */
+  savingsRange: string;
+}
+
+const COMPETITOR_SOURCE: Record<string, CompetitorSource> = {
   'housecall-pro': {
     slug: 'housecall-pro',
     name: 'Housecall Pro',
     tagline: 'Task Iguana vs Housecall Pro',
     heroSubtitle: 'Same powerful scheduling and dispatch — plus AI quoting, compliance tools, and bilingual support. All at a lower price.',
-    savingsRange: '$360-$3,800/year',
     painPoints: [
       'Housecall Pro starts at $79/mo (just raised prices in Feb 2026)',
       'No compliance tools — you need a separate system for labor law',
@@ -49,33 +72,33 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual support for Spanish-speaking crews',
     ],
     plans: [
-      { name: 'Starter / Solo', tooltime: '$49/mo (3 users)', competitor: '$79/mo (1 user)' },
-      { name: 'Small Team', tooltime: '$79/mo (15 users)', competitor: '$189/mo (1-5 users)' },
-      { name: 'Growing Team', tooltime: '$129/mo (unlimited users)', competitor: '$399/mo (1-15 users)' },
-      { name: 'Extra Users', tooltime: '$7/user/mo', competitor: '$35/user/mo' },
+      { name: 'Starter / Solo', tooltime: planLabel('starter'), competitor: '$79/mo (1 user)' },
+      { name: 'Small Team', tooltime: planLabel('pro'), competitor: '$189/mo (1-5 users)' },
+      { name: 'Growing Team', tooltime: planLabel('elite'), competitor: '$399/mo (1-15 users)' },
+      { name: 'Extra Users', tooltime: EXTRA_USER_LABEL, competitor: '$35/user/mo' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Online Booking', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'SMS Notifications', tooltime: 'Pro and Elite', competitor: 'Essential+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Online Booking', tooltime: availability('booking'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'SMS Notifications', tooltime: availability('sms_notifications'), competitor: 'Essential+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'AI Team (call answering extra)', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Automated Review Requests', tooltime: 'Pro and Elite', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Worker Mobile App', tooltime: 'Pro and Elite', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Available', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Automated Review Requests', tooltime: availability('reviews'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Worker Mobile App', tooltime: availability('worker_app'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Available', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'QuickBooks Integration', tooltime: '$12/mo add-on', competitor: 'Essential+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'QuickBooks Integration', tooltime: availability('quickbooks_sync'), competitor: 'Essential+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
     ],
     costExamples: [
-      { scenario: 'Solo Contractor', tooltime: 588, competitor: 948 },
-      { scenario: '5-Person Team', tooltime: 948, competitor: 2268 },
-      { scenario: '15-Person Team', tooltime: 948, competitor: 4788 },
+      { scenario: 'Solo Contractor', tooltime: yearlyCost('starter'), competitor: 948 },
+      { scenario: '5-Person Team', tooltime: yearlyCost('pro'), competitor: 2268 },
+      { scenario: '15-Person Team', tooltime: yearlyCost('pro'), competitor: 4788 },
     ],
     switchReasons: [
       { title: 'AI That Runs Your Back Office', description: 'Jenny auto-dispatches crews, follows up on cold leads, alerts you about overdue invoices, and calculates job profitability — all on autopilot, on every plan. HCP\'s AI Team leans on insights and coaching, and its call answering is a paid add-on.' },
@@ -96,7 +119,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'ServiceTitan',
     tagline: 'Task Iguana vs ServiceTitan',
     heroSubtitle: 'Enterprise-grade features without the enterprise price tag. No contracts, no $15K termination fees, no hidden costs.',
-    savingsRange: '$7,800-$46,000/year',
     painPoints: [
       'ServiceTitan costs $245-$398+ per technician per month',
       '12-month contracts with $15,000+ termination fees',
@@ -105,35 +127,35 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'Requires dedicated admin staff to manage',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$245/tech/mo (minimum)' },
-      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$398/tech/mo (Pro tier)' },
-      { name: 'Business', tooltime: '$129/mo (unlimited users)', competitor: 'Custom (Enterprise)' },
+      { name: 'Starter', tooltime: planLabel('starter'), competitor: '$245/tech/mo (minimum)' },
+      { name: 'Team', tooltime: planLabel('pro'), competitor: '$398/tech/mo (Pro tier)' },
+      { name: 'Business', tooltime: planLabel('elite'), competitor: 'Custom (Enterprise)' },
       { name: 'Contracts', tooltime: 'None — cancel anytime', competitor: '12-month minimum' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Titan Intelligence (extra)', tooltimeIncluded: true, competitorIncluded: 'addon' },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Pricebook (limited)', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Titan Intelligence ($$$)', tooltimeIncluded: true, competitorIncluded: 'addon' },
-      { name: 'Automated Review Requests', tooltime: 'Pro and Elite', competitor: 'Marketing Pro add-on', tooltimeIncluded: true, competitorIncluded: 'addon' },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Available', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Automated Review Requests', tooltime: availability('reviews'), competitor: 'Marketing Pro add-on', tooltimeIncluded: true, competitorIncluded: 'addon' },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Available', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'No Contracts', tooltime: 'Cancel anytime', competitor: '12-month lock-in', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Transparent Pricing', tooltime: 'Published online', competitor: 'Hidden until demo', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Same-Day Setup', tooltime: 'Sign up and go', competitor: '6-month implementation', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
     ],
     costExamples: [
-      { scenario: '3 Technicians', tooltime: 948, competitor: 8820 },
-      { scenario: '10 Technicians', tooltime: 948, competitor: 29400 },
-      { scenario: '20 Technicians', tooltime: 1548, competitor: 47760 },
+      { scenario: '3 Technicians', tooltime: yearlyCost('pro'), competitor: 8820 },
+      { scenario: '10 Technicians', tooltime: yearlyCost('pro'), competitor: 29400 },
+      { scenario: '20 Technicians', tooltime: yearlyCost('elite'), competitor: 47760 },
     ],
     switchReasons: [
-      { title: 'Save $7,800-$46,000 Per Year', description: 'ServiceTitan charges $245-$398 per tech per month. Task Iguana covers the core workflow for a flat $49-$129/mo. Do the math.' },
+      { title: 'Stop Paying Per Technician', description: 'ServiceTitan charges $245-$398 per tech per month. Task Iguana covers the core workflow for a flat $49-$129/mo. Do the math.' },
       { title: 'No Contracts. Ever.', description: 'ServiceTitan locks you into 12-month contracts with $15,000+ termination fees. We earn your business every month. Cancel anytime, no questions asked.' },
       { title: 'Set Up Today, Not in 6 Months', description: 'ServiceTitan requires months of implementation and dedicated admin staff. Task Iguana: sign up, import your data, start working. Same day.' },
       { title: 'Transparent Pricing', description: 'ServiceTitan won\'t show you pricing until you sit through a sales demo. Our pricing is published online. No surprises.' },
@@ -151,7 +173,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'FieldPulse',
     tagline: 'Task Iguana vs FieldPulse',
     heroSubtitle: 'More AI, more compliance tools, more trades support — at a comparable price with no hidden fees.',
-    savingsRange: '$600-$3,800/year',
     painPoints: [
       'FieldPulse hides pricing — requires sales demo',
       'No AI-powered features',
@@ -160,30 +181,30 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No material estimator or trade-specific tools',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '~$99/mo (estimated, hidden pricing)' },
-      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '~$199/mo (estimated)' },
-      { name: 'Business', tooltime: '$129/mo (unlimited users)', competitor: '~$399/mo (estimated)' },
+      { name: 'Starter', tooltime: planLabel('starter'), competitor: '~$99/mo (estimated, hidden pricing)' },
+      { name: 'Team', tooltime: planLabel('pro'), competitor: '~$199/mo (estimated)' },
+      { name: 'Business', tooltime: planLabel('elite'), competitor: '~$399/mo (estimated)' },
       { name: 'Pricing Transparency', tooltime: 'Published online', competitor: 'Hidden — requires demo' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'CRM / Client Management', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'CRM / Client Management', tooltime: availability('customers'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Transparent Pricing', tooltime: 'Published online', competitor: 'Hidden', tooltimeIncluded: true, competitorIncluded: false },
     ],
     costExamples: [
-      { scenario: 'Solo Contractor', tooltime: 588, competitor: 1188 },
-      { scenario: '5-Person Team', tooltime: 948, competitor: 2388 },
-      { scenario: '15-Person Team', tooltime: 948, competitor: 4788 },
+      { scenario: 'Solo Contractor', tooltime: yearlyCost('starter'), competitor: 1188 },
+      { scenario: '5-Person Team', tooltime: yearlyCost('pro'), competitor: 2388 },
+      { scenario: '15-Person Team', tooltime: yearlyCost('pro'), competitor: 4788 },
     ],
     switchReasons: [
       { title: 'AI-Native Platform', description: 'FieldPulse has no AI features. Task Iguana includes Jenny AI for auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
@@ -204,7 +225,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'Jobber',
     tagline: 'Task Iguana vs Jobber',
     heroSubtitle: 'Same features contractors love — scheduling, quoting, invoicing — plus AI, compliance tools, and bilingual support at a fraction of the price.',
-    savingsRange: '$480-$2,000/year',
     painPoints: [
       'Jobber Core starts at $39/mo with limited features — Grow plan jumps to $119/mo',
       'AI call answering (AI Receptionist) costs extra on most plans',
@@ -213,33 +233,33 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'Per-user pricing adds up fast for growing teams',
     ],
     plans: [
-      { name: 'Starter / Solo', tooltime: '$49/mo (3 users)', competitor: '$39/mo (1 user, Core)' },
-      { name: 'Small Team', tooltime: '$79/mo (15 users)', competitor: '$119/mo (up to 5 users, Connect)' },
-      { name: 'Growing Team', tooltime: '$129/mo (unlimited users)', competitor: '$249/mo (up to 15 users, Grow)' },
-      { name: 'Extra Users', tooltime: '$7/user/mo', competitor: '$29/user/mo' },
+      { name: 'Starter / Solo', tooltime: planLabel('starter'), competitor: '$39/mo (1 user, Core)' },
+      { name: 'Small Team', tooltime: planLabel('pro'), competitor: '$119/mo (up to 5 users, Connect)' },
+      { name: 'Growing Team', tooltime: planLabel('elite'), competitor: '$249/mo (up to 15 users, Grow)' },
+      { name: 'Extra Users', tooltime: EXTRA_USER_LABEL, competitor: '$29/user/mo' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Quoting / Estimates', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Online Booking', tooltime: 'All plans', competitor: 'Connect+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Quoting / Estimates', tooltime: availability('quoting'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Online Booking', tooltime: availability('booking'), competitor: 'Connect+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Copilot; AI Receptionist extra', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Automated Review Requests', tooltime: 'Pro and Elite', competitor: 'Marketing Suite add-on', tooltimeIncluded: true, competitorIncluded: 'addon' },
+      { name: 'Automated Review Requests', tooltime: availability('reviews'), competitor: 'Marketing Suite add-on', tooltimeIncluded: true, competitorIncluded: 'addon' },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Grow only', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Grow only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'QuickBooks Integration', tooltime: '$12/mo add-on', competitor: 'Connect+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'QuickBooks Integration', tooltime: availability('quickbooks_sync'), competitor: 'Connect+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'Automated Follow-Ups', tooltime: 'All plans (Jenny AI)', competitor: 'Grow only', tooltimeIncluded: true, competitorIncluded: 'partial' },
     ],
     costExamples: [
-      { scenario: '3-Person Team', tooltime: 588, competitor: 1428 },
-      { scenario: '5-Person Team', tooltime: 948, competitor: 1428 },
-      { scenario: '15-Person Team', tooltime: 948, competitor: 2988 },
+      { scenario: '3-Person Team', tooltime: yearlyCost('starter'), competitor: 1428 },
+      { scenario: '5-Person Team', tooltime: yearlyCost('pro'), competitor: 1428 },
+      { scenario: '15-Person Team', tooltime: yearlyCost('pro'), competitor: 2988 },
     ],
     switchReasons: [
       { title: 'AI That Runs Your Back Office', description: 'Jobber\'s AI centers on call answering and business insights, and its AI Receptionist costs extra on most plans. Jenny AI is included in every plan and acts for you: auto-dispatch, lead follow-up, cash flow alerts, and job costing — all on autopilot.' },
@@ -260,7 +280,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'Kickserv',
     tagline: 'Task Iguana vs Kickserv',
     heroSubtitle: 'Kickserv keeps it simple — but simple means missing AI, compliance tools, and the features growing contractors need.',
-    savingsRange: '$190-$1,300/year',
     painPoints: [
       'Kickserv lacks AI features — everything is manual',
       'No compliance or labor law tools',
@@ -269,30 +288,30 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual support for multilingual crews',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$47/mo (Free tier limited to 1 user)' },
-      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$95/mo (Standard, up to 5 users)' },
-      { name: 'Business', tooltime: '$129/mo (unlimited users)', competitor: '$191/mo (Business, unlimited users)' },
-      { name: 'Extra Users', tooltime: '$7/user/mo', competitor: 'Tier-based pricing' },
+      { name: 'Starter', tooltime: planLabel('starter'), competitor: '$47/mo (Free tier limited to 1 user)' },
+      { name: 'Team', tooltime: planLabel('pro'), competitor: '$95/mo (Standard, up to 5 users)' },
+      { name: 'Business', tooltime: planLabel('elite'), competitor: '$191/mo (Business, unlimited users)' },
+      { name: 'Extra Users', tooltime: EXTRA_USER_LABEL, competitor: 'Tier-based pricing' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'CRM / Client Management', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Online Booking', tooltime: 'All plans', competitor: 'Premium only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'CRM / Client Management', tooltime: availability('customers'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Online Booking', tooltime: availability('booking'), competitor: 'Premium only', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Premium only', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Premium only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
     ],
     costExamples: [
-      { scenario: '3-Person Team', tooltime: 588, competitor: 1140 },
-      { scenario: '5-Person Team', tooltime: 948, competitor: 1140 },
-      { scenario: '15-Person Team', tooltime: 948, competitor: 2292 },
+      { scenario: '3-Person Team', tooltime: yearlyCost('starter'), competitor: 1140 },
+      { scenario: '5-Person Team', tooltime: yearlyCost('pro'), competitor: 1140 },
+      { scenario: '15-Person Team', tooltime: yearlyCost('pro'), competitor: 2292 },
     ],
     switchReasons: [
       { title: 'AI-Powered Operations', description: 'Kickserv is purely manual. Jenny AI auto-dispatches crews, follows up leads, alerts on overdue invoices, and calculates profitability — zero extra effort.' },
@@ -313,7 +332,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'GorillaDesk',
     tagline: 'Task Iguana vs GorillaDesk',
     heroSubtitle: 'GorillaDesk works for pest control and lawn care — but Task Iguana covers all 21 trades with AI, compliance, and bilingual support.',
-    savingsRange: '$840-$2,000/year',
     painPoints: [
       'GorillaDesk focuses narrowly on pest control and lawn care',
       'No AI features — dispatch, quoting, and follow-up are all manual',
@@ -322,30 +340,30 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual support for Spanish-speaking crews',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$49/mo (Basic, 1 route)' },
-      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$99/mo (Pro, per route pricing)' },
-      { name: 'Business', tooltime: '$129/mo (unlimited users)', competitor: '$199+/mo (Pro, multiple routes)' },
-      { name: 'Extra Routes/Users', tooltime: '$7/user/mo', competitor: '$49+/route/mo' },
+      { name: 'Starter', tooltime: planLabel('starter'), competitor: '$49/mo (Basic, 1 route)' },
+      { name: 'Team', tooltime: planLabel('pro'), competitor: '$99/mo (Pro, per route pricing)' },
+      { name: 'Business', tooltime: planLabel('elite'), competitor: '$199+/mo (Pro, multiple routes)' },
+      { name: 'Extra Routes/Users', tooltime: EXTRA_USER_LABEL, competitor: '$49+/route/mo' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Route Optimization', tooltime: 'Elite plan', competitor: 'Pro only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Route Optimization', tooltime: availability('route_optimizer'), competitor: 'Pro only', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: '21 Trade Categories', tooltime: 'All plans', competitor: 'Pest + Lawn focus', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Pro only', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Pro only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
     ],
     costExamples: [
-      { scenario: 'Solo Contractor', tooltime: 588, competitor: 588 },
-      { scenario: '3-Route Operation', tooltime: 948, competitor: 1788 },
-      { scenario: '8-Route Operation', tooltime: 1548, competitor: 3576 },
+      { scenario: 'Solo Contractor', tooltime: yearlyCost('starter'), competitor: 588 },
+      { scenario: '3-Route Operation', tooltime: yearlyCost('pro'), competitor: 1788 },
+      { scenario: '8-Route Operation', tooltime: yearlyCost('elite'), competitor: 3576 },
     ],
     switchReasons: [
       { title: 'Beyond Pest & Lawn', description: 'GorillaDesk is built for pest control and lawn care. Task Iguana supports 21 trades — HVAC, plumbing, electrical, painting, roofing, and more. One platform for any service business.' },
@@ -366,7 +384,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'Workiz',
     tagline: 'Task Iguana vs Workiz',
     heroSubtitle: 'Workiz has solid dispatching — but Task Iguana adds AI automation, compliance tools, and bilingual support at a better price.',
-    savingsRange: '$1,400-$3,800/year',
     painPoints: [
       'Workiz Standard starts at $198/mo for up to 5 users',
       'AI features require expensive add-ons (Genius suite)',
@@ -375,30 +392,30 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No bilingual interface for Spanish-speaking crews',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$198/mo (Standard, 5 users)' },
-      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$198/mo + $35/user over 5' },
-      { name: 'Business', tooltime: '$129/mo (unlimited users)', competitor: '$398/mo (Ultimate)' },
+      { name: 'Starter', tooltime: planLabel('starter'), competitor: '$198/mo (Standard, 5 users)' },
+      { name: 'Team', tooltime: planLabel('pro'), competitor: '$198/mo + $35/user over 5' },
+      { name: 'Business', tooltime: planLabel('elite'), competitor: '$398/mo (Ultimate)' },
       { name: 'AI Features', tooltime: 'Included (Jenny AI)', competitor: 'Genius add-on ($$$)' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Business Phone / Call Answering', tooltime: 'AI receptionist (Jenny Pro, $49/mo)', competitor: 'Built-in VoIP', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Business Phone / Call Answering', tooltime: `AI receptionist (Jenny Pro, ${addonPrice('jenny_pro')})`, competitor: 'Built-in VoIP', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Genius add-on', tooltimeIncluded: true, competitorIncluded: 'addon' },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Genius add-on (limited)', tooltimeIncluded: true, competitorIncluded: 'addon' },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Ultimate only', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Ultimate only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Lead Management', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Lead Management', tooltime: availability('leads'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
     ],
     costExamples: [
-      { scenario: 'Solo Contractor', tooltime: 588, competitor: 2376 },
-      { scenario: '5-Person Team', tooltime: 948, competitor: 2376 },
-      { scenario: '15-Person Team', tooltime: 948, competitor: 4776 },
+      { scenario: 'Solo Contractor', tooltime: yearlyCost('starter'), competitor: 2376 },
+      { scenario: '5-Person Team', tooltime: yearlyCost('pro'), competitor: 2376 },
+      { scenario: '15-Person Team', tooltime: yearlyCost('pro'), competitor: 4776 },
     ],
     switchReasons: [
       { title: 'AI Included, Not Add-On', description: 'Workiz charges extra for their Genius AI suite. Task Iguana includes Jenny AI in every plan — auto-dispatch, lead follow-up, cash flow alerts, and job costing at no additional cost.' },
@@ -419,7 +436,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'Service Fusion',
     tagline: 'Task Iguana vs Service Fusion',
     heroSubtitle: 'Service Fusion offers flat-rate pricing — but Task Iguana delivers AI, compliance, and bilingual support that Service Fusion can\'t match.',
-    savingsRange: '$1,750-$3,250/year',
     painPoints: [
       'Service Fusion Starter is $225/mo — no low-cost entry for small teams',
       'No AI-powered features for dispatch or quoting',
@@ -428,30 +444,30 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'Add-ons (GPS, inventory) push the real cost much higher',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '$225/mo (Starter, unlimited users)' },
-      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '$350/mo (Plus)' },
-      { name: 'Business', tooltime: '$129/mo (unlimited users)', competitor: '$575/mo (Pro)' },
+      { name: 'Starter', tooltime: planLabel('starter'), competitor: '$225/mo (Starter, unlimited users)' },
+      { name: 'Team', tooltime: planLabel('pro'), competitor: '$350/mo (Plus)' },
+      { name: 'Business', tooltime: planLabel('elite'), competitor: '$575/mo (Pro)' },
       { name: 'GPS Tracking', tooltime: 'Included with worker app (Pro+)', competitor: '$25/vehicle add-on' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Estimates / Proposals', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Estimates / Proposals', tooltime: availability('quoting'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'Unlimited Users', tooltime: 'Elite plan', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
-      { name: 'Customer Portal', tooltime: 'Elite, or $24/mo add-on', competitor: 'Plus+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
+      { name: 'Customer Portal', tooltime: availability('customer_portal'), competitor: 'Plus+ only', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
     ],
     costExamples: [
-      { scenario: 'Solo Contractor', tooltime: 588, competitor: 2700 },
-      { scenario: '5-Person Team', tooltime: 948, competitor: 2700 },
-      { scenario: '15-Person Team', tooltime: 948, competitor: 4200 },
+      { scenario: 'Solo Contractor', tooltime: yearlyCost('starter'), competitor: 2700 },
+      { scenario: '5-Person Team', tooltime: yearlyCost('pro'), competitor: 2700 },
+      { scenario: '15-Person Team', tooltime: yearlyCost('pro'), competitor: 4200 },
     ],
     switchReasons: [
       { title: 'Right-Sized Pricing', description: 'Service Fusion starts at $225/mo even for a solo contractor. Task Iguana starts at $49/mo. Why pay for unlimited users when you only have 3?' },
@@ -472,7 +488,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     name: 'FieldEdge',
     tagline: 'Task Iguana vs FieldEdge',
     heroSubtitle: 'FieldEdge is built for HVAC and plumbing — Task Iguana covers all trades with AI, compliance, and transparent pricing.',
-    savingsRange: '$3,000-$22,000/year',
     painPoints: [
       'FieldEdge hides pricing — requires a sales demo to get a quote',
       'Estimated $100-$200+ per user per month',
@@ -481,31 +496,31 @@ export const COMPETITORS: Record<string, CompetitorData> = {
       'No AI dispatch or autonomous features',
     ],
     plans: [
-      { name: 'Starter', tooltime: '$49/mo (3 users)', competitor: '~$300+/mo (estimated, hidden pricing)' },
-      { name: 'Team', tooltime: '$79/mo (15 users)', competitor: '~$800+/mo (estimated)' },
-      { name: 'Business', tooltime: '$129/mo (unlimited users)', competitor: '~$2,000+/mo (estimated)' },
+      { name: 'Starter', tooltime: planLabel('starter'), competitor: '~$300+/mo (estimated, hidden pricing)' },
+      { name: 'Team', tooltime: planLabel('pro'), competitor: '~$800+/mo (estimated)' },
+      { name: 'Business', tooltime: planLabel('elite'), competitor: '~$2,000+/mo (estimated)' },
       { name: 'Pricing Transparency', tooltime: 'Published online', competitor: 'Hidden — requires demo' },
     ],
     features: [
-      { name: 'Scheduling & Dispatch', tooltime: 'All plans (dispatch board on Elite)', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'Invoicing & Payments', tooltime: 'All plans', competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Scheduling & Dispatch', tooltime: schedulingLabel(), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'Invoicing & Payments', tooltime: availability('invoicing'), competitor: 'All plans', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'Flat-Rate Pricing Book', tooltime: 'Material Estimator', competitor: 'Built-in pricebook', tooltimeIncluded: true, competitorIncluded: true },
-      { name: 'QuickBooks Integration', tooltime: '$12/mo add-on', competitor: 'All plans (deep sync)', tooltimeIncluded: true, competitorIncluded: true },
+      { name: 'QuickBooks Integration', tooltime: availability('quickbooks_sync'), competitor: 'All plans (deep sync)', tooltimeIncluded: true, competitorIncluded: true },
       { name: 'AI Smart Quoting', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Jenny AI (Autonomous Actions)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Compliance Tools (Shield)', tooltime: 'All plans (state rules on Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Blended Workforce (W-2 + 1099)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Material Estimator (21 trades)', tooltime: 'All plans', competitor: 'HVAC/Plumbing focus only', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: '21 Trade Categories', tooltime: 'All plans', competitor: 'HVAC + Plumbing', tooltimeIncluded: true, competitorIncluded: 'partial' },
-      { name: 'Offline Mode (PWA)', tooltime: 'Worker app (Pro and Elite)', competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
+      { name: 'Offline Mode (PWA)', tooltime: `Worker app (${availability('worker_app')})`, competitor: 'Limited', tooltimeIncluded: true, competitorIncluded: 'partial' },
       { name: 'Bilingual (English/Spanish)', tooltime: 'All plans', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Multi-State Compliance', tooltime: 'CA, TX, FL, NY, IL (Pro+)', competitor: 'Not available', tooltimeIncluded: true, competitorIncluded: false },
       { name: 'Transparent Pricing', tooltime: 'Published online', competitor: 'Hidden — requires demo', tooltimeIncluded: true, competitorIncluded: false },
     ],
     costExamples: [
-      { scenario: '3-Person Team', tooltime: 588, competitor: 3600 },
-      { scenario: '8-Person Team', tooltime: 948, competitor: 9600 },
-      { scenario: '20-Person Team', tooltime: 1548, competitor: 24000 },
+      { scenario: '3-Person Team', tooltime: yearlyCost('starter'), competitor: 3600 },
+      { scenario: '8-Person Team', tooltime: yearlyCost('pro'), competitor: 9600 },
+      { scenario: '20-Person Team', tooltime: yearlyCost('elite'), competitor: 24000 },
     ],
     switchReasons: [
       { title: 'Transparent Pricing', description: 'FieldEdge hides pricing behind sales demos. Task Iguana publishes pricing online — $49/mo starter, $79/mo pro, $129/mo elite. No surprises, no sales calls.' },
@@ -521,6 +536,13 @@ export const COMPETITORS: Record<string, CompetitorData> = {
     ],
   },
 };
+
+export const COMPETITORS: Record<string, CompetitorData> = Object.fromEntries(
+  Object.entries(COMPETITOR_SOURCE).map(([slug, source]) => [
+    slug,
+    { ...source, savingsRange: savingsRange(source.costExamples) },
+  ])
+);
 
 export function getCompetitor(slug: string): CompetitorData | undefined {
   return COMPETITORS[slug];
