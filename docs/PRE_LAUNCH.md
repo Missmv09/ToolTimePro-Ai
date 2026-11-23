@@ -88,15 +88,25 @@ reset link → set a password.
 
 ## 🚦 Config / dashboard tasks before launch (no code)
 
-- [ ] **Stripe payment webhook — LIVE** (blocker #1 for production). Set up the live
-      endpoint + `STRIPE_CONNECT_WEBHOOK_SECRET` on the production env.
-- [ ] **Stripe Connect branding — LIVE mode.** Rename `ToolTimePro` → `Task Iguana` in
-      Stripe Dashboard → Settings → Connect → Onboarding interface → Branding (branding
-      is a live-mode setting; it can't be edited from the sandbox). Also update
-      Settings → Business → Public details.
-- [ ] **Email domain warm-up.** Invoice + signup emails currently land in spam/junk
-      (young `taskiguana.com` domain). Warm the domain / confirm SPF·DKIM·DMARC so mail
-      reaches the inbox before launch.
+- [x] **Stripe webhooks — LIVE** (blocker #1 for production). ✅ Done. Both live endpoints
+      wired at `www.taskiguana.com` with **trailing slashes**:
+      `adventurous-celebration` → `/api/webhook/stripe/` (billing, snapshot, 19 events) and a
+      new snapshot destination → `/api/webhook/stripe-connect/` (invoices,
+      `checkout.session.completed`). Each endpoint's live `whsec_…` is in the Netlify
+      **Production** slot of `STRIPE_WEBHOOK_SECRET` / `STRIPE_CONNECT_WEBHOOK_SECRET`; the
+      **Branch deploys** (+ other non-prod) slots keep the sandbox (charming-serenity /
+      charming-oasis) secrets. The leftover V2 `sophisticated-finesse` endpoint is
+      unused by the app. Verifies on the first real live payment.
+- [x] **Stripe Connect branding — LIVE mode.** ✅ Done. Renamed to **Task Iguana** with
+      brand colors in Settings → Connect → Branding, plus public business details.
+- [x] **Email auth (SPF·DKIM·DMARC).** ✅ Done. Netlify DNS confirmed: Resend **DKIM**
+      (`resend._domainkey`), **SPF** on `send.taskiguana.com` (`include:amazonses.com`) and
+      root (`include:_spf.google.com`), and a **single** valid **DMARC**
+      (`v=DMARC1; p=none; rua=…`) after removing an accidental duplicate (two `_dmarc`
+      records = invalid). `from` = `no-reply@taskiguana.com` aligns to the DKIM domain, so
+      no subdomain change needed. **Remaining:** young-domain *reputation* warm-up only —
+      steady low volume, ask first users to mark "Not junk"/reply; verify ~9–10/10 on
+      mail-tester.com. Not a config gap.
 
 ---
 
