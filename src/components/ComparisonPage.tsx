@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import type { CompetitorData } from '@/lib/competitor-data';
 import { CheckCircle, XCircle, Minus, ChevronDown, ChevronUp } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -14,6 +14,15 @@ interface Props {
 export default function ComparisonPage({ data }: Props) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const t = useTranslations('compare');
+  const locale = useLocale();
+  // 'YYYY-MM' -> "November 2026". UTC so the month cannot shift by time zone.
+  const lastVerified = data.lastVerified
+    ? new Date(`${data.lastVerified}-01T00:00:00Z`).toLocaleDateString(locale, {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })
+    : null;
 
   return (
     <div className="min-h-screen bg-[#12151C]">
@@ -152,6 +161,11 @@ export default function ComparisonPage({ data }: Props) {
               </tbody>
             </table>
           </div>
+          {lastVerified && (
+            <p className="text-xs text-white/40 mt-4">
+              {t('lastVerified', { name: data.name, date: lastVerified })}
+            </p>
+          )}
         </div>
       </section>
 
@@ -176,9 +190,12 @@ export default function ComparisonPage({ data }: Props) {
                       <span className="font-bold text-white/80">${example.competitor.toLocaleString()}/yr</span>
                     </div>
                   </div>
-                  <div className="bg-green-500/10 rounded-lg p-3">
-                    <p className="text-green-300 font-bold text-lg">Save ${savings.toLocaleString()}/yr</p>
-                  </div>
+                  {/* A scenario can tie on list price; never print "Save $0". */}
+                  {savings > 0 && (
+                    <div className="bg-green-500/10 rounded-lg p-3">
+                      <p className="text-green-300 font-bold text-lg">Save ${savings.toLocaleString()}/yr</p>
+                    </div>
+                  )}
                 </div>
               );
             })}
