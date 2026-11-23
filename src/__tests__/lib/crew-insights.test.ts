@@ -6,6 +6,8 @@ import {
   jobOnSiteMinutes,
   alertThresholdMinutes,
   typicalByStepFromReport,
+  suggestEndTime,
+  jobSpansFromTimeEntries,
   type CrewJob,
   type LiveChecklistItem,
 } from '@/lib/crew-insights';
@@ -234,5 +236,31 @@ describe('findRunningLong', () => {
   it('builds typicals from a step-times report', () => {
     const report = buildStepTimesReport([crewJob('ana', { checks: [10, 30, 55] })]);
     expect(typicalByStepFromReport(report)['Step 2']).toEqual({ medianMinutes: 20, samples: 1 });
+  });
+});
+
+describe('suggestEndTime', () => {
+  it('adds the typical time and rounds up to 15 minutes', () => {
+    expect(suggestEndTime('09:00', 110)).toBe('11:00');
+    expect(suggestEndTime('09:00:00', 60)).toBe('10:00');
+    expect(suggestEndTime('13:10', 20)).toBe('13:30');
+  });
+  it('gives up on bad input or past midnight', () => {
+    expect(suggestEndTime('', 60)).toBeNull();
+    expect(suggestEndTime('23:30', 60)).toBeNull();
+    expect(suggestEndTime('09:00', 0)).toBeNull();
+  });
+});
+
+describe('jobSpansFromTimeEntries', () => {
+  it('spans earliest clock-in to latest clock-out, only once everyone is out', () => {
+    const spans = jobSpansFromTimeEntries([
+      { job_id: 'a', clock_in: at(10), clock_out: at(70) },
+      { job_id: 'a', clock_in: at(0), clock_out: at(90) },
+      { job_id: 'b', clock_in: at(0), clock_out: at(30) },
+      { job_id: 'b', clock_in: at(5), clock_out: null },
+    ]);
+    expect(spans.a).toEqual({ clockIn: at(0), clockOut: at(90) });
+    expect(spans.b).toEqual({ clockIn: at(0), clockOut: null });
   });
 });

@@ -408,3 +408,39 @@ export function typicalByStepFromReport(
   for (const s of report.steps) out[s.step] = { medianMinutes: s.teamMedianMinutes, samples: s.samples };
   return out;
 }
+
+// ── Scheduling ──────────────────────────────────────────────────────
+
+/**
+ * "HH:MM" start + minutes, rounded up to the next 15 minutes, as "HH:MM".
+ * Returns null if the start is unusable or the end would pass midnight.
+ */
+export function suggestEndTime(start: string, minutes: number): string | null {
+  const m = /^(\d{1,2}):(\d{2})/.exec(start || '');
+  if (!m || !Number.isFinite(minutes) || minutes <= 0) return null;
+  const startMin = Number(m[1]) * 60 + Number(m[2]);
+  const end = Math.ceil((startMin + minutes) / 15) * 15;
+  if (end >= 24 * 60) return null;
+  return `${String(Math.floor(end / 60)).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
+}
+
+/** Per job: earliest clock-in and latest clock-out, only when every entry has clocked out. */
+export function jobSpansFromTimeEntries(
+  rows: { job_id: string; clock_in: string | null; clock_out: string | null }[]
+): Record<string, { clockIn: string | null; clockOut: string | null }> {
+  const byJob: Record<string, { ins: string[]; outs: string[]; n: number }> = {};
+  for (const r of rows) {
+    const j = (byJob[r.job_id] ||= { ins: [], outs: [], n: 0 });
+    j.n++;
+    if (r.clock_in) j.ins.push(r.clock_in);
+    if (r.clock_out) j.outs.push(r.clock_out);
+  }
+  const out: Record<string, { clockIn: string | null; clockOut: string | null }> = {};
+  for (const [jobId, j] of Object.entries(byJob)) {
+    out[jobId] = {
+      clockIn: j.ins.length ? [...j.ins].sort()[0] : null,
+      clockOut: j.outs.length === j.n ? [...j.outs].sort()[j.outs.length - 1] : null,
+    };
+  }
+  return out;
+}

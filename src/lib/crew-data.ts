@@ -5,7 +5,13 @@
  * service-role client (cron / digest).
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { CrewJob } from './crew-insights';
+import {
+  jobOnSiteMinutes,
+  jobSpansFromTimeEntries,
+  MIN_JOBS_FOR_TYPICAL,
+  type CrewJob,
+} from './crew-insights';
+import { median } from './step-times';
 
 export const GENERAL_JOB_TYPE = 'General';
 // Keep .in() lists short enough for the request URL.
@@ -147,4 +153,56 @@ export async function loadCrewJobs(
 /** YYYY-MM-DD for `days` ago. */
 export function daysAgo(days: number, now: Date = new Date()): string {
   return new Date(now.getTime() - days * 86400000).toISOString().slice(0, 10);
+}
+
+export interface ServiceTypical {
+  /** Median on-site minutes, or null with fewer than MIN_JOBS_FOR_TYPICAL timed jobs. */
+  medianMinutes: number | null;
+  samples: number;
+  /** What the service is configured to take (services.duration_minutes). */
+  configuredMinutes: number | null;
+}
+
+/** Real on-site time for a service, from its most recent completed jobs. */
+export async function fetchServiceTypical(
+  supabase: SupabaseClient,
+  companyId: string,
+  serviceId: string,
+  recentJobs = 60
+): Promise<ServiceTypical> {
+  const [jobsRes, serviceRes] = await Promise.all([
+    supabase
+      .from('jobs')
+      .select('id')
+      .eq('company_id', companyId)
+      .eq('required_service_id', serviceId)
+      .eq('status', 'completed')
+      .order('scheduled_date', { ascending: false })
+      .limit(recentJobs),
+    supabase.from('services').select('duration_minutes').eq('id', serviceId).maybeSingle(),
+  ]);
+  if (jobsRes.error) throw new Error(`jobs: ${jobsRes.error.message}`);
+  const configuredMinutes =
+    (serviceRes.data as { duration_minutes: number | null } | null)?.duration_minutes ?? null;
+
+  const ids = ((jobsRes.data || []) as { id: string }[]).map((j) => j.id);
+  if (ids.length === 0) return { medianMinutes: null, samples: 0, configuredMinutes };
+
+  const { data, error } = await supabase
+    .from('time_entries')
+    .select('job_id, clock_in, clock_out')
+    .in('job_id', ids);
+  if (error) throw new Error(`time_entries: ${error.message}`);
+
+  const spans = jobSpansFromTimeEntries(
+    (data || []) as { job_id: string; clock_in: string | null; clock_out: string | null }[]
+  );
+  const minutes = Object.values(spans)
+    .map((s) => jobOnSiteMinutes(s))
+    .filter((m): m is number => m !== null);
+  return {
+    medianMinutes: minutes.length >= MIN_JOBS_FOR_TYPICAL ? median(minutes) : null,
+    samples: minutes.length,
+    configuredMinutes,
+  };
 }

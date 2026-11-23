@@ -6,7 +6,9 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { fetchJobChecklist, formatChecklistTime, type SavedChecklistItem } from '@/lib/job-checklist'
-import { checkLocationStatus } from '@/lib/crew-insights'
+import { checkLocationStatus, suggestEndTime } from '@/lib/crew-insights'
+import { fetchServiceTypical, type ServiceTypical } from '@/lib/crew-data'
+import { formatMinutes } from '@/lib/step-times'
 
 interface Job {
   id: string
@@ -1056,6 +1058,14 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
               <p className="text-xs text-gray-500 mt-1">
                 The Route Optimizer will only assign this job to a worker qualified for the selected service.
               </p>
+              {formData.required_service_id && (
+                <ServiceTypicalHint
+                  companyId={companyId}
+                  serviceId={formData.required_service_id}
+                  start={formData.scheduled_time_start}
+                  onSetEnd={(end) => setFormData((f) => ({ ...f, scheduled_time_end: end }))}
+                />
+              )}
             </div>
           )}
 
@@ -1090,6 +1100,46 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+// How long this service really takes on site (clock-in to clock-out), from the
+// crew's recent completed jobs, so the end time isn't a guess.
+function ServiceTypicalHint({ companyId, serviceId, start, onSetEnd }: {
+  companyId: string
+  serviceId: string
+  start: string
+  onSetEnd: (end: string) => void
+}) {
+  const [typical, setTypical] = useState<ServiceTypical | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setTypical(null)
+    fetchServiceTypical(supabase, companyId, serviceId)
+      .then((t) => { if (!cancelled) setTypical(t) })
+      .catch((err) => console.error('Failed to load typical service time:', err))
+    return () => { cancelled = true }
+  }, [companyId, serviceId])
+
+  if (!typical || typical.medianMinutes === null) return null
+  const end = suggestEndTime(start, typical.medianMinutes)
+  const configured = typical.configuredMinutes
+  const differs = configured && Math.abs(typical.medianMinutes - configured) / configured > 0.25
+
+  return (
+    <div className="mt-2 rounded-lg bg-blue-50 p-2.5 text-xs text-blue-900">
+      <p>
+        Typically takes <strong>{formatMinutes(typical.medianMinutes)}</strong> on site
+        <span className="text-blue-700"> (last {typical.samples} jobs)</span>.
+        {differs && <> The service is set to {formatMinutes(configured)}.</>}
+      </p>
+      {end && (
+        <button type="button" onClick={() => onSetEnd(end)} className="mt-1 font-medium text-blue-700 underline">
+          Set end time to {formatTime(end)}
+        </button>
+      )}
     </div>
   )
 }
