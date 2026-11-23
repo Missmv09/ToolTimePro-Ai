@@ -682,12 +682,13 @@ function JobDetailContent() {
 
         {/* Checklist */}
         <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-1">
             <h2 className="font-semibold text-gray-900">{t('jobChecklist')}</h2>
             <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
               {completedCount}/{checklist.length}
             </span>
           </div>
+          <p className="text-sm text-gray-600 mb-4">{t('checklistInstructions')}</p>
 
           <div className="space-y-2">
             {checklist.map((item) => (
