@@ -322,6 +322,9 @@ export default function ReportsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Link href="/dashboard/reports/crew" className="btn-secondary text-sm inline-flex items-center gap-1">
+              <Users size={16} /> Crew Insights
+            </Link>
             <Link href="/dashboard/reports/step-times" className="btn-secondary text-sm inline-flex items-center gap-1">
               <Timer size={16} /> Step Times
             </Link>
