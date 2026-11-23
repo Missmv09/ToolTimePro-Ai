@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { canSendQuoteDirectly } from '@/lib/quote-approval'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,10 +41,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get caller's profile (role + company)
+    // Get caller's profile (role + company + granular permissions)
     const { data: callerProfile } = await adminClient
       .from('users')
-      .select('id, role, company_id')
+      .select('id, role, company_id, admin_permissions')
       .eq('id', user.id)
       .single()
 
@@ -54,6 +55,36 @@ export async function POST(request: NextRequest) {
     // Ensure quote belongs to caller's company
     if (quoteData.company_id !== callerProfile.company_id) {
       return NextResponse.json({ error: 'Company mismatch' }, { status: 403 })
+    }
+
+    // Server-side approval gate. A quote only reaches the customer once its
+    // status is 'sent'; a non-approver (e.g. a worker, or an admin when the
+    // owner requires approval) must not be able to push a priced quote out
+    // without owner review — not from the dashboard, not from the smart-quote
+    // builder, not from a hand-crafted request. If such a caller tries to save
+    // a quote as 'sent', hold it at 'pending_approval' instead. This enforces
+    // the gate on the server, not just in the UI.
+    let heldForApproval = false
+    if (quoteData.status === 'sent') {
+      const { data: companyRow } = await adminClient
+        .from('companies')
+        .select('quote_approval_settings')
+        .eq('id', callerProfile.company_id)
+        .single()
+
+      const canSend = canSendQuoteDirectly({
+        role: callerProfile.role,
+        userId: callerProfile.id,
+        adminPermissions: callerProfile.admin_permissions,
+        approvalSettings: companyRow?.quote_approval_settings ?? null,
+      })
+
+      if (!canSend) {
+        quoteData.status = 'pending_approval'
+        delete quoteData.sent_at
+        delete quoteData.sent_by
+        heldForApproval = true
+      }
     }
 
     // Insert the quote using service role (bypasses RLS)
@@ -114,7 +145,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        return NextResponse.json({ quote: retryQuote, success: true })
+        return NextResponse.json({ quote: retryQuote, success: true, pendingApproval: heldForApproval })
       }
 
       return NextResponse.json(
@@ -143,7 +174,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ quote, success: true })
+    return NextResponse.json({ quote, success: true, pendingApproval: heldForApproval })
   } catch (error) {
     console.error('Error saving quote:', error)
     return NextResponse.json(

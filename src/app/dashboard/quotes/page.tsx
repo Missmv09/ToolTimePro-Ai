@@ -10,6 +10,8 @@ import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/l
 import { computeQuoteTotals } from '@/lib/totals'
 import { resolveDefaultTaxRate } from '@/lib/sales-tax'
 import { matchesQuoteFilter, computeQuoteFunnelStats, REMINDER_ATTRIBUTION_WINDOW_DAYS } from '@/lib/quote-status'
+import { canSendQuoteDirectly } from '@/lib/quote-approval'
+import type { AdminPermissions } from '@/lib/permissions'
 
 interface QuoteItem {
   id: string
@@ -559,12 +561,18 @@ function QuotesContent() {
 
   // Quote approval workflow: determine if current user can send directly
   const approvalSettings = (company as Record<string, unknown> | null)?.quote_approval_settings as { required?: boolean; approver_ids?: string[] } | null
-  const approvalRequired = approvalSettings?.required || false
   const isOwner = dbUser?.role === 'owner'
   const isDesignatedApprover = approvalSettings?.approver_ids?.includes(user?.id || '') || false
-  // Can send directly if: approval not required (and has quotes perm), OR user is owner, OR user is designated approver
-  const canSendDirectly = !approvalRequired ? isOwnerOrAdmin : (isOwner || isDesignatedApprover)
-  // Can approve pending quotes (same logic)
+  // Single source of truth — shared with the smart-quote builder and the
+  // server-side gate in /api/quote/save — for whether this user may send a
+  // quote straight to the customer, or must route it for owner approval.
+  const canSendDirectly = canSendQuoteDirectly({
+    role: dbUser?.role,
+    userId: user?.id,
+    adminPermissions: (dbUser as Record<string, unknown> | null)?.admin_permissions as AdminPermissions | null,
+    approvalSettings,
+  })
+  // Can approve pending quotes
   const canApproveQuotes = isOwner || isDesignatedApprover
 
   const submitForApproval = async (quote: Quote) => {
