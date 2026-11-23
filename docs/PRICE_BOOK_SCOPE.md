@@ -1,7 +1,25 @@
-# Price Book — Feature Scope (Draft)
+# Price Book — Feature Scope
 
-_Internal planning doc. Draft, Nov 2026. Decisions marked **[DECIDE]** need a call from the
-owner before Phase 1 build starts._
+_Internal planning doc. **Phase 1 is BUILT** (Nov 2026). Decisions taken: categories = free
+text; lives at its own nav item `/dashboard/price-book`; seeding = manual "Load starter list"
+button; `taxable` stored but deferred from the UI; on-site worker quoting stays Phase 3._
+
+## ⚠️ To activate: run the migration
+Phase 1 needs **`database/migrations/056_price_book.sql`** applied in the Supabase SQL editor
+(sandbox first, then production) before the price book saves anything — it creates the
+`price_book_items` table + RLS. The UI is deployed but will error on save until the table exists.
+
+## Phase 1 — shipped
+- `056_price_book.sql` — `price_book_items` table, company-scoped RLS, indexes.
+- `src/lib/price-book.ts` — types, units, starter list, `priceBookItemToLine` (unit-tested).
+- `src/hooks/usePriceBook.ts` — list / create / update / archive / load-starter.
+- `src/app/dashboard/price-book/page.tsx` — management UI (grouped list, add/edit modal,
+  empty-state "Load starter list"), gated to owner/admin with the `quotes` permission.
+- Nav item "Price Book" (Tags icon) in `DashboardLayout`, beside Quotes.
+- Picker ("+ Add from price book…") wired into **both** quote builders: the smart-quote
+  builder and the dashboard `QuoteModal`.
+
+---
 
 ## Why
 Today the only "quick add" in the smart-quote builder is a **hardcoded** list of 8 generic

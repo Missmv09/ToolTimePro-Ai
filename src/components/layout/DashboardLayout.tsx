@@ -34,6 +34,7 @@ import {
   BarChart3,
   CreditCard,
   Zap,
+  Tags,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -87,6 +88,7 @@ const getNavItems = ({ isBetaTester, hasJennyExec, isOwner, can, canAccessFeatur
 
   // Quotes and invoices — plan-gated
   if (canAccessFeature('quoting')) items.push({ href: '/dashboard/quotes', label: 'Quotes', icon: Quote });
+  if (canAccessFeature('quoting') && can('quotes')) items.push({ href: '/dashboard/price-book', label: 'Price Book', icon: Tags });
   if (canAccessFeature('invoicing')) items.push({ href: '/dashboard/invoices', label: 'Invoices', icon: Receipt });
   if (canAccessFeature('time_tracking')) items.push({ href: '/dashboard/time-logs', label: 'Time Logs', icon: Clock });
 

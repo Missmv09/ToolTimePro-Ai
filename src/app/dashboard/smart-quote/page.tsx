@@ -11,6 +11,8 @@ import { QUOTE_FREQUENCIES, DEFAULT_QUOTE_FREQUENCY, frequencySuffix } from '@/l
 import type { Locale } from '@/i18n/config';
 import { detectStateFromAddress, resolveDefaultTaxRate, parseTaxRate } from '@/lib/sales-tax';
 import { DISCOUNT_TYPES, calcDiscountAmount, type DiscountType } from '@/lib/quote-discount';
+import { usePriceBook } from '@/hooks/usePriceBook';
+import { priceBookItemToLine } from '@/lib/price-book';
 
 // Types
 interface LineItem {
@@ -149,6 +151,7 @@ export default function SmartQuotingPage() {
 
   // Line items state
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  const { items: priceBookItems } = usePriceBook();
   const [showAiSuggestion, setShowAiSuggestion] = useState<string | null>(null);
 
   // Good/Better/Best options
@@ -509,6 +512,14 @@ export default function SmartQuotingPage() {
       total: service?.price || 0,
     };
     setLineItems(prev => [...prev, newItem]);
+  };
+
+  // Add a line straight from the company's price book.
+  const addPriceBookItem = (priceBookItemId: string) => {
+    const pbItem = priceBookItems.find((i) => i.id === priceBookItemId);
+    if (!pbItem) return;
+    const line = priceBookItemToLine(pbItem);
+    setLineItems(prev => [...prev, { id: generateId(), ...line }]);
   };
 
   const updateLineItem = (id: string, updates: Partial<LineItem>) => {
@@ -1700,6 +1711,28 @@ export default function SmartQuotingPage() {
                   </button>
                 )}
               </div>
+
+              {/* Add from the company's price book */}
+              {priceBookItems.length > 0 && (
+                <div className="mb-3">
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) addPriceBookItem(e.target.value);
+                      e.target.value = '';
+                    }}
+                    className="input max-w-sm"
+                    aria-label="Add from price book"
+                  >
+                    <option value="">+ Add from price book…</option>
+                    {priceBookItems.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} — ${item.default_price}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Quick Add Buttons */}
               <div className="flex flex-wrap gap-2 mb-6">
