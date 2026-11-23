@@ -31,6 +31,11 @@ export interface StepJobInput {
     completed: boolean;
     completedAt: string | null;
     completedBy: string | null;
+    /** Defaults to required when absent. */
+    required?: boolean;
+    completedLat?: number | null;
+    completedLng?: number | null;
+    completedAccuracyM?: number | null;
   }[];
 }
 

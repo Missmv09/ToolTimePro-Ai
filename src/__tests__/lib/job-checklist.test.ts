@@ -1,6 +1,7 @@
 import {
   loadOrCreateJobChecklist,
   setChecklistItemCompleted,
+  recordChecklistItemLocation,
   formatChecklistTime,
   rowToItem,
 } from '@/lib/job-checklist';
@@ -43,6 +44,7 @@ describe('loadOrCreateJobChecklist', () => {
     expect(items).toEqual([{
       id: 'a', text: 'Arrive', required: true, completed: true,
       completedAt: '2026-11-23T22:14:00Z', completedBy: 'w1',
+      completedLat: null, completedLng: null, completedAccuracyM: null,
     }]);
     expect(calls.some((c) => c.op === 'insert')).toBe(false);
   });
@@ -69,8 +71,21 @@ describe('loadOrCreateJobChecklist', () => {
   });
 
   it('throws on a read error so the page can fall back to a local checklist', async () => {
-    const { client } = mockSupabase([{ data: null, error: { message: 'column "is_required" does not exist' } }]);
-    await expect(loadOrCreateJobChecklist(client, 'job1', template)).rejects.toThrow('is_required');
+    const { client } = mockSupabase([{ data: null, error: { message: 'permission denied for table job_checklists' } }]);
+    await expect(loadOrCreateJobChecklist(client, 'job1', template)).rejects.toThrow('permission denied');
+  });
+
+  it('retries without the location columns when that migration has not run', async () => {
+    const row = { id: 'a', item_text: 'Arrive', is_required: true, is_completed: false, completed_at: null, completed_by: null, sort_order: 0 };
+    const { client, calls } = mockSupabase([
+      { data: null, error: { message: 'column job_checklists.completed_lat does not exist' } },
+      { data: [row], error: null },
+    ]);
+    const items = await loadOrCreateJobChecklist(client, 'job1', template);
+    expect(items[0].id).toBe('a');
+    const selects = calls.filter((c) => c.op === 'select').map((c) => String(c.args[0]));
+    expect(selects[0]).toContain('completed_lat');
+    expect(selects[1]).not.toContain('completed_lat');
   });
 
   it('throws on an insert error instead of silently returning nothing', async () => {
@@ -106,6 +121,22 @@ describe('setChecklistItemCompleted', () => {
   it('throws when the update fails', async () => {
     const { client } = mockSupabase([{ error: { message: 'permission denied' } }]);
     await expect(setChecklistItemCompleted(client, 'item1', true, 'w1')).rejects.toThrow('permission denied');
+  });
+});
+
+describe('recordChecklistItemLocation', () => {
+  it('writes the fix only onto a still-checked item', async () => {
+    const { client, calls } = mockSupabase([{ error: null }]);
+    expect(await recordChecklistItemLocation(client, 'item1', { lat: 1, lng: 2, accuracyM: 15 })).toBe(true);
+    expect(calls.find((c) => c.op === 'update')?.args[0]).toEqual({
+      completed_lat: 1, completed_lng: 2, completed_accuracy_m: 15,
+    });
+    expect(calls.filter((c) => c.op === 'eq').map((c) => c.args)).toEqual([['id', 'item1'], ['is_completed', true]]);
+  });
+
+  it('returns false instead of throwing when it cannot save', async () => {
+    const { client } = mockSupabase([{ error: { message: 'column "completed_lat" does not exist' } }]);
+    expect(await recordChecklistItemLocation(client, 'item1', { lat: 1, lng: 2, accuracyM: null })).toBe(false);
   });
 });
 

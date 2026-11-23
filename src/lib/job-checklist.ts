@@ -23,6 +23,15 @@ export interface SavedChecklistItem {
   completed: boolean;
   completedAt: string | null;
   completedBy: string | null;
+  completedLat: number | null;
+  completedLng: number | null;
+  completedAccuracyM: number | null;
+}
+
+export interface GeoFix {
+  lat: number;
+  lng: number;
+  accuracyM: number | null;
 }
 
 interface ChecklistRow {
@@ -33,9 +42,18 @@ interface ChecklistRow {
   completed_at: string | null;
   completed_by: string | null;
   sort_order: number | null;
+  completed_lat?: number | null;
+  completed_lng?: number | null;
+  completed_accuracy_m?: number | null;
 }
 
-const COLUMNS = 'id, item_text, is_required, is_completed, completed_at, completed_by, sort_order';
+const BASE_COLUMNS = 'id, item_text, is_required, is_completed, completed_at, completed_by, sort_order';
+const COLUMNS = `${BASE_COLUMNS}, completed_lat, completed_lng, completed_accuracy_m`;
+
+/** Postgres 42703: the location columns' migration hasn't run in this environment yet. */
+function isMissingColumn(error: { message: string; code?: string } | null): boolean {
+  return !!error && (error.code === '42703' || /column .* does not exist/i.test(error.message));
+}
 
 export function rowToItem(row: ChecklistRow): SavedChecklistItem {
   return {
@@ -45,6 +63,9 @@ export function rowToItem(row: ChecklistRow): SavedChecklistItem {
     completed: !!row.is_completed,
     completedAt: row.completed_at,
     completedBy: row.completed_by,
+    completedLat: row.completed_lat ?? null,
+    completedLng: row.completed_lng ?? null,
+    completedAccuracyM: row.completed_accuracy_m ?? null,
   };
 }
 
@@ -53,13 +74,16 @@ export async function fetchJobChecklist(
   supabase: SupabaseClient,
   jobId: string
 ): Promise<SavedChecklistItem[]> {
-  const { data, error } = await supabase
-    .from('job_checklists')
-    .select(COLUMNS)
-    .eq('job_id', jobId)
-    .order('sort_order', { ascending: true });
+  const query = (columns: string) =>
+    supabase
+      .from('job_checklists')
+      .select(columns)
+      .eq('job_id', jobId)
+      .order('sort_order', { ascending: true });
+  let { data, error } = await query(COLUMNS);
+  if (isMissingColumn(error)) ({ data, error } = await query(BASE_COLUMNS));
   if (error) throw new Error(error.message);
-  return ((data || []) as ChecklistRow[]).map(rowToItem);
+  return ((data || []) as unknown as ChecklistRow[]).map(rowToItem);
 }
 
 /**
@@ -85,7 +109,7 @@ export async function loadOrCreateJobChecklist(
         sort_order: index,
       }))
     )
-    .select(COLUMNS);
+    .select(BASE_COLUMNS);
   if (error) throw new Error(error.message);
 
   return ((data || []) as ChecklistRow[])
@@ -108,7 +132,41 @@ export async function setChecklistItemCompleted(
     .update({ is_completed: completed, completed_at: completedAt, completed_by: completedBy })
     .eq('id', itemId);
   if (error) throw new Error(error.message);
+  if (!completed) {
+    // Clear the old location separately so a missing column can't fail the uncheck.
+    await supabase
+      .from('job_checklists')
+      .update({ completed_lat: null, completed_lng: null, completed_accuracy_m: null })
+      .eq('id', itemId);
+  }
   return { completedAt, completedBy };
+}
+
+/**
+ * Attach where the worker was when they checked an item. Sent after the check
+ * itself so a slow GPS fix never delays the tap. Only writes if the item is
+ * still checked. Returns false (never throws) when it couldn't be saved —
+ * location is supporting evidence, not something to bother the worker about.
+ */
+export async function recordChecklistItemLocation(
+  supabase: SupabaseClient,
+  itemId: string,
+  fix: GeoFix
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('job_checklists')
+    .update({
+      completed_lat: fix.lat,
+      completed_lng: fix.lng,
+      completed_accuracy_m: fix.accuracyM,
+    })
+    .eq('id', itemId)
+    .eq('is_completed', true);
+  if (error) {
+    if (!isMissingColumn(error)) console.error('Failed to save checklist location:', error.message);
+    return false;
+  }
+  return true;
 }
 
 /** "2:14 PM" in the business's timezone. Always 12-hour. */

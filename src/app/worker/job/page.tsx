@@ -23,6 +23,7 @@ import { useTranslations } from 'next-intl';
 import {
   loadOrCreateJobChecklist,
   setChecklistItemCompleted,
+  recordChecklistItemLocation,
   formatChecklistTime,
 } from '@/lib/job-checklist';
 
@@ -465,6 +466,24 @@ function JobDetailContent() {
     }
   };
 
+  // Where the worker was when they checked the item, so the office can see the
+  // check happened on site. Best effort and after the save: a slow or denied
+  // GPS fix must never hold up the tap.
+  const stampChecklistLocation = (id: string) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        recordChecklistItemLocation(supabase, id, {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracyM: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
+        });
+      },
+      () => { /* permission denied or no fix: the check stands without a location */ },
+      { timeout: 15000, maximumAge: 60000 }
+    );
+  };
+
   const toggleChecklist = async (id: string) => {
     const item = checklist.find((i) => i.id === id);
     if (!item) return;
@@ -482,6 +501,7 @@ function JobDetailContent() {
     try {
       const { completedAt } = await setChecklistItemCompleted(supabase, id, completed, worker.id);
       setChecklist((prev) => prev.map((i) => (i.id === id ? { ...i, completedAt } : i)));
+      if (completed) stampChecklistLocation(id);
     } catch (err) {
       console.error('Failed to save checklist item:', err);
       setChecklist((prev) => prev.map((i) => (i.id === id ? { ...i, ...previous } : i)));

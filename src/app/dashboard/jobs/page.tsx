@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { fetchJobChecklist, formatChecklistTime, type SavedChecklistItem } from '@/lib/job-checklist'
+import { checkLocationStatus } from '@/lib/crew-insights'
 
 interface Job {
   id: string
@@ -1087,10 +1088,17 @@ function JobChecklistProgress({ jobId, workers }: {
 }) {
   const { company } = useAuth()
   const [items, setItems] = useState<SavedChecklistItem[] | null>(null)
+  const [site, setSite] = useState<{ lat: number | null; lng: number | null } | null>(null)
   const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
+    supabase
+      .from('jobs')
+      .select('lat, lng')
+      .eq('id', jobId)
+      .single()
+      .then(({ data }) => { if (!cancelled && data) setSite(data as { lat: number | null; lng: number | null }) })
     fetchJobChecklist(supabase, jobId)
       .then((rows) => { if (!cancelled) setItems(rows) })
       .catch((err) => {
@@ -1129,6 +1137,11 @@ function JobChecklistProgress({ jobId, workers }: {
               <span className="text-xs text-gray-500 text-right whitespace-nowrap">
                 {formatChecklistTime(item.completedAt, company?.timezone)}
                 <span className="block">{workerName(item.completedBy)}</span>
+                {checkLocationStatus(item, site?.lat, site?.lng) === 'away' && (
+                  <span className="block text-amber-700" title="Checked more than 250 m from the job address">
+                    Away from site
+                  </span>
+                )}
               </span>
             )}
           </li>
