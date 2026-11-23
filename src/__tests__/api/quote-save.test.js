@@ -72,13 +72,23 @@ const validItems = [
   { description: 'Hedge trimming', quantity: 2, unit_price: 65, total_price: 130, sort_order: 1 },
 ];
 
-function setupHandlers({ userId = 'user-1', companyId = 'company-1', role = 'owner', quoteInsertError = null } = {}) {
+let capturedQuoteInsert = null;
+
+function setupHandlers({
+  userId = 'user-1',
+  companyId = 'company-1',
+  role = 'owner',
+  adminPermissions = null,
+  approvalSettings = null,
+  quoteInsertError = null,
+} = {}) {
   mockGetUser.mockResolvedValue({
     data: { user: { id: userId } },
     error: null,
   });
 
   tableHandlers = {};
+  capturedQuoteInsert = null;
 
   // users table
   tableHandlers['users'] = () => {
@@ -86,23 +96,38 @@ function setupHandlers({ userId = 'user-1', companyId = 'company-1', role = 'own
     obj.select = jest.fn(() => obj);
     obj.eq = jest.fn(() => obj);
     obj.single = jest.fn(() => ({
-      data: { id: userId, role, company_id: companyId },
+      data: { id: userId, role, company_id: companyId, admin_permissions: adminPermissions },
       error: null,
     }));
     return obj;
   };
 
-  // quotes table
+  // companies table (read for the approval gate when status === 'sent')
+  tableHandlers['companies'] = () => {
+    const obj = {};
+    obj.select = jest.fn(() => obj);
+    obj.eq = jest.fn(() => obj);
+    obj.single = jest.fn(() => ({
+      data: { quote_approval_settings: approvalSettings },
+      error: null,
+    }));
+    return obj;
+  };
+
+  // quotes table — captures the inserted row and echoes it back
   tableHandlers['quotes'] = () => {
     const obj = {};
-    obj.insert = jest.fn(() => obj);
+    obj.insert = jest.fn((data) => {
+      capturedQuoteInsert = data;
+      return obj;
+    });
     obj.select = jest.fn(() => obj);
     obj.single = jest.fn(() => {
       if (quoteInsertError) {
         return { data: null, error: quoteInsertError };
       }
       return {
-        data: { id: 'quote-1', ...validQuoteData },
+        data: { id: 'quote-1', ...(capturedQuoteInsert || validQuoteData) },
         error: null,
       };
     });
@@ -228,5 +253,75 @@ describe('/api/quote/save', () => {
     expect(response.status).toBe(403);
     const body = await response.json();
     expect(body.error).toBe('User profile not found');
+  });
+
+  // ── Approval gate ─────────────────────────────────────────────────────────
+
+  const sentQuoteData = { ...validQuoteData, status: 'sent', sent_at: '2026-01-01T00:00:00Z', sent_by: 'user-1' };
+
+  it('holds a worker\'s "sent" quote for approval (downgrades to pending_approval)', async () => {
+    setupHandlers({ role: 'worker' });
+
+    const request = makeRequest({ quoteData: { ...sentQuoteData }, items: validItems });
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    expect(body.pendingApproval).toBe(true);
+    // The row actually inserted was downgraded and had its sent stamps stripped.
+    expect(capturedQuoteInsert.status).toBe('pending_approval');
+    expect(capturedQuoteInsert.sent_at).toBeUndefined();
+    expect(capturedQuoteInsert.sent_by).toBeUndefined();
+    expect(body.quote.status).toBe('pending_approval');
+  });
+
+  it('lets an owner send a quote directly (keeps status "sent")', async () => {
+    setupHandlers({ role: 'owner' });
+
+    const request = makeRequest({ quoteData: { ...sentQuoteData }, items: validItems });
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.pendingApproval).toBe(false);
+    expect(capturedQuoteInsert.status).toBe('sent');
+    expect(capturedQuoteInsert.sent_at).toBe('2026-01-01T00:00:00Z');
+  });
+
+  it('holds an admin\'s "sent" quote when the company requires approval', async () => {
+    setupHandlers({ role: 'admin', adminPermissions: null, approvalSettings: { required: true } });
+
+    const request = makeRequest({ quoteData: { ...sentQuoteData }, items: validItems });
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.pendingApproval).toBe(true);
+    expect(capturedQuoteInsert.status).toBe('pending_approval');
+  });
+
+  it('lets an admin send directly when approval is not required', async () => {
+    setupHandlers({ role: 'admin', adminPermissions: null });
+
+    const request = makeRequest({ quoteData: { ...sentQuoteData }, items: validItems });
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.pendingApproval).toBe(false);
+    expect(capturedQuoteInsert.status).toBe('sent');
+  });
+
+  it('never gates a draft save (status stays draft)', async () => {
+    setupHandlers({ role: 'worker' });
+
+    const request = makeRequest({ quoteData: { ...validQuoteData, status: 'draft' }, items: validItems });
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.pendingApproval).toBe(false);
+    expect(capturedQuoteInsert.status).toBe('draft');
   });
 });
