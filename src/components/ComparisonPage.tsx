@@ -176,9 +176,12 @@ export default function ComparisonPage({ data }: Props) {
                       <span className="font-bold text-white/80">${example.competitor.toLocaleString()}/yr</span>
                     </div>
                   </div>
-                  <div className="bg-green-500/10 rounded-lg p-3">
-                    <p className="text-green-300 font-bold text-lg">Save ${savings.toLocaleString()}/yr</p>
-                  </div>
+                  {/* A scenario can tie on list price; never print "Save $0". */}
+                  {savings > 0 && (
+                    <div className="bg-green-500/10 rounded-lg p-3">
+                      <p className="text-green-300 font-bold text-lg">Save ${savings.toLocaleString()}/yr</p>
+                    </div>
+                  )}
                 </div>
               );
             })}
