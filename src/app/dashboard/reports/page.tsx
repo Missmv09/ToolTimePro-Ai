@@ -22,7 +22,9 @@ import {
   Calendar,
   FileText,
   Briefcase,
+  Timer,
 } from 'lucide-react';
+import Link from 'next/link';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -320,6 +322,12 @@ export default function ReportsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Link href="/dashboard/reports/crew" className="btn-secondary text-sm inline-flex items-center gap-1">
+              <Users size={16} /> Crew Insights
+            </Link>
+            <Link href="/dashboard/reports/step-times" className="btn-secondary text-sm inline-flex items-center gap-1">
+              <Timer size={16} /> Step Times
+            </Link>
             {(['this_week', 'this_month', 'this_quarter', 'this_year', 'custom'] as RangePreset[]).map(p => (
               <button
                 key={p}

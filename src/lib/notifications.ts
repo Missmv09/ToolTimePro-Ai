@@ -6,7 +6,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 export type NotificationType =
   | 'new_lead' | 'job_assigned' | 'invoice_paid' | 'invoice_overdue'
   | 'compliance_alert' | 'review_received' | 'booking_received'
-  | 'worker_clock_in' | 'quote_accepted' | 'quote_expired';
+  | 'worker_clock_in' | 'quote_accepted' | 'quote_expired' | 'job_running_long';
 
 export async function createNotification(params: {
   companyId: string

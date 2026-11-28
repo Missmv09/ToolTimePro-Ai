@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { fetchServiceTypical, type ServiceTypical } from '@/lib/crew-data'
+import { formatMinutes } from '@/lib/step-times'
 
 interface Service {
   id: string
@@ -278,6 +280,13 @@ export default function ServicesPage() {
                     <span className={service.is_active ? 'text-gray-900' : 'text-gray-400'}>
                       {formatDuration(service.duration_minutes)}
                     </span>
+                    {companyId && (
+                      <ActualDuration
+                        companyId={companyId}
+                        service={service}
+                        onUpdated={() => fetchServices(companyId)}
+                      />
+                    )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button
@@ -461,6 +470,50 @@ export default function ServicesPage() {
             </form>
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+// What this service really takes on site, from the crew's completed jobs.
+function ActualDuration({ companyId, service, onUpdated }: {
+  companyId: string
+  service: Service
+  onUpdated: () => void
+}) {
+  const [typical, setTypical] = useState<ServiceTypical | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchServiceTypical(supabase, companyId, service.id)
+      .then((t) => { if (!cancelled) setTypical(t) })
+      .catch((err) => console.error('Failed to load actual duration:', err))
+    return () => { cancelled = true }
+  }, [companyId, service.id, service.duration_minutes])
+
+  if (!typical || typical.medianMinutes === null) return null
+  const actual = Math.round(typical.medianMinutes / 5) * 5
+  const differs = Math.abs(actual - (service.duration_minutes || 0)) >= 10
+
+  const useActual = async () => {
+    setSaving(true)
+    const { error } = await supabase.from('services').update({ duration_minutes: actual }).eq('id', service.id)
+    setSaving(false)
+    if (error) {
+      alert('Could not update the service duration.')
+      return
+    }
+    onUpdated()
+  }
+
+  return (
+    <div className="text-xs text-gray-500 mt-0.5" title={`Median clock-in to clock-out over the last ${typical.samples} completed jobs`}>
+      Actual: {formatMinutes(typical.medianMinutes)}
+      {differs && (
+        <button onClick={useActual} disabled={saving} className="ml-2 text-blue-600 hover:underline disabled:opacity-50">
+          {saving ? 'Saving…' : 'Use this'}
+        </button>
       )}
     </div>
   )

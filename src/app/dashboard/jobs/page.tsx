@@ -5,6 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import { fetchJobChecklist, formatChecklistTime, type SavedChecklistItem } from '@/lib/job-checklist'
+import { checkLocationStatus, suggestEndTime } from '@/lib/crew-insights'
+import { fetchServiceTypical, type ServiceTypical } from '@/lib/crew-data'
+import { formatMinutes } from '@/lib/step-times'
 
 interface Job {
   id: string
@@ -56,6 +60,9 @@ function JobsContent() {
   const searchParams = useSearchParams()
   const customerFilter = searchParams.get('customer')
   const fromQuoteId = searchParams.get('fromQuote')
+  // ?job=<id> opens that job (links from notifications, e.g. a step running long)
+  const openJobId = searchParams.get('job')
+  const openedJobRef = useRef<string | null>(null)
   const initialFilter = searchParams.get('filter') || 'all'
 
   const [filter, setFilter] = useState<string>(initialFilter)
@@ -197,6 +204,16 @@ function JobsContent() {
       fetchJobs(companyId)
     }
   }, [companyId, fetchJobs])
+
+  useEffect(() => {
+    if (!openJobId || loading || openedJobRef.current === openJobId) return
+    const target = jobs.find((j) => j.id === openJobId)
+    if (target) {
+      openedJobRef.current = openJobId
+      setEditingJob(target)
+      setShowModal(true)
+    }
+  }, [openJobId, loading, jobs])
 
   // Auto-open create job modal when coming from an approved quote
   useEffect(() => {
@@ -1041,6 +1058,14 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
               <p className="text-xs text-gray-500 mt-1">
                 The Route Optimizer will only assign this job to a worker qualified for the selected service.
               </p>
+              {formData.required_service_id && (
+                <ServiceTypicalHint
+                  companyId={companyId}
+                  serviceId={formData.required_service_id}
+                  start={formData.scheduled_time_start}
+                  onSetEnd={(end) => setFormData((f) => ({ ...f, scheduled_time_end: end }))}
+                />
+              )}
             </div>
           )}
 
@@ -1054,6 +1079,8 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
               placeholder="Job details, special instructions..."
             />
           </div>
+
+          {job && <JobChecklistProgress jobId={job.id} workers={workers} />}
 
           <div className="flex gap-3 pt-4">
             <button
@@ -1073,6 +1100,116 @@ function JobModal({ job, companyId, customers, workers, quotes, initialQuoteId, 
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+// How long this service really takes on site (clock-in to clock-out), from the
+// crew's recent completed jobs, so the end time isn't a guess.
+function ServiceTypicalHint({ companyId, serviceId, start, onSetEnd }: {
+  companyId: string
+  serviceId: string
+  start: string
+  onSetEnd: (end: string) => void
+}) {
+  const [typical, setTypical] = useState<ServiceTypical | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setTypical(null)
+    fetchServiceTypical(supabase, companyId, serviceId)
+      .then((t) => { if (!cancelled) setTypical(t) })
+      .catch((err) => console.error('Failed to load typical service time:', err))
+    return () => { cancelled = true }
+  }, [companyId, serviceId])
+
+  if (!typical || typical.medianMinutes === null) return null
+  const end = suggestEndTime(start, typical.medianMinutes)
+  const configured = typical.configuredMinutes
+  const differs = configured && Math.abs(typical.medianMinutes - configured) / configured > 0.25
+
+  return (
+    <div className="mt-2 rounded-lg bg-blue-50 p-2.5 text-xs text-blue-900">
+      <p>
+        Typically takes <strong>{formatMinutes(typical.medianMinutes)}</strong> on site
+        <span className="text-blue-700"> (last {typical.samples} jobs)</span>.
+        {differs && <> The service is set to {formatMinutes(configured)}.</>}
+      </p>
+      {end && (
+        <button type="button" onClick={() => onSetEnd(end)} className="mt-1 font-medium text-blue-700 underline">
+          Set end time to {formatTime(end)}
+        </button>
+      )}
+    </div>
+  )
+}
+
+// Read-only view of what the worker checked off on site, and when.
+function JobChecklistProgress({ jobId, workers }: {
+  jobId: string
+  workers: { id: string; full_name: string }[]
+}) {
+  const { company } = useAuth()
+  const [items, setItems] = useState<SavedChecklistItem[] | null>(null)
+  const [site, setSite] = useState<{ lat: number | null; lng: number | null } | null>(null)
+  const [loadError, setLoadError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('jobs')
+      .select('lat, lng')
+      .eq('id', jobId)
+      .single()
+      .then(({ data }) => { if (!cancelled && data) setSite(data as { lat: number | null; lng: number | null }) })
+    fetchJobChecklist(supabase, jobId)
+      .then((rows) => { if (!cancelled) setItems(rows) })
+      .catch((err) => {
+        console.error('Failed to load job checklist:', err)
+        if (!cancelled) setLoadError(true)
+      })
+    return () => { cancelled = true }
+  }, [jobId])
+
+  // Nothing to show until a worker has opened the job (that creates the list).
+  if (loadError || !items || items.length === 0) return null
+
+  const workerName = (id: string | null) =>
+    workers.find((w) => w.id === id)?.full_name || 'Team member'
+  const done = items.filter((i) => i.completed).length
+
+  return (
+    <div className="border rounded-lg p-3" data-testid="job-checklist-progress">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-700">Job Checklist</span>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+          {done}/{items.length}
+        </span>
+      </div>
+      <ul className="space-y-1.5">
+        {items.map((item) => (
+          <li key={item.id} className="flex items-start gap-2 text-sm">
+            <span className={item.completed ? 'text-green-600' : 'text-gray-300'} aria-hidden>
+              {item.completed ? '✓' : '○'}
+            </span>
+            <span className={`flex-1 ${item.completed ? 'text-gray-900' : 'text-gray-500'}`}>
+              {item.text}
+              {item.required && !item.completed && <span className="text-red-500 ml-1">*</span>}
+            </span>
+            {item.completed && item.completedAt && (
+              <span className="text-xs text-gray-500 text-right whitespace-nowrap">
+                {formatChecklistTime(item.completedAt, company?.timezone)}
+                <span className="block">{workerName(item.completedBy)}</span>
+                {checkLocationStatus(item, site?.lat, site?.lng) === 'away' && (
+                  <span className="block font-medium text-red-600" title="Checked more than 250 m from the job address">
+                    Away from site
+                  </span>
+                )}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

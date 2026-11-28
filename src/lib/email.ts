@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import type { ToolResultEmail } from './growth-tool-results';
 import { digestHeadline, type WeeklyDigest } from './jenny-digest';
+import type { CrewDigest } from './crew-insights';
 
 let resend: Resend | null = null;
 
@@ -1444,12 +1445,15 @@ export async function sendJennyWeeklyDigestEmail({
   to,
   name,
   digest,
+  crew,
 }: {
   to: string;
   name: string;
   digest: WeeklyDigest;
+  crew?: CrewDigest | null;
 }) {
-  const headline = digestHeadline(digest);
+  const headline = digest.isEmpty && crew && !crew.isEmpty ? 'Your crew this week' : digestHeadline(digest);
+  const crewSection = crew && !crew.isEmpty ? renderCrewDigest(crew) : '';
 
   const periodLabel = `${formatDigestDate(digest.periodStart)} – ${formatDigestDate(digest.periodEnd)}`;
 
@@ -1519,6 +1523,8 @@ export async function sendJennyWeeklyDigestEmail({
 
       ${sections}
 
+      ${crewSection}
+
       ${ctaButton('Open your dashboard', `${BASE_URL}/dashboard`, '#2E9BFF')}
 
       <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 24px 0 0 0;">
@@ -1531,6 +1537,39 @@ export async function sendJennyWeeklyDigestEmail({
 
   if (error) throw new Error(`Failed to send email: ${error.message}`);
   return data;
+}
+
+/** Crew section of the weekly digest. Recognition first; never a ranking. */
+function renderCrewDigest(crew: CrewDigest): string {
+  const line = (text: string) =>
+    `<p style="margin: 0 0 8px 0; color: #4b5563; font-size: 14px; line-height: 1.5;">${text}</p>`;
+
+  const recognition = crew.recognitions.length
+    ? `<p style="margin: 0 0 6px 0; color: #92400e; font-size: 14px; font-weight: 700;">Worth a thank-you</p>
+       ${crew.recognitions
+         .map((r) => line(`<strong>${escapeHtml(r.name)}</strong> — ${escapeHtml(r.title)}`))
+         .join('')}
+       <p style="margin: 0 0 14px 0; color: #9ca3af; font-size: 12px;">
+         Normal pace, checklist followed as the work happened, required steps and photos done. Last 30 days.
+       </p>`
+    : '';
+
+  const notes: string[] = [];
+  if (crew.jobsWithChecklist) notes.push(`${crew.jobsWithChecklist} completed ${crew.jobsWithChecklist === 1 ? 'job' : 'jobs'} with a checklist this week.`);
+  if (crew.runningLongAlerts) notes.push(`${crew.runningLongAlerts} ${crew.runningLongAlerts === 1 ? 'step' : 'steps'} ran well past typical time.`);
+  for (const t of crew.tappedThrough) {
+    notes.push(`${escapeHtml(t.name)} checked off the whole checklist at once on ${t.count} ${t.count === 1 ? 'job' : 'jobs'}.`);
+  }
+  if (crew.awayChecks) notes.push(`${crew.awayChecks} checklist ${crew.awayChecks === 1 ? 'item was' : 'items were'} checked away from the job site.`);
+  if (crew.conversations) notes.push(`${crew.conversations} ${crew.conversations === 1 ? 'person' : 'people'} may need a quick conversation — details in Crew Insights.`);
+
+  return `
+    <div style="margin: 0 0 28px 0; padding-top: 4px;">
+      <p style="margin: 0 0 12px 0; color: #111827; font-size: 16px; font-weight: 700;">Your crew</p>
+      ${recognition}
+      ${notes.map(line).join('')}
+      <a href="${BASE_URL}/dashboard/reports/crew" style="color: #2E9BFF; font-size: 14px; text-decoration: none;">Open Crew Insights →</a>
+    </div>`;
 }
 
 /** "Mar 3" from an ISO date, in UTC so it matches the period the query used. */
