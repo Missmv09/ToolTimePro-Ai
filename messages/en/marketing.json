@@ -404,6 +404,7 @@
     "faqTitle": "Frequently Asked Questions",
     "readyToSwitchFrom": "Ready to Switch from {name}?",
     "readyToSwitchFromDesc": "No contracts. Cancel anytime. Free migration from {name}.",
+    "lastVerified": "{name} pricing and features last checked {date}.",
     "seeFullComparison": "See Full Comparison",
     "terms": "Terms",
     "privacy": "Privacy"

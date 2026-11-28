@@ -95,7 +95,7 @@ const PLAN_FEATURES: Record<PlanTier, FeatureKey[]> = {
 };
 
 /** Add-on IDs that unlock specific features */
-const ADDON_FEATURE_MAP: Record<string, FeatureKey> = {
+export const ADDON_FEATURE_MAP: Record<string, FeatureKey> = {
   website_builder: 'website_builder',
   jenny_pro: 'jenny_pro',
   jenny_exec_admin: 'jenny_exec_admin',
@@ -103,6 +103,31 @@ const ADDON_FEATURE_MAP: Record<string, FeatureKey> = {
   quickbooks_sync: 'quickbooks_sync',
   customer_portal_pro: 'customer_portal',
   portal_pro: 'customer_portal',
+};
+
+/**
+ * Monthly list prices in USD, for marketing copy that quotes them (the
+ * /compare pages). Stripe is the source of truth for what is charged;
+ * compare-pricing-drift.test.js fails if these disagree with
+ * scripts/stripe-products.js.
+ */
+export const PLAN_MONTHLY_PRICE: Record<PlanTier, number> = {
+  booking_only: 15,
+  invoicing_only: 15,
+  starter: 49,
+  pro: 79,
+  elite: 129,
+};
+
+/** Monthly list prices in USD for add-ons, keyed by Stripe product id. */
+export const ADDON_MONTHLY_PRICE: Record<string, number> = {
+  jenny_pro: 49,
+  jenny_exec_admin: 79,
+  website_builder: 25,
+  keep_me_legal: 29,
+  quickbooks_sync: 12,
+  customer_portal_pro: 24,
+  extra_worker: 7,
 };
 
 /** Max team members (including owner) per plan tier */

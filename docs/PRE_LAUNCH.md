@@ -54,19 +54,34 @@ Elite"), the app **stays on Free Trial** and never upgrades. Confirmed in TC-BIL
    missing its trailing slash).
 
 
-### 2. Quote approval gate not enforced before send
-**Impact:** medium — an employee/admin can send a quote (with pricing) to a customer
-without owner review. The intended control ("employee/admin quotes need owner approval
-before they go out") is **not enforced** in the send path — `/api/quote/send` has no
-role check, and no `pending_approval` routing was found in the quote builder. The
-`pending_approval` status exists but isn't wired to the send flow.
+### 2. Quote approval gate not enforced before send — FIXED
+**Impact:** medium — an employee/admin could send a quote (with pricing) to a customer
+without owner review. The gap: the main quotes dashboard already routed plain workers to
+"Submit for Approval", but the **smart-quote builder** set `status: 'sent'` and emailed
+the customer with **no approval routing**, and nothing enforced the gate on the server.
 
-**Still to verify:** send a quote **as a worker/admin account** and confirm whether it's
-held for approval (owner-sent quotes are correctly allowed to go directly). QA so far was
-done as the owner, which can't reveal the gap.
+**Fix (shipped):**
+- **`src/lib/quote-approval.ts`** — one shared `canSendQuoteDirectly()` rule, now the single
+  source of truth for the dashboard, the builder, and the server. Owners always send
+  directly; admins/worker_admins do unless the `quotes` permission is toggled off or the
+  company turns on required approval; plain workers never do; a designated approver always can.
+- **Server gate in `/api/quote/save`** — the authoritative enforcement. If a caller who may
+  not send directly tries to save a quote as `sent`, the route **downgrades it to
+  `pending_approval`** and strips the sent stamps, then returns `pendingApproval: true`.
+  This closes the hole "by role, not just the UI" — a hand-crafted request can't bypass it.
+- **Smart-quote builder** — when the server holds a quote, it now **skips the customer
+  send**, notifies the owner(s)/approver(s), and tells the user it's pending approval.
+- **Dashboard** — refactored to the shared helper (behavior unchanged).
 
-**If confirmed missing (feature work):** non-owner send → `pending_approval` → owner
-approves → then send; gate the send API by role, not just the UI.
+**Tests:** `quote-approval.test.ts` (helper matrix) and new `quote-save.test.js` cases
+(worker `sent` → held; owner `sent` → sent; admin held only when approval required; drafts
+never gated). Full suite green (1056).
+
+**Residual (follow-up, not a blocker):** the dashboard's *own* "Send" button does a direct
+client-side status update (RLS-permitted for company members) and is gated in the UI only.
+A DB trigger/RLS policy blocking a non-approver from setting `status = 'sent'` would make
+that path belt-and-suspenders too. The realistic hole (builder sending without review, no
+server enforcement) is closed.
 
 ### 3. New-signup could land in the app without ever setting a password — FIXED
 **Impact:** high (front door). On email confirmation, `/auth/callback` checks
@@ -88,15 +103,25 @@ reset link → set a password.
 
 ## 🚦 Config / dashboard tasks before launch (no code)
 
-- [ ] **Stripe payment webhook — LIVE** (blocker #1 for production). Set up the live
-      endpoint + `STRIPE_CONNECT_WEBHOOK_SECRET` on the production env.
-- [ ] **Stripe Connect branding — LIVE mode.** Rename `ToolTimePro` → `Task Iguana` in
-      Stripe Dashboard → Settings → Connect → Onboarding interface → Branding (branding
-      is a live-mode setting; it can't be edited from the sandbox). Also update
-      Settings → Business → Public details.
-- [ ] **Email domain warm-up.** Invoice + signup emails currently land in spam/junk
-      (young `taskiguana.com` domain). Warm the domain / confirm SPF·DKIM·DMARC so mail
-      reaches the inbox before launch.
+- [x] **Stripe webhooks — LIVE** (blocker #1 for production). ✅ Done. Both live endpoints
+      wired at `www.taskiguana.com` with **trailing slashes**:
+      `adventurous-celebration` → `/api/webhook/stripe/` (billing, snapshot, 19 events) and a
+      new snapshot destination → `/api/webhook/stripe-connect/` (invoices,
+      `checkout.session.completed`). Each endpoint's live `whsec_…` is in the Netlify
+      **Production** slot of `STRIPE_WEBHOOK_SECRET` / `STRIPE_CONNECT_WEBHOOK_SECRET`; the
+      **Branch deploys** (+ other non-prod) slots keep the sandbox (charming-serenity /
+      charming-oasis) secrets. The leftover V2 `sophisticated-finesse` endpoint is
+      unused by the app. Verifies on the first real live payment.
+- [x] **Stripe Connect branding — LIVE mode.** ✅ Done. Renamed to **Task Iguana** with
+      brand colors in Settings → Connect → Branding, plus public business details.
+- [x] **Email auth (SPF·DKIM·DMARC).** ✅ Done. Netlify DNS confirmed: Resend **DKIM**
+      (`resend._domainkey`), **SPF** on `send.taskiguana.com` (`include:amazonses.com`) and
+      root (`include:_spf.google.com`), and a **single** valid **DMARC**
+      (`v=DMARC1; p=none; rua=…`) after removing an accidental duplicate (two `_dmarc`
+      records = invalid). `from` = `no-reply@taskiguana.com` aligns to the DKIM domain, so
+      no subdomain change needed. **Remaining:** young-domain *reputation* warm-up only —
+      steady low volume, ask first users to mark "Not junk"/reply; verify ~9–10/10 on
+      mail-tester.com. Not a config gap.
 
 ---
 
