@@ -11,7 +11,7 @@ import {
   MIN_JOBS_FOR_TYPICAL,
   type CrewJob,
 } from './crew-insights';
-import { median } from './step-times';
+import { median, MIN_JOBS_FOR_RUSHED, RUSHED_JOB_RATIO } from './step-times';
 
 export const GENERAL_JOB_TYPE = 'General';
 // Keep .in() lists short enough for the request URL.
@@ -200,8 +200,11 @@ export async function fetchServiceTypical(
   const minutes = Object.values(spans)
     .map((s) => jobOnSiteMinutes(s))
     .filter((m): m is number => m !== null);
+  // Same rule as everywhere else: rushed jobs don't set the normal.
+  const first = median(minutes);
+  const normal = minutes.length >= MIN_JOBS_FOR_RUSHED ? minutes.filter((m) => m >= first * RUSHED_JOB_RATIO) : minutes;
   return {
-    medianMinutes: minutes.length >= MIN_JOBS_FOR_TYPICAL ? median(minutes) : null,
+    medianMinutes: minutes.length >= MIN_JOBS_FOR_TYPICAL ? median(normal.length ? normal : minutes) : null,
     samples: minutes.length,
     configuredMinutes,
   };

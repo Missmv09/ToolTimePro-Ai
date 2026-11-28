@@ -87,7 +87,7 @@ export default function StepTimesPage() {
         <Link href="/dashboard/reports" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <ArrowLeft size={16} /> Reports
         </Link>
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mt-2">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Timer className="text-blue-600" size={24} /> Step Times
@@ -110,7 +110,7 @@ export default function StepTimesPage() {
               <button
                 key={d}
                 onClick={() => setRangeDays(d)}
-                className={rangeDays === d ? 'btn-primary text-sm' : 'btn-ghost text-sm'}
+                className={`${rangeDays === d ? 'btn-primary' : 'btn-ghost'} text-sm whitespace-nowrap`}
               >
                 {d === 365 ? 'Last year' : `Last ${d} days`}
               </button>
@@ -125,7 +125,9 @@ export default function StepTimesPage() {
           A step&apos;s time is the gap between its check and the check before it (the first step counts from
           clock-in). Steps after a skipped item aren&apos;t timed. Jobs where every item was checked within{' '}
           {TAP_THROUGH_SECONDS} seconds are treated as tapped through and left out. Workers are flagged only
-          after {MIN_SAMPLES_TO_FLAG}+ timed instances of a step. Compare one job type at a time for the fairest picture.
+          after {MIN_SAMPLES_TO_FLAG}+ timed instances of a step. Jobs finished in well under the normal time
+          don&apos;t count toward &ldquo;typical&rdquo;, so rushing can&apos;t make careful work look slow. Compare one job type
+          at a time for the fairest picture.
         </p>
       </div>
 

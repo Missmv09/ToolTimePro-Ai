@@ -15,6 +15,8 @@ import {
   buildStepTimesReport,
   isTappedThrough,
   median,
+  RUSHED_JOB_RATIO,
+  MIN_JOBS_FOR_RUSHED,
   type StepJobInput,
   type StepTimesReport,
 } from './step-times';
@@ -96,7 +98,11 @@ export function typicalMinutesByType(jobs: CrewJob[]): Record<string, JobTypeTyp
   }
   const out: Record<string, JobTypeTypical> = {};
   for (const [jobType, list] of Object.entries(byType)) {
-    out[jobType] = { jobType, medianMinutes: median(list), samples: list.length };
+    // Jobs finished in well under normal time don't set the normal: a rushed
+    // worker would otherwise make everyone doing it properly look slow.
+    const first = median(list);
+    const normal = list.length >= MIN_JOBS_FOR_RUSHED ? list.filter((m) => m >= first * RUSHED_JOB_RATIO) : list;
+    out[jobType] = { jobType, medianMinutes: median(normal.length ? normal : list), samples: list.length };
   }
   return out;
 }

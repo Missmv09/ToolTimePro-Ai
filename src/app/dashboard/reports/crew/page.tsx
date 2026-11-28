@@ -87,7 +87,7 @@ export default function CrewReportPage() {
         <Link href="/dashboard/reports" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <ArrowLeft size={16} /> Reports
         </Link>
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mt-2">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Users className="text-blue-600" size={24} /> Crew Insights
@@ -99,7 +99,7 @@ export default function CrewReportPage() {
               <Timer size={16} /> Step Times
             </Link>
             {([30, 90, 365] as RangeDays[]).map((d) => (
-              <button key={d} onClick={() => setRangeDays(d)} className={rangeDays === d ? 'btn-primary text-sm' : 'btn-ghost text-sm'}>
+              <button key={d} onClick={() => setRangeDays(d)} className={`${rangeDays === d ? 'btn-primary' : 'btn-ghost'} text-sm whitespace-nowrap`}>
                 {d === 365 ? 'Last year' : `Last ${d} days`}
               </button>
             ))}

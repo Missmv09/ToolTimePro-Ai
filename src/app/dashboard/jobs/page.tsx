@@ -1201,7 +1201,7 @@ function JobChecklistProgress({ jobId, workers }: {
                 {formatChecklistTime(item.completedAt, company?.timezone)}
                 <span className="block">{workerName(item.completedBy)}</span>
                 {checkLocationStatus(item, site?.lat, site?.lng) === 'away' && (
-                  <span className="block text-amber-700" title="Checked more than 250 m from the job address">
+                  <span className="block font-medium text-red-600" title="Checked more than 250 m from the job address">
                     Away from site
                   </span>
                 )}

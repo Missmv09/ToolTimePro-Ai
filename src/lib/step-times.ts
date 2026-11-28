@@ -72,6 +72,8 @@ export interface StepTimesReport {
   tappedThroughJobs: number;
   /** workerId -> number of tapped-through jobs they checked. */
   tappedThroughByWorker: Record<string, number>;
+  /** Jobs done so far under normal time they were left out of "typical". */
+  rushedJobsExcludedFromTypical: number;
 }
 
 export function median(values: number[]): number {
@@ -127,11 +129,43 @@ export function jobStepSamples(job: StepJobInput): StepSample[] {
   return samples;
 }
 
+/**
+ * A job finished in under this share of the normal job time doesn't count
+ * toward "typical": otherwise a rushed worker drags typical down and makes
+ * everyone doing the job properly look slow.
+ */
+export const RUSHED_JOB_RATIO = 0.6;
+/** Need this many timed jobs before deciding any of them were rushed. */
+export const MIN_JOBS_FOR_RUSHED = 5;
+
+/** Clock-in (or first check) to last check, in minutes. */
+function checklistSpanMinutes(job: StepJobInput): number | null {
+  const times = job.items
+    .filter((i) => i.completed && i.completedAt)
+    .map((i) => ms(i.completedAt))
+    .filter((t) => !isNaN(t));
+  if (times.length < 2) return null;
+  const start = !isNaN(ms(job.clockIn)) ? ms(job.clockIn) : Math.min(...times);
+  const minutes = (Math.max(...times) - start) / 60000;
+  return minutes > 0 ? minutes : null;
+}
+
+/** Job ids done in well under the normal time, among the given (non-tapped) jobs. */
+export function rushedJobIds(jobs: StepJobInput[]): Set<string> {
+  const spans = jobs
+    .map((j) => ({ id: j.jobId, span: checklistSpanMinutes(j) }))
+    .filter((x): x is { id: string; span: number } => x.span !== null);
+  if (spans.length < MIN_JOBS_FOR_RUSHED) return new Set();
+  const normal = median(spans.map((x) => x.span));
+  return new Set(spans.filter((x) => x.span < normal * RUSHED_JOB_RATIO).map((x) => x.id));
+}
+
 export function buildStepTimesReport(jobs: StepJobInput[]): StepTimesReport {
   const tappedThroughByWorker: Record<string, number> = {};
   let tappedThroughJobs = 0;
   const samples: StepSample[] = [];
   let jobsAnalyzed = 0;
+  const timedJobs: StepJobInput[] = [];
 
   for (const job of jobs) {
     if (!job.items.some((i) => i.completed && i.completedAt)) continue;
@@ -141,6 +175,11 @@ export function buildStepTimesReport(jobs: StepJobInput[]): StepTimesReport {
       workers.forEach((w) => { tappedThroughByWorker[w] = (tappedThroughByWorker[w] || 0) + 1; });
       continue;
     }
+    timedJobs.push(job);
+  }
+  const rushed = rushedJobIds(timedJobs);
+
+  for (const job of timedJobs) {
     const jobSamples = jobStepSamples(job);
     if (jobSamples.length > 0) jobsAnalyzed++;
     samples.push(...jobSamples);
@@ -154,7 +193,8 @@ export function buildStepTimesReport(jobs: StepJobInput[]): StepTimesReport {
   }
 
   const steps: StepStat[] = Array.from(byStep.entries()).map(([step, list]) => {
-    const teamMedian = median(list.map((s) => s.minutes));
+    const normalSamples = list.filter((s) => !rushed.has(s.jobId));
+    const teamMedian = median((normalSamples.length ? normalSamples : list).map((s) => s.minutes));
     const byWorker = new Map<string, number[]>();
     for (const s of list) {
       const arr = byWorker.get(s.workerId) || [];
@@ -183,7 +223,13 @@ export function buildStepTimesReport(jobs: StepJobInput[]): StepTimesReport {
   });
 
   steps.sort((a, b) => a.stepOrder - b.stepOrder);
-  return { steps, jobsAnalyzed, tappedThroughJobs, tappedThroughByWorker };
+  return {
+    steps,
+    jobsAnalyzed,
+    tappedThroughJobs,
+    tappedThroughByWorker,
+    rushedJobsExcludedFromTypical: rushed.size,
+  };
 }
 
 /** "45 min", "1h 20m", "<1 min". */

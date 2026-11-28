@@ -106,8 +106,30 @@ describe('buildStepTimesReport', () => {
 
   it('ignores jobs with nothing checked', () => {
     expect(buildStepTimesReport([job('x', 'ana', [null, null])])).toEqual({
-      steps: [], jobsAnalyzed: 0, tappedThroughJobs: 0, tappedThroughByWorker: {},
+      steps: [], jobsAnalyzed: 0, tappedThroughJobs: 0, tappedThroughByWorker: {}, rushedJobsExcludedFromTypical: 0,
     });
+  });
+});
+
+describe('rushed jobs do not set "typical"', () => {
+  it('a rushed worker does not make the steady one look slow', () => {
+    // Ana: 60-min jobs, step 2 takes 30 min. Ben: 25-min jobs, step 2 takes 10 min.
+    const jobs = [
+      ...Array.from({ length: 6 }, (_, i) => job(`a${i}`, 'ana', [5, 35, 58])),
+      ...Array.from({ length: 6 }, (_, i) => job(`b${i}`, 'ben', [2, 12, 24])),
+    ];
+    const report = buildStepTimesReport(jobs);
+    expect(report.rushedJobsExcludedFromTypical).toBe(6);
+    const step2 = report.steps.find((s) => s.step === 'Step 2')!;
+    expect(step2.teamMedianMinutes).toBe(30);
+    expect(step2.workers.find((w) => w.workerId === 'ana')!.flag).toBeNull();
+    // Ben still appears, flagged as much faster than typical.
+    expect(step2.workers.find((w) => w.workerId === 'ben')!.flag).toBe('fast');
+  });
+
+  it('needs enough jobs before calling any rushed', () => {
+    const report = buildStepTimesReport([job('a', 'ana', [5, 35, 58]), job('b', 'ben', [2, 12, 24])]);
+    expect(report.rushedJobsExcludedFromTypical).toBe(0);
   });
 });
 
